@@ -775,30 +775,56 @@ export interface ListToolsResult extends PaginatedResult {
  *
  * @category tools/call
  */
-export interface CallToolResult extends Result {
+export type CallToolResult =
+  | CallToolUnstructuredResult
+  | CallToolStructuredResult;
+
+/**
+ * Tool result for tools that do not declare an outputSchema.
+ */
+export interface CallToolUnstructuredResult extends Result {
   /**
-   * A list of content objects that represent the unstructured result of the tool call.
+   * A list of content objects that represent the result of the tool call.
+   *
+   * If the Tool does not define an outputSchema, this field MUST be present in the result.
    */
   content: ContentBlock[];
 
   /**
-   * An optional JSON object that represents the structured result of the tool call.
+   * Structured output must not be provided in an unstructured tool result.
    */
-  structuredContent?: { [key: string]: unknown };
+  structuredContent: never;
 
   /**
    * Whether the tool call ended in an error.
    *
    * If not set, this is assumed to be false (the call was successful).
+   */
+  isError?: boolean;
+}
+
+/**
+ * Tool result for tools that do declare an outputSchema.
+ */
+export interface CallToolStructuredResult extends Result {
+  /**
+   * An object containing structured tool output.
    *
-   * Any errors that originate from the tool SHOULD be reported inside the result
-   * object, with `isError` set to true, _not_ as an MCP protocol-level error
-   * response. Otherwise, the LLM would not be able to see that an error occurred
-   * and self-correct.
+   * If the Tool defines an outputSchema, this field MUST be present in the result, and contain a JSON object that matches the schema.
+   */
+  structuredContent: { [key: string]: unknown };
+
+  /**
+   * If the Tool defines an outputSchema, this field MAY be present in the result.
+   * Tools should use this field to provide compatibility with older clients that do not support structured content.
+   * Clients that support structured content should ignore this field.
+   */
+  content?: ContentBlock[];
+
+  /**
+   * Whether the tool call ended in an error.
    *
-   * However, any errors in _finding_ the tool, an error indicating that the
-   * server does not support tool calls, or any other exceptional conditions,
-   * should be reported as an MCP error response.
+   * If not set, this is assumed to be false (the call was successful).
    */
   isError?: boolean;
 }
@@ -1036,7 +1062,7 @@ export interface CreateMessageResult extends Result, SamplingMessage {
  */
 export interface SamplingMessage {
   role: Role;
-  content: TextContent | ImageContent | AudioContent;
+  content: ContentBlock;
 }
 
 /**

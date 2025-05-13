@@ -167,6 +167,22 @@ Sampling messages can contain:
 }
 ```
 
+#### Embedded Resources
+
+[Resources](/specification/draft/server/resources) **MAY** be embedded, to provide additional context
+or data, behind a URI that can be subscribed to or fetched again by the client later:
+
+```json
+{
+  "type": "resource",
+  "resource": {
+    "uri": "resource://example",
+    "mimeType": "text/plain",
+    "text": "Resource content"
+  }
+}
+```
+
 ### Model Preferences
 
 Model selection in MCP requires careful abstraction since servers and clients may use
