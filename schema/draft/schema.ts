@@ -775,56 +775,30 @@ export interface ListToolsResult extends PaginatedResult {
  *
  * @category tools/call
  */
-export type CallToolResult =
-  | CallToolUnstructuredResult
-  | CallToolStructuredResult;
-
-/**
- * Tool result for tools that do not declare an outputSchema.
- */
-export interface CallToolUnstructuredResult extends Result {
+export interface CallToolResult extends Result {
   /**
-   * A list of content objects that represent the result of the tool call.
-   *
-   * If the Tool does not define an outputSchema, this field MUST be present in the result.
+   * A list of content objects that represent the unstructured result of the tool call.
    */
   content: ContentBlock[];
 
   /**
-   * Structured output must not be provided in an unstructured tool result.
+   * An optional JSON object that represents the structured result of the tool call.
    */
-  structuredContent: never;
+  structuredContent?: { [key: string]: unknown };
 
   /**
    * Whether the tool call ended in an error.
    *
    * If not set, this is assumed to be false (the call was successful).
-   */
-  isError?: boolean;
-}
-
-/**
- * Tool result for tools that do declare an outputSchema.
- */
-export interface CallToolStructuredResult extends Result {
-  /**
-   * An object containing structured tool output.
    *
-   * If the Tool defines an outputSchema, this field MUST be present in the result, and contain a JSON object that matches the schema.
-   */
-  structuredContent: { [key: string]: unknown };
-
-  /**
-   * If the Tool defines an outputSchema, this field MAY be present in the result.
-   * Tools should use this field to provide compatibility with older clients that do not support structured content.
-   * Clients that support structured content should ignore this field.
-   */
-  content?: ContentBlock[];
-
-  /**
-   * Whether the tool call ended in an error.
+   * Any errors that originate from the tool SHOULD be reported inside the result
+   * object, with `isError` set to true, _not_ as an MCP protocol-level error
+   * response. Otherwise, the LLM would not be able to see that an error occurred
+   * and self-correct.
    *
-   * If not set, this is assumed to be false (the call was successful).
+   * However, any errors in _finding_ the tool, an error indicating that the
+   * server does not support tool calls, or any other exceptional conditions,
+   * should be reported as an MCP error response.
    */
   isError?: boolean;
 }

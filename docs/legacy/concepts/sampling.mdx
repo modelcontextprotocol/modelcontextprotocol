@@ -33,14 +33,22 @@ Sampling requests use a standardized message format:
     {
       role: "user" | "assistant",
       content: {
-        type: "text" | "image",
+        type: "text" | "image" | "audio" | "resource",
 
         // For text:
         text?: string,
 
-        // For images:
+        // For images/audio:
         data?: string,             // base64 encoded
-        mimeType?: string
+        mimeType?: string,
+
+        // For resources:
+        resource?: {
+          uri: string,
+          mimeType: string,
+          text?: string,           // for text resources
+          blob?: string            // for blob resources, base64 encoded
+        }
       }
     }
   ],
@@ -70,7 +78,8 @@ The `messages` array contains the conversation history to send to the LLM. Each 
 - `role`: Either "user" or "assistant"
 - `content`: The message content, which can be:
   - Text content with a `text` field
-  - Image content with `data` (base64) and `mimeType` fields
+  - Image/audio content with `data` (base64) and `mimeType` fields
+  - An embedded [resource](/docs/concepts/resources)
 
 ### Model preferences
 
