@@ -3,7 +3,7 @@ title: "Sampling"
 description: "Let your servers request completions from client LLMs"
 ---
 
-Sampling is a powerful MCP feature that allows servers to request LLM completions through the client, enabling sophisticated agentic behaviors such as agent-to-agent communication while maintaining security and privacy.
+Sampling is a powerful MCP feature that allows servers to request LLM completions through the client, enabling sophisticated LLM-enhanced behaviors while maintaining security and privacy.
 
 <Info>
 
@@ -13,15 +13,16 @@ This feature of MCP is not yet supported in the Claude Desktop client.
 
 ## Overview
 
-Sampling allows an MCP server to request completions from (or "sample") an LLM owned by an MCP client. This enables complex collaborative interactions within other MCP features, such as [tools](/docs/concepts/tools) and [prompts](/docs/concepts/prompts).
+Sampling allows an MCP server to request completions from (or "sample") an LLM controlled by an MCP client.
+This enables servers to leverage an LLM as part of other MCP interactions, such as [tools](/docs/concepts/tools) and [prompts](/docs/concepts/prompts), without needing additional infrastructure or configuration to directly integrate with model providers themselves.
 
-Sampling enables agentic patterns such as:
+Sampling flows generally follow these steps:
 
-- Negotiating interactions with other LLM-controlled agents
-- Providing interactive assistance to users
-- Making decisions based on context
-- Generating natural language data
-- Handling multi-step tasks
+1. The server sends a `sampling/createMessage` request to the client, containing a prompt and other information
+2. The client reviews the request and may modify it
+3. The client requests the completion from its own LLM
+4. The client reviews the completion
+5. The client responds to the server with the LLM-generated completion
 
 ## Capabilities
 
@@ -41,6 +42,9 @@ Sampling is only supported when interacting with clients that have declared supp
 Sampling can be a standalone server-initiated interaction, but works best when used within other MCP features. The following example demonstrates how sampling can be used within tool interactions:
 
 ### Server
+
+This server exposes a single `add` tool which asks the client's LLM for the sum of the two inputs. Upon receiving a response from the client, the server extracts the result and returns the tool call result back to the client.
+In effect, the server has made its own request from the client within that client's existing tool call request.
 
 ```typescript
 import assert from "node:assert";
@@ -96,6 +100,9 @@ await server.connect(transport);
 ```
 
 ### Client
+
+The client is responsible for collecting the server's system prompt and messages into a single request to send to the model provider it uses.
+In this toy example, we simply have the client return a fixed text response, instead.
 
 ```typescript
 const transport = new StdioClientTransport({
@@ -154,6 +161,8 @@ const toolResult = await client.callTool({
 ```
 
 **Result:**
+
+Upon running this example, the sampling request executes within the tool call, and the final result is returned as expected.
 
 ```typescript
 {
