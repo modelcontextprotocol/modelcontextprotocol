@@ -157,7 +157,7 @@ The FastMCP class uses Python type hints and docstrings to automatically generat
 
 ### Helper functions
 
-Next, let's add our helper functions for querying and formatting the data from the National Weather Service API:
+Next, let's add our helper functions for querying and formatting the data from the US National Weather Service API:
 
 ```python
 async def make_nws_request(url: str) -> dict[str, Any] | None:
@@ -510,7 +510,7 @@ const server = new McpServer({
 
 ### Helper functions
 
-Next, let's add our helper functions for querying and formatting the data from the National Weather Service API:
+Next, let's add our helper functions for querying and formatting the data from the US National Weather Service API:
 
 ```typescript
 // Helper function for making NWS API requests
@@ -909,7 +909,7 @@ Now let's dive into building your server.
 
 ### Weather Service
 
-Let's implement a [WeatherService.java](https://github.com/spring-projects/spring-ai-examples/blob/main/model-context-protocol/weather/starter-stdio-server/src/main/java/org/springframework/ai/mcp/sample/server/WeatherService.java) that uses a REST client to query the data from the National Weather Service API:
+Let's implement a [WeatherService.java](https://github.com/spring-projects/spring-ai-examples/blob/main/model-context-protocol/weather/starter-stdio-server/src/main/java/org/springframework/ai/mcp/sample/server/WeatherService.java) that uses a REST client to query the data from the US National Weather Service API:
 
 ```java
 @Service
@@ -1274,7 +1274,7 @@ fun `run mcp server`() {
 
 ### Weather API helper functions
 
-Next, let's add functions and data classes for querying and converting responses from the National Weather Service API:
+Next, let's add functions and data classes for querying and converting responses from the US National Weather Service API:
 
 ```kotlin
 // Extension function to fetch forecast information for given latitude and longitude
@@ -1641,7 +1641,7 @@ internal static class HttpClientExt
 }
 ```
 
-Next, define a class with the tool execution handlers for querying and converting responses from the National Weather Service API:
+Next, define a class with the tool execution handlers for querying and converting responses from the US National Weather Service API:
 
 ```csharp
 using ModelContextProtocol.Server;
@@ -1813,7 +1813,7 @@ If the tool settings icon has shown up, you can now test your server by running 
 
 <Note>
 
-Since this is the US National Weather service, the queries will only work for US locations.
+Since this is the US National Weather Service, the queries will only work for US locations.
 
 </Note>
 
