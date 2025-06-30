@@ -172,9 +172,7 @@
                     "type": "boolean"
                 },
                 "structuredContent": {
-                    "additionalProperties": {},
-                    "description": "An optional JSON object that represents the structured result of the tool call.",
-                    "type": "object"
+                    "description": "An optional JSON value that represents the structured result of the tool call.\nMUST conform to the outputSchema if specified in the tool definition."
                 }
             },
             "required": [
@@ -2367,22 +2365,9 @@
                     "type": "string"
                 },
                 "inputSchema": {
-                    "description": "A JSON Schema object defining the expected parameters for the tool.",
+                    "additionalProperties": {},
+                    "description": "A JSON Schema object defining the expected parameters for the tool.\nWhile tools receive arguments as objects, this can be any valid JSON Schema to allow for\nsophisticated object validation patterns (like with \"oneOf\", \"anyOf\", etc.)",
                     "properties": {
-                        "properties": {
-                            "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
-                                "type": "object"
-                            },
-                            "type": "object"
-                        },
-                        "required": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
                         "type": {
                             "const": "object",
                             "type": "string"
@@ -2398,30 +2383,9 @@
                     "type": "string"
                 },
                 "outputSchema": {
-                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult.",
-                    "properties": {
-                        "properties": {
-                            "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
-                                "type": "object"
-                            },
-                            "type": "object"
-                        },
-                        "required": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "type": {
-                            "const": "object",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "type"
-                    ],
+                    "additionalProperties": true,
+                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult. This can be any valid JSON Schema.",
+                    "properties": {},
                     "type": "object"
                 },
                 "title": {
