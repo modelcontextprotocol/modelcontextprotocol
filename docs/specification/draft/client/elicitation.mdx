@@ -198,7 +198,9 @@ sequenceDiagram
 
 ## Request Schema
 
-The `requestedSchema` field allows servers to define the structure of the expected response using a restricted subset of JSON Schema. To simplify client user experience, elicitation schemas are limited to flat objects with primitive properties only:
+The `requestedSchema` field allows servers to define the structure of the expected response using a restricted subset of JSON Schema. To simplify implementation for clients, elicitation schemas are limited to flat objects with primitive properties only.
+
+Elicitation schemas follow the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage) with additional restrictions:
 
 ```json
 "requestedSchema": {
