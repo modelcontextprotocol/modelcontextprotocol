@@ -1,0 +1,282 @@
+{
+  "servers": {
+    "CalcServer": {
+      "description": "A calculator server with basic arithmetic operations, trigonometric functions, resource management, sampling capabilities, and prompt templates",
+      "tools": {
+        "add": {
+          "description": "Adds two numbers a and b together and returns the sum"
+        },
+        "ambiguous_add": {
+          "description": "Adds two numbers together but only accepts 'a' input and uses elicitation to request 'b' input from the user"
+        },
+        "cos": {
+          "description": "Calculates the cosine of an angle in radians (disabled by default)"
+        },
+        "sin": {
+          "description": "Calculates the sine of an angle in radians (disabled by default)"
+        },
+        "set_trig_allowed": {
+          "description": "Enables or disables trigonometric functions (cos and sin) per-client"
+        },
+        "write_special_number": {
+          "description": "Updates the special number resource with a new value"
+        },
+        "eval_with_sampling": {
+          "description": "Evaluates a string arithmetic expression using LLM sampling to parse and compute the result"
+        }
+      },
+      "resources": {
+        "resource://special-number": {
+          "description": "A mutable number resource that can be read and updated via tools"
+        }
+      },
+      "resourceTemplates": {},
+      "prompts": {
+        "example-maths": {
+          "description": "A prompt template that helps with mathematical problem solving"
+        }
+      },
+      "promptTemplates": {}
+    },
+    "FileServer": {
+      "description": "A server that provides file system access with resource templates and subscriptions",
+      "tools": {
+        "write_file": {
+          "description": "Writes content to a file at the specified path"
+        },
+        "delete_file": {
+          "description": "Deletes a file at the specified path"
+        }
+      },
+      "resources": {
+        "file:///test/static.txt": {
+          "description": "A static test file resource"
+        }
+      },
+      "resourceTemplates": {
+        "file:///{path}": {
+          "description": "Access any file by providing its path",
+          "params": {
+            "path": {
+              "description": "The file path relative to the root directory"
+            }
+          }
+        }
+      },
+      "prompts": {
+        "code_review": {
+          "description": "Analyzes code quality and suggests improvements"
+        }
+      },
+      "promptTemplates": {
+        "summarize_file": {
+          "description": "Summarizes the content of a file at the given path",
+          "params": {
+            "path": {
+              "description": "The file path to summarize"
+            }
+          }
+        }
+      }
+    },
+    "ErrorServer": {
+      "description": "A server designed to test error handling and edge cases",
+      "tools": {
+        "always_error": {
+          "description": "Always returns a tool execution error"
+        },
+        "timeout": {
+          "description": "Takes a long time to execute, useful for testing timeouts"
+        },
+        "invalid_response": {
+          "description": "Returns a response that doesn't match its declared schema"
+        }
+      },
+      "resources": {
+        "error://not-found": {
+          "description": "A resource that always returns not found error"
+        }
+      },
+      "resourceTemplates": {},
+      "prompts": {},
+      "promptTemplates": {}
+    }
+  },
+  "scenarios": [
+    {
+      "id": 1,
+      "description": "client1 connects to CalcServer and calls add(a=10, b=20), gets result of 30",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 2,
+      "description": "client1 connects to CalcServer and calls ambiguous_add(a=10), receives elicitation for b, responds with 20, gets result of 30",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 3,
+      "description": "client1 & client2 connect to CalcServer; client1 calls set_trig_allowed(allowed=true); client1 gets list of tools that includes cos & sin, and client2 gets list of tools that doesn't",
+      "client_ids": ["client1", "client2"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 4,
+      "description": "client1 connects to CalcServer, reads resource://special-number (gets 42), calls write_special_number(value=100), reads resource://special-number again (gets 100)",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 5,
+      "description": "client1 connects to CalcServer, subscribes to resource://special-number, calls write_special_number(value=99), receives resource update notification",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 6,
+      "description": "client1 connects to CalcServer, gets prompt 'example-maths' with arguments {problem: 'What is 5 factorial?'}, receives prompt messages",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 7,
+      "description": "client1 connects to CalcServer, calls eval_with_sampling(expression='2 + 2 * 3'), server requests LLM sampling, client provides result, server returns 8",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 8,
+      "description": "client1 connects to FileServer, lists resources with pagination (cursor-based), reads file:///test/static.txt",
+      "client_ids": ["client1"],
+      "server_name": "FileServer",
+      "http_only": false
+    },
+    {
+      "id": 9,
+      "description": "client1 connects to FileServer, reads resource via template file:///test/dynamic.txt, writes content, subscribes, modifies file, receives update notification",
+      "client_ids": ["client1"],
+      "server_name": "FileServer",
+      "http_only": false
+    },
+    {
+      "id": 10,
+      "description": "client1 connects to FileServer, gets prompt template 'summarize_file' with path='/test/static.txt', receives generated prompt",
+      "client_ids": ["client1"],
+      "server_name": "FileServer",
+      "http_only": false
+    },
+    {
+      "id": 11,
+      "description": "client1 connects to ErrorServer, calls always_error tool, receives tool execution error",
+      "client_ids": ["client1"],
+      "server_name": "ErrorServer",
+      "http_only": false
+    },
+    {
+      "id": 12,
+      "description": "client1 connects to ErrorServer, calls timeout tool, sends cancellation after 2 seconds, receives cancellation confirmation",
+      "client_ids": ["client1"],
+      "server_name": "ErrorServer",
+      "http_only": false
+    },
+    {
+      "id": 13,
+      "description": "client1 connects to CalcServer over stdio transport, performs initialization handshake with capability negotiation",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 14,
+      "description": "client1 connects to CalcServer over streamable HTTP transport, performs initialization with session management",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": true
+    },
+    {
+      "id": 15,
+      "description": "client1 connects to CalcServer, server sends progress notifications during long-running tool execution",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 16,
+      "description": "client1 connects to CalcServer, requests tool list, server emits tools/list_changed notification, client re-requests list",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 17,
+      "description": "client1 connects to FileServer, server emits resources/list_changed notification after file creation",
+      "client_ids": ["client1"],
+      "server_name": "FileServer",
+      "http_only": false
+    },
+    {
+      "id": 18,
+      "description": "client1 connects to CalcServer, calls add with invalid arguments, receives proper JSON-RPC error",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 19,
+      "description": "client1 connects to CalcServer over SSE transport, maintains persistent connection for server-initiated requests",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": true
+    },
+    {
+      "id": 20,
+      "description": "client1 connects to FileServer, server requests roots list from client, client provides filesystem roots",
+      "client_ids": ["client1"],
+      "server_name": "FileServer",
+      "http_only": false
+    },
+    {
+      "id": 21,
+      "description": "client1 connects with unsupported protocol version, receives version negotiation error",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 22,
+      "description": "client1 connects to CalcServer, server sends logging messages at different levels during operation",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 23,
+      "description": "client1 connects to CalcServer over streamable HTTP, connection drops and resumes with Last-Event-ID",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": true
+    },
+    {
+      "id": 24,
+      "description": "client1 connects to CalcServer, calls ambiguous_add, user declines elicitation request, tool returns appropriate error",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    },
+    {
+      "id": 25,
+      "description": "client1 connects to CalcServer, calls ambiguous_add, user cancels elicitation dialog, tool handles cancellation",
+      "client_ids": ["client1"],
+      "server_name": "CalcServer",
+      "http_only": false
+    }
+  ]
+}
