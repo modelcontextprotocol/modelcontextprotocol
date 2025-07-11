@@ -60,12 +60,24 @@
         "BaseMetadata": {
             "description": "Base interface for metadata with name (identifier) and title (display name) properties.",
             "properties": {
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -764,6 +776,25 @@
             ],
             "type": "object"
         },
+        "Icons": {
+            "properties": {
+                "mimeType": {
+                    "description": "The MIME type of the icon.",
+                    "type": "string"
+                },
+                "sizes": {
+                    "description": "A string that specifies one or more sizes at which the icon file can be used.\nEach size is specified as <width in pixels>x<height in pixels>. If multiple sizes are specified, they are separated by spaces; for example, 48x48 96x96.\nFor vector formats like SVG, you can use any to indicate scalability",
+                    "type": "string"
+                },
+                "src": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "src"
+            ],
+            "type": "object"
+        },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
             "properties": {
@@ -798,8 +829,15 @@
             "type": "object"
         },
         "Implementation": {
-            "description": "Describes the name and version of an MCP implementation, with an optional title for UI representation.",
+            "description": "Describes the MCP implementation",
             "properties": {
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -809,6 +847,11 @@
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1566,12 +1609,24 @@
                     "description": "An optional description of what this prompt provides",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1587,6 +1642,13 @@
                     "description": "A human-readable description of the argument.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -1597,6 +1659,11 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1648,6 +1715,13 @@
         "PromptReference": {
             "description": "Identifies a prompt.",
             "properties": {
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -1658,6 +1732,11 @@
                 },
                 "type": {
                     "const": "ref/prompt",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1772,6 +1851,13 @@
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -1791,6 +1877,11 @@
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1839,6 +1930,13 @@
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -1862,6 +1960,11 @@
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1912,6 +2015,13 @@
                     "description": "A description of what this template is for.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.",
                     "type": "string"
@@ -1927,6 +2037,11 @@
                 "uriTemplate": {
                     "description": "A URI template (according to RFC 6570) that can be used to construct resource URIs.",
                     "format": "uri-template",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -2366,6 +2481,13 @@
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icons"
+                    },
+                    "type": "array"
+                },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
                     "properties": {
@@ -2426,6 +2548,11 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
