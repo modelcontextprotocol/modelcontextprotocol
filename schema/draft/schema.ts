@@ -288,6 +288,22 @@ export interface ServerCapabilities {
   };
 }
 
+interface Icons {
+  src: string;
+  /**
+   * The MIME type of the icon.
+   */
+  mimeType?: string;
+  /**
+   * A string that specifies one or more sizes at which the icon file can be used.
+   * Each size is specified as <width in pixels>x<height in pixels>. If multiple sizes are specified, they are separated by spaces; for example, 48x48 96x96.
+   * For vector formats like SVG, you can use any to indicate scalability
+   *
+   * @TJS-type string
+   */
+  sizes?: string;
+}
+
 /**
  * Base interface for metadata with name (identifier) and title (display name) properties.
  *
@@ -308,10 +324,27 @@ export interface BaseMetadata {
    * if present).
    */
   title?: string;
+
+  /**
+   * An optional URL of the website for this implementation.
+   *
+   * @format: uri
+   */
+  websiteUrl?: string;
+
+  /**
+   * An optional list of icons for this implementation.
+   * This can be used by clients to display the implementation in a user interface.
+   * Each icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.
+   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
+   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
+   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
+   */
+  icons?: Icons[];
 }
 
 /**
- * Describes the name and version of an MCP implementation, with an optional title for UI representation.
+ * Describes the MCP implementation
  */
 export interface Implementation extends BaseMetadata {
   version: string;
