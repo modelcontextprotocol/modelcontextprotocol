@@ -89,7 +89,7 @@ guidance on implementation details.
 Implementors should note that Protected Resource Metadata documents can define multiple authorization servers. The responsibility for selecting which authorization server to use lies with the MCP client, following the guidelines specified in
 [RFC9728 Section 7.6 "Authorization Servers"](https://datatracker.ietf.org/doc/html/rfc9728#name-authorization-servers).
 
-MCP servers **MUST** use the HTTP header `WWW-Authenticate` when returning a _401 Unauthorized_ to indicate the location of the resource server metadata URL
+MCP servers **MAY** use the HTTP header `WWW-Authenticate` when returning a _401 Unauthorized_ to indicate the location of the resource server metadata URL
 as described in [RFC9728 Section 5.1 "WWW-Authenticate Response"](https://datatracker.ietf.org/doc/html/rfc9728#name-www-authenticate-response).
 
 MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
@@ -121,12 +121,23 @@ sequenceDiagram
     participant M as MCP Server (Resource Server)
     participant A as Authorization Server
 
-    C->>M: MCP request without token
-    M-->>C: HTTP 401 Unauthorized with WWW-Authenticate header
-    Note over C: Extract resource_metadata<br />from WWW-Authenticate
-
+    Note over C: Try well-known metadata URL first
     C->>M: GET /.well-known/oauth-protected-resource
-    M-->>C: Resource metadata with authorization server URL
+    alt Metadata found
+        M-->>C: Resource metadata with authorization server URL
+    else Metadata not found (e.g. 404)
+        Note over C: Fallback to probing with unauthenticated request
+        C->>M: MCP request without token
+        M-->>C: HTTP 401 Unauthorized with optional WWW-Authenticate header
+        alt Header includes resource_metadata
+            Note over C: Extract resource_metadata from header
+            C->>M: GET resource_metadata URI
+            M-->>C: Resource metadata with authorization server URL
+        else No metadata found
+            Note over C: Abort or use pre-configured values
+        end
+    end
+
     Note over C: Validate RS metadata,<br />build AS metadata URL
 
     C->>A: GET Authorization server metadata endpoint
