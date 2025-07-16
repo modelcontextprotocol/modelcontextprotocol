@@ -246,9 +246,11 @@ LLM sampling can be fine-tuned with the following parameters:
 - `stopSequences`: Array of sequences that stop generation.
 - `metadata`: Additional provider-specific parameters.
 
-The client **MAY** modify or ignore these fields (except for `maxTokens`) without
-communicating this to the server. For example, a client could use a model that does not
-support one or more of these parameters, and would therefore be unable to leverage them.
+The client **MUST** respect the `maxTokens` parameter.
+
+The client **MAY** modify or ignore `temperature`, `stopSequences` and `metadata`. For
+example, a client could use a model that does not support one or more of these parameters,
+and would therefore be unable to leverage them.
 
 ### Result Fields
 
