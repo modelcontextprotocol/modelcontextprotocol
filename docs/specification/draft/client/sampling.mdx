@@ -140,7 +140,12 @@ sequenceDiagram
 ### Messages
 
 Sampling messages **MUST** contain a `role` field of `"user"` or `"assistant"`; and
-a `content` field representing the message data. `content` can contain:
+a `content` field representing the message data.
+
+The list of messages in a sampling request **SHOULD NOT** be retained between
+separate requests.
+
+The `content` field can contain:
 
 #### Text Content
 
