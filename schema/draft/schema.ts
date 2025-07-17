@@ -288,21 +288,33 @@ export interface ServerCapabilities {
   };
 }
 
-interface Icons {
+interface UrlIcon {
+  kind: 'url';
+  /**
+   * A standard URI pointing to an icon resource.
+   * @format uri
+   */
   src: string;
-  /**
-   * The MIME type of the icon.
-   */
+  /** Optional override if the server’s MIME type is missing or generic. */
   mimeType?: string;
-  /**
-   * A string that specifies one or more sizes at which the icon file can be used.
-   * Each size is specified as <width in pixels>x<height in pixels>. If multiple sizes are specified, they are separated by spaces; for example, 48x48 96x96.
-   * For vector formats like SVG, you can use any to indicate scalability
-   *
-   * @TJS-type string
-   */
+  /** e.g. "48x48", "any" (for SVG), or "48x48 96x96" */
   sizes?: string;
 }
+
+/** Inline icon: base64-encoded data URI */
+interface DataIcon {
+  kind: 'data';
+  /**
+   * Data URI embedding the image, e.g.:
+   *   "data:image/png;base64,iVBORw0KGgoAAAANS…"
+   */
+  src: `data:${string};base64,${string}`;
+  /** Always required for clarity, though data URI also encodes it */
+  mimeType: string;
+  sizes?: string;
+}
+
+export type Icon = UrlIcon | DataIcon;
 
 /**
  * Base interface for metadata with name (identifier) and title (display name) properties.
@@ -340,7 +352,7 @@ export interface BaseMetadata {
    * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
    * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
    */
-  icons?: Icons[];
+  icons?: Icon[];
 }
 
 /**
