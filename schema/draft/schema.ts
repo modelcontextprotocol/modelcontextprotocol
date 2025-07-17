@@ -347,7 +347,7 @@ export interface BaseMetadata {
   /**
    * An optional list of icons for this implementation.
    * This can be used by clients to display the implementation in a user interface.
-   * Each icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.
+   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
    * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
    * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
    * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
