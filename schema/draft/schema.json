@@ -63,7 +63,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -565,6 +565,33 @@
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
         },
+        "DataIcon": {
+            "description": "Inline icon: base64-encoded data URI",
+            "properties": {
+                "kind": {
+                    "const": "data",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "Always required for clarity, though data URI also encodes it",
+                    "type": "string"
+                },
+                "sizes": {
+                    "type": "string"
+                },
+                "src": {
+                    "description": "Data URI embedding the image, e.g.:\n  \"data:image/png;base64,iVBORw0KGgoAAAANS…\"",
+                    "pattern": "^data:.*;base64,.*$",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kind",
+                "mimeType",
+                "src"
+            ],
+            "type": "object"
+        },
         "ElicitRequest": {
             "description": "A request from the server to elicit additional information from the user via the client.",
             "properties": {
@@ -776,24 +803,15 @@
             ],
             "type": "object"
         },
-        "Icons": {
-            "properties": {
-                "mimeType": {
-                    "description": "The MIME type of the icon.",
-                    "type": "string"
+        "Icon": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/UrlIcon"
                 },
-                "sizes": {
-                    "description": "A string that specifies one or more sizes at which the icon file can be used.\nEach size is specified as <width in pixels>x<height in pixels>. If multiple sizes are specified, they are separated by spaces; for example, 48x48 96x96.\nFor vector formats like SVG, you can use any to indicate scalability",
-                    "type": "string"
-                },
-                "src": {
-                    "type": "string"
+                {
+                    "$ref": "#/definitions/DataIcon"
                 }
-            },
-            "required": [
-                "src"
-            ],
-            "type": "object"
+            ]
         },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
@@ -834,7 +852,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -1612,7 +1630,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -1645,7 +1663,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -1718,7 +1736,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -1854,7 +1872,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -1933,7 +1951,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -2018,7 +2036,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -2484,7 +2502,7 @@
                 "icons": {
                     "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `src` property that points to the icon file, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
                     "items": {
-                        "$ref": "#/definitions/Icons"
+                        "$ref": "#/definitions/Icon"
                     },
                     "type": "array"
                 },
@@ -2636,6 +2654,32 @@
             "required": [
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "UrlIcon": {
+            "properties": {
+                "kind": {
+                    "const": "url",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "Optional override if the server’s MIME type is missing or generic.",
+                    "type": "string"
+                },
+                "sizes": {
+                    "description": "e.g. \"48x48\", \"any\" (for SVG), or \"48x48 96x96\"",
+                    "type": "string"
+                },
+                "src": {
+                    "description": "A standard URI pointing to an icon resource.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kind",
+                "src"
             ],
             "type": "object"
         }
