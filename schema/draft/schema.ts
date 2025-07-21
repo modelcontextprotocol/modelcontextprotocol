@@ -897,15 +897,19 @@ export interface Tool extends BaseMetadata {
    * sophisticated object validation patterns (like with "oneOf", "anyOf", etc.)
    */
   inputSchema: {
+    $schema?: string;
     type: "object";
     [key: string]: any;
   };
 
   /**
    * An optional JSON Schema object defining the structure of the tool's output returned in
-   * the structuredContent field of a CallToolResult. This can be any valid JSON Schema.
+   * the structuredContent field of a CallToolResult. This can be any valid JSON 2020-12 Schema.
    */
-  outputSchema?: object;
+  outputSchema?: {
+    $schema?: string;
+    [key: string]: any;
+  };
 
   /**
    * Optional additional tool information.
@@ -1397,11 +1401,8 @@ export interface ElicitRequest extends Request {
      * Only top-level properties are allowed, without nesting.
      */
     requestedSchema: {
-      type: "object";
-      properties: {
-        [key: string]: PrimitiveSchemaDefinition;
-      };
-      required?: string[];
+      $schema?: string;
+      [key: string]: any;
     };
   };
 }

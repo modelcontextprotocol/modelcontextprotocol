@@ -565,29 +565,13 @@
                             "type": "string"
                         },
                         "requestedSchema": {
+                            "additionalProperties": {},
                             "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
                             "properties": {
-                                "properties": {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/PrimitiveSchemaDefinition"
-                                    },
-                                    "type": "object"
-                                },
-                                "required": {
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "type": "array"
-                                },
-                                "type": {
-                                    "const": "object",
+                                "$schema": {
                                     "type": "string"
                                 }
                             },
-                            "required": [
-                                "properties",
-                                "type"
-                            ],
                             "type": "object"
                         }
                     },
@@ -2368,6 +2352,9 @@
                     "additionalProperties": {},
                     "description": "A JSON Schema object defining the expected parameters for the tool.\nWhile tools receive arguments as objects, this can be any valid JSON Schema to allow for\nsophisticated object validation patterns (like with \"oneOf\", \"anyOf\", etc.)",
                     "properties": {
+                        "$schema": {
+                            "type": "string"
+                        },
                         "type": {
                             "const": "object",
                             "type": "string"
@@ -2383,9 +2370,13 @@
                     "type": "string"
                 },
                 "outputSchema": {
-                    "additionalProperties": true,
-                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult. This can be any valid JSON Schema.",
-                    "properties": {},
+                    "additionalProperties": {},
+                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult. This can be any valid JSON 2020-12 Schema.",
+                    "properties": {
+                        "$schema": {
+                            "type": "string"
+                        }
+                    },
                     "type": "object"
                 },
                 "title": {
