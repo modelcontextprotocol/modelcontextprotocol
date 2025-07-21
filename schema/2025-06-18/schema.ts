@@ -3,7 +3,7 @@
 /**
  * Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent.
  *
- * @internal
+ * @category JSON-RPC
  */
 export type JSONRPCMessage =
   | JSONRPCRequest
@@ -71,6 +71,8 @@ export type RequestId = string | number;
 
 /**
  * A request that expects a response.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCRequest extends Request {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -79,6 +81,8 @@ export interface JSONRPCRequest extends Request {
 
 /**
  * A notification which does not expect a response.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCNotification extends Notification {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -86,6 +90,8 @@ export interface JSONRPCNotification extends Notification {
 
 /**
  * A successful (non-error) response to a request.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCResponse {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -107,6 +113,8 @@ export const INTERNAL_ERROR = -32603;
 
 /**
  * A response to a request that indicates an error occurred.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCError {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -212,6 +220,8 @@ export interface InitializedNotification extends Notification {
 
 /**
  * Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.
+ *
+ * @category `initialize`
  */
 export interface ClientCapabilities {
   /**
@@ -239,6 +249,8 @@ export interface ClientCapabilities {
 
 /**
  * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
+ *
+ * @category `initialize`
  */
 export interface ServerCapabilities {
   /**
@@ -310,6 +322,8 @@ export interface BaseMetadata {
 
 /**
  * Describes the name and version of an MCP implementation, with an optional title for UI representation.
+ *
+ * @category `initialize`
  */
 export interface Implementation extends BaseMetadata {
   version: string;
@@ -503,6 +517,8 @@ export interface ResourceUpdatedNotification extends Notification {
 
 /**
  * A known resource that the server is capable of reading.
+ *
+ * @category `resources/list`
  */
 export interface Resource extends BaseMetadata {
   /**
@@ -544,6 +560,8 @@ export interface Resource extends BaseMetadata {
 
 /**
  * A template description for resources available on the server.
+ *
+ * @category `resources/templates/list`
  */
 export interface ResourceTemplate extends BaseMetadata {
   /**
@@ -578,6 +596,8 @@ export interface ResourceTemplate extends BaseMetadata {
 
 /**
  * The contents of a specific resource or sub-resource.
+ *
+ * @internal
  */
 export interface ResourceContents {
   /**
@@ -597,6 +617,9 @@ export interface ResourceContents {
   _meta?: { [key: string]: unknown };
 }
 
+/**
+ * @category Content
+ */
 export interface TextResourceContents extends ResourceContents {
   /**
    * The text of the item. This must only be set if the item can actually be represented as text (not binary data).
@@ -604,6 +627,9 @@ export interface TextResourceContents extends ResourceContents {
   text: string;
 }
 
+/**
+ * @category Content
+ */
 export interface BlobResourceContents extends ResourceContents {
   /**
    * A base64-encoded string representing the binary data of the item.
@@ -666,6 +692,8 @@ export interface GetPromptResult extends Result {
 
 /**
  * A prompt or prompt template that the server offers.
+ *
+ * @category `prompts/list`
  */
 export interface Prompt extends BaseMetadata {
   /**
@@ -685,6 +713,8 @@ export interface Prompt extends BaseMetadata {
 
 /**
  * Describes an argument that a prompt can accept.
+ *
+ * @category `prompts/list`
  */
 export interface PromptArgument extends BaseMetadata {
   /**
@@ -707,6 +737,8 @@ export type Role = "user" | "assistant";
  *
  * This is similar to `SamplingMessage`, but also supports the embedding of
  * resources from the MCP server.
+ *
+ * @category `prompts/get`
  */
 export interface PromptMessage {
   role: Role;
@@ -717,6 +749,8 @@ export interface PromptMessage {
  * A resource that the server is capable of reading, included in a prompt or tool call result.
  *
  * Note: resource links returned by tools are not guaranteed to appear in the results of `resources/list` requests.
+ *
+ * @category Content
  */
 export interface ResourceLink extends Resource {
   type: "resource_link";
@@ -727,6 +761,8 @@ export interface ResourceLink extends Resource {
  *
  * It is up to the client how best to render embedded resources for the benefit
  * of the LLM and/or the user.
+ *
+ * @category Content
  */
 export interface EmbeddedResource {
   type: "resource";
@@ -834,6 +870,8 @@ export interface ToolListChangedNotification extends Notification {
  *
  * Clients should never make tool use decisions based on ToolAnnotations
  * received from untrusted servers.
+ *
+ * @category `tools/list`
  */
 export interface ToolAnnotations {
   /**
@@ -881,6 +919,8 @@ export interface ToolAnnotations {
 
 /**
  * Definition for a tool the client can call.
+ *
+ * @category `tools/list`
  */
 export interface Tool extends BaseMetadata {
   /**
@@ -1035,6 +1075,8 @@ export interface CreateMessageResult extends Result, SamplingMessage {
 
 /**
  * Describes a message issued to or received from an LLM API.
+ *
+ * @category `sampling/createMessage`
  */
 export interface SamplingMessage {
   role: Role;
@@ -1076,6 +1118,9 @@ export interface Annotations {
   lastModified?: string;
 }
 
+/**
+ * @category Content
+ */
 export type ContentBlock =
   | TextContent
   | ImageContent
@@ -1085,6 +1130,8 @@ export type ContentBlock =
 
 /**
  * Text provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface TextContent {
   type: "text";
@@ -1107,6 +1154,8 @@ export interface TextContent {
 
 /**
  * An image provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface ImageContent {
   type: "image";
@@ -1136,6 +1185,8 @@ export interface ImageContent {
 
 /**
  * Audio provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface AudioContent {
   type: "audio";
@@ -1175,6 +1226,8 @@ export interface AudioContent {
  * These preferences are always advisory. The client MAY ignore them. It is also
  * up to the client to decide how to interpret these preferences and how to
  * balance them against other considerations.
+ *
+ * @category `sampling/createMessage`
  */
 export interface ModelPreferences {
   /**
@@ -1227,6 +1280,8 @@ export interface ModelPreferences {
  *
  * Keys not declared here are currently left unspecified by the spec and are up
  * to the client to interpret.
+ *
+ * @category `sampling/createMessage`
  */
 export interface ModelHint {
   /**
@@ -1303,6 +1358,8 @@ export interface CompleteResult extends Result {
 
 /**
  * A reference to a resource or resource template definition.
+ *
+ * @category `completion/complete`
  */
 export interface ResourceTemplateReference {
   type: "ref/resource";
@@ -1316,6 +1373,8 @@ export interface ResourceTemplateReference {
 
 /**
  * Identifies a prompt.
+ *
+ * @category `completion/complete`
  */
 export interface PromptReference extends BaseMetadata {
   type: "ref/prompt";
@@ -1350,6 +1409,8 @@ export interface ListRootsResult extends Result {
 
 /**
  * Represents a root directory or file that the server can operate on.
+ *
+ * @category `roots/list`
  */
 export interface Root {
   /**
@@ -1413,6 +1474,8 @@ export interface ElicitRequest extends Request {
 /**
  * Restricted schema definitions that only allow primitive types
  * without nested objects or arrays.
+ *
+ * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
   | StringSchema
@@ -1420,6 +1483,9 @@ export type PrimitiveSchemaDefinition =
   | BooleanSchema
   | EnumSchema;
 
+/**
+ * @category `elicitation/create`
+ */
 export interface StringSchema {
   type: "string";
   title?: string;
@@ -1429,6 +1495,9 @@ export interface StringSchema {
   format?: "email" | "uri" | "date" | "date-time";
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
@@ -1437,6 +1506,9 @@ export interface NumberSchema {
   maximum?: number;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface BooleanSchema {
   type: "boolean";
   title?: string;
@@ -1444,6 +1516,9 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface EnumSchema {
   type: "string";
   title?: string;
