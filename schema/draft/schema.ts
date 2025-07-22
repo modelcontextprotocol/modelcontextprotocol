@@ -288,8 +288,8 @@ export interface ServerCapabilities {
   };
 }
 
-interface UrlIcon {
-  kind: 'url';
+/** A url pointing to an icon URL or a base64-encoded data URI */
+export interface Icon {
   /**
    * A standard URI pointing to an icon resource.
    * @format uri
@@ -301,20 +301,6 @@ interface UrlIcon {
   sizes?: string;
 }
 
-/** Inline icon: base64-encoded data URI */
-interface DataIcon {
-  kind: 'data';
-  /**
-   * Data URI embedding the image, e.g.:
-   *   "data:image/png;base64,iVBORw0KGgoAAAANS…"
-   */
-  src: `data:${string};base64,${string}`;
-  /** Always required for clarity, though data URI also encodes it */
-  mimeType: string;
-  sizes?: string;
-}
-
-export type Icon = UrlIcon | DataIcon;
 
 /**
  * Base interface for metadata with name (identifier) and title (display name) properties.
@@ -336,14 +322,13 @@ export interface BaseMetadata {
    * if present).
    */
   title?: string;
+}
 
-  /**
-   * An optional URL of the website for this implementation.
-   *
-   * @format: uri
-   */
-  websiteUrl?: string;
-
+/**
+ * Describes the MCP implementation
+ */
+export interface Implementation extends BaseMetadata {
+  version: string;
   /**
    * An optional list of icons for this implementation.
    * This can be used by clients to display the implementation in a user interface.
@@ -353,13 +338,13 @@ export interface BaseMetadata {
    * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
    */
   icons?: Icon[];
-}
+  /**
+   * An optional URL of the website for this implementation.
+   *
+   * @format: uri
+   */
+  websiteUrl?: string;
 
-/**
- * Describes the MCP implementation
- */
-export interface Implementation extends BaseMetadata {
-  version: string;
 }
 
 /* Ping */
@@ -584,6 +569,16 @@ export interface Resource extends BaseMetadata {
   size?: number;
 
   /**
+   * An optional list of icons for a resource.
+   * This can be used by clients to display the resource's icon in a user interface.
+   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
+   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
+   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
+   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
+   */
+  icons?: Icon[];
+
+  /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
@@ -723,6 +718,15 @@ export interface Prompt extends BaseMetadata {
    * A list of arguments to use for templating the prompt.
    */
   arguments?: PromptArgument[];
+  /**
+   * An optional list of icons for a prompt.
+   * This can be used by clients to display the prompt's icon in a user interface.
+   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
+   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
+   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
+   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
+   */
+  icons?: Icon[];
 
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
@@ -962,6 +966,16 @@ export interface Tool extends BaseMetadata {
    * Display name precedence order is: title, annotations.title, then name.
    */
   annotations?: ToolAnnotations;
+
+  /**
+   * An optional list of icons for a tool.
+   * This can be used by clients to display the tool's icon in a user interface.
+   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
+   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
+   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
+   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
+   */
+  icons?: Icon[];
 
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
