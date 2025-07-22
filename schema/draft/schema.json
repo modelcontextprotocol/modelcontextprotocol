@@ -776,7 +776,7 @@
                     "type": "string"
                 },
                 "src": {
-                    "description": "A standard URI pointing to an icon resource.",
+                    "description": "A standard URI pointing to an icon resource.\nFor streamable HTTP servers, the URL SHOULD be on the same origin as the server itself",
                     "format": "uri",
                     "type": "string"
                 }
