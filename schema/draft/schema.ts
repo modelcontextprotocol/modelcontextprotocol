@@ -292,6 +292,7 @@ export interface ServerCapabilities {
 export interface Icon {
   /**
    * A standard URI pointing to an icon resource.
+   * For streamable HTTP servers, the URL SHOULD be on the same origin as the server itself
    * @format uri
    */
   src: string;
