@@ -11,84 +11,84 @@ This page provides an overview of applications that support the Model Context Pr
 
 {/* prettier-ignore-start */}
 
-| Client                                           | [Resources] | [Prompts] | [Tools] | [Discovery] | [Sampling] | [Roots] | [Elicitation] | Notes                                                                                           |
-| ------------------------------------------------ | ----------- | --------- | ------- | ---------------------- | ---------- | ----- | ------------ | ----------------------------------------------------------------------------------------------- |
-| [5ire][5ire]                                     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [AgentAI][AgentAI]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Agent Library written in Rust with tools support                                                |
-| [AgenticFlow][AgenticFlow]                       | ✅          | ✅        | ✅      | ✅                     | ❌         | ❌    | ❓            | Supports tools, prompts, and resources for no-code AI agents and multi-agent workflows.         |
-| [AIQL TUUI][AIQL TUUI]                           | ✅          | ✅        | ✅      | ✅                     | ✅         | ❌    | ❓            | Supports tools, prompts, resources, and sampling for MCP servers via Multi-LLM APIs.            |
-| [Amazon Q CLI][Amazon Q CLI]                     | ❌          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports prompts and tools.                                                                     |
-| [Amazon Q IDE][Amazon Q IDE]                     | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Apify MCP Tester][Apify MCP Tester]             | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | Supports remote MCP servers and tool discovery.                                                 |
-| [Augment Code][AugmentCode]                      | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools in local and remote agents.                                                      |
-| [BeeAI Framework][BeeAI Framework]               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools in agentic workflows.                                                            |
-| [BoltAI][BoltAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [ChatGPT][ChatGPT]                               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [ChatWise][ChatWise]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Claude.ai][Claude.ai]                           | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools, prompts, and resources for remote MCP servers.                                  |
-| [Claude Code][Claude Code]                       | ✅          | ✅        | ✅      | ❌                     | ❌         | ✅    | ❓            | Supports resources, prompts, tools, and roots                                                   |
-| [Claude Desktop App][Claude Desktop]             | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools, prompts, and resources for local and remote MCP servers.                        |
-| [Chorus][Chorus]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Cline][Cline]                                   | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | Supports tools and resources.                                                                   |
-| [CodeGPT][CodeGPT]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools in VSCode and Jetbrains                                                          |
-| [Continue][Continue]                             | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools, prompts, and resources.                                                         |
-| [Copilot-MCP][CopilotMCP]                        | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools and resources.                                                                   |
-| [Cursor][Cursor]                                 | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Daydreams Agents][Daydreams]                    | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            | Support for drop in Servers to Daydreams agents                                                 |
-| [Emacs Mcp][Mcp.el]                              | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools in Emacs.                                                                        |
-| [fast-agent][fast-agent]                         | ✅          | ✅        | ✅      | ✅                     | ✅         | ✅    | ✅            | Full multimodal MCP support, with end-to-end tests                                              |
-| [FlowDown][FlowDown]                             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❌            | Supports tools.
-| [FLUJO][FLUJO]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Support for resources, Prompts and Roots are coming soon                                        |
-| [Genkit][Genkit]                                 | ⚠️          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports resource list and lookup through tools.                                                |
-| [Glama][Glama]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Gemini CLI][Gemini CLI]                         | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [GenAIScript][GenAIScript]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [GitHub Copilot coding agent][GitHubCopilotCodingAgent]                       | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❌            | Supports tools.                                                                                 |
-| [Goose][Goose]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports resources, prompts, and tools.                                                                                 |
-| [gptme][gptme]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [HyperAgent][HyperAgent]                         | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [JetBrains AI Assistant][JetBrains AI Assistant] | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools for all JetBrains IDEs.                                                          |
-| [Kilo Code][Kilo Code]                           | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | Supports tools and resources.                                                                   |
-| [Klavis AI Slack/Discord/Web][Klavis AI]         | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools and resources.                                                                   |
-| [LibreChat][LibreChat]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools for Agents                                                                       |
-| [LM Studio][LM Studio]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools, GUI interface, and automatic server loading from mcp.json.                      |
-| [Lutra][Lutra]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports any MCP server for reusable playbook creation.                                         |
-| [mcp-agent][mcp-agent]                           | ✅          | ✅        | ✅      | ❓                     | ⚠️         | ✅    | ✅            | Supports tools, prompts, resources, roots, server connection management, and agent workflows.   |
-| [mcp-client-chatbot][mcp-client-chatbot]         | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [mcp-use][mcp-use]                               | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Support tools, resources, stdio & http connection, local llms-agents.                           |
-| [modelcontextchat.com][modelcontextchat.com]     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Web-based MCP client for remote servers with header Authorization, OAuth, and OpenRouter support.|
-| [MCPHub][MCPHub]                                 | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools, resources, and prompts in Neovim                                                |
-| [MCPOmni-Connect][MCPOmni-Connect]               | ✅          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            | Supports tools with agentic mode, ReAct, and orchestrator capabilities.                         |
-| [Memex][Memex]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Support tools. Also support *building and testing* MCP server, all-in-one desktop app.          |
-| [Microsoft Copilot Studio]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools                                                                                  |
-| [MindPal][MindPal]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools for no-code AI agents and multi-agent workflows.                                 |
-| [MooPoint][MooPoint]                             | ❌          | ❌        | ✅      | ❓                     | ✅         | ❌    | ❓            | Web-Hosted client with tool calling support                                                     |
-| [Msty Studio][Msty Studio]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools                                                                                  |
-| [NVIDIA Agent Intelligence toolkit][AIQ toolkit] | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools in agentic workflows.                                                            |
-| [OpenSumi][OpenSumi]                             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools in OpenSumi                                                                      |
-| [oterm][oterm]                                   | ❌          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            | Supports tools, prompts and sampling for Ollama.                                                |
-| [Postman][postman]                               | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools, resources, prompts, and sampling                                                |
-| [RecurseChat][RecurseChat]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Roo Code][Roo Code]                             | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools and resources.                                                                   |
-| [Shortwave][Shortwave]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools.                                                                                 |
-| [Slack MCP Client][Slack MCP Client]             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools and multiple servers.                                                            |
-| [Sourcegraph Cody][Cody]                         | ✅          | ❌        | ❌      | ❓                     | ❌         | ❌    | ❓            | Supports resources through OpenCTX                                                              |
-| [SpinAI][SpinAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools for Typescript AI Agents                                                         |
-| [Superinterface][Superinterface]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools                                                                                  |
-| [Superjoin][Superjoin]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools and multiple servers.                                                            |
-| [systemprompt][systemprompt]                     | ✅          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            | Supports tools, resources, prompts, and sampling.                                               |
-| [Tambo][Tambo]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools and multiple servers, with authentication.                                       |
-| [Tencent CloudBase AI DevKit][Tencent CloudBase AI DevKit] | ❌      | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools                                                                                  |
-| [TheiaAI/TheiaIDE][TheiaAI/TheiaIDE]             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools for Agents in Theia AI and the AI-powered Theia IDE                              |
-| [Tome][Tome]                                     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools, manages MCP servers.                                                            |
-| [TypingMind App][TypingMind App]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools at app-level (appear as plugins) or when assigned to Agents                      |
-| [VS Code GitHub Copilot][VS Code]                | ✅          | ✅        | ✅      | ✅                     | ✅         | ✅    | ✅            | Supports dynamic tool/roots discovery, secure secret configuration, and explicit tool prompting |
-| [Warp][Warp]                                     | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | Supports tools, resources, and most of the discovery criteria                                   |
-| [WhatsMCP][WhatsMCP]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools for Remote MCP Servers in WhatsApp                                               |
-| [Windsurf Editor][Windsurf]                      | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | Supports tools with AI Flow for collaborative development.                                      |
-| [Witsy][Witsy]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | Supports tools in Witsy.                                                                        |
-| [Zed][Zed]                                       | ❌          | ✅        | ❌      | ❌                     | ❌         | ❌    | ❓            | Prompts appear as slash commands                                                                |
-| [Zencoder][Zencoder]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | Supports tools                                                                                  |
+| Client                                           | [Resources] | [Prompts] | [Tools] | [Discovery] | [Sampling] | [Roots] | [Elicitation] |
+| ------------------------------------------------ | ----------- | --------- | ------- | ---------------------- | ---------- | ----- | ------------ |
+| [5ire][5ire]                                     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [AgentAI][AgentAI]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [AgenticFlow][AgenticFlow]                       | ✅          | ✅        | ✅      | ✅                     | ❌         | ❌    | ❓            |
+| [AIQL TUUI][AIQL TUUI]                           | ✅          | ✅        | ✅      | ✅                     | ✅         | ❌    | ❓            |
+| [Amazon Q CLI][Amazon Q CLI]                     | ❌          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Amazon Q IDE][Amazon Q IDE]                     | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Apify MCP Tester][Apify MCP Tester]             | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
+| [Augment Code][AugmentCode]                      | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [BeeAI Framework][BeeAI Framework]               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [BoltAI][BoltAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [ChatGPT][ChatGPT]                               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [ChatWise][ChatWise]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Claude.ai][Claude.ai]                           | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Claude Code][Claude Code]                       | ✅          | ✅        | ✅      | ❌                     | ❌         | ✅    | ❓            |
+| [Claude Desktop App][Claude Desktop]             | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Chorus][Chorus]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Cline][Cline]                                   | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
+| [CodeGPT][CodeGPT]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Continue][Continue]                             | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Copilot-MCP][CopilotMCP]                        | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Cursor][Cursor]                                 | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Daydreams Agents][Daydreams]                    | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Emacs Mcp][Mcp.el]                              | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [fast-agent][fast-agent]                         | ✅          | ✅        | ✅      | ✅                     | ✅         | ✅    | ✅            |
+| [FlowDown][FlowDown]                             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❌            |
+| [FLUJO][FLUJO]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Genkit][Genkit]                                 | ⚠️          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Glama][Glama]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Gemini CLI][Gemini CLI]                         | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [GenAIScript][GenAIScript]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [GitHub Copilot coding agent][GitHubCopilotCodingAgent]                       | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❌            |
+| [Goose][Goose]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [gptme][gptme]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [HyperAgent][HyperAgent]                         | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [JetBrains AI Assistant][JetBrains AI Assistant] | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Kilo Code][Kilo Code]                           | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
+| [Klavis AI Slack/Discord/Web][Klavis AI]         | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [LibreChat][LibreChat]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [LM Studio][LM Studio]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Lutra][Lutra]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [mcp-agent][mcp-agent]                           | ✅          | ✅        | ✅      | ❓                     | ⚠️         | ✅    | ✅            |
+| [mcp-client-chatbot][mcp-client-chatbot]         | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [mcp-use][mcp-use]                               | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [modelcontextchat.com][modelcontextchat.com]     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [MCPHub][MCPHub]                                 | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [MCPOmni-Connect][MCPOmni-Connect]               | ✅          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            |
+| [Memex][Memex]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Microsoft Copilot Studio]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [MindPal][MindPal]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [MooPoint][MooPoint]                             | ❌          | ❌        | ✅      | ❓                     | ✅         | ❌    | ❓            |
+| [Msty Studio][Msty Studio]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [NVIDIA Agent Intelligence toolkit][AIQ toolkit] | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [OpenSumi][OpenSumi]                             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [oterm][oterm]                                   | ❌          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            |
+| [Postman][postman]                               | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [RecurseChat][RecurseChat]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Roo Code][Roo Code]                             | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Shortwave][Shortwave]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Slack MCP Client][Slack MCP Client]             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Sourcegraph Cody][Cody]                         | ✅          | ❌        | ❌      | ❓                     | ❌         | ❌    | ❓            |
+| [SpinAI][SpinAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Superinterface][Superinterface]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Superjoin][Superjoin]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [systemprompt][systemprompt]                     | ✅          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            |
+| [Tambo][Tambo]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Tencent CloudBase AI DevKit][Tencent CloudBase AI DevKit] | ❌      | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [TheiaAI/TheiaIDE][TheiaAI/TheiaIDE]             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Tome][Tome]                                     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [TypingMind App][TypingMind App]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [VS Code GitHub Copilot][VS Code]                | ✅          | ✅        | ✅      | ✅                     | ✅         | ✅    | ✅            |
+| [Warp][Warp]                                     | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
+| [WhatsMCP][WhatsMCP]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Windsurf Editor][Windsurf]                      | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
+| [Witsy][Witsy]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Zed][Zed]                                       | ❌          | ✅        | ❌      | ❌                     | ❌         | ❌    | ❓            |
+| [Zencoder][Zencoder]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 
 
 {/* prettier-ignore-end */}

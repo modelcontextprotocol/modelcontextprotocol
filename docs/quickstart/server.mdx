@@ -1,5 +1,5 @@
 ---
-title: "For Server Developers"
+title: "Build an MCP Server"
 description: "Get started building your own server to use in Claude for Desktop and other clients."
 ---
 
@@ -281,31 +281,25 @@ We'll need to configure Claude for Desktop for whichever MCP servers you want to
 
 For example, if you have [VS Code](https://code.visualstudio.com/) installed:
 
-<Tabs>
-<Tab title="MacOS/Linux">
+<CodeGroup>
 
-```bash
+```bash MacOS/Linux
 code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
 
-</Tab>
-<Tab title="Windows">
-
-```powershell
+```powershell Windows
 code $env:AppData\Claude\claude_desktop_config.json
 ```
 
-</Tab>
-</Tabs>
+</CodeGroup>
 
 You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
 
 In this case, we'll add our single weather server like so:
 
-<Tabs>
-<Tab title="MacOS/Linux">
+<CodeGroup>
 
-```json Python
+```json MacOS/Linux
 {
   "mcpServers": {
     "weather": {
@@ -321,10 +315,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-</Tab>
-<Tab title="Windows">
-
-```json Python
+```json Windows
 {
   "mcpServers": {
     "weather": {
@@ -340,8 +331,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-</Tab>
-</Tabs>
+</CodeGroup>
 
 <Warning>
 
@@ -775,33 +765,25 @@ We'll need to configure Claude for Desktop for whichever MCP servers you want to
 
 For example, if you have [VS Code](https://code.visualstudio.com/) installed:
 
-<Tabs>
-<Tab title="MacOS/Linux">
+<CodeGroup>
 
-```bash
+```bash MacOS/Linux
 code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
 
-</Tab>
-<Tab title="Windows">
-
-```powershell
+```powershell Windows
 code $env:AppData\Claude\claude_desktop_config.json
 ```
 
-</Tab>
-</Tabs>
+</CodeGroup>
 
 You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
 
 In this case, we'll add our single weather server like so:
 
-<Tabs>
-<Tab title="MacOS/Linux">
-
 <CodeGroup>
 
-```json Node
+```json MacOS/Linux
 {
   "mcpServers": {
     "weather": {
@@ -812,14 +794,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-</CodeGroup>
-
-</Tab>
-<Tab title="Windows">
-
-<CodeGroup>
-
-```json Node
+```json Windows
 {
   "mcpServers": {
     "weather": {
@@ -831,9 +806,6 @@ In this case, we'll add our single weather server like so:
 ```
 
 </CodeGroup>
-
-</Tab>
-</Tabs>
 
 This tells Claude for Desktop:
 
@@ -889,10 +861,9 @@ Use the [Spring Initializer](https://start.spring.io/) to bootstrap the project.
 
 You will need to add the following dependencies:
 
-<Tabs>
-  <Tab title="Maven">
+<CodeGroup>
 
-```xml
+```xml Maven
 <dependencies>
       <dependency>
           <groupId>org.springframework.ai</groupId>
@@ -906,18 +877,14 @@ You will need to add the following dependencies:
 </dependencies>
 ```
 
-  </Tab>
-  <Tab title="Gradle">
-
-```groovy
+```groovy Gradle
 dependencies {
   implementation platform("org.springframework.ai:spring-ai-starter-mcp-server")
   implementation platform("org.springframework:spring-web")
 }
 ```
 
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 Then configure your application by setting the application properties:
 
@@ -1043,32 +1010,26 @@ Make sure to create the file if it doesn't exist.
 
 For example, if you have [VS Code](https://code.visualstudio.com/) installed:
 
-<Tabs>
-  <Tab title="MacOS/Linux">
+<CodeGroup>
 
-```bash
+```bash MacOS/Linux
 code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
 
-  </Tab>
-  <Tab title="Windows">
-
-```powershell
+```powershell Windows
 code $env:AppData\Claude\claude_desktop_config.json
 ```
 
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 You'll then add your servers in the `mcpServers` key.
 The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
 
 In this case, we'll add our single weather server like so:
 
-<Tabs>
-  <Tab title="MacOS/Linux">
+<CodeGroup>
 
-```json java
+```json MacOS/Linux
 {
   "mcpServers": {
     "spring-ai-mcp-weather": {
@@ -1083,11 +1044,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-  </Tab>
-
-  <Tab title="Windows">
-
-```json java
+```json Windows
 {
   "mcpServers": {
     "spring-ai-mcp-weather": {
@@ -1102,8 +1059,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 <Note>
 
@@ -1777,30 +1733,24 @@ here.](https://claude.ai/download) If you already have Claude for Desktop, **mak
 We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
 For example, if you have [VS Code](https://code.visualstudio.com/) installed:
 
-<Tabs>
-<Tab title="MacOS/Linux">
+<CodeGroup>
 
-```bash
+```bash MacOS/Linux
 code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
 
-</Tab>
-<Tab title="Windows">
-
-```powershell
+```powershell Windows
 code $env:AppData\Claude\claude_desktop_config.json
 ```
 
-</Tab>
-</Tabs>
+</CodeGroup>
 
 You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
 In this case, we'll add our single weather server like so:
 
-<Tabs>
-<Tab title="MacOS/Linux">
+<CodeGroup>
 
-```json
+```json MacOS/Linux
 {
   "mcpServers": {
     "weather": {
@@ -1811,11 +1761,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-</Tab>
-
-<Tab title="Windows">
-
-```json
+```json Windows
 {
   "mcpServers": {
     "weather": {
@@ -1831,8 +1777,7 @@ In this case, we'll add our single weather server like so:
 }
 ```
 
-</Tab>
-</Tabs>
+</CodeGroup>
 
 This tells Claude for Desktop:
 
@@ -1923,7 +1868,7 @@ If Claude attempts to use the tools but they fail:
 
 **None of this is working. What do I do?**
 
-Please refer to our [debugging guide](/docs/tools/debugging) for better debugging tools and more detailed guidance.
+Please refer to our [debugging guide](/legacy/tools/debugging) for better debugging tools and more detailed guidance.
 
 </Accordion>
 <Accordion title="Weather API Issues">
@@ -1952,7 +1897,7 @@ This isn't an error - it just means there are no current weather alerts for that
 
 <Note>
 
-For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/tools/debugging)
+For more advanced troubleshooting, check out our guide on [Debugging MCP](/legacy/tools/debugging)
 
 </Note>
 
@@ -1965,7 +1910,7 @@ For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/
   <Card title="Example servers" icon="grid" href="/examples">
     Check out our gallery of official MCP servers and implementations
   </Card>
-  <Card title="Debugging Guide" icon="bug" href="/docs/tools/debugging">
+  <Card title="Debugging Guide" icon="bug" href="/legacy/tools/debugging">
     Learn how to effectively debug MCP servers and integrations
   </Card>
   <Card
