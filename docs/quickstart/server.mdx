@@ -262,7 +262,7 @@ if __name__ == "__main__":
     mcp.run(transport='stdio')
 ```
 
-Your server is complete! Run `uv run weather.py` to confirm that everything's working.
+Your server is complete! Run `uv run weather.py` to start the MCP server, which will listen for messages from MCP hosts.
 
 Let's now test your server from an existing MCP host, Claude for Desktop.
 
@@ -341,7 +341,7 @@ You may need to put the full path to the `uv` executable in the `command` field.
 
 <Note>
 
-Make sure you pass in the absolute path to your server.
+Make sure you pass in the absolute path to your server. You can get this by running `pwd` on MacOS/Linux or `cd` on Windows Command Prompt. On Windows, remember to use double backslashes (`\\`) or forward slashes (`/`) in the JSON path.
 
 </Note>
 

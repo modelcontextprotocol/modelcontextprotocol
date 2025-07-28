@@ -233,8 +233,14 @@ body:has(#enable-section-numbers) {
   text-decoration: underline;
 }
 
+
 .quick-links .separator {
   color: #d1d5db;
+}
+
+& > .tsd-comment,
+& > .tsd-type-declaration {
+  margin-left: 1.25rem;
 }
 
 .features-grid {
