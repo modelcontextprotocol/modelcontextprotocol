@@ -18,16 +18,22 @@ export const JSONRPC_VERSION = "2.0";
 
 /**
  * A progress token, used to associate progress notifications with the original request.
+ *
+ * @category Common Types
  */
 export type ProgressToken = string | number;
 
 /**
  * An opaque token used to represent a cursor for pagination.
+ *
+ * @category Common Types
  */
 export type Cursor = string;
 
 /**
  * Common params for any request.
+ *
+ * @internal
  */
 export interface RequestParams {
   /**
@@ -66,6 +72,9 @@ export interface Notification {
   params?: { [key: string]: any };
 }
 
+/**
+ * @category Common Types
+ */
 export interface Result {
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
@@ -74,6 +83,9 @@ export interface Result {
   [key: string]: unknown;
 }
 
+/**
+ * @category Common Types
+ */
 export interface Error {
   /**
    * The error type that occurred.
@@ -91,6 +103,8 @@ export interface Error {
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
+ *
+ * @category Common Types
  */
 export type RequestId = string | number;
 
@@ -125,15 +139,10 @@ export interface JSONRPCResponse {
 }
 
 // Standard JSON-RPC error codes
-/** @internal */
 export const PARSE_ERROR = -32700;
-/** @internal */
 export const INVALID_REQUEST = -32600;
-/** @internal */
 export const METHOD_NOT_FOUND = -32601;
-/** @internal */
 export const INVALID_PARAMS = -32602;
-/** @internal */
 export const INTERNAL_ERROR = -32603;
 
 /**
@@ -150,6 +159,8 @@ export interface JSONRPCError {
 /* Empty result */
 /**
  * A response that indicates success but carries no data.
+ *
+ * @category Common Types
  */
 export type EmptyResult = Result;
 
@@ -327,6 +338,8 @@ export interface ServerCapabilities {
 
 /**
  * An optionally-sized icon that can be displayed in a user interface.
+ *
+ * @category Common Types
  */
 export interface Icon {
   /**
@@ -479,6 +492,8 @@ export interface ProgressNotification extends JSONRPCNotification {
 /* Pagination */
 /**
  * Common parameters for paginated requests.
+ *
+ * @internal
  */
 export interface PaginatedRequestParams extends RequestParams {
   /**
@@ -872,6 +887,8 @@ export interface PromptArgument extends BaseMetadata {
 
 /**
  * The sender or recipient of messages and data in a conversation.
+ *
+ * @category Common Types
  */
 export type Role = "user" | "assistant";
 
@@ -1179,6 +1196,8 @@ export interface LoggingMessageNotification extends JSONRPCNotification {
  *
  * These map to syslog message severities, as specified in RFC-5424:
  * https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1
+ *
+ * @category Common Types
  */
 export type LoggingLevel =
   | "debug"
@@ -1265,6 +1284,8 @@ export interface SamplingMessage {
 
 /**
  * Optional annotations for the client. The client can use annotations to inform how objects are used or displayed
+ *
+ * @category Common Types
  */
 export interface Annotations {
   /**

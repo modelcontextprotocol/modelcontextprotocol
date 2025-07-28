@@ -1,30 +1,37 @@
 // @ts-check
+import { readFile } from "fs/promises";
 import * as typedoc from "typedoc";
 
 /** @param {typedoc.Application} app */
 export function load(app) {
-  app.outputs.addOutput("schema-reference", async (outputDir, project) => {
-    app.renderer.router = new SchemaReferenceRouter(app);
+  app.options.addDeclaration({
+    name: "schemaPageTemplate",
+    help: "Template file for schema reference page.",
+    type: typedoc.ParameterType.String,
+  });
+
+  app.outputs.addOutput("schema-page", async (outputDir, project) => {
+    const templatePath = /** @type {string} */ (app.options.getValue("schemaPageTemplate"));
+    const template = await readFile(templatePath, { encoding: "utf-8" });
+
+    app.renderer.router = new SchemaPageRouter(app);
     app.renderer.theme = new typedoc.DefaultTheme(app.renderer);
     app.renderer.trigger(typedoc.RendererEvent.BEGIN, new typedoc.RendererEvent(outputDir, project, []));
 
     const pageEvents = buildPageEvents(project, app.renderer.router);
-    const rendered = renderPageEvents(pageEvents, /** @type {typedoc.DefaultTheme} */ (app.renderer.theme));
 
-    process.stdout.write(`---\n`);
-    process.stdout.write(`title: Schema Reference\n`);
-    process.stdout.write(`---\n\n`);
-    process.stdout.write(`<div id="schema-reference" />\n\n`);
-    process.stdout.write(rendered);
+    process.stdout.write(
+      renderTemplate(template, pageEvents, /** @type {typedoc.DefaultTheme} */ (app.renderer.theme))
+    );
 
     // Wait for all output to be written before allowing the process to exit.
     await new Promise((resolve) => process.stdout.write("", () => resolve(undefined)));
   })
 
-  app.outputs.setDefaultOutputName("schema-reference")
+  app.outputs.setDefaultOutputName("schema-page")
 }
 
-class SchemaReferenceRouter extends typedoc.StructureRouter {
+class SchemaPageRouter extends typedoc.StructureRouter {
   /**
    * @param {typedoc.RouterTarget} target
    * @returns {string}
@@ -82,26 +89,40 @@ function buildPageEvents(project, router) {
 }
 
 /**
- * @param {typedoc.PageEvent[]} events
+ *
+ * @param {string} template
+ * @param {typedoc.PageEvent[]} pageEvents
  * @param {typedoc.DefaultTheme} theme
  * @returns {string}
  */
-function renderPageEvents(events, theme) {
-  let currentCategory;
+function renderTemplate(template, pageEvents, theme) {
+  const reflectionEvents = pageEvents.filter(isDeclarationReflectionEvent);
 
-  return events.
-    filter(isDeclarationReflectionEvent).
-    sort((event1, event2) => getReflectionOrder(event1.model, event2.model)).
-    flatMap((event) => {
-      const category = getReflectionCategory(event.model);
-      const rendered = renderReflection(event.model, theme.getRenderContext(event));
+  /** @type {Set<string>} */
+  const renderedCategories = new Set();
 
-      const isNewCategory = category !== currentCategory;
-      currentCategory = category;
+  const rendered = template.replaceAll(
+    /^\{\/\* @category (.+) \*\/\}$/mg,
+    (match, category) => {
+      renderedCategories.add(category);
+      return renderCategory(category, reflectionEvents, theme);
+    }
+  );
 
-      return isNewCategory ? [renderCategory(category), rendered] : [rendered];
-    }).
-    join("\n");
+  const missingCategories = reflectionEvents.
+    map((event) => getReflectionCategory(event.model)).
+    filter((category) => category && !renderedCategories.has(category)).
+    filter((category, i, array) => array.indexOf(category) === i). // Remove duplicates.
+    sort();
+
+  if (missingCategories.length > 0) {
+    throw new Error(
+      "The following categories are missing from the schema page template:\n\n" +
+      missingCategories.map((category) => `- ${category}\n`).join("")
+    );
+  }
+
+  return rendered;
 }
 
 /**
@@ -113,27 +134,22 @@ function isDeclarationReflectionEvent(event) {
 }
 
 /**
+ * @param {string} category
  * @param {typedoc.DeclarationReflection} reflection1
  * @param {typedoc.DeclarationReflection} reflection2
  * @returns {number}
  */
-function getReflectionOrder(reflection1, reflection2) {
-  const category1 = getReflectionCategory(reflection1);
-  const category2 = getReflectionCategory(reflection2);
-
+function getReflectionOrder(category, reflection1, reflection2) {
   let order = 0;
 
-  order ||= +(category2.length > 0) - +(category1.length > 0);
-  order ||= +isRpcMethodCategory(category2) - +isRpcMethodCategory(category1);
-  order ||= category1.localeCompare(category2);
-
-  if (category1 === category2 && isRpcMethodCategory(category1)) {
+  if (isRpcMethodCategory(category)) {
     order ||= +reflection2.name.endsWith("Request") - +reflection1.name.endsWith("Request");
     order ||= +reflection2.name.endsWith("RequestParams") - +reflection1.name.endsWith("RequestParams");
     order ||= +reflection2.name.endsWith("Result") - +reflection1.name.endsWith("Result");
     order ||= +reflection2.name.endsWith("Notification") - +reflection1.name.endsWith("Notification");
     order ||= +reflection2.name.endsWith("NotificationParams") - +reflection1.name.endsWith("NotificationParams");
   }
+
   order ||= reflection1.name.localeCompare(reflection2.name);
 
   return order;
@@ -141,11 +157,11 @@ function getReflectionOrder(reflection1, reflection2) {
 
 /**
  * @param {typedoc.DeclarationReflection} reflection
- * @returns {string}
+ * @returns {string | undefined}
  */
 function getReflectionCategory(reflection) {
   const categoryTag = reflection.comment?.getTag("@category");
-  return categoryTag ? categoryTag.content.map((part) => part.text).join(" ") : "";
+  return categoryTag ? categoryTag.content.map((part) => part.text).join(" ") : undefined;
 }
 
 /**
@@ -158,10 +174,21 @@ function isRpcMethodCategory(category) {
 
 /**
  * @param {string} category
+ * @param {typedoc.PageEvent<typedoc.DeclarationReflection>[]} events
+ * @param {typedoc.DefaultTheme} theme
  * @returns {string}
  */
-function renderCategory(category) {
-  return `## ${category || "Common Types"}\n`;
+function renderCategory(category, events, theme) {
+  const categoryEvents = events.filter((event) => getReflectionCategory(event.model) === category);
+
+  if (categoryEvents.length === 0) {
+    throw new Error(`Invalid category: ${category}`);
+  }
+
+  return categoryEvents.
+    sort((event1, event2) => getReflectionOrder(category, event1.model, event2.model)).
+    map((event) => renderReflection(event.model, theme.getRenderContext(event))).
+    join("\n");
 }
 
 /**
