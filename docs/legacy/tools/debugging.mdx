@@ -19,7 +19,7 @@ MCP provides several tools for debugging at different levels:
 
    - Interactive debugging interface
    - Direct server testing
-   - See the [Inspector guide](/docs/tools/inspector) for details
+   - See the [Inspector guide](/legacy/tools/inspector) for details
 
 2. **Claude Desktop Developer Tools**
 
@@ -156,14 +156,14 @@ When servers fail to connect:
 
 1. Check Claude Desktop logs
 2. Verify server process is running
-3. Test standalone with [Inspector](/docs/tools/inspector)
+3. Test standalone with [Inspector](/legacy/tools/inspector)
 4. Verify protocol compatibility
 
 ## Implementing logging
 
 ### Server-side logging
 
-When building a server that uses the local stdio [transport](/docs/concepts/transports), all messages logged to stderr (standard error) will be captured by the host application (e.g., Claude Desktop) automatically.
+When building a server that uses the local stdio [transport](/legacy/concepts/transports), all messages logged to stderr (standard error) will be captured by the host application (e.g., Claude Desktop) automatically.
 
 <Warning>
 
@@ -171,30 +171,25 @@ Local MCP servers should not log messages to stdout (standard out), as this will
 
 </Warning>
 
-For all [transports](/docs/concepts/transports), you can also provide logging to the client by sending a log message notification:
+For all [transports](/legacy/concepts/transports), you can also provide logging to the client by sending a log message notification:
 
-<Tabs>
-  <Tab title="Python">
+<CodeGroup>
 
-    ```python
-    server.request_context.session.send_log_message(
-      level="info",
-      data="Server started successfully",
-    )
-    ```
+```python Python
+server.request_context.session.send_log_message(
+  level="info",
+  data="Server started successfully",
+)
+```
 
-  </Tab>
-  <Tab title="TypeScript">
+```typescript TypeScript
+server.sendLoggingMessage({
+  level: "info",
+  data: "Server started successfully",
+});
+```
 
-    ```typescript
-    server.sendLoggingMessage({
-      level: "info",
-      data: "Server started successfully",
-    });
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 Important events to log:
 
@@ -219,7 +214,7 @@ In client applications:
 
 1. Initial Development
 
-   - Use [Inspector](/docs/tools/inspector) for basic testing
+   - Use [Inspector](/legacy/tools/inspector) for basic testing
    - Implement core functionality
    - Add logging points
 
@@ -234,7 +229,7 @@ To test changes efficiently:
 
 - **Configuration changes**: Restart Claude Desktop
 - **Server code changes**: Use Command-R to reload
-- **Quick iteration**: Use [Inspector](/docs/tools/inspector) during development
+- **Quick iteration**: Use [Inspector](/legacy/tools/inspector) during development
 
 ## Best practices
 
@@ -282,7 +277,7 @@ When encountering issues:
 1. **First Steps**
 
    - Check server logs
-   - Test with [Inspector](/docs/tools/inspector)
+   - Test with [Inspector](/legacy/tools/inspector)
    - Review configuration
    - Verify environment
 
@@ -303,7 +298,7 @@ When encountering issues:
   <Card
     title="MCP Inspector"
     icon="magnifying-glass"
-    href="/docs/tools/inspector"
+    href="/legacy/tools/inspector"
   >
     Learn to use the MCP Inspector
   </Card>
