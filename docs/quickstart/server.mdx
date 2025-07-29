@@ -1,5 +1,5 @@
 ---
-title: "For Server Developers"
+title: "Build an MCP Server"
 description: "Get started building your own server to use in Claude for Desktop and other clients."
 ---
 
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     mcp.run(transport='stdio')
 ```
 
-Your server is complete! Run `uv run weather.py` to confirm that everything's working.
+Your server is complete! Run `uv run weather.py` to start the MCP server, which will listen for messages from MCP hosts.
 
 Let's now test your server from an existing MCP host, Claude for Desktop.
 
@@ -341,7 +341,7 @@ You may need to put the full path to the `uv` executable in the `command` field.
 
 <Note>
 
-Make sure you pass in the absolute path to your server.
+Make sure you pass in the absolute path to your server. You can get this by running `pwd` on MacOS/Linux or `cd` on Windows Command Prompt. On Windows, remember to use double backslashes (`\\`) or forward slashes (`/`) in the JSON path.
 
 </Note>
 
@@ -1868,7 +1868,7 @@ If Claude attempts to use the tools but they fail:
 
 **None of this is working. What do I do?**
 
-Please refer to our [debugging guide](/docs/tools/debugging) for better debugging tools and more detailed guidance.
+Please refer to our [debugging guide](/legacy/tools/debugging) for better debugging tools and more detailed guidance.
 
 </Accordion>
 <Accordion title="Weather API Issues">
@@ -1897,7 +1897,7 @@ This isn't an error - it just means there are no current weather alerts for that
 
 <Note>
 
-For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/tools/debugging)
+For more advanced troubleshooting, check out our guide on [Debugging MCP](/legacy/tools/debugging)
 
 </Note>
 
@@ -1910,7 +1910,7 @@ For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/
   <Card title="Example servers" icon="grid" href="/examples">
     Check out our gallery of official MCP servers and implementations
   </Card>
-  <Card title="Debugging Guide" icon="bug" href="/docs/tools/debugging">
+  <Card title="Debugging Guide" icon="bug" href="/legacy/tools/debugging">
     Learn how to effectively debug MCP servers and integrations
   </Card>
   <Card
