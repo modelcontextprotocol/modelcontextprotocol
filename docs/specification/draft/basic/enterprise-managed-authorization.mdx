@@ -43,7 +43,7 @@ The Identity Assertion Authorization Grant follows two steps after obtaining an 
 The core flow is as follows:
 
 - A user logs in to an MCP Client through their enterprise Identity Provider, resulting in an Identity Assertion (ID Token or SAML assertion) being issued to the MCP Client.
-- The MCP Client sends a Token Exchange [[RFC8623](https://datatracker.ietf.org/doc/html/rfc8693)] request to the Identity Provider including the identity assertion and identifier of the MCP Server it is attempting to access, and obtains a Identity Assertion JWT Authorization Grant (ID-JAG).
+- The MCP Client sends a Token Exchange [[RFC8693](https://datatracker.ietf.org/doc/html/rfc8693)] request to the Identity Provider including the identity assertion and identifier of the MCP Server it is attempting to access, and obtains a Identity Assertion JWT Authorization Grant (ID-JAG).
 - The MCP Client uses the Identity Assertion JWT Authorization Grant as a JWT Authorization Grant [[RFC7523](https://datatracker.ietf.org/doc/html/rfc7523)] to request an access token from the Authorization Server.
 - The Authorization Server validates the Identity Assertion Authorization Grant and, if valid, issues an access token.
 - The MCP Client uses the access token to make requests to the MCP Server.
