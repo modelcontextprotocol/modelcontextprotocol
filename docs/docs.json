@@ -317,6 +317,58 @@
       "source": "/specification/latest",
       "destination": "/specification/2025-06-18",
       "permanent": false
+    },
+    {
+      "source": "/docs/concepts/architecture",
+      "destination": "/docs/learn/architecture"
+    },
+    {
+      "source": "/docs/concepts/elicitation",
+      "destination": "/specification/2025-06-18/client/elicitation"
+    },
+    {
+      "source": "/docs/concepts/prompts",
+      "destination": "/specification/2025-06-18/server/prompts"
+    },
+    {
+      "source": "/docs/concepts/resources",
+      "destination": "/specification/2025-06-18/server/resources"
+    },
+    {
+      "source": "/docs/concepts/roots",
+      "destination": "/specification/2025-06-18/client/roots"
+    },
+    {
+      "source": "/docs/concepts/sampling",
+      "destination": "/specification/2025-06-18/client/sampling"
+    },
+    {
+      "source": "/docs/concepts/tools",
+      "destination": "/specification/2025-06-18/server/tools"
+    },
+    {
+      "source": "/docs/concepts/transports",
+      "destination": "/specification/2025-06-18/basic/transports"
+    },
+    {
+      "source": "/docs/tools/debugging",
+      "destination": "/legacy/tools/debugging"
+    },
+    {
+      "source": "/docs/tools/inspector",
+      "destination": "/legacy/tools/inspector"
+    },
+    {
+      "source": "/introduction",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/concepts",
+      "destination": "/docs/learn/architecture"
+    },
+    {
+      "source": "/docs/tools",
+      "destination": "/legacy/tools/inspector"
     }
   ],
   "contextual": {
