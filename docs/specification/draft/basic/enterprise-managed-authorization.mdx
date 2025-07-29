@@ -32,13 +32,13 @@ This profile is designed to facilitate secure and interoperable authorization wi
 
 ## 2. Identity Assertion Authorization Grant Overview
 
-This profile is an application of the "Identity Assertion Authorization Grant" as defined in [draft-parecki-oauth-identity-assertion-authz-grant](https://datatracker.ietf.org/doc/draft-parecki-oauth-identity-assertion-authz-grant/).
+This profile is an application of the "Identity Assertion Authorization Grant" [draft-parecki-oauth-identity-assertion-authz-grant](https://datatracker.ietf.org/doc/draft-parecki-oauth-identity-assertion-authz-grant/), which itself is a profile of "Identity and Authorization Chaining Across Domains" [draft-ietf-oauth-identity-chaining](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/).
 
-The Identity Assertion Authorization Grant follows two steps after obtaining an Identity Assertion through single sign-on:
+The Identity Assertion Authorization Grant follows three steps:
 
 1. Single Sign-On to the MCP Client via OpenID Connect or SAML
 2. Token Exchange ([RFC8623](https://datatracker.ietf.org/doc/html/rfc8693))
-3. A JWT Authorization Grant ([RFC7523](https://datatracker.ietf.org/doc/html/rfc7523))
+3. JWT Authorization Grant ([RFC7523](https://datatracker.ietf.org/doc/html/rfc7523))
 
 The core flow is as follows:
 
