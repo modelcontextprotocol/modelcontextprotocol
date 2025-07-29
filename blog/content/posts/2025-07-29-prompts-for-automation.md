@@ -160,14 +160,15 @@ First, let's create our MCP server and declare its capabilities:
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
+  CompleteRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
-  ListPromptsRequestSchema,
-  GetPromptRequestSchema,
-  CompleteRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { CUISINES, formatRecipesAsMarkdown } from "./recipes.js";
 
-class RecipeServer {
+class FavoriteRecipesServer {
   private server: Server;
 
   constructor() {
@@ -199,7 +200,7 @@ class RecipeServer {
 }
 
 // Start the server
-const server = new RecipeServer();
+const server = new FavoriteRecipesServer();
 server.run().catch(console.error);
 ```
 
@@ -217,7 +218,7 @@ I need two handlers for resource templates:
 ```typescript
 this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
-    resources: COUNTRIES.map((cuisine) => ({
+    resources: CUISINES.map((cuisine) => ({
       uri: `file://recipes/${cuisine}`,
       name: `${cuisine.charAt(0).toUpperCase() + cuisine.slice(1)} Recipes`,
       mimeType: "text/markdown",
@@ -242,7 +243,7 @@ this.server.setRequestHandler(
     }
 
     const cuisine = uri.replace("file://recipes/", "");
-    if (!COUNTRIES.includes(cuisine)) {
+    if (!CUISINES.includes(cuisine)) {
       throw new Error(`Unknown cuisine: ${cuisine}`);
     }
 
@@ -266,30 +267,33 @@ this.server.setRequestHandler(
 Completions help users discover valid parameter values:
 
 ```typescript
-this.server.setRequestHandler(
-  CompleteRequestSchema,
-  async (request) => {
-    // Handle completion for cuisine parameter
-    if (request.params.ref.name === "plan-meals" && 
-        request.params.argument.name === "cuisine") {
-      
-      const partial = request.params.argument.value?.toLowerCase() || "";
-      
-      return {
-        completion: {
-          values: COUNTRIES
-            .filter(cuisine => cuisine.startsWith(partial))
-            .map(cuisine => ({
-              value: cuisine,
-              description: `Plan meals using ${cuisine} recipes`
-            }))
-        }
-      };
-    }
-    
-    return { completion: { values: [] } };
+this.server.setRequestHandler(CompleteRequestSchema, async (request) => {
+  const { ref, argument } = request.params;
+
+  // Handle resource template completions (can also be used for prompts)
+  if (
+    "uri" in ref &&
+    ref.uri === "file://recipes/{cuisine}" &&
+    argument.name === "cuisine"
+  ) {
+    const matchingCuisines = CUISINES.filter((cuisine) =>
+      cuisine.startsWith(argument.value.toLowerCase())
+    );
+    return {
+      completion: {
+        values: matchingCuisines,
+        hasMore: false,
+      },
+    };
   }
-);
+
+  return {
+    completion: {
+      values: [],
+      hasMore: false,
+    },
+  };
+});
 ```
 
 ### Implementing Prompts
@@ -301,12 +305,13 @@ this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
   return {
     prompts: [
       {
-        name: "plan-meals",
-        description: "Plan a week of meals from a specific cuisine",
+        name: "weekly-meal-planner",
+        description:
+          "Create a weekly meal plan and grocery shopping list from cuisine-specific recipes",
         arguments: [
           {
             name: "cuisine",
-            description: "The cuisine to use for meal planning",
+            description: "The cuisine to plan meals from",
             required: true
           }
         ]
@@ -316,13 +321,19 @@ this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
 });
 
 this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  if (request.params.name !== "plan-meals") {
+  const { name, arguments: args } = request.params;
+
+  if (name !== "weekly-meal-planner") {
     throw new Error("Unknown prompt");
   }
 
-  const cuisine = request.params.arguments?.cuisine;
-  if (!cuisine || !COUNTRIES.includes(cuisine)) {
-    throw new Error("Valid cuisine parameter required");
+  if (!args || !args.cuisine) {
+    throw new Error("Cuisine parameter is required");
+  }
+
+  const cuisine = args.cuisine.toLowerCase();
+  if (!CUISINES.includes(cuisine)) {
+    throw new Error(`Unknown cuisine: ${cuisine}`);
   }
 
   return {
@@ -333,12 +344,6 @@ this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
           type: "text",
           text: `Create a meal plan for one week using ${cuisine} cuisine...`
         }
-      }
-    ],
-    resources: [
-      {
-        uri: `file://recipes/${cuisine}`,
-        // This tells the client to include this resource with the prompt
       }
     ]
   };
