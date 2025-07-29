@@ -5,7 +5,7 @@ title = 'MCP Prompts: Building Workflow Automation'
 tags = ['automation', 'mcp', 'prompts', 'tutorial']
 +++
 
-MCP (Model Context Protocol) prompts enable workflow automation by combining AI capabilities with structured data access. This post shows how to build an automation using MCP's prompt and resource templates. The patterns demonstrated apply to any repetitive workflow—from code documentation to report generation.
+MCP (Model Context Protocol) prompts enable workflow automation by combining AI capabilities with structured data access. This post shows how to build an automation using MCP's prompt and resource templates. The patterns demonstrated apply to any repetitive workflow—from code documentation to meal planning automation.
 
 **Key takeaways:**
 - MCP prompts can include dynamic resources, giving AI full context for tasks
@@ -51,7 +51,7 @@ So I decided to write some MCP servers! The goal was to turn our multi-step manu
     src="/posts/images/prompts-suggestions.png"
     alt="Dropdown showing cuisine suggestions as user types"
   />
-3. Done! The system generates a meal plan, shopping list, and even prints the recipes
+3. Done! The system generates a meal plan, shopping list, and even prints the shopping list and recipes.
 
   <img
     src="/posts/images/prompts-final-result.png"
@@ -59,12 +59,12 @@ So I decided to write some MCP servers! The goal was to turn our multi-step manu
   />
 
 
-This post focuses primarily on the Recipe Server with its prompts and resources. You can find the [printing server example here](https://github.com/ihrpr/mcp-server-printer) (it works with a specific thermal printer model, but you could easily swap it for email, Notion, or any other output method). The beauty of separate servers is that you can mix and match different capabilities.
+This post focuses primarily on the Recipe Server with its prompts and resources. You can find the [printing server example here](https://github.com/ihrpr/mcp-server-tiny-print) (it works with a specific thermal printer model, but you could easily swap it for email, Notion, or any other output method). The beauty of separate servers is that you can mix and match different capabilities.
 
 
 ## Understanding MCP Prompts: Simple vs Complex
 
-MCP provides different ways to define prompts, and understanding the distinction is crucial for building effective automations.
+MCP provides different ways to define prompts, and understanding the distinction is crucial for building effective automations. For a complete technical reference, see the [MCP Prompts specification](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts).
 
 ### Simple Prompts
 
@@ -76,38 +76,34 @@ Simple prompts return text strings. They work well for straightforward instructi
 
 This works fine—modern AI models are powerful enough to generate reasonable meal plans from this instruction alone. But there's a limitation: the AI only knows what it was trained on, not your specific preferences, dietary restrictions, or that amazing pasta recipe you saved last month.
 
-### Complex Prompts with Resources
+### Complex Prompts
 
-This is where complex prompts shine. While I'm adventurous and want to try new cuisines, I still want to provide my context—my recipes that I've tried before or written down and want to make. I want to be specific about what the model should choose from, as there are constants in what I like and don't.
+Complex prompts go beyond simple text instructions by including structured data and resources. This is crucial when you need the AI to work with your specific context rather than general knowledge.
 
-Complex prompts can return structured data including resources, enabling sophisticated workflows. When a user triggers a complex prompt, MCP bundles the prompt text with relevant resources, providing everything needed to complete the task.
+In my meal planning example, I don't want generic Italian recipes—I want the AI to use MY collection of tested recipes that I know I like. Complex prompts make this possible by bundling prompt text with embedded resources.
 
-Here's the key difference: A simple prompt asking "Plan meals for Italian cuisine" requires the AI to work from general knowledge. A complex prompt can include:
-- Your personal recipe collection
-- Dietary preferences and restrictions
-- Past meal plans to avoid repetition
-- Ingredient optimization rules
+Here's how it works:
 
-The AI operates with full context, producing results tailored to your specific needs.
+1. **User selects a prompt** with parameters (e.g., "plan-meals" with cuisine="italian")
+2. **Server returns** both instructional text AND resource references
+3. **Client decides how to handle resources** - Applications might choose to select a subset of data using embeddings or keyword search, or pass the raw data directly to the model
+4. **AI receives the context** and generates a response
 
-### How Complex Prompts Work in Practice
+In my example, VS Code attached the entire resource to the prompt, which worked great for this use case. The AI had access to all my Italian recipes when planning an Italian week, ensuring it only suggested dishes I actually had recipes for.
 
-When a user selects a complex prompt:
-
-1. The prompt returns both instructional text AND references to relevant resources
-2. The client (like VS Code) attaches these resources to the AI context
-3. The AI receives comprehensive information:
-   - The task instructions
-   - Your recipe collection for the selected cuisine
-   - Any constraints or preferences
-   - Historical context if needed
-
-In my implementation, VS Code attached the entire resource to the prompt, which worked great for the use case. The AI had access to all my Italian recipes when planning an Italian week, ensuring it only suggested dishes I actually had recipes for.
+The key difference from simple prompts: instead of asking "Plan Italian meals" and getting generic suggestions, the AI works with your actual recipe collection, dietary preferences, and constraints.
 
   <img
     src="/posts/images/promots-rendered-prompt.png"
     alt="VS Code showing the rendered prompt with attached recipe resources"
   />
+
+The recipe resources we've been using are **embedded resources** - direct references to server-side content. According to the [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts#data-types), prompts can also include other data types:
+- **Text Content**: Direct text in the prompt messages
+- **Image Content**: Base64-encoded images for visual context
+- **Audio Content**: Base64-encoded audio for voice-based interactions
+
+This enables advanced use cases beyond our text-based recipes, like design review prompts with screenshots or voice transcription services.
 
 ## Core Components
 
