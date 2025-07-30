@@ -28,7 +28,7 @@ So I decided to use MCP! By automating these steps, I could reduce the entire wo
     src="/posts/images/prompts-list.png"
     alt="MCP prompts list showing available automation commands"
   />
-2. Select a cuisine from a dropdown
+2. Select a cuisine from a dropdown (Suggestions)
     <img
     src="/posts/images/prompts-suggestions.png"
     alt="Dropdown showing cuisine suggestions as user types"
@@ -141,54 +141,24 @@ For this tutorial, I'll use the TypeScript SDK, but MCP also supports Python and
 
 ### Server Setup and Capabilities
 
-First, let's create our MCP server and declare its capabilities:
+First, let's create our MCP server:
 
 ```typescript
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CompleteRequestSchema,
-  GetPromptRequestSchema,
-  ListPromptsRequestSchema,
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { CUISINES, formatRecipesAsMarkdown } from "./recipes.js";
+const server = new McpServer({
+  name: "favorite-recipes",
+  version: "1.0.0",
+});
 
-class FavoriteRecipesServer {
-  private server: Server;
-
-  constructor() {
-    this.server = new Server(
-      {
-        name: "favorite-recipes",
-        version: "1.0.0",
-      },
-      {
-        capabilities: {
-          resources: {},     // Enable resource serving
-          prompts: {},       // Enable prompt automation
-          completion: {},    // Enable parameter completions
-        },
-      }
-    );
-
-    this.setupHandlers();
-  }
-
-  private setupHandlers() {
-    // We'll implement each handler next
-  }
-
-  async run() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-  }
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
 }
 
-// Start the server
-const server = new FavoriteRecipesServer();
-server.run().catch(console.error);
+main().catch((error) => {
+  console.error("Server error:", error);
+  process.exit(1);
+});
+
 ```
 
 Each capability declaration tells MCP clients what features your server supports:
@@ -198,48 +168,36 @@ Each capability declaration tells MCP clients what features your server supports
 
 ### Implementing Resources
 
-I need two handlers for resource templates:
+I need to register resource template with completions.
 
-**List Resources Handler** - This enables resource discovery:
-
-```typescript
-this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources: CUISINES.map((cuisine) => ({
-      uri: `file://recipes/${cuisine}`,
-      name: `${cuisine.charAt(0).toUpperCase() + cuisine.slice(1)} Recipes`,
-      mimeType: "text/markdown",
-      description: `Traditional recipes from ${
-        cuisine.charAt(0).toUpperCase() + cuisine.slice(1)
-      } cuisine`,
-    })),
-  };
-});
-```
-
-**Read Resource Handler** - This serves the actual content:
 
 ```typescript
-this.server.setRequestHandler(
-  ReadResourceRequestSchema,
-  async (request) => {
-    const uri = request.params.uri;
+server.registerResource(
+  "recipes",
+  new ResourceTemplate("file://recipes/{cuisine}", {
+    list: undefined,
+    complete: {
+      cuisine: (value) => {
+        return CUISINES.filter((cuisine) => cuisine.startsWith(value));
+      },
+    },
+  }),
+  {
+    title: "Cuisine-Specific Recipes",
+    description: "Traditional recipes organized by cuisine",
+  },
+  async (uri, variables, _extra) => {
+    const cuisine = variables.cuisine as string;
 
-    if (!uri.startsWith("file://recipes/")) {
-      throw new Error(`Unknown resource: ${uri}`);
-    }
-
-    const cuisine = uri.replace("file://recipes/", "");
     if (!CUISINES.includes(cuisine)) {
       throw new Error(`Unknown cuisine: ${cuisine}`);
     }
 
     const content = formatRecipesAsMarkdown(cuisine);
-
     return {
       contents: [
         {
-          uri,
+          uri: uri.href,
           mimeType: "text/markdown",
           text: content,
         },
@@ -249,121 +207,75 @@ this.server.setRequestHandler(
 );
 ```
 
-### Implementing Completions
-
-Completions help users discover valid parameter values:
-
-```typescript
-this.server.setRequestHandler(CompleteRequestSchema, async (request) => {
-  const { ref, argument } = request.params;
-
-  // Handle resource template completions (can also be used for prompts)
-  if (
-    "uri" in ref &&
-    ref.uri === "file://recipes/{cuisine}" &&
-    argument.name === "cuisine"
-  ) {
-    const matchingCuisines = CUISINES.filter((cuisine) =>
-      cuisine.startsWith(argument.value.toLowerCase())
-    );
-    return {
-      completion: {
-        values: matchingCuisines,
-        hasMore: false,
-      },
-    };
-  }
-
-  return {
-    completion: {
-      values: [],
-      hasMore: false,
-    },
-  };
-});
-```
-
 ### Implementing Prompts
 
-Finally, the prompt that ties everything together:
+Finally, the prompt that also has completions:
 
 ```typescript
-this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  return {
-    prompts: [
-      {
-        name: "weekly-meal-planner",
-        description:
-          "Create a weekly meal plan and grocery shopping list from cuisine-specific recipes",
-        arguments: [
-          {
-            name: "cuisine",
-            description: "The cuisine to plan meals from",
-            required: true
-          }
-        ]
-      }
-    ]
-  };
-});
+server.registerPrompt(
+  "weekly-meal-planner",
+  {
+    title: "Weekly Meal Planner",
+    description:
+      "Create a weekly meal plan and grocery shopping list from cuisine-specific recipes",
+    argsSchema: {
+      cuisine: completable(z.string(), (value) => {
+        return CUISINES.filter((cuisine) => cuisine.startsWith(value));
+      }),
+    },
+  },
+  async ({ cuisine }) => {
+    const resourceUri = `file://recipes/${cuisine}`;
+    const recipeContent = formatRecipesAsMarkdown(cuisine);
 
-this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+    return {
+      title: `Weekly Meal Planner - ${cuisine} Cuisine`,
+      description: `Weekly meal planner for ${cuisine} cuisine`,
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Plan cooking for the week. I've attached the recipes from ${cuisine} cuisine.
 
-  if (name !== "weekly-meal-planner") {
-    throw new Error("Unknown prompt");
+Please create:
+1. A 7-day meal plan using these recipes
+2. An optimized grocery shopping list that minimizes waste by reusing ingredients across multiple recipes
+3. Daily meal schedule with specific dishes for breakfast, lunch, and dinner
+4. Preparation tips to make the week more efficient
+5. Print Shopping list
+
+Focus on ingredient overlap between recipes to reduce food waste.`,
+          },
+        },
+        {
+          role: "user",
+          content: {
+            type: "resource",
+            resource: {
+              uri: resourceUri,
+              mimeType: "text/markdown",
+              text: recipeContent,
+            },
+          },
+        },
+      ],
+    };
   }
-
-  if (!args || !args.cuisine) {
-    throw new Error("Cuisine parameter is required");
-  }
-
-  const cuisine = args.cuisine.toLowerCase();
-  if (!CUISINES.includes(cuisine)) {
-    throw new Error(`Unknown cuisine: ${cuisine}`);
-  }
-
-  return {
-    messages: [
-      {
-        role: "user",
-        content: {
-          type: "text",
-          text: `Create a meal plan for one week using ${cuisine} cuisine...`
-        }
-      }
-    ]
-  };
-});
+);
 ```
 
-The separation between listing and reading enables efficient implementations. Clients can show available prompts without executing them, completions work without loading all resources, and resources generate content on-demand.
 
-### Putting It All Together
+## Running It Yourself
 
-Now let's complete our server implementation by wiring up all the handlers:
+Setting up local MCP servers in VS Code is straightforward. You can see their status, debug what's happening, and iterate quickly on your automations. The [full code for the recipe server is available here](https://github.com/ihrpr/mcp-server-fav-recipes).
 
-```typescript
-private setupHandlers() {
-  // Resource handlers
-  this.server.setRequestHandler(ListResourcesRequestSchema, this.handleListResources.bind(this));
-  this.server.setRequestHandler(ReadResourceRequestSchema, this.handleReadResource.bind(this));
-  
-  // Prompt handlers
-  this.server.setRequestHandler(ListPromptsRequestSchema, this.handleListPrompts.bind(this));
-  this.server.setRequestHandler(GetPromptRequestSchema, this.handleGetPrompt.bind(this));
-  
-  // Completion handler
-  this.server.setRequestHandler(CompleteRequestSchema, this.handleComplete.bind(this));
-}
-```
+Once the server is set up in VS Code, type "/" and select the prompt. 
 
-When a user interacts with this server:
-1. They see available prompts via `ListPrompts`
-2. They get parameter suggestions via `Complete`
-3. They execute the prompt via `GetPrompt`
-4. The server dynamically includes the right resources
-5. The AI receives full context for the task
+<img
+    src="/posts/images/prompts-list.png"
+    alt="MCP prompts list showing available automation commands"
+ />
 
 
 ## Extending Your Automations
@@ -381,10 +293,6 @@ The patterns demonstrated in meal planning apply to many domains:
 - Development workflows that understand your project structure
 - Customer support automations with full context
 
-
-## Running It Yourself
-
-Setting up local MCP servers in VS Code is straightforward. You can see their status, debug what's happening, and iterate quickly on your automations. The [full code for the recipe server is available here](https://github.com/ihrpr/mcp-server-fav-recipes).
 
 **Key takeaways:**
 - MCP prompts can include dynamic resources, giving AI full context for tasks
