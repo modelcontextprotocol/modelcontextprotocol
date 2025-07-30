@@ -1,4 +1,6 @@
 #content-area {
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* via Mintlify theme */
+
   h5 {
     font-weight: 500;
   }
