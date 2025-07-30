@@ -13,7 +13,7 @@ This guide demonstrates how MCP prompts can automate repetitive workflows. Wheth
 
 ## The Problem: Time-Consuming Repetitive Tasks
 
-Everyone has a collection of repetitive tasks that eat away at their productive hours. Common examples include applying PR feedback, generating weekly reports, updating documentation, or creating boilerplate code. These tasks aren't complex—they follow predictable patterns—but they're cumbersome and time-consuming. MCP prompts were designed to help automate this kind of work.
+Everyone has a collection of repetitive tasks that eat away at their productive hours. Common examples include applying code review feedback, generating weekly reports, updating documentation, or creating boilerplate code. These tasks aren't complex—they follow predictable patterns—but they're cumbersome and time-consuming. MCP prompts were designed to help automate this kind of work.
 
 MCP prompts offer more than command shortcuts. They're a primitive for building workflow automation that combines the flexibility of scripting with the intelligence of modern AI systems. This post explores how to build automations using MCP's prompt system, resource templates, and modular servers. I'll demonstrate these concepts through a meal planning automation I built, but the patterns apply broadly to any structured, repetitive workflow.
 
@@ -41,28 +41,31 @@ So I decided to use MCP! By automating these steps, I could reduce the entire wo
   />
 
 
-This post focuses primarily on the Recipe Server with its prompts and resources. You can find the [printing server example here](https://github.com/ihrpr/mcp-server-tiny-print) (it works with a specific thermal printer model, but you could easily swap it for email, Notion, or any other output method). The beauty of separate servers is that you can mix and match different capabilities.
+Here we are focuses primarily on the Recipe Server with its prompts and resources. You can find the [printing server example here](https://github.com/ihrpr/mcp-server-tiny-print) (it works with a specific thermal printer model, but you could easily swap it for email, Notion, or any other output method). The beauty of separate servers is that you can mix and match different capabilities.
 
 ## Core Components
 
 Let's dive into the three components that make this automation possible: prompts, resources, and completions. I'll show you how each works conceptually, then we'll implement them together.
 
-### 1. Resource Templates: Dynamic Content at Scale
+### 1. Resource Templates
 
-Traditional static resources don't scale well. If you have recipes for 20 cuisines, creating 20 separate resources becomes unwieldy. Resource templates solve this through URI patterns that dynamically serve content.
+In MCP, [static resources](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-types) represent specific pieces of content with unique URIs—like `file://recipes/italian.md` or `file://recipes/mexican.md`. While straightforward, this approach doesn't scale well. If you have recipes for 20 cuisines, you'd need to define 20 separate resources, each with its own URI and metadata.
+
+[Resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) solve this through URI patterns with parameters, transforming static resource definitions into dynamic content providers.
 
 A template like `file://recipes/${cuisine}` transforms a single resource definition into a dynamic content provider:
 - `file://recipes/italian` returns Italian recipes
-- `file://recipes/japanese` returns Japanese recipes
 - `file://recipes/mexican` returns Mexican recipes
 
 This pattern extends beyond simple filtering. You can create templates for:
 - Hierarchical data: `file://docs/${category}/${topic}`
-- Versioned content: `file://api/v${version}/${endpoint}`
-- Query-based filtering: `file://data/${type}?filter=${criteria}`
-- User-specific content: `file://user/${userId}/${dataType}`
+- Git repository content: `git://repo/${branch}/path/${file}`
+- Web resources: `https://api.example.com/users/${userId}/data`
+- Query parameters: `file://search/${collection}?type=${filter}`
 
-### 2. Completions: Creating Fluid Interactions
+For more details on URI schemes and resource templates, see the [MCP Resource specification](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates).
+
+### 2. Completions
 
 Nobody remembers exact parameter values. Is it "italian" or "Italian" or "it"? Completions bridge this gap by providing suggestions as users type, creating an interface that feels intuitive rather than restrictive.
 
@@ -73,25 +76,28 @@ Different MCP clients present completions differently:
 
 But the underlying data comes from your server, maintaining consistency across all clients.
 
-### 3. Prompts: The Automation Commands
+### 3. Prompts: Commands That Evolve With Context
 
-Prompts are the entry points to your automation. They define what commands are available and what resources they need. MCP provides different ways to define prompts, and understanding the distinction is crucial for building effective automations. For a complete technical reference, see the [MCP Prompts specification](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts).
+[Prompts](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) are the entry points to your automation. They define what commands are available and can range from simple text instructions to rich, context-aware operations.
 
-#### Simple Prompts
+Let's see how prompts can evolve to handle increasingly sophisticated use cases:
 
-Simple prompts return text strings. They work well for straightforward instructions where the AI can operate on general knowledge. For example:
-
+**Basic prompt: Static instruction**
 ```
-"Create a meal plan for a week - use only Italian cuisine and ingredients that can be re-used"
+"Create a meal plan for a week"
 ```
+This works, but it's generic. The AI will create a meal plan based on general knowledge.
 
-This works fine—modern AI models are powerful enough to generate reasonable meal plans from this instruction alone. But there's a limitation: the AI only knows what it was trained on, not your specific preferences, dietary restrictions, or that amazing pasta recipe you saved last month.
+**Adding parameters: Dynamic customization**
+```
+"Create a meal plan for a week using ${cuisine} cuisine"
+```
+Now users can specify Italian, Mexican, or any other cuisine. The prompt adapts to user input, but still relies on the AI's general knowledge about these cuisines.
 
-#### Complex Prompts
+**Including resources: Your data**
+Prompts go beyond simple text instructions by including context data as resources. This is crucial when you need the AI to work with your specific context rather than general knowledge.
 
-Complex prompts go beyond simple text instructions by including structured data and resources. This is crucial when you need the AI to work with your specific context rather than general knowledge.
-
-In my meal planning example, I don't want generic recipes—I want the AI to use MY collection of tested recipes that I know I like. Complex prompts make this possible by bundling prompt text with embedded resources.
+In my meal planning example, I don't want generic recipes—I want the AI to use __my__ collection of tested recipes that I know I like. Complex prompts make this possible by bundling prompt text with embedded resources.
 
 Here's how it works:
 
