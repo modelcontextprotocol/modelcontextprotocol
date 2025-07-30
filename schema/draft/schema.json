@@ -681,15 +681,20 @@
                 "description": {
                     "type": "string"
                 },
-                "enum": {
+                "oneOf": {
                     "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "enumNames": {
-                    "items": {
-                        "type": "string"
+                        "properties": {
+                            "const": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "const"
+                        ],
+                        "type": "object"
                     },
                     "type": "array"
                 },
@@ -702,7 +707,7 @@
                 }
             },
             "required": [
-                "enum",
+                "oneOf",
                 "type"
             ],
             "type": "object"
