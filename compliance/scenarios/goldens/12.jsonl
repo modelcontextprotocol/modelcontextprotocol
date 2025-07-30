@@ -1,0 +1,8 @@
+// client1 connects to ErrorServer, calls timeout tool with progress tracking, cancels after 1 second, receives cancelled acknowledgment
+{"from":"client1","to":"ErrorServer","message":{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"ErrorServer","to":"client1","message":{"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{"listChanged":true},"resources":{"listChanged":true},"completions":{}},"serverInfo":{"name":"ErrorServer","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"client1","to":"ErrorServer","message":{"method":"notifications/initialized","jsonrpc":"2.0"}}
+{"from":"client1","to":"ErrorServer","message":{"method":"tools/call","params":{"name":"timeout","arguments":{},"meta":{"progressToken":"progress-1"}},"jsonrpc":"2.0","id":1}}
+{"from":"ErrorServer","to":"client1","message":{"method":"notifications/progress","params":{"progressToken":"progress-1","progress":10,"total":100},"jsonrpc":"2.0"}}
+{"from":"client1","to":"ErrorServer","message":{"method":"notifications/cancelled","params":{"requestId":1,"reason":"User cancelled"},"jsonrpc":"2.0"}}
+{"from":"ErrorServer","to":"client1","message":{"error":{"code":-32001,"message":"Request cancelled"},"jsonrpc":"2.0","id":1}}

@@ -1,0 +1,4 @@
+// client1 connects to CalcServer, subscribes to resource://special-number, client2 connects and calls write_special_number(value=50), client1 receives resource update notification
+{"from":"client1","to":"CalcServer","message":{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"CalcServer","to":"client1","message":{"result":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{},"roots":{},"tools":{"listChanged":true},"resources":{"listChanged":true},"completions":{},"prompts":{"listChanged":true}},"serverInfo":{"name":"CalcServer","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"client1","to":"CalcServer","message":{"method":"notifications/initialized","jsonrpc":"2.0"}}
