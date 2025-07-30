@@ -7,9 +7,7 @@ tags = ['automation', 'mcp', 'prompts', 'tutorial']
 
 [MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-06-18) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's [prompt](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) and [resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) through a practical example.
 
-
 This guide demonstrates how MCP prompts can automate repetitive workflows. Whether you're interested in the Model Context Protocol ecosystem or simply want to leverage AI for workflow automation, you'll learn how to build practical automations through a concrete meal planning example. No prior MCP experience needed—I'll cover the fundamentals before diving into implementation.
-
 
 ## The Problem: Time-Consuming Repetitive Tasks
 
@@ -24,22 +22,21 @@ I needed to solve a recurring problem: planning weekly meals by cuisine to manag
 So I decided to use MCP! By automating these steps, I could reduce the entire workflow to selecting a cuisine and receiving a complete meal plan with shopping list:
 
 1. Select a prompt
-    <img
-    src="/posts/images/prompts-list.png"
-    alt="MCP prompts list showing available automation commands"
-  />
+   <img
+     src="/posts/images/prompts-list.png"
+     alt="MCP prompts list showing available automation commands"
+   />
 2. Select a cuisine from a dropdown (Suggestions)
-    <img
-    src="/posts/images/prompts-suggestions.png"
-    alt="Dropdown showing cuisine suggestions as user types"
-  />
+   <img
+     src="/posts/images/prompts-suggestions.png"
+     alt="Dropdown showing cuisine suggestions as user types"
+   />
 3. Done! The system generates a meal plan, shopping list, and even prints the shopping list and recipes.
 
-  <img
+<img
     src="/posts/images/prompts-final-result.png"
     alt="Final generated meal plan and shopping list output"
   />
-
 
 Here we are focuses primarily on the Recipe Server with its prompts and resources. You can find the [printing server example here](https://github.com/ihrpr/mcp-server-tiny-print) (it works with a specific thermal printer model, but you could easily swap it for email, Notion, or any other output method). The beauty of separate servers is that you can mix and match different capabilities.
 
@@ -54,10 +51,12 @@ In MCP, [static resources](https://modelcontextprotocol.io/specification/2025-06
 [Resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) solve this through URI patterns with parameters, transforming static resource definitions into dynamic content providers.
 
 A template like `file://recipes/${cuisine}` transforms a single resource definition into a dynamic content provider:
+
 - `file://recipes/italian` returns Italian recipes
 - `file://recipes/mexican` returns Mexican recipes
 
 This pattern extends beyond simple filtering. You can create templates for:
+
 - Hierarchical data: `file://docs/${category}/${topic}`
 - Git repository content: `git://repo/${branch}/path/${file}`
 - Web resources: `https://api.example.com/users/${userId}/data`
@@ -70,6 +69,7 @@ For more details on URI schemes and resource templates, see the [MCP Resource sp
 Nobody remembers exact parameter values. Is it "italian" or "Italian" or "it"? [Completions](https://modelcontextprotocol.io/specification/2025-06-18/server/utilities/completion) bridge this gap by providing suggestions as users type, creating an interface that feels intuitive rather than restrictive.
 
 Different MCP clients present completions differently:
+
 - VS Code shows a filterable dropdown
 - Command-line tools might use fuzzy matching
 - Web interfaces could provide rich previews
@@ -83,21 +83,25 @@ But the underlying data comes from your server, maintaining consistency across a
 Let's see how prompts can evolve to handle increasingly sophisticated use cases:
 
 **Basic prompt: Static instruction**
+
 ```
 "Create a meal plan for a week"
 ```
+
 This works, but it's generic. The AI will create a meal plan based on general knowledge.
 
 **Adding parameters: Dynamic customization**
+
 ```
 "Create a meal plan for a week using ${cuisine} cuisine"
 ```
+
 Now users can specify Italian, Mexican, or any other cuisine. The prompt adapts to user input, but still relies on the AI's general knowledge about these cuisines.
 
 **Including resources: Your data**
 Prompts go beyond simple text instructions by including context data as resources. This is crucial when you need the AI to work with your specific context rather than general knowledge.
 
-In my meal planning example, I don't want generic recipes—I want the AI to use __my__ collection of tested recipes that I know I like. Complex prompts make this possible by bundling prompt text with embedded resources.
+In my meal planning example, I don't want generic recipes—I want the AI to use **my** collection of tested recipes that I know I like. Complex prompts make this possible by bundling prompt text with embedded resources.
 
 Here's how it works:
 
@@ -110,12 +114,13 @@ In my example, VS Code attached the entire resource to the prompt, which worked 
 
 The key difference from simple prompts: instead of asking "Plan Italian meals" and getting generic suggestions, the AI works with your actual recipe collection, dietary preferences, and constraints.
 
-  <img
+<img
     src="/posts/images/prompts-rendered-prompt.png"
     alt="VS Code showing the rendered prompt with attached recipe resources"
   />
 
 The recipe resources we've been using are **embedded resources** - direct references to server-side content. According to the [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts#data-types), prompts can also include other data types:
+
 - **Text Content**: Direct text in the prompt messages
 - **Image Content**: Base64-encoded images for visual context
 - **Audio Content**: Base64-encoded audio for voice-based interactions
@@ -131,11 +136,11 @@ Let's implement a complete MCP server that brings together all the concepts we'v
 Before diving into the code, make sure you have:
 
 1. **Node.js** (v18 or higher) and npm installed
-3. **MCP SDK** installed:
+2. **MCP SDK** installed:
    ```bash
    npm install @modelcontextprotocol/sdk
    ```
-4. **A MCP-compatible client** like VS Code with the MCP extension
+3. **A MCP-compatible client** like VS Code with the MCP extension
 
 For this tutorial, I'll use the TypeScript SDK, but MCP also supports Python and other languages.
 
@@ -158,10 +163,10 @@ main().catch((error) => {
   console.error("Server error:", error);
   process.exit(1);
 });
-
 ```
 
 Each capability declaration tells MCP clients what features your server supports:
+
 - `resources`: Your server can provide dynamic content (recipe collections)
 - `prompts`: Your server offers automation commands
 - `completion`: Your server provides parameter suggestions
@@ -169,7 +174,6 @@ Each capability declaration tells MCP clients what features your server supports
 ### Implementing Resources
 
 I need to register resource template with completions.
-
 
 ```typescript
 server.registerResource(
@@ -203,7 +207,7 @@ server.registerResource(
         },
       ],
     };
-  }
+  },
 );
 ```
 
@@ -261,22 +265,20 @@ Focus on ingredient overlap between recipes to reduce food waste.`,
         },
       ],
     };
-  }
+  },
 );
 ```
-
 
 ## Running It Yourself
 
 Setting up local MCP servers in VS Code is straightforward. You can see their status, debug what's happening, and iterate quickly on your automations. The [full code for the recipe server is available here](https://github.com/ihrpr/mcp-server-fav-recipes).
 
-Once the server is set up in VS Code, type "/" and select the prompt. 
+Once the server is set up in VS Code, type "/" and select the prompt.
 
 <img
     src="/posts/images/prompts-list.png"
     alt="MCP prompts list showing available automation commands"
  />
-
 
 ## Extending Your Automations
 
@@ -288,13 +290,14 @@ MCP prompts open up exciting automation possibilities:
 - **External Triggers**: Activate prompts via webhooks or schedules
 
 The patterns demonstrated in meal planning apply to many domains:
+
 - Documentation generation that knows your codebase
 - Report creation with access to your data sources
 - Development workflows that understand your project structure
 - Customer support automations with full context
 
-
 **Key takeaways:**
+
 - MCP prompts can include dynamic resources, giving AI full context for tasks
 - Resource templates enable scalable content serving without duplication
 - Modular server architecture lets you mix and match capabilities
