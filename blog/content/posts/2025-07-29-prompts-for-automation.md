@@ -131,7 +131,6 @@ Let's implement a complete MCP server that brings together all the concepts we'v
 Before diving into the code, make sure you have:
 
 1. **Node.js** (v18 or higher) and npm installed
-2. **TypeScript** knowledge (basic familiarity is enough)
 3. **MCP SDK** installed:
    ```bash
    npm install @modelcontextprotocol/sdk
@@ -367,7 +366,7 @@ When a user interacts with this server:
 5. The AI receives full context for the task
 
 
-## What's Next?
+## Extending Your Automations
 
 MCP prompts open up exciting automation possibilities:
 
