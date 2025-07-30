@@ -5,7 +5,7 @@ title = 'MCP Prompts: Building Workflow Automation'
 tags = ['automation', 'mcp', 'prompts', 'tutorial']
 +++
 
-MCP (Model Context Protocol) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's prompt and resource templates through a practical example.
+[MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-06-18) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's [prompt](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) and [resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) through a practical example.
 
 
 This guide demonstrates how MCP prompts can automate repetitive workflows. Whether you're interested in the Model Context Protocol ecosystem or simply want to leverage AI for workflow automation, you'll learn how to build practical automations through a concrete meal planning example. No prior MCP experience needed—I'll cover the fundamentals before diving into implementation.
@@ -13,7 +13,7 @@ This guide demonstrates how MCP prompts can automate repetitive workflows. Wheth
 
 ## The Problem: Time-Consuming Repetitive Tasks
 
-Everyone has a collection of repetitive tasks that eat away at their productive hours. Common examples include applying code review feedback, generating weekly reports, updating documentation, or creating boilerplate code. These tasks aren't complex—they follow predictable patterns—but they're cumbersome and time-consuming. MCP prompts were designed to help automate this kind of work.
+Everyone has a collection of repetitive tasks that eat away at their productive hours. Common examples include applying code review feedback, generating weekly reports, updating documentation, or creating boilerplate code. These tasks aren't complex—they follow predictable patterns—but they're cumbersome and time-consuming. [MCP prompts](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) were designed to help automate this kind of work.
 
 MCP prompts offer more than command shortcuts. They're a primitive for building workflow automation that combines the flexibility of scripting with the intelligence of modern AI systems. This post explores how to build automations using MCP's prompt system, resource templates, and modular servers. I'll demonstrate these concepts through a meal planning automation I built, but the patterns apply broadly to any structured, repetitive workflow.
 
@@ -45,7 +45,7 @@ Here we are focuses primarily on the Recipe Server with its prompts and resource
 
 ## Core Components
 
-Let's dive into the three components that make this automation possible: prompts, resources, and completions. I'll show you how each works conceptually, then we'll implement them together.
+Let's dive into the three components that make this automation possible: [prompts](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts), [resources](https://modelcontextprotocol.io/specification/2025-06-18/server/resources), and [completions](https://modelcontextprotocol.io/specification/2025-06-18/server/utilities/completion). I'll show you how each works conceptually, then we'll implement them together.
 
 ### 1. Resource Templates
 
@@ -67,7 +67,7 @@ For more details on URI schemes and resource templates, see the [MCP Resource sp
 
 ### 2. Completions
 
-Nobody remembers exact parameter values. Is it "italian" or "Italian" or "it"? Completions bridge this gap by providing suggestions as users type, creating an interface that feels intuitive rather than restrictive.
+Nobody remembers exact parameter values. Is it "italian" or "Italian" or "it"? [Completions](https://modelcontextprotocol.io/specification/2025-06-18/server/utilities/completion) bridge this gap by providing suggestions as users type, creating an interface that feels intuitive rather than restrictive.
 
 Different MCP clients present completions differently:
 - VS Code shows a filterable dropdown
