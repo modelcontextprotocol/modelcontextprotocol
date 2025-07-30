@@ -111,7 +111,7 @@ In my example, VS Code attached the entire resource to the prompt, which worked 
 The key difference from simple prompts: instead of asking "Plan Italian meals" and getting generic suggestions, the AI works with your actual recipe collection, dietary preferences, and constraints.
 
   <img
-    src="/posts/images/promots-rendered-prompt.png"
+    src="/posts/images/prompts-rendered-prompt.png"
     alt="VS Code showing the rendered prompt with attached recipe resources"
   />
 
