@@ -5,24 +5,10 @@ title = 'MCP Prompts: Building Workflow Automation'
 tags = ['automation', 'mcp', 'prompts', 'tutorial']
 +++
 
-MCP (Model Context Protocol) prompts enable workflow automation by combining AI capabilities with structured data access. This post shows how to build an automation using MCP's prompt and resource templates. The patterns demonstrated apply to any repetitive workflow—from code documentation to meal planning automation.
-
-**Key takeaways:**
-- MCP prompts can include dynamic resources, giving AI full context for tasks
-- Resource templates enable scalable content serving without duplication
-- Modular server architecture lets you mix and match capabilities
-
-**Who Is This For**
-
-This post is for anyone who:
-- Is interested in the Model Context Protocol (MCP) ecosystem
-- Wants to leverage AI for workflow automation of repetitive tasks
-- Has basic programming knowledge (TypeScript/JavaScript helpful but not required)
+MCP (Model Context Protocol) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's prompt and resource templates through a practical example.
 
 
-Whether you're automating documentation updates, report generation, or meal planning (like I did), this guide will show you how MCP prompts can transform repetitive work into an automation.
-
-No prior MCP experience needed—I'll cover the basics before diving into implementation.
+This guide demonstrates how MCP prompts can automate repetitive workflows. Whether you're interested in the Model Context Protocol ecosystem or simply want to leverage AI for workflow automation, you'll learn how to build practical automations through a concrete meal planning example. No prior MCP experience needed—I'll cover the fundamentals before diving into implementation.
 
 
 ## The Problem: Time-Consuming Repetitive Tasks
@@ -31,15 +17,11 @@ Everyone has a collection of repetitive tasks that eat away at their productive 
 
 MCP prompts offer more than command shortcuts. They're a primitive for building workflow automation that combines the flexibility of scripting with the intelligence of modern AI systems. This post explores how to build automations using MCP's prompt system, resource templates, and modular servers. I'll demonstrate these concepts through a meal planning automation I built, but the patterns apply broadly to any structured, repetitive workflow.
 
-## A Real Use Case: Weekly Meal Planning
+## Example: Automating Weekly Meal Planning
 
-Recently, I got into cooking. Not only did I realize how difficult it is to make a nice dish, but also discovered you need an overwhelming number of ingredients. In the spirit of trying new things and reducing food waste, I decided to dedicate each week to cooking dishes from a single cuisine.
+I needed to solve a recurring problem: planning weekly meals by cuisine to manage ingredients efficiently. The manual process involved selecting a cuisine, choosing dishes, listing ingredients, shopping, and organizing recipes—repetitive steps that took significant time each week.
 
-The process started simple enough: pick a cuisine, decide on dishes, write down ingredients, go grocery shopping, and stick the recipes on the fridge. Yes, it sounds charmingly old-school, and it was—for about three weeks. 
-
-Then I realized I could automate most of this process. All I wanted was to pick a cuisine and let everything else happen like magic.
-
-So I decided to write some MCP servers! The goal was to turn our multi-step manual process into a few clicks:
+So I decided to use MCP! By automating these steps, I could reduce the entire workflow to selecting a cuisine and receiving a complete meal plan with shopping list:
 
 1. Select a prompt
     <img
@@ -398,6 +380,11 @@ The patterns demonstrated in meal planning apply to many domains:
 ## Running It Yourself
 
 Setting up local MCP servers in VS Code is straightforward. You can see their status, debug what's happening, and iterate quickly on your automations. The [full code for the recipe server is available here](https://github.com/ihrpr/mcp-server-fav-recipes).
+
+**Key takeaways:**
+- MCP prompts can include dynamic resources, giving AI full context for tasks
+- Resource templates enable scalable content serving without duplication
+- Modular server architecture lets you mix and match capabilities
 
 ## Wrapping Up
 
