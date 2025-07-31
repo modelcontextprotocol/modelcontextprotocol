@@ -836,6 +836,17 @@
                         "protocolVersion": {
                             "description": "The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.",
                             "type": "string"
+                        },
+                        "requestedProfiles": {
+                            "description": "The array of profiles that are acceptable to the client.",
+                            "items": [
+                                {
+                                    "type": "string"
+                                }
+                            ],
+                            "maxItems": 1,
+                            "minItems": 1,
+                            "type": "array"
                         }
                     },
                     "required": [
@@ -865,6 +876,10 @@
                 },
                 "instructions": {
                     "description": "Instructions describing how to use the server and its features.\n\nThis can be used by clients to improve the LLM's understanding of available tools, resources, etc. It can be thought of like a \"hint\" to the model. For example, this information MAY be added to the system prompt.",
+                    "type": "string"
+                },
+                "profile": {
+                    "description": "The profile selected by the MCP Server.",
                     "type": "string"
                 },
                 "protocolVersion": {
@@ -1500,6 +1515,24 @@
                 }
             ],
             "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+        },
+        "ProfileSpec": {
+            "description": "This describes a profile supported by a MCP Server.",
+            "properties": {
+                "minMcpVersion": {
+                    "description": "The minimum MCP protocol version required to use this profile.",
+                    "type": "string"
+                },
+                "profileURL": {
+                    "description": "The unique URL that identifies the Profile and where the Profile Specification is located.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "minMcpVersion",
+                "profileURL"
+            ],
+            "type": "object"
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",

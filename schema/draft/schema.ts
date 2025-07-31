@@ -162,6 +162,23 @@ export interface CancelledNotification extends Notification {
   };
 }
 
+/* Profile Specification */
+/**
+ * This describes a profile supported by a MCP Server.
+ */
+
+export interface ProfileSpec {
+  /**
+   * The unique URL that identifies the Profile and where the Profile Specification is located.
+   */
+  profileURL: string;
+
+  /**
+   * The minimum MCP protocol version required to use this profile.
+   */
+  minMcpVersion: string;
+}
+
 /* Initialization */
 /**
  * This request is sent from the client to the server when it first connects, asking it to begin initialization.
@@ -177,6 +194,11 @@ export interface InitializeRequest extends Request {
     protocolVersion: string;
     capabilities: ClientCapabilities;
     clientInfo: Implementation;
+
+    /**
+     * The array of profiles that are acceptable to the client.
+     */
+    requestedProfiles?: [string] 
   };
 }
 
@@ -199,6 +221,11 @@ export interface InitializeResult extends Result {
    * This can be used by clients to improve the LLM's understanding of available tools, resources, etc. It can be thought of like a "hint" to the model. For example, this information MAY be added to the system prompt.
    */
   instructions?: string;
+
+  /**
+   * The profile selected by the MCP Server.
+   */
+  profile?: string;
 }
 
 /**

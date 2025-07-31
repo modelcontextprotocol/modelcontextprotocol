@@ -268,6 +268,13 @@
                       "specification/draft/server/utilities/logging",
                       "specification/draft/server/utilities/pagination"
                     ]
+                  },
+                  "specification/draft/server/profiles",
+                  {
+                    "group": "Standard Profiles",
+                    "pages": [
+                      "specification/draft/server/standard-profiles/high-security-profile"
+                    ]
                   }
                 ]
               },

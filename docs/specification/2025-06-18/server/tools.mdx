@@ -383,7 +383,6 @@ Providing an output schema helps clients and LLMs understand and properly handle
 Tools use two error reporting mechanisms:
 
 1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
-
    - Unknown tools
    - Invalid arguments
    - Server errors
@@ -427,7 +426,6 @@ Example tool execution error:
 ## Security Considerations
 
 1. Servers **MUST**:
-
    - Validate all tool inputs
    - Implement proper access controls
    - Rate limit tool invocations
