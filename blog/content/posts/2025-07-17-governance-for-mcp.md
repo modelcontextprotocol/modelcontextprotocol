@@ -1,6 +1,6 @@
 +++
-date = '2025-07-17T10:00:00Z'
-draft = true
+date = '2025-07-31T18:00:00Z'
+draft = false
 title = 'Building to Last: A New Governance Model for MCP'
 author = 'David Soria Parra (Lead Maintainer)'
 tags = ['announcement', 'governance', 'community']
@@ -41,6 +41,6 @@ Many of our maintainers began with a single small contribution—sometimes just 
 - **Documentation Writers**: Clear, comprehensive [documentation](https://modelcontextprotocol.io/introduction) is what turns a good project into a great one. If you love explaining things or making guides, your contributions will help others succeed.
 - **Future Maintainers**: We believe in growing our team from within. The path to becoming a maintainer starts with consistent, quality contributions and a commitment to the project's success. Imagine yourself guiding new contributors and shaping the future of MCP.
 
-No matter your background or experience, you belong here. Join our [Discord](https://discord.gg/modelcontextprotocol) to connect with other contributors, ask questions, and find mentorship. Whether you're fixing a typo or proposing a major change to the protocol, your voice is valued and your efforts make a difference.
+No matter your background or experience, you belong here. Join our [Discord](https://discord.gg/UzadGTUdCB) to connect with other contributors, ask questions, and find mentorship. Whether you're fixing a typo or proposing a major change to the protocol, your voice is valued and your efforts make a difference.
 
-For all the details, please see our full [governance documentation](https://modelcontextprotocol.io/community/governance).
+For all the details, please see our full [governance documentation](https://modelcontextprotocol.io/community/governance) and [contributor communication](https://modelcontextprotocol.io/community/communication).
