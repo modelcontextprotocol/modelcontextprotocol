@@ -2,12 +2,13 @@
 date = '2025-07-02T11:46:28+01:00'
 draft = false
 title = 'MCP Prompts: Building Workflow Automation'
+author = 'Inna Harper (Core Maintainer)'
 tags = ['automation', 'mcp', 'prompts', 'tutorial']
 +++
 
 [MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-06-18) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's [prompt](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) and [resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) through a practical example.
 
-This guide demonstrates how MCP prompts can automate repetitive workflows. Whether you're interested in the Model Context Protocol ecosystem or simply want to leverage AI for workflow automation, you'll learn how to build practical automations through a concrete meal planning example. No prior MCP experience needed—I'll cover the fundamentals before diving into implementation.
+This guide demonstrates how MCP prompts can automate repetitive workflows. Whether you're interested in the MCP ecosystem or simply want to leverage AI for workflow automation, you'll learn how to build practical automations through a concrete meal planning example. No prior MCP experience needed—we'll cover the fundamentals before diving into implementation.
 
 ## The Problem: Time-Consuming Repetitive Tasks
 
@@ -50,17 +51,17 @@ In MCP, [static resources](https://modelcontextprotocol.io/specification/2025-06
 
 [Resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) solve this through URI patterns with parameters, transforming static resource definitions into dynamic content providers.
 
-A template like `file://recipes/${cuisine}` transforms a single resource definition into a dynamic content provider:
+A template like `file://recipes/{cuisine}` transforms a single resource definition into a dynamic content provider:
 
 - `file://recipes/italian` returns Italian recipes
 - `file://recipes/mexican` returns Mexican recipes
 
 This pattern extends beyond simple filtering. You can create templates for:
 
-- Hierarchical data: `file://docs/${category}/${topic}`
-- Git repository content: `git://repo/${branch}/path/${file}`
-- Web resources: `https://api.example.com/users/${userId}/data`
-- Query parameters: `file://search/${collection}?type=${filter}`
+- Hierarchical data: `file://docs/{category}/{topic}`
+- Git repository content: `git://repo/{branch}/path/{file}`
+- Web resources: `https://api.example.com/users/{userId}/data`
+- Query parameters: `https://example.com/{collection}?type={filter}`
 
 For more details on URI schemes and resource templates, see the [MCP Resource specification](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates).
 
@@ -93,13 +94,14 @@ This works, but it's generic. The AI will create a meal plan based on general kn
 **Adding parameters: Dynamic customization**
 
 ```
-"Create a meal plan for a week using ${cuisine} cuisine"
+"Create a meal plan for a week using {cuisine} cuisine"
 ```
 
 Now users can specify Italian, Mexican, or any other cuisine. The prompt adapts to user input, but still relies on the AI's general knowledge about these cuisines.
 
 **Including resources: Your data**
-Prompts go beyond simple text instructions by including context data as resources. This is crucial when you need the AI to work with your specific context rather than general knowledge.
+
+Prompts can include resources to add context data beyond simple text instructions. This is crucial when you need the AI to work with your specific context rather than general knowledge.
 
 In my meal planning example, I don't want generic recipes—I want the AI to use **my** collection of tested recipes that I know I like. Complex prompts make this possible by bundling prompt text with embedded resources.
 
@@ -119,11 +121,7 @@ The key difference from simple prompts: instead of asking "Plan Italian meals" a
     alt="VS Code showing the rendered prompt with attached recipe resources"
   />
 
-The recipe resources we've been using are **embedded resources** - direct references to server-side content. According to the [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts#data-types), prompts can also include other data types:
-
-- **Text Content**: Direct text in the prompt messages
-- **Image Content**: Base64-encoded images for visual context
-- **Audio Content**: Base64-encoded audio for voice-based interactions
+The recipe resources we've been using are **embedded resources** that have inline content from the server. According to the [MCP specification](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts#data-types), prompts can also include other data types.
 
 This enables advanced use cases beyond our text-based recipes, like design review prompts with screenshots or voice transcription services.
 
@@ -140,7 +138,7 @@ Before diving into the code, make sure you have:
    ```bash
    npm install @modelcontextprotocol/sdk
    ```
-3. **A MCP-compatible client** like VS Code with the MCP extension
+3. **An MCP-compatible client** like VS Code with the MCP extension
 
 For this tutorial, I'll use the TypeScript SDK, but MCP also supports Python and other languages.
 
@@ -173,7 +171,7 @@ Each capability declaration tells MCP clients what features your server supports
 
 ### Implementing Resources
 
-I need to register resource template with completions.
+Next, let's register a resource template with completions.
 
 ```typescript
 server.registerResource(
@@ -213,7 +211,7 @@ server.registerResource(
 
 ### Implementing Prompts
 
-Finally, the prompt that also has completions:
+Finally, let's register the prompt, which also has completions:
 
 ```typescript
 server.registerPrompt(
@@ -271,9 +269,11 @@ Focus on ingredient overlap between recipes to reduce food waste.`,
 
 ## Running It Yourself
 
-Setting up local MCP servers in VS Code is straightforward. You can see their status, debug what's happening, and iterate quickly on your automations. The [full code for the recipe server is available here](https://github.com/ihrpr/mcp-server-fav-recipes).
+The [full code for the recipe server is available here](https://github.com/ihrpr/mcp-server-fav-recipes).
 
-Once the server is set up in VS Code, type "/" and select the prompt.
+Follow VS Code's [documentation to set up the server](https://code.visualstudio.com/docs/copilot/chat/mcp-servers). Once a server is set up in VS Code, you can see its status, debug what's happening, and iterate quickly on your automations.
+
+After the server is set up in VS Code, type "/" in chat and select the prompt.
 
 <img
     src="/posts/images/prompts-list.png"
