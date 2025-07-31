@@ -1,0 +1,47 @@
+---
+title: Minimum Authorization Profile
+---
+
+<div id="enable-section-numbers" />
+
+<Info>**Protocol Revision**: draft</Info>
+
+## Overview
+
+The Minimum Authorization Profile defines the baseline authorization requirements for HTTP-based MCP servers. This profile ensures basic security while maintaining simplicity for initial deployments.
+
+## Profile Identification
+
+This profile is identified by the URL:
+```
+https://modelcontextprotocol.io/specification/draft/server/standard-profiles/minimum-authorization-profile
+```
+
+## MCP Protocol Version
+The minimum MCP protocol version required for any MCP Server to use this profile is "2025-06-18".
+
+## HTTPS Transport
+- MCP servers implementing this profile MUST use HTTPS
+- HTTP connections MUST be rejected or redirected to HTTPS
+- TLS version 1.2 or higher MUST be supported
+
+## OAuth 2.1 support
+- MCP Clients and Servers MUST use OAuth 2.1 for all authorization flows
+
+## Protected Resource Metadata Discovery
+- Servers MUST implement OAuth 2.0 Protected Resource Metadata ([RFC 8414](https://tools.ietf.org/html/rfc8414))
+- Servers MUST respond with `WWW-Authenticate` header when the MCP Server responds with a HTTP status code 401 (Unauthorized).
+- The `WWW-Authenticate` header MUST specify the relevant OAuth 2.0 Protected Resource Metadata (OPRM), as described in Section 5.1 of RFC 9728
+
+## Protected Resource Metadata Content
+The OPRM resource(s) published by the MCP Server MUST have the following characteristics:
+- There should be at least one OPRM resource for the MCP Server. There MAY be separate OPRM resources for individual MCP Server tools or other primitives
+- The OPRM resource MUST specify at least one authorization server
+- The OPRM resource MUST specify at least one scope that is required to access the URL for which the OPRM was specified
+
+## Token Validation
+- MCP Servers MUST accept JWT format access tokens as defined in [RFC 9068](https://tools.ietf.org/html/rfc9068))
+- MCP Servers MUST reject all other format access tokens
+- Access tokens MUST be validated on every request according to the procedure set forth in [Section 5.2 of OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.3)
+- MCP Servers MUST only receive access tokens in the `Authorization` Request Header, and reject any tokens received in query parameters
+- MCP Servers MUST validate that tokens were issued specifically for them as the intended audience by matching the `aud` value in the token to its URL
