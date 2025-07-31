@@ -1,21 +1,20 @@
 +++
-date = '2025-07-17T10:00:00Z'
-draft = true
+date = '2025-07-31T00:00:00Z'
 title = 'Building to Last: A New Governance Model for MCP'
 author = 'David Soria Parra (Lead Maintainer)'
 tags = ['announcement', 'governance', 'community']
 +++
 
-Since its open source release in November 2024, the Model Context Protocol project has grown faster than we could have ever imagined. That's a wonderful problem to have, but with growth come growing pains. Our existing processes, which worked well for a small team, have started to show their limits.
+Since its open source release in November of 2024, the Model Context Protocol project has grown faster than we could have ever imagined. That's a wonderful problem to have, but with growth come growing pains. Our existing processes, which worked well for a small team, have started to show their limits.
 
 Today, we're taking a big step to ensure MCP can continue to grow and thrive. We're introducing a formal governance model designed to bring clarity to the development process while preserving the collaborative, open source spirit that has made MCP successful.
 
 ## Specification Enhancement Proposals (SEPs)
 
-One of the first major changes we're introducing is [Specification Enhancement Proposals](https://modelcontextprotocol.io/community/sep-guidelines) (SEPs). This will be the primary mechanism for anyone to propose changes to MCP. If you're familiar with Python's PEPs or Rust's RFCs, you'll feel right at home. The process is very straightforward:
+One of the first major changes we're introducing is [Specification Enhancement Proposals](https://modelcontextprotocol.io/community/sep-guidelines) (SEPs). This will be the primary mechanism for anyone to propose changes to MCP. SEPs are inspired by other trailblazing projects, like [Python PEPs](https://peps.python.org/) or [Rust RFCs](https://github.com/rust-lang/rfcs). We tried to make the process for suggesting changes to Model Context Protocol as straightforward as possible:
 
 1. Following the [SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines), submit a proposal as [a GitHub issue](https://github.com/modelcontextprotocol/modelcontextprotocol/issues) to start the conversation.
-2. Find a sponsor from the steering group, either on [Discord](https://discord.gg/modelcontextprotocol) or [GitHub](https://github.com/modelcontextprotocol/modelcontextprotocol). Refer to [`MAINTAINERS.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) for a list of currently active maintainers and their focus areas, as well as their preferred contact information.
+2. Our maintainers and core maintainers regularly review proposals and tag SEPs for review and sponsorship. You can also reach out and collaborate with contributing folks on [Discord](https://discord.gg/6CSzBmMkjX) or [GitHub](https://github.com/modelcontextprotocol/modelcontextprotocol). Refer to [`MAINTAINERS.md`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) for a list of currently active maintainers and their focus areas.
 3. Work with the sponsor and the MCP community to move your proposal through draft, review, and implementation stages.
 
 SEPs provide a clear, documented path for evolving the protocol, ensuring that every major change is well-vetted by the community.
@@ -28,7 +27,7 @@ The new model also establishes three types of leadership roles, ensuring both fo
 - **Core Maintainers** guide the overall direction of the project and the evolution of the MCP specification.
 - **Lead Maintainers** serve as the final decision-makers and ensure the project's long-term health.
 
-All maintainers form the **MCP steering group**. To ensure a structured and timely review of incoming proposals, our core and lead maintainers will meet bi-weekly to review submitted [SEPs](#specification-enhancement-proposals-seps). Meeting notes and decisions will always be public.
+All maintainers form the **MCP steering group**. To ensure a structured and timely review of incoming proposals, our core and lead maintainers will meet bi-weekly to review submitted [SEPs](#specification-enhancement-proposals-seps). Meeting notes and decisions will always be public, such as [the one from core maintainer meeting last week](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1061).
 
 ## Get Involved
 
