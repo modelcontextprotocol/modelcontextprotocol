@@ -1,54 +1,97 @@
 ---
-title: "For Claude Desktop Users"
-description: "Get started using pre-built servers in Claude for Desktop."
+title: Connect to Local MCP Servers
+description: Learn how to extend Claude Desktop with local MCP servers to enable file system access and other powerful integrations
 ---
 
-In this tutorial, you will extend [Claude for Desktop](https://claude.ai/download) so that it can read from your computer's file system, write new files, move files, and even search files.
+Model Context Protocol (MCP) servers extend AI applications' capabilities by providing secure, controlled access to local resources and tools. Many clients support MCP, enabling diverse integration possibilities across different platforms and applications.
+
+This guide demonstrates how to connect to local MCP servers using Claude Desktop as an example, one of the [many clients that support MCP](/clients). While we focus on Claude Desktop's implementation, the concepts apply broadly to other MCP-compatible clients. By the end of this tutorial, Claude will be able to interact with files on your computer, create new documents, organize folders, and search through your file system—all with your explicit permission for each action.
 
 <Frame>
-  <img src="/images/quickstart-filesystem.png" />
+  <img
+    src="/images/quickstart-filesystem.png"
+    alt="Claude Desktop with filesystem integration showing file management capabilities"
+  />
 </Frame>
 
-Don't worry — it will ask you for your permission before executing these actions!
+## Prerequisites
 
-## 1. Download Claude for Desktop
+Before starting this tutorial, ensure you have the following installed on your system:
 
-Start by downloading [Claude for Desktop](https://claude.ai/download), choosing either macOS or Windows. (Linux is not yet supported for Claude for Desktop.)
+### Claude Desktop
 
-Follow the installation instructions.
+Download and install [Claude Desktop](https://claude.ai/download) for your operating system. Claude Desktop is currently available for macOS and Windows. Linux support is coming soon.
 
-If you already have Claude for Desktop, make sure it's on the latest version by clicking on the Claude menu on your computer and selecting "Check for Updates..."
+If you already have Claude Desktop installed, verify you're running the latest version by clicking the Claude menu and selecting "Check for Updates..."
 
-## 2. Add the Filesystem MCP Server
+### Node.js
 
-To add this filesystem functionality, we will be installing a pre-built [Filesystem MCP Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) to Claude for Desktop. This is one of several current [reference servers](https://github.com/modelcontextprotocol/servers/tree/main) and many community-created servers.
+The Filesystem Server and many other MCP servers require Node.js to run. Verify your Node.js installation by opening a terminal or command prompt and running:
 
-Get started by opening up the Claude menu on your computer and select "Settings..." Please note that these are not the Claude Account Settings found in the app window itself.
+```bash
+node --version
+```
 
-This is what it should look like on a Mac:
+If Node.js is not installed, download it from [nodejs.org](https://nodejs.org/). We recommend the LTS (Long Term Support) version for stability.
+
+## Understanding MCP Servers
+
+MCP servers are programs that run on your computer and provide specific capabilities to Claude Desktop through a standardized protocol. Each server exposes tools that Claude can use to perform actions, with your approval. The Filesystem Server we'll install provides tools for:
+
+- Reading file contents and directory structures
+- Creating new files and directories
+- Moving and renaming files
+- Searching for files by name or content
+
+All actions require your explicit approval before execution, ensuring you maintain full control over what Claude can access and modify.
+
+## Installing the Filesystem Server
+
+The process involves configuring Claude Desktop to automatically start the Filesystem Server whenever you launch the application. This configuration is done through a JSON file that tells Claude Desktop which servers to run and how to connect to them.
+
+<Steps>
+<Step title="Open Claude Desktop Settings">
+Start by accessing the Claude Desktop settings. Click on the Claude menu in your system's menu bar (not the settings within the Claude window itself) and select "Settings..."
+
+On macOS, this appears in the top menu bar:
 
 <Frame style={{ textAlign: "center" }}>
-  <img src="/images/quickstart-menu.png" width="400" />
+  <img
+    src="/images/quickstart-menu.png"
+    width="400"
+    alt="Claude Desktop menu showing Settings option"
+  />
 </Frame>
 
-Click on "Developer" in the left-hand bar of the Settings pane, and then click on "Edit Config":
+This opens the Claude Desktop configuration window, which is separate from your Claude account settings.
+
+</Step>
+
+<Step title="Access Developer Settings">
+In the Settings window, navigate to the "Developer" tab in the left sidebar. This section contains options for configuring MCP servers and other developer features.
+
+Click the "Edit Config" button to open the configuration file:
 
 <Frame>
-  <img src="/images/quickstart-developer.png" />
+  <img
+    src="/images/quickstart-developer.png"
+    alt="Developer settings showing Edit Config button"
+  />
 </Frame>
 
-This will create a configuration file at:
+This action creates a new configuration file if one doesn't exist, or opens your existing configuration. The file is located at:
 
-- macOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-if you don't already have one, and will display the file in your file system.
+</Step>
 
-Open up the configuration file in any text editor. Replace the file contents with this:
+<Step title="Configure the Filesystem Server">
+Replace the contents of the configuration file with the following JSON structure. This configuration tells Claude Desktop to start the Filesystem Server with access to specific directories:
 
 <CodeGroup>
 
-```json MacOS/Linux
+```json macOS
 {
   "mcpServers": {
     "filesystem": {
@@ -82,77 +125,86 @@ Open up the configuration file in any text editor. Replace the file contents wit
 
 </CodeGroup>
 
-Make sure to replace `username` with your computer's username. The paths should point to valid directories that you want Claude to be able to access and modify. It's set up to work for Desktop and Downloads, but you can add more paths as well.
-
-You will also need [Node.js](https://nodejs.org) on your computer for this to run properly. To verify you have Node installed, open the command line on your computer.
-
-- On macOS, open the Terminal from your Applications folder
-- On Windows, press Windows + R, type "cmd", and press Enter
-
-Once in the command line, verify you have Node installed by entering in the following command:
-
-```bash
-node --version
-```
-
-If you get an error saying "command not found" or "node is not recognized", download Node from [nodejs.org](https://nodejs.org/).
+Replace `username` with your actual computer username. The paths listed in the `args` array specify which directories the Filesystem Server can access. You can modify these paths or add additional directories as needed.
 
 <Tip>
+**Understanding the Configuration**
 
-**How does the configuration file work?**
-
-This configuration file tells Claude for Desktop which MCP servers to start up every time you start the application. In this case, we have added one server called "filesystem" that will use the Node `npx` command to install and run `@modelcontextprotocol/server-filesystem`. This server, described [here](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem), will let you access your file system in Claude for Desktop.
+- `"filesystem"`: A friendly name for the server that appears in Claude Desktop
+- `"command": "npx"`: Uses Node.js's npx tool to run the server
+- `"-y"`: Automatically confirms the installation of the server package
+- `"@modelcontextprotocol/server-filesystem"`: The package name of the Filesystem Server
+- The remaining arguments: Directories the server is allowed to access
 
 </Tip>
 
 <Warning>
+**Security Consideration**
 
-**Command Privileges**
-
-Claude for Desktop will run the commands in the configuration file with the permissions of your user account, and access to your local files. Only add commands if you understand and trust the source.
+Only grant access to directories you're comfortable with Claude reading and modifying. The server runs with your user account permissions, so it can perform any file operations you can perform manually.
 
 </Warning>
+</Step>
 
-## 3. Restart Claude
+<Step title="Restart Claude Desktop">
+After saving the configuration file, completely quit Claude Desktop and restart it. The application needs to restart to load the new configuration and start the MCP server.
 
-After updating your configuration file, you need to restart Claude for Desktop.
-
-Upon restarting, you should see a slider <img src="/images/claude-desktop-mcp-slider.svg" style={{display: 'inline', margin: 0, height: '1.3em'}} /> icon in the bottom left corner of the input box:
+Upon successful restart, you'll see an MCP server indicator <img src="/images/claude-desktop-mcp-slider.svg" style={{display: 'inline', margin: 0, height: '1.3em'}} /> in the bottom-right corner of the conversation input box:
 
 <Frame>
-  <img src="/images/quickstart-slider.png" />
+  <img
+    src="/images/quickstart-slider.png"
+    alt="Claude Desktop interface showing MCP server indicator"
+  />
 </Frame>
 
-After clicking on the slider icon, you should see the tools that come with the Filesystem MCP Server:
+Click on this indicator to view the available tools provided by the Filesystem Server:
 
 <Frame style={{ textAlign: "center" }}>
-  <img src="/images/quickstart-tools.png" width="400" />
+  <img
+    src="/images/quickstart-tools.png"
+    width="400"
+    alt="Available filesystem tools in Claude Desktop"
+  />
 </Frame>
 
-If your server isn't being picked up by Claude for Desktop, proceed to the [Troubleshooting](#troubleshooting) section for debugging tips.
+If the server indicator doesn't appear, refer to the [Troubleshooting](#troubleshooting) section for debugging steps.
 
-## 4. Try it out!
+</Step>
+</Steps>
 
-You can now talk to Claude and ask it about your filesystem. It should know when to call the relevant tools.
+## Using the Filesystem Server
 
-Things you might try asking Claude:
+With the Filesystem Server connected, Claude can now interact with your file system. Try these example requests to explore the capabilities:
 
-- Can you write a poem and save it to my desktop?
-- What are some work-related files in my downloads folder?
-- Can you take all the images on my desktop and move them to a new folder called "Images"?
+### File Management Examples
 
-As needed, Claude will call the relevant tools and seek your approval before taking an action:
+- **"Can you write a poem and save it to my desktop?"** - Claude will compose a poem and create a new text file on your desktop
+- **"What work-related files are in my downloads folder?"** - Claude will scan your downloads and identify work-related documents
+- **"Please organize all images on my desktop into a new folder called 'Images'"** - Claude will create a folder and move image files into it
+
+### How Approval Works
+
+Before executing any file system operation, Claude will request your approval. This ensures you maintain control over all actions:
 
 <Frame style={{ textAlign: "center" }}>
-  <img src="/images/quickstart-approve.png" width="500" />
+  <img
+    src="/images/quickstart-approve.png"
+    width="500"
+    alt="Claude requesting approval to perform a file operation"
+  />
 </Frame>
+
+Review each request carefully before approving. You can always deny a request if you're not comfortable with the proposed action.
 
 ## Troubleshooting
+
+If you encounter issues setting up or using the Filesystem Server, these solutions address common problems:
 
 <AccordionGroup>
 <Accordion title="Server not showing up in Claude / hammer icon missing">
 
-1. Restart Claude for Desktop completely
+1. Restart Claude Desktop completely
 2. Check your `claude_desktop_config.json` file syntax
 3. Make sure the file paths included in `claude_desktop_config.json` are valid and that they are absolute and not relative
 4. Look at [logs](#getting-logs-from-claude-for-desktop) to see why the server is not connecting
@@ -171,7 +223,7 @@ npx -y @modelcontextprotocol/server-filesystem C:\Users\username\Desktop C:\User
 </CodeGroup>
 
 </Accordion>
-<Accordion title="Getting logs from Claude for Desktop">
+<Accordion title="Getting logs from Claude Desktop">
 
 Claude.app logging related to MCP is written to log files in:
 
@@ -202,12 +254,12 @@ If Claude attempts to use the tools but they fail:
 
 1. Check Claude's logs for errors
 2. Verify your server builds and runs without errors
-3. Try restarting Claude for Desktop
+3. Try restarting Claude Desktop
 
 </Accordion>
 <Accordion title="None of this is working. What do I do?">
 
-Please refer to our [debugging guide](/docs/tools/debugging) for better debugging tools and more detailed guidance.
+Please refer to our [debugging guide](/legacy/tools/debugging) for better debugging tools and more detailed guidance.
 
 </Accordion>
 <Accordion title="ENOENT error and `${APPDATA}` in paths on Windows">
@@ -244,14 +296,36 @@ npm install -g npm
 </Accordion>
 </AccordionGroup>
 
-## Next steps
+## Next Steps
+
+Now that you've successfully connected Claude Desktop to a local MCP server, explore these options to expand your setup:
 
 <CardGroup cols={2}>
-  <Card title="Explore other servers" icon="grid" href="/examples">
-    Check out our gallery of official MCP servers and implementations
+  <Card
+    title="Explore other servers"
+    icon="grid"
+    href="https://github.com/modelcontextprotocol/servers"
+  >
+    Browse our collection of official and community-created MCP servers for
+    additional capabilities
   </Card>
   <Card title="Build your own server" icon="code" href="/quickstart/server">
-    Now build your own custom server to use in Claude for Desktop and other
-    clients
+    Create custom MCP servers tailored to your specific workflows and
+    integrations
+  </Card>
+  <Card
+    title="Connect to remote servers"
+    icon="cloud"
+    href="/docs/tutorials/use-remote-mcp-server"
+  >
+    Learn how to connect Claude to remote MCP servers for cloud-based tools and
+    services
+  </Card>
+  <Card
+    title="Understand the protocol"
+    icon="book"
+    href="/docs/learn/architecture"
+  >
+    Dive deeper into how MCP works and its architecture
   </Card>
 </CardGroup>
