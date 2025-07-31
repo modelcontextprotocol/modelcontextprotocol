@@ -2194,6 +2194,12 @@
                     "$ref": "#/definitions/ReadResourceResult"
                 },
                 {
+                    "$ref": "#/definitions/SubscribeResult"
+                },
+                {
+                    "$ref": "#/definitions/UnsubscribeResult"
+                },
+                {
                     "$ref": "#/definitions/ListPromptsResult"
                 },
                 {
@@ -2293,6 +2299,34 @@
             "required": [
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "SubscribeResult": {
+            "description": "Sent from the server to the client, to confirm a request to subscribe to resource modifications.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "reason": {
+                    "description": "An optional reason given if the request is denied. (NOTE: If a resource subscription already exists for this client and URI, the response should be an Error and not a Result.)",
+                    "type": "string"
+                },
+                "subscribed": {
+                    "description": "Confirmation that the request has been accepted.",
+                    "type": "boolean"
+                },
+                "uri": {
+                    "description": "The URI of the resource that was subscribed to.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "subscribed",
+                "uri"
             ],
             "type": "object"
         },
@@ -2486,7 +2520,7 @@
             "type": "object"
         },
         "UnsubscribeRequest": {
-            "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
+            "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous (accepted) resources/subscribe request.",
             "properties": {
                 "method": {
                     "const": "resources/unsubscribe",
@@ -2509,6 +2543,25 @@
             "required": [
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "UnsubscribeResult": {
+            "description": "Sent from the server to the client, to confirm a request to unsubscribe from resource modification notifications. (NOTE: If no subscription exists for this client and URI, the response should be an Error and not a Result.)",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource that was unsubscribed from.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         }
