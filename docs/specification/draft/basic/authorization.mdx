@@ -33,7 +33,7 @@ require custom client implementations rather than standard MCP clients.
 
 ### Authorization Flows
 
-This specification defines two OAuth 2.1 flows that implementations **SHOULD** support:
+This specification defines three OAuth 2.1 flows that implementations **SHOULD** support:
 
 1. Authorization Code Flow - Used when an end-user needs to authenticate via a user agent
    (browser). This flow:
@@ -43,10 +43,17 @@ This specification defines two OAuth 2.1 flows that implementations **SHOULD** s
 
 2. Client Credentials Flow - Used when a client needs to authenticate itself without user
    interaction. This flow:
+
    - Enables machine-to-machine authentication
    - Requires client authentication using either:
-     - Asymmetric keys (JWT authentication) as defined in [RFC 7523 Section 2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1)
+     - Asymmetric keys (JWT authentication) as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2)
      - Client ID and secret
+
+3. JWT Federation Flow - Used when a client leverages existing credentials from a federated
+   identity provider. This flow:
+   - Eliminates per-server credential management overhead
+   - Uses JWT authorization grants as defined in [RFC 7523 Section 2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1)
+   - Requires trust relationships between authorization servers and identity providers
 
 ### Standards Compliance
 
@@ -62,6 +69,8 @@ while maintaining simplicity:
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
 - JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants
   ([RFC7523](https://datatracker.ietf.org/doc/html/rfc7523))
+- OAuth 2.0 Identity Chaining ([draft-ietf-oauth-identity-chaining](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/))
+- WIMSE Headless JWT Authentication ([draft-levy-wimse-headless-jwt-authentication](https://www.ietf.org/archive/id/draft-levy-wimse-headless-jwt-authentication-01.html))
 
 ## Authorization Flow
 
@@ -145,6 +154,11 @@ When supporting the client credentials flow, Authorization Server metadata **MUS
   - `"private_key_jwt"`
   - `"client_secret_basic"`
 - `token_endpoint_auth_signing_alg_values_supported`: Required when supporting JWT authentication
+
+When supporting the JWT federation flow, Authorization Server metadata **MUST** include the following fields:
+
+- `grant_types_supported`: **MUST** include `"urn:ietf:params:oauth:grant-type:jwt-bearer"`
+- `token_endpoint_auth_methods_supported`: **MAY** include `"none"` to indicate support for unauthenticated clients using JWT assertions
 
 #### Sequence Diagram
 
@@ -295,9 +309,9 @@ through administrative channels. Dynamic Client Registration is not used in this
 Clients **MUST** authenticate using one of these methods:
 
 - JWT Authentication (RECOMMENDED)
-  - Clients use JWT Authentication as defined in [RFC 7523 Section 2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1).
+  - Clients use JWT Authentication as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2).
 - Client Secret
-  - Clients use a Client Secret with HTTP Basic authentication as defined in [OAuth 2.1 Section 2.4.1](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#name-client-secret)
+  - Clients use a Client Secret transmitted in the request content as defined in [OAuth 2.1 Section 2.4.1](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#name-client-secret)
 
 #### Flow Steps
 
@@ -335,6 +349,119 @@ sequenceDiagram
     M-->>C: MCP response
     Note over C,M: MCP communication continues with valid token
 ```
+
+#### Examples
+
+The following examples illustrate both client authentication methods:
+
+##### JWT Authentication Example
+
+```http
+POST /token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer
+&client_assertion=eyJhbGciOiJSUzI1NiIsImtpZCI6IjIyIn0.
+     eyJpc3Mi[...omitted for brevity...].
+     cC4hiUPo[...omitted for brevity...]
+&resource=https%3A%2F%2Fmcp.example.com
+```
+
+> **Note:** The `client_id` parameter is omitted from the request body as [RFC 7523 Section 3](https://datatracker.ietf.org/doc/html/rfc7523#section-3) specifies that client identification is conveyed through the `sub` claim within the JWT assertion.
+
+##### Client Secret Authentication Example
+
+```http
+POST /token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id=s6BhdRkqt3
+&client_secret=7Fjfp0ZBr1KtDRbnfVdmIw
+&resource=https%3A%2F%2Fmcp.example.com
+```
+
+### JWT Federation Flow
+
+The JWT Federation flow enables workload-to-workload authentication using JWT bearer tokens as authorization grants,
+allowing clients to leverage existing trust relationships with identity providers when requesting access tokens from MCP servers.
+
+#### When to Use JWT Federation
+
+The Client Credentials flow requires MCP clients to establish direct trust relationships and manage distinct
+credentials with each MCP server's authorization server. This approach creates operational overhead in multi-server environments.
+
+JWT Federation simplifies this by allowing MCP clients to use JWT bearer tokens from trusted identity providers as
+authorization grants. This enables clients to request access tokens from MCP servers based on existing trust relationships
+between the server's authorization server and the identity provider that issued the JWT.
+
+This pattern is utilized by specifications such as:
+
+- [OAuth 2.0 Identity Chaining](https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/)
+- [WIMSE Headless JWT Authentication](https://www.ietf.org/archive/id/draft-levy-wimse-headless-jwt-authentication-01.html)
+
+#### Authentication Method
+
+Clients **MUST** use JWT Authorization Grants as defined in [RFC 7523 Section 2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1),
+where the JWT assertion represents an identity from a federated identity provider.
+
+#### Prerequisites
+
+- The MCP server's authorization server **MUST** have a trust relationship with the identity provider that issued the JWT
+- The authorization server **MUST** have an internal mechanism to map incoming federated JWTs to authorized principals in their system
+- The JWT **MUST** contain appropriate claims to identify the requesting actor
+
+#### Flow Steps
+
+The complete JWT Federation flow proceeds as follows:
+
+```mermaid
+sequenceDiagram
+    participant I as Identity Provider
+    participant C as Client
+    participant M as MCP Server (Resource Server)
+    participant A as Authorization Server
+
+    Note over C: Client already possesses<br/>JWT from Identity Provider
+
+    C->>M: MCP request without token
+    M->>C: HTTP 401 Unauthorized with WWW-Authenticate header
+    Note over C: Extract resource_metadata URL from WWW-Authenticate
+
+    C->>M: Request Protected Resource Metadata
+    M->>C: Return metadata
+
+    Note over C: Parse metadata and extract authorization server(s)<br/>Client determines AS to use
+
+    C->>A: GET Authorization server metadata endpoint
+    Note over C,A: Try OAuth 2.0 and OpenID Connect<br/>discovery endpoints in priority order
+    A-->>C: Authorization server metadata
+
+    Note over C: Present federated JWT assertion
+    C->>A: POST /token with JWT assertion
+    Note over A: Validate JWT signature<br/>via Identity Provider discovery<br/>Map federated identity to local principal
+    A->>C: Access token
+    C->>M: MCP request with access token
+    M-->>C: MCP response
+    Note over C,M: MCP communication continues with valid token
+```
+
+#### Non-normative HTTP Request Example
+
+```http
+POST /token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer
+&assertion=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLmNvbSIsInN1YiI6Indvcmtsb2FkLWlkZW50aWZpZXIiLCJhdWQiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20vdG9rZW4iLCJleHAiOjE3Mzg0NTAwMDAsImlhdCI6MTczODQ0NjQwMCwianRpIjoiYWJjMTIzIn0.signature
+&resource=https%3A%2F%2Fmcp.example.com
+```
+
+> **Note:** Unlike the Client Credentials flow, no `client_id` is required as the client identity is derived from the federated JWT assertion claims as specified in [RFC 7523 Section 2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1).
 
 ### Access Token Usage
 
