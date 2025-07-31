@@ -40,6 +40,14 @@ Many of our maintainers began with a single small contribution—sometimes just 
 - **Documentation Writers**: Clear, comprehensive [documentation](https://modelcontextprotocol.io/introduction) is what turns a good project into a great one. If you love explaining things or making guides, your contributions will help others succeed.
 - **Future Maintainers**: We believe in growing our team from within. The path to becoming a maintainer starts with consistent, quality contributions and a commitment to the project's success. Imagine yourself guiding new contributors and shaping the future of MCP.
 
-No matter your background or experience, you belong here. Join our [Discord](https://discord.gg/modelcontextprotocol) to connect with other contributors, ask questions, and find mentorship. Whether you're fixing a typo or proposing a major change to the protocol, your voice is valued and your efforts make a difference.
+No matter your background or experience, you belong here. Join our [Discord](https://discord.gg/6CSzBmMkjX) to connect with other contributors, ask questions, and find mentorship. Whether you're fixing a typo or proposing a major change to the protocol, your voice is valued and your efforts make a difference.
 
 For all the details, please see our full [governance documentation](https://modelcontextprotocol.io/community/governance).
+
+## Thank You
+
+None of this would be possible without the incredible community that has rallied around MCP. From the early adopters who believed in the vision, to the developers building MCP clients and servers, to the maintainers dedicating their time and expertise. Every contribution has been essential to making the Model Context Protocol the success it is today.
+
+You've helped us identify issues, improve documentation, build SDKs, create compelling examples, and push the boundaries of what's possible with platform integration. Your feedback, bug reports, feature requests, and code contributions have shaped MCP into something far better than we could have built alone.
+
+As we embark on this next chapter with formal governance, we're more committed than ever to fostering the open, inclusive community that has made MCP thrive. Thank you for being part of this journey - we can't wait to see what we'll build together next.
