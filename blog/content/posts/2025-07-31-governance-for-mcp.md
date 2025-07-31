@@ -27,7 +27,7 @@ The new model also establishes three types of leadership roles, ensuring both fo
 - **Core Maintainers** guide the overall direction of the project and the evolution of the MCP specification.
 - **Lead Maintainers** serve as the final decision-makers and ensure the project's long-term health.
 
-All maintainers form the **MCP steering group**. To ensure a structured and timely review of incoming proposals, our core and lead maintainers will meet bi-weekly to review submitted [SEPs](#specification-enhancement-proposals-seps). Meeting notes and decisions will always be public, such as [the one from core maintainer meeting last week](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1061).
+All maintainers form the **MCP steering group**. To ensure a structured and timely review of incoming proposals, our core and lead maintainers will meet bi-weekly to review submitted [SEPs](#specification-enhancement-proposals-seps). Meeting notes and decisions will always be public. For example the [notes from the core maintainer meeting on July 23rd, 2025](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1061).
 
 ## Get Involved
 
