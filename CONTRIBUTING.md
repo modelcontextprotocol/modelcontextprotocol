@@ -33,7 +33,8 @@ npm install  # install dependencies
 ## Making Changes
 
 Note that schema changes are made to `schema.ts`, and `schema.json` is generated from
-`schema.ts`.
+`schema.ts`. Changes proposed for the next version of the spec should be made to `draft`
+branch.
 
 1. Create a new branch:
 
@@ -56,6 +57,9 @@ npm run generate:schema
 npm run check:docs
 npm run format
 ```
+
+> [!NOTE]
+> steps 3-4 can be run together using `npm run prep:schema-changes`.
 
 5. Preview documentation locally (optional):
 
