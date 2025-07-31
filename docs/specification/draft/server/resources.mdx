@@ -87,7 +87,7 @@ either, or both:
 ### Listing Resources
 
 To discover available resources, clients send a `resources/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination).
+supports optional prefix filtering and [pagination](/specification/draft/server/utilities/pagination).
 
 **Request:**
 
@@ -97,6 +97,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
   "id": 1,
   "method": "resources/list",
   "params": {
+    "prefix": "optional-uri-prefix",
     "cursor": "optional-cursor-value"
   }
 }
@@ -119,6 +120,40 @@ supports [pagination](/specification/draft/server/utilities/pagination).
       }
     ],
     "nextCursor": "next-page-cursor"
+  }
+}
+```
+
+**Example with prefix filtering:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "resources/list",
+  "params": {
+    "prefix": "file:///project/src/"
+  }
+}
+```
+
+**Response (filtered results):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resources": [
+      {
+        "uri": "file:///project/src/main.py",
+        "name": "main.py"
+      },
+      {
+        "uri": "file:///project/src/config.json",
+        "name": "config.json"
+      }
+    ]
   }
 }
 ```
@@ -165,6 +200,7 @@ To retrieve resource contents, clients send a `resources/read` request:
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+This operation supports optional prefix filtering and [pagination](/specification/draft/server/utilities/pagination).
 
 **Request:**
 
@@ -172,7 +208,11 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "resources/templates/list"
+  "method": "resources/templates/list",
+  "params": {
+    "prefix": "optional-uri-prefix",
+    "cursor": "optional-cursor-value"
+  }
 }
 ```
 
@@ -190,6 +230,40 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
         "title": "📁 Project Files",
         "description": "Access files in the project directory",
         "mimeType": "application/octet-stream"
+      }
+    ]
+  }
+}
+```
+
+**Example with prefix filtering:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "resources/templates/list",
+  "params": {
+    "prefix": "https://api.example.com/"
+  }
+}
+```
+
+**Response (filtered results):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "resourceTemplates": [
+      {
+        "uriTemplate": "https://api.example.com/users/{id}",
+        "name": "User Details"
+      },
+      {
+        "uriTemplate": "https://api.example.com/posts/{postId}",
+        "name": "Blog Post"
       }
     ]
   }
