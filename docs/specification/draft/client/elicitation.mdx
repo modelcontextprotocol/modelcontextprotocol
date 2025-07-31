@@ -323,7 +323,7 @@ The client **MAY** request progress updates from the server by sending an `elici
 
 The client **MUST** include an `elicitationId` in the request to identify which elicitation to send progress updates for. The client **SHOULD** include a `progressToken` in the request's `_meta` field.
 
-The server **MUST** respond with an [error](/docs/concepts/architecture#error-handling) if the client sends an `elicitation/track` request containing an `elicitationId` that is not known or does not belong to the client.
+The server **MUST** respond with an [error](#error-handling) if the client sends an `elicitation/track` request containing an `elicitationId` that is not known or does not belong to the client.
 
 The server **MAY** send a `notifications/progress` notification to the client with the progress token and the progress status.
 
@@ -375,7 +375,7 @@ The server **SHOULD** send a `elicitation/track` response to the client once the
 
 ### Elicitation Required Error
 
-When another request cannot be processed until an elicitation is completed, the server **SHOULD** return an [ElicitationRequired error](/docs/concepts/architecture#error-handling) (code `-32604`) to indicate to the client that an elicitation is required.
+When another request cannot be processed until an elicitation is completed, the server **SHOULD** return an [ElicitationRequired error](#error-handling) (code `-32604`) to indicate to the client that an elicitation is required.
 
 The error **MUST** include a list of elicitations that are required to complete before the original can be retried.
 
@@ -651,6 +651,18 @@ sequenceDiagram
 ```
 
 This pattern maintains clear security boundaries while enabling rich integrations with third-party services that require user authorization.
+
+## Error Handling
+
+Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
+
+- Unknown `elicitationId` in an `elicitation/track` request: `-32602` (Invalid params)
+- An `elicitationId` belonging to a different client in an `elicitation/track` request: `-32602` (Invalid params)
+- When a request cannot be processed until an elicitation is completed: `-32604` (ElicitationRequired)
+
+Clients **SHOULD** return standard JSON-RPC errors for common failure cases:
+
+- Server sends an `elicitation/create` request with a mode not declared in client capabilities: `-32602` (Invalid params)
 
 ## Security Considerations
 
