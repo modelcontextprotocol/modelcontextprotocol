@@ -1102,13 +1102,26 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "prefix": {
+                                    "description": "Optional URI prefix to filter resource templates.\nOnly templates whose URI template starts with this prefix will be returned.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "properties": {
+                                "cursor": {
+                                    "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ]
                 }
             },
             "required": [
@@ -1148,13 +1161,26 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "prefix": {
+                                    "description": "Optional URI prefix to filter resources.\nOnly resources whose URI starts with this prefix will be returned.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "properties": {
+                                "cursor": {
+                                    "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ]
                 }
             },
             "required": [

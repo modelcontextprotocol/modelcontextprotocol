@@ -386,6 +386,13 @@ export interface PaginatedResult extends Result {
  */
 export interface ListResourcesRequest extends PaginatedRequest {
   method: "resources/list";
+  params?: {
+    /**
+     * Optional URI prefix to filter resources.
+     * Only resources whose URI starts with this prefix will be returned.
+     */
+    prefix?: string;
+  } & PaginatedRequest["params"];
 }
 
 /**
@@ -404,6 +411,13 @@ export interface ListResourcesResult extends PaginatedResult {
  */
 export interface ListResourceTemplatesRequest extends PaginatedRequest {
   method: "resources/templates/list";
+  params?: {
+    /**
+     * Optional URI prefix to filter resource templates.
+     * Only templates whose URI template starts with this prefix will be returned.
+     */
+    prefix?: string;
+  } & PaginatedRequest["params"];
 }
 
 /**
