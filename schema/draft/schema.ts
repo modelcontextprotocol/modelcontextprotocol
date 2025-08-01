@@ -455,7 +455,7 @@ export interface ResourceListChangedNotification extends Notification {
  *
  * @category resources/subscribe
  */
-export interface SubscribeRequest extends Request {
+export interface SubscribeRequest extends Request { // FIXME: Either make this a Notification, or define a SubscribeResult.
   method: "resources/subscribe";
   params: {
     /**
@@ -472,7 +472,7 @@ export interface SubscribeRequest extends Request {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeRequest extends Request {
+export interface UnsubscribeRequest extends Request { // FIXME: Either make this a Notification, or define an UnsubscribeResult.
   method: "resources/unsubscribe";
   params: {
     /**
