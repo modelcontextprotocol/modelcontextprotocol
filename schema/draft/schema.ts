@@ -1446,8 +1446,10 @@ export interface EnumSchema {
   type: "string";
   title?: string;
   description?: string;
-  enum: string[];
-  enumNames?: string[]; // Display names for enum values
+  oneOf: Array<{
+    const: string;
+    title?: string; // Display name for enum value
+  }>;
 }
 
 /**

@@ -268,8 +268,11 @@ The schema is restricted to these primitive types:
      "type": "string",
      "title": "Display Name",
      "description": "Description text",
-     "enum": ["option1", "option2", "option3"],
-     "enumNames": ["Option 1", "Option 2", "Option 3"]
+     "oneOf": [
+       { "const": "option1", "title": "Option 1" },
+       { "const": "option2", "title": "Option 2" },
+       { "const": "option3", "title": "Option 3" }
+     ]
    }
    ```
 
