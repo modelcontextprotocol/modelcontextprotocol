@@ -837,11 +837,6 @@ export interface ToolListChangedNotification extends Notification {
  */
 export interface ToolAnnotations {
   /**
-   * A human-readable title for the tool.
-   */
-  title?: string;
-
-  /**
    * If true, the tool does not modify its environment.
    *
    * Default: false

@@ -2453,10 +2453,6 @@
                 "readOnlyHint": {
                     "description": "If true, the tool does not modify its environment.\n\nDefault: false",
                     "type": "boolean"
-                },
-                "title": {
-                    "description": "A human-readable title for the tool.",
-                    "type": "string"
                 }
             },
             "type": "object"
