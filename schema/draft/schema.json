@@ -230,6 +230,12 @@
                     "description": "Experimental, non-standard capabilities that the client supports.",
                     "type": "object"
                 },
+                "resumableRequests": {
+                    "additionalProperties": true,
+                    "description": "Present if the client supports resumable requests.",
+                    "properties": {},
+                    "type": "object"
+                },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
@@ -305,6 +311,12 @@
                 },
                 {
                     "$ref": "#/definitions/CompleteRequest"
+                },
+                {
+                    "$ref": "#/definitions/ResumeRequest"
+                },
+                {
+                    "$ref": "#/definitions/GetRequestStatusRequest"
                 }
             ]
         },
@@ -761,6 +773,75 @@
             },
             "required": [
                 "messages"
+            ],
+            "type": "object"
+        },
+        "GetRequestStatusRequest": {
+            "description": "A request from the client to the server to get the status of a resumable\nrequest.\n\nWhen handling this request, the server SHOULD also reset policy-related\ntimers in the same way as for `requests/resume`.",
+            "properties": {
+                "method": {
+                    "const": "requests/getStatus",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "requestId": {
+                            "$ref": "#/definitions/RequestId",
+                            "description": "The ID of the resumable request."
+                        },
+                        "resumeToken": {
+                            "description": "The resume token for the resumable request issued by the server via a\n`notifications/requests/resumePolicy` notification.\n\nIf this value does not match the token issued by the server, the server\nMUST respond with an error.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "requestId",
+                        "resumeToken"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "GetRequestStatusResult": {
+            "description": "A response to a `requests/getStatus` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "hasInputRequest": {
+                    "description": "Whether the server has requested additional input from the client, such as\nwhen making a sampling request.",
+                    "type": "boolean"
+                },
+                "hasPendingMessage": {
+                    "description": "Whether there are pending messages for the client that are related to the\nresumable request, such as progress notifications or sampling requests.",
+                    "type": "boolean"
+                },
+                "requestId": {
+                    "$ref": "#/definitions/RequestId",
+                    "description": "The ID of the resumable request."
+                },
+                "status": {
+                    "description": "The current status of the resumable request.\n\n- `\"processing\"` indicates that the server is computing a response.\n- `\"completed\"` indicates that the server has computed a final response.\n- `\"failed\"` indicates that the server has a final response, but the\n   response is an error.",
+                    "enum": [
+                        "completed",
+                        "failed",
+                        "processing"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "hasInputRequest",
+                "hasPendingMessage",
+                "requestId",
+                "status"
             ],
             "type": "object"
         },
@@ -1993,6 +2074,71 @@
             },
             "type": "object"
         },
+        "ResumePolicyNotification": {
+            "description": "A notification to the client that a request is resumable, subject to the\nspecified policy.\n\nThe server SHOULD send this notification as soon as possible after\ndetermining a request is resumable.",
+            "properties": {
+                "method": {
+                    "const": "notifications/requests/resumePolicy",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "maxWait": {
+                            "description": "The maximum number of seconds a client may wait after a disconnection\nbefore resuming the request or checking its status. After this time has\nelapsed, the server MAY cancel the request and free all associated\nresources.\n\nIf this number is omitted, the server provides no guarantee, and MAY\ncancel the request at its own discretion.",
+                            "type": "integer"
+                        },
+                        "minWait": {
+                            "description": "The minimum number of seconds a client SHOULD wait after a disconnection\nbefore resuming the request or checking its status.",
+                            "type": "integer"
+                        },
+                        "requestId": {
+                            "$ref": "#/definitions/RequestId",
+                            "description": "The ID of the request."
+                        },
+                        "resumeToken": {
+                            "description": "An opaque token that the client MUST send back to the server when\nresuming the request or checking its status.\n\nThis token should be treated as sensitive information because it can be\nused to access messages related to the request.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "requestId",
+                        "resumeToken"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "ResumeRequest": {
+            "description": "A request from the client to the server to resume a prior resumable request.\nThe ID of this request MUST be the same as the ID of the resumable request.\n\nIf the resumable request was cancelled (due to the resume policy or due to an\nexplicit cancellation request from the client), the server SHOULD respond\nwith an error.",
+            "properties": {
+                "method": {
+                    "const": "requests/resume",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "resumeToken": {
+                            "description": "The resume token for the original request issued by the server via a\n`notifications/requests/resumePolicy` notification.\n\nIf this value does not match the token issued by the server, the server\nMUST respond with an error.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "resumeToken"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
         "Role": {
             "description": "The sender or recipient of messages and data in a conversation.",
             "enum": [
@@ -2157,6 +2303,9 @@
                 },
                 {
                     "$ref": "#/definitions/LoggingMessageNotification"
+                },
+                {
+                    "$ref": "#/definitions/ResumePolicyNotification"
                 }
             ]
         },
@@ -2207,6 +2356,9 @@
                 },
                 {
                     "$ref": "#/definitions/CompleteResult"
+                },
+                {
+                    "$ref": "#/definitions/GetRequestStatusResult"
                 }
             ]
         },

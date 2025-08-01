@@ -235,6 +235,10 @@ export interface ClientCapabilities {
    * Present if the client supports elicitation from the server.
    */
   elicitation?: object;
+  /**
+   * Present if the client supports resumable requests.
+   */
+  resumableRequests?: object;
 }
 
 /**
@@ -1471,6 +1475,137 @@ export interface ElicitResult extends Result {
   content?: { [key: string]: string | number | boolean };
 }
 
+/**
+ * A notification to the client that a request is resumable, subject to the
+ * specified policy.
+ *
+ * The server SHOULD send this notification as soon as possible after
+ * determining a request is resumable.
+ *
+ * @category notifications/requests/resumePolicy
+ */
+export interface ResumePolicyNotification extends Notification {
+  method: "notifications/requests/resumePolicy";
+  params: {
+    /**
+     * The ID of the request.
+     */
+    requestId: RequestId;
+
+    /**
+     * An opaque token that the client MUST send back to the server when
+     * resuming the request or checking its status.
+     *
+     * This token should be treated as sensitive information because it can be
+     * used to access messages related to the request.
+     */
+    resumeToken: string;
+
+    /**
+     * The minimum number of seconds a client SHOULD wait after a disconnection
+     * before resuming the request or checking its status.
+     */
+    minWait?: number;
+
+    /**
+     * The maximum number of seconds a client may wait after a disconnection
+     * before resuming the request or checking its status. After this time has
+     * elapsed, the server MAY cancel the request and free all associated
+     * resources.
+     *
+     * If this number is omitted, the server provides no guarantee, and MAY
+     * cancel the request at its own discretion.
+     */
+    maxWait?: number;
+  }
+}
+
+/**
+ * A request from the client to the server to resume a prior resumable request.
+ * The ID of this request MUST be the same as the ID of the resumable request.
+ *
+ * If the resumable request was cancelled (due to the resume policy or due to an
+ * explicit cancellation request from the client), the server SHOULD respond
+ * with an error.
+ *
+ * @category requests/resume
+ */
+export interface ResumeRequest extends Request {
+  method: "requests/resume";
+  params: {
+    /**
+     * The resume token for the original request issued by the server via a
+     * `notifications/requests/resumePolicy` notification.
+     *
+     * If this value does not match the token issued by the server, the server
+     * MUST respond with an error.
+     */
+    resumeToken: string;
+  };
+}
+
+/**
+ * A request from the client to the server to get the status of a resumable
+ * request.
+ *
+ * When handling this request, the server SHOULD also reset policy-related
+ * timers in the same way as for `requests/resume`.
+ *
+ * @category requests/getStatus
+ */
+export interface GetRequestStatusRequest extends Request {
+  method: "requests/getStatus";
+  params: {
+    /**
+     * The ID of the resumable request.
+     */
+    requestId: RequestId;
+
+    /**
+     * The resume token for the resumable request issued by the server via a
+     * `notifications/requests/resumePolicy` notification.
+     *
+     * If this value does not match the token issued by the server, the server
+     * MUST respond with an error.
+     */
+    resumeToken: string;
+  };
+}
+
+/**
+ * A response to a `requests/getStatus` request.
+ *
+ * @category requests/getStatus
+ */
+export interface GetRequestStatusResult extends Result {
+  /**
+   * The ID of the resumable request.
+   */
+  requestId: RequestId;
+
+  /**
+   * The current status of the resumable request.
+   *
+   * - `"processing"` indicates that the server is computing a response.
+   * - `"completed"` indicates that the server has computed a final response.
+   * - `"failed"` indicates that the server has a final response, but the
+   *    response is an error.
+   */
+  status: "processing" | "completed" | "failed";
+
+  /**
+   * Whether there are pending messages for the client that are related to the
+   * resumable request, such as progress notifications or sampling requests.
+   */
+  hasPendingMessage: boolean;
+
+  /**
+   * Whether the server has requested additional input from the client, such as
+   * when making a sampling request.
+   */
+  hasInputRequest: boolean;
+}
+
 /* Client messages */
 /** @internal */
 export type ClientRequest =
@@ -1486,7 +1621,9 @@ export type ClientRequest =
   | SubscribeRequest
   | UnsubscribeRequest
   | CallToolRequest
-  | ListToolsRequest;
+  | ListToolsRequest
+  | ResumeRequest
+  | GetRequestStatusRequest;
 
 /** @internal */
 export type ClientNotification =
@@ -1518,7 +1655,8 @@ export type ServerNotification =
   | ResourceUpdatedNotification
   | ResourceListChangedNotification
   | ToolListChangedNotification
-  | PromptListChangedNotification;
+  | PromptListChangedNotification
+  | ResumePolicyNotification;
 
 /** @internal */
 export type ServerResult =
@@ -1531,4 +1669,5 @@ export type ServerResult =
   | ListResourcesResult
   | ReadResourceResult
   | CallToolResult
-  | ListToolsResult;
+  | ListToolsResult
+  | GetRequestStatusResult;

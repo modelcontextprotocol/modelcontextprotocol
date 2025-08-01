@@ -107,8 +107,8 @@ MCP endpoint.
      JSON-RPC _response_. These messages **SHOULD** relate to the originating client
      _request_.
    - The server **SHOULD NOT** close the SSE stream before sending the JSON-RPC _response_
-     for the received JSON-RPC _request_, unless the [session](#session-management)
-     expires.
+     or [_resume policy notification_](/specification/draft/basic/lifecycle#resuming-requests)
+     for the received JSON-RPC _request_, unless the [session](#session-management) expires.
    - After the JSON-RPC _response_ has been sent, the server **SHOULD** close the SSE
      stream.
    - Disconnection **MAY** occur at any time (e.g., due to network conditions).
