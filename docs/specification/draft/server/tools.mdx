@@ -371,6 +371,29 @@ Providing an output schema helps clients and LLMs understand and properly handle
 - Guiding clients and LLMs to properly parse and utilize the returned data
 - Supporting better documentation and developer experience
 
+## Content streaming
+
+Tools might provide result as a stream of partial results:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client
+    participant Server
+
+    Note over Client,Server: Streaming
+    Client->>Server: tools/call
+    Server-->>Client: Tool partial result
+    Client-->>User: Content
+    Server-->>Client: Tool partial result
+    Client-->>User: Content
+    Server-->>Client: Tool partial result
+    Client-->>User: Content
+```
+
+_Unstructured_ content is incremental and the complete result can be acquired by concatenation.
+_Structured_ content is not incremental unless the tool's output schema states otherwise.
+
 ## Error Handling
 
 Tools use two error reporting mechanisms:

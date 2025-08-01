@@ -38,6 +38,10 @@ export interface Request {
        * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
        */
       progressToken?: ProgressToken;
+      /**
+       * If specified, the caller is requesting partial results for this request. The receiver is not obligated to return partial results.
+       */
+      allowPartial?: boolean;
       [key: string]: unknown;
     };
     [key: string]: unknown;
@@ -60,7 +64,13 @@ export interface Result {
   /**
    * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
    */
-  _meta?: { [key: string]: unknown };
+  _meta?: {
+    /**
+     * If true, more results will follow.
+     */
+    hasMore?: boolean;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
