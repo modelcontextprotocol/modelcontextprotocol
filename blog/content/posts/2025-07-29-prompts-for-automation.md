@@ -1,5 +1,5 @@
 +++
-date = '2025-07-02T11:46:28+01:00'
+date = '2025-08-01T11:46:28+01:00'
 draft = false
 title = 'MCP Prompts: Building Workflow Automation'
 author = 'Inna Harper (Core Maintainer)'
@@ -162,12 +162,6 @@ main().catch((error) => {
   process.exit(1);
 });
 ```
-
-Each capability declaration tells MCP clients what features your server supports:
-
-- `resources`: Your server can provide dynamic content (recipe collections)
-- `prompts`: Your server offers automation commands
-- `completion`: Your server provides parameter suggestions
 
 ### Implementing Resources
 
