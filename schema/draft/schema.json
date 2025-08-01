@@ -2099,7 +2099,7 @@
                     "type": "object"
                 },
                 "prompts": {
-                    "description": "Present if the server offers any prompt templates.",
+                    "description": "Present if the server offers any prompts or prompt templates.",
                     "properties": {
                         "listChanged": {
                             "description": "Whether this server supports notifications for changes to the prompt list.",
