@@ -27,21 +27,28 @@ export type ProgressToken = string | number;
 export type Cursor = string;
 
 /** @internal */
-export interface Request {
-  method: string;
-  params?: {
+export interface RequestParams {
+  /**
+   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   */
+  _meta?: {
     /**
-     * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+     * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
      */
-    _meta?: {
-      /**
-       * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
-       */
-      progressToken?: ProgressToken;
-      [key: string]: unknown;
-    };
+    progressToken?: ProgressToken;
     [key: string]: unknown;
   };
+
+  /**
+   * Allow any unknown parameters to be passed in.
+   */
+  [key: string]: unknown;
+}
+
+/** @internal */
+export interface Request {
+  method: string;
+  params?: RequestParams;
 }
 
 /** @internal */
@@ -104,6 +111,8 @@ export const METHOD_NOT_FOUND = -32601;
 export const INVALID_PARAMS = -32602;
 /** @internal */
 export const INTERNAL_ERROR = -32603;
+/** @internal */
+export const ELICITATION_REQUIRED = -32604;
 
 /**
  * A response to a request that indicates an error occurred.
@@ -124,6 +133,22 @@ export interface JSONRPCError {
      * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
      */
     data?: unknown;
+  };
+}
+
+/**
+ * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
+ *
+ * @internal
+ */
+export interface ElicitationRequiredError extends JSONRPCError {
+  error: {
+    code: typeof ELICITATION_REQUIRED;
+    message: string;
+    data: {
+      elicitations: ElicitRequestURLParams[];
+      [key: string]: unknown;
+    };
   };
 }
 
@@ -234,7 +259,7 @@ export interface ClientCapabilities {
   /**
    * Present if the client supports elicitation from the server.
    */
-  elicitation?: object;
+  elicitation?: { form?: object; url?: object } & ({ form: object } | { url: object });
 }
 
 /**
@@ -1383,29 +1408,109 @@ export interface RootsListChangedNotification extends Notification {
 }
 
 /**
+ * @category elicitation/create
+ */
+export interface ElicitRequestFormParams extends ElicitRequestParams {
+  /**
+   * The elicitation mode.
+   */
+  mode: "form";
+
+  /**
+   * A restricted subset of JSON Schema.
+   * Only top-level properties are allowed, without nesting.
+   */
+  requestedSchema: {
+    type: "object";
+    properties: {
+      [key: string]: PrimitiveSchemaDefinition;
+    };
+    required?: string[];
+  };
+}
+
+/**
+ * @category elicitation/create
+ */
+export interface ElicitRequestURLParams extends ElicitRequestParams {
+  /**
+   * The elicitation mode.
+   */
+  mode: "url";
+
+  /**
+   * The ID of the elicitation, which must be unique within the context of the server.
+   * The client MUST treat this ID as an opaque value.
+   */
+  elicitationId: string;
+
+  /**
+   * The URL that the user should navigate to.
+   *
+   * @format uri
+   */
+  url: string;
+}
+
+/**
+ * The parameters for a request to elicit additional information from the user via the client.
+ *
+ * @internal
+ */
+export interface ElicitRequestParams extends RequestParams {
+  /**
+   * The mode of elicitation.
+   * - "form": In-band structured data collection with optional schema validation
+   * - "url": Out-of-band interaction via URL navigation
+   */
+  mode: "form" | "url";
+
+  /**
+   * The message to present to the user.
+   * For form mode: Describes what information is being requested.
+   * For url mode: Explains why the interaction is needed.
+   */
+  message: string;
+}
+
+/**
  * A request from the server to elicit additional information from the user via the client.
  *
  * @category elicitation/create
  */
 export interface ElicitRequest extends Request {
   method: "elicitation/create";
-  params: {
+  params: ElicitRequestFormParams | ElicitRequestURLParams;
+}
+
+/**
+ * The parameters for a request to track the progress of an elicitation.
+ *
+ * @category elicitation/track
+ */
+export interface ElicitTrackParams extends RequestParams {
+  _meta: {
     /**
-     * The message to present to the user.
+     * The progress token as specified in the Progress capability, required in this request.
      */
-    message: string;
-    /**
-     * A restricted subset of JSON Schema.
-     * Only top-level properties are allowed, without nesting.
-     */
-    requestedSchema: {
-      type: "object";
-      properties: {
-        [key: string]: PrimitiveSchemaDefinition;
-      };
-      required?: string[];
-    };
+    progressToken: ProgressToken;
+    [key: string]: unknown;
   };
+
+  /**
+   * The ID of the elicitation to track.
+   */
+  elicitationId: string;
+};
+
+/**
+ * A request from the client to track the progress of an elicitation.
+ *
+ * @category elicitation/track
+ */
+export interface ElicitTrackRequest extends Request {
+  method: "elicitation/track";
+  params: ElicitTrackParams;
 }
 
 /**
@@ -1465,8 +1570,9 @@ export interface ElicitResult extends Result {
   action: "accept" | "decline" | "cancel";
 
   /**
-   * The submitted form data, only present when action is "accept".
+   * The submitted form data, only present when action is "accept" and mode was "form".
    * Contains values matching the requested schema.
+   * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean };
 }
