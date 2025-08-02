@@ -663,6 +663,24 @@ body:has(#schema-reference) {
   padding: 1rem;
 }
 
+.stat-card {
+  .stat-label {
+    font-weight: bold;
+    text-decoration: 2px solid underline;
+    text-underline-offset: 6px;
+  }
+
+  &:hover {
+    .stat-number {
+      text-shadow: 1px 1px 2px;
+    }
+
+    .stat-label {
+      text-decoration-thickness: 4px;
+    }
+  }
+}
+
 .stat-number {
   font-size: 3.5rem;
   font-weight: 800;
