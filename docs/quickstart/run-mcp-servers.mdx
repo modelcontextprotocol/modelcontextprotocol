@@ -1,0 +1,683 @@
+---
+title: "Run MCP Servers"
+description: "Complete guide to running MCP servers in different modes and transports"
+---
+
+This guide explains how to run MCP servers in different scenarios. It covers server setup, transport modes, and configuration.
+
+## Prerequisites and Installation
+
+Before running MCP servers, install the [necessary tools](#required-tools).
+
+### Required Tools
+
+#### For Python Servers (uvx)
+
+```bash
+# Install uv (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Restart your terminal, then install mcp-server-git
+uvx mcp-server-git --help
+```
+
+#### For Node.js Servers (npx)
+
+```bash
+# Install Node.js from https://nodejs.org/
+# Then install servers directly with npx
+npx -y @modelcontextprotocol/server-memory --help
+```
+
+### What to Expect When Running Servers
+
+<Note>
+
+**Important**: MCP servers behave differently than traditional Web servers.
+
+</Note>
+
+#### stdio Mode (default)
+
+- **No visible output**: Servers communicate silently, via stdin/stdout
+- **No port binding**: These servers don't open network ports
+- **Process stays running**: Server waits for JSON-RPC messages
+- **No startup messages**: There is no log trace or output during startup
+
+#### HTTP Mode
+
+- **Visible startup messages**: Shows port binding and server status
+- **Port binding**: Server opens a specific port (e.g., 3001)
+- **HTTP endpoint**: Available at `http://localhost:PORT/mcp`
+
+### Testing Server Installation
+
+Use the MCP Inspector to verify your server is working.
+
+```bash
+# Test Python server
+npx -y @modelcontextprotocol/inspector uvx mcp-server-git --repository /path/to/repo
+
+# Test Node.js server
+npx -y @modelcontextprotocol/inspector npx -y @modelcontextprotocol/server-memory
+```
+
+## Understanding MCP Server Modes
+
+MCP servers can run in two main modes:
+
+1. **Client-Launched Mode** (stdio transport) - Server runs as a subprocess launched by the client
+2. **Standalone Mode** (HTTP/SSE transport) - Server runs independently and accepts connections on a port
+
+## Client-Launched Mode (stdio)
+
+This is the most common mode where clients like Claude Desktop launch servers as subprocesses.
+
+### Running Reference Servers
+
+#### TypeScript Servers
+
+```bash
+# Memory server
+npx -y @modelcontextprotocol/server-memory
+
+# Filesystem server with directory access
+npx -y @modelcontextprotocol/server-filesystem /path/to/allowed/directory
+
+# Fetch server
+npx -y @modelcontextprotocol/server-fetch
+```
+
+#### Python Servers
+
+```bash
+# Using uvx (recommended)
+uvx mcp-server-git --repository /path/to/repo
+
+# Using pip
+pip install mcp-server-git
+python -m mcp_server_git --repository /path/to/repo
+```
+
+### Expected Behavior
+
+- **No visible output**: This is normal! stdio servers communicate silently via stdin/stdout
+- **No port binding**: These servers don't open network ports
+- **Process stays running**: The server waits for JSON-RPC messages on stdin
+
+### Testing Client-Launched Servers
+
+Use the MCP Inspector to test these servers:
+
+```bash
+# Test TypeScript server
+npx -y @modelcontextprotocol/inspector npx -y @modelcontextprotocol/server-memory
+
+# Test Python server
+npx -y @modelcontextprotocol/inspector uvx mcp-server-git --repository /path/to/repo
+```
+
+## Standalone Mode (HTTP/SSE)
+
+For applications that need to connect to MCP servers on specific ports (like port 3001), you need servers that support HTTP/SSE transport.
+
+### Available HTTP/SSE Servers
+
+Currently, most reference servers are designed for stdio transport. For HTTP/SSE transport, you have these options:
+
+#### 1. Build Your Own HTTP Server
+Create a custom server using the MCP SDKs:
+
+**Python Example:**
+```python
+from mcp.server.fastmcp import FastMCP
+from mcp.server.http import HttpServerTransport
+import uvicorn
+
+# Create your MCP server
+mcp = FastMCP("my-server")
+
+# Add your tools here
+@mcp.tool()
+def my_tool() -> str:
+    return "Hello from HTTP server!"
+
+# Create HTTP transport
+transport = HttpServerTransport(mcp, host="127.0.0.1", port=3001)
+
+# Run the server
+if __name__ == "__main__":
+    uvicorn.run(transport.app, host="127.0.0.1", port=3001)
+```
+
+**Complete Examples:**
+- [Python HTTP Server Example](/examples/http-server-example.py)
+- [TypeScript HTTP Server Example](/examples/http-server-example.ts)
+
+**TypeScript Example:**
+```typescript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { HttpServerTransport } from "@modelcontextprotocol/sdk/server/http.js";
+
+// Create the MCP server
+const server = new Server({
+  name: "my-server",
+  version: "1.0.0",
+});
+
+// Add tools to the server
+server.setRequestHandler("tools/list", async () => {
+  return {
+    tools: [
+      {
+        name: "my_tool",
+        description: "A sample tool",
+        inputSchema: { type: "object", properties: {} },
+      },
+    ],
+  };
+});
+
+server.setRequestHandler("tools/call", async (request) => {
+  const { name, arguments: args } = request.params;
+
+  switch (name) {
+    case "my_tool":
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Hello from HTTP server!",
+          },
+        ],
+      };
+
+    default:
+      throw new Error(`Unknown tool: ${name}`);
+  }
+});
+
+async function main() {
+  console.log("Starting MCP HTTP server on http://localhost:3001/mcp");
+
+  // Create HTTP transport on port 3001
+  const transport = new HttpServerTransport(server, {
+    host: "127.0.0.1",
+    port: 3001,
+  });
+
+  // Start the server
+  await transport.listen();
+}
+
+main().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
+});
+```
+
+#### 2. Use Community HTTP Servers
+Check the [MCP Servers Repository](https://github.com/modelcontextprotocol/servers) for community-maintained HTTP/SSE servers.
+
+### Expected Behavior for HTTP Servers
+
+- **Visible startup messages**: HTTP servers typically show startup logs
+- **Port binding**: Server will bind to the specified port (e.g., 3001)
+- **HTTP endpoint**: Available at `http://localhost:3001/mcp` (or similar path)
+
+### Testing HTTP Servers
+
+```bash
+# Test with curl
+curl -X POST http://localhost:3001/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}'
+
+# Test with MCP Inspector (if supported)
+npx -y @modelcontextprotocol/inspector http://localhost:3001/mcp
+```
+
+## Running Multiple MCP Servers
+
+One of the major goals of MCP is to run multiple tools or servers simultaneously. This section explains how to manage multiple servers and avoid port conflicts.
+
+### Running Multiple Client-Launched Servers
+
+Client-launched servers (stdio transport) don't use ports, so you can run as many as you want without port conflicts:
+
+```json
+{
+  "mcpServers": {
+    "memory-server": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "filesystem-server": {
+      "command": "npx", 
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed/directory"]
+    },
+    "git-server": {
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "/path/to/repo"]
+    }
+  }
+}
+```
+
+### Running Multiple HTTP/SSE Servers
+
+When running multiple HTTP/SSE servers, you **must** assign different ports to each server to avoid conflicts.
+
+#### Port Assignment Strategy
+
+Use a consistent port numbering scheme to avoid conflicts. For example:
+
+| **Port Range** |     **Purpose**     |               **Description**               |
+| -------------- | ------------------- | ------------------------------------------- |
+| `3001`-`3010`  | MCP servers         | Production and stable MCP servers           |
+| `3011`-`3020`  | Development servers | Servers under development or testing        |
+| `3021`-`3030`  | Testing servers     | Temporary servers for testing and debugging |
+
+<Note>
+
+The port ranges listed above are for example purposes.
+
+</Note>
+
+#### Example: Multiple HTTP Servers
+
+**Server 1 (Port 3001):**
+```python
+# server1.py
+from mcp.server.fastmcp import FastMCP
+from mcp.server.http import HttpServerTransport
+import uvicorn
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create the MCP server
+mcp = FastMCP("memory-server")
+
+@mcp.tool()
+def get_memory_stats() -> str:
+    """Get memory statistics from server 1."""
+    return "Memory stats from server 1"
+
+def main():
+    """Start the HTTP MCP server."""
+    # Create HTTP transport on port 3001
+    transport = HttpServerTransport(mcp, host="127.0.0.1", port=3001)
+    
+    logger.info("Starting MCP HTTP server on http://localhost:3001/mcp")
+    
+    # Run the server
+    uvicorn.run(
+        transport.app,
+        host="127.0.0.1",
+        port=3001,
+        log_level="info"
+    )
+
+if __name__ == "__main__":
+    main()
+```
+
+**Server 2 (Port 3002):**
+```python
+# server2.py
+from mcp.server.fastmcp import FastMCP
+from mcp.server.http import HttpServerTransport
+import uvicorn
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create the MCP server
+mcp = FastMCP("filesystem-server")
+
+@mcp.tool()
+def list_files() -> str:
+    """List files from server 2."""
+    return "Files from server 2"
+
+def main():
+    """Start the HTTP MCP server."""
+    # Create HTTP transport on port 3002
+    transport = HttpServerTransport(mcp, host="127.0.0.1", port=3002)
+    
+    logger.info("Starting MCP HTTP server on http://localhost:3002/mcp")
+    
+    # Run the server
+    uvicorn.run(
+        transport.app,
+        host="127.0.0.1",
+        port=3002,
+        log_level="info"
+    )
+
+if __name__ == "__main__":
+    main()
+```
+
+**Client Configuration:**
+```json
+{
+  "mcpServers": {
+    "memory-server": {
+      "url": "http://localhost:3001/mcp"
+    },
+    "filesystem-server": {
+      "url": "http://localhost:3002/mcp"
+    }
+  }
+}
+```
+
+#### Starting Multiple Servers
+
+**Option 1: Separate Terminals**
+```bash
+# Terminal 1
+python server1.py
+
+# Terminal 2  
+python server2.py
+```
+
+**Option 2: Background Processes**
+```bash
+# Start servers in background
+python server1.py &
+python server2.py &
+
+# Check running servers
+ps aux | grep python
+```
+
+**Option 3: Using a Process Manager**
+```bash
+# Using pm2 (Node.js process manager)
+pm2 start server1.py --name "mcp-memory"
+pm2 start server2.py --name "mcp-filesystem"
+pm2 list
+```
+
+### Port Conflict Prevention
+
+#### Check Available Ports
+```bash
+# Check if port is in use
+lsof -i :3001
+netstat -tulpn | grep :3001
+
+# Find available ports in range
+for port in {3001..3010}; do
+  if ! lsof -i :$port > /dev/null 2>&1; then
+    echo "Port $port is available"
+  fi
+done
+```
+
+#### Dynamic Port Assignment
+For development, you can use dynamic port assignment:
+
+```python
+import socket
+from mcp.server.fastmcp import FastMCP
+from mcp.server.http import HttpServerTransport
+import uvicorn
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def find_free_port(start_port=3001, max_attempts=100):
+    """Find an available port starting from start_port."""
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('localhost', port))
+                return port
+        except OSError:
+            continue
+    raise RuntimeError("No free ports found")
+
+# Create the MCP server
+mcp = FastMCP("dynamic-port-server")
+
+@mcp.tool()
+def get_server_info() -> str:
+    """Get information about this MCP server."""
+    return "This server uses dynamic port assignment!"
+
+def main():
+    """Start the HTTP MCP server with dynamic port."""
+    # Find an available port
+    free_port = find_free_port()
+    
+    # Create HTTP transport
+    transport = HttpServerTransport(mcp, host="127.0.0.1", port=free_port)
+    
+    logger.info(f"Starting MCP HTTP server on http://localhost:{free_port}/mcp")
+    
+    # Run the server
+    uvicorn.run(
+        transport.app,
+        host="127.0.0.1",
+        port=free_port,
+        log_level="info"
+    )
+
+if __name__ == "__main__":
+    main()
+```
+
+### Mixed Server Types
+
+You can run both client-launched and HTTP servers simultaneously:
+
+```json
+{
+  "mcpServers": {
+    "stdio-memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "http-filesystem": {
+      "url": "http://localhost:3001/mcp"
+    },
+    "http-git": {
+      "url": "http://localhost:3002/mcp"
+    }
+  }
+}
+```
+
+### Best Practices for Multiple Servers
+
+1. **Use descriptive names**: Name servers based on their function
+2. **Document port assignments**: Keep a list of which servers use which ports
+3. **Use port ranges**: Reserve specific port ranges for different server types
+4. **Monitor resource usage**: Multiple servers consume more system resources
+5. **Test connectivity**: Verify each server is accessible before adding to client config
+
+## Configuration Files
+
+### For Client-Launched Servers
+
+Configuration goes in the client's config file:
+
+**Claude Desktop:**
+
+| **Platform** |                       **Config File Path**                        |
+| ------------ | ----------------------------------------------------------------- |
+| macOS        | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows      | `%APPDATA%\Claude\claude_desktop_config.json`                     |
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    }
+  }
+}
+```
+
+### For Standalone HTTP Servers
+
+No client configuration needed - just connect to the server's URL:
+
+```json
+{
+  "mcpServers": {
+    "my-http-server": {
+      "url": "http://localhost:3001/mcp"
+    }
+  }
+}
+```
+
+## Production Deployment
+
+### Running as a System Service
+
+For production use, you may want to run MCP servers as system services.
+
+#### systemd Service Example (Linux)
+Create `/etc/systemd/system/mcp-server.service`:
+
+```ini
+[Unit]
+Description=MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=mcp
+WorkingDirectory=/opt/mcp-server
+ExecStart=/usr/bin/uvx mcp-server-git --repository /path/to/repo
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+```bash
+sudo systemctl enable mcp-server
+sudo systemctl start mcp-server
+sudo systemctl status mcp-server
+```
+
+#### Docker Example
+Create `Dockerfile`:
+```dockerfile
+FROM python:3.11-slim
+RUN pip install uv
+RUN uvx mcp-server-git --help
+CMD ["uvx", "mcp-server-git", "--repository", "/app/repo"]
+```
+
+### Port Configuration
+
+For HTTP/SSE servers, configure the port in your server code:
+
+```python
+# Python example
+transport = HttpServerTransport(mcp, host="0.0.0.0", port=3001)
+```
+
+```typescript
+// TypeScript example
+const transport = new HttpServerTransport(server, {
+  host: "0.0.0.0",
+  port: 3001,
+});
+```
+
+## Troubleshooting
+
+### Server Not Starting
+
+1. **Check dependencies**: Ensure Node.js/Python and required packages are installed
+2. **Verify paths**: Use absolute paths in configurations
+3. **Check permissions**: Ensure you have permission to run the server
+4. **Look for errors**: Check stderr output for error messages
+
+### HTTP Server Issues
+
+1. **Port already in use**: Check if port 3001 is available
+2. **Firewall blocking**: Ensure localhost connections are allowed
+3. **CORS issues**: Verify Origin header validation
+4. **Authentication**: Check if server requires authentication
+
+### Silent Servers (stdio mode)
+
+- **This is normal**: stdio servers don't produce visible output
+- **Test with Inspector**: Use MCP Inspector to verify server is working
+- **Check client logs**: Look for connection errors in client logs
+
+### Common Commands for Debugging
+
+```bash
+# Check if port is in use
+lsof -i :3001
+
+# Test server manually
+npx -y @modelcontextprotocol/server-memory
+
+# Check server process
+ps aux | grep mcp
+
+# View client logs (Claude Desktop)
+tail -f ~/Library/Logs/Claude/mcp*.log
+```
+
+### Specific Issues
+
+#### "uvx mcp-server-git doesn't do anything"
+This is normal behavior for stdio servers! They:
+- Don't produce visible output
+- Don't open ports
+- Wait silently for JSON-RPC messages
+
+**To verify it's working:**
+```bash
+# Test with MCP Inspector
+npx -y @modelcontextprotocol/inspector uvx mcp-server-git --repository /path/to/repo
+
+# Check if process is running
+ps aux | grep mcp-server-git
+```
+
+#### "Where do I put config.json?"
+Configuration goes in the **client's** config file, not the server:
+
+**Claude Desktop:**
+
+| **Platform** |                       **Config File Path**                        |
+| ------------ | ----------------------------------------------------------------- |
+| macOS        | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows      | `%APPDATA%\Claude\claude_desktop_config.json`                     |
+
+**Other clients:** Check the client's documentation for config file location.
+
+#### "How do I set the port?"
+- **stdio servers**: No port needed - they communicate via stdin/stdout
+- **HTTP servers**: Set port in your server code (see examples above)
+
+## Next Steps
+
+- **For stdio servers**: Follow the [Claude Desktop integration guide](/quickstart/user)
+- **For HTTP servers**: Build custom servers using the [Server SDKs](/sdk)
+- **For development**: Use the [MCP Inspector](/legacy/tools/inspector) for testing
+- **For troubleshooting**: Check our [comprehensive troubleshooting guide](/quickstart/troubleshooting)
+- **For community help**: Join [GitHub Discussions](https://github.com/orgs/modelcontextprotocol/discussions)

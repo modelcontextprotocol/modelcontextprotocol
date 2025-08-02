@@ -47,7 +47,8 @@
                 "group": "Using MCP",
                 "pages": [
                   "docs/tutorials/use-remote-mcp-server",
-                  "quickstart/user"
+                  "quickstart/user",
+                  "quickstart/running-mcp-servers"
                 ]
               },
               {

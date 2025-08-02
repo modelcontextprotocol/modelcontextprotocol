@@ -58,6 +58,8 @@ Visit the [MCP Servers Repository (Community section)](https://github.com/modelc
 
 ## Getting started
 
+For a comprehensive guide on running MCP servers in different modes (stdio vs HTTP/SSE), see our [Running MCP Servers](/quickstart/running-mcp-servers) guide.
+
 ### Using reference servers
 
 TypeScript-based servers can be used directly with `npx`:
@@ -76,6 +78,8 @@ uvx mcp-server-git
 pip install mcp-server-git
 python -m mcp_server_git
 ```
+
+**Note**: These servers run in stdio mode by default. For HTTP/SSE transport (port-based connections), see the [Running MCP Servers](/quickstart/running-mcp-servers) guide.
 
 ### Configuring with Claude
 
