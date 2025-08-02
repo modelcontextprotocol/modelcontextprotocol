@@ -782,9 +782,10 @@ export interface CallToolResult extends Result {
   content: ContentBlock[];
 
   /**
-   * An optional JSON object that represents the structured result of the tool call.
+   * An optional JSON value that represents the structured result of the tool call.
+   * MUST conform to the outputSchema if specified in the tool definition.
    */
-  structuredContent?: { [key: string]: unknown };
+  structuredContent?: unknown;
 
   /**
    * Whether the tool call ended in an error.
@@ -892,21 +893,22 @@ export interface Tool extends BaseMetadata {
 
   /**
    * A JSON Schema object defining the expected parameters for the tool.
+   * While tools receive arguments as objects, this can be any valid JSON Schema to allow for
+   * sophisticated object validation patterns (like with "oneOf", "anyOf", etc.)
    */
   inputSchema: {
+    $schema?: string;
     type: "object";
-    properties?: { [key: string]: object };
-    required?: string[];
+    [key: string]: any;
   };
 
   /**
    * An optional JSON Schema object defining the structure of the tool's output returned in
-   * the structuredContent field of a CallToolResult.
+   * the structuredContent field of a CallToolResult. This can be any valid JSON 2020-12 Schema.
    */
   outputSchema?: {
-    type: "object";
-    properties?: { [key: string]: object };
-    required?: string[];
+    $schema?: string;
+    [key: string]: any;
   };
 
   /**
@@ -1399,11 +1401,8 @@ export interface ElicitRequest extends Request {
      * Only top-level properties are allowed, without nesting.
      */
     requestedSchema: {
-      type: "object";
-      properties: {
-        [key: string]: PrimitiveSchemaDefinition;
-      };
-      required?: string[];
+      $schema?: string;
+      [key: string]: any;
     };
   };
 }

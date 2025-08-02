@@ -172,9 +172,7 @@
                     "type": "boolean"
                 },
                 "structuredContent": {
-                    "additionalProperties": {},
-                    "description": "An optional JSON object that represents the structured result of the tool call.",
-                    "type": "object"
+                    "description": "An optional JSON value that represents the structured result of the tool call.\nMUST conform to the outputSchema if specified in the tool definition."
                 }
             },
             "required": [
@@ -567,29 +565,13 @@
                             "type": "string"
                         },
                         "requestedSchema": {
+                            "additionalProperties": {},
                             "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
                             "properties": {
-                                "properties": {
-                                    "additionalProperties": {
-                                        "$ref": "#/definitions/PrimitiveSchemaDefinition"
-                                    },
-                                    "type": "object"
-                                },
-                                "required": {
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "type": "array"
-                                },
-                                "type": {
-                                    "const": "object",
+                                "$schema": {
                                     "type": "string"
                                 }
                             },
-                            "required": [
-                                "properties",
-                                "type"
-                            ],
                             "type": "object"
                         }
                     },
@@ -2367,21 +2349,11 @@
                     "type": "string"
                 },
                 "inputSchema": {
-                    "description": "A JSON Schema object defining the expected parameters for the tool.",
+                    "additionalProperties": {},
+                    "description": "A JSON Schema object defining the expected parameters for the tool.\nWhile tools receive arguments as objects, this can be any valid JSON Schema to allow for\nsophisticated object validation patterns (like with \"oneOf\", \"anyOf\", etc.)",
                     "properties": {
-                        "properties": {
-                            "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
-                                "type": "object"
-                            },
-                            "type": "object"
-                        },
-                        "required": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
+                        "$schema": {
+                            "type": "string"
                         },
                         "type": {
                             "const": "object",
@@ -2398,30 +2370,13 @@
                     "type": "string"
                 },
                 "outputSchema": {
-                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult.",
+                    "additionalProperties": {},
+                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult. This can be any valid JSON 2020-12 Schema.",
                     "properties": {
-                        "properties": {
-                            "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
-                                "type": "object"
-                            },
-                            "type": "object"
-                        },
-                        "required": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "type": {
-                            "const": "object",
+                        "$schema": {
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "type"
-                    ],
                     "type": "object"
                 },
                 "title": {
