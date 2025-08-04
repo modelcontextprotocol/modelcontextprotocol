@@ -284,6 +284,29 @@ export interface ServerCapabilities {
      */
     listChanged?: boolean;
   };
+  /**
+   * Present if the server supports filtering capabilities for groups and tags.
+   */
+  filtering?: {
+    /**
+     * Present if the server supports tool groups.
+     */
+    groups?: {
+      /**
+       * Whether this server supports notifications for changes to the group list.
+       */
+      listChanged?: boolean;
+    };
+    /**
+     * Present if the server supports tool tags.
+     */
+    tags?: {
+      /**
+       * Whether this server supports notifications for changes to the tag list.
+       */
+      listChanged?: boolean;
+    };
+  };
 }
 
 /**
@@ -751,6 +774,75 @@ export interface PromptListChangedNotification extends Notification {
   method: "notifications/prompts/list_changed";
 }
 
+/* Groups and Tags */
+/**
+ * Definition for a group that contains one or more tools.
+ * Groups separate the tool list by functional area or use case.
+ */
+export interface Group extends BaseMetadata {
+  /**
+   * A human-readable description of the group.
+   */
+  description?: string;
+
+  /**
+   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   */
+  _meta?: { [key: string]: unknown };
+}
+
+/**
+ * Sent from the client to request a list of groups the server has.
+ *
+ * @category groups/list
+ */
+export interface ListGroupsRequest extends Request {
+  method: "groups/list";
+}
+
+/**
+ * The server's response to a groups/list request from the client.
+ *
+ * @category groups/list
+ */
+export interface ListGroupsResult extends Result {
+  groups: Group[];
+}
+
+/**
+ * Definition for a tag that can be attached to tools.
+ * Tags are for cross-cutting concerns, such as whether a tool is destructive.
+ */
+export interface Tag extends BaseMetadata {
+  /**
+   * A human-readable description of the tag.
+   */
+  description?: string;
+
+  /**
+   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   */
+  _meta?: { [key: string]: unknown };
+}
+
+/**
+ * Sent from the client to request a list of tags the server has.
+ *
+ * @category tags/list
+ */
+export interface ListTagsRequest extends Request {
+  method: "tags/list";
+}
+
+/**
+ * The server's response to a tags/list request from the client.
+ *
+ * @category tags/list
+ */
+export interface ListTagsResult extends Result {
+  tags: Tag[];
+}
+
 /* Tools */
 /**
  * Sent from the client to request a list of tools the server has.
@@ -759,6 +851,27 @@ export interface PromptListChangedNotification extends Notification {
  */
 export interface ListToolsRequest extends PaginatedRequest {
   method: "tools/list";
+  params?: {
+    /**
+     * An opaque token representing the current pagination position.
+     * If provided, the server should return results starting after this cursor.
+     */
+    cursor?: string;
+    /**
+     * Optional filter to narrow the response by logical grouping and tagging.
+     */
+    filter?: {
+      /**
+       * Only return tools belonging to ANY of these named groups.
+       */
+      groups?: string[];
+      /**
+       * Of the tools in the specified groups (or of all tools, if no groups were specified),
+       * only return tools tagged with ALL of these tags.
+       */
+      tags?: string[];
+    };
+  };
 }
 
 /**
@@ -915,6 +1028,18 @@ export interface Tool extends BaseMetadata {
    * Display name precedence order is: title, annotations.title, then name.
    */
   annotations?: ToolAnnotations;
+
+  /**
+   * The groups this tool belongs to.
+   * Groups separate the tool list by functional area or use case.
+   */
+  groups?: string[];
+
+  /**
+   * The tags attached to this tool.
+   * Tags are for cross-cutting concerns, such as whether a tool is destructive.
+   */
+  tags?: string[];
 
   /**
    * See [specification/draft/basic/index#general-fields] for notes on _meta usage.

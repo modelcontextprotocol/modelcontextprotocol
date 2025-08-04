@@ -764,6 +764,32 @@
             ],
             "type": "object"
         },
+        "Group": {
+            "description": "Definition for a group that contains one or more tools.\nGroups separate the tool list by functional area or use case.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "description": {
+                    "description": "A human-readable description of the group.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
             "properties": {
@@ -1048,6 +1074,56 @@
             ],
             "type": "object"
         },
+        "ListGroupsRequest": {
+            "description": "Sent from the client to request a list of groups the server has.",
+            "properties": {
+                "method": {
+                    "const": "groups/list",
+                    "type": "string"
+                },
+                "params": {
+                    "additionalProperties": {},
+                    "properties": {
+                        "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                            "properties": {
+                                "progressToken": {
+                                    "$ref": "#/definitions/ProgressToken",
+                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "required": [
+                "method"
+            ],
+            "type": "object"
+        },
+        "ListGroupsResult": {
+            "description": "The server's response to a groups/list request from the client.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "groups": {
+                    "items": {
+                        "$ref": "#/definitions/Group"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "groups"
+            ],
+            "type": "object"
+        },
         "ListPromptsRequest": {
             "description": "Sent from the client to request a list of prompts and prompt templates the server has.",
             "properties": {
@@ -1236,6 +1312,56 @@
             ],
             "type": "object"
         },
+        "ListTagsRequest": {
+            "description": "Sent from the client to request a list of tags the server has.",
+            "properties": {
+                "method": {
+                    "const": "tags/list",
+                    "type": "string"
+                },
+                "params": {
+                    "additionalProperties": {},
+                    "properties": {
+                        "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                            "properties": {
+                                "progressToken": {
+                                    "$ref": "#/definitions/ProgressToken",
+                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "required": [
+                "method"
+            ],
+            "type": "object"
+        },
+        "ListTagsResult": {
+            "description": "The server's response to a tags/list request from the client.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "tags": {
+                    "items": {
+                        "$ref": "#/definitions/Tag"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "tags"
+            ],
+            "type": "object"
+        },
         "ListToolsRequest": {
             "description": "Sent from the client to request a list of tools the server has.",
             "properties": {
@@ -1248,6 +1374,26 @@
                         "cursor": {
                             "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
                             "type": "string"
+                        },
+                        "filter": {
+                            "description": "Optional filter to narrow the response by logical grouping and tagging.",
+                            "properties": {
+                                "groups": {
+                                    "description": "Only return tools belonging to ANY of these named groups.",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                "tags": {
+                                    "description": "Of the tools in the specified groups (or of all tools, if no groups were specified),\nonly return tools tagged with ALL of these tags.",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "type": "object"
                         }
                     },
                     "type": "object"
@@ -2092,6 +2238,32 @@
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
+                "filtering": {
+                    "description": "Present if the server supports filtering capabilities for groups and tags.",
+                    "properties": {
+                        "groups": {
+                            "description": "Present if the server supports tool groups.",
+                            "properties": {
+                                "listChanged": {
+                                    "description": "Whether this server supports notifications for changes to the group list.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "tags": {
+                            "description": "Present if the server supports tool tags.",
+                            "properties": {
+                                "listChanged": {
+                                    "description": "Whether this server supports notifications for changes to the tag list.",
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                },
                 "logging": {
                     "additionalProperties": true,
                     "description": "Present if the server supports sending log messages to the client.",
@@ -2296,6 +2468,32 @@
             ],
             "type": "object"
         },
+        "Tag": {
+            "description": "Definition for a tag that can be attached to tools.\nTags are for cross-cutting concerns, such as whether a tool is destructive.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "type": "object"
+                },
+                "description": {
+                    "description": "A human-readable description of the tag.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
         "TextContent": {
             "description": "Text provided to or from an LLM.",
             "properties": {
@@ -2366,6 +2564,13 @@
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "groups": {
+                    "description": "The groups this tool belongs to.\nGroups separate the tool list by functional area or use case.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
                     "properties": {
@@ -2423,6 +2628,13 @@
                         "type"
                     ],
                     "type": "object"
+                },
+                "tags": {
+                    "description": "The tags attached to this tool.\nTags are for cross-cutting concerns, such as whether a tool is destructive.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
