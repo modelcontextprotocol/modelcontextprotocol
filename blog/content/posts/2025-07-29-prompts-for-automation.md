@@ -26,15 +26,16 @@ So I decided to use MCP! By automating these steps, I could reduce the entire wo
 1. **Select a prompt**
 
    <img
-     src="/posts/images/prompts-list.png"
-     alt="MCP prompts list showing available automation commands"
+   src="/posts/images/prompts-list.png"
+   alt="MCP prompts list showing available automation commands"
+
 2. **Select a cuisine from a dropdown**
    <img
      src="/posts/images/prompts-suggestions.png"
      alt="Dropdown showing cuisine suggestions as user types"
    />
-3.  **Done!**
-The system generates a meal plan, shopping list, and even prints the shopping list and recipes.
+3. **Done!**
+   The system generates a meal plan, shopping list, and even prints the shopping list and recipes.
 
 <img
     src="/posts/images/prompts-final-result.png"
