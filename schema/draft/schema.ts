@@ -3,7 +3,7 @@
 /**
  * Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent.
  *
- * @internal
+ * @category JSON-RPC
  */
 export type JSONRPCMessage =
   | JSONRPCRequest
@@ -71,6 +71,8 @@ export type RequestId = string | number;
 
 /**
  * A request that expects a response.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCRequest extends Request {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -79,6 +81,8 @@ export interface JSONRPCRequest extends Request {
 
 /**
  * A notification which does not expect a response.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCNotification extends Notification {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -86,6 +90,8 @@ export interface JSONRPCNotification extends Notification {
 
 /**
  * A successful (non-error) response to a request.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCResponse {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -107,6 +113,8 @@ export const INTERNAL_ERROR = -32603;
 
 /**
  * A response to a request that indicates an error occurred.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCError {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -143,7 +151,7 @@ export type EmptyResult = Result;
  *
  * A client MUST NOT attempt to cancel its `initialize` request.
  *
- * @category notifications/cancelled
+ * @category `notifications/cancelled`
  */
 export interface CancelledNotification extends Notification {
   method: "notifications/cancelled";
@@ -166,7 +174,7 @@ export interface CancelledNotification extends Notification {
 /**
  * This request is sent from the client to the server when it first connects, asking it to begin initialization.
  *
- * @category initialize
+ * @category `initialize`
  */
 export interface InitializeRequest extends Request {
   method: "initialize";
@@ -183,7 +191,7 @@ export interface InitializeRequest extends Request {
 /**
  * After receiving an initialize request from the client, the server sends this response.
  *
- * @category initialize
+ * @category `initialize`
  */
 export interface InitializeResult extends Result {
   /**
@@ -204,7 +212,7 @@ export interface InitializeResult extends Result {
 /**
  * This notification is sent from the client to the server after initialization has finished.
  *
- * @category notifications/initialized
+ * @category `notifications/initialized`
  */
 export interface InitializedNotification extends Notification {
   method: "notifications/initialized";
@@ -212,6 +220,8 @@ export interface InitializedNotification extends Notification {
 
 /**
  * Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.
+ *
+ * @category `initialize`
  */
 export interface ClientCapabilities {
   /**
@@ -239,6 +249,8 @@ export interface ClientCapabilities {
 
 /**
  * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
+ *
+ * @category `initialize`
  */
 export interface ServerCapabilities {
   /**
@@ -310,6 +322,8 @@ export interface BaseMetadata {
 
 /**
  * Describes the name and version of an MCP implementation, with an optional title for UI representation.
+ *
+ * @category `initialize`
  */
 export interface Implementation extends BaseMetadata {
   version: string;
@@ -319,7 +333,7 @@ export interface Implementation extends BaseMetadata {
 /**
  * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
  *
- * @category ping
+ * @category `ping`
  */
 export interface PingRequest extends Request {
   method: "ping";
@@ -329,7 +343,7 @@ export interface PingRequest extends Request {
 /**
  * An out-of-band notification used to inform the receiver of a progress update for a long-running request.
  *
- * @category notifications/progress
+ * @category `notifications/progress`
  */
 export interface ProgressNotification extends Notification {
   method: "notifications/progress";
@@ -382,7 +396,7 @@ export interface PaginatedResult extends Result {
 /**
  * Sent from the client to request a list of resources the server has.
  *
- * @category resources/list
+ * @category `resources/list`
  */
 export interface ListResourcesRequest extends PaginatedRequest {
   method: "resources/list";
@@ -391,7 +405,7 @@ export interface ListResourcesRequest extends PaginatedRequest {
 /**
  * The server's response to a resources/list request from the client.
  *
- * @category resources/list
+ * @category `resources/list`
  */
 export interface ListResourcesResult extends PaginatedResult {
   resources: Resource[];
@@ -400,7 +414,7 @@ export interface ListResourcesResult extends PaginatedResult {
 /**
  * Sent from the client to request a list of resource templates the server has.
  *
- * @category resources/templates/list
+ * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesRequest extends PaginatedRequest {
   method: "resources/templates/list";
@@ -409,7 +423,7 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
 /**
  * The server's response to a resources/templates/list request from the client.
  *
- * @category resources/templates/list
+ * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesResult extends PaginatedResult {
   resourceTemplates: ResourceTemplate[];
@@ -418,7 +432,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
 /**
  * Sent from the client to the server, to read a specific resource URI.
  *
- * @category resources/read
+ * @category `resources/read`
  */
 export interface ReadResourceRequest extends Request {
   method: "resources/read";
@@ -435,7 +449,7 @@ export interface ReadResourceRequest extends Request {
 /**
  * The server's response to a resources/read request from the client.
  *
- * @category resources/read
+ * @category `resources/read`
  */
 export interface ReadResourceResult extends Result {
   contents: (TextResourceContents | BlobResourceContents)[];
@@ -444,7 +458,7 @@ export interface ReadResourceResult extends Result {
 /**
  * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.
  *
- * @category notifications/resources/list_changed
+ * @category `notifications/resources/list_changed`
  */
 export interface ResourceListChangedNotification extends Notification {
   method: "notifications/resources/list_changed";
@@ -453,7 +467,7 @@ export interface ResourceListChangedNotification extends Notification {
 /**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
  *
- * @category resources/subscribe
+ * @category `resources/subscribe`
  */
 export interface SubscribeRequest extends Request {
   method: "resources/subscribe";
@@ -470,7 +484,7 @@ export interface SubscribeRequest extends Request {
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
  *
- * @category resources/unsubscribe
+ * @category `resources/unsubscribe`
  */
 export interface UnsubscribeRequest extends Request {
   method: "resources/unsubscribe";
@@ -487,7 +501,7 @@ export interface UnsubscribeRequest extends Request {
 /**
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
  *
- * @category notifications/resources/updated
+ * @category `notifications/resources/updated`
  */
 export interface ResourceUpdatedNotification extends Notification {
   method: "notifications/resources/updated";
@@ -503,6 +517,8 @@ export interface ResourceUpdatedNotification extends Notification {
 
 /**
  * A known resource that the server is capable of reading.
+ *
+ * @category `resources/list`
  */
 export interface Resource extends BaseMetadata {
   /**
@@ -544,6 +560,8 @@ export interface Resource extends BaseMetadata {
 
 /**
  * A template description for resources available on the server.
+ *
+ * @category `resources/templates/list`
  */
 export interface ResourceTemplate extends BaseMetadata {
   /**
@@ -578,6 +596,8 @@ export interface ResourceTemplate extends BaseMetadata {
 
 /**
  * The contents of a specific resource or sub-resource.
+ *
+ * @internal
  */
 export interface ResourceContents {
   /**
@@ -597,6 +617,9 @@ export interface ResourceContents {
   _meta?: { [key: string]: unknown };
 }
 
+/**
+ * @category Content
+ */
 export interface TextResourceContents extends ResourceContents {
   /**
    * The text of the item. This must only be set if the item can actually be represented as text (not binary data).
@@ -604,6 +627,9 @@ export interface TextResourceContents extends ResourceContents {
   text: string;
 }
 
+/**
+ * @category Content
+ */
 export interface BlobResourceContents extends ResourceContents {
   /**
    * A base64-encoded string representing the binary data of the item.
@@ -617,7 +643,7 @@ export interface BlobResourceContents extends ResourceContents {
 /**
  * Sent from the client to request a list of prompts and prompt templates the server has.
  *
- * @category prompts/list
+ * @category `prompts/list`
  */
 export interface ListPromptsRequest extends PaginatedRequest {
   method: "prompts/list";
@@ -626,7 +652,7 @@ export interface ListPromptsRequest extends PaginatedRequest {
 /**
  * The server's response to a prompts/list request from the client.
  *
- * @category prompts/list
+ * @category `prompts/list`
  */
 export interface ListPromptsResult extends PaginatedResult {
   prompts: Prompt[];
@@ -635,7 +661,7 @@ export interface ListPromptsResult extends PaginatedResult {
 /**
  * Used by the client to get a prompt provided by the server.
  *
- * @category prompts/get
+ * @category `prompts/get`
  */
 export interface GetPromptRequest extends Request {
   method: "prompts/get";
@@ -654,7 +680,7 @@ export interface GetPromptRequest extends Request {
 /**
  * The server's response to a prompts/get request from the client.
  *
- * @category prompts/get
+ * @category `prompts/get`
  */
 export interface GetPromptResult extends Result {
   /**
@@ -666,6 +692,8 @@ export interface GetPromptResult extends Result {
 
 /**
  * A prompt or prompt template that the server offers.
+ *
+ * @category `prompts/list`
  */
 export interface Prompt extends BaseMetadata {
   /**
@@ -685,6 +713,8 @@ export interface Prompt extends BaseMetadata {
 
 /**
  * Describes an argument that a prompt can accept.
+ *
+ * @category `prompts/list`
  */
 export interface PromptArgument extends BaseMetadata {
   /**
@@ -707,6 +737,8 @@ export type Role = "user" | "assistant";
  *
  * This is similar to `SamplingMessage`, but also supports the embedding of
  * resources from the MCP server.
+ *
+ * @category `prompts/get`
  */
 export interface PromptMessage {
   role: Role;
@@ -717,6 +749,8 @@ export interface PromptMessage {
  * A resource that the server is capable of reading, included in a prompt or tool call result.
  *
  * Note: resource links returned by tools are not guaranteed to appear in the results of `resources/list` requests.
+ *
+ * @category Content
  */
 export interface ResourceLink extends Resource {
   type: "resource_link";
@@ -727,6 +761,8 @@ export interface ResourceLink extends Resource {
  *
  * It is up to the client how best to render embedded resources for the benefit
  * of the LLM and/or the user.
+ *
+ * @category Content
  */
 export interface EmbeddedResource {
   type: "resource";
@@ -745,7 +781,7 @@ export interface EmbeddedResource {
 /**
  * An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.
  *
- * @category notifications/prompts/list_changed
+ * @category `notifications/prompts/list_changed`
  */
 export interface PromptListChangedNotification extends Notification {
   method: "notifications/prompts/list_changed";
@@ -755,7 +791,7 @@ export interface PromptListChangedNotification extends Notification {
 /**
  * Sent from the client to request a list of tools the server has.
  *
- * @category tools/list
+ * @category `tools/list`
  */
 export interface ListToolsRequest extends PaginatedRequest {
   method: "tools/list";
@@ -764,7 +800,7 @@ export interface ListToolsRequest extends PaginatedRequest {
 /**
  * The server's response to a tools/list request from the client.
  *
- * @category tools/list
+ * @category `tools/list`
  */
 export interface ListToolsResult extends PaginatedResult {
   tools: Tool[];
@@ -773,7 +809,7 @@ export interface ListToolsResult extends PaginatedResult {
 /**
  * The server's response to a tool call.
  *
- * @category tools/call
+ * @category `tools/call`
  */
 export interface CallToolResult extends Result {
   /**
@@ -806,7 +842,7 @@ export interface CallToolResult extends Result {
 /**
  * Used by the client to invoke a tool provided by the server.
  *
- * @category tools/call
+ * @category `tools/call`
  */
 export interface CallToolRequest extends Request {
   method: "tools/call";
@@ -819,7 +855,7 @@ export interface CallToolRequest extends Request {
 /**
  * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
  *
- * @category notifications/tools/list_changed
+ * @category `notifications/tools/list_changed`
  */
 export interface ToolListChangedNotification extends Notification {
   method: "notifications/tools/list_changed";
@@ -834,6 +870,8 @@ export interface ToolListChangedNotification extends Notification {
  *
  * Clients should never make tool use decisions based on ToolAnnotations
  * received from untrusted servers.
+ *
+ * @category `tools/list`
  */
 export interface ToolAnnotations {
   /**
@@ -881,6 +919,8 @@ export interface ToolAnnotations {
 
 /**
  * Definition for a tool the client can call.
+ *
+ * @category `tools/list`
  */
 export interface Tool extends BaseMetadata {
   /**
@@ -926,7 +966,7 @@ export interface Tool extends BaseMetadata {
 /**
  * A request from the client to the server, to enable or adjust logging.
  *
- * @category logging/setLevel
+ * @category `logging/setLevel`
  */
 export interface SetLevelRequest extends Request {
   method: "logging/setLevel";
@@ -941,7 +981,7 @@ export interface SetLevelRequest extends Request {
 /**
  * Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
  *
- * @category notifications/message
+ * @category `notifications/message`
  */
 export interface LoggingMessageNotification extends Notification {
   method: "notifications/message";
@@ -981,7 +1021,7 @@ export type LoggingLevel =
 /**
  * A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.
  *
- * @category sampling/createMessage
+ * @category `sampling/createMessage`
  */
 export interface CreateMessageRequest extends Request {
   method: "sampling/createMessage";
@@ -1018,7 +1058,7 @@ export interface CreateMessageRequest extends Request {
 /**
  * The client's response to a sampling/create_message request from the server. The client should inform the user before returning the sampled message, to allow them to inspect the response (human in the loop) and decide whether to allow the server to see it.
  *
- * @category sampling/createMessage
+ * @category `sampling/createMessage`
  */
 export interface CreateMessageResult extends Result, SamplingMessage {
   /**
@@ -1033,6 +1073,8 @@ export interface CreateMessageResult extends Result, SamplingMessage {
 
 /**
  * Describes a message issued to or received from an LLM API.
+ *
+ * @category `sampling/createMessage`
  */
 export interface SamplingMessage {
   role: Role;
@@ -1074,6 +1116,9 @@ export interface Annotations {
   lastModified?: string;
 }
 
+/**
+ * @category Content
+ */
 export type ContentBlock =
   | TextContent
   | ImageContent
@@ -1083,6 +1128,8 @@ export type ContentBlock =
 
 /**
  * Text provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface TextContent {
   type: "text";
@@ -1105,6 +1152,8 @@ export interface TextContent {
 
 /**
  * An image provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface ImageContent {
   type: "image";
@@ -1134,6 +1183,8 @@ export interface ImageContent {
 
 /**
  * Audio provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface AudioContent {
   type: "audio";
@@ -1173,6 +1224,8 @@ export interface AudioContent {
  * These preferences are always advisory. The client MAY ignore them. It is also
  * up to the client to decide how to interpret these preferences and how to
  * balance them against other considerations.
+ *
+ * @category `sampling/createMessage`
  */
 export interface ModelPreferences {
   /**
@@ -1225,6 +1278,8 @@ export interface ModelPreferences {
  *
  * Keys not declared here are currently left unspecified by the spec and are up
  * to the client to interpret.
+ *
+ * @category `sampling/createMessage`
  */
 export interface ModelHint {
   /**
@@ -1245,7 +1300,7 @@ export interface ModelHint {
 /**
  * A request from the client to the server, to ask for completion options.
  *
- * @category completion/complete
+ * @category `completion/complete`
  */
 export interface CompleteRequest extends Request {
   method: "completion/complete";
@@ -1280,7 +1335,7 @@ export interface CompleteRequest extends Request {
 /**
  * The server's response to a completion/complete request
  *
- * @category completion/complete
+ * @category `completion/complete`
  */
 export interface CompleteResult extends Result {
   completion: {
@@ -1301,6 +1356,8 @@ export interface CompleteResult extends Result {
 
 /**
  * A reference to a resource or resource template definition.
+ *
+ * @category `completion/complete`
  */
 export interface ResourceTemplateReference {
   type: "ref/resource";
@@ -1314,6 +1371,8 @@ export interface ResourceTemplateReference {
 
 /**
  * Identifies a prompt.
+ *
+ * @category `completion/complete`
  */
 export interface PromptReference extends BaseMetadata {
   type: "ref/prompt";
@@ -1329,7 +1388,7 @@ export interface PromptReference extends BaseMetadata {
  * This request is typically used when the server needs to understand the file system
  * structure or access specific locations that the client has permission to read from.
  *
- * @category roots/list
+ * @category `roots/list`
  */
 export interface ListRootsRequest extends Request {
   method: "roots/list";
@@ -1340,7 +1399,7 @@ export interface ListRootsRequest extends Request {
  * This result contains an array of Root objects, each representing a root directory
  * or file that the server can operate on.
  *
- * @category roots/list
+ * @category `roots/list`
  */
 export interface ListRootsResult extends Result {
   roots: Root[];
@@ -1348,6 +1407,8 @@ export interface ListRootsResult extends Result {
 
 /**
  * Represents a root directory or file that the server can operate on.
+ *
+ * @category `roots/list`
  */
 export interface Root {
   /**
@@ -1376,7 +1437,7 @@ export interface Root {
  * This notification should be sent whenever the client adds, removes, or modifies any root.
  * The server should then request an updated list of roots using the ListRootsRequest.
  *
- * @category notifications/roots/list_changed
+ * @category `notifications/roots/list_changed`
  */
 export interface RootsListChangedNotification extends Notification {
   method: "notifications/roots/list_changed";
@@ -1385,7 +1446,7 @@ export interface RootsListChangedNotification extends Notification {
 /**
  * A request from the server to elicit additional information from the user via the client.
  *
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitRequest extends Request {
   method: "elicitation/create";
@@ -1411,6 +1472,8 @@ export interface ElicitRequest extends Request {
 /**
  * Restricted schema definitions that only allow primitive types
  * without nested objects or arrays.
+ *
+ * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
   | StringSchema
@@ -1418,6 +1481,9 @@ export type PrimitiveSchemaDefinition =
   | BooleanSchema
   | EnumSchema;
 
+/**
+ * @category `elicitation/create`
+ */
 export interface StringSchema {
   type: "string";
   title?: string;
@@ -1427,6 +1493,9 @@ export interface StringSchema {
   format?: "email" | "uri" | "date" | "date-time";
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
@@ -1435,6 +1504,9 @@ export interface NumberSchema {
   maximum?: number;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface BooleanSchema {
   type: "boolean";
   title?: string;
@@ -1442,6 +1514,9 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface EnumSchema {
   type: "string";
   title?: string;
@@ -1453,7 +1528,7 @@ export interface EnumSchema {
 /**
  * The client's response to an elicitation request.
  *
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitResult extends Result {
   /**
