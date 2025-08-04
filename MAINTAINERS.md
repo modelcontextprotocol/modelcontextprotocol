@@ -106,6 +106,13 @@ This document lists current maintainers and working groups in the Model Context 
 - [Harald Kirschner](https://github.com/digitarald)
 - [Connor Peet](https://github.com/connor4312)
 
+### Transports Working Group
+
+- [Kurtis Van Gent](https://github.com/kurtisvg)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
+- [Shaun Smith](https://github.com/evalstate)
+- [Harvey Tuch](https://github.com/htuch)
+
 ## About This Document
 
 This document is updated by the MCP maintainers and reflects the current
