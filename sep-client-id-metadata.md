@@ -57,7 +57,65 @@ Client ID Metadata Documents enable a unique trust model where:
 
 The change to the specification will be adding Client ID Metadata documents as a SHOULD, and changing DCR to a MAY, as we think that Client ID Metadata documents are a better default option for this scenario.
 
-We will primarily rely on the text in the linked RFC, aiming not to repeat most of it.
+We will primarily rely on the text in the linked RFC, aiming not to repeat most of it.  Below is a short version of what we'll need to specify.
+
+```mermaid
+  sequenceDiagram
+      participant User
+      participant Client as MCP Client
+      participant Server as Authorization Server
+      participant Metadata as Metadata Endpoint<br/>(Client's HTTPS URL)
+      participant Resource as MCP Server
+
+      Note over Client,Metadata: Client hosts metadata at<br/>https://app.example.com/oauth/metadata.json
+
+      User->>Client: Initiates connection to MCP Server
+      Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://localhost:3000/callback
+
+      Note over Server: Authenticates user
+
+
+      Note over Server: Detects URL-formatted client_id
+
+      Server->>Metadata: GET https://app.example.com/oauth/metadata.json
+      Metadata-->>Server: JSON Metadata Document<br/>{client_id, client_name, redirect_uris, ...}
+
+      Note over Server: Validates:<br/>1. client_id matches URL<br/>2. redirect_uri in allowed list<br/>3. Document structure valid<br/>4. Domain allowed via trust policy
+
+      alt Validation Success
+          Server->>User: Display consent page with client_name
+          User->>Server: Approves access
+          Server->>Client: Authorization code via redirect_uri
+          Client->>Server: Exchange code for token<br/>client_id=https://app.example.com/oauth/metadata.json
+          Server-->>Client: Access token
+          Client->>Resource: MCP requests with access token
+          Resource-->>Client: MCP responses
+      else Validation Failure
+          Server->>User: Error response<br/>error=invalid_client or invalid_request
+      end
+
+      Note over Server: Cache metadata for future requests<br/>(respecting HTTP cache headers)
+```
+
+### Client Requirements
+- Clients MUST host their metadata document at an HTTPS URL following RFC requirements
+- The client_id URL MUST use "https" scheme and contain a path component
+- Metadata documents MUST be valid JSON and include at minimum:
+   - `client_id`: matching the document URL exactly
+   - `client_name`: human-readable name for authorization prompts
+   - `redirect_uris`: array of allowed redirect URIs
+   - `token_endpoint_auth_method`: "none" for public clients
+
+### Server Requirements
+- Servers SHOULD fetch metadata documents when encountering URL-formatted client_ids
+- Servers MUST validate the fetched document contains matching client_id
+- Servers SHOULD cache metadata respecting HTTP headers (max 24 hours recommended)
+- Servers MUST validate redirect URIs match those in metadata document
+
+### Discovery
+- Servers advertise support via OAuth metadata: `client_id_metadata_document_supported: true`
+- Clients detect support and can fallback to DCR or pre-registration if unavailable
+
 
 Example metadata document:
 ```json
