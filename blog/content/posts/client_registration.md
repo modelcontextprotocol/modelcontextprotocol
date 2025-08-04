@@ -18,15 +18,15 @@ A system implementing OAuth 2.1 should allow the user to grant a client access t
 The high level flow for OAuth is:
 1. The client sends the user to an authorization server
 2. The authorization server displays a consent screen to the user
-3. If the user approves the clients access, the authorization server redirects the user back to the client with an access code
+3. If the user approves the client's access, the authorization server redirects the user back to the client with an access code
 4. The client exchanges the access code for an access token, which it saves
 5. The client uses the access token in subsequent requests to access the resource
 
-As part of this flow, the server needs a few pieces of information about the client:
+As part of this flow, the authorization server needs a few pieces of information about the client:
 1. **Client name**: Human readable text to display in the consent screen to help the user decide whether they want to grant access.
 2. **Redirect URL**: The destination to send the authorization code back to if the user consents.
 
-It's important that the server trust the information that it has about the client in order to prevent a malicious client from tricking a user into consenting access it didn't intend to.  For instance, if a malicious client could claim to be 'Claude Desktop' on the consent screen while actually being 'attacker.com', users might grant access thinking they're authorizing the legitimate Claude application.
+It's important that the authorization server trust the information that it has about the client in order to prevent a malicious client from tricking a user into consenting access it didn't intend to.  For instance, if a malicious client could claim to be 'Claude Desktop' on the consent screen while actually being 'attacker.com', users might grant access thinking they're authorizing the legitimate Claude application.
 
 (Note: we're specifically calling out redirect URLS)
 
@@ -52,7 +52,7 @@ It does have the nice property that the user almost certainly trusts the client 
 
 Another option that the MCP specification supports today is Dynamic Client Registration (DCR). In DCR, the Authorization Server provides a `/register` endpoint that the client can use to register "just in time" for the authorization flow.
 
-This takes work off the user, and off the client, but has other tradeoffs the server implementer to consider. A server implementation needs to:
+This takes work off the user, and off the client, but has other tradeoffs the authorization server implementer to consider. An authorization server implementation needs to:
 * rate limiting requests to an unauthenticated registration endpoint
 * handle expiry of these records (challenging without open redirect risks), or allow for unbounded growth of client records
 * determine how to trust the metadata the client is providing
