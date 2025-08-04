@@ -70,12 +70,12 @@ function buildPageEvents(project, router) {
   const events = [];
 
   for (const pageDefinition of router.buildPages(project)) {
-    const event = new typedoc.PageEvent(pageDefinition.model)
+    const event = new typedoc.PageEvent(pageDefinition.model);
     event.url = pageDefinition.url;
     event.filename = pageDefinition.url;
     event.pageKind = pageDefinition.kind;
     event.project = project;
-    events.push(event)
+    events.push(event);
   }
 
   return events;
@@ -87,25 +87,21 @@ function buildPageEvents(project, router) {
  * @returns {string}
  */
 function renderPageEvents(events, theme) {
-  const declarationEvents = events.
+  let currentCategory;
+
+  return events.
     filter(isDeclarationReflectionEvent).
-    sort((event1, event2) => event1.model.name.localeCompare(event2.model.name));
+    sort((event1, event2) => getReflectionOrder(event1.model, event2.model)).
+    flatMap((event) => {
+      const category = getReflectionCategory(event.model);
+      const rendered = renderReflection(event.model, theme.getRenderContext(event));
 
-  /** @type {Map<string, string[]>} */
-  const outputsByCategory = new Map();
+      const isNewCategory = category !== currentCategory;
+      currentCategory = category;
 
-  for (const event of declarationEvents) {
-    const category = getReflectionCategory(event.model);
-    const rendered = renderReflection(event.model, theme.getRenderContext(event));
-
-    if (!outputsByCategory.has(category)) {
-      outputsByCategory.set(category, [renderCategory(category)]);
-    }
-    outputsByCategory.get(category)?.push(rendered);
-  }
-
-  return [...outputsByCategory.keys()].
-    sort().flatMap((category) => outputsByCategory.get(category)).join("\n");
+      return isNewCategory ? [renderCategory(category), rendered] : [rendered];
+    }).
+    join("\n");
 }
 
 /**
@@ -114,6 +110,31 @@ function renderPageEvents(events, theme) {
  */
 function isDeclarationReflectionEvent(event) {
   return event.model instanceof typedoc.DeclarationReflection;
+}
+
+/**
+ * @param {typedoc.DeclarationReflection} reflection1
+ * @param {typedoc.DeclarationReflection} reflection2
+ * @returns {number}
+ */
+function getReflectionOrder(reflection1, reflection2) {
+  const category1 = getReflectionCategory(reflection1);
+  const category2 = getReflectionCategory(reflection2);
+
+  let order = 0;
+
+  order ||= +(category2.length > 0) - +(category1.length > 0);
+  order ||= +isRpcMethodCategory(category2) - +isRpcMethodCategory(category1);
+  order ||= category1.localeCompare(category2);
+
+  if (category1 === category2 && isRpcMethodCategory(category1)) {
+    order ||= +reflection2.name.endsWith("Request") - +reflection1.name.endsWith("Request");
+    order ||= +reflection2.name.endsWith("Result") - +reflection1.name.endsWith("Result");
+    order ||= +reflection2.name.endsWith("Notification") - +reflection1.name.endsWith("Notification");
+  }
+  order ||= reflection1.name.localeCompare(reflection2.name);
+
+  return order;
 }
 
 /**
@@ -127,12 +148,18 @@ function getReflectionCategory(reflection) {
 
 /**
  * @param {string} category
+ * @returns {boolean}
+ */
+function isRpcMethodCategory(category) {
+  return /^`[a-z]/.test(category);
+}
+
+/**
+ * @param {string} category
  * @returns {string}
  */
 function renderCategory(category) {
-  let heading = category || "Common Types";
-  if (heading.match(/^[a-z]/)) heading = "`" + heading + "`";
-  return `## ${heading}\n`;
+  return `## ${category || "Common Types"}\n`;
 }
 
 /**
