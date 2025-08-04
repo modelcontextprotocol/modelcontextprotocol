@@ -111,6 +111,7 @@ This document lists current maintainers and working groups in the Model Context 
 - [Kurtis Van Gent](https://github.com/kurtisvg)
 - [Jonathan Hefner](https://github.com/jonathanhefner)
 - [Shaun Smith](https://github.com/evalstate)
+- [Harvey Tuch](https://github.com/htuch)
 
 ## About This Document
 
