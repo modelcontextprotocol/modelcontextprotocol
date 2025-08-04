@@ -52,28 +52,11 @@ Client ID Metadata Documents enable a unique trust model where:
    - Clients just need to host their metadata document
    - Trust flows from the client's domain, not prior registration
 
-## Specification
+## Specification Changes
 
-### Client Identifier Requirements
+The change to the specification will be adding Client ID Metadata documents as a SHOULD, and changing DCR as a MAY, as we think that Client ID Metadata documents are a better default option for this scenario.
 
-When using Client ID Metadata Documents, the client_id parameter MUST be an HTTPS URL that:
-
-- Uses the "https" scheme
-- Contains a path component (e.g., `https://example.com/oauth.json`)
-- Does NOT contain:
-  - Single-dot (`.`) or double-dot (`..`) path segments
-  - Fragment component (`#`)
-  - Username or password in the authority component
-- SHOULD NOT include a query string
-- MAY contain a port number
-
-### Metadata Document Format
-
-The metadata document MUST be a JSON object containing:
-
-- A `client_id` property matching the document's URL exactly
-- Standard OAuth 2.0 Dynamic Client Registration metadata parameters
-- NO `client_secret` or symmetric authentication method properties
+We will primarily rely on the text in the linked RFC.
 
 Example metadata document:
 ```json
@@ -92,38 +75,7 @@ Example metadata document:
 }
 ```
 
-### Authorization Server Behavior
 
-Authorization servers supporting this mechanism:
-
-1. MUST validate the client_id URL format
-2. SHOULD fetch the metadata document when processing authorization requests
-3. MAY cache metadata respecting HTTP cache headers
-4. MUST NOT cache error responses or invalid documents
-5. SHOULD limit response size (recommended: 5KB maximum)
-6. MUST handle fetch failures gracefully
-
-### Access Control Flexibility
-
-Servers can implement progressive access controls based on their security requirements:
-
-1. **Fully Open** (Default for open servers):
-   - Accept any valid HTTPS client_id
-   - Suitable for personal tools and open-source projects
-   
-2. **Domain-Based Restrictions**:
-   - Allowlist trusted domains (e.g., `*.anthropic.com`, `*.microsoft.com`)
-   - Blocklist untrusted domains
-   - Suitable for organizations trusting specific vendors
-
-3. **Explicit Client Allowlisting**:
-   - Require exact client_id URLs to be pre-approved
-   - Suitable for high-security environments
-   
-4. **Hybrid Approaches**:
-   - Allow specific domains automatically
-   - Require approval for others
-   - Enable user-specific override lists
 
 ### Integration with Existing MCP Auth
 
@@ -134,14 +86,6 @@ This proposal adds Client ID Metadata Documents as a third registration option a
 - Client ID Metadata Documents are detected by URL-formatted client_ids
 
 ## Rationale
-
-### Design Decisions
-
-1. **HTTPS Requirement**: Ensures metadata integrity and authenticity through TLS
-2. **Path Component Requirement**: Prevents root domain hijacking and enables multiple clients per domain
-3. **No Secrets in Metadata**: Maintains public client security model appropriate for MCP clients
-4. **Caching Support**: Reduces server load while maintaining freshness
-5. **Incremental Security**: Allows servers to choose their security posture rather than mandating one approach
 
 ### Why This Solves the "No Pre-existing Relationship" Problem
 
@@ -189,6 +133,7 @@ This proposal is fully backward compatible:
 ## Reference Implementation
 
 A reference implementation will be provided demonstrating:
+(TODO: link typescript PR)
 
 1. Client-side metadata document hosting
 2. Server-side metadata fetching and validation
@@ -202,18 +147,15 @@ A reference implementation will be provided demonstrating:
 - Trust derives from the HTTPS domain hosting the metadata
 - Servers SHOULD implement domain reputation/allowlisting
 - Users SHOULD see the client's hostname during authorization
-- Redirect URIs are attested by the domain (except localhost)
+- Redirect URIs are attested by the domain
 
 ### Attack Mitigation
 
 1. **Phishing Prevention**: Display client hostname prominently
-2. **SSRF Protection**: Validate URLs, limit response size, timeout requests
-3. **Cache Poisoning**: Never cache invalid responses
-4. **Metadata Tampering**: HTTPS ensures integrity
+2. **SSRF Protection**: Validate URLs, limit response size, timeout requests, rate limit outbound requests
 
 ### Best Practices
 
-- Prefetch and validate logos to prevent tracking
 - Implement rate limiting on metadata fetches
 - Consider additional warnings for new/unknown domains
 - Log metadata fetch failures for monitoring
@@ -230,14 +172,14 @@ A reference implementation will be provided demonstrating:
 ### For MCP Servers  
 
 - Add URL validation for client_ids
-- Implement secure HTTP fetching
+- Implement secure HTTP fetching (e.g. prevent internal network scans)
 - Add appropriate caching logic
 - Update consent UI to show hostname
 - Consider domain allowlisting options
 
 ### Migration Path
 
-1. Servers add Client ID Metadata support
+1. Authorization Servers add Client ID Metadata support, indicated in their OAuth metadata
 2. Clients begin including metadata URLs
 3. Gradual migration from DCR where appropriate
 4. Pre-registration remains for high-trust scenarios
