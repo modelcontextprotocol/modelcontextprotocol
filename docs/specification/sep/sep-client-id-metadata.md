@@ -1,10 +1,10 @@
 # SEP: OAuth Client ID Metadata Documents for MCP
 
 **Title**: OAuth Client ID Metadata Documents for Model Context Protocol  
-**Author**: Paul Carleton (pcarleton@anthropic.com)  
+**Author**: Paul Carleton (@pcarleton) Aaron Parecki (@aaronpk)
 **Status**: Draft  
 **Type**: Standards Track  
-**Created**: 2025-07-28  
+**Created**: 2025-07-07
 
 ## Abstract
 
@@ -239,10 +239,9 @@ This proposal is fully backward compatible:
 - Servers can adopt Client ID Metadata Documents incrementally
 - Clients can detect support and fall back to other methods
 
-## Reference Implementation
+## Prototype Implementation
 
-A reference implementation will be provided demonstrating:
-(TODO: link typescript PR)
+A prototype implementation is available [here](https://github.com/modelcontextprotocol/typescript-sdk/pull/839) demonstrating:
 
 1. Client-side metadata document hosting
 2. Server-side metadata fetching and validation
@@ -268,4 +267,4 @@ A reference implementation will be provided demonstrating:
 - [OAuth 2.1](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/)
 - [RFC 7591 - OAuth 2.0 Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591.html)
 - [MCP Specification - Authorization](https://modelcontextprotocol.org/docs/spec/authorization)
-- [Dynamic Client Registration in MCP](TODO)
+- [Evolving OAuth Client Registration in the Model Context Protocol](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1027/)
