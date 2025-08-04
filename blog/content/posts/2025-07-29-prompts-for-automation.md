@@ -1,12 +1,13 @@
 +++
-date = '2025-08-01T11:46:28+01:00'
+date = '2025-08-04T18:00:00+01:00'
+publishDate = '2025-08-04T18:00:00+01:00'
 draft = false
 title = 'MCP Prompts: Building Workflow Automation'
 author = 'Inna Harper (Core Maintainer)'
 tags = ['automation', 'mcp', 'prompts', 'tutorial']
 +++
 
-[MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-06-18) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's [prompt](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) and [resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) through a practical example.
+[MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-06-18) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's [prompts](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) and [resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) through a practical example.
 
 This guide demonstrates how MCP prompts can automate repetitive workflows. Whether you're interested in the MCP ecosystem or simply want to leverage AI for workflow automation, you'll learn how to build practical automations through a concrete meal planning example. No prior MCP experience needed—we'll cover the fundamentals before diving into implementation.
 
@@ -20,19 +21,20 @@ MCP prompts offer more than command shortcuts. They're a primitive for building 
 
 I needed to solve a recurring problem: planning weekly meals by cuisine to manage ingredients efficiently. The manual process involved selecting a cuisine, choosing dishes, listing ingredients, shopping, and organizing recipes—repetitive steps that took significant time each week.
 
-So I decided to use MCP! By automating these steps, I could reduce the entire workflow to selecting a cuisine and receiving a complete meal plan with shopping list:
+So I decided to use MCP! By automating these steps, I could reduce the entire workflow to selecting a cuisine and receiving a complete meal plan with shopping list. (Any client that supports MCP prompts should work!)
 
-1. Select a prompt
+1. **Select a prompt**
+
    <img
      src="/posts/images/prompts-list.png"
      alt="MCP prompts list showing available automation commands"
-   />
-2. Select a cuisine from a dropdown (Suggestions)
+2. **Select a cuisine from a dropdown**
    <img
      src="/posts/images/prompts-suggestions.png"
      alt="Dropdown showing cuisine suggestions as user types"
    />
-3. Done! The system generates a meal plan, shopping list, and even prints the shopping list and recipes.
+3.  **Done!**
+The system generates a meal plan, shopping list, and even prints the shopping list and recipes.
 
 <img
     src="/posts/images/prompts-final-result.png"
@@ -51,10 +53,10 @@ In MCP, [static resources](https://modelcontextprotocol.io/specification/2025-06
 
 [Resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) solve this through URI patterns with parameters, transforming static resource definitions into dynamic content providers.
 
-A template like `file://recipes/{cuisine}` transforms a single resource definition into a dynamic content provider:
+For example, a template like `file://recipes/{cuisine}.md` might represent a set of resources like these:
 
-- `file://recipes/italian` returns Italian recipes
-- `file://recipes/mexican` returns Mexican recipes
+- `file://recipes/italian.md` returns Italian recipes
+- `file://recipes/mexican.md` returns Mexican recipes
 
 This pattern extends beyond simple filtering. You can create templates for:
 
@@ -138,7 +140,7 @@ Before diving into the code, make sure you have:
    ```bash
    npm install @modelcontextprotocol/sdk
    ```
-3. **An MCP-compatible client** like VS Code with the MCP extension
+3. **An MCP-compatible client with prompt and resource support**,like VS Code with the MCP extension
 
 For this tutorial, I'll use the TypeScript SDK, but MCP also supports Python and other languages.
 
