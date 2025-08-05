@@ -19,8 +19,8 @@ necessary information dynamically.
 
 Elicitation supports two modes:
 
-- **Form mode** (in-band): Servers can request structured data from users with optional JSON schemas to validate responses
-- **URL mode** (out-of-band): Servers can direct users to external URLs for sensitive interactions that must _not_ pass through the MCP client
+- **Form mode**: Servers can request structured data from users with optional JSON schemas to validate responses
+- **URL mode**: Servers can direct users to external URLs for sensitive interactions that must _not_ pass through the MCP client
 
 ## User Interaction Model
 
@@ -39,7 +39,7 @@ For trust & safety and security:
 - Servers **MUST** use URL mode for interactions involving sensitive information, such as credentials
 - URLs **MUST NOT** appear in any field of an elicitation request, other than the `url` field in an URL mode request
 
-Applications **SHOULD**:
+MCP clients **SHOULD**:
 
 - Provide UI that makes it clear which server is requesting information
 - For URL mode, clearly display the target domain/host before navigation
@@ -84,13 +84,13 @@ All elicitation requests **MUST** include the following parameters:
 The `mode` parameter specifies the type of elicitation:
 
 - `"form"`: In-band structured data collection with optional schema validation. Data is exposed to the client.
-- `"url"`: Out-of-band interaction via URL navigation. Data is **not** exposed to the client.
+- `"url"`: Out-of-band interaction via URL navigation. Data (other than the URL itself) is **not** exposed to the client.
 
-### Form Elicitation Requests
+### Form Mode Elicitation Requests
 
-Form elicitation allows servers to collect structured data directly through the MCP client.
+Form mode elicitation allows servers to collect structured data directly through the MCP client.
 
-Form elicitation requests **MUST** specify `mode: "form"` and include these parameters:
+Form mode elicitation requests **MUST** specify `mode: "form"` and include these parameters:
 
 | Name              | Type   | Description                                                    |
 | ----------------- | ------ | -------------------------------------------------------------- |
@@ -101,7 +101,7 @@ Form elicitation requests **MUST** specify `mode: "form"` and include these para
 The `requestedSchema` parameter allows servers to define the structure of the expected
 response using a restricted subset of JSON Schema.
 
-To simplify client user experience, elicitation schemas are limited to flat objects
+To simplify client user experience, form mode elicitation schemas are limited to flat objects
 with primitive properties only.
 
 The schema is restricted to these primitive types:
@@ -257,12 +257,12 @@ Note that complex nested structures, arrays of objects, and other advanced JSON 
 }
 ```
 
-### URL Elicitation Requests
+### URL Mode Elicitation Requests
 
-URL elicitation enables servers to direct users to external URLs for out-of-band interactions that must not pass through the MCP client. This is essential for auth flows, payment processing, and other sensitive or secure operations.
+URL mode elicitation enables servers to direct users to external URLs for out-of-band interactions that must not pass through the MCP client. This is essential for auth flows, payment processing, and other sensitive or secure operations.
 
 <Note>
-  **Important**: URL elicitation is *not* for authorizing the MCP client's
+  **Important**: URL mode elicitation is *not* for authorizing the MCP client's
   access to the MCP server (that's handled by [MCP
   authorization](../basic/authorization)). Instead, it's used when the MCP
   server needs to obtain sensitive information or third-party authorization on
@@ -271,7 +271,7 @@ URL elicitation enables servers to direct users to external URLs for out-of-band
   elicitation URL the server wants them to open.
 </Note>
 
-URL elicitation requests **MUST** specify `mode: "url"` and include these parameters:
+URL mode elicitation requests **MUST** specify `mode: "url"` and include these parameters:
 
 | Name            | Type   | Description                               |
 | --------------- | ------ | ----------------------------------------- |
@@ -282,7 +282,7 @@ The `url` parameter **MUST** contain a valid URL. The `message` parameter **MUST
 
 #### Example: Request Sensitive Data
 
-This example shows a url elicitation request directing the user to a secure URL where they can provide sensitive information (an API key, for example).
+This example shows a URL mode elicitation request directing the user to a secure URL where they can provide sensitive information (an API key, for example).
 The same request could direct the user into an OAuth authorization flow, or a payment flow. The only difference is the URL and the message.
 
 **Request:**
@@ -487,7 +487,7 @@ sequenceDiagram
 
 ## Response Actions
 
-Elicitation responses use a three-action model to clearly distinguish between different user actions. These actions apply to both form and url elicitation modes.
+Elicitation responses use a three-action model to clearly distinguish between different user actions. These actions apply to both form and URL elicitation modes.
 
 ```json
 {
@@ -532,8 +532,8 @@ Servers should handle each state appropriately:
 
 Most practical uses of elicitation require that the server maintain state about users:
 
-- Whether required information has been collected (e.g., the user's display name via form elicitation)
-- Status of resource access (e.g., API keys or a payment flow via url elicitation)
+- Whether required information has been collected (e.g., the user's display name via form mode elicitation)
+- Status of resource access (e.g., API keys or a payment flow via URL mode elicitation)
 
 Servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](../basic/security_best_practices) document. Specifically:
 
@@ -547,9 +547,9 @@ Servers implementing elicitation **MUST** securely associate this state with ind
   requirements while maintaining security best practices.
 </Note>
 
-### URL Elicitation for Sensitive Data
+### URL Mode Elicitation for Sensitive Data
 
-For servers that interact with APIs requiring sensitive credentials (e.g. LLM APIs), url elicitation provides a secure mechanism for collecting API keys without exposing them to the MCP client or host application.
+For servers that interact with APIs requiring sensitive credentials (e.g. LLM APIs), URL mode elicitation provides a secure mechanism for collecting API keys without exposing them to the MCP client or host application.
 
 In this pattern:
 
@@ -561,13 +561,13 @@ In this pattern:
 
 This approach ensures that sensitive credentials never pass through the MCP client or any intermediate MCP servers, reducing the risk of exposure through client-side logging or other attack vectors.
 
-### URL Elicitation for OAuth Flows
+### URL Mode Elicitation for OAuth Flows
 
-URL elicitation enables a pattern where MCP servers act as OAuth clients to third-party resource servers.
-The "downstream authorization" enabled by url elicitation is fundamentally separate from [MCP authorization](../basic/authorization).
+URL mode elicitation enables a pattern where MCP servers act as OAuth clients to third-party resource servers.
+The "downstream authorization" enabled by URL mode elicitation is fundamentally separate from [MCP authorization](../basic/authorization).
 
 <Note>
-  This distinction is critical to understand. URL elicitation is *not* about
+  This distinction is critical to understand. URL mode elicitation is *not* about
   authorizing (or re-authorizing) the MCP client to access the MCP server. It
   *can* be used to enable the MCP server to access third-party resources or APIs
   on behalf of the user, without exposing sensitive credentials or tokens to the
@@ -577,7 +577,7 @@ The "downstream authorization" enabled by url elicitation is fundamentally separ
 #### Understanding the Distinction
 
 - **MCP Authorization**: Required OAuth flow between the MCP client and MCP server (covered in the [authorization specification](../basic/authorization))
-- **Downstream Authorization**: Optional authorization between the MCP server and a third-party resource server, initiated via url elicitation
+- **Downstream Authorization**: Optional authorization between the MCP server and a third-party resource server, initiated via URL mode elicitation
 
 In downstream authorization, the server acts as both:
 
@@ -607,10 +607,10 @@ The tokens from these flows are never mixed or passed through. The MCP client's 
 
 #### Implementation Pattern
 
-When implementing downstream authorization via url elicitation:
+When implementing downstream authorization via URL mode elicitation:
 
 1. The MCP server generates an authorization URL, acting as an OAuth client to the third-party service
-2. The server creates a url elicitation request with this URL
+2. The server creates a URL mode elicitation request with this URL
 3. The user completes the OAuth flow directly with the third-party authorization server
 4. The third-party authorization server redirects back to the MCP server
 5. The MCP server securely stores the third-party tokens, bound to the user's identity
@@ -675,10 +675,10 @@ Clients **SHOULD** return standard JSON-RPC errors for common failure cases:
 
 ### Safe URL Handling
 
-Clients implementing url elicitation **MUST** handle URLs carefully to prevent users from unknowingly clicking malicious links.
+Clients implementing URL mode elicitation **MUST** handle URLs carefully to prevent users from unknowingly clicking malicious links.
 
-1. Servers **MUST NOT** include URLs in any message or schema fields as part of a form elicitation request.
-2. Servers **MUST NOT** include URLs in any message or schema fields as part of an url elicitation request, except for the `url` field.
+1. Servers **MUST NOT** include URLs in any message or schema fields as part of a form mode elicitation request.
+2. Servers **MUST NOT** include URLs in any message or schema fields as part of an URL mode elicitation request, except for the `url` field.
 
 These requirements ensure that client implementations have clear rules about when to present a URL to the user, so that other rules about user consent and SSRF protection (below) can be consistently applied.
 
@@ -720,11 +720,11 @@ Further recommendations can be found in the OWASP [SSRF Prevention Cheat Sheet](
 
 #### Phishing
 
-URL elicitation returns a URL that an attacker can use to send to a victim. The MCP Server **MUST** verify the identity of the user who opens the URL before accepting information.
+URL mode elicitation returns a URL that an attacker can use to send to a victim. The MCP Server **MUST** verify the identity of the user who opens the URL before accepting information.
 
 Typically identity verification is done by leveraging the [MCP authorization server](../basic/authorization) to identify the user, through a session cookie or equivalent in the browser.
 
-For example, url elicitation may be used to perform OAuth flows where the server acts as an OAuth client of another resource server. Without proper mitigation, the following phishing attack is possible:
+For example, URL mode elicitation may be used to perform OAuth flows where the server acts as an OAuth client of another resource server. Without proper mitigation, the following phishing attack is possible:
 
 1. A malicious user (Alice) connected to a benign server triggers an elicitation request
 2. The benign server generates an authorization URL, acting as an OAuth client of a third-party authorization server
