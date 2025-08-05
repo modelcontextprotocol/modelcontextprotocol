@@ -36,13 +36,13 @@ model.
 For trust & safety and security:
 
 - Servers **MUST NOT** use form mode elicitation to request sensitive information
-- Servers **MUST** use url mode for interactions involving sensitive information, such as credentials
-- URLs **MUST NOT** appear in any field of an elicitation request, other than the `url` field in an url mode request
+- Servers **MUST** use URL mode for interactions involving sensitive information, such as credentials
+- URLs **MUST NOT** appear in any field of an elicitation request, other than the `url` field in an URL mode request
 
 Applications **SHOULD**:
 
 - Provide UI that makes it clear which server is requesting information
-- For url mode, clearly display the target domain/host before navigation
+- For URL mode, clearly display the target domain/host before navigation
 - Allow users to review and modify their responses before sending
 - Respect user privacy and provide clear decline and cancel options
 
@@ -319,7 +319,7 @@ of band and the client is not aware of the outcome, unless the client requests p
 
 ### Progress Tracking
 
-The client **MAY** request progress updates from the server by sending an `elicitation/track` request with a [progress token](../basic/utilities/progress#progress-token). This is particularly useful in url mode, because the client is not involved in the interaction.
+The client **MAY** request progress updates from the server by sending an `elicitation/track` request with a [progress token](../basic/utilities/progress#progress-token). This is particularly useful in URL mode, because the client is not involved in the interaction.
 
 The client **MUST** include an `elicitationId` in the request to identify which elicitation to send progress updates for. The client **SHOULD** include a `progressToken` in the request's `_meta` field.
 
@@ -379,7 +379,7 @@ When another request cannot be processed until an elicitation is completed, the 
 
 The error **MUST** include a list of elicitations that are required to complete before the original can be retried.
 
-Any elicitations returned in the error **MUST** be url mode elicitations and have an `elicitationId` property.
+Any elicitations returned in the error **MUST** be URL mode elicitations and have an `elicitationId` property.
 Servers that want elicit data from the user via form mode **SHOULD** make a separate elicitation request for each form mode elicitation.
 
 **Error Response:**
@@ -395,7 +395,7 @@ Servers that want elicit data from the user via form mode **SHOULD** make a sepa
       "elicitations": [
         {
           "mode": "url",
-          "elicitionId": "550e8400-e29b-41d4-a716-446655440000",
+          "elicitationId": "550e8400-e29b-41d4-a716-446655440000",
           "url": "https://oauth.example.com/authorize?client_id=abc123&response_type=code&...",
           "message": "Authorization is required to access your Example Co files."
         }
@@ -508,7 +508,7 @@ The three response actions are:
 1. **Accept** (`action: "accept"`): User explicitly approved and submitted with data
 
    - For form mode: The `content` field contains the submitted data matching the requested schema
-   - For url mode: The `content` field is omitted
+   - For URL mode: The `content` field is omitted
    - Example: User clicked "Submit", "OK", "Confirm", etc.
 
 2. **Decline** (`action: "decline"`): User explicitly declined the request
@@ -711,7 +711,7 @@ Since clients facilitate the opening of URLs provided by servers, they **MUST** 
 
 The following are recommendations for implementing SSRF protections. Servers that choose to relax these constraints should be aware of the risks.
 
-- Require the `https://` scheme for all url mode URLs (no HTTP, `file://`, etc.)
+- Require the `https://` scheme for all URL mode URLs (no HTTP, `file://`, etc.)
 - Block requests to internal IP ranges (e.g., `127.0.0.1`, `10.0.0.0/8`, etc.)
 - Clearly render or distinguish Unicode characters (e.g. punycode URLs) to avoid "look-alike" misdirections
 - Clearly communicate the destination server and target URL to the user when asking for consent before opening the URL
