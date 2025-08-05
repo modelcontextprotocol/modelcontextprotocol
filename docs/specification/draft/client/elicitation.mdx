@@ -549,7 +549,7 @@ Servers implementing elicitation **MUST** securely associate this state with ind
 
 ### URL Mode Elicitation for Sensitive Data
 
-For servers that interact with APIs requiring sensitive credentials (e.g. LLM APIs), URL mode elicitation provides a secure mechanism for collecting API keys without exposing them to the MCP client or host application.
+For servers that interact with downstream APIs requiring sensitive information (e.g., credentials, payment information), URL mode elicitation provides a secure mechanism for users to provide this information without exposing it to the MCP client.
 
 In this pattern:
 
@@ -564,15 +564,7 @@ This approach ensures that sensitive credentials never pass through the MCP clie
 ### URL Mode Elicitation for OAuth Flows
 
 URL mode elicitation enables a pattern where MCP servers act as OAuth clients to third-party resource servers.
-The "downstream authorization" enabled by URL mode elicitation is fundamentally separate from [MCP authorization](../basic/authorization).
-
-<Note>
-  This distinction is critical to understand. URL mode elicitation is *not* about
-  authorizing (or re-authorizing) the MCP client to access the MCP server. It
-  *can* be used to enable the MCP server to access third-party resources or APIs
-  on behalf of the user, without exposing sensitive credentials or tokens to the
-  MCP client.
-</Note>
+Authorization with downstream APIs enabled by URL mode elicitation is separate from [MCP authorization](../basic/authorization). MCP servers **MUST NOT** rely on URL mode elicitation to authorize users for themselves.
 
 #### Understanding the Distinction
 
@@ -584,7 +576,7 @@ In downstream authorization, the server acts as both:
 - An OAuth resource server (to the MCP client)
 - An OAuth client (to the third-party resource server)
 
-Consider this hypothetical scenario:
+Example scenario:
 
 - Claude Desktop (the MCP client) connects to Bob's Productivity Server (an HTTPS MCP server)
 - Bob's Productivity Server integrates with Dropbox and Google APIs
@@ -596,10 +588,10 @@ The critical security requirements are:
 2. **The MCP server MUST NOT use its Claude access token for Dropbox**: That would be [token passthrough](../basic/security_best_practices#token-passthrough), which is forbidden
 3. **The user must authorize the MCP server directly**: The interaction happens outside the MCP protocol
 
-The tokens from these flows are never mixed or passed through. The MCP client's token is for the MCP server only, and the third-party tokens never leave the MCP server.
+Credentials obtained via URL mode elicitation are distinct from the MCP server credentials used by the MCP client. The MCP server **MUST NOT** transmit credentials obtained through URL mode elicitation to the MCP client.
 
 <Note>
-  For more background, read the [token passthrough
+  For additional background, refer to the [token passthrough
   section](../basic/security_best_practices#token-passthrough) of the Security
   Best Practices document to understand why MCP servers cannot act as
   pass-through proxies.
@@ -690,7 +682,7 @@ Instead, servers **SHOULD** follow [security best practices](../basic/security_b
 Non-normative examples:
 
 - Incorrect: Treat user input like "I am joe@example.com" as authoritative
-- Correct: Rely on the [MCP authorization server](../basic/authorization) to identify the user
+- Correct: Rely on [authorization](../basic/authorization) to identify the user
 
 ### Form Mode Security
 
@@ -709,7 +701,7 @@ For example, on iOS, [SFSafariViewController](https://developer.apple.com/docume
 
 Since clients facilitate the opening of URLs provided by servers, they **MUST** implement SSRF protections.
 
-The following are recommendations for implementing SSRF protections. Servers that choose to relax these constraints should be aware of the risks.
+The following are recommendations for implementing SSRF protections. Clients that choose to relax these constraints should be aware of the risks.
 
 - Require the `https://` scheme for all URL mode URLs (no HTTP, `file://`, etc.)
 - Block requests to internal IP ranges (e.g., `127.0.0.1`, `10.0.0.0/8`, etc.)
