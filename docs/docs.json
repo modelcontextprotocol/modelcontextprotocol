@@ -273,6 +273,7 @@
                   {
                     "group": "Standard Profiles",
                     "pages": [
+                      "specification/draft/server/standard-profiles/sample-profile"
                     ]
                   }
                 ]
