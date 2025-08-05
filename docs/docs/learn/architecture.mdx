@@ -68,7 +68,7 @@ where it runs. MCP servers can execute locally or remotely. For example, when
 Claude Desktop launches the [filesystem
 server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem),
 the server runs locally on the same machine because it uses the STDIO
-transport. This is commonly referred to as a "local" MCP server. The offical
+transport. This is commonly referred to as a "local" MCP server. The official
 [Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/) runs on the
 Sentry platform, and uses the Streamable HTTP transport. This is commonly
 referred to as a "remote" MCP server.
@@ -77,7 +77,7 @@ referred to as a "remote" MCP server.
 
 MCP consists of two layers:
 
-- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including lifecycle management, core primitives, such as tools, resources, prompts and notifications.
+- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including lifecycle management, and core primitives, such as tools, resources, prompts and notifications.
 - **Transport layer**: Defines the communication mechanisms and channels that enable data exchange between clients and servers, including transport-specific connection establishment, message framing, and authorization.
 
 Conceptually the data layer is the inner layer, while the transport layer is the outer layer.
@@ -88,7 +88,7 @@ The data layer implements a [JSON-RPC 2.0](https://www.jsonrpc.org/) based excha
 This layer includes:
 
 - **Lifecycle management**: Handles connection initialization, capability negotiation, and connection termination between clients and servers
-- **Server features**: Enables servers to provides core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from to the client
+- **Server features**: Enables servers to provides core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
 - **Client features**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
 - **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
 
@@ -105,9 +105,9 @@ The transport layer abstracts communication details from the protocol layer, ena
 
 ### Data Layer Protocol
 
-A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
+A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
 
-MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as it's underlying RPC protocol. Client and servers send requests to each other and respond accordingly. Notifications can be used when no response is required.
+MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Client and servers send requests to each other and respond accordingly. Notifications can be used when no response is required.
 
 #### Lifecycle management
 
@@ -132,8 +132,8 @@ For more details about server primitives see [server concepts](./server-concepts
 
 MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
 
-- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when servers authors want access to a language model, but want to stay model independent and not include a language model SDK in their MCP server. They can use the `sampling/complete` method to request a language model completion from the client's AI application.
-- **Elicitation**: Allows servers to request additional information from users. This is useful when servers authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/request` method to request additional information from the user.
+- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when servers' authors want access to a language model, but want to stay model independent and not include a language model SDK in their MCP server. They can use the `sampling/complete` method to request a language model completion from the client's AI application.
+- **Elicitation**: Allows servers to request additional information from users. This is useful when servers' authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/request` method to request additional information from the user.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
 
 For more details about client primitives see [client concepts](./client-concepts).
