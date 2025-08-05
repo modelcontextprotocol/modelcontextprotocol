@@ -1,0 +1,215 @@
+---
+title: High Security Profile
+---
+
+<div id="enable-section-numbers" />
+
+<Info>**Protocol Revision**: draft</Info>
+
+## Abstract
+
+This specification defines a High Security Profile (HSP) for the Model Context Protocol that addresses enterprise security requirements through standardized security mechanisms. The profile requires enhanced authentication patterns, and recommends real-time authorization capabilities, session management through Shared Signals Framework (SSF), and comprehensive audit requirements to enable MCP deployment in high-security enterprise environments.
+
+## Motivation
+
+Enterprise adoption of MCP has been limited by security concerns that the current specification does not adequately address. The following security requirements have been identified as critical for enterprise deployment:
+
+* **Client Attestation**: The MCP specification currently relies on Dynamic Client Registration to enable unknown clients to talk to MCP Servers. This leaves open the concern of client attestation \- how can an enterprise be sure only certain clients are permitted?  
+* **Bearer Token Security**: Current MCP implementations often use bearer tokens without following the threat mitigation guidelines specified in RFC 6750, creating vulnerabilities to token theft and replay attacks.  
+* **Proof of Possession**: The lack of cryptographic binding between tokens and clients enables token misuse if credentials are compromised. Enterprises require proof-of-possession mechanisms as specified in DPoP (RFC 9449).  
+* **Real-time, Contextual Authorization**: Static authorization decisions made at connection time are insufficient for dynamic enterprise environments where permissions may change during a session. Real-time authorization capabilities using standards like AuthZEN can greatly improve access security. Authorization decisions need to incorporate the context from the request as well as other data at the time of the request.  
+* **Session Security**: Enterprises need the ability to revoke sessions, handle credential changes, and respond to security events in real-time. CAEP (Continuous Access Evaluation Profile) events such as Session Revoked, Credential Changed, and Token Claims Change can help MCP Servers clear any stale state associated with a user session.  
+* **Audit**: Enterprise environments require comprehensive audit trails and compliance reporting capabilities that must be built into the protocol layer. A single action at a higher level (e.g. a single prompt from the user, or a single work item in an autonomous agent) can result in multiple access tokens being generated, especially if a single access token is restricted by its audience value to a specific MCP Server.
+
+The High Security Profile addresses these concerns by defining a cohesive set of security requirements that servers can implement and clients can depend upon.
+
+## Profile Specification
+
+### Profile Identity
+
+Profile Specification URL: **`https://spec.modelcontextprotocol.io/specification/draft/server/standard-profiles/high-security-profile_1.0`**  
+Profile Name: **High Security Profile (HSP)**  
+Version: **1.0**
+
+### MCP Server Requirements
+
+Servers implementing HSP/1.0 MUST satisfy all of the following requirements:
+
+#### Token Security
+
+* **Bearer Token Security** (REQUIRED):   
+  * **Basics**: MCP Servers must implement all threat mitigation measures specified in Section 5.2 of RFC 6750 (OAuth Bearer token usage). (TLS, secure cookies, and token integrity protection).  
+  * **JWT format tokens**: MCP Servers MUST support JWT format tokens as described in RFC 7519\.  
+  * **Audience**: MCP Servers MUST match the audience value in the token to their own expected audience.  
+  * **Token lifetime / revocation**: Access Tokens MUST either be short lived (e.g. 1 hour or less), or the MCP Server MUST support the CAEP event “session revoked” with either a token identifier or a user identifier as the subject. The MCP Server MAY determine its course of action upon receiving such an event.  
+* **Token Properties**: MCP Servers MUST support JWT format tokens (RFC 7519\)  
+  * **Transaction Identifier**: MCP Servers SHOULD reject tokens without the txn value, as defined in Security Event Tokens (RFC 8417). MCP Servers SHOULD record the txn value in the token with any audit logs.  
+* **Proof of Possession**: MCP Servers MUST support Demonstration of Proof-of-Possession (DPoP) as specified in RFC 9449:  
+  * MCP Servers MUST Accept DPoP-bound access tokens  
+  * MCP Servers MUST Validate DPoP proofs for all requests  
+  * MCP Servers SHOULD Reject tokens without valid DPoP binding
+
+#### Authorization
+
+* **Real-time Authorization** (RECOMMENDED): Servers SHOULD integrate with an AuthZEN-compatible Policy Decision Point (PDP) for all incoming requests:  
+* The MCP Server SHOULD provide sufficient context to the PDP in the AuthZEN request in order for the PDP to make an informed decision.  
+* **Shared Signals Framework Integration** (RECOMMENDED): MCP Servers SHOULD be SSF Receivers and they SHOULD handle the following events:  
+  * `https://schemas.openid.net/secevent/risc/event-type/session-revoked`  
+  * `https://schemas.openid.net/secevent/risc/event-type/credential-change`  
+  * `https://schemas.openid.net/secevent/oauth/event-type/token-claims-change`
+
+  Note that the MCP Server MAY determine the appropriate course of action upon receiving these events.
+
+#### Audit
+
+* Audit Logging:  MCP Servers SHOULD use the `txn` claim from the access tokens in audit log entries so that it is easy to correlate individual actions to higher level tasks.
+
+### MCP Client Requirements
+
+Clients requesting HSP/1.0 must:
+
+#### Client Authentication and Attestation
+
+* **Client Attestation**: Clients MUST have a URI where critical security information about them, including public keys which may be used to verify their tokens are stored. The URI is specified in the IETF draft “[Client ID Metadata Document](https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/)”.  
+* **Agent Authentication**: Clients MUST use JWTs for Client Authentication as described in Section 2.2 of RFC 7523, where the signing key for the JWT is available through the Client ID Metadata Document.
+
+#### Token Related Requirements
+
+* SHOULD support DPoP.  
+* SHOULD support RAR (RFC 9396). If they support RAR, they MUST insert the following fields in the `authorization_details` parameter for every access token that they request:  
+  * `txn` field.  The value of this field MUST be the same for the same user-level task or the highest-level independent task in autonomous scenarios that the agent is performing.  
+  * `aud` field. The value of this field MUST be the unique identifier of the MCP Server for whom the token is being requested.  
+* Respect the `resource` parameter in the authorization server response as described in the IETF draft [“OAuth 2.0 Resource Parameter in Access Token Response”](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-resource-token-resp/), and not send OAuth tokens it receives from an Authorization Server to any URL other than any of the ones specified in the resource parameter of the token response.
+
+### Authorization Server Requirements
+
+OAuth 2.1 Authorization servers used with the high-security profile:
+
+* MUST support DPoP.  
+* MUST issue JWT format OAuth Tokens as described in RFC 7519\.  
+* If it receives a RAR from a client, it MUST reject the request unless it has the following fields in the `authorization_details`:  
+  * The `txn` field: It MUST include the txn field value from the RAR in the `txn` claim of any access token it issues in response to that request.  
+  * The `aud` field: It MUST include the value in the `aud` claim of the access token it issues.  
+* MUST specify an `aud` (audience) value that is specific to the MCP server for which it is issuing the token.  
+* MUST include the `resource` parameter in the token response as described in the IETF draft [“OAuth 2.0 Resource Parameter in Access Token Response”](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-resource-token-resp/), and:  
+  * Either only include the URL specified in the `aud` value of the request  
+  * Or come up with a set of MCP Server URLs based on other means that are outside the scope of this specification.
+
+### Capabilities Declaration
+
+MCP Servers implementing HSP/1.0 MUST declare the following capabilities in their `InitializationResponse:`
+
+```json
+{
+  "highSecurity": {
+    "audience": "https://mymcpserver.mycompany.com",
+    "authzen": true,
+    "ssf": {
+      "session-revoked",
+      "credential-change", 
+      "token-claims-change"
+    }
+  }
+}
+
+```
+
+### Initialization with Profile
+
+MCP Clients and Servers using HSP/1.0 MUST provide the profile details in the initialization request and response.
+
+#### Initialize Request Extension
+
+MCP Clients MUST include the HSP/1.0 profile in their initialize requests.
+
+```ts
+interface HSPInitializeRequest extends InitializeRequest {
+  method: "initialize"
+  params: {
+    protocolVersion: string;
+    capabilities: ClientCapabilities;
+    clientInfo: Implementation;
+    requestedProfiles: ["https://spec.modelcontextprotocol.io/specification/draft/server/standard-profiles/high-security-profile_1.0"];
+  };
+}
+```
+
+#### Initialize Result Extension
+
+MCP Servers MUST include the HSP/1.0 profile in the results.
+
+```ts
+interface HSPInitializeResult extends InitializeResult {
+  _meta?: { [key: string]: unknown };
+  capabilities: ServerCapabilities;
+  instructions?: string;
+  protocolVersion: string;
+  serverInfo: Implementation;
+  profiles: ["https://spec.modelcontextprotocol.io/specification/draft/server/standard-profiles/high-security-profile_1.0"];
+}
+```
+
+### Server Metadata Extension
+
+MCP Servers MUST expose additional security metadata at `/.well-known/mcp-supported-profiles:`
+
+```json
+{
+  ["https://spec.modelcontextprotocol.io/specification/draft/server/standard-profiles/high-security-profile_1.0"]
+}
+```
+
+## Rationale
+
+The Model Context Protocol's current security model relies on authentication and authorization mechanisms that are insufficient for enterprise deployment scenarios. While MCP's flexibility has enabled rapid adoption in development environments, large organizations have identified critical security gaps that prevent production deployment at scale.
+
+### Inadequate Token Security Practices
+
+Most current MCP implementations treat bearer tokens as opaque credentials without implementing the comprehensive security measures outlined in RFC 6750\. This creates significant vulnerabilities including token theft, replay attacks, and inadequate token lifecycle management. The lack of cryptographic binding between tokens and clients (proof-of-possession) means that compromised tokens can be used by unauthorized parties without detection.
+
+### Static Authorization Limitations
+
+The current MCP model performs authorization decisions based on scopes in OAuth tokens. In dynamic enterprise environments where user permissions, organizational policies, and security contexts change frequently, these static decisions become stale and potentially dangerous. Organizations need the ability to make real-time authorization decisions based on current context, user status, and evolving security policies.
+
+### Insufficient Session Management
+
+Enterprise security requires the ability to respond immediately to security events such as user termination, credential compromise, or policy violations. The current MCP specification lacks mechanisms for real-time session revocation or credential change notifications, forcing organizations to rely on token expiration periods that may be too long for security requirements or too short for operational efficiency.
+
+### Audit and Compliance Gaps
+
+Enterprise environments are subject to various compliance frameworks that require comprehensive audit trails linking high-level business actions to specific system interactions. Current MCP implementations cannot provide the necessary correlation between user intentions, agent actions, and system-level resource access. The lack of transaction identifiers makes it impossible to trace a single user request through multiple MCP server interactions.
+
+### Fragmented Security Standards
+
+Different MCP implementations can develop ad-hoc security approaches, creating an ecosystem where security capabilities are inconsistent and unpredictable. This fragmentation prevents enterprise security teams from establishing consistent policies across their MCP infrastructure and makes security assessment and certification extremely difficult.
+
+### Authorization Server Inconsistency
+
+The OAuth 2.1 ecosystem that supports MCP deployments can develop consistent patterns for audience restriction, transaction correlation, and proof-of-possession implementation. This inconsistency means that even well-intentioned security implementations may have gaps or incompatibilities that create vulnerabilities.
+
+### Operational Security Requirements
+
+Enterprise environments require not just secure design but also operational security capabilities including real-time threat response, credential rotation without service interruption, and fine-grained access controls that can adapt to changing business requirements and security contexts.
+
+The High Security Profile addresses these fundamental limitations by establishing a comprehensive security framework that enterprises can depend upon. Rather than requiring each organization to develop custom security solutions, HSP provides a standardized approach that enables consistent security posture across MCP deployments while maintaining the protocol's core flexibility and extensibility. This approach reduces implementation complexity for server developers while providing enterprise security teams with the assurance they need to approve MCP for production use.
+
+## Compatibility
+
+* Minimum MCP Version: **TBD**  
+* Profile Dependencies: **None**  
+* Backward Compatibility: Servers implementing HSP/1.0 MAY support connections from non-HSP clients by gracefully degrading to standard MCP behavior when HSP is not requested.
+
+## Governance
+
+The High Security Profile is governed by the MCP Security Working Group, following the standard MCP governance process. Profile updates require consensus from enterprise security stakeholders and the broader MCP community.
+
+## Implementation Guidance
+
+Reference implementations and detailed implementation guidance will be provided in the MCP Security Profile Implementation Guide, including:
+
+* Sample AuthZEN policy configurations  
+* SSF integration patterns  
+* Audit log examples
+
+This profile represents the minimum security requirements for enterprise MCP deployment. Organizations may implement additional security measures beyond those specified in this profile.
+
