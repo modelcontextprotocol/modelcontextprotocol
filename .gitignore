@@ -1,5 +1,7 @@
 node_modules/
 .DS_Store
 target/
+intermediate-outputs/
 __pycache__/
 uv.lock
+package-lock.json
