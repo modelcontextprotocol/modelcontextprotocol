@@ -11,8 +11,9 @@ const specificScenario = args.find(arg => arg.startsWith('--scenario='))?.split(
 // Validate SDKs exist
 const availableSDKs = sdks.length > 0 ? sdks : ['typescript-sdk'];
 for (const sdk of availableSDKs) {
-  const clientPath = join(process.cwd(), sdk, 'test-client');
-  const serverPath = join(process.cwd(), sdk, 'test-server');
+  const sdkDir = sdk === 'typescript' ? 'typescript-sdk' : sdk;
+  const clientPath = join(process.cwd(), sdkDir, 'test-client');
+  const serverPath = join(process.cwd(), sdkDir, 'test-server');
   
   if (!existsSync(clientPath)) {
     console.error(`Error: ${sdk} test-client not found at ${clientPath}`);

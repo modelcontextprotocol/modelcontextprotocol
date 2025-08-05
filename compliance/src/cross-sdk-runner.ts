@@ -93,8 +93,10 @@ export class CrossSDKRunner {
   }
   
   private async runStdioScenario(logPath: string): Promise<void> {
-    const clientBinary = join(process.cwd(), this.config.clientSDK, 'test-client');
-    const serverBinary = join(process.cwd(), this.config.serverSDK, 'test-server');
+    const clientSDKDir = this.config.clientSDK === 'typescript' ? 'typescript-sdk' : this.config.clientSDK;
+    const serverSDKDir = this.config.serverSDK === 'typescript' ? 'typescript-sdk' : this.config.serverSDK;
+    const clientBinary = join(process.cwd(), clientSDKDir, 'test-client');
+    const serverBinary = join(process.cwd(), serverSDKDir, 'test-server');
     
     // Check binaries exist
     if (!existsSync(clientBinary)) {
@@ -104,13 +106,16 @@ export class CrossSDKRunner {
       throw new Error(`Server binary not found: ${serverBinary}`);
     }
     
+    // Determine execution method based on SDK type
+    const clientCmd = this.getExecutionCommand(this.config.clientSDK, clientBinary);
+    const serverCmd = this.getExecutionCommand(this.config.serverSDK, serverBinary);
+    
     const clientArgs = [
-      clientBinary,
+      ...clientCmd.slice(1),
       '--scenario-id', this.config.scenario.id.toString(),
       '--id', this.config.scenario.client_ids[0],
       'stdio',
-      '--',
-      'tsx',
+      'npx', 'tsx',
       join(process.cwd(), 'src/cli/mitm.ts'),
       'stdio',
       '--log', logPath,
@@ -118,17 +123,24 @@ export class CrossSDKRunner {
       '--client-id', this.config.scenario.client_ids[0],
       '--server-id', this.config.scenario.server_name,
       '--',
-      serverBinary,
+      ...serverCmd,
       '--server-name', this.config.scenario.server_name,
       '--transport', 'stdio'
     ];
     
-    await this.runCommand('tsx', clientArgs);
+    await this.runCommand(clientCmd[0], clientArgs);
+  }
+  
+  private getExecutionCommand(sdk: string, binaryPath: string): string[] {
+    // All binaries should be directly executable with proper shebangs
+    return [binaryPath];
   }
   
   private async runSSEScenario(logPath: string): Promise<void> {
-    const clientBinary = join(process.cwd(), this.config.clientSDK, 'test-client');
-    const serverBinary = join(process.cwd(), this.config.serverSDK, 'test-server');
+    const clientSDKDir = this.config.clientSDK === 'typescript' ? 'typescript-sdk' : this.config.clientSDK;
+    const serverSDKDir = this.config.serverSDK === 'typescript' ? 'typescript-sdk' : this.config.serverSDK;
+    const clientBinary = join(process.cwd(), clientSDKDir, 'test-client');
+    const serverBinary = join(process.cwd(), serverSDKDir, 'test-server');
     
     // Check binaries exist
     if (!existsSync(clientBinary)) {
@@ -141,9 +153,12 @@ export class CrossSDKRunner {
     const port = 10000 + this.config.scenario.id;
     const mitmPort = port + 1000;
     
+    // Get server execution command
+    const serverCmd = this.getExecutionCommand(this.config.serverSDK, serverBinary);
+    
     // Start server
-    const serverProc = spawn('tsx', [
-      serverBinary,
+    const serverProc = spawn(serverCmd[0], [
+      ...serverCmd.slice(1),
       '--server-name', this.config.scenario.server_name,
       '--transport', 'sse',
       '--host', '127.0.0.1',
@@ -171,16 +186,17 @@ export class CrossSDKRunner {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       try {
-        // Run client through MITM
+        // Get client execution command and run through MITM
+        const clientCmd = this.getExecutionCommand(this.config.clientSDK, clientBinary);
         const clientArgs = [
-          clientBinary,
+          ...clientCmd.slice(1),
           '--scenario-id', this.config.scenario.id.toString(),
           '--id', this.config.scenario.client_ids[0],
           'sse',
           `http://127.0.0.1:${mitmPort}`
         ];
         
-        await this.runCommand('tsx', clientArgs);
+        await this.runCommand(clientCmd[0], clientArgs);
       } finally {
         mitmProc.kill();
       }
