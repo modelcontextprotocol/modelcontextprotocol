@@ -113,7 +113,7 @@ between the Authority component (as defined in [Section 3.2 of RFC 3986](https:/
 If the Supported Profiles Declaration resource does not exist on the MCP Server, or if the document returned is empty, then the Client MUST assume that the MCP Server does not support Profiles.
 
 ## Profile Discovery
-Before connecting to an MCP Server, an MCP Client MAY fetch the Server’s Well Known URL to understand which profiles the server supports (if any).
+Before connecting to an MCP Server, an MCP Client MAY fetch the Server’s Well Known URL to understand which profiles the server supports (if any). Alternatively, an MCP Client may, through proprietary means, already know the profiles a specific MCP Server supports and simply use those.
 
 ## Initialization With Profiles
 The MCP Client makes an `InitializeRequest` based on its knowledge of which (if any) profiles the MCP Server supports.
