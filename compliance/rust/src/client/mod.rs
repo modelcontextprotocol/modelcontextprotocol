@@ -1,0 +1,1 @@
+// Simplified client implementation without external MCP SDK

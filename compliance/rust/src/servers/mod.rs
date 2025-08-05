@@ -1,0 +1,1 @@
+// Simplified server implementations without external MCP SDK
