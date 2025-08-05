@@ -1442,15 +1442,68 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
-export interface EnumSchema {
+// Single-select enum (with or without titles)
+export type SingleSelectEnumSchema = 
+  | {
+      type: "string";
+      title?: string;
+      description?: string;
+      enum: string[]; // Plain enum without titles
+    }
+  | {
+      type: "string";
+      title?: string;
+      description?: string;
+      oneOf: Array<{
+        const: string;
+        title: string; // Display name for enum value
+      }>;
+    };
+
+// Multi-select enum (with or without titles)
+export type MultiSelectEnumSchema = 
+  | {
+      type: "array";
+      title?: string;
+      description?: string;
+      minItems?: number;
+      maxItems?: number;
+      items: {
+        type: "string";
+        enum: string[]; // Plain enum without titles
+      };
+    }
+  | {
+      type: "array";
+      title?: string;
+      description?: string;
+      minItems?: number;
+      maxItems?: number;
+      items: {
+        oneOf: Array<{
+          const: string;
+          title: string; // Display name for enum value
+        }>;
+      };
+    };
+
+// Deprecated enum format (for backward compatibility)
+export interface DeprecatedEnumSchema {
   type: "string";
   title?: string;
   description?: string;
-  oneOf: Array<{
-    const: string;
-    title?: string; // Display name for enum value
-  }>;
+  enum: string[];
+  /**
+   * @deprecated Use SingleSelectEnumSchema with oneOf instead. This property will be removed in a future version.
+   */
+  enumNames?: string[]; // Display names for enum values (deprecated)
 }
+
+// Union type for all enum schemas
+export type EnumSchema = 
+  | SingleSelectEnumSchema 
+  | MultiSelectEnumSchema 
+  | DeprecatedEnumSchema;
 
 /**
  * The client's response to an elicitation request.

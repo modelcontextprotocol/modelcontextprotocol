@@ -553,6 +553,37 @@
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
         },
+        "DeprecatedEnumSchema": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "enum": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "enumNames": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "string",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "enum",
+                "type"
+            ],
+            "type": "object"
+        },
         "ElicitRequest": {
             "description": "A request from the server to elicit additional information from the user via the client.",
             "properties": {
@@ -677,40 +708,168 @@
             "$ref": "#/definitions/Result"
         },
         "EnumSchema": {
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "oneOf": {
-                    "items": {
-                        "properties": {
-                            "const": {
+            "anyOf": [
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "enum": {
+                            "items": {
                                 "type": "string"
                             },
-                            "title": {
-                                "type": "string"
-                            }
+                            "type": "array"
                         },
-                        "required": [
-                            "const"
-                        ],
-                        "type": "object"
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
                     },
-                    "type": "array"
+                    "required": [
+                        "enum",
+                        "type"
+                    ],
+                    "type": "object"
                 },
-                "title": {
-                    "type": "string"
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "oneOf": {
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "oneOf",
+                        "type"
+                    ],
+                    "type": "object"
                 },
-                "type": {
-                    "const": "string",
-                    "type": "string"
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "items": {
+                            "properties": {
+                                "enum": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                "type": {
+                                    "const": "string",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "enum",
+                                "type"
+                            ],
+                            "type": "object"
+                        },
+                        "maxItems": {
+                            "type": "integer"
+                        },
+                        "minItems": {
+                            "type": "integer"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "array",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "items",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "items": {
+                            "properties": {
+                                "oneOf": {
+                                    "items": {
+                                        "properties": {
+                                            "const": {
+                                                "type": "string"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "const",
+                                            "title"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "required": [
+                                "oneOf"
+                            ],
+                            "type": "object"
+                        },
+                        "maxItems": {
+                            "type": "integer"
+                        },
+                        "minItems": {
+                            "type": "integer"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "array",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "items",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "$ref": "#/definitions/DeprecatedEnumSchema"
                 }
-            },
-            "required": [
-                "oneOf",
-                "type"
-            ],
-            "type": "object"
+            ]
         },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
@@ -1376,6 +1535,105 @@
             },
             "type": "object"
         },
+        "MultiSelectEnumSchema": {
+            "anyOf": [
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "items": {
+                            "properties": {
+                                "enum": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                "type": {
+                                    "const": "string",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "enum",
+                                "type"
+                            ],
+                            "type": "object"
+                        },
+                        "maxItems": {
+                            "type": "integer"
+                        },
+                        "minItems": {
+                            "type": "integer"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "array",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "items",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "items": {
+                            "properties": {
+                                "oneOf": {
+                                    "items": {
+                                        "properties": {
+                                            "const": {
+                                                "type": "string"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "const",
+                                            "title"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "required": [
+                                "oneOf"
+                            ],
+                            "type": "object"
+                        },
+                        "maxItems": {
+                            "type": "integer"
+                        },
+                        "minItems": {
+                            "type": "integer"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "array",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "items",
+                        "type"
+                    ],
+                    "type": "object"
+                }
+            ]
+        },
         "Notification": {
             "properties": {
                 "method": {
@@ -1501,7 +1759,164 @@
                     "$ref": "#/definitions/BooleanSchema"
                 },
                 {
-                    "$ref": "#/definitions/EnumSchema"
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "enum": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "enum",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "oneOf": {
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "oneOf",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "items": {
+                            "properties": {
+                                "enum": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                "type": {
+                                    "const": "string",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "enum",
+                                "type"
+                            ],
+                            "type": "object"
+                        },
+                        "maxItems": {
+                            "type": "integer"
+                        },
+                        "minItems": {
+                            "type": "integer"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "array",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "items",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "items": {
+                            "properties": {
+                                "oneOf": {
+                                    "items": {
+                                        "properties": {
+                                            "const": {
+                                                "type": "string"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "const",
+                                            "title"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "required": [
+                                "oneOf"
+                            ],
+                            "type": "object"
+                        },
+                        "maxItems": {
+                            "type": "integer"
+                        },
+                        "minItems": {
+                            "type": "integer"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "array",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "items",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "$ref": "#/definitions/DeprecatedEnumSchema"
                 }
             ],
             "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
@@ -2240,6 +2655,72 @@
                 "params"
             ],
             "type": "object"
+        },
+        "SingleSelectEnumSchema": {
+            "anyOf": [
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "enum": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "enum",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "description": {
+                            "type": "string"
+                        },
+                        "oneOf": {
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "title": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "oneOf",
+                        "type"
+                    ],
+                    "type": "object"
+                }
+            ]
         },
         "StringSchema": {
             "properties": {

@@ -263,6 +263,20 @@ The schema is restricted to these primitive types:
    ```
 
 4. **Enum Schema**
+
+   Single-select enum (without titles):
+
+   ```json
+   {
+     "type": "string",
+     "title": "Display Name",
+     "description": "Description text",
+     "enum": ["small", "medium", "large"]
+   }
+   ```
+
+   Single-select enum (with titles):
+
    ```json
    {
      "type": "string",
@@ -276,13 +290,47 @@ The schema is restricted to these primitive types:
    }
    ```
 
+   Multi-select enum (without titles):
+
+   ```json
+   {
+     "type": "array",
+     "title": "Select Features",
+     "description": "Choose one or more features",
+     "items": {
+       "type": "string",
+       "enum": ["feature_a", "feature_b", "feature_c"]
+     },
+     "minItems": 1,
+     "maxItems": 3
+   }
+   ```
+
+   Multi-select enum (with titles):
+
+   ```json
+   {
+     "type": "array",
+     "title": "Select Features",
+     "description": "Choose one or more features",
+     "items": {
+       "oneOf": [
+         { "const": "feat_1", "title": "Feature One" },
+         { "const": "feat_2", "title": "Feature Two" },
+         { "const": "feat_3", "title": "Feature Three" }
+       ]
+     },
+     "minItems": 1
+   }
+   ```
+
 Clients can use this schema to:
 
 1. Generate appropriate input forms
 2. Validate user input before sending
 3. Provide better guidance to users
 
-Note that complex nested structures, arrays of objects, and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
+Note that complex nested structures, arrays of objects (beyond enums), and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
 
 ## Response Actions
 
