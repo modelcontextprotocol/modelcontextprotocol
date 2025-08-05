@@ -169,8 +169,7 @@
                     ]
                   }
                 ]
-              },
-               "specification/2025-03-26/schema"
+              }
             ]
           },
           {
@@ -218,8 +217,7 @@
                     ]
                   }
                 ]
-              },
-               "specification/2024-11-05/schema"
+              }
             ]
           },
           {
@@ -275,7 +273,7 @@
             ]
           }
         ]
-      },     
+      },
       {
         "tab": "Community",
         "pages": [
@@ -285,7 +283,7 @@
           "development/roadmap",
           "development/contributing",
           "clients",
-          "examples"         
+          "examples"
         ]
       }
     ]
