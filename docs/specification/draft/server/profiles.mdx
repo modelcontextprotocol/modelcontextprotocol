@@ -60,8 +60,13 @@ https://modelcontextprotocol.io/specification/2025-06-18/server/standard-profile
 - Custom Profiles may be common to many MCP Servers, or they may be specific to a single MCP Server.
 - MCP Servers may simultaneously support a mix of standard and custom profiles.
 
-### Profile Modification and Versioning
+### Profile Creation and Maintenance
+Anyone can create a profile, and can maintain it at a Profile Specification URL of their choice. The MCP community creates and maintains standard profiles.
+
 Once made available, Profiles MUST NOT be changed. In order to make changes to a Profile, the author MUST create a new version of the Profile, with its own Profile Specification URL.
+
+### Using Profiles
+MCP Servers can declare the profiles they support by referring to their Profile Specification URL. MCP Clients discover which profiles an MCP Server supports and negotiate the right profiles to use. The following section describes how all this happens.
 
 ## Declaring Supported Profiles
 An MCP Server makes it possible for Clients to discover the profiles it supports as follows:
