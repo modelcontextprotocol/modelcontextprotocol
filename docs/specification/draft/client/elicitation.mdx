@@ -578,15 +578,15 @@ In downstream authorization, the server acts as both:
 
 Example scenario:
 
-- Claude Desktop (the MCP client) connects to Bob's Productivity Server (an HTTPS MCP server)
-- Bob's Productivity Server integrates with Dropbox and Google APIs
-- When Claude calls a tool that requires Dropbox access, the MCP server needs Dropbox credentials
+- An MCP client connects to an MCP server
+- The MCP server integrates with various different third-party services
+- When the MCP client calls a tool that requires access to a third-party service, the MCP server needs credentials for that service
 
 The critical security requirements are:
 
-1. **The Dropbox token MUST NOT transit through Claude Desktop**: The client must never see third-party credentials
-2. **The MCP server MUST NOT use its Claude access token for Dropbox**: That would be [token passthrough](../basic/security_best_practices#token-passthrough), which is forbidden
-3. **The user must authorize the MCP server directly**: The interaction happens outside the MCP protocol
+1. **The third-party credentials MUST NOT transit through the MCP client**: The client must never see third-party credentials to protect the security boundary
+2. **The MCP server MUST NOT use the client's credentials for the third-party service**: That would be [token passthrough](../basic/security_best_practices#token-passthrough), which is forbidden
+3. **The user MUST authorize the MCP server directly**: The interaction happens outside the MCP protocol, without involving the MCP client
 
 Credentials obtained via URL mode elicitation are distinct from the MCP server credentials used by the MCP client. The MCP server **MUST NOT** transmit credentials obtained through URL mode elicitation to the MCP client.
 
