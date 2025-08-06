@@ -24,13 +24,6 @@ Authorization is **OPTIONAL** for MCP implementations. When supported:
 - Implementations using alternative transports **MUST** follow established security best
   practices for their protocol.
 
-### Conformance and Extensions
-
-This specification defines baseline requirements for interoperability between MCP clients and
-servers. Implementations **MAY** offer additional authorization mechanisms beyond those
-specified here. However, implementers should note that extending beyond the specification may
-require custom client implementations rather than standard MCP clients.
-
 ### Authorization Flows
 
 This specification defines two OAuth 2.1 flows that implementations **SHOULD** support:
@@ -47,6 +40,19 @@ This specification defines two OAuth 2.1 flows that implementations **SHOULD** s
    - Requires client authentication using either:
      - Asymmetric keys (JWT authentication) as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2)
      - Client ID and secret
+
+### Conformance and Extensions
+
+This specification defines baseline requirements for interoperability between MCP clients and
+servers. Implementations **MAY** offer additional authorization mechanisms beyond those
+specified here. However, implementers should note that extending beyond the specification may
+require custom client implementations rather than standard MCP clients.
+
+Implementers need only implement the subset of flows required to serve their intended clients. 
+For instance, MCP servers serving only interactive user applications may implement solely the 
+Authorization Code Flow. Similarly, MCP servers supporting only machine-to-machine automation 
+may implement solely the Client Credentials Flow. MCP servers intending to support the broadest 
+possible range of clients should implement both flows to ensure maximum interoperability.
 
 ### Standards Compliance
 
