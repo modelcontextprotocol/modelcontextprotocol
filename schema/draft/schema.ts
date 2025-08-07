@@ -1442,61 +1442,77 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
-// Single-select enum (with or without titles)
+// Single select enum without titles
+export type UntitledSingleSelectEnumSchema = {
+  type: "string";
+  title?: string;
+  description?: string;
+  enum: string[]; // Plain enum without titles
+};
+
+// Single select enum with titles
+export type TitledSingleSelectEnumSchema = {
+  type: "string";
+  title?: string;
+  description?: string;
+  oneOf: Array<{
+    const: string; // Enum value
+    title: string; // Display name for enum value
+  }>;
+};
+
+// Combined single selection enumeration
 export type SingleSelectEnumSchema = 
-  | {
-      type: "string";
-      title?: string;
-      description?: string;
-      enum: string[]; // Plain enum without titles
-    }
-  | {
-      type: "string";
-      title?: string;
-      description?: string;
-      oneOf: Array<{
-        const: string;
-        title: string; // Display name for enum value
-      }>;
-    };
+  | UntitledSingleSelectEnumSchema
+  | TitledSingleSelectEnumSchema;
 
-// Multi-select enum (with or without titles)
+// Multiple select enum without titles
+export type UntitledMultiSelectEnumSchema = {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number; // Minimum number of items to choose
+  maxItems?: number; // Maximum number of items to choose
+  items: {
+    type: "string";
+    enum: string[]; // Plain enum without titles
+  };
+};
+
+// Multiple select enum with titles
+export type TitledMultiSelectEnumSchema = {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number; // Minimum number of items to choose
+  maxItems?: number; // Maximum number of items to choose
+  items: {
+    oneOf: Array<{
+      const: string; // Enum value
+      title: string; // Display name for enum value
+    }>;
+  };
+};
+
+// Combined multiple selection enumeration
 export type MultiSelectEnumSchema = 
-  | {
-      type: "array";
-      title?: string;
-      description?: string;
-      minItems?: number;
-      maxItems?: number;
-      items: {
-        type: "string";
-        enum: string[]; // Plain enum without titles
-      };
-    }
-  | {
-      type: "array";
-      title?: string;
-      description?: string;
-      minItems?: number;
-      maxItems?: number;
-      items: {
-        oneOf: Array<{
-          const: string;
-          title: string; // Display name for enum value
-        }>;
-      };
-    };
+  | UntitledMultiSelectEnumSchema
+  | TitledMultiSelectEnumSchema;
 
-// Deprecated enum format (for backward compatibility)
+/**
+ * @deprecated Use TitledSingleSelectEnumSchema instead. 
+ * This interface will be removed in a future version.
+ */
 export interface DeprecatedEnumSchema {
   type: "string";
   title?: string;
   description?: string;
   enum: string[];
   /**
-   * @deprecated Use SingleSelectEnumSchema with oneOf instead. This property will be removed in a future version.
+   * Titles for enum values (non-standard, deprecated)
+   * @deprecated This property will be removed in a future version.
    */
-  enumNames?: string[]; // Display names for enum values (deprecated)
+  enumNames?: string[];
 }
 
 // Union type for all enum schemas
@@ -1523,7 +1539,7 @@ export interface ElicitResult extends Result {
    * The submitted form data, only present when action is "accept".
    * Contains values matching the requested schema.
    */
-  content?: { [key: string]: string | number | boolean };
+  content?: { [key: string]: string | number | boolean | string[] };
 }
 
 /* Client messages */
