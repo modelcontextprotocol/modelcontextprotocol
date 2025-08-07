@@ -205,7 +205,10 @@ body:has(#schema-reference) {
   }
 }
 
-
+::selection {
+  background-color: #1e40af;
+  color: #ffffff;
+}
 
 /* Custom landing page styles */
 .landing-page {
