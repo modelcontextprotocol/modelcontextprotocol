@@ -3,6 +3,7 @@
 _Just heard of MCP and not sure where to start? See [the documentation website instead](https://modelcontextprotocol.io)._
 
 This repo contains the:
+
 - MCP specification
 - MCP protocol schema
 - Official MCP documentation
