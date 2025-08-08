@@ -23,10 +23,6 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Overview",
-        "pages": ["overview/index"]
-      },
-        {
         "tab": "Documentation",
         "pages": [
           "docs/getting-started/intro",
@@ -277,14 +273,17 @@
       {
         "tab": "Community",
         "pages": [
+          "community/communication",
           "community/governance",
           "community/sep-guidelines",
-          "community/communication",
           "development/roadmap",
-          "development/contributing",
           "clients",
           "examples"
         ]
+      },
+      {
+        "tab": "About MCP",
+        "pages": ["about/index"]
       }
     ]
   },
