@@ -464,14 +464,16 @@ export interface ResourceListChangedNotification extends Notification {
  */
 export interface SubscribeRequest extends Request {
   method: "resources/subscribe";
-  params: {
-    /**
-     * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: SubscribeParams;
+}
+
+export interface SubscribeParams extends RequestParams {
+  /**
+   * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
+   *
+   * @format uri
+   */
+  uri: string;
 }
 
 /**
@@ -481,14 +483,16 @@ export interface SubscribeRequest extends Request {
  */
 export interface UnsubscribeRequest extends Request {
   method: "resources/unsubscribe";
-  params: {
-    /**
-     * The URI of the resource to unsubscribe from.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: UnsubscribeParams;
+}
+
+export interface UnsubscribeParams extends RequestParams {
+  /**
+   * The URI of the resource to unsubscribe from.
+   *
+   * @format uri
+   */
+  uri: string;
 }
 
 /**

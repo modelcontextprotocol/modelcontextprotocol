@@ -2239,6 +2239,30 @@
             ],
             "type": "object"
         },
+        "SubscribeParams": {
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
+            ],
+            "type": "object"
+        },
         "SubscribeRequest": {
             "description": "Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.",
             "properties": {
@@ -2247,17 +2271,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/SubscribeParams"
                 }
             },
             "required": [
@@ -2455,6 +2469,30 @@
             ],
             "type": "object"
         },
+        "UnsubscribeParams": {
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource to unsubscribe from.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
+            ],
+            "type": "object"
+        },
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
             "properties": {
@@ -2463,17 +2501,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource to unsubscribe from.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/UnsubscribeParams"
                 }
             },
             "required": [
