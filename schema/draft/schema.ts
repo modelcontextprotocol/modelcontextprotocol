@@ -429,14 +429,16 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  */
 export interface ReadResourceRequest extends Request {
   method: "resources/read";
-  params: {
-    /**
-     * The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: ReadResourceParams;
+}
+
+export interface ReadResourceParams extends RequestParams {
+  /**
+   * The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
+   *
+   * @format uri
+   */
+  uri: string;
 }
 
 /**
