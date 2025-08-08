@@ -1056,13 +1056,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedParams"
                 }
             },
             "required": [
@@ -1102,13 +1096,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedParams"
                 }
             },
             "required": [
@@ -1148,13 +1136,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedParams"
                 }
             },
             "required": [
@@ -1230,13 +1212,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedParams"
                 }
             },
             "required": [
@@ -1406,10 +1382,18 @@
             ],
             "type": "object"
         },
-        "PaginatedRequest": {
+        "PaginatedParams": {
             "properties": {
-                "method": {
-                    "type": "string"
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
                 },
                 "params": {
                     "properties": {
@@ -1419,6 +1403,17 @@
                         }
                     },
                     "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PaginatedRequest": {
+            "properties": {
+                "method": {
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/PaginatedParams"
                 }
             },
             "required": [

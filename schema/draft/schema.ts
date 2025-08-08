@@ -363,6 +363,10 @@ export interface ProgressNotification extends Notification {
 /* Pagination */
 /** @internal */
 export interface PaginatedRequest extends Request {
+  params?: PaginatedParams;
+}
+
+export interface PaginatedParams extends RequestParams {
   params?: {
     /**
      * An opaque token representing the current pagination position.
