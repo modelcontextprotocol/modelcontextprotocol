@@ -1,6 +1,6 @@
 # Contributing to Model Context Protocol
 
-Thank you for your interest in contributing to the Model Context Protocol specification, schemas or docs!
+Thank you for your interest in contributing to the Model Context Protocol specification, schemas, or docs!
 This document outlines how to contribute to this project.
 
 Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explains how and where discussions about changes happen.
