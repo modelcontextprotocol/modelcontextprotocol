@@ -263,13 +263,64 @@ The schema is restricted to these primitive types:
    ```
 
 4. **Enum Schema**
+
+   Single-select enum (without titles):
+
    ```json
    {
      "type": "string",
      "title": "Display Name",
      "description": "Description text",
-     "enum": ["option1", "option2", "option3"],
-     "enumNames": ["Option 1", "Option 2", "Option 3"]
+     "enum": ["small", "medium", "large"]
+   }
+   ```
+
+   Single-select enum (with titles):
+
+   ```json
+   {
+     "type": "string",
+     "title": "Display Name",
+     "description": "Description text",
+     "oneOf": [
+       { "const": "option1", "title": "Option 1" },
+       { "const": "option2", "title": "Option 2" },
+       { "const": "option3", "title": "Option 3" }
+     ]
+   }
+   ```
+
+   Multi-select enum (without titles):
+
+   ```json
+   {
+     "type": "array",
+     "title": "Select Features",
+     "description": "Choose one or more features",
+     "items": {
+       "type": "string",
+       "enum": ["feature_a", "feature_b", "feature_c"]
+     },
+     "minItems": 1,
+     "maxItems": 2
+   }
+   ```
+
+   Multi-select enum (with titles):
+
+   ```json
+   {
+     "type": "array",
+     "title": "Select Features",
+     "description": "Choose one or more features",
+     "items": {
+       "oneOf": [
+         { "const": "feat_1", "title": "Feature One" },
+         { "const": "feat_2", "title": "Feature Two" },
+         { "const": "feat_3", "title": "Feature Three" }
+       ]
+     },
+     "minItems": 1
    }
    ```
 
@@ -279,7 +330,7 @@ Clients can use this schema to:
 2. Validate user input before sending
 3. Provide better guidance to users
 
-Note that complex nested structures, arrays of objects, and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
+Note that complex nested structures, arrays of objects (beyond enums), and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
 
 ## Response Actions
 
