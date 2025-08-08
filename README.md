@@ -1,5 +1,7 @@
 # Model Context Protocol specification
 
+[![modelcontextprotocol/modelcontextprotocol context](https://badge.forgithub.com/modelcontextprotocol/modelcontextprotocol/tree/main/docs/specification/2025-03-26)](https://uithub.com/modelcontextprotocol/modelcontextprotocol/tree/main/docs/specification/2025-03-26)
+
 This repo contains the specification and protocol schema for the Model Context Protocol.
 
 The schema is [defined in TypeScript](schema/2025-06-18/schema.ts) first, but
