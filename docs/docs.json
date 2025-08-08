@@ -23,10 +23,6 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Overview",
-        "pages": ["overview/index"]
-      },
-        {
         "tab": "Documentation",
         "pages": [
           "docs/getting-started/intro",
@@ -284,6 +280,10 @@
           "clients",
           "examples"
         ]
+      },
+      {
+        "tab": "About MCP",
+        "pages": ["about/index"]
       }
     ]
   },
