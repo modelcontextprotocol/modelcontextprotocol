@@ -123,7 +123,24 @@
             ],
             "type": "object"
         },
-        "CallToolParams": {
+        "CallToolRequest": {
+            "description": "Used by the client to invoke a tool provided by the server.",
+            "properties": {
+                "method": {
+                    "const": "tools/call",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/CallToolRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "CallToolRequestParams": {
             "description": "Parameters for a `tools/call` request.",
             "properties": {
                 "_meta": {
@@ -147,23 +164,6 @@
             },
             "required": [
                 "name"
-            ],
-            "type": "object"
-        },
-        "CallToolRequest": {
-            "description": "Used by the client to invoke a tool provided by the server.",
-            "properties": {
-                "method": {
-                    "const": "tools/call",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/RequestParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -339,7 +339,24 @@
                 }
             ]
         },
-        "CompleteParams": {
+        "CompleteRequest": {
+            "description": "A request from the client to the server, to ask for completion options.",
+            "properties": {
+                "method": {
+                    "const": "completion/complete",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/CompleteRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "CompleteRequestParams": {
             "description": "Parameters for a `completion/complete` request.",
             "properties": {
                 "_meta": {
@@ -401,23 +418,6 @@
             ],
             "type": "object"
         },
-        "CompleteRequest": {
-            "description": "A request from the client to the server, to ask for completion options.",
-            "properties": {
-                "method": {
-                    "const": "completion/complete",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/CompleteParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
         "CompleteResult": {
             "description": "The server's response to a completion/complete request",
             "properties": {
@@ -474,7 +474,24 @@
                 }
             ]
         },
-        "CreateMessageParams": {
+        "CreateMessageRequest": {
+            "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
+            "properties": {
+                "method": {
+                    "const": "sampling/createMessage",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/CreateMessageRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
                 "_meta": {
@@ -537,23 +554,6 @@
             ],
             "type": "object"
         },
-        "CreateMessageRequest": {
-            "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
-            "properties": {
-                "method": {
-                    "const": "sampling/createMessage",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/CreateMessageParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
         "CreateMessageResult": {
             "description": "The client's response to a sampling/create_message request from the server. The client should inform the user before returning the sampled message, to allow them to inspect the response (human in the loop) and decide whether to allow the server to see it.",
             "properties": {
@@ -598,7 +598,24 @@
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
         },
-        "ElicitParams": {
+        "ElicitRequest": {
+            "description": "A request from the server to elicit additional information from the user via the client.",
+            "properties": {
+                "method": {
+                    "const": "elicitation/create",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/ElicitRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "ElicitRequestParams": {
             "description": "Parameters for an `elicitation/create` request.",
             "properties": {
                 "_meta": {
@@ -646,23 +663,6 @@
             "required": [
                 "message",
                 "requestedSchema"
-            ],
-            "type": "object"
-        },
-        "ElicitRequest": {
-            "description": "A request from the server to elicit additional information from the user via the client.",
-            "properties": {
-                "method": {
-                    "const": "elicitation/create",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/ElicitParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -767,7 +767,24 @@
             ],
             "type": "object"
         },
-        "GetPromptParams": {
+        "GetPromptRequest": {
+            "description": "Used by the client to get a prompt provided by the server.",
+            "properties": {
+                "method": {
+                    "const": "prompts/get",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/GetPromptRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "GetPromptRequestParams": {
             "description": "Parameters for a `prompts/get` request.",
             "properties": {
                 "_meta": {
@@ -795,23 +812,6 @@
             },
             "required": [
                 "name"
-            ],
-            "type": "object"
-        },
-        "GetPromptRequest": {
-            "description": "Used by the client to get a prompt provided by the server.",
-            "properties": {
-                "method": {
-                    "const": "prompts/get",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/GetPromptParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -1117,7 +1117,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedParams"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1157,7 +1157,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedParams"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1197,7 +1197,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedParams"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1273,7 +1273,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedParams"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1443,7 +1443,21 @@
             ],
             "type": "object"
         },
-        "PaginatedParams": {
+        "PaginatedRequest": {
+            "properties": {
+                "method": {
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/PaginatedRequestParams"
+                }
+            },
+            "required": [
+                "method"
+            ],
+            "type": "object"
+        },
+        "PaginatedRequestParams": {
             "description": "Parameters for a paginated request.",
             "properties": {
                 "_meta": {
@@ -1467,20 +1481,6 @@
                     "type": "object"
                 }
             },
-            "type": "object"
-        },
-        "PaginatedRequest": {
-            "properties": {
-                "method": {
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/PaginatedParams"
-                }
-            },
-            "required": [
-                "method"
-            ],
             "type": "object"
         },
         "PaginatedResult": {
@@ -1696,7 +1696,24 @@
             ],
             "type": "object"
         },
-        "ReadResourceParams": {
+        "ReadResourceRequest": {
+            "description": "Sent from the client to the server, to read a specific resource URI.",
+            "properties": {
+                "method": {
+                    "const": "resources/read",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/ReadResourceRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "ReadResourceRequestParams": {
             "description": "Parameters for a `resources/read` request.",
             "properties": {
                 "_meta": {
@@ -1718,23 +1735,6 @@
             },
             "required": [
                 "uri"
-            ],
-            "type": "object"
-        },
-        "ReadResourceRequest": {
-            "description": "Sent from the client to the server, to read a specific resource URI.",
-            "properties": {
-                "method": {
-                    "const": "resources/read",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/ReadResourceParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -2257,7 +2257,24 @@
                 }
             ]
         },
-        "SetLevelParams": {
+        "SetLevelRequest": {
+            "description": "A request from the client to the server, to enable or adjust logging.",
+            "properties": {
+                "method": {
+                    "const": "logging/setLevel",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/SetLevelRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "SetLevelRequestParams": {
             "description": "Parameters for a `logging/setLevel` request.",
             "properties": {
                 "_meta": {
@@ -2278,23 +2295,6 @@
             },
             "required": [
                 "level"
-            ],
-            "type": "object"
-        },
-        "SetLevelRequest": {
-            "description": "A request from the client to the server, to enable or adjust logging.",
-            "properties": {
-                "method": {
-                    "const": "logging/setLevel",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/SetLevelParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -2331,7 +2331,24 @@
             ],
             "type": "object"
         },
-        "SubscribeParams": {
+        "SubscribeRequest": {
+            "description": "Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.",
+            "properties": {
+                "method": {
+                    "const": "resources/subscribe",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/SubscribeRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "SubscribeRequestParams": {
             "description": "Parameters for a `resources/subscribe` request.",
             "properties": {
                 "_meta": {
@@ -2353,23 +2370,6 @@
             },
             "required": [
                 "uri"
-            ],
-            "type": "object"
-        },
-        "SubscribeRequest": {
-            "description": "Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.",
-            "properties": {
-                "method": {
-                    "const": "resources/subscribe",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/SubscribeParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -2562,7 +2562,24 @@
             ],
             "type": "object"
         },
-        "UnsubscribeParams": {
+        "UnsubscribeRequest": {
+            "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
+            "properties": {
+                "method": {
+                    "const": "resources/unsubscribe",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/definitions/UnsubscribeRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "UnsubscribeRequestParams": {
             "description": "Parameters for a `resources/unsubscribe` request.",
             "properties": {
                 "_meta": {
@@ -2584,23 +2601,6 @@
             },
             "required": [
                 "uri"
-            ],
-            "type": "object"
-        },
-        "UnsubscribeRequest": {
-            "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
-            "properties": {
-                "method": {
-                    "const": "resources/unsubscribe",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/UnsubscribeParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         }

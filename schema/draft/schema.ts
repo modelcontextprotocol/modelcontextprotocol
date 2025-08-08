@@ -363,7 +363,7 @@ export interface ProgressNotification extends Notification {
 /* Pagination */
 /** @internal */
 export interface PaginatedRequest extends Request {
-  params?: PaginatedParams;
+  params?: PaginatedRequestParams;
 }
 
 /**
@@ -371,7 +371,7 @@ export interface PaginatedRequest extends Request {
  *
  * @internal
  */
-export interface PaginatedParams extends RequestParams {
+export interface PaginatedRequestParams extends RequestParams {
   params?: {
     /**
      * An opaque token representing the current pagination position.
@@ -434,7 +434,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  */
 export interface ReadResourceRequest extends Request {
   method: "resources/read";
-  params: ReadResourceParams;
+  params: ReadResourceRequestParams;
 }
 
 /**
@@ -442,7 +442,7 @@ export interface ReadResourceRequest extends Request {
  *
  * @category resources/read
  */
-export interface ReadResourceParams extends RequestParams {
+export interface ReadResourceRequestParams extends RequestParams {
   /**
    * The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
    *
@@ -476,7 +476,7 @@ export interface ResourceListChangedNotification extends Notification {
  */
 export interface SubscribeRequest extends Request {
   method: "resources/subscribe";
-  params: SubscribeParams;
+  params: SubscribeRequestParams;
 }
 
 /**
@@ -484,7 +484,7 @@ export interface SubscribeRequest extends Request {
  *
  * @category resources/subscribe
  */
-export interface SubscribeParams extends RequestParams {
+export interface SubscribeRequestParams extends RequestParams {
   /**
    * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
    *
@@ -500,7 +500,7 @@ export interface SubscribeParams extends RequestParams {
  */
 export interface UnsubscribeRequest extends Request {
   method: "resources/unsubscribe";
-  params: UnsubscribeParams;
+  params: UnsubscribeRequestParams;
 }
 
 /**
@@ -508,7 +508,7 @@ export interface UnsubscribeRequest extends Request {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeParams extends RequestParams {
+export interface UnsubscribeRequestParams extends RequestParams {
   /**
    * The URI of the resource to unsubscribe from.
    *
@@ -672,7 +672,7 @@ export interface ListPromptsResult extends PaginatedResult {
  */
 export interface GetPromptRequest extends Request {
   method: "prompts/get";
-  params: GetPromptParams;
+  params: GetPromptRequestParams;
 }
 
 /**
@@ -680,7 +680,7 @@ export interface GetPromptRequest extends Request {
  *
  * @category prompts/get
  */
-export interface GetPromptParams extends RequestParams {
+export interface GetPromptRequestParams extends RequestParams {
   /**
    * The name of the prompt or prompt template.
    */
@@ -850,7 +850,7 @@ export interface CallToolResult extends Result {
  */
 export interface CallToolRequest extends Request {
   method: "tools/call";
-  params: RequestParams;
+  params: CallToolRequestParams;
 }
 
 /**
@@ -858,7 +858,7 @@ export interface CallToolRequest extends Request {
  *
  * @category tools/call
  */
-export interface CallToolParams extends RequestParams {
+export interface CallToolRequestParams extends RequestParams {
     name: string;
     arguments?: { [key: string]: unknown };
 }
@@ -977,7 +977,7 @@ export interface Tool extends BaseMetadata {
  */
 export interface SetLevelRequest extends Request {
   method: "logging/setLevel";
-  params: SetLevelParams;
+  params: SetLevelRequestParams;
 }
 
 /**
@@ -985,7 +985,7 @@ export interface SetLevelRequest extends Request {
  *
  * @category logging/setLevel
  */
-export interface SetLevelParams extends RequestParams {
+export interface SetLevelRequestParams extends RequestParams {
   /**
    * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
    */
@@ -1039,7 +1039,7 @@ export type LoggingLevel =
  */
 export interface CreateMessageRequest extends Request {
   method: "sampling/createMessage";
-  params: CreateMessageParams;
+  params: CreateMessageRequestParams;
 }
 
 /**
@@ -1047,7 +1047,7 @@ export interface CreateMessageRequest extends Request {
  *
  * @category sampling/createMessage
  */
-export interface CreateMessageParams extends RequestParams {
+export interface CreateMessageRequestParams extends RequestParams {
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -1310,7 +1310,7 @@ export interface ModelHint {
  */
 export interface CompleteRequest extends Request {
   method: "completion/complete";
-  params: CompleteParams;
+  params: CompleteRequestParams;
 }
 
 /**
@@ -1318,7 +1318,7 @@ export interface CompleteRequest extends Request {
  *
  * @category completion/complete
  */
-export interface CompleteParams extends RequestParams {
+export interface CompleteRequestParams extends RequestParams {
   ref: PromptReference | ResourceTemplateReference;
   /**
    * The argument's information
@@ -1457,7 +1457,7 @@ export interface RootsListChangedNotification extends Notification {
  */
 export interface ElicitRequest extends Request {
   method: "elicitation/create";
-  params: ElicitParams;
+  params: ElicitRequestParams;
 }
 
 /**
@@ -1465,7 +1465,7 @@ export interface ElicitRequest extends Request {
  *
  * @category elicitation/create
  */
-export interface ElicitParams extends RequestParams {
+export interface ElicitRequestParams extends RequestParams {
   /**
    * The message to present to the user.
    */
