@@ -123,6 +123,32 @@
             ],
             "type": "object"
         },
+        "CallToolParams": {
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "arguments": {
+                    "additionalProperties": {},
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
         "CallToolRequest": {
             "description": "Used by the client to invoke a tool provided by the server.",
             "properties": {
@@ -131,19 +157,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "arguments": {
-                            "additionalProperties": {},
-                            "type": "object"
-                        },
-                        "name": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "name"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1003,21 +1017,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
-                            "properties": {
-                                "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1194,21 +1194,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
-                            "properties": {
-                                "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1462,21 +1448,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
-                            "properties": {
-                                "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1727,21 +1699,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
-                            "properties": {
-                                "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1755,6 +1713,23 @@
                 "string",
                 "integer"
             ]
+        },
+        "RequestParams": {
+            "additionalProperties": {},
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
         },
         "Resource": {
             "description": "A known resource that the server is capable of reading.",

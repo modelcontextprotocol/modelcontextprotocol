@@ -29,8 +29,12 @@ export type Cursor = string;
 /** @internal */
 export interface Request {
   method: string;
-  params?: {
-    /**
+  params?: RequestParams
+}
+
+/** @internal */
+export interface RequestParams {
+      /**
      * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
      */
     _meta?: {
@@ -41,7 +45,6 @@ export interface Request {
       [key: string]: unknown;
     };
     [key: string]: unknown;
-  };
 }
 
 /** @internal */
@@ -810,10 +813,12 @@ export interface CallToolResult extends Result {
  */
 export interface CallToolRequest extends Request {
   method: "tools/call";
-  params: {
+  params: RequestParams;
+}
+
+export interface CallToolParams extends RequestParams {
     name: string;
     arguments?: { [key: string]: unknown };
-  };
 }
 
 /**
