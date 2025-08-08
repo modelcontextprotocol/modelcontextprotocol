@@ -764,6 +764,28 @@
             ],
             "type": "object"
         },
+        "Icon": {
+            "description": "A url pointing to an icon URL or a base64-encoded data URI",
+            "properties": {
+                "mimeType": {
+                    "description": "Optional override if the server’s MIME type is missing or generic.",
+                    "type": "string"
+                },
+                "sizes": {
+                    "description": "e.g. \"48x48\", \"any\" (for SVG), or \"48x48 96x96\"",
+                    "type": "string"
+                },
+                "src": {
+                    "description": "A standard URI pointing to an icon resource.\nFor streamable HTTP servers, the URL SHOULD be on the same origin as the server itself",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "src"
+            ],
+            "type": "object"
+        },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
             "properties": {
@@ -798,8 +820,15 @@
             "type": "object"
         },
         "Implementation": {
-            "description": "Describes the name and version of an MCP implementation, with an optional title for UI representation.",
+            "description": "Describes the MCP implementation",
             "properties": {
+                "icons": {
+                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -809,6 +838,11 @@
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                },
+                "websiteUrl": {
+                    "description": "An optional URL of the website for this implementation.",
+                    "format": ": uri",
                     "type": "string"
                 }
             },
@@ -1566,6 +1600,13 @@
                     "description": "An optional description of what this prompt provides",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for a prompt.\nThis can be used by clients to display the prompt's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -1772,6 +1813,13 @@
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "icons": {
+                    "description": "An optional list of icons for a resource.\nThis can be used by clients to display the resource's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -1838,6 +1886,13 @@
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
+                },
+                "icons": {
+                    "description": "An optional list of icons for a resource.\nThis can be used by clients to display the resource's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
                 },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
@@ -2365,6 +2420,13 @@
                 "description": {
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
+                },
+                "icons": {
+                    "description": "An optional list of icons for a tool.\nThis can be used by clients to display the tool's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
                 },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
