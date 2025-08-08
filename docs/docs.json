@@ -277,11 +277,10 @@
       {
         "tab": "Community",
         "pages": [
+          "community/communication",
           "community/governance",
           "community/sep-guidelines",
-          "community/communication",
           "development/roadmap",
-          "development/contributing",
           "clients",
           "examples"
         ]
