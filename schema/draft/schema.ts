@@ -366,6 +366,11 @@ export interface PaginatedRequest extends Request {
   params?: PaginatedParams;
 }
 
+/**
+ * Parameters for a paginated request.
+ *
+ * @internal
+ */
 export interface PaginatedParams extends RequestParams {
   params?: {
     /**
@@ -432,6 +437,11 @@ export interface ReadResourceRequest extends Request {
   params: ReadResourceParams;
 }
 
+/**
+ * Parameters for a `resources/read` request.
+ *
+ * @category resources/read
+ */
 export interface ReadResourceParams extends RequestParams {
   /**
    * The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
@@ -469,6 +479,11 @@ export interface SubscribeRequest extends Request {
   params: SubscribeParams;
 }
 
+/**
+ * Parameters for a `resources/subscribe` request.
+ *
+ * @category resources/subscribe
+ */
 export interface SubscribeParams extends RequestParams {
   /**
    * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
@@ -488,6 +503,11 @@ export interface UnsubscribeRequest extends Request {
   params: UnsubscribeParams;
 }
 
+/**
+ * Parameters for a `resources/unsubscribe` request.
+ *
+ * @category resources/unsubscribe
+ */
 export interface UnsubscribeParams extends RequestParams {
   /**
    * The URI of the resource to unsubscribe from.
@@ -655,6 +675,11 @@ export interface GetPromptRequest extends Request {
   params: GetPromptParams;
 }
 
+/**
+ * Parameters for a `prompts/get` request.
+ *
+ * @category prompts/get
+ */
 export interface GetPromptParams extends RequestParams {
   /**
    * The name of the prompt or prompt template.
@@ -828,6 +853,11 @@ export interface CallToolRequest extends Request {
   params: RequestParams;
 }
 
+/**
+ * Parameters for a `tools/call` request.
+ *
+ * @category tools/call
+ */
 export interface CallToolParams extends RequestParams {
     name: string;
     arguments?: { [key: string]: unknown };
@@ -950,6 +980,11 @@ export interface SetLevelRequest extends Request {
   params: SetLevelParams;
 }
 
+/**
+ * Parameters for a `logging/setLevel` request.
+ *
+ * @category logging/setLevel
+ */
 export interface SetLevelParams extends RequestParams {
   /**
    * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
@@ -1007,6 +1042,11 @@ export interface CreateMessageRequest extends Request {
   params: CreateMessageParams;
 }
 
+/**
+ * Parameters for a `sampling/createMessage` request.
+ *
+ * @category sampling/createMessage
+ */
 export interface CreateMessageParams extends RequestParams {
   messages: SamplingMessage[];
   /**
@@ -1273,6 +1313,11 @@ export interface CompleteRequest extends Request {
   params: CompleteParams;
 }
 
+/**
+ * Parameters for a `completion/complete` request.
+ *
+ * @category completion/complete
+ */
 export interface CompleteParams extends RequestParams {
   ref: PromptReference | ResourceTemplateReference;
   /**
@@ -1415,6 +1460,11 @@ export interface ElicitRequest extends Request {
   params: ElicitParams;
 }
 
+/**
+ * Parameters for an `elicitation/create` request.
+ *
+ * @category elicitation/create
+ */
 export interface ElicitParams extends RequestParams {
   /**
    * The message to present to the user.

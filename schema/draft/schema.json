@@ -124,6 +124,7 @@
             "type": "object"
         },
         "CallToolParams": {
+            "description": "Parameters for a `tools/call` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -339,6 +340,7 @@
             ]
         },
         "CompleteParams": {
+            "description": "Parameters for a `completion/complete` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -473,6 +475,7 @@
             ]
         },
         "CreateMessageParams": {
+            "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -596,6 +599,7 @@
             "type": "string"
         },
         "ElicitParams": {
+            "description": "Parameters for an `elicitation/create` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -764,6 +768,7 @@
             "type": "object"
         },
         "GetPromptParams": {
+            "description": "Parameters for a `prompts/get` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -1439,6 +1444,7 @@
             "type": "object"
         },
         "PaginatedParams": {
+            "description": "Parameters for a paginated request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -1691,6 +1697,7 @@
             "type": "object"
         },
         "ReadResourceParams": {
+            "description": "Parameters for a `resources/read` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -2251,6 +2258,7 @@
             ]
         },
         "SetLevelParams": {
+            "description": "Parameters for a `logging/setLevel` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -2324,6 +2332,7 @@
             "type": "object"
         },
         "SubscribeParams": {
+            "description": "Parameters for a `resources/subscribe` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -2554,6 +2563,7 @@
             "type": "object"
         },
         "UnsubscribeParams": {
+            "description": "Parameters for a `resources/unsubscribe` request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
