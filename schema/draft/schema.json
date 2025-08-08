@@ -158,6 +158,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "content": {
@@ -394,6 +400,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "completion": {
@@ -515,6 +527,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "content": {
@@ -612,6 +630,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "action": {
@@ -746,6 +770,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "description": {
@@ -858,6 +888,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "capabilities": {
@@ -1009,6 +1045,10 @@
                             "additionalProperties": {},
                             "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
                             "properties": {
+                                "allowPartial": {
+                                    "description": "If specified, the caller is requesting partial results for this request. The receiver is not obligated to return partial results.",
+                                    "type": "boolean"
+                                },
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
                                     "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
@@ -1076,6 +1116,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1122,6 +1168,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1168,6 +1220,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1200,6 +1258,10 @@
                             "additionalProperties": {},
                             "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
                             "properties": {
+                                "allowPartial": {
+                                    "description": "If specified, the caller is requesting partial results for this request. The receiver is not obligated to return partial results.",
+                                    "type": "boolean"
+                                },
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
                                     "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
@@ -1222,6 +1284,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "roots": {
@@ -1264,6 +1332,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1445,6 +1519,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1468,6 +1548,10 @@
                             "additionalProperties": {},
                             "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
                             "properties": {
+                                "allowPartial": {
+                                    "description": "If specified, the caller is requesting partial results for this request. The receiver is not obligated to return partial results.",
+                                    "type": "boolean"
+                                },
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
                                     "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
@@ -1700,6 +1784,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 },
                 "contents": {
@@ -1733,6 +1823,10 @@
                             "additionalProperties": {},
                             "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
                             "properties": {
+                                "allowPartial": {
+                                    "description": "If specified, the caller is requesting partial results for this request. The receiver is not obligated to return partial results.",
+                                    "type": "boolean"
+                                },
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
                                     "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
@@ -1988,6 +2082,12 @@
                 "_meta": {
                     "additionalProperties": {},
                     "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "hasMore": {
+                            "description": "If true, more results will follow.",
+                            "type": "boolean"
+                        }
+                    },
                     "type": "object"
                 }
             },

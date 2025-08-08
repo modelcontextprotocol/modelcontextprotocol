@@ -101,15 +101,15 @@ MCP endpoint.
    `Content-Type: application/json`, to return one JSON object. The client **MUST**
    support both these cases.
 6. If the server initiates an SSE stream:
-   - The SSE stream **SHOULD** eventually include JSON-RPC _response_ for the
+   - The SSE stream **SHOULD** eventually include JSON-RPC _response(s)_ for the
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
-     JSON-RPC _response_. These messages **SHOULD** relate to the originating client
+     final JSON-RPC _response_. These messages **SHOULD** relate to the originating client
      _request_.
-   - The server **SHOULD NOT** close the SSE stream before sending the JSON-RPC _response_
+   - The server **SHOULD NOT** close the SSE stream before sending the JSON-RPC _response(s)_
      for the received JSON-RPC _request_, unless the [session](#session-management)
      expires.
-   - After the JSON-RPC _response_ has been sent, the server **SHOULD** close the SSE
+   - After the final JSON-RPC _response_ has been sent, the server **SHOULD** close the SSE
      stream.
    - Disconnection **MAY** occur at any time (e.g., due to network conditions).
      Therefore:

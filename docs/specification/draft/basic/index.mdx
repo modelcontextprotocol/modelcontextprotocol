@@ -41,6 +41,10 @@ Requests are sent from the client to the server or vice versa, to initiate an op
   method: string;
   params?: {
     [key: string]: unknown;
+    _meta?: {
+      [key: string]: unknown;
+      allowPartial?: boolean;
+    }
   };
 }
 ```
@@ -49,6 +53,7 @@ Requests are sent from the client to the server or vice versa, to initiate an op
 - Unlike base JSON-RPC, the ID **MUST NOT** be `null`.
 - The request ID **MUST NOT** have been previously used by the requestor within the same
   session.
+- Requests **MAY** allow partial results by setting the `allowPartial` flag.
 
 ### Responses
 
@@ -60,6 +65,10 @@ Responses are sent in reply to requests, containing the result or error of the o
   id: string | number;
   result?: {
     [key: string]: unknown;
+    _meta?: {
+      [key: string]: unknown;
+      hasMore?: boolean;
+    }
   }
   error?: {
     code: number;
@@ -73,6 +82,8 @@ Responses are sent in reply to requests, containing the result or error of the o
 - **Responses** are further sub-categorized as either **successful results** or
   **errors**. Either a `result` or an `error` **MUST** be set. A response **MUST NOT**
   set both.
+- Results **MAY** set `hasMore` flag only if the corresponding request set the `allowPartial` flag.
+  The flag indicates that more responses with the same ID will follow.
 - Results **MAY** follow any JSON object structure, while errors **MUST** include an
   error code and message at minimum.
 - Error codes **MUST** be integers.
