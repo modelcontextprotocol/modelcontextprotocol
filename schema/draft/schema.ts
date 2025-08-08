@@ -652,16 +652,18 @@ export interface ListPromptsResult extends PaginatedResult {
  */
 export interface GetPromptRequest extends Request {
   method: "prompts/get";
-  params: {
-    /**
-     * The name of the prompt or prompt template.
-     */
-    name: string;
-    /**
-     * Arguments to use for templating the prompt.
-     */
-    arguments?: { [key: string]: string };
-  };
+  params: GetPromptParams;
+}
+
+export interface GetPromptParams extends RequestParams {
+  /**
+   * The name of the prompt or prompt template.
+   */
+  name: string;
+  /**
+   * Arguments to use for templating the prompt.
+   */
+  arguments?: { [key: string]: string };
 }
 
 /**
@@ -945,12 +947,14 @@ export interface Tool extends BaseMetadata {
  */
 export interface SetLevelRequest extends Request {
   method: "logging/setLevel";
-  params: {
-    /**
-     * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
-     */
-    level: LoggingLevel;
-  };
+  params: SetLevelParams;
+}
+
+export interface SetLevelParams extends RequestParams {
+  /**
+   * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
+   */
+  level: LoggingLevel;
 }
 
 /**
@@ -1000,34 +1004,36 @@ export type LoggingLevel =
  */
 export interface CreateMessageRequest extends Request {
   method: "sampling/createMessage";
-  params: {
-    messages: SamplingMessage[];
-    /**
-     * The server's preferences for which model to select. The client MAY ignore these preferences.
-     */
-    modelPreferences?: ModelPreferences;
-    /**
-     * An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.
-     */
-    systemPrompt?: string;
-    /**
-     * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.
-     */
-    includeContext?: "none" | "thisServer" | "allServers";
-    /**
-     * @TJS-type number
-     */
-    temperature?: number;
-    /**
-     * The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.
-     */
-    maxTokens: number;
-    stopSequences?: string[];
-    /**
-     * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
-     */
-    metadata?: object;
-  };
+  params: CreateMessageParams;
+}
+
+export interface CreateMessageParams extends RequestParams {
+  messages: SamplingMessage[];
+  /**
+   * The server's preferences for which model to select. The client MAY ignore these preferences.
+   */
+  modelPreferences?: ModelPreferences;
+  /**
+   * An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.
+   */
+  systemPrompt?: string;
+  /**
+   * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.
+   */
+  includeContext?: "none" | "thisServer" | "allServers";
+  /**
+   * @TJS-type number
+   */
+  temperature?: number;
+  /**
+   * The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.
+   */
+  maxTokens: number;
+  stopSequences?: string[];
+  /**
+   * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
+   */
+  metadata?: object;
 }
 
 /**
@@ -1264,31 +1270,33 @@ export interface ModelHint {
  */
 export interface CompleteRequest extends Request {
   method: "completion/complete";
-  params: {
-    ref: PromptReference | ResourceTemplateReference;
-    /**
-     * The argument's information
-     */
-    argument: {
-      /**
-       * The name of the argument
-       */
-      name: string;
-      /**
-       * The value of the argument to use for completion matching.
-       */
-      value: string;
-    };
+  params: CompleteParams;
+}
 
+export interface CompleteParams extends RequestParams {
+  ref: PromptReference | ResourceTemplateReference;
+  /**
+   * The argument's information
+   */
+  argument: {
     /**
-     * Additional, optional context for completions
+     * The name of the argument
      */
-    context?: {
-      /**
-       * Previously-resolved variables in a URI template or prompt.
-       */
-      arguments?: { [key: string]: string };
-    };
+    name: string;
+    /**
+     * The value of the argument to use for completion matching.
+     */
+    value: string;
+  };
+
+  /**
+   * Additional, optional context for completions
+   */
+  context?: {
+    /**
+     * Previously-resolved variables in a URI template or prompt.
+     */
+    arguments?: { [key: string]: string };
   };
 }
 
@@ -1404,22 +1412,24 @@ export interface RootsListChangedNotification extends Notification {
  */
 export interface ElicitRequest extends Request {
   method: "elicitation/create";
-  params: {
-    /**
-     * The message to present to the user.
-     */
-    message: string;
-    /**
-     * A restricted subset of JSON Schema.
-     * Only top-level properties are allowed, without nesting.
-     */
-    requestedSchema: {
-      type: "object";
-      properties: {
-        [key: string]: PrimitiveSchemaDefinition;
-      };
-      required?: string[];
+  params: ElicitParams;
+}
+
+export interface ElicitParams extends RequestParams {
+  /**
+   * The message to present to the user.
+   */
+  message: string;
+  /**
+   * A restricted subset of JSON Schema.
+   * Only top-level properties are allowed, without nesting.
+   */
+  requestedSchema: {
+    type: "object";
+    properties: {
+      [key: string]: PrimitiveSchemaDefinition;
     };
+    required?: string[];
   };
 }
 

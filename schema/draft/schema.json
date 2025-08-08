@@ -721,6 +721,36 @@
             ],
             "type": "object"
         },
+        "GetPromptParams": {
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "arguments": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Arguments to use for templating the prompt.",
+                    "type": "object"
+                },
+                "name": {
+                    "description": "The name of the prompt or prompt template.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
@@ -729,23 +759,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "arguments": {
-                            "additionalProperties": {
-                                "type": "string"
-                            },
-                            "description": "Arguments to use for templating the prompt.",
-                            "type": "object"
-                        },
-                        "name": {
-                            "description": "The name of the prompt or prompt template.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "name"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/GetPromptParams"
                 }
             },
             "required": [
