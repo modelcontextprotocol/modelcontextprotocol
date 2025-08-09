@@ -586,6 +586,17 @@ export interface ResourceContents {
    * @format uri
    */
   uri: string;
+
+  /**
+   * The name of the resource.
+   */
+  name?: string;
+
+  /**
+   * A human-readable title for the resource.
+   */
+  title?: string;
+
   /**
    * The MIME type of this resource, if known.
    */
