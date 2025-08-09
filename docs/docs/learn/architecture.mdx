@@ -162,7 +162,7 @@ MCP begins with lifecycle management through a capability negotiation handshake.
     "params": {
       "protocolVersion": "2025-06-18",
       "capabilities": {
-        "tools": {}
+        "elicitation": {}
       },
       "clientInfo": {
         "name": "example-client",
@@ -206,7 +206,7 @@ In this example, the capability negotiation demonstrates how MCP primitives are 
 
 **Client Capabilities**:
 
-- `"tools": {}` - The client declares it can work with the tools primitive (can call `tools/list` and `tools/call` methods)
+- `"elicitation": {}` - The client declares it can work with user interaction requests (can receive `elicitation/create` method calls)
 
 **Server Capabilities**:
 
