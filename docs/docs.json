@@ -304,17 +304,22 @@
   },
   "redirects": [
     {
+      "source": "/specification/latest",
+      "destination": "/specification/2025-06-18",
+      "permanent": false
+    },
+    {
+      "source": "/specification/latest/:slug*",
+      "destination": "/specification/2025-06-18/:slug*",
+      "permanent": false
+    },
+    {
       "source": "/tutorials/building-a-client",
       "destination": "/quickstart/client"
     },
     {
       "source": "/quickstart",
       "destination": "/quickstart/server"
-    },
-    {
-      "source": "/specification/latest",
-      "destination": "/specification/2025-06-18",
-      "permanent": false
     },
     {
       "source": "/docs/concepts/architecture",
