@@ -36,6 +36,7 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- OpenID Connect Dynamic Client Registration 1.0 ([OpenID Connect Registration](https://openid.net/specs/openid-connect-registration-1_0.html))
 
 ## Authorization Flow
 
@@ -165,6 +166,19 @@ these authorization servers, MCP clients will have to either:
 2. Present a UI to users that allows them to enter these details, after registering an
    OAuth client themselves (e.g., through a configuration interface hosted by the
    server).
+
+#### Application Type and Redirect URI Constraints
+
+When authorization servers support OpenID Connect (OIDC) and Dynamic Client Registration, they may enforce additional constraints on redirect URIs
+based on the `application_type` parameter as defined in
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
+
+MCP clients **SHOULD** specify an appropriate `application_type` during Dynamic Client Registration:
+
+- **Native applications** (desktop applications, mobile apps, CLI tools) **SHOULD** use `application_type: "native"`
+- **Web applications** (browser-based applications) **SHOULD** use `application_type: "web"`
+
+MCP clients **SHOULD** be prepared to handle registration failures due to redirect URI constraints when authorization servers implement OIDC.
 
 ### Authorization Flow Steps
 
