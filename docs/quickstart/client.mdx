@@ -546,8 +546,8 @@ First, let's set up our imports and create the basic client class in `index.ts`:
 import { Anthropic } from "@anthropic-ai/sdk";
 import {
   MessageParam,
-  Tool,
 } from "@anthropic-ai/sdk/resources/messages/messages.mjs";
+import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import readline from "readline/promises";
