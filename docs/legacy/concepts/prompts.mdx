@@ -28,7 +28,8 @@ Each prompt is defined with:
 ```typescript
 {
   name: string;              // Unique identifier for the prompt
-  description?: string;      // Human-readable description
+  title?: string;            // Optional human-readable name of the prompt for display purposes
+  description?: string;      // Optional human-readable description
   arguments?: [              // Optional list of arguments
     {
       name: string;          // Argument identifier
@@ -54,6 +55,7 @@ Clients can discover available prompts by sending a `prompts/list` request:
   prompts: [
     {
       name: "analyze-code",
+      title: "Request Analyze Code",
       description: "Analyze code for potential improvements",
       arguments: [
         {
