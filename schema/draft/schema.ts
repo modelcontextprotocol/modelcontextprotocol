@@ -177,6 +177,7 @@ export interface InitializeRequest extends Request {
     protocolVersion: string;
     capabilities: ClientCapabilities;
     clientInfo: Implementation;
+    supportedServerCapabilties?: ServerCapabilities;
   };
 }
 
