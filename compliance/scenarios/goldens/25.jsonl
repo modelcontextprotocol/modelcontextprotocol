@@ -1,0 +1,10 @@
+// client1 connects to CalcServer, initiates 3 concurrent add tool calls: add(1,2), add(3,4), add(5,6). Server processes them in parallel and returns results (3, 7, 11) maintaining request order
+{"from":"client1","to":"CalcServer","message":{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"CalcServer","to":"client1","message":{"result":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{},"roots":{},"tools":{"listChanged":true},"resources":{"listChanged":true},"completions":{},"prompts":{"listChanged":true}},"serverInfo":{"name":"CalcServer","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"client1","to":"CalcServer","message":{"method":"notifications/initialized","jsonrpc":"2.0"}}
+{"from":"client1","to":"CalcServer","message":{"method":"tools/call","params":{"name":"add","arguments":{"a":1,"b":2}},"jsonrpc":"2.0","id":1}}
+{"from":"client1","to":"CalcServer","message":{"method":"tools/call","params":{"name":"add","arguments":{"a":3,"b":4}},"jsonrpc":"2.0","id":2}}
+{"from":"client1","to":"CalcServer","message":{"method":"tools/call","params":{"name":"add","arguments":{"a":5,"b":6}},"jsonrpc":"2.0","id":3}}
+{"from":"CalcServer","to":"client1","message":{"result":{"content":[{"type":"text","text":"3"}]},"jsonrpc":"2.0","id":1}}
+{"from":"CalcServer","to":"client1","message":{"result":{"content":[{"type":"text","text":"7"}]},"jsonrpc":"2.0","id":2}}
+{"from":"CalcServer","to":"client1","message":{"result":{"content":[{"type":"text","text":"11"}]},"jsonrpc":"2.0","id":3}}
