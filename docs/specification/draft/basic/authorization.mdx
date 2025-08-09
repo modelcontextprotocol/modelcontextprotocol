@@ -12,13 +12,13 @@ title: Authorization
 
 The Model Context Protocol provides authorization capabilities at the transport level,
 enabling MCP clients to make requests to restricted MCP servers on behalf of resource
-owners. This specification defines the authorization flow for HTTP-based transports.
+owners. This specification defines the authorization flow for HTTP-based and WebSocket transports.
 
 ### Protocol Requirements
 
 Authorization is **OPTIONAL** for MCP implementations. When supported:
 
-- Implementations using an HTTP-based transport **SHOULD** conform to this specification.
+- Implementations using HTTP-based or WebSocket transports **SHOULD** conform to this specification.
 - Implementations using an STDIO transport **SHOULD NOT** follow this specification, and
   instead retrieve credentials from the environment.
 - Implementations using alternative transports **MUST** follow established security best
@@ -253,27 +253,100 @@ MCP clients **MUST** send this parameter regardless of whether authorization ser
 
 Access token handling when making requests to MCP servers **MUST** conform to the requirements defined in
 [OAuth 2.1 Section 5 "Resource Requests"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5).
-Specifically:
 
-1. MCP client **MUST** use the Authorization request header field defined in
-   [OAuth 2.1 Section 5.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.1):
+#### Transport-Specific Token Transmission
 
-```
+**Streamable HTTP Transport:**
+
+MCP clients **MUST** include access tokens in the `Authorization` header as specified in [OAuth 2.1 Section 5.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.1):
+
+```http
 Authorization: Bearer <access-token>
 ```
 
-Note that authorization **MUST** be included in every HTTP request from client to server,
-even if they are part of the same logical session.
-
-2. Access tokens **MUST NOT** be included in the URI query string
+Access tokens **MUST NOT** be included in the URI query string for HTTP transport.
 
 Example request:
-
 ```http
 GET /mcp HTTP/1.1
 Host: mcp.example.com
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
+
+**WebSocket Transport:**
+
+Due to browser WebSocket API limitations that prevent setting headers during the WebSocket upgrade request, there are several other methods that WebSocket MCP servers can utilize for authorization:
+
+1. **Exchange OAuth bearer token for server-set auth session cookie** (Primary - most secure):
+   ```javascript
+   // Step 1: Exchange OAuth token for server-set session cookie via HTTPS endpoint
+   const response = await fetch('https://mcp.example.com/auth/set-cookie', {
+     method: 'POST',
+     headers: {
+       'Authorization': `Bearer ${oauthToken}`,
+       'Content-Type': 'application/json'
+     }
+   });
+   
+   // Server responds with Set-Cookie header containing session token:
+   // Set-Cookie: mcp-auth=abc123; HttpOnly; Secure; SameSite=Strict; Path=/
+   
+   if (response.ok) {
+     // Step 2: Session cookie is now set by server, connect to WebSocket
+     const ws = new WebSocket('wss://mcp.example.com/mcp');
+   }
+   ```
+   - Server validates OAuth token and creates an auth session token (orthogonal to the mcpSessionId used in the WebSocket envelope)
+   - Server **MUST** respond with appropriate `Set-Cookie` header
+   - Server **MUST** set cookie with `HttpOnly` and `Secure` flags
+   - Server **SHOULD** set cookie with `SameSite=Strict` flag for maximum CSRF protection
+   - Cookie name **SHOULD** be `mcp-auth` but **MAY** vary when the server has control over both the exchange endpoint and the WebSocket upgrade endpoint
+   - Provides maximum security against XSS attacks
+   - Requires additional HTTPS endpoint for cookie exchange
+
+2. **Provide OAuth token in client-set cookie** (Alternative - direct OAuth token):
+   ```javascript
+   // Set OAuth access token directly in cookie before WebSocket connection
+   document.cookie = `mcp-token=${oauthToken}; Secure; SameSite=Strict`;
+   const ws = new WebSocket('wss://mcp.example.com/mcp');
+   ```
+   - Cookie contains the actual OAuth access token
+   - **MAY** utilize the same endpoint as HTTP POST and SSE GET requests and sense that the request is a WebSocket upgrade
+   - Cookie name **MUST** be `mcp-token`
+   - **MUST** include `Secure` flag
+   - **SHOULD** include `SameSite=Strict` flag for maximum CSRF protection
+   - **Security Note**: The `HttpOnly` flag cannot be set due to a limitation of the `document.cookie` API, which means it will be accessible to JavaScript, increasing XSS risk
+
+3. **Use WebSocket Subprotocol** (Alternative, simplest, possibly limited token length, most like HTTP Authorization: Bearer header):
+   ```javascript
+   const ws = new WebSocket('wss://mcp.example.com/mcp', [`authorization-bearer.${token}`]);
+   ```
+
+**Token Transmission Decision Criteria:**
+
+- **Use Server-Set Cookies** when:
+  - Maximum security is required (HttpOnly protection against XSS)
+  - Server can implement additional HTTPS cookie-exchange endpoint and manage session cookies
+
+- **Use Client-Set Cookies** when:
+  - Server cannot implement cookie-exchange endpoint and/or session management
+  - XSS risk is mitigated through other security measures (CSP, etc.)
+  - You are comfortable with the overhead of potentially large cookies in every request
+
+- **Use Subprotocols** when:
+  - You are comfortable with overloading the WebSocket subprotocol for authorization. Note: Socket.io and some GraphQL implementations use this approach.
+  - When you are certain that the WebSocket implementations you are using on both the server and client support long subprotocol strings. They are just HTTP headers over the wire so that's not the limitation but subprotocol strings are generally short so they may be limited in some WebSocket implementations.
+  - Simple protocol negotiation is desired
+  - Server is adapted from HTTP Authorization: Bearer token implementation
+
+**Implementation Requirements:**
+
+- Authorization **MUST** be validated during the initial WebSocket upgrade request before accepting the WebSocket connection
+- Upgrade requests with invalid authorization **MUST** be rejected with HTTP 401 Unauthorized.
+- Server **MUST** support at least the WebSocket subprotocol method
+- Server **SHOULD** support multiple methods for client flexibility
+- Server implementing server-set cookies **MUST** provide an HTTPS endpoint for cookie setting
+- Client **MAY** progress through multiple methods to find the best available option
 
 #### Token Handling
 
