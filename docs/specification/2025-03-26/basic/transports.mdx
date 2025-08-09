@@ -81,6 +81,21 @@ When implementing Streamable HTTP transport:
 
 Without these protections, attackers could use DNS rebinding to interact with local MCP servers from remote websites.
 
+#### CORS Configuration for Browser-Based Clients
+
+When browser-based clients need to connect to MCP servers:
+
+1. Servers **SHOULD** include the `Mcp-Session-Id` header in the `Access-Control-Expose-Headers` response header to allow browser-based clients to read the session ID
+2. Servers **SHOULD** configure appropriate CORS policies including:
+   - Setting `Access-Control-Allow-Origin` to appropriate origins (avoid using `*` in production)
+   - Including `GET`, `POST`, and `DELETE` in `Access-Control-Allow-Methods`
+   - Exposing the `Mcp-Session-Id` header via `Access-Control-Expose-Headers`
+
+Without proper CORS configuration, browser-based clients will not be able to:
+- Access the `Mcp-Session-Id` header from initialization responses
+- Establish sessions with the MCP server
+- Make cross-origin requests to the server
+
 ### Sending Messages to the Server
 
 Every JSON-RPC message sent from the client **MUST** be a new HTTP POST request to the
