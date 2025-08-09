@@ -12,15 +12,14 @@ This document provides security considerations for the Model Context Protocol (M
 
 The primary audience for this document includes developers implementing MCP authorization flows, MCP server operators, and security professionals evaluating MCP-based systems. This document should be read alongside the MCP Authorization specification and [OAuth 2.0 security best practices](https://datatracker.ietf.org/doc/html/rfc9700).
 
-## Attacks and Mitigations
+## Common Terminology & Context
 
-This section gives a detailed description of attacks on MCP implementations, along with potential countermeasures.
+### Terminology Reference
 
-### Confused Deputy Problem
+Common terminology and context are essential for understanding the security considerations in this document. The following sections define key terms and provide a reference diagram to illustrate the architecture of MCP implementations.
 
-Attackers can exploit MCP servers proxying other resource servers, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities.
-
-#### Terminology
+**First-Party Hosted MCP Server**
+: An MCP server that directly controls both the resources it serves and the authorization infrastructure, eliminating the need for third-party OAuth flows. This first-party architecture simplifies security management by keeping all components under unified administrative control, commonly used by SaaS platforms serving their own APIs through MCP.
 
 **MCP Proxy Server**
 : An MCP server that connects MCP clients to third-party APIs, offering MCP features while delegating operations and acting as a single OAuth client to the third-party API server.
@@ -37,6 +36,85 @@ API requires tokens issued by the third-party authorization server.
 the third-party authorization server. This Client ID refers to the MCP server acting as a client
 to the Third-Party API. It is the same value for all MCP server to Third-Party API interactions regardless of
 which MCP client initiated the request.
+
+### Terminology Reference Diagrams
+
+The following diagrams provide visual context for the terminology used in this document.
+
+#### First-Party Hosted MCP Server Architecture
+
+The following diagram illustrates First-Party Hosted MCP Servers.
+
+```mermaid
+graph TD
+%% Actors
+DirectUser["First Party Client"]
+
+%% Provider / Host Components (Grouped in Subgraph)
+subgraph HostResourceServer ["Host (Resource Server)"]
+direction LR
+ProviderMCPServer["First-Party MCP Server<br>(Hosted by Provider)"]
+AuthorizationServer["Authorization Server<br>(Hosted by Provider)"]
+ProviderAPIServices["API Services<br>(Hosted by Provider)"]
+Note1["AuthN/Authorization is part of the resource provider's infrastructure & shares the same security context and audience."]
+style Note1 fill:#f9f9f9,stroke:#2E8B57,stroke-dasharray: 5 5,textColor:#333
+
+%% Connections within the subgraph
+ProviderMCPServer -.->|Direct Interaction| ProviderAPIServices
+ProviderAPIServices -.-> AuthorizationServer
+ProviderMCPServer -.-> AuthorizationServer
+end
+
+%% Connections from Users to Components
+DirectUser -->|Uses First-Party MCP Server| ProviderMCPServer
+DirectUser -.->|Can Use First-Party APIs| ProviderAPIServices
+
+%% Styling (optional, but can improve readability)
+classDef directActor fill:#f9f9f9,stroke:#2E8B57,stroke-width:2px
+classDef hostcomponent fill:#d4f8d4,stroke:#2E8B57,stroke-width:2px
+
+class DirectUser directActor;
+class ProviderMCPServer,ProviderAPIServices,AuthorizationServer hostcomponent;
+```
+
+#### Third-Party MCP Server Architecture
+
+The following diagram illustrates MCP Proxy Servers which sit outside the boundaries of the Resource Server.
+
+```mermaid
+graph TD
+%% Actors
+ProxyUser["Proxy Client"]
+
+%% External MCP Components
+MCPProxyServer["MCP Proxy Server<br>(External to API Provider)"]
+
+%% Provider / Host Components (Grouped in Subgraph)
+subgraph HostResourceServer ["Third Party Resource Server"]
+ProviderAPIServices["Third Party API Services<br>"]
+end
+
+%% Connections from Users to Components
+ProxyUser -->|Uses MCP Proxy Server| MCPProxyServer
+MCPProxyServer -->|connects clients to| HostResourceServer
+
+%% Styling (optional, but can improve readability)
+classDef proxyActor fill:#f9f9f9,stroke:#d2691e,stroke-width:2px
+classDef mcpproxy fill:#fff0e6,stroke:#d2691e,stroke-width:2px
+classDef hostcomponent fill:#d4f8d4,stroke:#2E8B57,stroke-width:2px
+
+class ProxyUser proxyActor;
+class MCPProxyServer mcpproxy;
+class ProviderAPIServices hostcomponent;
+```
+
+## Attacks and Mitigations
+
+This section gives a detailed description of attacks on MCP implementations, along with potential countermeasures.
+
+### Confused Deputy Problem
+
+Attackers can exploit MCP servers proxying other resource servers, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities.
 
 #### Architecture and Attack Flows
 
