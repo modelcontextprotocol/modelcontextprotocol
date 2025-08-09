@@ -182,6 +182,7 @@ servers which want to establish stateful sessions:
      securely generated UUID, a JWT, or a cryptographic hash).
    - The session ID **MUST** only contain visible ASCII characters (ranging from 0x21 to
      0x7E).
+   - The client **MUST** treat the session ID as a credential and handle it in a secure manner.
 2. If an `Mcp-Session-Id` is returned by the server during initialization, clients using
    the Streamable HTTP transport **MUST** include it in the `Mcp-Session-Id` header on
    all of their subsequent HTTP requests.
