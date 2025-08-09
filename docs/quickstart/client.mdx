@@ -724,6 +724,10 @@ async function main() {
   try {
     await mcpClient.connectToServer(process.argv[2]);
     await mcpClient.chatLoop();
+  } catch (e) {
+    console.error("Error:", e);
+    await mcpClient.cleanup();
+    process.exit(1);
   } finally {
     await mcpClient.cleanup();
     process.exit(0);
@@ -829,6 +833,7 @@ If you see:
 - `Tool execution failed`: Verify the tool's required environment variables are set
 - `ANTHROPIC_API_KEY is not set`: Check your .env file and environment variables
 - `TypeError`: Ensure you're using the correct types for tool arguments
+- `BadRequestError`: Ensure you have enough credits to access the Anthropic API
 
 </Tab>
 
