@@ -10,6 +10,19 @@ The Model Context Protocol (MCP) supports optional progress tracking for long-ru
 operations through notification messages. Either side can send progress notifications to
 provide updates about operation status.
 
+## Capabilities
+
+Clients or Servers that support progress tracking **MUST** declare the `progress` capability during
+[initialization](/specification/draft/basic/lifecycle#initialization):
+
+```json
+{
+  "capabilities": {
+    "progress": {}
+  }
+}
+```
+
 ## Progress Flow
 
 When a party wants to _receive_ progress updates for a request, it includes a
