@@ -269,9 +269,9 @@ The schema is restricted to these primitive types:
    ```json
    {
      "type": "string",
-     "title": "Display Name",
-     "description": "Description text",
-     "enum": ["small", "medium", "large"]
+     "title": "Color Selection",
+     "description": "Choose your favorite color",
+     "enum": ["Red", "Green", "Blue"]
    }
    ```
 
@@ -280,12 +280,12 @@ The schema is restricted to these primitive types:
    ```json
    {
      "type": "string",
-     "title": "Display Name",
-     "description": "Description text",
+     "title": "Color Selection",
+     "description": "Choose your favorite color",
      "oneOf": [
-       { "const": "option1", "title": "Option 1" },
-       { "const": "option2", "title": "Option 2" },
-       { "const": "option3", "title": "Option 3" }
+       { "const": "#FF0000", "title": "Red" },
+       { "const": "#00FF00", "title": "Green" },
+       { "const": "#0000FF", "title": "Blue" }
      ]
    }
    ```
@@ -295,14 +295,14 @@ The schema is restricted to these primitive types:
    ```json
    {
      "type": "array",
-     "title": "Select Features",
-     "description": "Choose one or more features",
+     "title": "Color Selection",
+     "description": "Choose your favorite colors",
+     "minItems": 1,
+     "maxItems": 2,
      "items": {
        "type": "string",
-       "enum": ["feature_a", "feature_b", "feature_c"]
-     },
-     "minItems": 1,
-     "maxItems": 2
+       "enum": ["Red", "Green", "Blue"]
+     }
    }
    ```
 
@@ -311,16 +311,17 @@ The schema is restricted to these primitive types:
    ```json
    {
      "type": "array",
-     "title": "Select Features",
-     "description": "Choose one or more features",
+     "title": "Color Selection",
+     "description": "Choose your favorite colors",
+     "minItems": 1,
+     "maxItems": 2,
      "items": {
        "oneOf": [
-         { "const": "feat_1", "title": "Feature One" },
-         { "const": "feat_2", "title": "Feature Two" },
-         { "const": "feat_3", "title": "Feature Three" }
+         { "const": "#FF0000", "title": "Red" },
+         { "const": "#00FF00", "title": "Green" },
+         { "const": "#0000FF", "title": "Blue" }
        ]
-     },
-     "minItems": 1
+     }
    }
    ```
 
