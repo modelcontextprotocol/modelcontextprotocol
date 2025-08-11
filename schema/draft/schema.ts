@@ -31,7 +31,7 @@ export interface Request {
   method: string;
   params?: {
     /**
-     * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+     * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
      */
     _meta?: {
       /**
@@ -49,7 +49,7 @@ export interface Notification {
   method: string;
   params?: {
     /**
-     * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+     * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
      */
     _meta?: { [key: string]: unknown };
     [key: string]: unknown;
@@ -58,7 +58,7 @@ export interface Notification {
 
 export interface Result {
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
   [key: string]: unknown;
@@ -537,7 +537,7 @@ export interface Resource extends BaseMetadata {
   size?: number;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -571,7 +571,7 @@ export interface ResourceTemplate extends BaseMetadata {
   annotations?: Annotations;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -592,7 +592,7 @@ export interface ResourceContents {
   mimeType?: string;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -678,7 +678,7 @@ export interface Prompt extends BaseMetadata {
   arguments?: PromptArgument[];
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -738,7 +738,7 @@ export interface EmbeddedResource {
   annotations?: Annotations;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -917,7 +917,7 @@ export interface Tool extends BaseMetadata {
   annotations?: ToolAnnotations;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1098,7 +1098,7 @@ export interface TextContent {
   annotations?: Annotations;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1127,7 +1127,7 @@ export interface ImageContent {
   annotations?: Annotations;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1156,7 +1156,7 @@ export interface AudioContent {
   annotations?: Annotations;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1366,7 +1366,7 @@ export interface Root {
   name?: string;
 
   /**
-   * See [specification/draft/basic/index#general-fields] for notes on _meta usage.
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
