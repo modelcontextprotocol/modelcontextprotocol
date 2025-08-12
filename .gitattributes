@@ -1,2 +1,4 @@
 package-lock.json linguist-generated=true
 schema/*/schema.json linguist-generated=true
+docs/specification/*/schema.md linguist-generated=true
+docs/specification/*/schema.mdx linguist-generated=true

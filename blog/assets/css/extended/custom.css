@@ -1,0 +1,9 @@
+/* Override list page background to white in light mode */
+.list {
+    background: var(--theme);
+}
+
+/* Dark mode remains unchanged */
+.dark.list {
+    background: var(--theme);
+}
