@@ -1,0 +1,10 @@
+// client1 connects to FileServer, reads file:///readme.txt resource directly, then calls write_file(path=/readme.txt) to update it, reads again to verify change
+{"from":"client1","to":"FileServer","message":{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"FileServer","to":"client1","message":{"result":{"protocolVersion":"2025-06-18","capabilities":{"roots":{},"tools":{"listChanged":true},"resources":{"listChanged":true},"completions":{},"prompts":{"listChanged":true}},"serverInfo":{"name":"FileServer","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"client1","to":"FileServer","message":{"method":"notifications/initialized","jsonrpc":"2.0"}}
+{"from":"client1","to":"FileServer","message":{"method":"resources/read","params":{"uri":"file:///readme.txt"},"jsonrpc":"2.0","id":1}}
+{"from":"FileServer","to":"client1","message":{"result":{"contents":[{"uri":"file:///readme.txt","mimeType":"text/plain","text":"Initial readme content"}]},"jsonrpc":"2.0","id":1}}
+{"from":"client1","to":"FileServer","message":{"method":"tools/call","params":{"name":"write_file","arguments":{"path":"/readme.txt","content":"Updated content"}},"jsonrpc":"2.0","id":2}}
+{"from":"FileServer","to":"client1","message":{"result":{"content":[{"type":"text","text":"File written to /readme.txt"}]},"jsonrpc":"2.0","id":2}}
+{"from":"client1","to":"FileServer","message":{"method":"resources/read","params":{"uri":"file:///readme.txt"},"jsonrpc":"2.0","id":3}}
+{"from":"FileServer","to":"client1","message":{"result":{"contents":[{"uri":"file:///readme.txt","mimeType":"text/plain","text":"Updated content"}]},"jsonrpc":"2.0","id":3}}
