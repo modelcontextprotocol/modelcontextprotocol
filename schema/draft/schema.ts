@@ -111,8 +111,10 @@ export const METHOD_NOT_FOUND = -32601;
 export const INVALID_PARAMS = -32602;
 /** @internal */
 export const INTERNAL_ERROR = -32603;
+
+// Implementation-specific JSON-RPC error codes [-32000, -32099]
 /** @internal */
-export const ELICITATION_REQUIRED = -32604;
+export const ELICITATION_REQUIRED = -32000;
 
 /**
  * A response to a request that indicates an error occurred.

@@ -854,7 +854,7 @@
                 "error": {
                     "properties": {
                         "code": {
-                            "const": -32604,
+                            "const": -32000,
                             "type": "integer"
                         },
                         "data": {

@@ -375,7 +375,7 @@ The server **SHOULD** send a `elicitation/track` response to the client once the
 
 ### Elicitation Required Error
 
-When another request cannot be processed until an elicitation is completed, the server **SHOULD** return an [ElicitationRequired error](#error-handling) (code `-32604`) to indicate to the client that an elicitation is required.
+When another request cannot be processed until an elicitation is completed, the server **SHOULD** return an [ElicitationRequired error](#error-handling) (code `-32000`) to indicate to the client that an elicitation is required.
 
 The error **MUST** include a list of elicitations that are required to complete before the original can be retried.
 
@@ -389,7 +389,7 @@ Servers that want elicit data from the user via form mode **SHOULD** make a sepa
   "jsonrpc": "2.0",
   "id": 2,
   "error": {
-    "code": -32604, // ELICITATION_REQUIRED
+    "code": -32000, // ELICITATION_REQUIRED
     "message": "This request requires more information.",
     "data": {
       "elicitations": [
@@ -650,7 +650,7 @@ Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 
 - Unknown `elicitationId` in an `elicitation/track` request: `-32602` (Invalid params)
 - An `elicitationId` belonging to a different client in an `elicitation/track` request: `-32602` (Invalid params)
-- When a request cannot be processed until an elicitation is completed: `-32604` (ElicitationRequired)
+- When a request cannot be processed until an elicitation is completed: `-32000` (ElicitationRequired)
 
 Clients **SHOULD** return standard JSON-RPC errors for common failure cases:
 
