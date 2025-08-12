@@ -203,6 +203,14 @@ Tool results may contain [**structured**](#structured-content) or **unstructured
 
 **Unstructured** content is returned in the `content` field of a result, and can contain multiple content items of different types:
 
+<Note>
+  All content types (text, image, audio, resource links, and embedded resources)
+  support optional
+  [annotations](/specification/draft/server/resources#annotations) that provide
+  metadata about audience, priority, and modification times. This is the same
+  annotation format used by resources and prompts.
+</Note>
+
 #### Text Content
 
 ```json
@@ -218,7 +226,11 @@ Tool results may contain [**structured**](#structured-content) or **unstructured
 {
   "type": "image",
   "data": "base64-encoded-data",
-  "mimeType": "image/png"
+  "mimeType": "image/png",
+  "annotations": {
+    "audience": ["user"],
+    "priority": 0.9
+  }
 }
 ```
 
@@ -247,6 +259,8 @@ or data. In this case, the tool will return a URI that can be subscribed to or f
 }
 ```
 
+Resource links support the same [Resource annotations](/specification/draft/server/resources#annotations) as regular resources to help clients understand how to use them.
+
 <Info>
   Resource links returned by tools are not guaranteed to appear in the results
   of a `resources/list` request.
@@ -264,17 +278,23 @@ or data using a suitable [URI scheme](./resources#common-uri-schemes). Servers t
     "uri": "file:///project/src/main.rs",
     "title": "Project Rust Main File",
     "mimeType": "text/x-rust",
-    "text": "fn main() {\n    println!(\"Hello world!\");\n}"
+    "text": "fn main() {\n    println!(\"Hello world!\");\n}",
+    "annotations": {
+      "audience": ["user", "assistant"],
+      "priority": 0.7,
+      "lastModified": "2025-05-03T14:30:00Z"
+    }
   }
 }
 ```
+
+Embedded resources support the same [Resource annotations](/specification/draft/server/resources#annotations) as regular resources to help clients understand how to use them.
 
 #### Structured Content
 
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
-For backwards compatibility, a tool that returns structured content SHOULD also return functionally equivalent unstructured content.
-(For example, serialized JSON can be returned in a `TextContent` block.)
+For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
 
 #### Output Schema
 

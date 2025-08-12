@@ -78,11 +78,9 @@ sequenceDiagram
     Sender->>Receiver: Method request with progressToken
 
     Note over Sender,Receiver: Progress updates
-    loop Progress Updates
-        Receiver-->>Sender: Progress notification (0.2/1.0)
-        Receiver-->>Sender: Progress notification (0.6/1.0)
-        Receiver-->>Sender: Progress notification (1.0/1.0)
-    end
+    Receiver-->>Sender: Progress notification (0.2/1.0)
+    Receiver-->>Sender: Progress notification (0.6/1.0)
+    Receiver-->>Sender: Progress notification (1.0/1.0)
 
     Note over Sender,Receiver: Operation complete
     Receiver->>Sender: Method response

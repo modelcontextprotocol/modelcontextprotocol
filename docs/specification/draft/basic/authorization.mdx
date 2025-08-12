@@ -63,9 +63,12 @@ specifies how an MCP server indicates the location of its corresponding authoriz
 1. MCP servers **MUST** implement OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)).
    MCP clients **MUST** use OAuth 2.0 Protected Resource Metadata for authorization server discovery.
 
-1. MCP authorization servers **MUST** provide OAuth 2.0 Authorization
-   Server Metadata ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414)).
-   MCP clients **MUST** use the OAuth 2.0 Authorization Server Metadata.
+1. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
+
+   - OAuth 2.0 Authorization Server Metadata ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414))
+   - [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
+
+   MCP clients **MUST** support both discovery mechanisms to obtain the information required to interact with the authorization server.
 
 ### Authorization Server Discovery
 
@@ -93,8 +96,20 @@ MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond app
 
 #### Server Metadata Discovery
 
-MCP clients **MUST** follow the OAuth 2.0 Authorization Server Metadata [RFC8414](https://datatracker.ietf.org/doc/html/rfc8414)
-specification to obtain the information required to interact with the authorization server.
+To handle different issuer URL formats and ensure interoperability with both OAuth 2.0 Authorization Server Metadata and OpenID Connect Discovery 1.0 specifications, MCP clients **MUST** attempt multiple well-known endpoints when discovering authorization server metadata.
+
+The discovery approach is based on [RFC8414 Section 3.1 "Authorization Server Metadata Request"](https://datatracker.ietf.org/doc/html/rfc8414#section-3.1) for OAuth 2.0 Authorization Server Metadata discovery and [RFC8414 Section 5 "Compatibility Notes"](https://datatracker.ietf.org/doc/html/rfc8414#section-5) for OpenID Connect Discovery 1.0 interoperability.
+
+For issuer URLs with path components (e.g., `https://auth.example.com/tenant1`), clients **MUST** try endpoints in the following priority order:
+
+1. OAuth 2.0 Authorization Server Metadata with path insertion: `https://auth.example.com/.well-known/oauth-authorization-server/tenant1`
+2. OpenID Connect Discovery 1.0 with path insertion: `https://auth.example.com/.well-known/openid-configuration/tenant1`
+3. OpenID Connect Discovery 1.0 path appending: `https://auth.example.com/tenant1/.well-known/openid-configuration`
+
+For issuer URLs without path components (e.g., `https://auth.example.com`), clients **MUST** try:
+
+1. OAuth 2.0 Authorization Server Metadata: `https://auth.example.com/.well-known/oauth-authorization-server`
+2. OpenID Connect Discovery 1.0: `https://auth.example.com/.well-known/openid-configuration`
 
 #### Sequence Diagram
 
@@ -114,7 +129,8 @@ sequenceDiagram
     M-->>C: Resource metadata with authorization server URL
     Note over C: Validate RS metadata,<br />build AS metadata URL
 
-    C->>A: GET /.well-known/oauth-authorization-server
+    C->>A: GET Authorization server metadata endpoint
+    Note over C,A: Try OAuth 2.0 and OpenID Connect<br/>discovery endpoints in priority order
     A-->>C: Authorization server metadata
 
     Note over C,A: OAuth 2.1 authorization flow happens here
@@ -170,8 +186,9 @@ sequenceDiagram
 
     Note over C: Parse metadata and extract authorization server(s)<br/>Client determines AS to use
 
-    C->>A: GET /.well-known/oauth-authorization-server
-    A->>C: Authorization server metadata response
+    C->>A: GET Authorization server metadata endpoint
+    Note over C,A: Try OAuth 2.0 and OpenID Connect<br/>discovery endpoints in priority order
+    A-->>C: Authorization server metadata
 
     alt Dynamic client registration
         C->>A: POST /register
@@ -326,8 +343,18 @@ Specifically:
 An attacker who has gained access to an authorization code contained in an authorization response can try to redeem the authorization code for an access token or otherwise make use of the authorization code.
 (Further described in [OAuth 2.1 Section 7.5](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.5))
 
-To mitigate this, MCP clients **MUST** implement PKCE according to [OAuth 2.1 Section 7.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.5.2).
+To mitigate this, MCP clients **MUST** implement PKCE according to [OAuth 2.1 Section 7.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.5.2) and **MUST** verify PKCE support before proceeding with authorization.
 PKCE helps prevent authorization code interception and injection attacks by requiring clients to create a secret verifier-challenge pair, ensuring that only the original requestor can exchange an authorization code for tokens.
+
+MCP clients **MUST** use the `S256` code challenge method when technically capable, as required by [OAuth 2.1 Section 4.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-4.1.1).
+
+Since OAuth 2.1 and PKCE specifications do not define a mechanism for clients to discover PKCE support, MCP clients **MUST** rely on authorization server metadata to verify this capability:
+
+- **OAuth 2.0 Authorization Server Metadata**: If `code_challenge_methods_supported` is absent, the authorization server does not support PKCE and MCP clients **MUST** refuse to proceed.
+
+- **OpenID Connect Discovery 1.0**: While the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata) does not define `code_challenge_methods_supported`, this field is commonly included by OpenID providers. MCP clients **MUST** verify the presence of `code_challenge_methods_supported` in the provider metadata response. If the field is absent, MCP clients **MUST** refuse to proceed.
+
+Authorization servers providing OpenID Connect Discovery 1.0 **MUST** include `code_challenge_methods_supported` in their metadata to ensure MCP compatibility.
 
 ### Open Redirection
 
@@ -367,7 +394,7 @@ A MCP server **MUST** follow the guidelines in [OAuth 2.1 - Section 5.2](https:/
 
 MCP servers **MUST** only accept tokens specifically intended for themselves and **MUST** reject tokens that do not include them in the audience claim or otherwise verify that they are the intended recipient of the token. See the [Security Best Practices Token Passthrough section](/specification/draft/basic/security_best_practices#token-passthrough) for details.
 
-If the MCP server makes requests to upstream APIs, it may act as an OAuth client to them. The access token used at the upstream API is a seperate token, issued by the upstream authorization server. The MCP server **MUST NOT** pass through the token it received from the MCP client.
+If the MCP server makes requests to upstream APIs, it may act as an OAuth client to them. The access token used at the upstream API is a separate token, issued by the upstream authorization server. The MCP server **MUST NOT** pass through the token it received from the MCP client.
 
 MCP clients **MUST** implement and use the `resource` parameter as defined in [RFC 8707 - Resource Indicators for OAuth 2.0](https://www.rfc-editor.org/rfc/rfc8707.html)
 to explicitly specify the target resource for which the token is being requested. This requirement aligns with the recommendation in
