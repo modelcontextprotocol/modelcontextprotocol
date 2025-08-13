@@ -19,6 +19,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [AIQL TUUI][AIQL TUUI]                           | ✅          | ✅        | ✅      | ✅                     | ✅         | ❌    | ❓            |
 | [Amazon Q CLI][Amazon Q CLI]                     | ❌          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Amazon Q IDE][Amazon Q IDE]                     | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Amp][Amp]                                       | ✅          | ❌        | ✅      | ❌                     | ✅         | ❌    | ❓            |
 | [Apify MCP Tester][Apify MCP Tester]             | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
 | [Augment Code][AugmentCode]                      | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [BeeAI Framework][BeeAI Framework]               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
@@ -108,6 +109,7 @@ This page provides an overview of applications that support the Model Context Pr
 [AIQL TUUI]: https://github.com/AI-QL/tuui
 [Amazon Q CLI]: https://github.com/aws/amazon-q-developer-cli
 [Amazon Q IDE]: https://aws.amazon.com/q/developer
+[Amp]: https://ampcode.com
 [Apify MCP Tester]: https://apify.com/jiri.spilka/tester-mcp-client
 [AugmentCode]: https://augmentcode.com
 [BeeAI Framework]: https://i-am-bee.github.io/beeai-framework
@@ -278,6 +280,15 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 - Connects to any MCP server via SSE.
 - Works with the [Apify MCP Server](https://apify.com/apify/actors-mcp-server) to interact with one or more Apify [Actors](https://apify.com/store).
 - Dynamically utilizes tools based on context and user queries (if supported by the server).
+
+### Amp
+
+[Amp](https://ampcode.com) is an agentic coding tool built by Sourcegraph. It runs in VS Code (and compatible forks like Cursor, Windsurf, and VSCodium) and as a command-line tool. It’s also multiplayer — you can share threads and collaborate with your team.
+
+**Key features:**
+
+- Granular control over enabled tools and permissions
+- Support for MCP servers defined in VS Code `mcp.json`
 
 ### Augment Code
 
