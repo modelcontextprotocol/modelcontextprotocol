@@ -51,6 +51,7 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
 - Protocol version supported
 - Client capabilities
 - Client implementation information
+- Client supported server capabilities [optional]
 
 ```json
 {
@@ -70,6 +71,12 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
       "name": "ExampleClient",
       "title": "Example Client Display Name",
       "version": "1.0.0"
+    },
+    "supportedServerCapabilities": {
+      "tools": {},
+      "resources": {
+        "listChanged": false
+      }
     }
   }
 }
