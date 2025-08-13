@@ -294,10 +294,10 @@ sequenceDiagram
 
 The Client Credentials flow enables machine-to-machine authentication without user interaction.
 
-When available Dynamic Client Registration SHOULD be used in this flow:
+When available Dynamic Client Registration SHOULD be used:
 
-- When using the JWT Authentication method as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2) (RECOMMENDED), client MUST provide the jwks_uri (if it can be served) or Client's JSON Web Key in the jwks field as defined in [RFC 7591 Section 2](https://datatracker.ietf.org/doc/html/rfc7591#section-2).
-- When using the Client Secret method, the server provides the client_id and client_secret in the response body as defined in [RFC 7591 Section 3.2.1](https://datatracker.ietf.org/doc/html/rfc7591#section-3.2.1).
+- When using the JWT Authentication method as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2) (RECOMMENDED), client MUST provide either the jwks_uri (preferred when keys can be hosted) or Client's JSON Web Key in the jwks field, as defined in [RFC 7591 Section 2](https://datatracker.ietf.org/doc/html/rfc7591#section-2).
+- When using the Client Secret method, the server MAY provide the client_id and client_secret in the response body as defined in [RFC 7591 Section 3.2.1](https://datatracker.ietf.org/doc/html/rfc7591#section-3.2.1).
 
 Alternatively, this flow MAY use pre-registered client credentials, which are typically established out-of-band
 through administrative channels.
