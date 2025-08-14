@@ -68,7 +68,7 @@ where it runs. MCP servers can execute locally or remotely. For example, when
 Claude Desktop launches the [filesystem
 server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem),
 the server runs locally on the same machine because it uses the STDIO
-transport. This is commonly referred to as a "local" MCP server. The offical
+transport. This is commonly referred to as a "local" MCP server. The official
 [Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/) runs on the
 Sentry platform, and uses the Streamable HTTP transport. This is commonly
 referred to as a "remote" MCP server.
@@ -77,7 +77,7 @@ referred to as a "remote" MCP server.
 
 MCP consists of two layers:
 
-- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including lifecycle management, core primitives, such as tools, resources, prompts and notifications.
+- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including lifecycle management, and core primitives, such as tools, resources, prompts and notifications.
 - **Transport layer**: Defines the communication mechanisms and channels that enable data exchange between clients and servers, including transport-specific connection establishment, message framing, and authorization.
 
 Conceptually the data layer is the inner layer, while the transport layer is the outer layer.
@@ -88,7 +88,7 @@ The data layer implements a [JSON-RPC 2.0](https://www.jsonrpc.org/) based excha
 This layer includes:
 
 - **Lifecycle management**: Handles connection initialization, capability negotiation, and connection termination between clients and servers
-- **Server features**: Enables servers to provides core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from to the client
+- **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
 - **Client features**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
 - **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
 
@@ -105,9 +105,9 @@ The transport layer abstracts communication details from the protocol layer, ena
 
 ### Data Layer Protocol
 
-A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
+A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
 
-MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as it's underlying RPC protocol. Client and servers send requests to each other and respond accordingly. Notifications can be used when no response is required.
+MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Client and servers send requests to each other and respond accordingly. Notifications can be used when no response is required.
 
 #### Lifecycle management
 
@@ -132,8 +132,8 @@ For more details about server primitives see [server concepts](./server-concepts
 
 MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
 
-- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when servers authors want access to a language model, but want to stay model independent and not include a language model SDK in their MCP server. They can use the `sampling/complete` method to request a language model completion from the client's AI application.
-- **Elicitation**: Allows servers to request additional information from users. This is useful when servers authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/request` method to request additional information from the user.
+- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when servers' authors want access to a language model, but want to stay model independent and not include a language model SDK in their MCP server. They can use the `sampling/complete` method to request a language model completion from the client's AI application.
+- **Elicitation**: Allows servers to request additional information from users. This is useful when servers' authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/request` method to request additional information from the user.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
 
 For more details about client primitives see [client concepts](./client-concepts).
@@ -162,7 +162,7 @@ MCP begins with lifecycle management through a capability negotiation handshake.
     "params": {
       "protocolVersion": "2025-06-18",
       "capabilities": {
-        "tools": {}
+        "elicitation": {}
       },
       "clientInfo": {
         "name": "example-client",
@@ -206,7 +206,7 @@ In this example, the capability negotiation demonstrates how MCP primitives are 
 
 **Client Capabilities**:
 
-- `"tools": {}` - The client declares it can work with the tools primitive (can call `tools/list` and `tools/call` methods)
+- `"elicitation": {}` - The client declares it can work with user interaction requests (can receive `elicitation/create` method calls)
 
 **Server Capabilities**:
 
@@ -239,7 +239,7 @@ async with stdio_client(server_config) as (read, write):
 </Step>
 
 <Step title="Tool Discovery (Primitives)">
-Now that the connection is established, the client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism — it allows clients to understand what tool are available on the server before attempting to use them.
+Now that the connection is established, the client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism — it allows clients to understand what tools are available on the server before attempting to use them.
 
 <CodeGroup>
   ```json Request
@@ -256,7 +256,7 @@ Now that the connection is established, the client can discover available tools 
     "result": {
       "tools": [
         {
-          "name": "com.example.calculator/arithmetic",
+          "name": "calculator_arithmetic",
           "title": "Calculator",
           "description": "Perform mathematical calculations including basic arithmetic, trigonometric functions, and algebraic operations",
           "inputSchema": {
@@ -271,7 +271,7 @@ Now that the connection is established, the client can discover available tools 
           }
         },
         {
-          "name": "com.example.weather/current",
+          "name": "weather_current",
           "title": "Weather Information",
           "description": "Get current weather information for any location worldwide",
           "inputSchema": {
@@ -307,7 +307,7 @@ The response contains a `tools` array that provides comprehensive metadata about
 
 Each tool object in the response includes several key fields:
 
-- **`name`**: A unique identifier for the tool within the server's namespace. This serves as the primary key for tool execution and should be URI-like for better namespacing (e.g., `com.example.calculator/arithmetic` rather than just `calculate`)
+- **`name`**: A unique identifier for the tool within the server's namespace. This serves as the primary key for tool execution and should follow a clear naming pattern (e.g., `calculator_arithmetic` rather than just `calculate`)
 - **`title`**: A human-readable display name for the tool that clients can show to users
 - **`description`**: Detailed explanation of what the tool does and when to use it
 - **`inputSchema`**: A JSON Schema that defines the expected input parameters, enabling type validation and providing clear documentation about required and optional parameters
@@ -332,7 +332,7 @@ The client can now execute a tool using the `tools/call` method. This demonstrat
 
 #### Understanding the Tool Execution Request
 
-The `tools/call` request follows a structured format that ensures type safety and clear communication between client and server. Note that we're using the proper tool name from the discovery response (`com.example.weather/current`) rather than a simplified name:
+The `tools/call` request follows a structured format that ensures type safety and clear communication between client and server. Note that we're using the proper tool name from the discovery response (`weather_current`) rather than a simplified name:
 
 <CodeGroup>
   ```json Request
@@ -341,7 +341,7 @@ The `tools/call` request follows a structured format that ensures type safety an
     "id": 3,
     "method": "tools/call",
     "params": {
-      "name": "com.example.weather/current",
+      "name": "weather_current",
       "arguments": {
         "location": "San Francisco",
         "units": "imperial"
@@ -369,7 +369,7 @@ The `tools/call` request follows a structured format that ensures type safety an
 
 The request structure includes several important components:
 
-1. **`name`**: Must match exactly the tool name from the discovery response (`com.example.weather/current`). This ensures the server can correctly identify which tool to execute.
+1. **`name`**: Must match exactly the tool name from the discovery response (`weather_current`). This ensures the server can correctly identify which tool to execute.
 
 2. **`arguments`**: Contains the input parameters as defined by the tool's `inputSchema`. In this example:
 
