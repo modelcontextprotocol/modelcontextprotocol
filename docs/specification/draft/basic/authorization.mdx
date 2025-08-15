@@ -137,12 +137,17 @@ sequenceDiagram
         C->>M: GET resource_metadata URI
         M-->>C: Resource metadata with authorization server URL
     else No resource_metadata in header
-        Note over C: Fallback to metadata probing
-        C->>M: GET /.well-known/oauth-protected-resource
-        alt Metadata found
+        Note over C: Fallback to well-known URI probing
+        C->>M: GET /.well-known/oauth-protected-resource/mcp
+        alt Sub-path metadata found
             M-->>C: Resource metadata with authorization server URL
-        else Metadata not found
-            Note over C: Abort or use pre-configured values
+        else Sub-path not found
+            C->>M: GET /.well-known/oauth-protected-resource
+            alt Root metadata found
+                M-->>C: Resource metadata with authorization server URL
+            else Root metadata not found
+                Note over C: Abort or use pre-configured values
+            end
         end
     end
 
