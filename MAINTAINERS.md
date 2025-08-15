@@ -119,6 +119,10 @@ Working Groups and Interest Groups are not required to have maintainers (they ca
 
 - [Nick Cooper](https://github.com/nicknotfun)
 
+### Long-Running / Async Tool Calls Working Group
+
+- [Inna Harper](https://github.com/ihrpr)
+
 ## About This Document
 
 This document is updated by the MCP maintainers and reflects the current
