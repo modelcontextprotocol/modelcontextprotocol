@@ -89,12 +89,19 @@ guidance on implementation details.
 Implementors should note that Protected Resource Metadata documents can define multiple authorization servers. The responsibility for selecting which authorization server to use lies with the MCP client, following the guidelines specified in
 [RFC9728 Section 7.6 "Authorization Servers"](https://datatracker.ietf.org/doc/html/rfc9728#name-authorization-servers).
 
-MCP servers **SHOULD** use the HTTP header `WWW-Authenticate` when returning a _401 Unauthorized_ to indicate the location of the resource server metadata URL
-as described in [RFC9728 Section 5.1 "WWW-Authenticate Response"](https://datatracker.ietf.org/doc/html/rfc9728#name-www-authenticate-response).
+#### Protected Resource Metadata Discovery Requirements
 
-MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
+MCP servers **MUST** implement one of the following discovery mechanisms to provide authorization server location information to MCP clients:
 
-#### Server Metadata Discovery
+1. **WWW-Authenticate Header**: Include the resource metadata URL in the `WWW-Authenticate` HTTP header when returning _401 Unauthorized_ responses, as described in [RFC9728 Section 5.1 "WWW-Authenticate Response"](https://datatracker.ietf.org/doc/html/rfc9728#name-www-authenticate-response).
+
+2. **Well-Known URI**: Serve metadata at a well-known URI as specified in [RFC9728](https://datatracker.ietf.org/doc/html/rfc9728). This can be either:
+   - At a sub-path: `https://example.com/.well-known/oauth-protected-resource/mcp`
+   - At the root: `https://example.com/.well-known/oauth-protected-resource`
+
+MCP clients **MUST** support both discovery mechanisms and **MUST** be able to parse `WWW-Authenticate` headers when present and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
+
+#### Authorization Server Metadata Discovery
 
 To handle different issuer URL formats and ensure interoperability with both OAuth 2.0 Authorization Server Metadata and OpenID Connect Discovery 1.0 specifications, MCP clients **MUST** attempt multiple well-known endpoints when discovering authorization server metadata.
 
