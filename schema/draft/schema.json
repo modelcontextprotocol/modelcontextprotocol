@@ -518,17 +518,7 @@
                     "type": "object"
                 },
                 "content": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/TextContent"
-                        },
-                        {
-                            "$ref": "#/definitions/ImageContent"
-                        },
-                        {
-                            "$ref": "#/definitions/AudioContent"
-                        }
-                    ]
+                    "$ref": "#/definitions/ContentBlock"
                 },
                 "model": {
                     "description": "The name of the model that generated the message.",
@@ -2052,17 +2042,7 @@
             "description": "Describes a message issued to or received from an LLM API.",
             "properties": {
                 "content": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/TextContent"
-                        },
-                        {
-                            "$ref": "#/definitions/ImageContent"
-                        },
-                        {
-                            "$ref": "#/definitions/AudioContent"
-                        }
-                    ]
+                    "$ref": "#/definitions/ContentBlock"
                 },
                 "role": {
                     "$ref": "#/definitions/Role"
