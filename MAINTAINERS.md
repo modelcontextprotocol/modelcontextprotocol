@@ -15,7 +15,7 @@ This document lists current maintainers and working groups in the Model Context 
 - [Basil Hosmer](https://github.com/bhosmer-ant)
 - [Paul Carleton](https://github.com/pcarleton)
 - [Nick Cooper](https://github.com/nicknotfun)
-- Nick Aldridge
+- [Nick Aldridge](https://github.com/000-000-000-000-000)
 - Che Liu
 - [Den Delimarsky](https://github.com/localden)
 
@@ -105,6 +105,13 @@ This document lists current maintainers and working groups in the Model Context 
 - [Michael Feldstein](https://github.com/msfeldstein)
 - [Harald Kirschner](https://github.com/digitarald)
 - [Connor Peet](https://github.com/connor4312)
+
+### Transports Working Group
+
+- [Kurtis Van Gent](https://github.com/kurtisvg)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
+- [Shaun Smith](https://github.com/evalstate)
+- [Harvey Tuch](https://github.com/htuch)
 
 ## About This Document
 
