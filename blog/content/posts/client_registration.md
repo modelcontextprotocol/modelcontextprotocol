@@ -6,160 +6,209 @@ author = 'Paul Carleton (Core Maintainer)'
 tags = ['security', 'authorization', 'announcement]
 +++
 
+The Model Context Protocol (MCP) has adopted OAuth 2.1 as the basis for its authorization framework. A key part of this flow is client registration. When it comes to clients and servers that don’t have a pre-existing relationship, there are 2 challenging areas today:
 
-The Model Context Protocol (MCP) has adopted OAuth 2.1 as the basis for its authorization framework.  A key part of this flow is client registration.  In this post, I'll explore how we're looking to evolve client registration to address pain points for server implementers while providing better protections for users.
+- Operational issues with managing client ID’s via Dynamic Client Registration (DCR)
+- Preventing impersonation of desktop clients
 
-If you're familiar with OAuth and the current state of client registration in MCP, skip to "the options forward" section.
+If you're familiar with OAuth and the current state of client registration in MCP, skip to [Two Distinct Challenges in MCP Client Registration](#todo).
 
 ## Background on OAuth
 
 A system implementing OAuth 2.1 should allow the user to grant a client access to a resource, and prevent attempts to trick the user into granting access to a client they didn't intend to (e.g. phishing).
 
+```mermaid
+sequenceDiagram
+   participant Client
+   participant User
+   participant AuthServer as Authorization Server
+   participant Resource as Resource Server
+
+   Client->>User: 1. Redirect to authorization server
+   User->>AuthServer: Navigate to auth URL
+   AuthServer->>User: 2. Display consent screen
+   User->>AuthServer: Approve access
+   AuthServer->>Client: 3. Redirect with authorization code
+   Client->>AuthServer: 4. Exchange code for access token
+   AuthServer-->>Client: Access token (saved)
+   Client->>Resource: 5. Request with access token
+   Resource-->>Client: Protected resource
+```
+
 The high level flow for OAuth is:
+
 1. The client sends the user to an authorization server
 2. The authorization server displays a consent screen to the user
 3. If the user approves the client's access, the authorization server redirects the user back to the client with an access code
 4. The client exchanges the access code for an access token, which it saves
 5. The client uses the access token in subsequent requests to access the resource
 
-As part of this flow, the authorization server needs a few pieces of information about the client:
+As part of this flow, the server needs a few pieces of information about the client:
+
 1. **Client name**: Human readable text to display in the consent screen to help the user decide whether they want to grant access.
 2. **Redirect URL**: The destination to send the authorization code back to if the user consents.
 
-It's important that the authorization server trust the information that it has about the client in order to prevent a malicious client from tricking a user into consenting access it didn't intend to.  For instance, if a malicious client could claim to be 'Claude Desktop' on the consent screen while actually being 'attacker.com', users might grant access thinking they're authorizing the legitimate Claude application.
+In order to prevent a malicious client from tricking a user into granting access they didn't intend to grant, the authorization server must be able to trust the client information it has. For instance, if a malicious client could claim to be 'Claude Desktop' on the consent screen while actually being 'attacker.com', users might grant access thinking they're authorizing the legitimate Claude application.
 
-(Note: we're specifically calling out redirect URLS)
+## What We Want from Client Registration in MCP
 
-## Client Registration: The Story So Far
+In MCP, a common pattern is for a user to paste an MCP server URL into a client, and connect to it. This cuts against the typical OAuth pattern because it is the user selecting the resource server to connect to rather than the client developer. While pre-registration works well when the client and server have a pre-existing relationship, it breaks down when they don’t.
 
-### Pre-registration, by client developer
+Let's lay out our goals for client registration, specifically for when a server and client don't have a pre-existing relationship:
 
-The most common and traditional way to build trust in this client information is via pre-registration.  This happens before a client starts its authorization flow. The client developer coordinates with the server to provide it information about itself including its name and redirect URL, and receives a client ID (and sometimes a secret).  The server can do whatever additional checks on the client it wants (e.g. identity verification, source code submission, contract negotiation etc.)
+1. **Clients**: Client developers don't need to go through a pre-registration flow and distribute a client ID for each additional connected server.
+2. **Users**: Users don't need to go through a pre-registration flow and paste in client id with the server URL
+3. **Server developers**:
 
-Pre-registration of clients is supported by MCP. For clients that have pre-existing relationships with MCP servers, pre-registration and distributing a client id is the simplest approach and similar to how OAuth is deployed most frequently.
+- **Trust in Metadata**: Servers have a way to trust the metadata they associate with a client (e.g. name and redirect URL)
+- **Single Client ID per App**: Servers can have a single client ID per client for users to revoke access or the server to revoke access
+- **Selective Allow/Deny**: Servers can selectively allow or deny clients, without needing to coordinate with the client.
+- **Database Management**: Servers do not need to handle an unbounded database or expiration flows
 
-### Pre-registration, by user
+Currently, none of our existing approaches satisfies all these requirements. Pre-registration works great when clients and servers have an existing relationship, but requires too much effort for a dynamic setting. Dynamic Client Registration (DCR) reduces effort but creates operational headaches. Let's dig into why.
 
-However, with MCP, it's common for a user to want to connect an MCP client to an MCP server the client has never seen before.  In that scenario, a client developer can't practically pre-register for that server since it may not have existed the last time the client developer shipped a release.
+## Two Distinct Challenges in MCP Client Registration
 
-One option is for the user to go through the server's registration flow on behalf of the client. This requires the client to have a mechanism for the user to supply a client id and secret along with the server URL when connecting.
+After extensive discussion with implementers, we've identified that what initially seemed like competing solutions are actually addressing two orthogonal problems:
 
-This works, but ends up putting a lot of work on the user, and either requires each additional user to go through the same amount of work, or invest in some other way of sharing a registered client ID safely among users (e.g within the same enterprise).
+1. **Operational limitations** of Dynamic Client Registration in open environments
+2. **Client identity and impersonation** risks across different deployment scenarios
 
-It does have the nice property that the user almost certainly trusts the client and redirect URL, otherwise they wouldn't go through so much effort to go through the registration flow with it.
+Let's tackle each separately.
 
-### Dynamic Client Registration (DCR)
+## **Challenge 1: Operational Limitations of Dynamic Client Registration**
 
-Another option that the MCP specification supports today is Dynamic Client Registration (DCR). In DCR, the Authorization Server provides a `/register` endpoint that the client can use to register "just in time" for the authorization flow.
+### **The DCR Model Mismatch**
 
-This takes work off the user, and off the client, but has other tradeoffs the authorization server implementer to consider. An authorization server implementation needs to:
-* rate limiting requests to an unauthenticated registration endpoint
-* handle expiry of these records (challenging without open redirect risks), or allow for unbounded growth of client records
-* determine how to trust the metadata the client is providing
-  * This could be by limiting redirect URLs (e.g. allowing localhost, but requiring pre-registration or allowlisting of non-localhost) 
-  * This could alternatively involve signed software statements if clients implement this. (see [this section](https://www.rfc-editor.org/rfc/rfc7591.html#appendix-A.2) in the DCR spec.)
-* display a sensible revocation UI for users to review authorized clients
-* find a way to revoke malicious clients without them just immediately re-registering
+DCR’s design essentially takes the “pre-registration” OAuth flow and makes it available via an API. In fully open environments like MCP, DCR creates several operational headaches:
 
-For these reasons, server implementors often very reasonably ask about best practices for DCR.  However, some of these difficulties are inherent to DCR and not actually that helpful for MCP's use case.  For example, in a common implementation, each user gets their own client ID even if they're using the same client application (e.g. Cursor). That's space and complexity for no benefit.
+**For servers:**
 
-## Client Registration: the options forward
+- **Unbounded database growth**: Every registration creates a record with no natural expiry
+- **Client expiry "black hole"**: There's no way to tell a client its ID is invalid without creating an open redirect vulnerability
+- **Per-instance confusion**: Each user typically gets their own client ID even when using the same application (e.g., every Cursor user gets a different ID). Similarly, when a user views its authorized clients, it may see many registrations for the same client.
+- **DoS vulnerability**: The `/register` endpoint is unauthenticated and writes to a database, requiring complex rate limiting
 
-Let's recap what we want out of a client registration process, specifically for when a server and client don't have a pre-existing relationship:
-1. Client developers don't need to go through a pre-registration flow and distribute a client ID.
-2. Users don't need to go through a pre-registration flow and paste in client id with the server URL.
-3. Server developers:
-  1. have a way to trust the metadata they associate with a client (e.g. name and redirect URL)
-  2. can have a single client ID per client for users to revoke access or the server to revoke access
-  3. can selectively allow or deny clients
-  4. do not need to handle an unbounded database or expiration flows
+**For clients:**
 
-There are a few candidates to improve this situation:
+- **Extra overhead**: Managing registration state and another secret beyond access/refresh tokens
+- **No validity checking**: Can't verify if a client ID is still valid
+- **Unclear lifecycle**: No guidance on when to re-register or update credentials
 
-1. Applying software statements to DCR
-2. Using Client ID metadata as URLs.
+### **Solution: Client ID Metadata Documents (CIMD)**
 
+Client ID Metadata Documents (described in [this draft RFC](https://www.ietf.org/archive/id/draft-looker-oauth-client-id-scheme-00.html) and implemented by Bluesky) elegantly sidestep these operational issues.
 
-### Software Statements with DCR
+Instead of a registration step, clients use an HTTPS metadata URL as their client ID directly. The server fetches the metadata from the URL at authorization time:
 
-Sticking with DCR for a minute, one way to improve the situation is to define a particular way of implementing software statements.  DCR already solves (1) and (2), so we're looking specificaly at solving (3.1): trusting the metadata and seeing if we can solve the other issues as well.
-
-A software statement involves the client publishing a JSON Web Key Set (JWKS), and then using the private key to sign a JSON Web Token (JWT) that attests to the clients legitimacy.
-
-This provides the servers with a way to trust the client by deciding which JWKS to trust (or more likely the domain that hosts the JWKS).  It also allows the server to issue the same client ID for the same client used in different places, since it can trust the request is from the same client application. This addresses all the server issues above.
-
-The cost for this implementation is:
-* The client must host a JWKS on a https URL somewhere that the server will trust (even if the client isn't on the web e.g. a native application)
-* The client must craft and sign a software statement
-  * If the client is a native application, this requires using client specific authentication to gate access to the signing key on a remote endpoint.
-* The server must fetch the JWKS URI and verify the statement during registration.
-
-
-This is discussed more in depth in this Specification Enhancement Proposal (SEP) (TODO: link to SEP)
-
-### Client ID Metadata Documents
-
-Another promising solution to this problem is called "Client ID Metadata Documents" (described in [this draft RFC](https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/) and implemented by Bluesky).
-
-In this approach, we skip the registration step altogether, and provide an https metadata URL as the client ID directly.  The server then fetches the metadata from the URL and uses it as the client's metadata. 
-
-```mermaid
+```
 sequenceDiagram
    participant Client
-   participant User
    participant AuthServer
    participant MetadataURL
 
-   Client->>User: Start OAuth flow
-   User->>AuthServer: Authorization request<br/>(client_id=https://app.com/oauth.json)
+   Client->>AuthServer: Authorization request
+                        (client_id=https://app.com/oauth.json)
    AuthServer->>MetadataURL: GET https://app.com/oauth.json
    MetadataURL-->>AuthServer: {name: "App", redirect_uris: [...]}
-   AuthServer->>User: Show consent screen<br/>("App wants access...")
-   User->>AuthServer: Approve
-   AuthServer-->>Client: Authorization code
-   Client->>AuthServer: Exchange code for token<br/>(client_id=https://app.com/oauth.json)
-   AuthServer-->>Client: Access token
+   AuthServer->>Client: Show consent screen & continue flow
 ```
 
-Checking against our goals:
-* The servers can trust the client metadata by trusting the domain the metadata is hosted on
-* Servers will have a single client ID per client (the metadata URL)
-* Servers can allow or deny clients based on their metadata URL or metadata domain
-* Servers don't need to handle any database by default, as they can fetch the metadata at authorization time.
+This addresses all the operational issues:
 
-The costs for this implementation are:
-* Clients need to host a metadata document on an https URL
-* Clients must provide the URL as their client ID (if they determine an authorization server supports this)
-* Servers need to fetch the metadata, opening egress on their authorization request
+- **No database needed**: Servers fetch metadata on-demand (can cache for performance)
+- **No expiry management**: The URL is the ID \- it doesn't expire
+- **Natural per-app model**: One URL per application, not per user
+- **No registration endpoint**: No unauthenticated write operations
 
-Client ID metadata can also be extended to require a JWKS and signed attestation at request time if desired.
+The cost? Clients need to host a metadata document at an HTTPS URL. For web applications, this is trivial. For desktop applications, this typically means hosting on their backend infrastructure.
 
-This is discussed more in this SEP: (TODO: link to SEP).
+## **Challenge 2: Client Identity and Impersonation**
 
+The second challenge is orthogonal to DCR vs CIMD \- it's about trusting that a client is who it claims to be. This problem exists regardless of how we handle registration.
 
-## Comparison of Client Registration Approaches
+### **The Trust Spectrum**
 
-| Approach | Client Developer Effort | User Effort | Server Trust in Metadata | Single Client ID per App | Selective Allow/Deny | Database Management |
-|----------|------------------------|-------------|-------------------------|-------------------------|---------------------|-------------------|
-| **Pre-registration (by developer)** | ❌ Must coordinate with each server | ✅ None - just connects | ✅ Full trust via manual verification | ✅ Yes | ✅ Full control | ✅ Simple, bounded |
-| **Pre-registration (by user)** | ✅ None | ❌ Must register & manage credentials | ✅ User explicitly registers | ❌ Each user gets own ID | ✅ Full control | ⚠️ Grows with users |
-| **Basic DCR** | ✅ None | ✅ None | ❌ Must trust self-asserted data | ❌ New ID per user/session | ⚠️ Limited (blocklists) | ❌ Unbounded growth or complex expiry |
-| **DCR + Software Statements** | ⚠️ Must host JWKS & sign statements | ✅ None | ✅ Trust via domain/signature | ✅ Possible (via key identity) | ✅ Via trusted domains | ⚠️ Better but still needs storage |
-| **Client ID Metadata** | ⚠️ Must host metadata document | ✅ None | ✅ Trust via domain | ✅ Yes (URL is ID) | ✅ Via domains | ✅ No storage needed* |
+We can map impersonation scenarios on two axes: attacker cost and mitigation complexity.
 
-\* Servers may choose to cache for performance but aren't required to maintain a registration database
+![alt text](image.png)
 
-### Legend:
-- ✅ Fully meets requirement
-- ⚠️ Partially meets requirement / has caveats  
-- ❌ Does not meet requirement
+**Low attacker cost / Low mitigation complexity: Domain-based attacks**
 
+- **Attack**: Register `attacker.com/callback`, claim to be "Claude Desktop"
+- **Cost**: Trick user into clicking a link and consenting
+- **Mitigation**:
+  - Restrict trusted domains/URLs
+  - Show warnings for unknown domains
+  - Works with both DCR and CIMD
 
-## Choosing a path forward
+**Medium attacker cost / Medium mitigation complexity: Localhost impersonation**
 
-Over the next few weeks, we'll be discussing both SEP's in the links above, and intending to make a decision by the end of August.
+- **Attack**: Run malicious app on `localhost:8080`, impersonate legitimate client
+- **Cost**: Trick user into running a malicious application (plus consenting for that app to have data access)
+- **Problem**: Desktop apps can't hold secrets, hard to prove identity
 
-Some notes worth knowing regardless of the SEP discussions above:
-* It's **very unlikely** we'll remove DCR from the spec (e.g. in favor of Client ID Metadata Documents), as DCR already has adoption and removing it would cause a lot of churn.
-* These proposals are not mutually exclusive, as we could keep DCR and recommend software statements while also adding support for client ID metadata documents.
-* Both of these proposals require the Authorization server to open up potentially unbounded egress, so establishing patterns for doing this safely (e.g. avoiding internal network scans, SSRF, reflection attacks) will be important
+**High attacker cost / High mitigation complexity: OS-attested applications**
+
+- **Attack**: Get malicious app signed by OS vendor
+- **Cost**: Extremely high \- requires compromising OS vendor processes
+- **Mitigation**: OS-level attestation (future work)
+
+### **Solution: Software Statements for Desktop Applications**
+
+For the middle tier, localhost impersonation, we need software statements. This involves:
+
+1. Client hosts a JSON Web Key Set (JWKS) on their backend
+2. Client authenticates the user through their own flow
+3. Backend issues a short-lived, signed JWT attesting to the client's identity
+4. Client includes this JWT in the OAuth flow
+5. Server verifies the JWT against the trusted JWKS
+
+This dramatically raises the bar for impersonation. An attacker would need to:
+
+- Compromise the client's backend infrastructure, or
+- Successfully impersonate the client's authentication flow
+
+Crucially, **software statements work with both DCR and CIMD**. They're not a competing solution \- they're a complementary security layer.
+
+### **Future: OS-Level Attestation**
+
+The strongest protection would be OS-level attestation, e.g. having MacOS, Windows, or Android attest that a piece of software is legitimate. This would make impersonation unreasonably expensive. While the exact way this ties into a software statement is yet to be prototyped, the general shape is evident: thread OS-level identity verification through to the OAuth flow.
+
+## **The Complementary Path Forward**
+
+We're not choosing between solutions. We're exploring complementary approaches for distinct problems:
+
+**For operational issues**: Adding CIMD support in favor of DCR
+
+- Keep DCR for backward compatibility
+- Recommend CIMD for new implementations
+- Both achieve the same authorization goal
+
+**For trust issues**: Layering software statements on top
+
+- Optional enhancement for both DCR and CIMD
+- Required only when localhost impersonation is a concern
+- Servers choose their required trust level
+
+## **Security Considerations**
+
+Both CIMD and software statements require servers to make outbound HTTPS requests, potentially to untrusted domains. Implementations must:
+
+- Prevent SSRF attacks by blocking internal network access
+- Implement timeouts and size limits
+- Consider caching strategies for performance
+- Validate response formats strictly
+
+If we adopt these approaches, we’ll need good best practices and SDK support to help avoid vulnerabilities.
+
+## **Next Steps**
+
+Over the next few weeks, we'll be discussing both approaches in detail:
+
+- [SEP-991: Client ID Metadata Documents](https://github.com/modelcontextprotocol/specification/discussions/991)
+- [SEP-1032: Software Statements with DCR](https://github.com/modelcontextprotocol/specification/discussions/1032)
+
+We intend to make a decision by the end of August.
+
+Get involved: Join the conversation in [Discord](https://discord.gg/modelcontextprotocol) (the \#auth-wg-client-registration channel) or comment on the SEPs directly.
