@@ -198,189 +198,187 @@ const debugWorkflow = {
 
 Here's a complete example of implementing prompts in an MCP server:
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    import { Server } from "@modelcontextprotocol/sdk/server";
-    import {
-      ListPromptsRequestSchema,
-      GetPromptRequestSchema
-    } from "@modelcontextprotocol/sdk/types";
+```typescript TypeScript
+import { Server } from "@modelcontextprotocol/sdk/server";
+import {
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+} from "@modelcontextprotocol/sdk/types";
 
-    const PROMPTS = {
-      "git-commit": {
-        name: "git-commit",
-        description: "Generate a Git commit message",
-        arguments: [
-          {
-            name: "changes",
-            description: "Git diff or description of changes",
-            required: true
-          }
-        ]
+const PROMPTS = {
+  "git-commit": {
+    name: "git-commit",
+    description: "Generate a Git commit message",
+    arguments: [
+      {
+        name: "changes",
+        description: "Git diff or description of changes",
+        required: true,
       },
-      "explain-code": {
-        name: "explain-code",
-        description: "Explain how code works",
-        arguments: [
-          {
-            name: "code",
-            description: "Code to explain",
-            required: true
+    ],
+  },
+  "explain-code": {
+    name: "explain-code",
+    description: "Explain how code works",
+    arguments: [
+      {
+        name: "code",
+        description: "Code to explain",
+        required: true,
+      },
+      {
+        name: "language",
+        description: "Programming language",
+        required: false,
+      },
+    ],
+  },
+};
+
+const server = new Server(
+  {
+    name: "example-prompts-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      prompts: {},
+    },
+  },
+);
+
+// List available prompts
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: Object.values(PROMPTS),
+  };
+});
+
+// Get specific prompt
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const prompt = PROMPTS[request.params.name];
+  if (!prompt) {
+    throw new Error(`Prompt not found: ${request.params.name}`);
+  }
+
+  if (request.params.name === "git-commit") {
+    return {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Generate a concise but descriptive commit message for these changes:\n\n${request.params.arguments?.changes}`,
           },
-          {
-            name: "language",
-            description: "Programming language",
-            required: false
-          }
-        ]
-      }
+        },
+      ],
     };
+  }
 
-    const server = new Server({
-      name: "example-prompts-server",
-      version: "1.0.0"
-    }, {
-      capabilities: {
-        prompts: {}
-      }
-    });
+  if (request.params.name === "explain-code") {
+    const language = request.params.arguments?.language || "Unknown";
+    return {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Explain how this ${language} code works:\n\n${request.params.arguments?.code}`,
+          },
+        },
+      ],
+    };
+  }
 
-    // List available prompts
-    server.setRequestHandler(ListPromptsRequestSchema, async () => {
-      return {
-        prompts: Object.values(PROMPTS)
-      };
-    });
+  throw new Error("Prompt implementation not found");
+});
+```
 
-    // Get specific prompt
-    server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-      const prompt = PROMPTS[request.params.name];
-      if (!prompt) {
-        throw new Error(`Prompt not found: ${request.params.name}`);
-      }
+```python Python
+from mcp.server import Server
+import mcp.types as types
 
-      if (request.params.name === "git-commit") {
-        return {
-          messages: [
-            {
-              role: "user",
-              content: {
-                type: "text",
-                text: `Generate a concise but descriptive commit message for these changes:\n\n${request.params.arguments?.changes}`
-              }
-            }
-          ]
-        };
-      }
+# Define available prompts
+PROMPTS = {
+    "git-commit": types.Prompt(
+        name="git-commit",
+        description="Generate a Git commit message",
+        arguments=[
+            types.PromptArgument(
+                name="changes",
+                description="Git diff or description of changes",
+                required=True
+            )
+        ],
+    ),
+    "explain-code": types.Prompt(
+        name="explain-code",
+        description="Explain how code works",
+        arguments=[
+            types.PromptArgument(
+                name="code",
+                description="Code to explain",
+                required=True
+            ),
+            types.PromptArgument(
+                name="language",
+                description="Programming language",
+                required=False
+            )
+        ],
+    )
+}
 
-      if (request.params.name === "explain-code") {
-        const language = request.params.arguments?.language || "Unknown";
-        return {
-          messages: [
-            {
-              role: "user",
-              content: {
-                type: "text",
-                text: `Explain how this ${language} code works:\n\n${request.params.arguments?.code}`
-              }
-            }
-          ]
-        };
-      }
+# Initialize server
+app = Server("example-prompts-server")
 
-      throw new Error("Prompt implementation not found");
-    });
-    ```
+@app.list_prompts()
+async def list_prompts() -> list[types.Prompt]:
+    return list(PROMPTS.values())
 
-  </Tab>
-  <Tab title="Python">
+@app.get_prompt()
+async def get_prompt(
+    name: str, arguments: dict[str, str] | None = None
+) -> types.GetPromptResult:
+    if name not in PROMPTS:
+        raise ValueError(f"Prompt not found: {name}")
 
-    ```python
-    from mcp.server import Server
-    import mcp.types as types
-
-    # Define available prompts
-    PROMPTS = {
-        "git-commit": types.Prompt(
-            name="git-commit",
-            description="Generate a Git commit message",
-            arguments=[
-                types.PromptArgument(
-                    name="changes",
-                    description="Git diff or description of changes",
-                    required=True
+    if name == "git-commit":
+        changes = arguments.get("changes") if arguments else ""
+        return types.GetPromptResult(
+            messages=[
+                types.PromptMessage(
+                    role="user",
+                    content=types.TextContent(
+                        type="text",
+                        text=f"Generate a concise but descriptive commit message "
+                        f"for these changes:\n\n{changes}"
+                    )
                 )
-            ],
-        ),
-        "explain-code": types.Prompt(
-            name="explain-code",
-            description="Explain how code works",
-            arguments=[
-                types.PromptArgument(
-                    name="code",
-                    description="Code to explain",
-                    required=True
-                ),
-                types.PromptArgument(
-                    name="language",
-                    description="Programming language",
-                    required=False
-                )
-            ],
+            ]
         )
-    }
 
-    # Initialize server
-    app = Server("example-prompts-server")
-
-    @app.list_prompts()
-    async def list_prompts() -> list[types.Prompt]:
-        return list(PROMPTS.values())
-
-    @app.get_prompt()
-    async def get_prompt(
-        name: str, arguments: dict[str, str] | None = None
-    ) -> types.GetPromptResult:
-        if name not in PROMPTS:
-            raise ValueError(f"Prompt not found: {name}")
-
-        if name == "git-commit":
-            changes = arguments.get("changes") if arguments else ""
-            return types.GetPromptResult(
-                messages=[
-                    types.PromptMessage(
-                        role="user",
-                        content=types.TextContent(
-                            type="text",
-                            text=f"Generate a concise but descriptive commit message "
-                            f"for these changes:\n\n{changes}"
-                        )
+    if name == "explain-code":
+        code = arguments.get("code") if arguments else ""
+        language = arguments.get("language", "Unknown") if arguments else "Unknown"
+        return types.GetPromptResult(
+            messages=[
+                types.PromptMessage(
+                    role="user",
+                    content=types.TextContent(
+                        type="text",
+                        text=f"Explain how this {language} code works:\n\n{code}"
                     )
-                ]
-            )
+                )
+            ]
+        )
 
-        if name == "explain-code":
-            code = arguments.get("code") if arguments else ""
-            language = arguments.get("language", "Unknown") if arguments else "Unknown"
-            return types.GetPromptResult(
-                messages=[
-                    types.PromptMessage(
-                        role="user",
-                        content=types.TextContent(
-                            type="text",
-                            text=f"Explain how this {language} code works:\n\n{code}"
-                        )
-                    )
-                ]
-            )
+    raise ValueError("Prompt implementation not found")
+```
 
-        raise ValueError("Prompt implementation not found")
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 ## Best practices
 

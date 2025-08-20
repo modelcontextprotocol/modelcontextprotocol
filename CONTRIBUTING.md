@@ -1,9 +1,11 @@
 # Contributing to Model Context Protocol
 
-Thank you for your interest in contributing to the Model Context Protocol specification!
+Thank you for your interest in contributing to the Model Context Protocol specification, schemas, or docs!
 This document outlines how to contribute to this project.
 
-## Prerequisites
+Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explains how and where discussions about changes happen.
+
+## General prerequisites
 
 The following software is required to work on the spec:
 
@@ -13,9 +15,9 @@ The following software is required to work on the spec:
 - [Mintlify](https://mintlify.com/) (optional, for docs)
 - nvm (optional, for managing Node versions)
 
-## Getting Started
+### Getting Started
 
-1. Fork the repository
+1. [Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
 2. Clone your fork:
 
 ```bash
@@ -30,7 +32,7 @@ nvm install  # install correct Node version
 npm install  # install dependencies
 ```
 
-## Making Changes
+## Schema changes
 
 Note that schema changes are made to `schema.ts`, and `schema.json` is generated from
 `schema.ts`.
@@ -50,17 +52,21 @@ npm run check:schema:ts
 npm run generate:schema
 ```
 
-4. Validate documentation changes and apply formatting:
+## Documentation changes
+
+Documentation is written in MDX format and in the [`docs`](./docs) directory.
+
+You can preview documentation changes locally by running:
+
+```bash
+npm run serve:docs
+```
+
+And lint them with:
 
 ```bash
 npm run check:docs
 npm run format
-```
-
-5. Preview documentation locally (optional):
-
-```bash
-npm run serve:docs
 ```
 
 ### Documentation Guidelines
@@ -103,15 +109,6 @@ When contributing to the documentation:
 2. Submit a pull request to the main repository
 3. Follow the pull request template
 4. Wait for review
-
-## Code of Conduct
-
-This project follows a Code of Conduct. Please review it in
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
-
-## Questions
-
-If you have questions, please create an issue in the repository.
 
 ## License
 

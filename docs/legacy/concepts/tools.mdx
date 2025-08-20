@@ -19,7 +19,7 @@ Tools in MCP allow servers to expose executable functions that can be invoked by
 - **Invocation**: Tools are called using the `tools/call` request, where servers perform the requested operation and return results
 - **Flexibility**: Tools can range from simple calculations to complex API interactions
 
-Like [resources](/docs/concepts/resources), tools are identified by unique names and can include descriptions to guide their usage. However, unlike resources, tools represent dynamic operations that can modify state or interact with external systems.
+Like [resources](/legacy/concepts/resources), tools are identified by unique names and can include descriptions to guide their usage. However, unlike resources, tools represent dynamic operations that can modify state or interact with external systems.
 
 ## Tool definition structure
 
@@ -47,92 +47,92 @@ Each tool is defined with the following structure:
 
 Here's an example of implementing a basic tool in an MCP server:
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    const server = new Server({
-      name: "example-server",
-      version: "1.0.0"
-    }, {
-      capabilities: {
-        tools: {}
-      }
-    });
+```typescript TypeScript
+const server = new Server(
+  {
+    name: "example-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  },
+);
 
-    // Define available tools
-    server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
-        tools: [{
-          name: "calculate_sum",
-          description: "Add two numbers together",
-          inputSchema: {
-            type: "object",
-            properties: {
-              a: { type: "number" },
-              b: { type: "number" }
-            },
-            required: ["a", "b"]
-          }
-        }]
-      };
-    });
+// Define available tools
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "calculate_sum",
+        description: "Add two numbers together",
+        inputSchema: {
+          type: "object",
+          properties: {
+            a: { type: "number" },
+            b: { type: "number" },
+          },
+          required: ["a", "b"],
+        },
+      },
+    ],
+  };
+});
 
-    // Handle tool execution
-    server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      if (request.params.name === "calculate_sum") {
-        const { a, b } = request.params.arguments;
-        return {
-          content: [
-            {
-              type: "text",
-              text: String(a + b)
+// Handle tool execution
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "calculate_sum") {
+    const { a, b } = request.params.arguments;
+    return {
+      content: [
+        {
+          type: "text",
+          text: String(a + b),
+        },
+      ],
+    };
+  }
+  throw new Error("Tool not found");
+});
+```
+
+```python Python
+app = Server("example-server")
+
+@app.list_tools()
+async def list_tools() -> list[types.Tool]:
+    return [
+        types.Tool(
+            name="calculate_sum",
+            description="Add two numbers together",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "a": {"type": "number"},
+                    "b": {"type": "number"}
+                },
+                "required": ["a", "b"]
             }
-          ]
-        };
-      }
-      throw new Error("Tool not found");
-    });
-    ```
+        )
+    ]
 
-  </Tab>
-  <Tab title="Python">
+@app.call_tool()
+async def call_tool(
+    name: str,
+    arguments: dict
+) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
+    if name == "calculate_sum":
+        a = arguments["a"]
+        b = arguments["b"]
+        result = a + b
+        return [types.TextContent(type="text", text=str(result))]
+    raise ValueError(f"Tool not found: {name}")
+```
 
-    ```python
-    app = Server("example-server")
-
-    @app.list_tools()
-    async def list_tools() -> list[types.Tool]:
-        return [
-            types.Tool(
-                name="calculate_sum",
-                description="Add two numbers together",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "a": {"type": "number"},
-                        "b": {"type": "number"}
-                    },
-                    "required": ["a", "b"]
-                }
-            )
-        ]
-
-    @app.call_tool()
-    async def call_tool(
-        name: str,
-        arguments: dict
-    ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-        if name == "calculate_sum":
-            a = arguments["a"]
-            b = arguments["b"]
-            result = a + b
-            return [types.TextContent(type="text", text=str(result))]
-        raise ValueError(f"Tool not found: {name}")
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 ## Example tool patterns
 
@@ -271,63 +271,58 @@ Tool errors should be reported within the result object, not as MCP protocol-lev
 
 Here's an example of proper error handling for tools:
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    try {
-      // Tool operation
-      const result = performOperation();
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Operation successful: ${result}`
-          }
+```typescript TypeScript
+try {
+  // Tool operation
+  const result = performOperation();
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Operation successful: ${result}`,
+      },
+    ],
+  };
+} catch (error) {
+  return {
+    isError: true,
+    content: [
+      {
+        type: "text",
+        text: `Error: ${error.message}`,
+      },
+    ],
+  };
+}
+```
+
+```python Python
+try:
+    # Tool operation
+    result = perform_operation()
+    return types.CallToolResult(
+        content=[
+            types.TextContent(
+                type="text",
+                text=f"Operation successful: {result}"
+            )
         ]
-      };
-    } catch (error) {
-      return {
-        isError: true,
-        content: [
-          {
-            type: "text",
-            text: `Error: ${error.message}`
-          }
+    )
+except Exception as error:
+    return types.CallToolResult(
+        isError=True,
+        content=[
+            types.TextContent(
+                type="text",
+                text=f"Error: {str(error)}"
+            )
         ]
-      };
-    }
-    ```
+    )
+```
 
-  </Tab>
-  <Tab title="Python">
-
-    ```python
-    try:
-        # Tool operation
-        result = perform_operation()
-        return types.CallToolResult(
-            content=[
-                types.TextContent(
-                    type="text",
-                    text=f"Operation successful: {result}"
-                )
-            ]
-        )
-    except Exception as error:
-        return types.CallToolResult(
-            isError=True,
-            content=[
-                types.TextContent(
-                    type="text",
-                    text=f"Error: {str(error)}"
-                )
-            ]
-        )
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 This approach allows the LLM to see that an error occurred and potentially take corrective action or request human intervention.
 
@@ -423,61 +418,58 @@ Here's how to define tools with annotations for different scenarios:
 
 ### Integrating annotations in server implementation
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
-        tools: [{
-          name: "calculate_sum",
-          description: "Add two numbers together",
-          inputSchema: {
-            type: "object",
-            properties: {
-              a: { type: "number" },
-              b: { type: "number" }
-            },
-            required: ["a", "b"]
+```typescript TypeScript
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "calculate_sum",
+        description: "Add two numbers together",
+        inputSchema: {
+          type: "object",
+          properties: {
+            a: { type: "number" },
+            b: { type: "number" },
           },
-          annotations: {
-            title: "Calculate Sum",
-            readOnlyHint: true,
-            openWorldHint: false
-          }
-        }]
-      };
-    });
-    ```
+          required: ["a", "b"],
+        },
+        annotations: {
+          title: "Calculate Sum",
+          readOnlyHint: true,
+          openWorldHint: false,
+        },
+      },
+    ],
+  };
+});
+```
 
-  </Tab>
-  <Tab title="Python">
+```python Python
+from mcp.server.fastmcp import FastMCP
 
-    ```python
-    from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("example-server")
 
-    mcp = FastMCP("example-server")
+@mcp.tool(
+    annotations={
+        "title": "Calculate Sum",
+        "readOnlyHint": True,
+        "openWorldHint": False
+    }
+)
+async def calculate_sum(a: float, b: float) -> str:
+    """Add two numbers together.
 
-    @mcp.tool(
-        annotations={
-            "title": "Calculate Sum",
-            "readOnlyHint": True,
-            "openWorldHint": False
-        }
-    )
-    async def calculate_sum(a: float, b: float) -> str:
-        """Add two numbers together.
+    Args:
+        a: First number to add
+        b: Second number to add
+    """
+    result = a + b
+    return str(result)
+```
 
-        Args:
-            a: First number to add
-            b: Second number to add
-        """
-        result = a + b
-        return str(result)
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 ### Best practices for tool annotations
 

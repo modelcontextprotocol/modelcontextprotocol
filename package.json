@@ -32,14 +32,15 @@
     "generate:schema": "npm run generate:schema:json && npm run generate:schema:md",
     "generate:schema:json": "for f in schema/*/schema.ts; do typescript-json-schema --defaultNumberType integer --required --skipLibCheck \"$f\" \"*\" -o \"${f%.ts}.json\"; done",
     "generate:schema:md": "for f in docs/specification/*/schema.mdx; do typedoc --entryPoints \"schema/$(basename -- $(dirname -- \"$f\"))/schema.ts\" > \"$f\"; done",
-    "format": "prettier --write \"**/*.{md,mdx}\"",
-    "serve:docs": "cd docs && mintlify dev"
+    "format": "prettier --write \"**/*.{md,mdx}\" --ignore \"docs/specification/*/schema.mdx\" ",
+    "serve:docs": "cd docs && mintlify dev",
+    "serve:blog": "cd blog && hugo serve"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "glob": "^11.0.0",
-    "mintlify": "^4.0.468",
+    "mintlify": "^4.0",
     "prettier": "^3.4.2",
     "tsx": "^4.19.1",
     "typedoc": "^0.28.7",
