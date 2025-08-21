@@ -77,6 +77,7 @@ This document lists current maintainers and working groups in the Model Context 
 - [Tadas Antanavicius](https://github.com/tadasant) (Registry, Reference Servers)
 - [Shaun Smith](https://github.com/evalstate) (Reference Servers)
 - [Jonathan Hefner](https://github.com/jonathanhefner) (Reference Servers)
+- [Adam Jones](https://github.com/domdomegg) (Registry)
 
 ## Community Moderators
 
