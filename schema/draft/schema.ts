@@ -711,6 +711,49 @@ export type Role = "user" | "assistant";
 export interface PromptMessage {
   role: Role;
   content: ContentBlock;
+  /**
+   * Tool calls requested by the the Assistant. 
+   * Should only be present if Role is Assistant
+   */
+  toolCall?: ExampleToolCall[]; 
+  /**
+   * Tool calls results supplied by the User. 
+   * Should only be present if Role is User (Host)
+   */
+  toolResult?: ExampleToolResult[];
+}
+
+/**
+ * A tool call initiated by the assistant.
+ */
+export interface ExampleToolCall {
+  /**
+   * A unique identifier for this tool call.
+   * This ID is used to match tool calls with their results.
+   */
+  id: string;
+
+  /**
+   * The name of the tool being called.
+   */
+  request: CallToolRequest;
+
+}
+
+/**
+ * A result returned from a tool call.
+ */
+export interface ExampleToolResult {
+  /**
+   * The identifier of the tool call this is the result for.
+   * This correlates this Result with the Request.
+   */
+  toolCallId: string;
+
+  /**
+   * The content returned from the tool.
+   */
+  result: CallToolResult;
 }
 
 /**
