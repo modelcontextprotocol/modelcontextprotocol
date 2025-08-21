@@ -1,0 +1,26 @@
+{
+  "name": "@mcp-compliance/typescript-sdk",
+  "version": "1.0.0",
+  "description": "MCP Compliance Test Implementation for TypeScript SDK",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && tsx tests/basic-test.ts",
+    "test:watch": "node --test --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.0",
+    "commander": "^12.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.0.0"
+  },
+  "bin": {
+    "test-client": "./test-client",
+    "test-server": "./test-server"
+  }
+}

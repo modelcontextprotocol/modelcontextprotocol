@@ -1,0 +1,34 @@
+{
+  "name": "@modelcontextprotocol/compliance",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "mcp-mitm": "./src/cli/mitm.ts"
+  },
+  "scripts": {
+    "test": "tsx --no-cache --test tests/**/*.test.ts",
+    "build": "tsc",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "validate-scenarios": "tsx tests/validate-scenarios.ts",
+    "generate-goldens": "tsx scripts/generate-goldens.ts",
+    "cross-test-sdks": "tsx scripts/cross-test-sdks.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.3",
+    "tsx": "^4.19.1",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

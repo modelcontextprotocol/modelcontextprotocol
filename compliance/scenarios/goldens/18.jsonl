@@ -1,0 +1,10 @@
+// client1 connects to FileServer, lists prompts with pagination, gets prompt by name, then lists prompt templates and calls one with parameters
+{"from":"client1","to":"FileServer","message":{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"FileServer","to":"client1","message":{"result":{"protocolVersion":"2025-06-18","capabilities":{"roots":{},"tools":{"listChanged":true},"resources":{"listChanged":true},"completions":{},"prompts":{"listChanged":true}},"serverInfo":{"name":"FileServer","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"client1","to":"FileServer","message":{"method":"notifications/initialized","jsonrpc":"2.0"}}
+{"from":"client1","to":"FileServer","message":{"method":"prompts/list","params":{"limit":10},"jsonrpc":"2.0","id":1}}
+{"from":"FileServer","to":"client1","message":{"result":{"prompts":[{"name":"code_review","title":"Code Review","description":"Analyzes code quality and suggests improvements"},{"name":"summarize_file","title":"Summarize File","description":"Summarizes the content of a file at the given path","arguments":[{"name":"path","description":"The file path to summarize","required":true}]}]},"jsonrpc":"2.0","id":1}}
+{"from":"client1","to":"FileServer","message":{"method":"prompts/get","params":{"name":"code_review"},"jsonrpc":"2.0","id":2}}
+{"from":"FileServer","to":"client1","message":{"result":{"messages":[{"role":"user","content":{"type":"text","text":"Please act as an experienced code reviewer. Analyze the provided code for quality, best practices, and potential improvements."}}]},"jsonrpc":"2.0","id":2}}
+{"from":"client1","to":"FileServer","message":{"method":"prompts/get","params":{"name":"summarize_file","arguments":{"path":"/test.txt"}},"jsonrpc":"2.0","id":3}}
+{"from":"FileServer","to":"client1","message":{"jsonrpc":"2.0","id":3,"error":{"code":-32603,"message":"File not found: /test.txt"}}}

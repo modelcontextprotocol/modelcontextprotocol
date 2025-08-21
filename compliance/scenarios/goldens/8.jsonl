@@ -1,0 +1,8 @@
+// client1 connects to FileServer, calls resources/list with pagination (limit=2), receives first page with next_cursor, calls again with cursor to get remaining resources
+{"from":"client1","to":"FileServer","message":{"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{"elicitation":{}},"clientInfo":{"name":"test-client","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"FileServer","to":"client1","message":{"result":{"protocolVersion":"2025-06-18","capabilities":{"roots":{},"tools":{"listChanged":true},"resources":{"listChanged":true},"completions":{},"prompts":{"listChanged":true}},"serverInfo":{"name":"FileServer","version":"1.0.0"}},"jsonrpc":"2.0","id":0}}
+{"from":"client1","to":"FileServer","message":{"method":"notifications/initialized","jsonrpc":"2.0"}}
+{"from":"client1","to":"FileServer","message":{"method":"resources/list","params":{"limit":2},"jsonrpc":"2.0","id":1}}
+{"from":"FileServer","to":"client1","message":{"result":{"resources":[{"uri":"file:///test/static.txt","name":"file:///test/static.txt","title":"Static Test File","description":"A static test file resource","mimeType":"text/plain"},{"uri":"file:///readme.txt","name":"file:///readme.txt","title":"Readme File","description":"Readme file resource","mimeType":"text/plain"}],"nextCursor":"cursor_page2"},"jsonrpc":"2.0","id":1}}
+{"from":"client1","to":"FileServer","message":{"method":"resources/list","params":{"cursor":"cursor_page2","limit":2},"jsonrpc":"2.0","id":2}}
+{"from":"FileServer","to":"client1","message":{"result":{"resources":[{"uri":"file:///watched.txt","name":"file:///watched.txt","title":"Watched File","description":"Watched file resource","mimeType":"text/plain"}]},"jsonrpc":"2.0","id":2}}
