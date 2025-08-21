@@ -218,6 +218,8 @@ Authorization for MCP is already challenging to fully implement for clients and 
 
 This proposal intends to simplify the story for authorization server and resource server developers by providing a clearer mechanism to trust redirect URIs and less operational overhead. This proposal depends on that simplicity being clearly the better option for most folks, which will drive more adoption and end up being the most supported option.  If we do not believe that it is clearly the better option, then we should not adopt this proposal.
 
+This proposal also provides a unified mechanism for both open servers and servers that want to restrict which clients can be used. Alternatives to this proposal require that clients and servers implement different mechanisms for the open and protected use cases.
+
 
 ## Alternatives Considered
 
