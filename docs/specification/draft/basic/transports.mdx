@@ -90,17 +90,21 @@ MCP endpoint.
 2. The client **MUST** include an `Accept` header, listing both `application/json` and
    `text/event-stream` as supported content types.
 3. The body of the POST request **MUST** be a single JSON-RPC _request_, _notification_, or _response_.
-4. If the input is a JSON-RPC _response_ or _notification_:
-   - If the server accepts the input, the server **MUST** return HTTP status code 202
-     Accepted with no body.
-   - If the server cannot accept the input, it **MUST** return an HTTP error status code
-     (e.g., 400 Bad Request). The HTTP response body **MAY** comprise a JSON-RPC _error
-     response_ that has no `id`.
-5. If the input is a JSON-RPC _request_, the server **MUST** either
+4. If the server cannot accept the input, it **MUST** return an HTTP error status code
+   (e.g., 400 Bad Request).
+   - If the input is not accepted due to unmet `Accept` header requirements, the error
+     **MUST** be of HTTP status code 406 Not Acceptable.
+   - If the input is not accepted due to unmet body requirements, the error
+     **MUST** be of HTTP status code 400 Bad Request.
+   - If the input is a JSON-RPC _response_ or _notification_, the HTTP response body
+     **MAY** comprise a JSON-RPC _error response_ that has no `id`.
+5. If the input is a JSON-RPC _response_ or _notification_, the server **MUST** return
+   HTTP status code 202 Accepted with no body.
+6. If the input is a JSON-RPC _request_, the server **MUST** either
    return `Content-Type: text/event-stream`, to initiate an SSE stream, or
    `Content-Type: application/json`, to return one JSON object. The client **MUST**
    support both these cases.
-6. If the server initiates an SSE stream:
+7. If the server initiates an SSE stream:
    - The SSE stream **SHOULD** eventually include JSON-RPC _response_ for the
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
