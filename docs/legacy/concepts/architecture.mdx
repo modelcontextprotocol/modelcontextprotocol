@@ -105,7 +105,6 @@ Key classes include:
 The transport layer handles the actual communication between clients and servers. MCP supports multiple transport mechanisms:
 
 1. **Stdio transport**
-
    - Uses standard input/output for communication
    - Ideal for local processes
 
@@ -288,7 +287,6 @@ if __name__ == "__main__":
 ### Transport selection
 
 1. **Local communication**
-
    - Use stdio transport for local processes
    - Efficient for same-machine communication
    - Simple process management
@@ -300,14 +298,12 @@ if __name__ == "__main__":
 ### Message handling
 
 1. **Request processing**
-
    - Validate inputs thoroughly
    - Use type-safe schemas
    - Handle errors gracefully
    - Implement timeouts
 
 2. **Progress reporting**
-
    - Use progress tokens for long operations
    - Report progress incrementally
    - Include total progress when known
@@ -320,20 +316,17 @@ if __name__ == "__main__":
 ## Security considerations
 
 1. **Transport security**
-
    - Use TLS for remote connections
    - Validate connection origins
    - Implement authentication when needed
 
 2. **Message validation**
-
    - Validate all incoming messages
    - Sanitize inputs
    - Check message size limits
    - Verify JSON-RPC format
 
 3. **Resource protection**
-
    - Implement access controls
    - Validate resource paths
    - Monitor resource usage
@@ -348,14 +341,12 @@ if __name__ == "__main__":
 ## Debugging and monitoring
 
 1. **Logging**
-
    - Log protocol events
    - Track message flow
    - Monitor performance
    - Record errors
 
 2. **Diagnostics**
-
    - Implement health checks
    - Monitor connection state
    - Track resource usage
