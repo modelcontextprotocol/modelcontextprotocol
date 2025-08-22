@@ -292,7 +292,13 @@ export interface ServerCapabilities {
 export interface Icon {
   /**
    * A standard URI pointing to an icon resource.
-   * For streamable HTTP servers, the URL SHOULD be on the same origin as the server itself
+   *
+   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
+   * same domain as the client/server or a trusted domain.
+   *
+   * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
+   * executable JavaScript
+   *
    * @format uri
    */
   src: string;
@@ -341,6 +347,12 @@ export interface Implementation extends BaseMetadata {
   icons?: Icon[];
   /**
    * An optional URL of the website for this implementation.
+   *
+   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
+   * same domain as the client/server or a trusted domain.
+   *
+   * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
+   * executable JavaScript
    *
    * @format: uri
    */
