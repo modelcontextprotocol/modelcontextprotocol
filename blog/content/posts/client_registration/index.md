@@ -212,13 +212,11 @@ If we adopt these approaches, we’ll need good best practices and SDK support t
 
 ## **Next Steps**
 
-Over the next few weeks, we'll be discussing both approaches in detail:
+Discussions for these approaches are happening in the [Specification Enhancement Proposals](https://modelcontextprotocol.io/community/sep-guidelines) (SEP):
 
 - [SEP-991: Client ID Metadata Documents](https://github.com/modelcontextprotocol/specification/discussions/991)
 - [SEP-1032: Software Statements with DCR](https://github.com/modelcontextprotocol/specification/discussions/1032)
 
-We intend to make a decision by the end of August.
-
-Get involved: Join the conversation in [Discord](https://discord.gg/modelcontextprotocol) (the \#auth-wg-client-registration channel) or comment on the SEPs directly.
+Get involved: Join the conversation in [Discord](https://discord.gg/6CSzBmMkjX) (the \#auth-wg-client-registration channel) or comment on the SEPs directly.
 
 A big thank to the following folks for help with this blog post: Den Delimarsky, Aaron Parecki, Geoff Goodman, Andrew Block, Pieter Kasselman, Abhishek Hingnikar, and Bobby Tiernay.
