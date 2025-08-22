@@ -9,8 +9,10 @@ tags = ['security', 'authorization']
 The Model Context Protocol (MCP) has adopted OAuth 2.1 as the foundation for its authorization framework. A key part of the authorization flow that MCP is particularly reliant on is **client registration**.
 
 This is especially important in a world where clients and servers don't have a pre-existing relationship - we can't assume that we will always know which MCP clients will connect to which MCP servers. This design highlights two challenges that need to be addressed:
+
 - Operational issues with managing client IDs via [Dynamic Client Registration](https://datatracker.ietf.org/doc/html/rfc7591) (DCR)
 - Preventing client impersonation
+
 If you're already familiar with OAuth and the current state of client registration in MCP, skip to [Two Distinct Challenges in MCP Client Registration](#two-distinct-challenges-in-mcp-client-registration).
 
 ## Background on OAuth
@@ -49,9 +51,11 @@ To be able to initiate this flow, however, the authorization server first needs 
 
 1. **Client name**: Human readable text to display in the consent screen to help the user decide whether they want to grant access.
 2. **Redirect URL**: The destination to send the authorization code back to if the user consents.
+
 In order to prevent a malicious client from tricking a user into granting access they didn't intend to grant, the authorization server must be able to trust the client information it has.
 
 For example, a malicious client could claim to be `Claude Desktop` on the consent screen while actually being owned by someone not affiliated with Claude Desktop developers. Seeing the client information on the consent screen, users might grant access thinking they're authorizing the legitimate Claude Desktop, not realizing that some malicious client now has access to their account.
+
 ## Improving Client Registration in MCP
 
 For MCP users, a common pattern is to connect to an MCP server by using its URL directly in a MCP client.
@@ -79,7 +83,6 @@ After extensive discussion with MCP server implementers, we've identified that a
 1. **Operational limitations** of Dynamic Client Registration in open environments
 2. **Client identity and impersonation** risks across different deployment scenarios
 
-
 ## **Challenge 1: Operational Limitations of Dynamic Client Registration**
 
 ### **The DCR Model Mismatch**
@@ -87,6 +90,7 @@ After extensive discussion with MCP server implementers, we've identified that a
 The DCR design takes the pre-registration pattern available in modern OAuth-based authorization servers and makes it available via an API. In fully open environments like MCP, DCR really puts the spotlight on a few operational challenges that an open registration endpoint introduces:
 
 **For authorization servers:**
+
 - **Unbounded database growth**: Every time a user connects a client to an MCP server, a new registration is created with the authorization server unless the client already has one. Registrations are also not portable, so using Claude Desktop on your Windows machine, and then jumping to Claude Desktop on macOS will create two distinct client registrations.
 - **Client expiry "black hole"**: There's no way to tell a client that its ID is invalid without creating an open redirect vulnerability. Clients have to implement their own heuristics for client ID management.
 - **Per-instance confusion**: Each client instance typically gets its own client ID even when using the same application, but on different machines or across different users. From an auditing perspective, an authorization server administrator may see hundreds (if not thousands) of records for the same application without any rhyme or reason.
