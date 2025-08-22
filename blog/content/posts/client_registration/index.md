@@ -1,9 +1,9 @@
 +++
-date = '2025-07-22T10:00:00Z'
+date = '2025-08-22T10:00:00Z'
 draft = true
 title = 'Evolving OAuth Client Registration in the Model Context Protocol'
 author = 'Paul Carleton (Core Maintainer)'
-tags = ['security', 'authorization', 'announcement]
+tags = ['security', 'authorization']
 +++
 
 The Model Context Protocol (MCP) has adopted OAuth 2.1 as the foundation for its authorization framework. A key part of the authorization flow that MCP is particularly reliant on is **client registration**.
@@ -104,14 +104,13 @@ Client ID Metadata Documents (CMD), described in [OAuth Client ID Metadata Docum
 
 Instead of a registration step, clients use an HTTPS metadata URL as their client ID directly. The server fetches the metadata from the URL at authorization time:
 
-```
+```mermaid
 sequenceDiagram
    participant Client
    participant AuthServer
    participant MetadataURL
 
-   Client->>AuthServer: Authorization request
-                        (client_id=https://app.com/oauth.json)
+   Client->>AuthServer: Authorization request (client_id=https://app.com/oauth.json)
    AuthServer->>MetadataURL: GET https://app.com/oauth.json
    MetadataURL-->>AuthServer: {name: "App", redirect_uris: [...]}
    AuthServer->>Client: Show consent screen & continue flow
@@ -134,7 +133,7 @@ The second challenge is orthogonal to the DCR vs. CIMD debate \- it's about trus
 
 We can map impersonation scenarios on two axes: attacker cost and mitigation complexity.
 
-![alt text](image.png)
+![Mitigation Cost vs Attack Cost](mitigation-attack-cost.png)
 
 **Low attacker cost/Low mitigation complexity: Domain-based attacks**
 
@@ -155,7 +154,7 @@ We can map impersonation scenarios on two axes: attacker cost and mitigation com
 
 - **Attack**: Get malicious client signed by a trusted authority
 - **Cost**: Extremely high \- requires compromising certification vendor processes
-- **Mitigation**: operating system-level attestation (future work)
+- **Mitigation**: platform system-level attestation (future work)
 
 ### **Solution: Software Statements for Desktop Applications**
 
