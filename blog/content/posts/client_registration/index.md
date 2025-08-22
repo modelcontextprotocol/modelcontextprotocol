@@ -133,6 +133,8 @@ The cost? Clients need to host a metadata document at an HTTPS URL. For web appl
 
 The second challenge is orthogonal to the DCR vs. CIMD debate \- it's about trusting that a client is who it claims to be. This problem will exist regardless of how the registration process is implemented.
 
+For web-based clients, trust is more straightforward, as we have an HTTPS domain that's tied to a certificate authority. For desktop clients, if the client can't offload its authorization to existing backend infrastructure, there is difficulty trusting the client is legitimate and unmodified.
+
 ### The Trust Spectrum
 
 We can map impersonation scenarios on two axes: attacker cost and mitigation complexity.
@@ -154,7 +156,7 @@ We can map impersonation scenarios on two axes: attacker cost and mitigation com
 - **Cost**: Trick user into running a malicious application (plus consenting for that app to have data access)
 - **Problem**: Desktop apps can't hold secrets, hard to prove identity
 
-**High attacker cost/High mitigation complexity: OS-attested applications**
+**High attacker cost/High mitigation complexity: Platform-attested applications**
 
 - **Attack**: Get malicious client signed by a trusted authority
 - **Cost**: Extremely high \- requires compromising certification vendor processes
