@@ -11,7 +11,7 @@ The Model Context Protocol (MCP) has adopted OAuth 2.1 as the foundation for its
 This is especially important in a world where clients and servers don't have a pre-existing relationship - we can't assume that we will always know which MCP clients will connect to which MCP servers. This design highlights two challenges that need to be addressed:
 - Operational issues with managing client IDs via [Dynamic Client Registration](https://datatracker.ietf.org/doc/html/rfc7591) (DCR)
 - Preventing client impersonation
-If you're already familiar with OAuth and the current state of client registration in MCP, skip to [Two Distinct Challenges in MCP Client Registration](#todo).
+If you're already familiar with OAuth and the current state of client registration in MCP, skip to [Two Distinct Challenges in MCP Client Registration](#two-distinct-challenges-in-mcp-client-registration).
 
 ## Background on OAuth
 
@@ -100,7 +100,7 @@ The DCR design takes the pre-registration pattern available in modern OAuth-base
 
 ### **Solution: Client ID Metadata Documents (CIMD)**
 
-Client ID Metadata Documents (described in [this draft RFC](https://www.ietf.org/archive/id/draft-looker-oauth-client-id-scheme-00.html) and implemented by Bluesky) elegantly sidestep these operational issues.
+Client ID Metadata Documents (CMD), described in [OAuth Client ID Metadata Document](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.html) and implemented by Bluesky, elegantly sidestep these operational issues.
 
 Instead of a registration step, clients use an HTTPS metadata URL as their client ID directly. The server fetches the metadata from the URL at authorization time:
 
@@ -174,11 +174,11 @@ This dramatically raises the bar for client impersonation, as an attacker would 
 
 Crucially, **software statements work with both DCR and CIMD**. They're not a competing solution \- they're a complementary security layer.
 
-### **Future: OS-Level Attestation**
+### **Future: Platform-Level Attestation**
 
-The strongest protection would be operating system-level attestation, where an established OS, such as macOS, Windows, Linux, or Android attest that a piece of software is legitimate.
+The strongest protection would be platform-level attestation, e.g. having MacOS, Windows, or Android attest that a piece of software is legitimate.
 
-Haivng OS-level attestation would make client impersonation unreasonably expensive. While the exact way this ties into a software statement is yet to be prototyped, the general direction is threading OS-level application identity validation through to the OAuth flow.
+Having OS-level attestation would make client impersonation unreasonably expensive. While the exact way this ties into a software statement is yet to be prototyped, the general direction is threading platform-level application identity validation through to the OAuth flow.
 
 ## **The Complementary Path Forward**
 
@@ -217,3 +217,5 @@ Over the next few weeks, we'll be discussing both approaches in detail:
 We intend to make a decision by the end of August.
 
 Get involved: Join the conversation in [Discord](https://discord.gg/modelcontextprotocol) (the \#auth-wg-client-registration channel) or comment on the SEPs directly.
+
+A big thank to the following folks for help with this blog post: Den Delimarsky, Aaron Parecki, Geoff Goodman, Andrew Block, Pieter Kasselman, Abhishek Hingnikar, and Bobby Tiernay.
