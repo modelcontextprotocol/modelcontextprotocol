@@ -92,7 +92,7 @@ Implementors should note that Protected Resource Metadata documents can define m
 
 MCP servers **MUST** implement one of the following discovery mechanisms to provide authorization server location information to MCP clients:
 
-1. **WWW-Authenticate Header**: Include the resource metadata URL in the `WWW-Authenticate` HTTP header when returning _401 Unauthorized_ responses, as described in [RFC9728 Section 5.1 "WWW-Authenticate Response"](https://datatracker.ietf.org/doc/html/rfc9728#name-www-authenticate-response).
+1. **WWW-Authenticate Header**: Include the resource metadata URL in the `WWW-Authenticate` HTTP header under `resource_metadata` when returning `401 Unauthorized` responses, as described in [RFC9728 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9728#name-www-authenticate-response).
 
 2. **Well-Known URI**: Serve metadata at a well-known URI as specified in [RFC9728](https://datatracker.ietf.org/doc/html/rfc9728). This can be either:
    - At a sub-path: `https://example.com/.well-known/oauth-protected-resource/mcp`
