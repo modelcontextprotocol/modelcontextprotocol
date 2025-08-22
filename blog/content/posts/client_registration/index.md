@@ -1,6 +1,6 @@
 +++
 date = '2025-08-22T10:00:00Z'
-draft = true
+draft = false
 title = 'Evolving OAuth Client Registration in the Model Context Protocol'
 author = 'Paul Carleton (Core Maintainer)'
 tags = ['security', 'authorization']
