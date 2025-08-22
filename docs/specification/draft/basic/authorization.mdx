@@ -98,7 +98,7 @@ MCP servers **MUST** implement one of the following discovery mechanisms to prov
    - At a sub-path: `https://example.com/.well-known/oauth-protected-resource/mcp`
    - At the root: `https://example.com/.well-known/oauth-protected-resource`
 
-MCP clients **MUST** support both discovery mechanisms and **MUST** be able to parse `WWW-Authenticate` headers when present and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
+MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed WWW-Authenticate headers when present; otherwise, they must fall back to constructing the well-known URIs as described above.
 
 #### Authorization Server Metadata Discovery
 
