@@ -89,7 +89,7 @@ The DCR design takes the pre-registration pattern available in modern OAuth-base
 **For authorization servers:**
 - **Unbounded database growth**: Every time a user connects a client to an MCP server, a new registration is created with the authorization server unless the client already has one. Registrations are also not portable, so using Claude Desktop on your Windows machine, and then jumping to Claude Desktop on macOS will create two distinct client registrations.
 - **Client expiry "black hole"**: There's no way to tell a client that its ID is invalid without creating an open redirect vulnerability. Clients have to implement their own heuristics for client ID management.
-- **Per-instance confusion**: Each client instance typically gets its own client ID even when using the same application, but on different machines or across different users. From an auditing perspective, a an authorization server administrator may see hundreds (if not thousands) of records for the same application without any rhyme or reason.
+- **Per-instance confusion**: Each client instance typically gets its own client ID even when using the same application, but on different machines or across different users. From an auditing perspective, an authorization server administrator may see hundreds (if not thousands) of records for the same application without any rhyme or reason.
 - **Denial-of-Service vulnerability**: An unauthenticated `/register` endpoint writes to a database within the authorization server, meaning that tenant admins now need to worry about rate limiting or policy controls (e.g., hosts allowed to register clients).
 
 **For clients:**
@@ -118,7 +118,7 @@ sequenceDiagram
 
 This addresses all the operational issues:
 
-- **No database needed**: Servers fetch metadata on-demand (can cache for performance)
+- **No unbounded database growth**: Servers fetch metadata on-demand (can cache for performance)
 - **No expiry management**: The URL is the ID \- it doesn't expire
 - **Natural per-app model**: One URL per application, not per user
 - **No registration endpoint**: No unauthenticated write operations
