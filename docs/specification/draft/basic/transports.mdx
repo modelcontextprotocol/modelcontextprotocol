@@ -87,20 +87,24 @@ Every JSON-RPC message sent from the client **MUST** be a new HTTP POST request 
 MCP endpoint.
 
 1. The client **MUST** use HTTP POST to send JSON-RPC messages to the MCP endpoint.
-2. The client **MUST** include an `Accept` header, listing both `application/json` and
+2. The client **SHOULD** set their `User-Agent` header to include the `clientInfo` name, version,
+   and protocolVersion consistent with their initialize request. The recommended format is
+   `ClientName/ClientVersion (mcp/2025-03-26)`. 
+3. The client **MUST** include an `Accept` header, listing both `application/json` and
    `text/event-stream` as supported content types.
-3. The body of the POST request **MUST** be a single JSON-RPC _request_, _notification_, or _response_.
-4. If the input is a JSON-RPC _response_ or _notification_:
+4. The body of the POST request **MUST** be a single JSON-RPC _request_, _notification_, or _response_.
+5. If the input is a JSON-RPC _response_ or _notification_:
    - If the server accepts the input, the server **MUST** return HTTP status code 202
      Accepted with no body.
    - If the server cannot accept the input, it **MUST** return an HTTP error status code
      (e.g., 400 Bad Request). The HTTP response body **MAY** comprise a JSON-RPC _error
      response_ that has no `id`.
-5. If the input is a JSON-RPC _request_, the server **MUST** either
+6. If the input is a JSON-RPC _request_, the server **MUST** either
    return `Content-Type: text/event-stream`, to initiate an SSE stream, or
    `Content-Type: application/json`, to return one JSON object. The client **MUST**
-   support both these cases.
-6. If the server initiates an SSE stream:
+   support both these cases. The client **SHOULD** set the `X-Mcp-Method` header to the method
+   name in the request.
+7. If the server initiates an SSE stream:
    - The SSE stream **SHOULD** eventually include JSON-RPC _response_ for the
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
@@ -117,6 +121,9 @@ MCP endpoint.
      - To cancel, the client **SHOULD** explicitly send an MCP `CancelledNotification`.
      - To avoid message loss due to disconnection, the server **MAY** make the stream
        [resumable](#resumability-and-redelivery).
+8. On all server responses, the server **SHOULD** respond with a `Server` header including the
+   `serverInfo` name, version and protocolVersion consistent with their initialize response. The
+   recommended format is `ServerName/ServerVersion (mcp/2025-03-26)`. 
 
 ### Listening for Messages from the Server
 
