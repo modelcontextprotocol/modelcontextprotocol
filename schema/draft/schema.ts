@@ -468,7 +468,15 @@ export interface SubscribeRequest extends Request {
 }
 
 /**
- * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
+ * Sent from the server to the client, to confirm a request to subscribe to resource modifications.
+ * If the request is denied, errors out, or is a duplicate of an existing subscription, the server should send an Error response.
+ *
+ * @category resources/subscribe
+ */
+export type SubscribeResult = EmptyResult
+
+/**
+ * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous (accepted) resources/subscribe request.
  *
  * @category resources/unsubscribe
  */
@@ -483,6 +491,13 @@ export interface UnsubscribeRequest extends Request {
     uri: string;
   };
 }
+
+/**
+ * Sent from the server to the client, to confirm a request to unsubscribe from resource modification notifications.
+ * 
+ * @category resources/unsubscribe
+ */
+export type UnsubscribeResult = EmptyResult
 
 /**
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
@@ -1530,5 +1545,7 @@ export type ServerResult =
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | SubscribeResult
+  | UnsubscribeResult
   | CallToolResult
   | ListToolsResult;
