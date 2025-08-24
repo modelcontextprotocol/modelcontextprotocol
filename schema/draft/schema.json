@@ -144,6 +144,10 @@
                         "name"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -170,6 +174,10 @@
                 "isError": {
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 },
                 "structuredContent": {
                     "additionalProperties": {},
@@ -204,6 +212,10 @@
                         "requestId"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -269,6 +281,9 @@
             "anyOf": [
                 {
                     "$ref": "#/definitions/InitializeRequest"
+                },
+                {
+                    "$ref": "#/definitions/SessionTerminateRequest"
                 },
                 {
                     "$ref": "#/definitions/PingRequest"
@@ -380,6 +395,10 @@
                         "ref"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -418,6 +437,10 @@
                         "values"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -501,6 +524,10 @@
                         "messages"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -536,6 +563,10 @@
                 },
                 "role": {
                     "$ref": "#/definitions/Role"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 },
                 "stopReason": {
                     "description": "The reason why sampling stopped, if known.",
@@ -598,6 +629,10 @@
                         "requestedSchema"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -633,6 +668,10 @@
                     },
                     "description": "The submitted form data, only present when action is \"accept\".\nContains values matching the requested schema.",
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -732,6 +771,10 @@
                         "name"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -757,6 +800,10 @@
                         "$ref": "#/definitions/PromptMessage"
                     },
                     "type": "array"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -844,6 +891,10 @@
                         "protocolVersion"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -873,6 +924,14 @@
                 },
                 "serverInfo": {
                     "$ref": "#/definitions/Implementation"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier assigned by the server.\nThis can be used for resuming the session after disconnection.",
+                    "type": "string"
+                },
+                "sessionTimeout": {
+                    "description": "Optional session timeout hint in seconds.\nIndicates how long the server will maintain the session after disconnection.",
+                    "type": "integer"
                 }
             },
             "required": [
@@ -899,6 +958,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -981,6 +1044,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1018,6 +1085,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1063,6 +1134,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1087,6 +1162,10 @@
                         "$ref": "#/definitions/Prompt"
                     },
                     "type": "array"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1109,6 +1188,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1133,6 +1216,10 @@
                         "$ref": "#/definitions/ResourceTemplate"
                     },
                     "type": "array"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1155,6 +1242,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1179,6 +1270,10 @@
                         "$ref": "#/definitions/Resource"
                     },
                     "type": "array"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1209,6 +1304,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1229,6 +1328,10 @@
                         "$ref": "#/definitions/Root"
                     },
                     "type": "array"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1251,6 +1354,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1268,6 +1375,10 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "type": "string"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
                     "type": "string"
                 },
                 "tools": {
@@ -1322,6 +1433,10 @@
                         "level"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1386,6 +1501,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1433,6 +1552,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1449,6 +1572,10 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "type": "string"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
                     "type": "string"
                 }
             },
@@ -1477,6 +1604,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1532,6 +1663,10 @@
                         "progressToken"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1622,6 +1757,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1686,6 +1825,10 @@
                         "uri"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1714,6 +1857,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1742,6 +1889,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1889,6 +2040,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1974,6 +2129,10 @@
                         "uri"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1989,6 +2148,10 @@
                     "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this result with a session.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -2041,6 +2204,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -2210,6 +2377,44 @@
                 }
             ]
         },
+        "SessionId": {
+            "description": "A unique identifier for a session.",
+            "type": "string"
+        },
+        "SessionTerminateRequest": {
+            "description": "Request to terminate a session.\n\nThe client sends this to explicitly end a session. The server MAY refuse termination\nif operations are in progress. The sessionId is provided in the request envelope.",
+            "properties": {
+                "method": {
+                    "const": "session/terminate",
+                    "type": "string"
+                },
+                "params": {
+                    "additionalProperties": {},
+                    "properties": {
+                        "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                            "properties": {
+                                "progressToken": {
+                                    "$ref": "#/definitions/ProgressToken",
+                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "method"
+            ],
+            "type": "object"
+        },
         "SetLevelRequest": {
             "description": "A request from the client to the server, to enable or adjust logging.",
             "properties": {
@@ -2228,6 +2433,10 @@
                         "level"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -2288,6 +2497,10 @@
                         "uri"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -2478,6 +2691,10 @@
                         }
                     },
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this notification with a session.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -2504,6 +2721,10 @@
                         "uri"
                     ],
                     "type": "object"
+                },
+                "sessionId": {
+                    "description": "Optional session identifier to associate this request with a session.",
+                    "type": "string"
                 }
             },
             "required": [
