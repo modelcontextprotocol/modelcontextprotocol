@@ -469,25 +469,11 @@ export interface SubscribeRequest extends Request {
 
 /**
  * Sent from the server to the client, to confirm a request to subscribe to resource modifications.
+ * If the request is denied, errors out, or is a duplicate of an existing subscription, the server should send an Error response.
  *
  * @category resources/subscribe
  */
-export interface SubscribeResult extends Result {
-  /**
-   * The URI of the resource that was subscribed to.
-   *
-   * @format uri
-   */
-  uri: string;
-  /**
-   * Confirmation that the request has been accepted.
-   */
-  subscribed: boolean;
-  /**
-   * An optional reason given if the request is denied. (NOTE: If a resource subscription already exists for this client and URI, the response should be an Error and not a Result.)
-   */
-  reason?: string;
-}
+export type SubscribeResult = EmptyResult
 
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous (accepted) resources/subscribe request.
@@ -507,18 +493,11 @@ export interface UnsubscribeRequest extends Request {
 }
 
 /**
- * Sent from the server to the client, to confirm a request to unsubscribe from resource modification notifications. (NOTE: If no subscription exists for this client and URI, the response should be an Error and not a Result.)
+ * Sent from the server to the client, to confirm a request to unsubscribe from resource modification notifications.
  * 
  * @category resources/unsubscribe
  */
-export interface UnsubscribeResult extends Result {
-  /**
-   * The URI of the resource that was unsubscribed from.
-   *
-   * @format uri
-   */
-  uri: string;
-}
+export type UnsubscribeResult = EmptyResult
 
 /**
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
