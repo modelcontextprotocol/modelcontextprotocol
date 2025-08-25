@@ -101,7 +101,8 @@ The server **MUST** respond with its own capabilities and information:
       "title": "Example Server Display Name",
       "version": "1.0.0"
     },
-    "instructions": "Optional instructions for the client"
+    "instructions": "Optional instructions for the client",
+    "mcpSessionId": "abc123"  // Required for WebSocket transport, optional otherwise
   }
 }
 ```
@@ -112,9 +113,15 @@ to indicate it is ready to begin normal operations:
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "notifications/initialized"
+  "method": "notifications/initialized",
+  "params": {
+    "mcpSessionId": "abc123"  // Required for WebSocket transport, optional otherwise
+  }
 }
 ```
+<Note>
+The `mcpSessionId` field is required when using the WebSocket transport and optional for other transports. For more details, see [the MCP Session section in Transports](/specification/draft/basic/transports#mcp-session-management-for-websockets).
+</Note>
 
 - The client **SHOULD NOT** send requests other than
   [pings](/specification/draft/basic/utilities/ping) before the server has responded to the
@@ -139,8 +146,9 @@ disconnect.
 <Note>
 If using HTTP, the client **MUST** include the `MCP-Protocol-Version:
 <protocol-version>` HTTP header on all subsequent requests to the MCP
-server.
-For details, see [the Protocol Version Header section in Transports](/specification/draft/basic/transports#protocol-version-header).
+server. For details, see [the Protocol Version Header section in Transports](/specification/draft/basic/transports#protocol-version-header).
+
+Similarly, if using WebSocket transport, the client **MUST** include an `mcp.version.${protocolVersion}` value in the WebSocket subprotocols list via the `Sec-WebSocket-Protocol` header in the WebSocket upgrade request.
 </Note>
 
 #### Capability Negotiation
