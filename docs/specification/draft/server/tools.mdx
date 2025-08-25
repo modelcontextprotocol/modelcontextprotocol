@@ -187,14 +187,16 @@ A tool definition includes:
 - `title`: Optional human-readable name of the tool for display purposes.
 - `description`: Human-readable description of functionality
 - `inputSchema`: JSON Schema defining expected parameters
+  - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
+  - Defaults to 2020-12 if no `$schema` field is present
 - `outputSchema`: Optional JSON Schema defining expected output structure
+  - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
+  - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: optional properties describing tool behavior
 
 <Warning>
-
-For trust & safety and security, clients **MUST** consider
-tool annotations to be untrusted unless they come from trusted servers.
-
+  For trust & safety and security, clients **MUST** consider tool annotations to
+  be untrusted unless they come from trusted servers.
 </Warning>
 
 ### Tool Result
@@ -292,13 +294,13 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 #### Structured Content
 
-**Structured** content is returned as a JSON object in the `structuredContent` field of a result.
+**Structured** content is returned as a JSON value in the `structuredContent` field of a result. This can be any valid JSON: objects, arrays, strings, numbers, booleans, or null.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
 
 #### Output Schema
 
-Tools may also provide an output schema for validation of structured results.
+Tools may also provide an output schema for validation of structured results. The output schema can be any valid [JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12), supporting all JSON types and schema composition features.
 If an output schema is provided:
 
 - Servers **MUST** provide structured results that conform to this schema.
@@ -370,6 +372,49 @@ Providing an output schema helps clients and LLMs understand and properly handle
 - Providing type information for better integration with programming languages
 - Guiding clients and LLMs to properly parse and utilize the returned data
 - Supporting better documentation and developer experience
+
+### Schema Examples
+
+#### Tool with default 2020-12 schema:
+
+```json
+{
+  "name": "calculate_sum",
+  "description": "Add two numbers",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "a": { "type": "number" },
+      "b": { "type": "number" }
+    },
+    "required": ["a", "b"]
+  }
+}
+```
+
+#### Tool with explicit draft-07 schema:
+
+```json
+{
+  "name": "search_products",
+  "description": "Search for products with filters",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "filters": {
+        "type": "object",
+        "properties": {
+          "minPrice": { "type": "number", "minimum": 0 },
+          "maxPrice": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "required": ["query"]
+  }
+}
+```
 
 ## Error Handling
 
