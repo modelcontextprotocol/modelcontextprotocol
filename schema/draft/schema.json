@@ -2074,6 +2074,30 @@
             ],
             "type": "object"
         },
+        "ReadConfidentiality": {
+            "description": "Confidentiality level of data sources read by the tool. E.g., if tool is reading from an enterprise employee database, set to high",
+            "enum": [
+                "high",
+                "low"
+            ],
+            "type": "string"
+        },
+        "WriteConfidentiality": {
+            "description": "Confidentiality level for sinks to which tool writes. E.g., if tool is posting a public blog, should be low and if tool is updating an employee record, should be high",
+            "enum": [
+                "high",
+                "low"
+            ],
+            "type": "string"
+        },                  
+        "Integrity": {
+            "description": "Specifies the integrity level of the tool. Can be overridden by tool deployer (e.g., when being added to a gateway)",
+            "enum": [
+                "high",
+                "low"
+            ],
+            "type": "string"
+        },
         "ServerCapabilities": {
             "description": "Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.",
             "properties": {

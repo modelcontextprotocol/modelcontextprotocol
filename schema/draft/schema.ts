@@ -751,6 +751,23 @@ export interface PromptListChangedNotification extends Notification {
   method: "notifications/prompts/list_changed";
 }
 
+/**
+ * Confidentiality level of data sources read by the tool. E.g., if tool is reading from an enterprise employee database, set to high"
+ */
+export type ReadConfidentiality = "high" | "low";
+
+
+/**
+ * Confidentiality level for sinks to which tool writes. E.g., if tool is posting a public blog, should be low and if tool is updating an employee record (private), should be high
+ */
+export type WriteConfidentiality = "high" | "low";
+
+/**
+ * Specifies the integrity level of the tool. Can be overridden by tool deployer (e.g., when being added to a gateway)
+ */
+export type Integrity = "high" | "low";
+
+
 /* Tools */
 /**
  * Sent from the client to request a list of tools the server has.
