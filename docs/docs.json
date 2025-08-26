@@ -21,52 +21,54 @@
     ]
   },
   "navigation": {
-    "versions": [
+    "tabs": [
       {
-        "version": "Version 2025-06-18 (latest)",
-        "groups": [
+        "tab": "Documentation",
+        "pages": [
+          "docs/getting-started/intro",
+          "docs/sdk",
           {
-            "group": "User Guide",
+            "group": "Concepts",
             "pages": [
-              "introduction",
+              "docs/learn/architecture",
+              "docs/learn/server-concepts",
+              "docs/learn/client-concepts",
+              "specification/versioning"
+            ]
+          },
+          {
+            "group": "Tutorials",
+            "pages": [
               {
-                "group": "Quickstart",
+                "group": "Using MCP",
                 "pages": [
-                  "quickstart/server",
-                  "quickstart/client",
+                  "docs/tutorials/use-remote-mcp-server",
                   "quickstart/user"
                 ]
               },
               {
-                "group": "Concepts",
+                "group": "Server Development",
                 "pages": [
-                  "docs/concepts/architecture",
-                  "docs/concepts/resources",
-                  "docs/concepts/prompts",
-                  "docs/concepts/tools",
-                  "docs/concepts/sampling",
-                  "docs/concepts/roots",
-                  "docs/concepts/elicitation",
-                  "docs/concepts/transports"
+                  "quickstart/server",
+                  "legacy/tools/inspector"
                 ]
               },
               {
-                "group": "Examples",
-                "pages": ["examples", "clients"]
-              },
-              {
-                "group": "Tutorials",
+                "group": "Client Development",
                 "pages": [
-                  "tutorials/building-mcp-with-llms",
-                  "docs/tools/debugging",
-                  "docs/tools/inspector"
+                  "quickstart/client"
                 ]
-              },
-              "faqs"
+              }
             ]
           },
+          "faqs"
+        ]
+      },
+      {
+        "tab": "Specification",
+        "versions": [
           {
-            "group": "Protocol",
+            "version": "Version 2025-06-18 (latest)",
             "pages": [
               "specification/2025-06-18/index",
               "specification/2025-06-18/changelog",
@@ -118,79 +120,7 @@
             ]
           },
           {
-            "group": "Community",
-            "pages": [
-              "community/governance",
-              "community/sep-guidelines"
-            ]
-          },
-          {
-            "group": "Development",
-            "pages": [
-              "specification/versioning",
-              "development/roadmap",
-              "development/contributing"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "links/sdks/csharp",
-              "links/sdks/java",
-              "links/sdks/kotlin",
-              "links/sdks/python",
-              "links/sdks/ruby",
-              "links/sdks/rust",
-              "links/sdks/swift",
-              "links/sdks/typescript"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "Version 2025-03-26",
-        "groups": [
-          {
-            "group": "User Guide",
-            "pages": [
-              "introduction",
-              {
-                "group": "Quickstart",
-                "pages": [
-                  "quickstart/server",
-                  "quickstart/client",
-                  "quickstart/user"
-                ]
-              },
-              {
-                "group": "Concepts",
-                "pages": [
-                  "docs/concepts/architecture",
-                  "docs/concepts/resources",
-                  "docs/concepts/prompts",
-                  "docs/concepts/tools",
-                  "docs/concepts/sampling",
-                  "docs/concepts/roots",
-                  "docs/concepts/transports"
-                ]
-              },
-              {
-                "group": "Examples",
-                "pages": ["examples", "clients"]
-              },
-              {
-                "group": "Tutorials",
-                "pages": [
-                  "tutorials/building-mcp-with-llms",
-                  "docs/tools/debugging",
-                  "docs/tools/inspector"
-                ]
-              },
-              "faqs"
-            ]
-          },
-          {
-            "group": "Protocol",
+            "version": "Version 2025-03-26",
             "pages": [
               "specification/2025-03-26/index",
               "specification/2025-03-26/changelog",
@@ -239,79 +169,7 @@
             ]
           },
           {
-            "group": "Community",
-            "pages": [
-              "community/governance",
-              "community/sep-guidelines"
-            ]
-          },
-          {
-            "group": "Development",
-            "pages": [
-              "specification/versioning",
-              "development/roadmap",
-              "development/contributing"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "links/sdks/csharp",
-              "links/sdks/java",
-              "links/sdks/kotlin",
-              "links/sdks/python",
-              "links/sdks/ruby",
-              "links/sdks/rust",
-              "links/sdks/swift",
-              "links/sdks/typescript"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "Version 2024-11-05",
-        "groups": [
-          {
-            "group": "User Guide",
-            "pages": [
-              "introduction",
-              {
-                "group": "Quickstart",
-                "pages": [
-                  "quickstart/server",
-                  "quickstart/client",
-                  "quickstart/user"
-                ]
-              },
-              {
-                "group": "Concepts",
-                "pages": [
-                  "docs/concepts/architecture",
-                  "docs/concepts/resources",
-                  "docs/concepts/prompts",
-                  "docs/concepts/tools",
-                  "docs/concepts/sampling",
-                  "docs/concepts/roots",
-                  "docs/concepts/transports"
-                ]
-              },
-              {
-                "group": "Examples",
-                "pages": ["examples", "clients"]
-              },
-              {
-                "group": "Tutorials",
-                "pages": [
-                  "tutorials/building-mcp-with-llms",
-                  "docs/tools/debugging",
-                  "docs/tools/inspector"
-                ]
-              },
-              "faqs"
-            ]
-          },
-          {
-            "group": "Protocol",
+            "version": "Version 2024-11-05",
             "pages": [
               "specification/2024-11-05/index",
               "specification/2024-11-05/architecture/index",
@@ -359,79 +217,7 @@
             ]
           },
           {
-            "group": "Community",
-            "pages": [
-              "community/governance",
-              "community/sep-guidelines"
-            ]
-          },
-          {
-            "group": "Development",
-            "pages": [
-              "specification/versioning",
-              "development/roadmap",
-              "development/contributing"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "links/sdks/csharp",
-              "links/sdks/java",
-              "links/sdks/kotlin",
-              "links/sdks/python",
-              "links/sdks/ruby",
-              "links/sdks/rust",
-              "links/sdks/swift",
-              "links/sdks/typescript"
-            ]
-          }
-        ]
-      },
-      {
-        "version": "Draft",
-        "groups": [
-          {
-            "group": "User Guide",
-            "pages": [
-              "introduction",
-              {
-                "group": "Quickstart",
-                "pages": [
-                  "quickstart/server",
-                  "quickstart/client",
-                  "quickstart/user"
-                ]
-              },
-              {
-                "group": "Concepts",
-                "pages": [
-                  "docs/concepts/architecture",
-                  "docs/concepts/resources",
-                  "docs/concepts/prompts",
-                  "docs/concepts/tools",
-                  "docs/concepts/sampling",
-                  "docs/concepts/roots",
-                  "docs/concepts/transports"
-                ]
-              },
-              {
-                "group": "Examples",
-                "pages": ["examples", "clients"]
-              },
-              {
-                "group": "Tutorials",
-                "pages": [
-                  "tutorials/building-mcp-with-llms",
-                  "docs/tools/debugging",
-                  "docs/tools/inspector"
-                ]
-              },
-              "faqs"
-            ]
-          },
-          {
-            "group": "Protocol",
+            "version": "Draft",
             "pages": [
               "specification/draft/index",
               "specification/draft/changelog",
@@ -481,36 +267,23 @@
               },
               "specification/draft/schema"
             ]
-          },
-          {
-            "group": "Community",
-            "pages": [
-              "community/governance",
-              "community/sep-guidelines"
-            ]
-          },
-          {
-            "group": "Development",
-            "pages": [
-              "specification/versioning",
-              "development/roadmap",
-              "development/contributing"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "links/sdks/csharp",
-              "links/sdks/java",
-              "links/sdks/kotlin",
-              "links/sdks/python",
-              "links/sdks/ruby",
-              "links/sdks/rust",
-              "links/sdks/swift",
-              "links/sdks/typescript"
-            ]
           }
         ]
+      },
+      {
+        "tab": "Community",
+        "pages": [
+          "community/communication",
+          "community/governance",
+          "community/sep-guidelines",
+          "development/roadmap",
+          "clients",
+          "examples"
+        ]
+      },
+      {
+        "tab": "About MCP",
+        "pages": ["about/index"]
       }
     ]
   },
@@ -542,6 +315,58 @@
       "source": "/specification/latest",
       "destination": "/specification/2025-06-18",
       "permanent": false
+    },
+    {
+      "source": "/docs/concepts/architecture",
+      "destination": "/docs/learn/architecture"
+    },
+    {
+      "source": "/docs/concepts/elicitation",
+      "destination": "/specification/2025-06-18/client/elicitation"
+    },
+    {
+      "source": "/docs/concepts/prompts",
+      "destination": "/specification/2025-06-18/server/prompts"
+    },
+    {
+      "source": "/docs/concepts/resources",
+      "destination": "/specification/2025-06-18/server/resources"
+    },
+    {
+      "source": "/docs/concepts/roots",
+      "destination": "/specification/2025-06-18/client/roots"
+    },
+    {
+      "source": "/docs/concepts/sampling",
+      "destination": "/specification/2025-06-18/client/sampling"
+    },
+    {
+      "source": "/docs/concepts/tools",
+      "destination": "/specification/2025-06-18/server/tools"
+    },
+    {
+      "source": "/docs/concepts/transports",
+      "destination": "/specification/2025-06-18/basic/transports"
+    },
+    {
+      "source": "/docs/tools/debugging",
+      "destination": "/legacy/tools/debugging"
+    },
+    {
+      "source": "/docs/tools/inspector",
+      "destination": "/legacy/tools/inspector"
+    },
+    {
+      "source": "/introduction",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/concepts",
+      "destination": "/docs/learn/architecture"
+    },
+    {
+      "source": "/docs/tools",
+      "destination": "/legacy/tools/inspector"
     }
   ],
   "contextual": {
