@@ -26,6 +26,11 @@ export type ProgressToken = string | number;
  */
 export type Cursor = string;
 
+/**
+ * A unique identifier for a session.
+ */
+export type SessionId = string;
+
 /** @internal */
 export interface Request {
   method: string;
@@ -42,6 +47,10 @@ export interface Request {
     };
     [key: string]: unknown;
   };
+  /**
+   * Optional session identifier to associate this request with a session.
+   */
+  sessionId?: SessionId;
 }
 
 /** @internal */
@@ -54,6 +63,10 @@ export interface Notification {
     _meta?: { [key: string]: unknown };
     [key: string]: unknown;
   };
+  /**
+   * Optional session identifier to associate this notification with a session.
+   */
+  sessionId?: SessionId;
 }
 
 export interface Result {
@@ -62,6 +75,10 @@ export interface Result {
    */
   _meta?: { [key: string]: unknown };
   [key: string]: unknown;
+  /**
+   * Optional session identifier to associate this result with a session.
+   */
+  sessionId?: SessionId;
 }
 
 /**
@@ -199,6 +216,18 @@ export interface InitializeResult extends Result {
    * This can be used by clients to improve the LLM's understanding of available tools, resources, etc. It can be thought of like a "hint" to the model. For example, this information MAY be added to the system prompt.
    */
   instructions?: string;
+
+  /**
+   * Optional session identifier assigned by the server.
+   * This can be used for resuming the session after disconnection.
+   */
+  sessionId?: SessionId;
+
+  /**
+   * Optional session timeout hint in seconds.
+   * Indicates how long the server will maintain the session after disconnection.
+   */
+  sessionTimeout?: number;
 }
 
 /**
@@ -208,6 +237,19 @@ export interface InitializeResult extends Result {
  */
 export interface InitializedNotification extends Notification {
   method: "notifications/initialized";
+}
+
+/**
+ * Request to terminate a session.
+ * 
+ * The client sends this to explicitly end a session. The server MAY refuse termination
+ * if operations are in progress. The sessionId is provided in the request envelope.
+ * 
+ * @category session/terminate
+ */
+export interface SessionTerminateRequest extends Request {
+  method: "session/terminate";
+  // No params - sessionId is in the request envelope
 }
 
 /**
@@ -1476,6 +1518,7 @@ export interface ElicitResult extends Result {
 export type ClientRequest =
   | PingRequest
   | InitializeRequest
+  | SessionTerminateRequest
   | CompleteRequest
   | SetLevelRequest
   | GetPromptRequest
