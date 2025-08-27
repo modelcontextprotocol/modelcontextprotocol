@@ -295,10 +295,10 @@
                     "$ref": "#/definitions/GetPromptRequest"
                 },
                 {
-                    "$ref": "#/definitions/ListToolsRequest"
+                    "$ref": "#/definitions/CallToolRequest"
                 },
                 {
-                    "$ref": "#/definitions/CallToolRequest"
+                    "$ref": "#/definitions/ListToolsRequest"
                 },
                 {
                     "$ref": "#/definitions/SetLevelRequest"
@@ -704,6 +704,42 @@
             "required": [
                 "enum",
                 "type"
+            ],
+            "type": "object"
+        },
+        "ExampleToolCall": {
+            "description": "A tool call initiated by the assistant.",
+            "properties": {
+                "id": {
+                    "description": "A unique identifier for this tool call.\nThis ID is used to match tool calls with their results.",
+                    "type": "string"
+                },
+                "request": {
+                    "$ref": "#/definitions/CallToolRequest",
+                    "description": "The name of the tool being called."
+                }
+            },
+            "required": [
+                "id",
+                "request"
+            ],
+            "type": "object"
+        },
+        "ExampleToolResult": {
+            "description": "A result returned from a tool call.",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/CallToolResult",
+                    "description": "The content returned from the tool."
+                },
+                "toolCallId": {
+                    "description": "The identifier of the tool call this is the result for.\nThis correlates this Result with the Request.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result",
+                "toolCallId"
             ],
             "type": "object"
         },
@@ -1637,6 +1673,20 @@
                 },
                 "role": {
                     "$ref": "#/definitions/Role"
+                },
+                "toolCall": {
+                    "description": "Tool calls requested by the the Assistant. \nShould only be present if Role is Assistant",
+                    "items": {
+                        "$ref": "#/definitions/ExampleToolCall"
+                    },
+                    "type": "array"
+                },
+                "toolResult": {
+                    "description": "Tool calls results supplied by the User. \nShould only be present if Role is User (Host)",
+                    "items": {
+                        "$ref": "#/definitions/ExampleToolResult"
+                    },
+                    "type": "array"
                 }
             },
             "required": [
@@ -2200,10 +2250,10 @@
                     "$ref": "#/definitions/GetPromptResult"
                 },
                 {
-                    "$ref": "#/definitions/ListToolsResult"
+                    "$ref": "#/definitions/CallToolResult"
                 },
                 {
-                    "$ref": "#/definitions/CallToolResult"
+                    "$ref": "#/definitions/ListToolsResult"
                 },
                 {
                     "$ref": "#/definitions/CompleteResult"

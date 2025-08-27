@@ -184,6 +184,8 @@ A prompt definition includes:
 Messages in a prompt can contain:
 
 - `role`: Either "user" or "assistant" to indicate the speaker
+- `toolCall`: Example Tool Calls requested by the Assistant
+- `toolResult`: Example Tool Results supplied by the Server (or User)
 - `content`: One of the following content types:
 
 <Note>
@@ -261,6 +263,17 @@ Resources can contain either text or binary (blob) data and **MUST** include:
 Embedded resources enable prompts to seamlessly incorporate server-managed content like
 documentation, code samples, or other reference materials directly into the conversation
 flow.
+
+#### Example Tool Call
+
+An example Tool Call requested by the Assistant, usually in response to a preceding User
+message. The `id` provides a correlation to any provided results.
+
+#### Example Tool Result
+
+An example Tool Result supplied by the User (normally the MCP Server supplying the
+prompt), usually in response to a preceding Assistant message. The `id` allows the Host
+to correlate the example with its associated ExampleToolCall.
 
 ## Error Handling
 
