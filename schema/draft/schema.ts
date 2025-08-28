@@ -896,6 +896,7 @@ export interface Tool extends BaseMetadata {
    * A JSON Schema object defining the expected parameters for the tool.
    */
   inputSchema: {
+    $schema?: string;
     type: "object";
     properties?: { [key: string]: object };
     required?: string[];
@@ -906,6 +907,7 @@ export interface Tool extends BaseMetadata {
    * the structuredContent field of a CallToolResult.
    */
   outputSchema?: {
+    $schema?: string;
     type: "object";
     properties?: { [key: string]: object };
     required?: string[];
@@ -1401,6 +1403,7 @@ export interface ElicitRequest extends JSONRPCRequest {
      * Only top-level properties are allowed, without nesting.
      */
     requestedSchema: {
+      $schema?: string;
       type: "object";
       properties: {
         [key: string]: PrimitiveSchemaDefinition;
