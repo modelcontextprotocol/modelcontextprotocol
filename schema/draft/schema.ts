@@ -1427,6 +1427,7 @@ export interface StringSchema {
   minLength?: number;
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
+  default?: string;
 }
 
 export interface NumberSchema {
@@ -1435,6 +1436,7 @@ export interface NumberSchema {
   description?: string;
   minimum?: number;
   maximum?: number;
+  default?: number;
 }
 
 export interface BooleanSchema {
@@ -1450,6 +1452,7 @@ export interface EnumSchema {
   description?: string;
   enum: string[];
   enumNames?: string[]; // Display names for enum values
+  default?: string;
 }
 
 /**

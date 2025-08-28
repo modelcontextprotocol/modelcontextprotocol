@@ -719,6 +719,9 @@
         },
         "EnumSchema": {
             "properties": {
+                "default": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1512,6 +1515,9 @@
         },
         "NumberSchema": {
             "properties": {
+                "default": {
+                    "type": "integer"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2416,6 +2422,9 @@
         },
         "StringSchema": {
             "properties": {
+                "default": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
