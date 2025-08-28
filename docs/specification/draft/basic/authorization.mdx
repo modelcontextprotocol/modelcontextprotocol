@@ -24,6 +24,36 @@ Authorization is **OPTIONAL** for MCP implementations. When supported:
 - Implementations using alternative transports **MUST** follow established security best
   practices for their protocol.
 
+### Authorization Flows
+
+This specification defines two OAuth 2.1 flows that implementations **SHOULD** support:
+
+1. Authorization Code Flow - Used when an end-user needs to authenticate via a user agent
+   (browser). This flow:
+
+   - Enables user-interactive authentication and consent
+   - Supports both confidential and public clients
+
+2. Client Credentials Flow - Used when a client needs to authenticate itself without user
+   interaction. This flow:
+   - Enables machine-to-machine authentication
+   - Requires client authentication using either:
+     - Asymmetric keys (JWT authentication) as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2)
+     - Client ID and secret
+
+### Conformance and Extensions
+
+This specification defines baseline requirements for interoperability between MCP clients and
+servers. Implementations **MAY** offer additional authorization mechanisms beyond those
+specified here. However, implementers should note that extending beyond the specification may
+require custom client implementations rather than standard MCP clients.
+
+Implementers need only implement the subset of flows required to serve their intended clients. 
+For instance, MCP servers serving only interactive user applications may implement solely the 
+Authorization Code Flow. Similarly, MCP servers supporting only machine-to-machine automation 
+may implement solely the Client Credentials Flow. MCP servers intending to support the broadest 
+possible range of clients should implement both flows to ensure maximum interoperability.
+
 ### Standards Compliance
 
 This authorization mechanism is based on established specifications listed below, but
@@ -36,6 +66,8 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants
+  ([RFC7523](https://datatracker.ietf.org/doc/html/rfc7523))
 
 ## Authorization Flow
 
@@ -110,6 +142,15 @@ For issuer URLs without path components (e.g., `https://auth.example.com`), clie
 1. OAuth 2.0 Authorization Server Metadata: `https://auth.example.com/.well-known/oauth-authorization-server`
 2. OpenID Connect Discovery 1.0: `https://auth.example.com/.well-known/openid-configuration`
 
+#### Server Metadata Values
+
+When supporting the client credentials flow, Authorization Server metadata **MUST** include the following fields:
+
+- `token_endpoint_auth_methods_supported`: **MUST** include at least one of:
+  - `"private_key_jwt"`
+  - `"client_secret_basic"`
+- `token_endpoint_auth_signing_alg_values_supported`: Required when supporting JWT authentication
+
 #### Sequence Diagram
 
 The following diagram outlines an example flow:
@@ -165,9 +206,50 @@ these authorization servers, MCP clients will have to either:
    OAuth client themselves (e.g., through a configuration interface hosted by the
    server).
 
-### Authorization Flow Steps
+### Resource Parameter Implementation
 
-The complete Authorization flow proceeds as follows:
+MCP clients **MUST** implement Resource Indicators for OAuth 2.0 as defined in [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707.html)
+to explicitly specify the target resource for which the token is being requested. The `resource` parameter:
+
+1. **MUST** be included in both authorization requests and token requests.
+2. **MUST** identify the MCP server that the client intends to use the token with.
+3. **MUST** use the canonical URI of the MCP server as defined in [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#name-access-token-request).
+
+#### Canonical Server URI
+
+For the purposes of this specification, the canonical URI of an MCP server is defined as the resource identifier as specified in
+[RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2) and aligns with the `resource` parameter in
+[RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728).
+
+MCP clients **SHOULD** provide the most specific URI that they can for the MCP server they intend to access, following the guidance in [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707). While the canonical form uses lowercase scheme and host components, implementations **SHOULD** accept uppercase scheme and host components for robustness and interoperability.
+
+Examples of valid canonical URIs:
+
+- `https://mcp.example.com/mcp`
+- `https://mcp.example.com`
+- `https://mcp.example.com:8443`
+- `https://mcp.example.com/server/mcp` (when path component is necessary to identify individual MCP server)
+
+Examples of invalid canonical URIs:
+
+- `mcp.example.com` (missing scheme)
+- `https://mcp.example.com#fragment` (contains fragment)
+
+> **Note:** While both `https://mcp.example.com/` (with trailing slash) and `https://mcp.example.com` (without trailing slash) are technically valid absolute URIs according to [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986), implementations **SHOULD** consistently use the form without the trailing slash for better interoperability unless the trailing slash is semantically significant for the specific resource.
+
+For example, if accessing an MCP server at `https://mcp.example.com`, the authorization request would include:
+
+```
+&resource=https%3A%2F%2Fmcp.example.com
+```
+
+MCP clients **MUST** send this parameter regardless of whether authorization servers support it.
+
+### Authorization Code Flow
+
+#### Flow Steps
+
+The complete Authorization Code flow proceeds as follows:
 
 ```mermaid
 sequenceDiagram
@@ -207,44 +289,91 @@ sequenceDiagram
     Note over C,M: MCP communication continues with valid token
 ```
 
-#### Resource Parameter Implementation
+### Client Credentials Flow
 
-MCP clients **MUST** implement Resource Indicators for OAuth 2.0 as defined in [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707.html)
-to explicitly specify the target resource for which the token is being requested. The `resource` parameter:
+The Client Credentials flow enables machine-to-machine authentication without user interaction.
+This flow requires pre-registered client credentials, which are typically established out-of-band
+through administrative channels. Dynamic Client Registration is not used in this flow.
 
-1. **MUST** be included in both authorization requests and token requests.
-2. **MUST** identify the MCP server that the client intends to use the token with.
-3. **MUST** use the canonical URI of the MCP server as defined in [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#name-access-token-request).
+#### Client Authentication Methods
 
-##### Canonical Server URI
+Clients **MUST** authenticate using one of these methods:
 
-For the purposes of this specification, the canonical URI of an MCP server is defined as the resource identifier as specified in
-[RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2) and aligns with the `resource` parameter in
-[RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728).
+- JWT Authentication (RECOMMENDED)
+  - Clients use JWT Authentication as defined in [RFC 7523 Section 2.2](https://datatracker.ietf.org/doc/html/rfc7523#section-2.2).
+- Client Secret
+  - Clients use a Client Secret transmitted in the request content as defined in [OAuth 2.1 Section 2.4.1](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#name-client-secret)
 
-MCP clients **SHOULD** provide the most specific URI that they can for the MCP server they intend to access, following the guidance in [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707). While the canonical form uses lowercase scheme and host components, implementations **SHOULD** accept uppercase scheme and host components for robustness and interoperability.
+#### Flow Steps
 
-Examples of valid canonical URIs:
+The complete Client Credentials flow proceeds as follows:
 
-- `https://mcp.example.com/mcp`
-- `https://mcp.example.com`
-- `https://mcp.example.com:8443`
-- `https://mcp.example.com/server/mcp` (when path component is necessary to identify individual MCP server)
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant M as MCP Server (Resource Server)
+    participant A as Authorization Server
 
-Examples of invalid canonical URIs:
+    C->>M: MCP request without token
+    M->>C: HTTP 401 Unauthorized with WWW-Authenticate header
+    Note over C: Extract resource_metadata URL from WWW-Authenticate
 
-- `mcp.example.com` (missing scheme)
-- `https://mcp.example.com#fragment` (contains fragment)
+    C->>M: Request Protected Resource Metadata
+    M->>C: Return metadata
 
-> **Note:** While both `https://mcp.example.com/` (with trailing slash) and `https://mcp.example.com` (without trailing slash) are technically valid absolute URIs according to [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986), implementations **SHOULD** consistently use the form without the trailing slash for better interoperability unless the trailing slash is semantically significant for the specific resource.
+    Note over C: Parse metadata and extract authorization server(s)<br/>Client determines AS to use
 
-For example, if accessing an MCP server at `https://mcp.example.com`, the authorization request would include:
+    C->>A: GET Authorization server metadata endpoint
+    Note over C,A: Try OAuth 2.0 and OpenID Connect<br/>discovery endpoints in priority order
+    A-->>C: Authorization server metadata
+
+    Note over C: Prepare client authentication
+    alt JWT Authentication (RECOMMENDED)
+        Note over C: Generate signed JWT assertion
+        C->>A: POST /token with client_assertion
+    else Client Secret Authentication
+        Note over C: Use client_id and client_secret
+        C->>A: POST /token with client credentials
+    end
+    A->>C: Access token
+    C->>M: MCP request with access token
+    M-->>C: MCP response
+    Note over C,M: MCP communication continues with valid token
+```
+
+#### Examples
+
+The following examples illustrate both client authentication methods:
+
+##### JWT Authentication Example
 
 ```
+POST /token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_assertion_type=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer
+&client_assertion=eyJhbGciOiJSUzI1NiIsImtpZCI6IjIyIn0.
+     eyJpc3Mi[...omitted for brevity...].
+     cC4hiUPo[...omitted for brevity...]
 &resource=https%3A%2F%2Fmcp.example.com
 ```
 
-MCP clients **MUST** send this parameter regardless of whether authorization servers support it.
+> **Note:** The `client_id` parameter is omitted from the request body as [RFC 7523 Section 3](https://datatracker.ietf.org/doc/html/rfc7523#section-3) specifies that client identification is conveyed through the `sub` claim within the JWT assertion.
+
+##### Client Secret Authentication Example
+
+```
+POST /token HTTP/1.1
+Host: auth.example.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id=s6BhdRkqt3
+&client_secret=7Fjfp0ZBr1KtDRbnfVdmIw
+&resource=https%3A%2F%2Fmcp.example.com
+```
 
 ### Access Token Usage
 
