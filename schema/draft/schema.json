@@ -1074,7 +1074,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.\nImportantly, if adding new things to the official spec, use the `modelcontextprotocol.io/` prefix",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1299,7 +1299,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.\nImportantly, if adding new things to the official spec, use the `modelcontextprotocol.io/` prefix",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1599,7 +1599,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.\nImportantly, if adding new things to the official spec, use the `modelcontextprotocol.io/` prefix",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1885,7 +1885,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.\nImportantly, if adding new things to the official spec, use the `modelcontextprotocol.io/` prefix",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
