@@ -71,6 +71,21 @@ export interface Result {
   [key: string]: unknown;
 }
 
+export interface Error {
+  /**
+   * The error type that occurred.
+   */
+  code: number;
+  /**
+   * A short description of the error. The message SHOULD be limited to a concise single sentence.
+   */
+  message: string;
+  /**
+   * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
+   */
+  data?: unknown;
+};
+
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
  */
@@ -122,20 +137,7 @@ export const ELICITATION_REQUIRED = -32000;
 export interface JSONRPCError {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
-  error: {
-    /**
-     * The error type that occurred.
-     */
-    code: number;
-    /**
-     * A short description of the error. The message SHOULD be limited to a concise single sentence.
-     */
-    message: string;
-    /**
-     * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
-     */
-    data?: unknown;
-  };
+  error: Error;
 }
 
 /**
@@ -143,10 +145,9 @@ export interface JSONRPCError {
  *
  * @internal
  */
-export interface ElicitationRequiredError extends JSONRPCError {
-  error: {
+export interface ElicitationRequiredError extends Omit<JSONRPCError, 'error'> {
+  error: Error & {
     code: typeof ELICITATION_REQUIRED;
-    message: string;
     data: {
       elicitations: ElicitRequestURLParams[];
       [key: string]: unknown;
@@ -172,7 +173,7 @@ export type EmptyResult = Result;
  *
  * @category notifications/cancelled
  */
-export interface CancelledNotification extends Notification {
+export interface CancelledNotification extends JSONRPCNotification {
   method: "notifications/cancelled";
   params: {
     /**
@@ -195,7 +196,7 @@ export interface CancelledNotification extends Notification {
  *
  * @category initialize
  */
-export interface InitializeRequest extends Request {
+export interface InitializeRequest extends JSONRPCRequest {
   method: "initialize";
   params: {
     /**
@@ -233,7 +234,7 @@ export interface InitializeResult extends Result {
  *
  * @category notifications/initialized
  */
-export interface InitializedNotification extends Notification {
+export interface InitializedNotification extends JSONRPCNotification {
   method: "notifications/initialized";
 }
 
@@ -348,7 +349,7 @@ export interface Implementation extends BaseMetadata {
  *
  * @category ping
  */
-export interface PingRequest extends Request {
+export interface PingRequest extends JSONRPCRequest {
   method: "ping";
 }
 
@@ -358,7 +359,7 @@ export interface PingRequest extends Request {
  *
  * @category notifications/progress
  */
-export interface ProgressNotification extends Notification {
+export interface ProgressNotification extends JSONRPCNotification {
   method: "notifications/progress";
   params: {
     /**
@@ -386,7 +387,7 @@ export interface ProgressNotification extends Notification {
 
 /* Pagination */
 /** @internal */
-export interface PaginatedRequest extends Request {
+export interface PaginatedRequest extends JSONRPCRequest {
   params?: {
     /**
      * An opaque token representing the current pagination position.
@@ -447,7 +448,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category resources/read
  */
-export interface ReadResourceRequest extends Request {
+export interface ReadResourceRequest extends JSONRPCRequest {
   method: "resources/read";
   params: {
     /**
@@ -473,7 +474,7 @@ export interface ReadResourceResult extends Result {
  *
  * @category notifications/resources/list_changed
  */
-export interface ResourceListChangedNotification extends Notification {
+export interface ResourceListChangedNotification extends JSONRPCNotification {
   method: "notifications/resources/list_changed";
 }
 
@@ -482,7 +483,7 @@ export interface ResourceListChangedNotification extends Notification {
  *
  * @category resources/subscribe
  */
-export interface SubscribeRequest extends Request {
+export interface SubscribeRequest extends JSONRPCRequest {
   method: "resources/subscribe";
   params: {
     /**
@@ -499,7 +500,7 @@ export interface SubscribeRequest extends Request {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeRequest extends Request {
+export interface UnsubscribeRequest extends JSONRPCRequest {
   method: "resources/unsubscribe";
   params: {
     /**
@@ -516,7 +517,7 @@ export interface UnsubscribeRequest extends Request {
  *
  * @category notifications/resources/updated
  */
-export interface ResourceUpdatedNotification extends Notification {
+export interface ResourceUpdatedNotification extends JSONRPCNotification {
   method: "notifications/resources/updated";
   params: {
     /**
@@ -664,7 +665,7 @@ export interface ListPromptsResult extends PaginatedResult {
  *
  * @category prompts/get
  */
-export interface GetPromptRequest extends Request {
+export interface GetPromptRequest extends JSONRPCRequest {
   method: "prompts/get";
   params: {
     /**
@@ -774,7 +775,7 @@ export interface EmbeddedResource {
  *
  * @category notifications/prompts/list_changed
  */
-export interface PromptListChangedNotification extends Notification {
+export interface PromptListChangedNotification extends JSONRPCNotification {
   method: "notifications/prompts/list_changed";
 }
 
@@ -835,7 +836,7 @@ export interface CallToolResult extends Result {
  *
  * @category tools/call
  */
-export interface CallToolRequest extends Request {
+export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
   params: {
     name: string;
@@ -848,7 +849,7 @@ export interface CallToolRequest extends Request {
  *
  * @category notifications/tools/list_changed
  */
-export interface ToolListChangedNotification extends Notification {
+export interface ToolListChangedNotification extends JSONRPCNotification {
   method: "notifications/tools/list_changed";
 }
 
@@ -955,7 +956,7 @@ export interface Tool extends BaseMetadata {
  *
  * @category logging/setLevel
  */
-export interface SetLevelRequest extends Request {
+export interface SetLevelRequest extends JSONRPCRequest {
   method: "logging/setLevel";
   params: {
     /**
@@ -966,11 +967,11 @@ export interface SetLevelRequest extends Request {
 }
 
 /**
- * Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
+ * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
  *
  * @category notifications/message
  */
-export interface LoggingMessageNotification extends Notification {
+export interface LoggingMessageNotification extends JSONRPCNotification {
   method: "notifications/message";
   params: {
     /**
@@ -1010,7 +1011,7 @@ export type LoggingLevel =
  *
  * @category sampling/createMessage
  */
-export interface CreateMessageRequest extends Request {
+export interface CreateMessageRequest extends JSONRPCRequest {
   method: "sampling/createMessage";
   params: {
     messages: SamplingMessage[];
@@ -1274,7 +1275,7 @@ export interface ModelHint {
  *
  * @category completion/complete
  */
-export interface CompleteRequest extends Request {
+export interface CompleteRequest extends JSONRPCRequest {
   method: "completion/complete";
   params: {
     ref: PromptReference | ResourceTemplateReference;
@@ -1358,7 +1359,7 @@ export interface PromptReference extends BaseMetadata {
  *
  * @category roots/list
  */
-export interface ListRootsRequest extends Request {
+export interface ListRootsRequest extends JSONRPCRequest {
   method: "roots/list";
 }
 
@@ -1405,7 +1406,7 @@ export interface Root {
  *
  * @category notifications/roots/list_changed
  */
-export interface RootsListChangedNotification extends Notification {
+export interface RootsListChangedNotification extends JSONRPCNotification {
   method: "notifications/roots/list_changed";
 }
 
@@ -1480,7 +1481,7 @@ export interface ElicitRequestParams extends RequestParams {
  *
  * @category elicitation/create
  */
-export interface ElicitRequest extends Request {
+export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
   params: ElicitRequestFormParams | ElicitRequestURLParams;
 }
@@ -1510,7 +1511,7 @@ export interface ElicitTrackParams extends RequestParams {
  *
  * @category elicitation/track
  */
-export interface ElicitTrackRequest extends Request {
+export interface ElicitTrackRequest extends JSONRPCRequest {
   method: "elicitation/track";
   params: ElicitTrackParams;
 }
