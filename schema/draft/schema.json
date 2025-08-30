@@ -90,6 +90,14 @@
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "The name of the resource.",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "A human-readable title for the resource.",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
@@ -1966,6 +1974,14 @@
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "The name of the resource.",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "A human-readable title for the resource.",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
@@ -2521,8 +2537,16 @@
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "The name of the resource.",
+                    "type": "string"
+                },
                 "text": {
                     "description": "The text of the item. This must only be set if the item can actually be represented as text (not binary data).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "A human-readable title for the resource.",
                     "type": "string"
                 },
                 "uri": {
