@@ -164,6 +164,12 @@ Icons are represented as an array of `Icon` objects, where each icon includes:
 
 Consumers SHOULD take appropriate security precautions when handling icons:
 
+- Treat icon metadata and icon bytes as hostile inputs and defend against network, privacy, and parsing risks.
+- Ensure that the icon URI is either a HTTPS or `data:` URI. Clients **MUST** reject icon URIs that use unsafe schemes and redirects, such as `javascript:`, `file:`, `ftp:`, `ws:`, or local app URI schemes.
+  - Disallow scheme changes and redirects to hosts on different origins.
+- Be resilient against resource exhaustion attacks stemming from oversized images, large dimensions, or excessive frames (e.g., in GIFs).
+  - Consumers **MAY** set limits for image and content size.
+- Fetch icons without credentials. Do not send cookies, `Authorization` headers, or client credentials.
 - Verify that icon URIs are from the same origin as the server. This minimizes the risk of exposing data or tracking information to third-parties.
 - Exercise caution when fetching and rendering icons as the payload **MAY** contain executable content (e.g., SVG with [embedded JavaScript](https://www.w3.org/TR/SVG11/script.html) or [extended capabilities](https://www.w3.org/TR/SVG11/extend.html)).
   - Consumers **MAY** choose to disallow specific file types or otherwize sanitize icon files before rendering.
