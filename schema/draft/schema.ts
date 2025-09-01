@@ -288,7 +288,17 @@ export interface ServerCapabilities {
   };
 }
 
-/** A url pointing to an icon URL or a base64-encoded data URI */
+/** 
+ * A url pointing to an icon URL or a base64-encoded data URI
+ * 
+ * Clients that support rendering icons MUST support at least the following MIME types:
+ * - image/png - PNG images (safe, universal compatibility)
+ * - image/jpeg (and image/jpg) - JPEG images (safe, universal compatibility)
+ * 
+ * Clients that support rendering icons SHOULD also support:
+ * - image/svg+xml - SVG images (scalable but requires security precautions)
+ * - image/webp - WebP images (modern, efficient format)
+ */
 export interface Icon {
   /**
    * A standard URI pointing to an icon resource.
@@ -302,7 +312,7 @@ export interface Icon {
    * @format uri
    */
   src: string;
-  /** Optional override if the server’s MIME type is missing or generic. */
+  /** Optional override if the server's MIME type is missing or generic. */
   mimeType?: string;
   /** e.g. "48x48", "any" (for SVG), or "48x48 96x96" */
   sizes?: string;
