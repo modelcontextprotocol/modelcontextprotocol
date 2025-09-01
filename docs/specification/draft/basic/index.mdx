@@ -165,7 +165,7 @@ Icons are represented as an array of `Icon` objects, where each icon includes:
 Consumers SHOULD take appropriate security precautions when handling icons:
 
 - Verify that icon URLs are from the same domain as the server or a trusted domain if possible. This minimizes the risk of exposing data or tracking information to third-parties.
-- Be cautious when consuming SVG files as they can contain executable JavaScript.
+- Exercise caution when fetching and rendering icons as the payload **MAY** contain executable content (e.g., SVG with [embedded JavaScript](https://www.w3.org/TR/SVG11/script.html) or [extended capabilities](https://www.w3.org/TR/SVG11/extend.html)).
   - Disallow SVG files or sanetize SVG files before rendering.
 - Validate MIME types and file contents before rendering. Treat the MIME type information as advisory. Detect content type via magic bytes; reject on mismatch or unknown types.
   - Maintain a strict allowlist of image types.
