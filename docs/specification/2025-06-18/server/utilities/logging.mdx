@@ -117,7 +117,6 @@ Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 ## Implementation Considerations
 
 1. Servers **SHOULD**:
-
    - Rate limit log messages
    - Include relevant context in data field
    - Use consistent logger names
@@ -132,7 +131,6 @@ Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 ## Security
 
 1. Log messages **MUST NOT** contain:
-
    - Credentials or secrets
    - Personal identifying information
    - Internal system details that could aid attacks
