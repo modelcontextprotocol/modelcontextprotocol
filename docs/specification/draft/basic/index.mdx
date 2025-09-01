@@ -162,7 +162,7 @@ Icons are represented as an array of `Icon` objects, where each icon includes:
 
 **Security considerations:**
 
-Consumers SHOULD take appropriate security precautions when handling icons:
+Consumers of icon metadata **MUST** take appropriate security precautions when handling icons to prevent compromise:
 
 - Treat icon metadata and icon bytes as hostile inputs and defend against network, privacy, and parsing risks.
 - Ensure that the icon URI is either a HTTPS or `data:` URI. Clients **MUST** reject icon URIs that use unsafe schemes and redirects, such as `javascript:`, `file:`, `ftp:`, `ws:`, or local app URI schemes.
