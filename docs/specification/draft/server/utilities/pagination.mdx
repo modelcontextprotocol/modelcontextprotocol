@@ -2,6 +2,8 @@
 title: Pagination
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) supports paginating list operations that may return
@@ -79,12 +81,10 @@ The following MCP operations support pagination:
 ## Implementation Guidelines
 
 1. Servers **SHOULD**:
-
    - Provide stable cursors
    - Handle invalid cursors gracefully
 
 2. Clients **SHOULD**:
-
    - Treat a missing `nextCursor` as the end of results
    - Support both paginated and non-paginated flows
 

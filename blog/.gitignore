@@ -1,0 +1,10 @@
+# Hugo default output directory
+/public/
+/resources/_gen/
+/assets/jsconfig.json
+
+# Hugo cache
+.hugo_build.lock
+
+# macOS
+.DS_Store

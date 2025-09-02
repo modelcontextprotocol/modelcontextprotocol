@@ -2,6 +2,8 @@
 title: Overview
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol consists of several key components that work together:
@@ -9,6 +11,7 @@ The Model Context Protocol consists of several key components that work together
 - **Base Protocol**: Core JSON-RPC message types
 - **Lifecycle Management**: Connection initialization, capability negotiation, and
   session control
+- **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Sampling and root directory lists provided by clients
 - **Utilities**: Cross-cutting concerns like logging and argument completion
@@ -116,3 +119,31 @@ There is also a
 [JSON Schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.json),
 which is automatically generated from the TypeScript source of truth, for use with
 various automated tooling.
+
+### General fields
+
+#### `_meta`
+
+The `_meta` property/parameter is reserved by MCP to allow clients and servers
+to attach additional metadata to their interactions.
+
+Certain key names are reserved by MCP for protocol-level metadata, as specified below;
+implementations MUST NOT make assumptions about values at these keys.
+
+Additionally, definitions in the [schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.ts)
+may reserve particular names for purpose-specific metadata, as declared in those definitions.
+
+**Key name format:** valid `_meta` key names have two segments: an optional **prefix**, and a **name**.
+
+**Prefix:**
+
+- If specified, MUST be a series of labels separated by dots (`.`), followed by a slash (`/`).
+  - Labels MUST start with a letter and end with a letter or digit; interior characters can be letters, digits, or hyphens (`-`).
+- Any prefix beginning with zero or more valid labels, followed by `modelcontextprotocol` or `mcp`, followed by any valid label,
+  is **reserved** for MCP use.
+  - For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.
+
+**Name:**
+
+- Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
+- MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.

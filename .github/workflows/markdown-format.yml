@@ -25,4 +25,7 @@ jobs:
         run: npm ci
 
       - name: Check markdown formatting
-        run: npm run format:check
+        run: npm run check:docs:format
+
+      - name: Check markdown links
+        run: npm run check:docs:links

@@ -2,6 +2,8 @@
 title: Prompts
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) provides a standardized way for servers to expose prompt
@@ -73,6 +75,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
     "prompts": [
       {
         "name": "code_review",
+        "title": "Request Code Review",
         "description": "Asks the LLM to analyze code quality and suggest improvements",
         "arguments": [
           {
@@ -172,6 +175,7 @@ sequenceDiagram
 A prompt definition includes:
 
 - `name`: Unique identifier for the prompt
+- `title`: Optional human-readable name of the prompt for display purposes.
 - `description`: Optional human-readable description
 - `arguments`: Optional list of arguments for customization
 
@@ -181,6 +185,12 @@ Messages in a prompt can contain:
 
 - `role`: Either "user" or "assistant" to indicate the speaker
 - `content`: One of the following content types:
+
+<Note>
+  All content types in prompt messages support optional
+  [annotations](/specification/2025-06-18/server/resources#annotations) for
+  metadata about audience, priority, and modification times.
+</Note>
 
 #### Text Content
 
@@ -234,6 +244,8 @@ Embedded resources allow referencing server-side resources directly in messages:
   "type": "resource",
   "resource": {
     "uri": "resource://example",
+    "name": "example",
+    "title": "My Example Resource",
     "mimeType": "text/plain",
     "text": "Resource content"
   }

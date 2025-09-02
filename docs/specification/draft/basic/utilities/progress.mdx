@@ -2,6 +2,8 @@
 title: Progress
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) supports optional progress tracking for long-running
@@ -58,7 +60,6 @@ The receiver **MAY** then send progress notifications containing:
 ## Behavior Requirements
 
 1. Progress notifications **MUST** only reference tokens that:
-
    - Were provided in an active request
    - Are associated with an in-progress operation
 
@@ -76,11 +77,9 @@ sequenceDiagram
     Sender->>Receiver: Method request with progressToken
 
     Note over Sender,Receiver: Progress updates
-    loop Progress Updates
-        Receiver-->>Sender: Progress notification (0.2/1.0)
-        Receiver-->>Sender: Progress notification (0.6/1.0)
-        Receiver-->>Sender: Progress notification (1.0/1.0)
-    end
+    Receiver-->>Sender: Progress notification (0.2/1.0)
+    Receiver-->>Sender: Progress notification (0.6/1.0)
+    Receiver-->>Sender: Progress notification (1.0/1.0)
 
     Note over Sender,Receiver: Operation complete
     Receiver->>Sender: Method response

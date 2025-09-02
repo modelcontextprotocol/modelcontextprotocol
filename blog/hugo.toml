@@ -1,0 +1,65 @@
+baseURL = 'https://blog.modelcontextprotocol.io/'
+languageCode = 'en-us'
+title = 'mcp blog'
+theme = 'github.com/adityatelange/hugo-PaperMod'
+[pagination]
+  pagerSize = 5
+
+[params]
+  author = "The MCP project"
+  description = "Updates from the Model Context Protocol project"
+
+  # PaperMod specific settings
+  # defaultTheme = "dark" # MCP uses a dark theme
+  disableThemeToggle = false
+  ShowShareButtons = false
+  ShowReadingTime = true
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowWordCount = false
+  ShowRssButtonInSectionTermList = true
+  UseHugoToc = false
+  disableSpecial1stPost = true
+  disableScrollToTop = false
+  comments = false
+  hidemeta = false
+  hideSummary = false
+  showtoc = false
+  ShowFullTextinRSS = true
+
+  # Custom copyright
+  copyright = '© 2025 Model Context Protocol Project'
+
+  [params.assets]
+    favicon = "favicon.svg"
+
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/modelcontextprotocol"
+
+# Menu configuration
+[[menu.main]]
+  identifier = "docs"
+  name = "Documentation"
+  url = "https://modelcontextprotocol.io/docs"
+  weight = 10
+
+[[menu.main]]
+  identifier = "github"
+  name = "GitHub"
+  url = "https://github.com/modelcontextprotocol"
+  weight = 20
+
+# Markup configuration for syntax highlighting
+[markup]
+  [markup.highlight]
+    guessSyntax = true
+    style = "monokai"
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[module]
+  [[module.imports]]
+    path = 'github.com/adityatelange/hugo-PaperMod'

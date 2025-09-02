@@ -2,6 +2,8 @@
 title: Lifecycle
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) defines a rigorous lifecycle for client-server
@@ -66,17 +68,12 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
     },
     "clientInfo": {
       "name": "ExampleClient",
+      "title": "Example Client Display Name",
       "version": "1.0.0"
     }
   }
 }
 ```
-
-The initialize request **MUST NOT** be part of a JSON-RPC
-[batch](https://www.jsonrpc.org/specification#batch), as other requests and notifications
-are not possible until initialization has completed. This also permits backwards
-compatibility with prior protocol versions that do not explicitly support JSON-RPC
-batches.
 
 The server **MUST** respond with its own capabilities and information:
 
@@ -101,6 +98,7 @@ The server **MUST** respond with its own capabilities and information:
     },
     "serverInfo": {
       "name": "ExampleServer",
+      "title": "Example Server Display Name",
       "version": "1.0.0"
     },
     "instructions": "Optional instructions for the client"
@@ -152,17 +150,18 @@ available during the session.
 
 Key capabilities include:
 
-| Category | Capability     | Description                                                                        |
-| -------- | -------------- | ---------------------------------------------------------------------------------- |
-| Client   | `roots`        | Ability to provide filesystem [roots](/specification/draft/client/roots)           |
-| Client   | `sampling`     | Support for LLM [sampling](/specification/draft/client/sampling) requests          |
-| Client   | `elicitation`  | Support for server [elicitation](/specification/draft/client/elicitation) requests |
-| Client   | `experimental` | Describes support for non-standard experimental features                           |
-| Server   | `prompts`      | Offers [prompt templates](/specification/draft/server/prompts)                     |
-| Server   | `resources`    | Provides readable [resources](/specification/draft/server/resources)               |
-| Server   | `tools`        | Exposes callable [tools](/specification/draft/server/tools)                        |
-| Server   | `logging`      | Emits structured [log messages](/specification/draft/server/utilities/logging)     |
-| Server   | `experimental` | Describes support for non-standard experimental features                           |
+| Category | Capability     | Description                                                                          |
+| -------- | -------------- | ------------------------------------------------------------------------------------ |
+| Client   | `roots`        | Ability to provide filesystem [roots](/specification/draft/client/roots)             |
+| Client   | `sampling`     | Support for LLM [sampling](/specification/draft/client/sampling) requests            |
+| Client   | `elicitation`  | Support for server [elicitation](/specification/draft/client/elicitation) requests   |
+| Client   | `experimental` | Describes support for non-standard experimental features                             |
+| Server   | `prompts`      | Offers [prompt templates](/specification/draft/server/prompts)                       |
+| Server   | `resources`    | Provides readable [resources](/specification/draft/server/resources)                 |
+| Server   | `tools`        | Exposes callable [tools](/specification/draft/server/tools)                          |
+| Server   | `logging`      | Emits structured [log messages](/specification/draft/server/utilities/logging)       |
+| Server   | `completions`  | Supports argument [autocompletion](/specification/draft/server/utilities/completion) |
+| Server   | `experimental` | Describes support for non-standard experimental features                             |
 
 Capability objects can describe sub-capabilities like:
 
@@ -175,7 +174,7 @@ Capability objects can describe sub-capabilities like:
 During the operation phase, the client and server exchange messages according to the
 negotiated capabilities.
 
-Both parties **SHOULD**:
+Both parties **MUST**:
 
 - Respect the negotiated protocol version
 - Only use capabilities that were successfully negotiated

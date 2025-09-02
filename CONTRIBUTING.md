@@ -1,9 +1,11 @@
 # Contributing to Model Context Protocol
 
-Thank you for your interest in contributing to the Model Context Protocol specification!
+Thank you for your interest in contributing to the Model Context Protocol specification, schemas, or docs!
 This document outlines how to contribute to this project.
 
-## Prerequisites
+Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explains how and where discussions about changes happen.
+
+## General prerequisites
 
 The following software is required to work on the spec:
 
@@ -13,9 +15,9 @@ The following software is required to work on the spec:
 - [Mintlify](https://mintlify.com/) (optional, for docs)
 - nvm (optional, for managing Node versions)
 
-## Getting Started
+### Getting Started
 
-1. Fork the repository
+1. [Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
 2. Clone your fork:
 
 ```bash
@@ -30,11 +32,10 @@ nvm install  # install correct Node version
 npm install  # install dependencies
 ```
 
-## Making Changes
+## Schema changes
 
 Note that schema changes are made to `schema.ts`, and `schema.json` is generated from
-`schema.ts`. You should validate your `schema.ts` changes first and then generate the
-`schema.json`.
+`schema.ts`.
 
 1. Create a new branch:
 
@@ -42,30 +43,30 @@ Note that schema changes are made to `schema.ts`, and `schema.json` is generated
 git checkout -b feature/your-feature-name
 ```
 
-2. Make your changes
-3. Validate your changes:
+2. Make your changes.
+
+3. Validate schema changes and generate `schema.json`:
 
 ```bash
-npm run validate:schema    # validate schema
+npm run check:schema:ts
+npm run generate:schema
 ```
 
-4. Generate the `schema.json`:
+## Documentation changes
 
-```bash
-npm run generate:json      # generate JSON schema
-```
+Documentation is written in MDX format and in the [`docs`](./docs) directory.
 
-5. Run docs locally (optional):
+You can preview documentation changes locally by running:
 
 ```bash
 npm run serve:docs
 ```
 
-6. Format/lint your changes:
+And lint them with:
 
 ```bash
-npm run format:check   # check formatting
-npm run format         # apply formatting
+npm run check:docs
+npm run format
 ```
 
 ### Documentation Guidelines
@@ -77,7 +78,7 @@ When contributing to the documentation:
 - Include code examples where appropriate
 - Use proper MDX formatting and components
 - Test all links and code samples
-  - You may run `npm run check-links` to look for broken internal links.
+  - You may run `npm run check:docs:links` to look for broken internal links.
 - Use appropriate headings: "When to use", "Steps", and "Tips" for tutorials
 - Place new pages in appropriate sections (concepts, tutorials, etc.)
 - Update `docs.json` when adding new pages
@@ -108,15 +109,6 @@ When contributing to the documentation:
 2. Submit a pull request to the main repository
 3. Follow the pull request template
 4. Wait for review
-
-## Code of Conduct
-
-This project follows a Code of Conduct. Please review it in
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
-
-## Questions
-
-If you have questions, please create an issue in the repository.
 
 ## License
 

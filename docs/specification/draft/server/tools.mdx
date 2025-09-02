@@ -2,6 +2,8 @@
 title: Tools
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) allows servers to expose tools that can be invoked by
@@ -80,6 +82,7 @@ To discover available tools, clients send a `tools/list` request. This operation
     "tools": [
       {
         "name": "get_weather",
+        "title": "Weather Information Provider",
         "description": "Get current weather information for a location",
         "inputSchema": {
           "type": "object",
@@ -181,6 +184,7 @@ sequenceDiagram
 A tool definition includes:
 
 - `name`: Unique identifier for the tool
+- `title`: Optional human-readable name of the tool for display purposes.
 - `description`: Human-readable description of functionality
 - `inputSchema`: JSON Schema defining expected parameters
 - `outputSchema`: Optional JSON Schema defining expected output structure
@@ -199,6 +203,14 @@ Tool results may contain [**structured**](#structured-content) or **unstructured
 
 **Unstructured** content is returned in the `content` field of a result, and can contain multiple content items of different types:
 
+<Note>
+  All content types (text, image, audio, resource links, and embedded resources)
+  support optional
+  [annotations](/specification/draft/server/resources#annotations) that provide
+  metadata about audience, priority, and modification times. This is the same
+  annotation format used by resources and prompts.
+</Note>
+
 #### Text Content
 
 ```json
@@ -214,7 +226,11 @@ Tool results may contain [**structured**](#structured-content) or **unstructured
 {
   "type": "image",
   "data": "base64-encoded-data",
-  "mimeType": "image/png"
+  "mimeType": "image/png",
+  "annotations": {
+    "audience": ["user"],
+    "priority": 0.9
+  }
 }
 ```
 
@@ -228,28 +244,57 @@ Tool results may contain [**structured**](#structured-content) or **unstructured
 }
 ```
 
+#### Resource Links
+
+A tool **MAY** return links to [Resources](/specification/draft/server/resources), to provide additional context
+or data. In this case, the tool will return a URI that can be subscribed to or fetched by the client:
+
+```json
+{
+  "type": "resource_link",
+  "uri": "file:///project/src/main.rs",
+  "name": "main.rs",
+  "description": "Primary application entry point",
+  "mimeType": "text/x-rust"
+}
+```
+
+Resource links support the same [Resource annotations](/specification/draft/server/resources#annotations) as regular resources to help clients understand how to use them.
+
+<Info>
+  Resource links returned by tools are not guaranteed to appear in the results
+  of a `resources/list` request.
+</Info>
+
 #### Embedded Resources
 
-[Resources](/specification/draft/server/resources) **MAY** be embedded, to provide additional context
-or data, behind a URI that can be subscribed to or fetched again by the client later:
+[Resources](/specification/draft/server/resources) **MAY** be embedded to provide additional context
+or data using a suitable [URI scheme](./resources#common-uri-schemes). Servers that use embedded resources **SHOULD** implement the `resources` capability:
 
 ```json
 {
   "type": "resource",
   "resource": {
-    "uri": "resource://example",
-    "mimeType": "text/plain",
-    "text": "Resource content"
+    "uri": "file:///project/src/main.rs",
+    "title": "Project Rust Main File",
+    "mimeType": "text/x-rust",
+    "text": "fn main() {\n    println!(\"Hello world!\");\n}",
+    "annotations": {
+      "audience": ["user", "assistant"],
+      "priority": 0.7,
+      "lastModified": "2025-05-03T14:30:00Z"
+    }
   }
 }
 ```
+
+Embedded resources support the same [Resource annotations](/specification/draft/server/resources#annotations) as regular resources to help clients understand how to use them.
 
 #### Structured Content
 
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
-For backwards compatibility, a tool that returns structured content SHOULD also return functionally equivalent unstructured content.
-(For example, serialized JSON can be returned in a `TextContent` block.)
+For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
 
 #### Output Schema
 
@@ -264,6 +309,7 @@ Example tool with output schema:
 ```json
 {
   "name": "get_weather_data",
+  "title": "Weather Data Retriever",
   "description": "Get current weather data for a location",
   "inputSchema": {
     "type": "object",
@@ -375,7 +421,6 @@ Tools use two error reporting mechanisms:
 ## Security Considerations
 
 1. Servers **MUST**:
-
    - Validate all tool inputs
    - Implement proper access controls
    - Rate limit tool invocations

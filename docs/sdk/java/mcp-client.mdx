@@ -1,7 +1,9 @@
 ---
-title: MCP Client
+title: Java MCP Client
 description: Learn how to use the Model Context Protocol (MCP) client to interact with MCP servers
 ---
+
+Go to the [Java MCP Server](/sdk/java/mcp-server) to learn how to build MCP servers or the [Java MCP Overview](/sdk/java/mcp-overview) to understand the overall architecture.
 
 # Model Context Protocol Client
 
@@ -16,11 +18,15 @@ The MCP Client is a key component in the Model Context Protocol (MCP) architectu
 - Optional features like roots management and sampling support
 
 <Tip>
-
 The core `io.modelcontextprotocol.sdk:mcp` module provides STDIO and SSE client transport implementations without requiring external web frameworks.
 
 Spring-specific transport implementations are available as an **optional** dependency `io.modelcontextprotocol.sdk:mcp-spring-webflux` for [Spring Framework](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html) users.
 
+</Tip>
+
+<Tip>
+  This [quickstart demo](/quickstart/client), based on Spring AI MCP, will show
+  you how to build an AI client that connects to MCP servers.
 </Tip>
 
 The client provides both synchronous and asynchronous APIs for flexibility in different application contexts.
@@ -375,7 +381,7 @@ client.executePrompt("echo", Map.of(
 
 ### Using Completion
 
-As part of the [Completion capabilities](/specification/2025-03-26/server/utilities/completion), MCP provides a provides a standardized way for servers to offer argument autocompletion suggestions for prompts and resource URIs.
+As part of the [Completion capabilities](/specification/2025-03-26/server/utilities/completion), MCP provides a standardized way for servers to offer argument autocompletion suggestions for prompts and resource URIs.
 
 Check the [Server Completion capabilities](/sdk/java/mcp-server#completion-specification) to learn how to enable and configure completions on the server side.
 

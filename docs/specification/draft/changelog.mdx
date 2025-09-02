@@ -2,23 +2,18 @@
 title: Key Changes
 ---
 
+<div id="enable-section-numbers" />
+
 This document lists changes made to the Model Context Protocol (MCP) specification since
-the previous revision, [2025-03-26](/specification/2025-03-26).
+the previous revision, [2025-06-18](/specification/2025-06-18).
 
 ## Major changes
 
-1. Removed support for JSON-RPC **[batching](https://www.jsonrpc.org/specification#batch)**
-   (PR [#416](https://github.com/modelcontextprotocol/specification/pull/416))
-2. Added support for [structured tool output](https://modelcontextprotocol.io/specification/draft/server/tools#structured-content)
-   (PR [#371](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/371))
-3. Classified MCP servers as [OAuth Resource Servers](https://modelcontextprotocol.io/specification/draft/basic/authorization#2-3-authorization-server-discovery), adding protected resource metadata to discover the corresponding Authorization server. (PR [#338](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/338))
-4. Clarified [security considerations](https://modelcontextprotocol.io/specification/draft/basic/authorization#3-security-considerations) and best practices in the authorization spec and in a new [security best practices page](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices).
-5. Added support for **[elicitation](/specification/draft/client/elicitation)**, enabling
-   servers to request additional information from users during interactions. (PR [#382](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/382))
+1. Enhance authorization server discovery with support for [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html). (PR [#797](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/797))
 
 ## Other schema changes
 
 ## Full changelog
 
 For a complete list of all changes that have been made since the last protocol revision,
-[see GitHub](https://github.com/modelcontextprotocol/specification/compare/2025-03-26...draft).
+[see GitHub](https://github.com/modelcontextprotocol/specification/compare/2025-06-18...draft).

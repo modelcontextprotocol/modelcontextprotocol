@@ -11,6 +11,10 @@
                     },
                     "type": "array"
                 },
+                "lastModified": {
+                    "description": "The moment the resource was last modified, as an ISO 8601 formatted string.\n\nShould be an ISO 8601 formatted string (e.g., \"2025-01-12T15:00:58Z\").\n\nExamples: last activity timestamp in an open file, timestamp when the resource\nwas attached, etc.",
+                    "type": "string"
+                },
                 "priority": {
                     "description": "Describes how important this data is for operating the server.\n\nA value of 1 means \"most important,\" and indicates that the data is\neffectively required, while 0 means \"least important,\" and indicates that\nthe data is entirely optional.",
                     "maximum": 1,
@@ -23,6 +27,11 @@
         "AudioContent": {
             "description": "Audio provided to or from an LLM.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/Annotations",
                     "description": "Optional annotations for the client."
@@ -48,8 +57,30 @@
             ],
             "type": "object"
         },
+        "BaseMetadata": {
+            "description": "Base interface for metadata with name (identifier) and title (display name) properties.",
+            "properties": {
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
         "BlobResourceContents": {
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "blob": {
                     "description": "A base64-encoded string representing the binary data of the item.",
                     "format": "byte",
@@ -95,6 +126,13 @@
         "CallToolRequest": {
             "description": "Used by the client to invoke a tool provided by the server.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "tools/call",
                     "type": "string"
@@ -116,6 +154,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -126,26 +166,13 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "content": {
                     "description": "A list of content objects that represent the unstructured result of the tool call.",
                     "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/TextContent"
-                            },
-                            {
-                                "$ref": "#/definitions/ImageContent"
-                            },
-                            {
-                                "$ref": "#/definitions/AudioContent"
-                            },
-                            {
-                                "$ref": "#/definitions/EmbeddedResource"
-                            }
-                        ]
+                        "$ref": "#/definitions/ContentBlock"
                     },
                     "type": "array"
                 },
@@ -167,6 +194,10 @@
         "CancelledNotification": {
             "description": "This notification can be sent by either side to indicate that it is cancelling a previously-issued request.\n\nThe request SHOULD still be in-flight, but due to communication latency, it is always possible that this notification MAY arrive after the request has already finished.\n\nThis notification indicates that the result will be unused, so any associated processing SHOULD cease.\n\nA client MUST NOT attempt to cancel its `initialize` request.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/cancelled",
                     "type": "string"
@@ -189,6 +220,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -309,6 +341,13 @@
         "CompleteRequest": {
             "description": "A request from the client to the server, to ask for completion options.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "completion/complete",
                     "type": "string"
@@ -365,6 +404,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -375,7 +416,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "completion": {
@@ -407,9 +448,35 @@
             ],
             "type": "object"
         },
+        "ContentBlock": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/TextContent"
+                },
+                {
+                    "$ref": "#/definitions/ImageContent"
+                },
+                {
+                    "$ref": "#/definitions/AudioContent"
+                },
+                {
+                    "$ref": "#/definitions/ResourceLink"
+                },
+                {
+                    "$ref": "#/definitions/EmbeddedResource"
+                }
+            ]
+        },
         "CreateMessageRequest": {
             "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "sampling/createMessage",
                     "type": "string"
@@ -467,6 +534,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -477,7 +546,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "content": {
@@ -519,6 +588,13 @@
         "ElicitRequest": {
             "description": "A request from the server to elicit additional information from the user via the client.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "elicitation/create",
                     "type": "string"
@@ -564,6 +640,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -574,11 +652,11 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "action": {
-                    "description": "The user action in response to the elicitation.\n- \"accept\": User submitted the form/confirmed the action\n- \"decline\": User explicitly declined the action\n- \"cancel\": User dismissed without making an explicit choice",
+                    "description": "The user action in response to the elicitation.\n- \"accept\": User submitted the form/confirmed the action\n- \"decline\": User explicitly decline the action\n- \"cancel\": User dismissed without making an explicit choice",
                     "enum": [
                         "accept",
                         "cancel",
@@ -587,7 +665,13 @@
                     "type": "string"
                 },
                 "content": {
-                    "additionalProperties": {},
+                    "additionalProperties": {
+                        "type": [
+                            "string",
+                            "integer",
+                            "boolean"
+                        ]
+                    },
                     "description": "The submitted form data, only present when action is \"accept\".\nContains values matching the requested schema.",
                     "type": "object"
                 }
@@ -600,6 +684,11 @@
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/Annotations",
                     "description": "Optional annotations for the client."
@@ -659,9 +748,36 @@
             ],
             "type": "object"
         },
+        "Error": {
+            "properties": {
+                "code": {
+                    "description": "The error type that occurred.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
+                },
+                "message": {
+                    "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ],
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "prompts/get",
                     "type": "string"
@@ -687,6 +803,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -697,7 +815,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "description": {
@@ -719,6 +837,11 @@
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/Annotations",
                     "description": "Optional annotations for the client."
@@ -745,9 +868,14 @@
             "type": "object"
         },
         "Implementation": {
-            "description": "Describes the name and version of an MCP implementation.",
+            "description": "Describes the name and version of an MCP implementation, with an optional title for UI representation.",
             "properties": {
                 "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 },
                 "version": {
@@ -763,6 +891,13 @@
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "initialize",
                     "type": "string"
@@ -789,6 +924,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -799,7 +936,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "capabilities": {
@@ -827,6 +964,10 @@
         "InitializedNotification": {
             "description": "This notification is sent from the client to the server after initialization has finished.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/initialized",
                     "type": "string"
@@ -836,7 +977,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -844,60 +985,16 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
-        },
-        "JSONRPCBatchRequest": {
-            "description": "A JSON-RPC batch request, as described in https://www.jsonrpc.org/specification#batch.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/JSONRPCRequest"
-                    },
-                    {
-                        "$ref": "#/definitions/JSONRPCNotification"
-                    }
-                ]
-            },
-            "type": "array"
-        },
-        "JSONRPCBatchResponse": {
-            "description": "A JSON-RPC batch response, as described in https://www.jsonrpc.org/specification#batch.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/JSONRPCResponse"
-                    },
-                    {
-                        "$ref": "#/definitions/JSONRPCError"
-                    }
-                ]
-            },
-            "type": "array"
         },
         "JSONRPCError": {
             "description": "A response to a request that indicates an error occurred.",
             "properties": {
                 "error": {
-                    "properties": {
-                        "code": {
-                            "description": "The error type that occurred.",
-                            "type": "integer"
-                        },
-                        "data": {
-                            "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
-                        },
-                        "message": {
-                            "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "code",
-                        "message"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/Error"
                 },
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -923,38 +1020,10 @@
                     "$ref": "#/definitions/JSONRPCNotification"
                 },
                 {
-                    "description": "A JSON-RPC batch request, as described in https://www.jsonrpc.org/specification#batch.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/JSONRPCRequest"
-                            },
-                            {
-                                "$ref": "#/definitions/JSONRPCNotification"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                {
                     "$ref": "#/definitions/JSONRPCResponse"
                 },
                 {
                     "$ref": "#/definitions/JSONRPCError"
-                },
-                {
-                    "description": "A JSON-RPC batch response, as described in https://www.jsonrpc.org/specification#batch.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/JSONRPCResponse"
-                            },
-                            {
-                                "$ref": "#/definitions/JSONRPCError"
-                            }
-                        ]
-                    },
-                    "type": "array"
                 }
             ],
             "description": "Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent."
@@ -974,7 +1043,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1004,6 +1073,8 @@
                     "additionalProperties": {},
                     "properties": {
                         "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1047,6 +1118,13 @@
         "ListPromptsRequest": {
             "description": "Sent from the client to request a list of prompts and prompt templates the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "prompts/list",
                     "type": "string"
@@ -1062,6 +1140,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1071,7 +1151,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1093,6 +1173,13 @@
         "ListResourceTemplatesRequest": {
             "description": "Sent from the client to request a list of resource templates the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/templates/list",
                     "type": "string"
@@ -1108,6 +1195,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1117,7 +1206,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1139,6 +1228,13 @@
         "ListResourcesRequest": {
             "description": "Sent from the client to request a list of resources the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/list",
                     "type": "string"
@@ -1154,6 +1250,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1163,7 +1261,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1185,6 +1283,13 @@
         "ListRootsRequest": {
             "description": "Sent from the server to request a list of root URIs from the client. Roots allow\nservers to ask for specific directories or files to operate on. A common example\nfor roots is providing a set of repositories or directories a server should operate\non.\n\nThis request is typically used when the server needs to understand the file system\nstructure or access specific locations that the client has permission to read from.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "roots/list",
                     "type": "string"
@@ -1193,6 +1298,8 @@
                     "additionalProperties": {},
                     "properties": {
                         "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1206,6 +1313,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1215,7 +1324,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "roots": {
@@ -1233,6 +1342,13 @@
         "ListToolsRequest": {
             "description": "Sent from the client to request a list of tools the server has.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "tools/list",
                     "type": "string"
@@ -1248,6 +1364,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1257,7 +1375,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1291,8 +1409,12 @@
             "type": "string"
         },
         "LoggingMessageNotification": {
-            "description": "Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.",
+            "description": "JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/message",
                     "type": "string"
@@ -1319,6 +1441,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1375,7 +1498,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1416,6 +1539,13 @@
         },
         "PaginatedRequest": {
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "type": "string"
                 },
@@ -1430,6 +1560,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1438,7 +1570,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1451,6 +1583,13 @@
         "PingRequest": {
             "description": "A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "ping",
                     "type": "string"
@@ -1459,6 +1598,8 @@
                     "additionalProperties": {},
                     "properties": {
                         "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1472,6 +1613,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1496,6 +1639,10 @@
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/progress",
                     "type": "string"
@@ -1527,6 +1674,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1542,6 +1690,11 @@
         "Prompt": {
             "description": "A prompt or prompt template that the server offers.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "arguments": {
                     "description": "A list of arguments to use for templating the prompt.",
                     "items": {
@@ -1554,7 +1707,11 @@
                     "type": "string"
                 },
                 "name": {
-                    "description": "The name of the prompt or prompt template.",
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 }
             },
@@ -1571,12 +1728,16 @@
                     "type": "string"
                 },
                 "name": {
-                    "description": "The name of the argument.",
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
                 },
                 "required": {
                     "description": "Whether this argument must be provided.",
                     "type": "boolean"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
                 }
             },
             "required": [
@@ -1587,6 +1748,10 @@
         "PromptListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/prompts/list_changed",
                     "type": "string"
@@ -1596,7 +1761,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1604,6 +1769,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1612,20 +1778,7 @@
             "description": "Describes a message returned as part of a prompt.\n\nThis is similar to `SamplingMessage`, but also supports the embedding of\nresources from the MCP server.",
             "properties": {
                 "content": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/TextContent"
-                        },
-                        {
-                            "$ref": "#/definitions/ImageContent"
-                        },
-                        {
-                            "$ref": "#/definitions/AudioContent"
-                        },
-                        {
-                            "$ref": "#/definitions/EmbeddedResource"
-                        }
-                    ]
+                    "$ref": "#/definitions/ContentBlock"
                 },
                 "role": {
                     "$ref": "#/definitions/Role"
@@ -1641,7 +1794,11 @@
             "description": "Identifies a prompt.",
             "properties": {
                 "name": {
-                    "description": "The name of the prompt or prompt template",
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 },
                 "type": {
@@ -1658,6 +1815,13 @@
         "ReadResourceRequest": {
             "description": "Sent from the client to the server, to read a specific resource URI.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/read",
                     "type": "string"
@@ -1677,6 +1841,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1687,7 +1853,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "contents": {
@@ -1718,6 +1884,8 @@
                     "additionalProperties": {},
                     "properties": {
                         "_meta": {
+                            "additionalProperties": {},
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1745,6 +1913,11 @@
         "Resource": {
             "description": "A known resource that the server is capable of reading.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/Annotations",
                     "description": "Optional annotations for the client."
@@ -1758,12 +1931,16 @@
                     "type": "string"
                 },
                 "name": {
-                    "description": "A human-readable name for this resource.\n\nThis can be used by clients to populate UI elements.",
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
                 },
                 "size": {
                     "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
                     "type": "integer"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
@@ -1780,6 +1957,11 @@
         "ResourceContents": {
             "description": "The contents of a specific resource or sub-resource.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -1795,9 +1977,62 @@
             ],
             "type": "object"
         },
+        "ResourceLink": {
+            "description": "A resource that the server is capable of reading, included in a prompt or tool call result.\n\nNote: resource links returned by tools are not guaranteed to appear in the results of `resources/list` requests.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "annotations": {
+                    "$ref": "#/definitions/Annotations",
+                    "description": "Optional annotations for the client."
+                },
+                "description": {
+                    "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "The MIME type of this resource, if known.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "resource_link",
+                    "type": "string"
+                },
+                "uri": {
+                    "description": "The URI of this resource.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type",
+                "uri"
+            ],
+            "type": "object"
+        },
         "ResourceListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/resources/list_changed",
                     "type": "string"
@@ -1807,7 +2042,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1815,6 +2050,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -1822,6 +2058,11 @@
         "ResourceTemplate": {
             "description": "A template description for resources available on the server.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/Annotations",
                     "description": "Optional annotations for the client."
@@ -1835,7 +2076,11 @@
                     "type": "string"
                 },
                 "name": {
-                    "description": "A human-readable name for the type of resource this template refers to.\n\nThis can be used by clients to populate UI elements.",
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 },
                 "uriTemplate": {
@@ -1872,6 +2117,10 @@
         "ResourceUpdatedNotification": {
             "description": "A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/resources/updated",
                     "type": "string"
@@ -1891,6 +2140,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -1901,7 +2151,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "This result property is reserved by the protocol to allow clients and servers to attach additional metadata to their responses.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 }
             },
@@ -1918,6 +2168,11 @@
         "Root": {
             "description": "Represents a root directory or file that the server can operate on.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "name": {
                     "description": "An optional name for the root. This can be used to provide a human-readable\nidentifier for the root, which may be useful for display purposes or for\nreferencing the root in other parts of the application.",
                     "type": "string"
@@ -1936,6 +2191,10 @@
         "RootsListChangedNotification": {
             "description": "A notification from the client to the server, informing it that the list of roots has changed.\nThis notification should be sent whenever the client adds, removes, or modifies any root.\nThe server should then request an updated list of roots using the ListRootsRequest.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/roots/list_changed",
                     "type": "string"
@@ -1945,7 +2204,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1953,6 +2212,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -2122,6 +2382,13 @@
         "SetLevelRequest": {
             "description": "A request from the client to the server, to enable or adjust logging.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "logging/setLevel",
                     "type": "string"
@@ -2140,6 +2407,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -2181,6 +2450,13 @@
         "SubscribeRequest": {
             "description": "Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/subscribe",
                     "type": "string"
@@ -2200,6 +2476,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -2208,6 +2486,11 @@
         "TextContent": {
             "description": "Text provided to or from an LLM.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/Annotations",
                     "description": "Optional annotations for the client."
@@ -2229,6 +2512,11 @@
         },
         "TextResourceContents": {
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -2252,9 +2540,14 @@
         "Tool": {
             "description": "Definition for a tool the client can call.",
             "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
                 "annotations": {
                     "$ref": "#/definitions/ToolAnnotations",
-                    "description": "Optional additional tool information."
+                    "description": "Optional additional tool information.\n\nDisplay name precedence order is: title, annotations.title, then name."
                 },
                 "description": {
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
@@ -2288,7 +2581,7 @@
                     "type": "object"
                 },
                 "name": {
-                    "description": "The name of the tool.",
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
                 },
                 "outputSchema": {
@@ -2317,6 +2610,10 @@
                         "type"
                     ],
                     "type": "object"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
                 }
             },
             "required": [
@@ -2354,6 +2651,10 @@
         "ToolListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "notifications/tools/list_changed",
                     "type": "string"
@@ -2363,7 +2664,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "This parameter name is reserved by MCP to allow clients and servers to attach additional metadata to their notifications.",
+                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -2371,6 +2672,7 @@
                 }
             },
             "required": [
+                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -2378,6 +2680,13 @@
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
             "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
                 "method": {
                     "const": "resources/unsubscribe",
                     "type": "string"
@@ -2397,6 +2706,8 @@
                 }
             },
             "required": [
+                "id",
+                "jsonrpc",
                 "method",
                 "params"
             ],

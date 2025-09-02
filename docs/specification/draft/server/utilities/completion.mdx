@@ -2,6 +2,8 @@
 title: Completion
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) provides a standardized way for servers to offer
@@ -76,7 +78,7 @@ what is being completed through a reference type:
 }
 ```
 
-For prompts or URI templates with multiple arguments, clients should resolve them in the order they are presented by the server, and include each previous completion in the `context.arguments` object to provide context for subsequent requests.
+For prompts or URI templates with multiple arguments, clients should include previous completions in the `context.arguments` object to provide context for subsequent requests.
 
 **Request:**
 
@@ -182,7 +184,6 @@ Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 ## Implementation Considerations
 
 1. Servers **SHOULD**:
-
    - Return suggestions sorted by relevance
    - Implement fuzzy matching where appropriate
    - Rate limit completion requests

@@ -1,19 +1,18 @@
 ---
-title: Overview
+title: Java SDK Overview
 description: Introduction to the Model Context Protocol (MCP) Java SDK
 ---
 
 Java SDK for the [Model Context Protocol](https://modelcontextprotocol.org/docs/concepts/architecture)
 enables standardized integration between AI models and tools.
 
-<Note>
+## Content
 
-### Breaking Changes in 0.8.x ⚠️
-
-**Note:** Version 0.8.x introduces several breaking changes including a new session-based architecture.
-If you're upgrading from 0.7.0, please refer to the [Migration Guide](https://github.com/modelcontextprotocol/java-sdk/blob/main/migration-0.8.0.md) for detailed instructions.
-
-</Note>
+- [Introduction](/sdk/java/mcp-overview#features) - Overview of the Model Context Protocol (MCP) Java SDK and its features.
+  - [Architecture](/sdk/java/mcp-overview#architecture) - The Java MCP SDK architecture overview.
+  - [Java Dependencies](/sdk/java/mcp-overview#dependencies) - Java dependencies required to use the MCP SDK.
+- [Java MCP Client](/sdk/java/mcp-client) - Learn how to use the MCP client to interact with MCP servers.
+- [Java MCP Server](/sdk/java/mcp-server) - Learn how to implement and configure an MCP server.
 
 ## Features
 
@@ -55,12 +54,12 @@ The SDK follows a layered architecture with clear separation of concerns:
   - StdioTransport (stdin/stdout) in the core module
   - HTTP SSE transports in dedicated transport modules (Java HttpClient, Spring WebFlux, Spring WebMVC)
 
-The MCP Client is a key component in the Model Context Protocol (MCP) architecture, responsible for establishing and managing connections with MCP servers.
+The [MCP Client](/sdk/java/mcp-client) is a key component in the Model Context Protocol (MCP) architecture, responsible for establishing and managing connections with MCP servers.
 It implements the client-side of the protocol.
 
 ![Java MCP Client Architecture](/images/java/java-mcp-client-architecture.jpg)
 
-The MCP Server is a foundational component in the Model Context Protocol (MCP) architecture that provides tools, resources, and capabilities to clients.
+The [MCP Server](/sdk/java/mcp-server) is a foundational component in the Model Context Protocol (MCP) architecture that provides tools, resources, and capabilities to clients.
 It implements the server-side of the protocol.
 
 ![Java MCP Server Architecture](/images/java/java-mcp-server-architecture.jpg)
@@ -154,7 +153,7 @@ Add the BOM to your project:
         <dependency>
             <groupId>io.modelcontextprotocol.sdk</groupId>
             <artifactId>mcp-bom</artifactId>
-            <version>0.9.0</version>
+            <version>0.10.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -168,7 +167,7 @@ Add the BOM to your project:
 
 ```groovy
 dependencies {
-  implementation platform("io.modelcontextprotocol.sdk:mcp-bom:0.9.0")
+  implementation platform("io.modelcontextprotocol.sdk:mcp-bom:0.10.0")
   //...
 }
 ```

@@ -1,0 +1,12 @@
+# CODEOWNERS file for MCP Specification repository
+
+# General documentation ownership - @modelcontextprotocol/docs-maintaners owns all of /docs
+/docs/ @modelcontextprotocol/docs-maintaners
+
+# Specific ownership - @core-maintainer team owns docs/specification and schema/ directories
+/docs/specification/ @modelcontextprotocol/core-maintainers
+/schema/ @modelcontextprotocol/core-maintainers
+
+# Authorization-related files - @auth team should be notified
+/docs/specification/**/authorization.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth
+/docs/specification/**/security_best_practices.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth

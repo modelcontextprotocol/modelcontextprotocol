@@ -2,6 +2,8 @@
 title: Elicitation
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 <Note>
@@ -149,7 +151,7 @@ To request information from a user, servers send an `elicitation/create` request
 }
 ```
 
-**Decline Response Example:**
+**Reject Response Example:**
 
 ```json
 {
@@ -177,9 +179,9 @@ To request information from a user, servers send an `elicitation/create` request
 
 ```mermaid
 sequenceDiagram
-    participant Server
-    participant Client
     participant User
+    participant Client
+    participant Server
 
     Note over Server,Client: Server initiates elicitation
     Server->>Client: elicitation/create
@@ -196,7 +198,7 @@ sequenceDiagram
 
 ## Request Schema
 
-The `requestedSchema` field allows servers to define the structure of the expected response using a restricted subset of JSON Schema. To simplify implementation for clients, elicitation schemas are limited to flat objects with primitive properties only:
+The `requestedSchema` field allows servers to define the structure of the expected response using a restricted subset of JSON Schema. To simplify client user experience, elicitation schemas are limited to flat objects with primitive properties only:
 
 ```json
 "requestedSchema": {
@@ -277,7 +279,7 @@ Clients can use this schema to:
 2. Validate user input before sending
 3. Provide better guidance to users
 
-Note that complex nested structures, arrays of objects, and other advanced JSON Schema features are intentionally not supported to simplify client implementation.
+Note that complex nested structures, arrays of objects, and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
 
 ## Response Actions
 
@@ -300,14 +302,12 @@ Elicitation responses use a three-action model to clearly distinguish between di
 The three response actions are:
 
 1. **Accept** (`action: "accept"`): User explicitly approved and submitted with data
-
    - The `content` field contains the submitted data matching the requested schema
    - Example: User clicked "Submit", "OK", "Confirm", etc.
 
-2. **Decline** (`action: "decline"`): User explicitly rejected the request
-
+2. **Decline** (`action: "decline"`): User explicitly declined the request
    - The `content` field is typically omitted
-   - Example: User clicked "Decline", "Reject", "No", etc.
+   - Example: User clicked "Reject", "Decline", "No", etc.
 
 3. **Cancel** (`action: "cancel"`): User dismissed without making an explicit choice
    - The `content` field is typically omitted
@@ -316,7 +316,7 @@ The three response actions are:
 Servers should handle each state appropriately:
 
 - **Accept**: Process the submitted data
-- **Decline**: Handle explicit rejection (e.g., offer alternatives)
+- **Decline**: Handle explicit decline (e.g., offer alternatives)
 - **Cancel**: Handle dismissal (e.g., prompt again later)
 
 ## Security Considerations
@@ -325,6 +325,6 @@ Servers should handle each state appropriately:
 2. Clients **SHOULD** implement user approval controls
 3. Both parties **SHOULD** validate elicitation content against the provided schema
 4. Clients **SHOULD** provide clear indication of which server is requesting information
-5. Clients **SHOULD** allow users to reject elicitation requests at any time
+5. Clients **SHOULD** allow users to decline elicitation requests at any time
 6. Clients **SHOULD** implement rate limiting
 7. Clients **SHOULD** present elicitation requests in a way that makes it clear what information is being requested and why
