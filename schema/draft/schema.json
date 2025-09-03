@@ -835,10 +835,10 @@
             "type": "object"
         },
         "Icon": {
-            "description": "A url pointing to an icon URL or a base64-encoded data URI",
+            "description": "A url pointing to an icon URL or a base64-encoded data URI\n\nClients that support rendering icons MUST support at least the following MIME types:\n- image/png - PNG images (safe, universal compatibility)\n- image/jpeg (and image/jpg) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- image/svg+xml - SVG images (scalable but requires security precautions)\n- image/webp - WebP images (modern, efficient format)",
             "properties": {
                 "mimeType": {
-                    "description": "Optional override if the server’s MIME type is missing or generic.",
+                    "description": "Optional override if the server's MIME type is missing or generic.",
                     "type": "string"
                 },
                 "sizes": {
