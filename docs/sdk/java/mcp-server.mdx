@@ -56,6 +56,7 @@ The server supports both synchronous and asynchronous APIs, allowing for flexibl
     // Close the server when done
     syncServer.close();
     ```
+
   </Tab>
 
   <Tab title="Async API">
@@ -90,6 +91,7 @@ The server supports both synchronous and asynchronous APIs, allowing for flexibl
         .doOnSuccess(v -> logger.info("Server closed"))
         .subscribe();
     ```
+
   </Tab>
 </Tabs>
 
@@ -117,6 +119,7 @@ The SDK includes several built-in transport provider implementations:
       <li>Simple setup and configuration</li>
       <li>Lightweight implementation</li>
     </ul>
+
   </Tab>
   <Tab title="WebFlux">
     <p>WebFlux-based SSE and Streamable-HTTP server transport. [Requires the `mcp-spring-webflux` dependency](/sdk/java/mcp-overview#dependencies).</p>
@@ -228,6 +231,7 @@ The SDK includes several built-in transport provider implementations:
           </ul>
       </Tab>
     </Tabs>
+
   </Tab>
   <Tab title="WebMVC">
     <p>Creates WebMvc-based SSE server transport. Requires the <code>mcp-spring-webmvc</code> dependency.</p>
@@ -272,7 +276,7 @@ The SDK includes several built-in transport provider implementations:
         They implement a subset of `Streamable-HTTP` specification that return `application/json` responses.
         They are called stateless because unlike the standard Streamable-HTTP transport, they do not maintain session state between requests.
         These servers are ideal for microservices architectures and cloud-native deployments.
-  
+
         ```java
         @Configuration
         @EnableWebMvc
@@ -403,7 +407,7 @@ The SDK includes several built-in transport provider implementations:
       </Tab>
       <Tab title="Stateless Streamable-HTTP (Servlet)">
         Stateless MCP servers are designed for simplified deployments where session state is not maintained between requests.
-        They implement a subset of `Streamable-HTTP` specification that return `application/json` responses. 
+        They implement a subset of `Streamable-HTTP` specification that return `application/json` responses.
         They are called stateless because unlike the standard Streamable-HTTP transport, they do not maintain session state between requests.
         These servers are ideal for microservices architectures and cloud-native deployments.
 
