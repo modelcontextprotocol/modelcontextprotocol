@@ -233,7 +233,8 @@ The schema is restricted to these primitive types:
      "minLength": 3,
      "maxLength": 50,
      "pattern": "^[A-Za-z]+$",
-     "format": "email"
+     "format": "email",
+     "default": "user@example.com"
    }
    ```
 
@@ -247,7 +248,8 @@ The schema is restricted to these primitive types:
      "title": "Display Name",
      "description": "Description text",
      "minimum": 0,
-     "maximum": 100
+     "maximum": 100,
+     "default": 50
    }
    ```
 
@@ -269,7 +271,8 @@ The schema is restricted to these primitive types:
      "title": "Display Name",
      "description": "Description text",
      "enum": ["option1", "option2", "option3"],
-     "enumNames": ["Option 1", "Option 2", "Option 3"]
+     "enumNames": ["Option 1", "Option 2", "Option 3"],
+     "default": "option1"
    }
    ```
 
@@ -278,6 +281,8 @@ Clients can use this schema to:
 1. Generate appropriate input forms
 2. Validate user input before sending
 3. Provide better guidance to users
+
+All primitive types support optional default values to provide sensible starting points. Clients that support defaults SHOULD pre-populate form fields with these values.
 
 Note that complex nested structures, arrays of objects, and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
 
