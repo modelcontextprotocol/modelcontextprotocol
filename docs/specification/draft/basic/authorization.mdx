@@ -98,8 +98,7 @@ MCP servers **MUST** implement one of the following discovery mechanisms to prov
    - At a sub-path: `https://example.com/.well-known/oauth-protected-resource/mcp`
    - At the root: `https://example.com/.well-known/oauth-protected-resource`
 
-MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed WWW-Authenticate headers when present; otherwise, they must fall back to constructing the well-known URIs as described above.
-
+MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed WWW-Authenticate headers when present; otherwise, they **MUST** fall back to constructing the well-known URIs as described above.
 #### Authorization Server Metadata Discovery
 
 To handle different issuer URL formats and ensure interoperability with both OAuth 2.0 Authorization Server Metadata and OpenID Connect Discovery 1.0 specifications, MCP clients **MUST** attempt multiple well-known endpoints when discovering authorization server metadata.
@@ -137,6 +136,7 @@ sequenceDiagram
         M-->>C: Resource metadata with authorization server URL
     else No resource_metadata in header
         Note over C: Fallback to well-known URI probing
+        Note over M: _Not applicable if the MCP server is at the root_
         C->>M: GET /.well-known/oauth-protected-resource/mcp
         alt Sub-path metadata found
             M-->>C: Resource metadata with authorization server URL
