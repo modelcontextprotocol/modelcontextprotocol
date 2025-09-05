@@ -167,6 +167,42 @@ Sampling messages can contain:
 }
 ```
 
+#### Resource Links
+
+A tool **MAY** return links to [Resources](/specification/draft/server/resources), to provide additional context
+or data. In this case, the tool will return a URI that can be subscribed to or fetched by the client:
+
+```json
+{
+  "type": "resource_link",
+  "uri": "file:///project/src/main.rs",
+  "name": "main.rs",
+  "description": "Primary application entry point",
+  "mimeType": "text/x-rust"
+}
+```
+
+<Info>
+  Resource links returned by tools are not guaranteed to appear in the results
+  of a `resources/list` request.
+</Info>
+
+#### Embedded Resources
+
+[Resources](/specification/draft/server/resources) **MAY** be embedded to provide additional context
+or data using a suitable [URI scheme](../server/resources#common-uri-schemes). Servers that use embedded resources **SHOULD** implement the `resources` capability:
+
+```json
+{
+  "type": "resource",
+  "resource": {
+    "uri": "file:///project/src/main.rs",
+    "mimeType": "text/x-rust",
+    "text": "fn main() {\n    println!(\"Hello world!\");\n}"
+  }
+}
+```
+
 ### Model Preferences
 
 Model selection in MCP requires careful abstraction since servers and clients may use
