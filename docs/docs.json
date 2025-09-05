@@ -58,6 +58,12 @@
                 "pages": [
                   "quickstart/client"
                 ]
+              },
+              {
+                "group": "Security",
+                "pages": [
+                  "docs/tutorials/security/authorization"
+                ]
               }
             ]
           },
