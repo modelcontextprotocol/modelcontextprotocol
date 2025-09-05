@@ -210,8 +210,7 @@ capability **SHOULD** send a notification:
 
 ### Subscriptions
 
-The protocol supports optional subscriptions to resource changes. Clients can subscribe
-to specific resources and receive notifications when they change:
+The protocol supports optional subscriptions to resource changes. The subscription is associated with a particular MCP session rather than a particular connection. Clients can subscribe to specific resources and receive notifications when they change:
 
 **Subscribe Request:**
 
@@ -221,7 +220,8 @@ to specific resources and receive notifications when they change:
   "id": 4,
   "method": "resources/subscribe",
   "params": {
-    "uri": "file:///project/src/main.rs"
+    "uri": "file:///project/src/main.rs",
+    "mcpSessionId": "abc123"
   }
 }
 ```
