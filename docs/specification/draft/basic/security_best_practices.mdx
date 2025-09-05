@@ -8,7 +8,7 @@ title: Security Best Practices
 
 ### Purpose and Scope
 
-This document provides security considerations for the Model Context Protocol (MCP), complementing the MCP Authorization specification. This document identifies security risks, attack vectors, and best practices specific to MCP implementations.
+This document provides security considerations for the Model Context Protocol (MCP), complementing the [MCP Authorization](../basic/authorization.mdx) specification. This document identifies security risks, attack vectors, and best practices specific to MCP implementations.
 
 The primary audience for this document includes developers implementing MCP authorization flows, MCP server operators, and security professionals evaluating MCP-based systems. This document should be read alongside the MCP Authorization specification and [OAuth 2.0 security best practices](https://datatracker.ietf.org/doc/html/rfc9700).
 
@@ -25,7 +25,7 @@ Common terminology and context are essential for understanding the security cons
 : An MCP server that connects MCP clients to third-party APIs, offering MCP features while delegating operations and acting as a single OAuth client to the third-party API server.
 
 **Third-Party Authorization Server**
-: Authorization server that protects the third-party API. It may lack dynamic client registration support, requiring MCP proxy to use a static client ID for all requests.
+: Authorization server that protects the third-party API. It may lack dynamic client registration support, requiring the MCP proxy to use a static client ID for all requests.
 
 **Third-Party API**
 : The protected resource server that provides the actual API functionality. Access to this
@@ -186,9 +186,9 @@ attack becomes possible:
 3. An attacker later sends the user a malicious link containing a crafted authorization request which contains a malicious redirect URI along with a new dynamically registered client ID
 4. When the user clicks the link, their browser still has the consent cookie from the previous legitimate request
 5. The third-party authorization server detects the cookie and skips the consent screen
-6. The MCP authorization code is redirected to the attacker's server (specified in the crafted redirect_uri during dynamic client registration)
+6. The MCP authorization code is redirected to the attacker's server (specified in the malicious `redirect_uri` parameter during [dynamic client registration](/specification/draft/basic/authorization#dynamic-client-registration))
 7. The attacker exchanges the stolen authorization code for access tokens for the MCP server without the user's explicit approval
-8. Attacker now has access to the third-party API as the compromised user
+8. The attacker now has access to the third-party API as the compromised user
 
 #### Mitigation
 
@@ -197,7 +197,7 @@ registered client before forwarding to third-party authorization servers (which 
 
 ### Token Passthrough
 
-"Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and "passing them through" to the downstream API.
+"Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and passes them through to the downstream API.
 
 #### Risks
 
@@ -276,7 +276,6 @@ When you have multiple stateful HTTP servers that handle MCP requests, the follo
 
 1. The client connects to **Server A** and receives a session ID.
 1. The attacker obtains an existing session ID and sends a malicious event to **Server B** with said session ID.
-
    - When a server supports [redelivery/resumable streams](/specification/draft/basic/transports#resumability-and-redelivery), deliberately terminating the request before receiving the response could lead to it being resumed by the original client via the GET request for server sent events.
    - If a particular server initiates server sent events as a consequence of a tool call such as a `notifications/tools/list_changed`, where it is possible to affect the tools that are offered by the server, a client could end up with tools that they were not aware were enabled.
 
