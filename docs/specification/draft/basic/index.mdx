@@ -32,7 +32,7 @@ these types of messages:
 
 ### Requests
 
-Requests are sent from the client to the server or vice versa, to initiate an operation.
+[Requests](/specification/draft/schema#jsonrpcrequest) are sent from the client to the server or vice versa, to initiate an operation.
 
 ```typescript
 {
@@ -52,16 +52,31 @@ Requests are sent from the client to the server or vice versa, to initiate an op
 
 ### Responses
 
-Responses are sent in reply to requests, containing the result or error of the operation.
+[Responses](/specification/draft/schema#jsonrpcresponse) are sent in reply to requests when the operation completes successfully.
 
 ```typescript
 {
   jsonrpc: "2.0";
   id: string | number;
-  result?: {
+  result: {
     [key: string]: unknown;
   }
-  error?: {
+}
+```
+
+- Responses **MUST** include the same ID as the request they correspond to.
+- Responses **MUST** include a `result` field.
+- The `result` **MAY** follow any JSON object structure.
+
+### Errors
+
+[Errors](/specification/draft/schema#jsonrpcerror) are sent in reply to requests when the operation fails or encounters an error.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  id: string | number;
+  error: {
     code: number;
     message: string;
     data?: unknown;
@@ -69,17 +84,14 @@ Responses are sent in reply to requests, containing the result or error of the o
 }
 ```
 
-- Responses **MUST** include the same ID as the request they correspond to.
-- **Responses** are further sub-categorized as either **successful results** or
-  **errors**. Either a `result` or an `error` **MUST** be set. A response **MUST NOT**
-  set both.
-- Results **MAY** follow any JSON object structure, while errors **MUST** include an
-  error code and message at minimum.
-- Error codes **MUST** be integers.
+- Error responses **MUST** include the same ID as the request they correspond to (unless otherwise specified).
+- Error responses **MUST** include an `error` field.
+- The `error` object **MUST** include a `code` (integer) and `message` (string) at minimum.
+- The `error` object **MAY** include a `data` field with additional error information.
 
 ### Notifications
 
-Notifications are sent from the client to the server or vice versa, as a one-way message.
+[Notifications](/specification/draft/schema#jsonrpcnotification) are sent from the client to the server or vice versa, as a one-way message.
 The receiver **MUST NOT** send a response.
 
 ```typescript
