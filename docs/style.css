@@ -593,6 +593,153 @@ body:has(#schema-reference) {
   }
 }
 
+/* Dark mode styles for landing page */
+.dark .landing-page {
+  background: rgb(var(--background-dark));
+  color: #e5e7eb;
+}
+
+/* Invert the MCP logo in dark mode */
+.dark .intro-logo img {
+  filter: invert(1);
+}
+
+.dark .hero-subtitle,
+.dark .feature-description,
+.dark .section-description,
+.dark .intro-description,
+.dark .path-card p,
+.dark .step-content p,
+.dark .stat-label,
+.dark .ecosystem-description,
+.dark .cta-card p,
+.dark .quick-links a {
+  color: rgb(var(--gray-400));
+}
+
+.dark .quick-links a:hover {
+  color: #e5e7eb;
+}
+
+.dark .hero-title,
+.dark .feature-title,
+.dark .section-title,
+.dark .intro-title,
+.dark .path-card h3,
+.dark .step-content h3,
+.dark .cta-card h3 {
+  color: #e5e7eb;
+}
+
+.dark .path-card h4 {
+  color: rgb(var(--gray-300));
+}
+
+.dark .quick-links .separator {
+  color: rgb(var(--gray-600));
+}
+
+.dark .play-button {
+  background: rgba(31, 41, 55, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .play-button:hover {
+  background: rgba(31, 41, 55, 1);
+  box-shadow: 0 8px 30px rgba(255, 255, 255, 0.1);
+}
+
+.dark .play-icon {
+  border-left-color: #e5e7eb;
+}
+
+.dark .cta-primary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.dark .cta-primary:hover {
+  background: #f3f4f6;
+}
+
+.dark .cta-secondary {
+  background: transparent;
+  color: #e5e7eb;
+  border-color: #e5e7eb;
+}
+
+.dark .cta-secondary:hover {
+  background: rgba(31, 41, 55, 0.5);
+}
+
+.dark .feature-card {
+  background: rgba(31, 41, 55, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .feature-card:hover {
+  background: rgba(31, 41, 55, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .intro-video .video-placeholder {
+  background: rgba(31, 41, 55, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .paths-section {
+  background: rgba(17, 24, 39, 0.5);
+}
+
+.dark .path-card {
+  background: rgba(31, 41, 55, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .path-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .step-number {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.dark .step-connector {
+  background: rgb(var(--gray-600));
+}
+
+.dark .step-connector::after {
+  border-left-color: rgb(var(--gray-600));
+}
+
+.dark .ecosystem-section {
+  background: rgba(17, 24, 39, 0.5);
+}
+
+.dark .stats-container {
+  background: rgba(31, 41, 55, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .stat-number {
+  color: #818cf8;
+}
+
+.dark .final-cta {
+  background: rgb(var(--background-dark));
+}
+
+.dark .cta-card {
+  background: rgba(31, 41, 55, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .cta-card:hover {
+  background: rgba(31, 41, 55, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 768px) {
   .features-grid {
     grid-template-columns: 1fr;
