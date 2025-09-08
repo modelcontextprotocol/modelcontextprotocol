@@ -69,6 +69,16 @@ npm run check:docs
 npm run format
 ```
 
+## Blog changes
+
+The blog is built using [Hugo](https://gohugo.io/installation/) and located in the [`blog`](./blog) directory.
+
+To preview blog changes locally:
+
+```bash
+npm run serve:blog
+```
+
 ### Documentation Guidelines
 
 When contributing to the documentation:
