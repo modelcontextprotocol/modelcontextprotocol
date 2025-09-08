@@ -177,7 +177,7 @@ document and the user sees the correct client name, making detection
 difficult. While platform-specific attestations (iOS DeviceCheck, Android 
 Play Integrity) could address this, they're not universally available. An 
 approach using JWKS and short-lived JWTs signed by a server-side component 
-of the client could raise the cost of attack but cannot eliminate it 
+that asserts the identity of the client could raise the cost of attack. The JWT provides a cryptographic binding between the URL used as a client ID and the metadata document. These JWTs may be provisioned manually, or through automated mechanisms such as Attestation Based Client Authentication or SPIFFE. The MCP server accepts and verifies these JWTs as authentication credentials as defined in (see draft-parecki-oauth-client-id-metadata-document-03). Using short lived JWTs minimise the risk of credential compromise and replay, but does not eliminate it
 entirely - an attacker could still proxy requests to the legitimate 
 client's signing endpoint. 
 
@@ -193,7 +193,7 @@ The authorization server takes a URL as input from an unknown client, and then f
 This can be prevented by validating the URL's and the IP's those URL's resolve to prior to initiating a fetch request.
 
 
-#### Risk: Distributed Denail of Service (DDoS)
+#### Risk: Distributed Denial of Service (DDoS)
 
 Similarly, an attacker could try to leverage a pool of authorization servers to perform a denial of service attack on a non-MCP server.
 
