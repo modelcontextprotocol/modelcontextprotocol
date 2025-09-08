@@ -7,3 +7,14 @@
 .dark.list {
     background: var(--theme);
 }
+
+/* Mermaid diagram styling for dark mode */
+.dark .mermaid {
+    filter: invert(0.85) hue-rotate(180deg);
+    background: transparent !important;
+}
+
+/* Ensure mermaid diagrams have proper background in light mode */
+.mermaid {
+    background: transparent;
+}
