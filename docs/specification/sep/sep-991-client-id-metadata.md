@@ -176,10 +176,16 @@ A limitation of Client ID Metadata Documents is that they cannot prevent localho
 
 This attack is concerning because the server sees the correct metadata
 document and the user sees the correct client name, making detection
-difficult. While platform-specific attestations (iOS DeviceCheck, Android 
-Play Integrity) could address this, they're not universally available. An 
-approach using JWKS and short-lived JWTs signed by a server-side component 
-that asserts the identity of the client could raise the cost of attack. The JWT provides a cryptographic binding between the URL used as a client ID and the metadata document. These JWTs may be provisioned manually, or through automated mechanisms such as Attestation Based Client Authentication or SPIFFE. The MCP server accepts and verifies these JWTs as authentication credentials as defined in (see draft-parecki-oauth-client-id-metadata-document-03). Using short lived JWTs minimise the risk of credential compromise and replay, but does not eliminate it
+difficult. 
+
+Platform-specific attestations (iOS DeviceCheck, Android 
+Play Integrity) could address this, but they're not universally available. This
+would work by a developer running a backend service that consumes the DeviceCheck / Play Integrity
+signatures and returns a JWT usable as the `private_key_jwt` authentication for the `token_endpoint_auth_method`.
+
+
+A similar approach without requiring platform-specific attestations that still raises the cost of the attack
+is possible using JWKS and short-lived JWTs signed by a server-side component hosted by the client developer. This component could use attestation mechanisms other than platform-specific ones to attest to the clients identity, such as the client's standard login flow.  Using short lived JWTs reduces the risk of credential compromise and replay, but does not eliminate it
 entirely - an attacker could still proxy requests to the legitimate 
 client's signing endpoint. 
 
