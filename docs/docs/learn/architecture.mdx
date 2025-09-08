@@ -1,5 +1,6 @@
 ---
-title: Architecture Overview
+title: Architecture overview
+sidebarTitle: Architecture
 type: docs
 ---
 
@@ -154,7 +155,7 @@ This section provides a step-by-step walkthrough of an MCP client-server interac
 MCP begins with lifecycle management through a capability negotiation handshake. As described in the [lifecycle management](#lifecycle-management) section, the client sends an `initialize` request to establish the connection and negotiate supported features.
 
 <CodeGroup>
-  ```json Request
+  ```json Initialize Request
   {
     "jsonrpc": "2.0",
     "id": 1,
@@ -171,7 +172,7 @@ MCP begins with lifecycle management through a capability negotiation handshake.
     }
   }
   ```
-  ```json Response
+  ```json Initialize Response
   {
     "jsonrpc": "2.0",
     "id": 1,
@@ -242,14 +243,14 @@ async with stdio_client(server_config) as (read, write):
 Now that the connection is established, the client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism — it allows clients to understand what tools are available on the server before attempting to use them.
 
 <CodeGroup>
-  ```json Request
+  ```json Tools List Request
   {
     "jsonrpc": "2.0",
     "id": 2,
     "method": "tools/list"
   }
   ```
-  ```json Response
+  ```json Tools List Response
   {
     "jsonrpc": "2.0",
     "id": 2,
@@ -335,7 +336,7 @@ The client can now execute a tool using the `tools/call` method. This demonstrat
 The `tools/call` request follows a structured format that ensures type safety and clear communication between client and server. Note that we're using the proper tool name from the discovery response (`weather_current`) rather than a simplified name:
 
 <CodeGroup>
-  ```json Request
+  ```json Tool Call Request
   {
     "jsonrpc": "2.0",
     "id": 3,
@@ -349,7 +350,7 @@ The `tools/call` request follows a structured format that ensures type safety an
     }
   }
   ```
-  ```json Response
+  ```json Tool Call Response
   {
     "jsonrpc": "2.0",
     "id": 3,
@@ -372,7 +373,6 @@ The request structure includes several important components:
 1. **`name`**: Must match exactly the tool name from the discovery response (`weather_current`). This ensures the server can correctly identify which tool to execute.
 
 2. **`arguments`**: Contains the input parameters as defined by the tool's `inputSchema`. In this example:
-
    - `location`: "San Francisco" (required parameter)
    - `units`: "imperial" (optional parameter, defaults to "metric" if not specified)
 

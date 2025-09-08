@@ -1,26 +1,21 @@
 ---
-title: "Build an MCP Server"
+title: "Build an MCP server"
 description: "Get started building your own server to use in Claude for Desktop and other clients."
 ---
 
-In this tutorial, we'll build a simple MCP weather server and connect it to a host, Claude for Desktop. We'll start with a basic setup, and then progress to more complex use cases.
+In this tutorial, we'll build a simple MCP weather server and connect it to a host, Claude for Desktop.
 
 ### What we'll be building
 
-Many LLMs do not currently have the ability to fetch the forecast and severe weather alerts. Let's use MCP to solve that!
-
 We'll build a server that exposes two tools: `get_alerts` and `get_forecast`. Then we'll connect the server to an MCP host (in this case, Claude for Desktop):
 
-<Frame>
-  <img src="/images/weather-alerts.png" />
-</Frame>
 <Frame>
   <img src="/images/current-weather.png" />
 </Frame>
 
 <Note>
 
-Servers can connect to any client. We've chosen Claude for Desktop here for simplicity, but we also have guides on [building your own client](/quickstart/client) as well as a [list of other clients here](/clients).
+Servers can connect to any client. We've chosen Claude for Desktop here for simplicity, but we also have guides on [building your own client](/docs/develop/build-client) as well as a [list of other clients here](/clients).
 
 </Note>
 
@@ -28,9 +23,9 @@ Servers can connect to any client. We've chosen Claude for Desktop here for simp
 
 MCP servers can provide three main types of capabilities:
 
-1. **Resources**: File-like data that can be read by clients (like API responses or file contents)
-2. **Tools**: Functions that can be called by the LLM (with user approval)
-3. **Prompts**: Pre-written templates that help users accomplish specific tasks
+1. **[Resources](/docs/learn/server-concepts#resources)**: File-like data that can be read by clients (like API responses or file contents)
+2. **[Tools](/docs/learn/server-concepts#tools)**: Functions that can be called by the LLM (with user approval)
+3. **[Prompts](/docs/learn/server-concepts#prompts)**: Pre-written templates that help users accomplish specific tasks
 
 This tutorial will primarily focus on tools.
 
@@ -270,7 +265,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/quickstart/client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -424,7 +419,7 @@ cd weather
 npm init -y
 
 # Install dependencies
-npm install @modelcontextprotocol/sdk zod
+npm install @modelcontextprotocol/sdk zod@3
 npm install -D @types/node typescript
 
 # Create our files
@@ -441,7 +436,7 @@ cd weather
 npm init -y
 
 # Install dependencies
-npm install @modelcontextprotocol/sdk zod
+npm install @modelcontextprotocol/sdk zod@3
 npm install -D @types/node typescript
 
 # Create our files
@@ -754,7 +749,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/quickstart/client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -979,7 +974,7 @@ public class McpServerApplication {
 }
 ```
 
-Uses the the `MethodToolCallbackProvider` utils to convert the `@Tools` into actionable callbacks used by the MCP server.
+Uses the `MethodToolCallbackProvider` utils to convert the `@Tools` into actionable callbacks used by the MCP server.
 
 ### Running the server
 
@@ -1076,7 +1071,7 @@ Save the file, and restart **Claude for Desktop**.
 
 ## Testing your server with Java client
 
-### Create a MCP Client manually
+### Create an MCP Client manually
 
 Use the `McpClient` to connect to the server:
 
@@ -1127,7 +1122,7 @@ For more information, see the [MCP Client Boot Starters](https://docs.spring.io/
 
 ## More Java MCP Server examples
 
-The [starter-webflux-server](https://github.com/spring-projects/spring-ai-examples/tree/main/model-context-protocol/weather/starter-webflux-server) demonstrates how to create a MCP server using SSE transport.
+The [starter-webflux-server](https://github.com/spring-projects/spring-ai-examples/tree/main/model-context-protocol/weather/starter-webflux-server) demonstrates how to create an MCP server using SSE transport.
 It showcases how to define and register MCP Tools, Resources, and Prompts, using the Spring Boot's auto-configuration capabilities.
 
 </Tab>
@@ -1443,7 +1438,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/quickstart/client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -1724,7 +1719,7 @@ This will start the server and listen for incoming requests on standard input/ou
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/quickstart/client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -1904,7 +1899,11 @@ For more advanced troubleshooting, check out our guide on [Debugging MCP](/legac
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Building a client" icon="outlet" href="/quickstart/client">
+  <Card
+    title="Building a client"
+    icon="outlet"
+    href="/docs/develop/build-client"
+  >
     Learn how to build your own MCP client that can connect to your server
   </Card>
   <Card title="Example servers" icon="grid" href="/examples">
