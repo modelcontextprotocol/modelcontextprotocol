@@ -1,11 +1,17 @@
 ---
 title: Java MCP Client
-description: Learn how to use the Model Context Protocol (MCP) client to interact with MCP servers
+description: Learn how to implement and configure a Model Context Protocol (MCP) client
 ---
 
-Go to the [Java MCP Server](/sdk/java/mcp-server) to learn how to build MCP servers or the [Java MCP Overview](/sdk/java/mcp-overview) to understand the overall architecture.
+## SDK Contents
 
-# Model Context Protocol Client
+[Java MCP Overview](/sdk/java/mcp-overview)
+
+[[Java MCP Client](/sdk/java/mcp-client)]
+
+[Java MCP Server](/sdk/java/mcp-server)
+
+## Client Features
 
 The MCP Client is a key component in the Model Context Protocol (MCP) architecture, responsible for establishing and managing connections with MCP servers. It implements the client-side of the protocol, handling:
 
@@ -18,7 +24,7 @@ The MCP Client is a key component in the Model Context Protocol (MCP) architectu
 - Optional features like roots management and sampling support
 
 <Tip>
-The core `io.modelcontextprotocol.sdk:mcp` module provides STDIO and SSE client transport implementations without requiring external web frameworks.
+The core `io.modelcontextprotocol.sdk:mcp` module provides STDIO, SSE and Streamable-HTTP client transport implementations without requiring external web frameworks.
 
 Spring-specific transport implementations are available as an **optional** dependency `io.modelcontextprotocol.sdk:mcp-spring-webflux` for [Spring Framework](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html) users.
 
@@ -41,8 +47,15 @@ McpSyncClient client = McpClient.sync(transport)
     .capabilities(ClientCapabilities.builder()
         .roots(true)      // Enable roots capability
         .sampling()       // Enable sampling capability
+        .elicitation()    // Enable elicitation capability
         .build())
-    .sampling(request -> new CreateMessageResult(response))
+    .sampling(request -> CreateMessageResult.builder()...build())
+    .elicitation(elicitRequest -> ElicitResult.builder()...build())
+    .toolsChangeConsumer((List<McpSchema.Tool> tools) -> ...)
+    .resourcesChangeConsumer((List<McpSchema.Resource> resources) -> ...)
+    .promptsChangeConsumer((List<McpSchema.Prompt> prompts) -> ...)
+    .loggingConsumer((LoggingMessageNotification logging) -> ...)
+    .progressConsumer((ProgressNotification progress) -> ...)
     .build();
 
 // Initialize connection
@@ -88,17 +101,15 @@ McpAsyncClient client = McpClient.async(transport)
     .capabilities(ClientCapabilities.builder()
         .roots(true)      // Enable roots capability
         .sampling()       // Enable sampling capability
+        .elicitation()    // Enable elicitation capability
         .build())
     .sampling(request -> Mono.just(new CreateMessageResult(response)))
-    .toolsChangeConsumer(tools -> Mono.fromRunnable(() -> {
-        logger.info("Tools updated: {}", tools);
-    }))
-    .resourcesChangeConsumer(resources -> Mono.fromRunnable(() -> {
-        logger.info("Resources updated: {}", resources);
-    }))
-    .promptsChangeConsumer(prompts -> Mono.fromRunnable(() -> {
-        logger.info("Prompts updated: {}", prompts);
-    }))
+    .elicitation(elicitRequest -> Mono.just(ElicitResult.builder()...build()))
+    .toolsChangeConsumer(tools -> Mono.fromRunnable(() -> logger.info("Tools updated: {}", tools)))
+    .resourcesChangeConsumer(resources -> Mono.fromRunnable(() -> logger.info("Resources updated: {}", resources)))
+    .promptsChangeConsumer(prompts -> Mono.fromRunnable(() -> logger.info("Prompts updated: {}", prompts)))
+    .loggingConsumer(notification -> Mono.fromRunnable(() -> logger.info("Log: {}", notification.data())))
+    .progressConsumer(progress -> Mono.fromRunnable(() -> logger.info("Progress update: {}", progress.data())))
     .build();
 
 // Initialize connection and use features
@@ -154,23 +165,55 @@ The transport layer handles the communication between MCP clients and servers, p
         ```
 
     </Tab>
-    <Tab title="SSE (HttpClient)">
+    <Tab title="HttpClient">
+        <Tabs>
+            <Tab title="Streamable-HTTP (HttpClient)">
 
-        Creates a framework agnostic (pure Java API) SSE client transport. Included in the core mcp module.
-        ```java
-        McpTransport transport = new HttpClientSseClientTransport("http://your-mcp-server");
-        ```
+                Framework agnostic (only using JDK APIs) Streamable-HTTP client transport
+                ```java
+                McpTransport transport = HttpClientStreamableHttpTransport
+                                            .builder("http://your-mcp-server")
+                                            .build();
+                ```
+            </Tab>
+                <Tab title="SSE (HttpClient)">
 
+                    Framework agnostic (only using JDK APIs) SSE client transport
+                    ```java
+                    McpTransport transport = HttpClientSseClientTransport
+                                                .builder("http://your-mcp-server")
+                                                .build();
+                    ```
+                </Tab>
+        </Tabs>
     </Tab>
-    <Tab title="SSE (WebFlux)">
+    <Tab title="WebClient">
+        <p>WebClient-based client transport. Requires the `mcp-spring-webflux` dependency.</p>
+        <Tabs>
+            <Tab title="Streamable-HTTP (WebClient)">
 
-        Creates WebFlux-based SSE client transport. Requires the mcp-webflux-sse-transport dependency.
-        ```java
-        WebClient.Builder webClientBuilder = WebClient.builder()
-            .baseUrl("http://your-mcp-server");
-        McpTransport transport = new WebFluxSseClientTransport(webClientBuilder);
-        ```
+                ```java
+                WebClient.Builder webClientBuilder = WebClient.builder()
+                                            .baseUrl("http://your-mcp-server");
 
+                McpTransport transport = WebClientStreamableHttpTransport
+                                            .builder(webClientBuilder)
+                                            .build();
+                ```
+            </Tab>
+            <Tab title="SSE (WebClient)">
+
+                ```java
+                WebClient.Builder webClientBuilder = WebClient.builder()
+                                            .baseUrl("http://your-mcp-server");
+
+                McpTransport transport = WebFluxSseClientTransport(webClientBuilder)
+                                            .builder(webClientBuilder)
+                                            .build();
+                ```
+
+            </Tab>
+        </Tabs>
     </Tab>
 
 </Tabs>
@@ -183,6 +226,7 @@ The client can be configured with various capabilities:
 var capabilities = ClientCapabilities.builder()
     .roots(true)      // Enable filesystem roots support with list changes notifications
     .sampling()       // Enable LLM sampling support
+    .elicitation()    // Enable elicitation capability
     .build();
 ```
 
@@ -234,13 +278,33 @@ This capability allows:
 - Support for both text and image-based interactions
 - Optional inclusion of MCP server context in prompts
 
+### Elicitation Support
+
+Elicitation enables servers to request specific information or clarification from the client:
+
+```java
+// Configure elicitation handler
+Function<ElicitRequest, ElicitResult> elicitationHandler = request -> {
+    // Elicitation implementation that interfaces with LLM
+    return ElicitResult.builder()...build();
+};
+
+// Create client with elicitation support
+var client = McpClient.sync(transport)
+    .capabilities(ClientCapabilities.builder()
+        .elicitation() // enable elicitation capability
+        .build())
+    .elicitation(elicitationHandler) // register elicitation handler
+    .build();
+```
+
 ### Logging Support
 
 The client can register a logging consumer to receive log messages from the server and set the minimum logging level to filter messages:
 
 ```java
 var mcpClient = McpClient.sync(transport)
-        .loggingConsumer(notification -> {
+        .loggingConsumer((LoggingMessageNotification notification) -> {
             System.out.println("Received log message: " + notification.data());
         })
         .build();
@@ -255,6 +319,51 @@ CallToolResult result = mcpClient.callTool(new McpSchema.CallToolRequest("loggin
 
 Clients can control the minimum logging level they receive through the `mcpClient.setLoggingLevel(level)` request. Messages below the set level will be filtered out.
 Supported logging levels (in order of increasing severity): DEBUG (0), INFO (1), NOTICE (2), WARNING (3), ERROR (4), CRITICAL (5), ALERT (6), EMERGENCY (7)
+
+### Progress Support
+
+The client can register a progress consumer to receive progress updates from the server:
+
+```java
+var mcpClient = McpClient.sync(transport)
+        .progressConsumer((ProgressNotification progress) -> {
+            System.out.println("Received progress update: " + progress.data());
+        })
+        .build();
+
+mcpClient.initialize();
+
+// Call the tool that can sends progress notifications
+CallToolResult result = mcpClient.callTool(new McpSchema.CallToolRequest("progress-test", Map.of()));
+```
+
+### Change Notifications
+
+The client can register a change consumer to receive change notifications from the server about tools, resources, or prompts updates:
+
+```java
+
+var spec = McpClient.sync(transport);
+
+// Adds a consumer to be notified when the available tools change, such as tools
+// being added or removed.
+spec.toolsChangeConsumer((List<McpSchema.Tool> tools) -> {
+    // Handle tools change
+});
+
+// Adds a consumer to be notified when the available resources change, such as resources
+// being added or removed.
+spec.resourcesChangeConsumer((List<McpSchema.Resource> resources) -> {
+    // Handle resources change
+});
+
+// Adds a consumer to be notified when the available prompts change, such as prompts
+// being added or removed.
+spec.promptsChangeConsumer((List<McpSchema.Prompt> prompts) -> {
+    // Handle prompts change
+
+});
+```
 
 ## Using MCP Clients
 
