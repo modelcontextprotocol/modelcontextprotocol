@@ -644,7 +644,7 @@ export interface ResourceTemplate extends BaseMetadata {
 /**
  * The contents of a specific resource or sub-resource.
  */
-export interface ResourceContents {
+export interface ResourceContents extends BaseMetadata {
   /**
    * The URI of this resource.
    *

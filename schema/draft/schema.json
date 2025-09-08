@@ -90,6 +90,14 @@
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
@@ -98,6 +106,7 @@
             },
             "required": [
                 "blob",
+                "name",
                 "uri"
             ],
             "type": "object"
@@ -2020,6 +2029,14 @@
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of this resource.",
                     "format": "uri",
@@ -2027,6 +2044,7 @@
                 }
             },
             "required": [
+                "name",
                 "uri"
             ],
             "type": "object"
@@ -2585,8 +2603,16 @@
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
                 "text": {
                     "description": "The text of the item. This must only be set if the item can actually be represented as text (not binary data).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 },
                 "uri": {
@@ -2596,6 +2622,7 @@
                 }
             },
             "required": [
+                "name",
                 "text",
                 "uri"
             ],
