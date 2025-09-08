@@ -106,6 +106,8 @@ We will primarily rely on the text in the linked RFC, aiming not to repeat most 
    - `redirect_uris`: array of allowed redirect URIs
    - `token_endpoint_auth_method`: "none" for public clients
 
+Note a client can use `private_key_jwt` for a `token_endpoint_auth_method` given the client metadata can provide public key information.
+
 ### Server Requirements
 - Servers SHOULD fetch metadata documents when encountering URL-formatted client_ids
 - Servers MUST validate the fetched document contains matching client_id
