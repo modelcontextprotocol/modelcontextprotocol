@@ -36,6 +36,7 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- OAuth Client ID Metadata Documents ([draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt))
 
 ## Authorization Flow
 
@@ -57,13 +58,16 @@ specifies how an MCP server indicates the location of its corresponding authoriz
 1. Authorization servers **MUST** implement OAuth 2.1 with appropriate security
    measures for both confidential and public clients.
 
-1. Authorization servers and MCP clients **SHOULD** support the OAuth 2.0 Dynamic Client Registration
+2. Authorization servers and MCP clients **SHOULD** support OAuth Client ID Metadata Documents
+   ([draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt)).
+
+3. Authorization servers and MCP clients **MAY** support the OAuth 2.0 Dynamic Client Registration
    Protocol ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)).
 
-1. MCP servers **MUST** implement OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)).
+4. MCP servers **MUST** implement OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)).
    MCP clients **MUST** use OAuth 2.0 Protected Resource Metadata for authorization server discovery.
 
-1. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
+5. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
 
    - OAuth 2.0 Authorization Server Metadata ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414))
    - [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
@@ -143,22 +147,62 @@ sequenceDiagram
     Note over C,M: MCP communication continues with valid token
 ```
 
+### Client Registration Approaches
+
+MCP supports three client registration mechanisms. Choose based on your scenario:
+
+- **Pre-registration**: When client and server have an existing relationship
+- **Client ID Metadata Documents**: When client and server have no prior relationship (most common)
+- **Dynamic Client Registration**: For backwards compatibility or specific requirements
+
+### Client ID Metadata Documents
+
+MCP clients and authorization servers **SHOULD** support OAuth Client ID Metadata Documents as specified in
+[draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt).
+This approach enables clients to use HTTPS URLs as client identifiers, where the URL points to a JSON document
+containing client metadata. This specifically addresses the common MCP scenario where servers and clients have
+no pre-existing relationship.
+
+
+#### Implementation Requirements
+
+MCP implementations supporting Client ID Metadata Documents **MUST** follow the requirements specified in
+[draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt).
+Key requirements include:
+
+**For MCP Clients:**
+- The client_id URL **MUST** use the "https" scheme and contain a path component
+- The metadata document **MUST** include at minimum: `client_id`, `client_name`, `redirect_uris`
+- Clients **MAY** use `private_key_jwt` for token endpoint authentication with appropriate JWKS configuration
+
+**For Authorization Servers:**
+- **SHOULD** fetch metadata documents when encountering URL-formatted client_ids
+- **MUST** validate that the fetched document's `client_id` matches the URL exactly
+- **SHOULD** cache metadata respecting HTTP cache headers
+- **MUST** validate redirect URIs against those in the metadata document
+
+#### Discovery
+
+Authorization servers advertise support via their metadata:
+```json
+{
+  "client_id_metadata_document_supported": true
+}
+```
+
+MCP clients **SHOULD** check for this capability and may fall back to Dynamic Client Registration
+or pre-registration if unavailable.
+
 ### Dynamic Client Registration
 
-MCP clients and authorization servers **SHOULD** support the
+MCP clients and authorization servers **MAY** support the
 OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)
 to allow MCP clients to obtain OAuth client IDs without user interaction. This provides a
-standardized way for clients to automatically register with new authorization servers, which is crucial
-for MCP because:
+standardized way for clients to automatically register with new authorization servers.
 
-- Clients may not know all possible MCP servers and their authorization servers in advance.
-- Manual registration would create friction for users.
-- It enables seamless connection to new MCP servers and their authorization servers.
-- Authorization servers can implement their own registration policies.
-
-Any authorization servers that _do not_ support Dynamic Client Registration need to provide
-alternative ways to obtain a client ID (and, if applicable, client credentials). For one of
-these authorization servers, MCP clients will have to either:
+Any authorization servers that support neither Client ID Metadata Documents nor Dynamic Client Registration
+need to provide alternative ways to obtain a client ID (and, if applicable, client credentials). For these
+authorization servers, MCP clients will have to either:
 
 1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
    interacting with that authorization server, or
@@ -190,9 +234,17 @@ sequenceDiagram
     Note over C,A: Try OAuth 2.0 and OpenID Connect<br/>discovery endpoints in priority order
     A-->>C: Authorization server metadata
 
-    alt Dynamic client registration
+    alt Client ID Metadata Documents
+        Note over C: Client uses HTTPS URL as client_id
+        Note over A: Server detects URL-formatted client_id
+        A->>C: Fetch metadata from client_id URL
+        C-->>A: JSON metadata document
+        Note over A: Validate metadata and redirect_uris
+    else Dynamic client registration
         C->>A: POST /register
         A->>C: Client Credentials
+    else Pre-registered client
+        Note over C: Use existing client_id
     end
 
     Note over C: Generate PKCE parameters<br/>Include resource parameter
@@ -370,6 +422,34 @@ and discard any results that do not include or have a mismatch with the original
 Authorization servers **MUST** take precautions to prevent redirecting user agents to untrusted URI's, following suggestions laid out in [OAuth 2.1 Section 7.12.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.12.2)
 
 Authorization servers **SHOULD** only automatically redirect the user agent if it trusts the redirection URI. If the URI is not trusted, the authorization server MAY inform the user and rely on the user to make the correct decision.
+
+### Client ID Metadata Document Security
+
+When implementing Client ID Metadata Documents, authorization servers **MUST** consider the security implications
+detailed in [draft-parecki-oauth-client-id-metadata-document-03 Section 7](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt).
+Key considerations include:
+
+#### SSRF Protection
+
+Authorization servers fetching metadata documents **MUST** protect against Server-Side Request Forgery (SSRF) attacks:
+- Validate URLs and resolved IP addresses before fetching
+- Limit response size (recommended 5 kilobytes)
+- Implement request timeouts
+- Never cache error responses or invalid documents
+
+#### Localhost Redirect URI Risks
+
+Client ID Metadata Documents cannot prevent localhost URL impersonation by themselves. Authorization servers:
+- **SHOULD** display additional warnings for localhost-only redirect URIs
+- **MAY** require additional attestation mechanisms for enhanced security
+- **MUST** clearly display the client's hostname during authorization
+
+#### Trust Policies
+
+Authorization servers **MAY** implement domain-based trust policies:
+- Allowlists for trusted domains
+- Reputation checks for unknown domains
+- Restrictions based on domain age or certificate validation
 
 ### Confused Deputy Problem
 
