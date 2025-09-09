@@ -57,6 +57,17 @@ The server supports both synchronous and asynchronous APIs, allowing for flexibl
     syncServer.close();
     ```
 
+    ### Preserving thread-locals in handlers
+
+    `McpSyncServer` delegates execution to an underlying `McpAsyncServer`.
+    Execution of handlers for tools, resources, etc, may not happen on the thread calling the method.
+    In that case, thread-locals are lost, which may break certain features in frameworks relying on thread-bound work.
+    To ensure execution happens on the calling thread, and that thread-locals remain available, set `McpServer.sync(...).immediateExecution(true)`.
+
+    <Note>
+    This is only relevant to Sync servers. Async servers use the reactive stack and should not rely on thread-locals.
+    </Note>
+
   </Tab>
 
   <Tab title="Async API">

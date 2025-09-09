@@ -186,6 +186,71 @@ The transport layer handles the communication between MCP clients and servers, p
                     ```
                 </Tab>
         </Tabs>
+
+        **HttpClient: Customizing HTTP requests**
+
+        To customize the base HTTP request builder used for every request, provide a custom `HttpRequestBuilder`.
+        This is available in both Streamable HTTP and SSE transports.
+        When using a custom `HttpRequest.Builder`, every HTTP request issued by the transport
+        will use the hardcoded configuration from the builder.
+        For example, this is useful for providing a never-expiring security token in a header.
+        To add a `X-Custom-Header` header to every request, use:
+
+        ```java
+        var requestBuilder = HttpRequest
+            .newBuilder()
+            .header("X-Custom-Header", "some header value");
+
+        HttpClientStreamableHttpTransport
+            .builder("https://mcp.example.com")
+            .requestBuilder(requestBuilder)
+            .build();
+        ```
+
+        To dynamically modify HTTP request before they are issued, implement either `McpSyncHttpClientRequestCustomizer` or `McpAsyncHttpClientRequestCustomizer`.
+        Choose the request customizer matching the MCP Client type, sync or async.
+        Note that thread-locals may not be available in the customizers, context-related information
+        must be accessed through `McpTransportContext` (see [adding context information](#adding-context-information)).
+        Example implementations:
+
+        ```java
+        // Sync
+        class MyRequestCustomizer implements McpSyncHttpClientRequestCustomizer {
+            @Override
+            public void customize(HttpRequest.Builder builder, String method,
+                URI endpoint, String body, McpTransportContext context) {
+                // ... custom logic ...
+                var token = obtainAccessToken(context);
+                builder.header("Authorization", "Bearer " + token);
+            }
+        }
+
+        // Async
+        class MyAsyncRequestCustomizer implements McpAsyncHttpClientRequestCustomizer {
+            @Override
+            public Publisher<HttpRequest.Builder> customize(HttpRequest.Builder builder,
+                String method, URI endpoint, String body, McpTransportContext context) {
+                // ... custom logic ...
+                Mono<String> token = obtainAccessToken(context);
+                return token.map(t ->
+                    builder.copy()
+                        .header("Authorization", "Bearer " + t)
+                );
+            }
+        }
+        ```
+
+        The transports, both Streamable HTTP and SSE, can be configured to use a single customizer.
+
+        ```java
+        HttpClientStreamableHttpTransport
+            .builder("https://mcp.example.com")
+            .httpRequestCustomizer(new MyRequestCustomizer()) // sync
+            .asyncHttpRequestCustomizer(new MyAsyncRequestCustomizer()) // OR async
+            .build();
+        ```
+
+        To compose multiple customizers, use `DelegatingMcpSyncHttpClientRequestCustomizer` or `DelegatingMcpAsyncHttpClientRequestCustomizer`.
     </Tab>
     <Tab title="WebClient">
         <p>WebClient-based client transport. Requires the `mcp-spring-webflux` dependency.</p>
@@ -214,6 +279,49 @@ The transport layer handles the communication between MCP clients and servers, p
 
             </Tab>
         </Tabs>
+
+        **WebClient: Customizing HTTP requests**
+
+        To customize outgoing HTTP requests, provide a custom `WebClient.Builder`.
+        When using a custom builder, every request sent by the transport will be customized.
+        For example, this is useful for providing a never-expiring security token in a header.
+        To add a `X-Custom-Header` header to every request, use:
+
+        ```java
+        var webClientBuilder = WebClient.builder()
+            .defaultHeader("X-Custom-Header", "some header value");
+
+        McpTransport transport = WebClientStreamableHttpTransport
+                                    .builder(webClientBuilder)
+                                    .build();
+        ```
+
+        To dynamically modify HTTP request, the builder has a dedicated API, `ExchangeFilterFunction`.
+        In that function, the new request can be computed at run time, and additional information can
+        be obtained from the [Reactor context](https://projectreactor.io/docs/core/release/reference/advancedFeatures/context.html).
+        It is common to store context information in an `McpTransportContext` within the Reactor context,
+        typically in McpSyncClient, but any context key can be used. For example:
+
+        ```java
+        WebClient.builder()
+            .filter((request, next) -> {
+                return Mono.deferContextual(ctx -> {
+                    var transportContext = ctx.get(McpTransportContext.KEY);
+                    var otherInfo = ctx.get("your-context-key");
+                    Mono<String> token = obtainAccessToken(transportContext, otherInfo);
+                    return token.map(t -> {
+                        var newRequest = ClientRequest.from(request)
+                            .header("Authorization", "Bearer " + t)
+                            .build();
+                        // Ensure you call next.exchange to execute the HTTP request
+                        return next.exchange(newRequest);
+                    });
+                });
+            });
+        ```
+
+         To learn how to populate context information, see [adding context information](#adding-context-information).
+
     </Tab>
 
 </Tabs>
@@ -521,6 +629,75 @@ CompleteRequest request = new CompleteRequest(
 
 Mono<CompleteResult> result = mcpClient.completeCompletion(request);
 
+```
+
+  </Tab>
+</Tabs>
+
+### Adding context information
+
+HTTP request sent through SSE or Streamable HTTP transport can be customized with
+dedicated APIs (see [client transport](#client-transport)). These customizers may need
+additional context-specific information that must be injected at the client level.
+
+<Tabs>
+  <Tab title="Sync API">
+
+The `McpSyncClient` is used in a blocking environment, and may rely on thread-locals to share information.
+For example, some frameworks store the current server request or security tokens in a thread-local.
+To make this type of information available to underlying transports, use `SyncSpec#transportContextProvider`:
+
+```java
+McpClient.sync(transport)
+    .transportContextProvider(() -> {
+        var data = obtainDataFromThreadLocals();
+        return McpTransportContext.create(
+                Map.of("some-data", data)
+        );
+    })
+    .build();
+```
+
+This `McpTransportContext` will be available in HttpClient-based `McpSyncHttpClientRequestCustomizer`
+and WebClient-based `ExchangeFilterFunction`.
+
+  </Tab>
+
+  <Tab title="Async API">
+
+The `McpAsyncClient` is used in a reactive environment.
+Information is passed through the reactive chain using the [Reactor context](https://projectreactor.io/docs/core/release/reference/advancedFeatures/context.html).
+To insert data in the Reactor context, use `contextWrite` when calling client operations:
+
+```java
+var client = McpClient.async(transport)
+    // ...
+    .build();
+
+Mono<McpSchema.ListToolsResult> toolList = client
+    .listTools()
+    .contextWrite(ctx -> {
+        var transportContext = McpTransportContext.create(
+            Map.of("some-key", "some value")
+        );
+        return ctx.put(McpTransportContext.KEY, transportContext)
+            .put("reactor-context-key", "some reactor value");
+    });
+```
+
+With this, the `McpTransportContext` will be available in HttpClient-based `McpAsyncHttpClientRequestCustomizer`.
+The entire Reactor context is also available in both `McpAsyncHttpClientRequestCustomizer`
+and WebClient's `ExchangeFilterFunction`, through `Mono.deferContextual`:
+
+```java
+WebClient.builder()
+    .filter((request, next) -> {
+        return Mono.deferContextual(ctx -> {
+            var transportContext = ctx.get(McpTransportContext.KEY);
+            var someReactorValue = ctx.get("reactor-context-key");
+            // ... use context values ...
+        });
+    });
 ```
 
   </Tab>
