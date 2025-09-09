@@ -2032,6 +2032,15 @@ export interface CompleteRequest extends JSONRPCRequest {
 }
 
 /**
+ * A completion value with optional metadata
+ */
+export interface CompletionValue {
+  value: string;
+  title: string;
+  description?: string;
+}
+
+/**
  * The server's response to a completion/complete request
  *
  * @category `completion/complete`
@@ -2041,7 +2050,7 @@ export interface CompleteResult extends Result {
     /**
      * An array of completion values. Must not exceed 100 items.
      */
-    values: string[];
+    values: Array<string | CompletionValue>;
     /**
      * The total number of completion options available. This can exceed the number of values actually sent in the response.
      */

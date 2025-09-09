@@ -70,7 +70,70 @@ what is being completed through a reference type:
   "id": 1,
   "result": {
     "completion": {
+      "values": [
+        {
+          "value": 45,
+          "title": "python",
+          "description": "A high-level programming language"
+        },
+        {
+          "value": 833,
+          "title": "pytorch",
+          "description": "An open source machine learning framework"
+        },
+        {
+          "value": 12,
+          "title": "pyside"
+        }
+      ],
+      "total": 10,
+      "hasMore": true
+    }
+  }
+}
+```
+
+Completion values can be objects with `title`, `value`, and optional `description` fields. The `description` field provides additional context about the completion option.
+
+For simple use cases (where the `value` is the same as the `title`), the
+`values` can be an array of strings:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
       "values": ["python", "pytorch", "pyside"],
+      "total": 10,
+      "hasMore": true
+    }
+  }
+}
+```
+
+These can also be mixed:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
+      "values": [
+        "python",
+        {
+          "value": 833,
+          "title": "pytorch",
+          "description": "An open source machine learning framework"
+        },
+        "pyside",
+        {
+          "value": 97,
+          "title": "pyright",
+          "description": "A static type checker for Python"
+        }
+      ],
       "total": 10,
       "hasMore": true
     }
