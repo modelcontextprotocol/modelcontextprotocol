@@ -69,6 +69,10 @@ npm run check:docs
 npm run format
 ```
 
+> [!NOTE]
+> You can run all schema/documentation
+> changes at once with `npm run prep:changes`.
+
 ### Documentation Guidelines
 
 When contributing to the documentation:
