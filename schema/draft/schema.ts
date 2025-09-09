@@ -77,7 +77,7 @@ export interface Error {
    * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
    */
   data?: unknown;
-};
+}
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
@@ -288,13 +288,13 @@ export interface ServerCapabilities {
   };
 }
 
-/** 
+/**
  * A url pointing to an icon URL or a base64-encoded data URI
- * 
+ *
  * Clients that support rendering icons MUST support at least the following MIME types:
  * - image/png - PNG images (safe, universal compatibility)
  * - image/jpeg (and image/jpg) - JPEG images (safe, universal compatibility)
- * 
+ *
  * Clients that support rendering icons SHOULD also support:
  * - image/svg+xml - SVG images (scalable but requires security precautions)
  * - image/webp - WebP images (modern, efficient format)
@@ -317,7 +317,6 @@ export interface Icon {
   /** e.g. "48x48", "any" (for SVG), or "48x48 96x96" */
   sizes?: string;
 }
-
 
 /**
  * Base interface for metadata with name (identifier) and title (display name) properties.
@@ -367,7 +366,6 @@ export interface Implementation extends BaseMetadata {
    * @format: uri
    */
   websiteUrl?: string;
-
 }
 
 /* Ping */
@@ -1362,6 +1360,15 @@ export interface CompleteRequest extends JSONRPCRequest {
 }
 
 /**
+ * A completion value with optional metadata
+ */
+export interface CompletionValue {
+  value: string;
+  title: string;
+  description?: string;
+}
+
+/**
  * The server's response to a completion/complete request
  *
  * @category completion/complete
@@ -1371,7 +1378,7 @@ export interface CompleteResult extends Result {
     /**
      * An array of completion values. Must not exceed 100 items.
      */
-    values: string[];
+    values: Array<string | CompletionValue>;
     /**
      * The total number of completion options available. This can exceed the number of values actually sent in the response.
      */
