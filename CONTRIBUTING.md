@@ -79,7 +79,7 @@ To preview blog changes locally:
 npm run serve:blog
 ```
 
-### Documentation Guidelines
+## Documentation Guidelines
 
 When contributing to the documentation:
 
@@ -95,9 +95,9 @@ When contributing to the documentation:
 - Follow existing file naming conventions (`kebab-case.mdx`)
 - Include proper frontmatter in MDX files
 
-### Specification Proposal Guidelines
+## Specification Proposal Guidelines
 
-#### Principles of MCP
+### Principles of MCP
 
 1. **Simple + Minimal**: It is much easier to add things to a specification than it is to
    remove them. To maintain simplicity, we keep a high bar for adding new concepts and
