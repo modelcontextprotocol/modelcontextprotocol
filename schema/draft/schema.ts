@@ -8,8 +8,7 @@
 export type JSONRPCMessage =
   | JSONRPCRequest
   | JSONRPCNotification
-  | JSONRPCResponse
-  | JSONRPCError;
+  | JSONRPCResponse;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "DRAFT-2025-v3";
@@ -100,12 +99,21 @@ export interface JSONRPCNotification extends Notification {
 }
 
 /**
- * A successful (non-error) response to a request.
+ * A response to a request, containing either the result or error.
  */
 export interface JSONRPCResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
+}
+
+/**
+ * A response to a request that indicates an error occurred.
+ */
+export interface JSONRPCError {
+  jsonrpc: typeof JSONRPC_VERSION;
+  id: RequestId;
+  error: Error;
 }
 
 // Standard JSON-RPC error codes
@@ -119,15 +127,6 @@ export const METHOD_NOT_FOUND = -32601;
 export const INVALID_PARAMS = -32602;
 /** @internal */
 export const INTERNAL_ERROR = -32603;
-
-/**
- * A response to a request that indicates an error occurred.
- */
-export interface JSONRPCError {
-  jsonrpc: typeof JSONRPC_VERSION;
-  id: RequestId;
-  error: Error;
-}
 
 /* Empty result */
 /**
