@@ -288,36 +288,58 @@ export interface ServerCapabilities {
   };
 }
 
-/** 
- * A url pointing to an icon URL or a base64-encoded data URI
- * 
- * Clients that support rendering icons MUST support at least the following MIME types:
- * - image/png - PNG images (safe, universal compatibility)
- * - image/jpeg (and image/jpg) - JPEG images (safe, universal compatibility)
- * 
- * Clients that support rendering icons SHOULD also support:
- * - image/svg+xml - SVG images (scalable but requires security precautions)
- * - image/webp - WebP images (modern, efficient format)
+/**
+ * An optionally-sized icon that can be displayed in a user interface.
  */
 export interface Icon {
   /**
-   * A standard URI pointing to an icon resource.
+   * A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a
+   * `data:` URI with Base64-encoded image data.
    *
    * Consumers SHOULD takes steps to ensure URLs serving icons are from the
    * same domain as the client/server or a trusted domain.
    *
    * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
-   * executable JavaScript
+   * executable JavaScript.
    *
    * @format uri
    */
   src: string;
-  /** Optional override if the server's MIME type is missing or generic. */
+
+  /**
+   * Optional MIME type override if the source MIME type is missing or generic.
+   * For example: `"image/png"`, `"image/jpeg"`, or `"image/svg+xml"`.
+   */
   mimeType?: string;
-  /** e.g. "48x48", "any" (for SVG), or "48x48 96x96" */
+
+  /**
+   * Optional string that specifies one or more sizes at which the icon can be used.
+   * For example: `"48x48"`, `"48x48 96x96"`, or `"any"` for scalable formats like SVG.
+   *
+   * If not provided, the client should assume that the icon can be used at any size.
+   */
   sizes?: string;
 }
 
+/**
+ * Base interface to add `icons` property.
+ *
+ * @internal
+ */
+export interface Icons {
+  /**
+   * Optional set of sized icons that the client can display in a user interface.
+   *
+   * Clients that support rendering icons MUST support at least the following MIME types:
+   * - `image/png` - PNG images (safe, universal compatibility)
+   * - `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)
+   *
+   * Clients that support rendering icons SHOULD also support:
+   * - `image/svg+xml` - SVG images (scalable but requires security precautions)
+   * - `image/webp` - WebP images (modern, efficient format)
+   */
+  icons?: Icon[];
+}
 
 /**
  * Base interface for metadata with name (identifier) and title (display name) properties.
@@ -344,30 +366,15 @@ export interface BaseMetadata {
 /**
  * Describes the MCP implementation
  */
-export interface Implementation extends BaseMetadata {
+export interface Implementation extends BaseMetadata, Icons {
   version: string;
-  /**
-   * An optional list of icons for this implementation.
-   * This can be used by clients to display the implementation in a user interface.
-   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
-   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
-   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
-   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
-   */
-  icons?: Icon[];
+
   /**
    * An optional URL of the website for this implementation.
-   *
-   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
-   * same domain as the client/server or a trusted domain.
-   *
-   * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
-   * executable JavaScript
    *
    * @format: uri
    */
   websiteUrl?: string;
-
 }
 
 /* Ping */
@@ -559,7 +566,7 @@ export interface ResourceUpdatedNotification extends JSONRPCNotification {
 /**
  * A known resource that the server is capable of reading.
  */
-export interface Resource extends BaseMetadata {
+export interface Resource extends BaseMetadata, Icons {
   /**
    * The URI of this resource.
    *
@@ -590,16 +597,6 @@ export interface Resource extends BaseMetadata {
    * This can be used by Hosts to display file sizes and estimate context window usage.
    */
   size?: number;
-
-  /**
-   * An optional list of icons for a resource.
-   * This can be used by clients to display the resource's icon in a user interface.
-   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
-   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
-   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
-   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
-   */
-  icons?: Icon[];
 
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
@@ -732,24 +729,16 @@ export interface GetPromptResult extends Result {
 /**
  * A prompt or prompt template that the server offers.
  */
-export interface Prompt extends BaseMetadata {
+export interface Prompt extends BaseMetadata, Icons {
   /**
    * An optional description of what this prompt provides
    */
   description?: string;
+
   /**
    * A list of arguments to use for templating the prompt.
    */
   arguments?: PromptArgument[];
-  /**
-   * An optional list of icons for a prompt.
-   * This can be used by clients to display the prompt's icon in a user interface.
-   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
-   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
-   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
-   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
-   */
-  icons?: Icon[];
 
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
@@ -956,7 +945,7 @@ export interface ToolAnnotations {
 /**
  * Definition for a tool the client can call.
  */
-export interface Tool extends BaseMetadata {
+export interface Tool extends BaseMetadata, Icons {
   /**
    * A human-readable description of the tool.
    *
@@ -989,16 +978,6 @@ export interface Tool extends BaseMetadata {
    * Display name precedence order is: title, annotations.title, then name.
    */
   annotations?: ToolAnnotations;
-
-  /**
-   * An optional list of icons for a tool.
-   * This can be used by clients to display the tool's icon in a user interface.
-   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
-   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
-   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
-   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
-   */
-  icons?: Icon[];
 
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
