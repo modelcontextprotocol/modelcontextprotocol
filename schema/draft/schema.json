@@ -950,6 +950,13 @@
                         "protocolVersion": {
                             "description": "The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.",
                             "type": "string"
+                        },
+                        "supportedProtocolVersions": {
+                            "description": "The set of versions of the Model Context Protocol that the client supports. The client MAY supply a list of supported versions to facilitate version negotiation with the server.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
                         }
                     },
                     "required": [
