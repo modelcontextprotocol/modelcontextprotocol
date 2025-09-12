@@ -5,7 +5,10 @@ weight: 10
 ---
 
 The Model Context Protocol uses string-based version identifiers following the format
-`YYYY-MM-DD`, to indicate the last date backwards incompatible changes were made.
+`YYYY-MM-DD`, to indicate the last date backwards incompatible changes were made. All
+specification versions **MUST** be accompanied by detailed release notes to alert the
+SDK maintainers about the changes required to be compliant with a specification
+version.
 
 <Info>
 
@@ -36,3 +39,26 @@ agree on a single version to use for the session.
 The protocol provides appropriate error handling if version negotiation fails, allowing
 clients to gracefully terminate connections when they cannot find a version compatible
 with the server.
+
+## SDK Versioning
+
+SDK maintainers should have the freedom to do SDK version releases at their own pace. Each SDK version release would contain, as part of its code, the specification versions that are supported by the SDK version release.
+
+- SDK maintainers **MUST** use version release tags to mark compliance with different specification versions.
+- SDK maintainers **MUST** publish release notes that call out with which specification versions the release is compliant.
+- An SDK version release **SHOULD** implement all features specified in a specification version if it claims compliance with that version, and SHOULD NOT implement features introduced in versions beyond its declared compliance range.
+- An SDK version **MAY** implement partial compliance with a specification version under the following conditions:
+  - SDK release notes **MUST** explicitly document which features from the partially supported specification version are implemented.
+  - The SDK **MUST** use its latest fully-supported version as the default specification version setting.
+  - The SDK **MUST** provide configuration options allowing users to set the maximum specification version used during version negotiation.
+  - All features from the partially supported specification version **MUST** be implemented with version-aware behavior that respects the user-configured maximum specification version.
+
+## Specification-SDK Version Mapping Strategy
+
+Specification documentation tracks the status of specification releases across all official MCP SDKs using an implementation tracking matrix. This can be used for SDK version discovery as well as to keep track of how far along specification compliance is across the official SDKs.
+
+- SDK maintainers **MUST** update the table whenever they put out a version release that meets the specification compliance
+- SDK maintainers **MUST** update the table whenever they put out a version release that drops support for a prior specification version
+- The update to the table **MUST** only have the minimum and maximum (if support dropped in previous release) SDK version that supports the corresponding specification version.
+
+The intention of allowing SDK releases to offer partial support for a specification version is that the SDK consumers will have the choice to opt in to the available partial features, even if they are still unstable. By default, the SDK should maintain stability guarantees for a specification version.
