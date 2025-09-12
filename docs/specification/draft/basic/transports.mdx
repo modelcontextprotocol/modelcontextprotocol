@@ -76,6 +76,8 @@ URL like `https://example.com/mcp`.
 When implementing Streamable HTTP transport:
 
 1. Servers **MUST** validate the `Origin` header on all incoming connections to prevent DNS rebinding attacks
+   - If the `Origin` header is present and invalid, servers **MUST** respond with HTTP 403 Forbidden. The HTTP response
+     body **MAY** comprise a JSON-RPC _error response_ that has no `id`
 2. When running locally, servers **SHOULD** bind only to localhost (127.0.0.1) rather than all network interfaces (0.0.0.0)
 3. Servers **SHOULD** implement proper authentication for all connections
 
