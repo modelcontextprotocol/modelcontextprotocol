@@ -28,13 +28,11 @@
             "description": "Audio provided to or from an LLM.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "data": {
                     "description": "The base64-encoded audio data.",
@@ -46,15 +44,10 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "audio",
-                    "type": "string"
+                    "const": "audio"
                 }
             },
-            "required": [
-                "data",
-                "mimeType",
-                "type"
-            ],
+            "required": [ "data", "mimeType", "type" ],
             "type": "object"
         },
         "BaseMetadata": {
@@ -69,15 +62,12 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name"
-            ],
+            "required": [ "name" ],
             "type": "object"
         },
         "BlobResourceContents": {
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -96,10 +86,7 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "blob",
-                "uri"
-            ],
+            "required": [ "blob", "uri" ],
             "type": "object"
         },
         "BooleanSchema": {
@@ -114,49 +101,38 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "boolean",
-                    "type": "string"
+                    "const": "boolean"
                 }
             },
-            "required": [
-                "type"
-            ],
+            "required": [ "type" ],
             "type": "object"
         },
         "CallToolRequest": {
             "description": "Used by the client to invoke a tool provided by the server.",
             "properties": {
                 "method": {
-                    "const": "tools/call",
-                    "type": "string"
+                    "const": "tools/call"
                 },
                 "params": {
                     "properties": {
                         "arguments": {
-                            "additionalProperties": {},
                             "type": "object"
                         },
                         "name": {
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "name"
-                    ],
+                    "required": [ "name" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "CallToolResult": {
             "description": "The server's response to a tool call.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -172,22 +148,18 @@
                     "type": "boolean"
                 },
                 "structuredContent": {
-                    "additionalProperties": {},
                     "description": "An optional JSON object that represents the structured result of the tool call.",
                     "type": "object"
                 }
             },
-            "required": [
-                "content"
-            ],
+            "required": [ "content" ],
             "type": "object"
         },
         "CancelledNotification": {
             "description": "This notification can be sent by either side to indicate that it is cancelling a previously-issued request.\n\nThe request SHOULD still be in-flight, but due to communication latency, it is always possible that this notification MAY arrive after the request has already finished.\n\nThis notification indicates that the result will be unused, so any associated processing SHOULD cease.\n\nA client MUST NOT attempt to cancel its `initialize` request.",
             "properties": {
                 "method": {
-                    "const": "notifications/cancelled",
-                    "type": "string"
+                    "const": "notifications/cancelled"
                 },
                 "params": {
                     "properties": {
@@ -196,35 +168,25 @@
                             "type": "string"
                         },
                         "requestId": {
-                            "$ref": "#/definitions/RequestId",
-                            "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
+                            "$ref": "#/definitions/RequestId"
                         }
                     },
-                    "required": [
-                        "requestId"
-                    ],
+                    "required": [ "requestId" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "ClientCapabilities": {
             "description": "Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.",
             "properties": {
                 "elicitation": {
-                    "additionalProperties": true,
                     "description": "Present if the client supports elicitation from the server.",
-                    "properties": {},
                     "type": "object"
                 },
                 "experimental": {
                     "additionalProperties": {
-                        "additionalProperties": true,
-                        "properties": {},
                         "type": "object"
                     },
                     "description": "Experimental, non-standard capabilities that the client supports.",
@@ -241,9 +203,7 @@
                     "type": "object"
                 },
                 "sampling": {
-                    "additionalProperties": true,
                     "description": "Present if the client supports sampling from an LLM.",
-                    "properties": {},
                     "type": "object"
                 }
             },
@@ -328,8 +288,7 @@
             "description": "A request from the client to the server, to ask for completion options.",
             "properties": {
                 "method": {
-                    "const": "completion/complete",
-                    "type": "string"
+                    "const": "completion/complete"
                 },
                 "params": {
                     "properties": {
@@ -345,10 +304,7 @@
                                     "type": "string"
                                 }
                             },
-                            "required": [
-                                "name",
-                                "value"
-                            ],
+                            "required": [ "name", "value" ],
                             "type": "object"
                         },
                         "context": {
@@ -375,24 +331,17 @@
                             ]
                         }
                     },
-                    "required": [
-                        "argument",
-                        "ref"
-                    ],
+                    "required": [ "argument", "ref" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "CompleteResult": {
             "description": "The server's response to a completion/complete request",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -414,15 +363,11 @@
                             "type": "array"
                         }
                     },
-                    "required": [
-                        "values"
-                    ],
+                    "required": [ "values" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "completion"
-            ],
+            "required": [ "completion" ],
             "type": "object"
         },
         "ContentBlock": {
@@ -448,19 +393,13 @@
             "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
             "properties": {
                 "method": {
-                    "const": "sampling/createMessage",
-                    "type": "string"
+                    "const": "sampling/createMessage"
                 },
                 "params": {
                     "properties": {
                         "includeContext": {
                             "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.",
-                            "enum": [
-                                "allServers",
-                                "none",
-                                "thisServer"
-                            ],
-                            "type": "string"
+                            "enum": [ "allServers", "none", "thisServer" ]
                         },
                         "maxTokens": {
                             "description": "The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.",
@@ -473,14 +412,11 @@
                             "type": "array"
                         },
                         "metadata": {
-                            "additionalProperties": true,
                             "description": "Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.",
-                            "properties": {},
                             "type": "object"
                         },
                         "modelPreferences": {
-                            "$ref": "#/definitions/ModelPreferences",
-                            "description": "The server's preferences for which model to select. The client MAY ignore these preferences."
+                            "$ref": "#/definitions/ModelPreferences"
                         },
                         "stopSequences": {
                             "items": {
@@ -496,24 +432,17 @@
                             "type": "number"
                         }
                     },
-                    "required": [
-                        "maxTokens",
-                        "messages"
-                    ],
+                    "required": [ "maxTokens", "messages" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "CreateMessageResult": {
             "description": "The client's response to a sampling/create_message request from the server. The client should inform the user before returning the sampled message, to allow them to inspect the response (human in the loop) and decide whether to allow the server to see it.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -542,11 +471,7 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "content",
-                "model",
-                "role"
-            ],
+            "required": [ "content", "model", "role" ],
             "type": "object"
         },
         "Cursor": {
@@ -557,8 +482,7 @@
             "description": "A request from the server to elicit additional information from the user via the client.",
             "properties": {
                 "method": {
-                    "const": "elicitation/create",
-                    "type": "string"
+                    "const": "elicitation/create"
                 },
                 "params": {
                     "properties": {
@@ -582,75 +506,51 @@
                                     "type": "array"
                                 },
                                 "type": {
-                                    "const": "object",
-                                    "type": "string"
+                                    "const": "object"
                                 }
                             },
-                            "required": [
-                                "properties",
-                                "type"
-                            ],
+                            "required": [ "properties", "type" ],
                             "type": "object"
                         }
                     },
-                    "required": [
-                        "message",
-                        "requestedSchema"
-                    ],
+                    "required": [ "message", "requestedSchema" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "ElicitResult": {
             "description": "The client's response to an elicitation request.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "action": {
                     "description": "The user action in response to the elicitation.\n- \"accept\": User submitted the form/confirmed the action\n- \"decline\": User explicitly declined the action\n- \"cancel\": User dismissed without making an explicit choice",
-                    "enum": [
-                        "accept",
-                        "cancel",
-                        "decline"
-                    ],
-                    "type": "string"
+                    "enum": [ "accept", "cancel", "decline" ]
                 },
                 "content": {
                     "additionalProperties": {
-                        "type": [
-                            "string",
-                            "integer",
-                            "boolean"
-                        ]
+                        "type": [ "string", "integer", "boolean" ]
                     },
                     "description": "The submitted form data, only present when action is \"accept\".\nContains values matching the requested schema.",
                     "type": "object"
                 }
             },
-            "required": [
-                "action"
-            ],
+            "required": [ "action" ],
             "type": "object"
         },
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "resource": {
                     "anyOf": [
@@ -663,14 +563,10 @@
                     ]
                 },
                 "type": {
-                    "const": "resource",
-                    "type": "string"
+                    "const": "resource"
                 }
             },
-            "required": [
-                "resource",
-                "type"
-            ],
+            "required": [ "resource", "type" ],
             "type": "object"
         },
         "EmptyResult": {
@@ -697,22 +593,17 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "string",
-                    "type": "string"
+                    "const": "string"
                 }
             },
-            "required": [
-                "enum",
-                "type"
-            ],
+            "required": [ "enum", "type" ],
             "type": "object"
         },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
                 "method": {
-                    "const": "prompts/get",
-                    "type": "string"
+                    "const": "prompts/get"
                 },
                 "params": {
                     "properties": {
@@ -728,23 +619,17 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "name"
-                    ],
+                    "required": [ "name" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "GetPromptResult": {
             "description": "The server's response to a prompts/get request from the client.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -759,22 +644,18 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "messages"
-            ],
+            "required": [ "messages" ],
             "type": "object"
         },
         "ImageContent": {
             "description": "An image provided to or from an LLM.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "data": {
                     "description": "The base64-encoded image data.",
@@ -786,15 +667,10 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "image",
-                    "type": "string"
+                    "const": "image"
                 }
             },
-            "required": [
-                "data",
-                "mimeType",
-                "type"
-            ],
+            "required": [ "data", "mimeType", "type" ],
             "type": "object"
         },
         "Implementation": {
@@ -812,18 +688,14 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name",
-                "version"
-            ],
+            "required": [ "name", "version" ],
             "type": "object"
         },
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
                 "method": {
-                    "const": "initialize",
-                    "type": "string"
+                    "const": "initialize"
                 },
                 "params": {
                     "properties": {
@@ -846,17 +718,13 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "InitializeResult": {
             "description": "After receiving an initialize request from the client, the server sends this response.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -875,25 +743,18 @@
                     "$ref": "#/definitions/Implementation"
                 }
             },
-            "required": [
-                "capabilities",
-                "protocolVersion",
-                "serverInfo"
-            ],
+            "required": [ "capabilities", "protocolVersion", "serverInfo" ],
             "type": "object"
         },
         "InitializedNotification": {
             "description": "This notification is sent from the client to the server after initialization has finished.",
             "properties": {
                 "method": {
-                    "const": "notifications/initialized",
-                    "type": "string"
+                    "const": "notifications/initialized"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -901,9 +762,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "JSONRPCError": {
@@ -923,25 +782,17 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "code",
-                        "message"
-                    ],
+                    "required": [ "code", "message" ],
                     "type": "object"
                 },
                 "id": {
                     "$ref": "#/definitions/RequestId"
                 },
                 "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
+                    "const": "2.0"
                 }
             },
-            "required": [
-                "error",
-                "id",
-                "jsonrpc"
-            ],
+            "required": [ "error", "id", "jsonrpc" ],
             "type": "object"
         },
         "JSONRPCMessage": {
@@ -965,17 +816,14 @@
             "description": "A notification which does not expect a response.",
             "properties": {
                 "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
+                    "const": "2.0"
                 },
                 "method": {
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -983,10 +831,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "jsonrpc",
-                "method"
-            ],
+            "required": [ "jsonrpc", "method" ],
             "type": "object"
         },
         "JSONRPCRequest": {
@@ -996,22 +841,18 @@
                     "$ref": "#/definitions/RequestId"
                 },
                 "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
+                    "const": "2.0"
                 },
                 "method": {
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                    "$ref": "#/definitions/ProgressToken"
                                 }
                             },
                             "type": "object"
@@ -1020,11 +861,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method"
-            ],
+            "required": [ "id", "jsonrpc", "method" ],
             "type": "object"
         },
         "JSONRPCResponse": {
@@ -1034,26 +871,20 @@
                     "$ref": "#/definitions/RequestId"
                 },
                 "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
+                    "const": "2.0"
                 },
                 "result": {
                     "$ref": "#/definitions/Result"
                 }
             },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
+            "required": [ "id", "jsonrpc", "result" ],
             "type": "object"
         },
         "ListPromptsRequest": {
             "description": "Sent from the client to request a list of prompts and prompt templates the server has.",
             "properties": {
                 "method": {
-                    "const": "prompts/list",
-                    "type": "string"
+                    "const": "prompts/list"
                 },
                 "params": {
                     "properties": {
@@ -1065,16 +896,13 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "ListPromptsResult": {
             "description": "The server's response to a prompts/list request from the client.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1089,17 +917,14 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "prompts"
-            ],
+            "required": [ "prompts" ],
             "type": "object"
         },
         "ListResourceTemplatesRequest": {
             "description": "Sent from the client to request a list of resource templates the server has.",
             "properties": {
                 "method": {
-                    "const": "resources/templates/list",
-                    "type": "string"
+                    "const": "resources/templates/list"
                 },
                 "params": {
                     "properties": {
@@ -1111,16 +936,13 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "ListResourceTemplatesResult": {
             "description": "The server's response to a resources/templates/list request from the client.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1135,17 +957,14 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "resourceTemplates"
-            ],
+            "required": [ "resourceTemplates" ],
             "type": "object"
         },
         "ListResourcesRequest": {
             "description": "Sent from the client to request a list of resources the server has.",
             "properties": {
                 "method": {
-                    "const": "resources/list",
-                    "type": "string"
+                    "const": "resources/list"
                 },
                 "params": {
                     "properties": {
@@ -1157,16 +976,13 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "ListResourcesResult": {
             "description": "The server's response to a resources/list request from the client.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1181,28 +997,22 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "resources"
-            ],
+            "required": [ "resources" ],
             "type": "object"
         },
         "ListRootsRequest": {
             "description": "Sent from the server to request a list of root URIs from the client. Roots allow\nservers to ask for specific directories or files to operate on. A common example\nfor roots is providing a set of repositories or directories a server should operate\non.\n\nThis request is typically used when the server needs to understand the file system\nstructure or access specific locations that the client has permission to read from.",
             "properties": {
                 "method": {
-                    "const": "roots/list",
-                    "type": "string"
+                    "const": "roots/list"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                    "$ref": "#/definitions/ProgressToken"
                                 }
                             },
                             "type": "object"
@@ -1211,16 +1021,13 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "ListRootsResult": {
             "description": "The client's response to a roots/list request from the server.\nThis result contains an array of Root objects, each representing a root directory\nor file that the server can operate on.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1231,17 +1038,14 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "roots"
-            ],
+            "required": [ "roots" ],
             "type": "object"
         },
         "ListToolsRequest": {
             "description": "Sent from the client to request a list of tools the server has.",
             "properties": {
                 "method": {
-                    "const": "tools/list",
-                    "type": "string"
+                    "const": "tools/list"
                 },
                 "params": {
                     "properties": {
@@ -1253,16 +1057,13 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "ListToolsResult": {
             "description": "The server's response to a tools/list request from the client.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1277,9 +1078,7 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "tools"
-            ],
+            "required": [ "tools" ],
             "type": "object"
         },
         "LoggingLevel": {
@@ -1293,15 +1092,13 @@
                 "info",
                 "notice",
                 "warning"
-            ],
-            "type": "string"
+            ]
         },
         "LoggingMessageNotification": {
             "description": "Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.",
             "properties": {
                 "method": {
-                    "const": "notifications/message",
-                    "type": "string"
+                    "const": "notifications/message"
                 },
                 "params": {
                     "properties": {
@@ -1309,25 +1106,18 @@
                             "description": "The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here."
                         },
                         "level": {
-                            "$ref": "#/definitions/LoggingLevel",
-                            "description": "The severity of this log message."
+                            "$ref": "#/definitions/LoggingLevel"
                         },
                         "logger": {
                             "description": "An optional name of the logger issuing this message.",
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "data",
-                        "level"
-                    ],
+                    "required": [ "data", "level" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "ModelHint": {
@@ -1377,10 +1167,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -1388,9 +1176,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "NumberSchema": {
@@ -1408,16 +1194,10 @@
                     "type": "string"
                 },
                 "type": {
-                    "enum": [
-                        "integer",
-                        "number"
-                    ],
-                    "type": "string"
+                    "enum": [ "integer", "number" ]
                 }
             },
-            "required": [
-                "type"
-            ],
+            "required": [ "type" ],
             "type": "object"
         },
         "PaginatedRequest": {
@@ -1435,15 +1215,12 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "PaginatedResult": {
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1458,19 +1235,15 @@
             "description": "A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.",
             "properties": {
                 "method": {
-                    "const": "ping",
-                    "type": "string"
+                    "const": "ping"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                    "$ref": "#/definitions/ProgressToken"
                                 }
                             },
                             "type": "object"
@@ -1479,9 +1252,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "PrimitiveSchemaDefinition": {
@@ -1505,8 +1276,7 @@
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
             "properties": {
                 "method": {
-                    "const": "notifications/progress",
-                    "type": "string"
+                    "const": "notifications/progress"
                 },
                 "params": {
                     "properties": {
@@ -1519,39 +1289,28 @@
                             "type": "number"
                         },
                         "progressToken": {
-                            "$ref": "#/definitions/ProgressToken",
-                            "description": "The progress token which was given in the initial request, used to associate this notification with the request that is proceeding."
+                            "$ref": "#/definitions/ProgressToken"
                         },
                         "total": {
                             "description": "Total number of items to process (or total progress required), if known.",
                             "type": "number"
                         }
                     },
-                    "required": [
-                        "progress",
-                        "progressToken"
-                    ],
+                    "required": [ "progress", "progressToken" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "ProgressToken": {
             "description": "A progress token, used to associate progress notifications with the original request.",
-            "type": [
-                "string",
-                "integer"
-            ]
+            "type": [ "string", "integer" ]
         },
         "Prompt": {
             "description": "A prompt or prompt template that the server offers.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1575,9 +1334,7 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name"
-            ],
+            "required": [ "name" ],
             "type": "object"
         },
         "PromptArgument": {
@@ -1600,23 +1357,18 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name"
-            ],
+            "required": [ "name" ],
             "type": "object"
         },
         "PromptListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
                 "method": {
-                    "const": "notifications/prompts/list_changed",
-                    "type": "string"
+                    "const": "notifications/prompts/list_changed"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -1624,9 +1376,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "PromptMessage": {
@@ -1639,10 +1389,7 @@
                     "$ref": "#/definitions/Role"
                 }
             },
-            "required": [
-                "content",
-                "role"
-            ],
+            "required": [ "content", "role" ],
             "type": "object"
         },
         "PromptReference": {
@@ -1657,22 +1404,17 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "ref/prompt",
-                    "type": "string"
+                    "const": "ref/prompt"
                 }
             },
-            "required": [
-                "name",
-                "type"
-            ],
+            "required": [ "name", "type" ],
             "type": "object"
         },
         "ReadResourceRequest": {
             "description": "Sent from the client to the server, to read a specific resource URI.",
             "properties": {
                 "method": {
-                    "const": "resources/read",
-                    "type": "string"
+                    "const": "resources/read"
                 },
                 "params": {
                     "properties": {
@@ -1682,23 +1424,17 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "uri"
-                    ],
+                    "required": [ "uri" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "ReadResourceResult": {
             "description": "The server's response to a resources/read request from the client.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1716,9 +1452,7 @@
                     "type": "array"
                 }
             },
-            "required": [
-                "contents"
-            ],
+            "required": [ "contents" ],
             "type": "object"
         },
         "Request": {
@@ -1727,15 +1461,12 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
-                                    "$ref": "#/definitions/ProgressToken",
-                                    "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                                    "$ref": "#/definitions/ProgressToken"
                                 }
                             },
                             "type": "object"
@@ -1744,29 +1475,22 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "RequestId": {
             "description": "A uniquely identifying ID for a request in JSON-RPC.",
-            "type": [
-                "string",
-                "integer"
-            ]
+            "type": [ "string", "integer" ]
         },
         "Resource": {
             "description": "A known resource that the server is capable of reading.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
@@ -1794,17 +1518,13 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name",
-                "uri"
-            ],
+            "required": [ "name", "uri" ],
             "type": "object"
         },
         "ResourceContents": {
             "description": "The contents of a specific resource or sub-resource.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -1818,22 +1538,18 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "uri"
-            ],
+            "required": [ "uri" ],
             "type": "object"
         },
         "ResourceLink": {
             "description": "A resource that the server is capable of reading, included in a prompt or tool call result.\n\nNote: resource links returned by tools are not guaranteed to appear in the results of `resources/list` requests.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
@@ -1856,8 +1572,7 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "resource_link",
-                    "type": "string"
+                    "const": "resource_link"
                 },
                 "uri": {
                     "description": "The URI of this resource.",
@@ -1865,25 +1580,18 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name",
-                "type",
-                "uri"
-            ],
+            "required": [ "name", "type", "uri" ],
             "type": "object"
         },
         "ResourceListChangedNotification": {
             "description": "An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
                 "method": {
-                    "const": "notifications/resources/list_changed",
-                    "type": "string"
+                    "const": "notifications/resources/list_changed"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -1891,22 +1599,18 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "ResourceTemplate": {
             "description": "A template description for resources available on the server.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "description": {
                     "description": "A description of what this template is for.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
@@ -1930,18 +1634,14 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "name",
-                "uriTemplate"
-            ],
+            "required": [ "name", "uriTemplate" ],
             "type": "object"
         },
         "ResourceTemplateReference": {
             "description": "A reference to a resource or resource template definition.",
             "properties": {
                 "type": {
-                    "const": "ref/resource",
-                    "type": "string"
+                    "const": "ref/resource"
                 },
                 "uri": {
                     "description": "The URI or URI template of the resource.",
@@ -1949,18 +1649,14 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "type",
-                "uri"
-            ],
+            "required": [ "type", "uri" ],
             "type": "object"
         },
         "ResourceUpdatedNotification": {
             "description": "A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.",
             "properties": {
                 "method": {
-                    "const": "notifications/resources/updated",
-                    "type": "string"
+                    "const": "notifications/resources/updated"
                 },
                 "params": {
                     "properties": {
@@ -1970,23 +1666,16 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "uri"
-                    ],
+                    "required": [ "uri" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "Result": {
-            "additionalProperties": {},
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 }
@@ -1995,17 +1684,12 @@
         },
         "Role": {
             "description": "The sender or recipient of messages and data in a conversation.",
-            "enum": [
-                "assistant",
-                "user"
-            ],
-            "type": "string"
+            "enum": [ "assistant", "user" ]
         },
         "Root": {
             "description": "Represents a root directory or file that the server can operate on.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -2019,23 +1703,18 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "uri"
-            ],
+            "required": [ "uri" ],
             "type": "object"
         },
         "RootsListChangedNotification": {
             "description": "A notification from the client to the server, informing it that the list of roots has changed.\nThis notification should be sent whenever the client adds, removes, or modifies any root.\nThe server should then request an updated list of roots using the ListRootsRequest.",
             "properties": {
                 "method": {
-                    "const": "notifications/roots/list_changed",
-                    "type": "string"
+                    "const": "notifications/roots/list_changed"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -2043,9 +1722,7 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "SamplingMessage": {
@@ -2068,34 +1745,25 @@
                     "$ref": "#/definitions/Role"
                 }
             },
-            "required": [
-                "content",
-                "role"
-            ],
+            "required": [ "content", "role" ],
             "type": "object"
         },
         "ServerCapabilities": {
             "description": "Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.",
             "properties": {
                 "completions": {
-                    "additionalProperties": true,
                     "description": "Present if the server supports argument autocompletion suggestions.",
-                    "properties": {},
                     "type": "object"
                 },
                 "experimental": {
                     "additionalProperties": {
-                        "additionalProperties": true,
-                        "properties": {},
                         "type": "object"
                     },
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
                 "logging": {
-                    "additionalProperties": true,
                     "description": "Present if the server supports sending log messages to the client.",
-                    "properties": {},
                     "type": "object"
                 },
                 "prompts": {
@@ -2214,26 +1882,19 @@
             "description": "A request from the client to the server, to enable or adjust logging.",
             "properties": {
                 "method": {
-                    "const": "logging/setLevel",
-                    "type": "string"
+                    "const": "logging/setLevel"
                 },
                 "params": {
                     "properties": {
                         "level": {
-                            "$ref": "#/definitions/LoggingLevel",
-                            "description": "The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message."
+                            "$ref": "#/definitions/LoggingLevel"
                         }
                     },
-                    "required": [
-                        "level"
-                    ],
+                    "required": [ "level" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "StringSchema": {
@@ -2242,13 +1903,7 @@
                     "type": "string"
                 },
                 "format": {
-                    "enum": [
-                        "date",
-                        "date-time",
-                        "email",
-                        "uri"
-                    ],
-                    "type": "string"
+                    "enum": [ "date", "date-time", "email", "uri" ]
                 },
                 "maxLength": {
                     "type": "integer"
@@ -2260,21 +1915,17 @@
                     "type": "string"
                 },
                 "type": {
-                    "const": "string",
-                    "type": "string"
+                    "const": "string"
                 }
             },
-            "required": [
-                "type"
-            ],
+            "required": [ "type" ],
             "type": "object"
         },
         "SubscribeRequest": {
             "description": "Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.",
             "properties": {
                 "method": {
-                    "const": "resources/subscribe",
-                    "type": "string"
+                    "const": "resources/subscribe"
                 },
                 "params": {
                     "properties": {
@@ -2284,49 +1935,37 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "uri"
-                    ],
+                    "required": [ "uri" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         },
         "TextContent": {
             "description": "Text provided to or from an LLM.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/Annotations",
-                    "description": "Optional annotations for the client."
+                    "$ref": "#/definitions/Annotations"
                 },
                 "text": {
                     "description": "The text content of the message.",
                     "type": "string"
                 },
                 "type": {
-                    "const": "text",
-                    "type": "string"
+                    "const": "text"
                 }
             },
-            "required": [
-                "text",
-                "type"
-            ],
+            "required": [ "text", "type" ],
             "type": "object"
         },
         "TextResourceContents": {
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
@@ -2344,23 +1983,18 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "text",
-                "uri"
-            ],
+            "required": [ "text", "uri" ],
             "type": "object"
         },
         "Tool": {
             "description": "Definition for a tool the client can call.",
             "properties": {
                 "_meta": {
-                    "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
-                    "$ref": "#/definitions/ToolAnnotations",
-                    "description": "Optional additional tool information.\n\nDisplay name precedence order is: title, annotations.title, then name."
+                    "$ref": "#/definitions/ToolAnnotations"
                 },
                 "description": {
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
@@ -2371,8 +2005,6 @@
                     "properties": {
                         "properties": {
                             "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
                                 "type": "object"
                             },
                             "type": "object"
@@ -2384,13 +2016,10 @@
                             "type": "array"
                         },
                         "type": {
-                            "const": "object",
-                            "type": "string"
+                            "const": "object"
                         }
                     },
-                    "required": [
-                        "type"
-                    ],
+                    "required": [ "type" ],
                     "type": "object"
                 },
                 "name": {
@@ -2402,8 +2031,6 @@
                     "properties": {
                         "properties": {
                             "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
                                 "type": "object"
                             },
                             "type": "object"
@@ -2415,13 +2042,10 @@
                             "type": "array"
                         },
                         "type": {
-                            "const": "object",
-                            "type": "string"
+                            "const": "object"
                         }
                     },
-                    "required": [
-                        "type"
-                    ],
+                    "required": [ "type" ],
                     "type": "object"
                 },
                 "title": {
@@ -2429,10 +2053,7 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "inputSchema",
-                "name"
-            ],
+            "required": [ "inputSchema", "name" ],
             "type": "object"
         },
         "ToolAnnotations": {
@@ -2465,14 +2086,11 @@
             "description": "An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.",
             "properties": {
                 "method": {
-                    "const": "notifications/tools/list_changed",
-                    "type": "string"
+                    "const": "notifications/tools/list_changed"
                 },
                 "params": {
-                    "additionalProperties": {},
                     "properties": {
                         "_meta": {
-                            "additionalProperties": {},
                             "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
@@ -2480,17 +2098,14 @@
                     "type": "object"
                 }
             },
-            "required": [
-                "method"
-            ],
+            "required": [ "method" ],
             "type": "object"
         },
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
             "properties": {
                 "method": {
-                    "const": "resources/unsubscribe",
-                    "type": "string"
+                    "const": "resources/unsubscribe"
                 },
                 "params": {
                     "properties": {
@@ -2500,18 +2115,12 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "uri"
-                    ],
+                    "required": [ "uri" ],
                     "type": "object"
                 }
             },
-            "required": [
-                "method",
-                "params"
-            ],
+            "required": [ "method", "params" ],
             "type": "object"
         }
     }
 }
-
