@@ -270,6 +270,7 @@
           "community/communication",
           "community/governance",
           "community/sep-guidelines",
+          "community/working-interest-groups",
           "development/roadmap",
           "clients",
           "examples"
@@ -380,6 +381,9 @@
     }
   ],
   "contextual": {
-    "options": ["copy", "view"]
+    "options": [
+      "copy",
+      "view"
+    ]
   }
 }
