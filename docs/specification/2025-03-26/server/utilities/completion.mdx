@@ -129,10 +129,74 @@ sequenceDiagram
 
 Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 
-- Method not found: `-32601` (Capability not supported)
-- Invalid prompt name: `-32602` (Invalid params)
-- Missing required arguments: `-32602` (Invalid params)
-- Internal errors: `-32603` (Internal error)
+### Method Not Found (-32601)
+When the completions capability is not supported:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32601,
+    "message": "Method not found",
+    "data": {
+      "capability": "completions"
+    }
+  }
+}
+```
+
+### Invalid Parameters (-32602)
+When the prompt name is invalid:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": {
+      "reason": "Prompt 'invalid_prompt' not found",
+      "available_prompts": ["code_review", "documentation"]
+    }
+  }
+}
+```
+
+When required arguments are missing:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": {
+      "reason": "Missing required argument: 'ref'",
+      "required": ["ref", "argument"]
+    }
+  }
+}
+```
+
+### Internal Error (-32603)
+When an internal server error occurs:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32603,
+    "message": "Internal error",
+    "data": {
+      "reason": "Completion service temporarily unavailable"
+    }
+  }
+}
+```
 
 ## Implementation Considerations
 
