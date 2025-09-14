@@ -130,6 +130,7 @@ sequenceDiagram
 Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 
 ### Method Not Found (-32601)
+
 When the completions capability is not supported:
 
 ```json
@@ -147,6 +148,7 @@ When the completions capability is not supported:
 ```
 
 ### Invalid Parameters (-32602)
+
 When the prompt name is invalid:
 
 ```json
@@ -182,6 +184,7 @@ When required arguments are missing:
 ```
 
 ### Internal Error (-32603)
+
 When an internal server error occurs:
 
 ```json
