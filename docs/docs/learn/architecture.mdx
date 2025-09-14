@@ -464,3 +464,75 @@ async def handle_tools_changed_notification(session):
 
 </Step>
 </Steps>
+## Troubleshooting
+
+This section covers common issues developers encounter when working with MCP and provides solutions to help you debug and resolve problems.
+
+### Connection Issues
+
+#### Stdio Transport Problems
+
+**Issue**: Server fails to start or connect
+
+- **Cause**: Incorrect executable path or missing dependencies
+- **Solution**: Verify the server executable path and ensure all dependencies are installed
+
+**Issue**: Permission denied errors
+
+- **Cause**: Insufficient file system permissions
+- **Solution**: Check file permissions and run with appropriate user privileges
+
+#### HTTP Transport Problems
+
+**Issue**: Connection timeout
+
+- **Cause**: Network connectivity issues or server not responding
+- **Solution**: Verify network connectivity and server availability
+
+**Issue**: Authentication failures
+
+- **Cause**: Invalid credentials or expired tokens
+- **Solution**: Verify authentication tokens and refresh if necessary
+
+### Capability Negotiation Failures
+
+**Issue**: "Unsupported protocol version" error
+
+- **Cause**: Client and server using incompatible MCP versions
+- **Solution**: Update either client or server to compatible versions
+
+**Issue**: Missing required capabilities
+
+- **Cause**: Server doesn't support required features
+- **Solution**: Check server documentation for supported capabilities
+
+### Tool Discovery Problems
+
+**Issue**: Empty tools list
+
+- **Cause**: Server not properly implementing tools/list method
+- **Solution**: Verify server implementation and check server logs
+
+**Issue**: Tool execution failures
+
+- **Cause**: Invalid parameters or server-side errors
+- **Solution**: Validate input parameters against tool schema
+
+### Debugging Tips
+
+1. **Enable Logging**: Use the logging primitive to capture detailed information
+2. **Use MCP Inspector**: Leverage the MCP Inspector tool for debugging connections
+3. **Check Server Logs**: Review server-side logs for error details
+4. **Validate JSON-RPC**: Ensure all messages follow JSON-RPC 2.0 specification
+
+### Performance Issues
+
+**Issue**: Slow tool execution
+
+- **Cause**: Network latency or server processing delays
+- **Solution**: Consider using local servers for frequently accessed tools
+
+**Issue**: High memory usage
+
+- **Cause**: Large resource content or inefficient implementations
+- **Solution**: Implement pagination and optimize resource handling
