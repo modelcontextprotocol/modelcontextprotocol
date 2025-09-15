@@ -39,12 +39,12 @@ For trust & safety and security:
 - Servers **MUST** use URL mode for interactions involving sensitive information, such as credentials
 - URLs **MUST NOT** appear in any field of an elicitation request, other than the `url` field in an URL mode request
 
-MCP clients **SHOULD**:
+MCP clients **MUST**:
 
 - Provide UI that makes it clear which server is requesting information
-- For URL mode, clearly display the target domain/host before navigation
-- Allow users to review and modify their responses before sending
 - Respect user privacy and provide clear decline and cancel options
+- For form mode, allow users to review and modify their responses before sending
+- For URL mode, clearly display the target domain/host and gather user consent before navigation to the target URL
 
 </Warning>
 
@@ -396,7 +396,7 @@ Servers that want elicit data from the user via form mode **SHOULD** make a sepa
         {
           "mode": "url",
           "elicitationId": "550e8400-e29b-41d4-a716-446655440000",
-          "url": "https://oauth.example.com/authorize?client_id=abc123&response_type=code&...",
+          "url": "https://mcp.example.com/connect?elicitationId=550e8400-e29b-41d4-a716-446655440000",
           "message": "Authorization is required to access your Example Co files."
         }
       ]
@@ -585,6 +585,7 @@ The critical security requirements are:
 1. **The third-party credentials MUST NOT transit through the MCP client**: The client must never see third-party credentials to protect the security boundary
 2. **The MCP server MUST NOT use the client's credentials for the third-party service**: That would be [token passthrough](../basic/security_best_practices#token-passthrough), which is forbidden
 3. **The user MUST authorize the MCP server directly**: The interaction happens outside the MCP protocol, without involving the MCP client
+4. **The MCP server is responsible for tokens**: The MCP server is responsible for storing and managing the third-party tokens obtained through the URL mode elicitation (in other words, the MCP server must be stateful).
 
 Credentials obtained via URL mode elicitation are distinct from the MCP server credentials used by the MCP client. The MCP server **MUST NOT** transmit credentials obtained through URL mode elicitation to the MCP client.
 
@@ -606,6 +607,8 @@ When implementing downstream authorization via URL mode elicitation:
 5. The MCP server securely stores the third-party tokens, bound to the user's identity
 6. Future MCP requests can leverage these stored tokens for API access to the third-party resource server
 
+The following is a non-normative example of how this pattern could be implemented:
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -617,20 +620,22 @@ sequenceDiagram
 
     Client->>Server: tools/call
     Note over Server: Needs 3rd-party authorization for user
-    Note over Server: Store state (which user this auth flow is for)
-    Server->>Client: ElicitationRequired error<br> (mode: "url", url: "example.com/authorize?...")
+    Note over Server: Store state (bind the elicitation request to the user)
+    Server->>Client: ElicitationRequired error<br> (mode: "url", url: "https://mcp.example.com/connect?...")
     Note over Client: Client notes the tools/call request can be retried later
     Client->>User: Present consent to open URL
     User->>Client: Provide consent
     Client->>UserAgent: Open URL
     Client->>Server: Accept response
     Client-->>Server: elicitation/track request (optional)
+    UserAgent->>Server: Load connect route
+    Note over Server: Confirm: user is logged into MCP Server or MCP AS<br>Confirm: elicitation user matches session user
+    Server->>UserAgent: Redirect to third-party authorization endpoint
     UserAgent->>3AS: Load authorize route
     Note over 3AS,User: User interaction (OAuth flow):<br>User consents to scoped MCP Server access
     3AS->>UserAgent: redirect to MCP Server's redirect_uri
     UserAgent->>Server: load redirect_uri page
     Note over Server: Confirm: redirect_uri belongs to MCP Server
-    Note over Server: Confirm: elicitation matches user session<br>Confirm: user is logged into MCP Server or MCP AS
     Server->>3AS: Exchange authorization code for  OAuth tokens
     3AS->>Server: Grants tokens
     Note over Server: Bind tokens to MCP user identity
@@ -656,12 +661,12 @@ Clients **MUST** return standard JSON-RPC errors for common failure cases:
 
 ## Security Considerations
 
+1. Servers **MUST** bind elicitation requests to the user's identity
 1. Clients **MUST** provide clear indication of which server is requesting information
-2. Clients **SHOULD** implement user approval controls
-3. Clients **SHOULD** allow users to decline elicitation requests at any time
-4. Clients **SHOULD** implement rate limiting
-5. Clients **SHOULD** present elicitation requests in a way that makes it clear what information is being requested and why
-6. Servers **MUST** bind elicitation requests to the user's identity
+1. Clients **SHOULD** implement user approval controls
+1. Clients **SHOULD** allow users to decline elicitation requests at any time
+1. Clients **SHOULD** implement rate limiting
+1. Clients **SHOULD** present elicitation requests in a way that makes it clear what information is being requested and why
 
 ### Safe URL Handling
 
@@ -672,9 +677,20 @@ Clients implementing URL mode elicitation **MUST** handle URLs carefully to prev
 
 These requirements ensure that client implementations have clear rules about when to present a URL to the user, so that other rules about user consent and SSRF protection (below) can be consistently applied.
 
+Additionally, the server:
+
+1. **MUST NOT** include plain text sensitive information about the end-user, including credentials, personal identifiable information, etc., in the URL sent to the client.
+2. **MUST NOT** provide a URL which is "pre-signed" or otherwise does not require the user to authenticate with the server before opening the URL, as the URL could be used to impersonate the user by a malicious client.
+
+When handling URL mode elicitation requests, MCP clients:
+
+1. **MUST NOT** open a user agent (e.g. browser) without explicit consent from the user.
+2. **MUST** render the URL provided by the server in a browser which does not enable the client or LLM to inspect the content or user inputs.
+   For example, on iOS, [SFSafariViewController](https://developer.apple.com/documentation/safariservices/sfsafariviewcontroller) is good, but [WkWebView](https://developer.apple.com/documentation/webkit/wkwebview) is not.
+
 ### Identifying the User
 
-Servers **MUST NOT** rely on client-provided user identification, as this can be forged.
+Servers **MUST NOT** rely on client-provided user identification without server verification, as this can be forged.
 Instead, servers **SHOULD** follow [security best practices](../basic/security_best_practices).
 
 Non-normative examples:
@@ -688,20 +704,13 @@ Non-normative examples:
 2. Clients **SHOULD** validate all responses against the provided schema
 3. Servers **SHOULD** validate received data matches the requested schema
 
-### URL Mode Security
-
-Clients **MUST NOT** open a user agent (e.g. browser) without explicit consent from the user.
-
-Clients **MUST** render the URL provided by the server in a browser which does not enable the client or LLM to inspect the content or user inputs.
-For example, on iOS, [SFSafariViewController](https://developer.apple.com/documentation/safariservices/sfsafariviewcontroller) is good, but [WkWebView](https://developer.apple.com/documentation/webkit/wkwebview) is not.
-
 #### Server-Side Request Forgery (SSRF)
 
 Since clients facilitate the opening of URLs provided by servers, they **MUST** implement SSRF protections.
 
 The following are recommendations for implementing SSRF protections. Clients that choose to relax these constraints should be aware of the risks.
 
-- Require the `https://` scheme for all URL mode URLs (no HTTP, `file://`, etc.)
+- Require the `https://` scheme for all URL mode URLs (no `http://`, `file://`, etc.)
 - Block requests to internal IP ranges (e.g., `127.0.0.1`, `10.0.0.0/8`, etc.)
 - Clearly render or distinguish Unicode characters (e.g. punycode URLs) to avoid "look-alike" misdirections
 - Clearly communicate the destination server and target URL to the user when asking for consent before opening the URL
@@ -724,4 +733,18 @@ For example, URL mode elicitation may be used to perform OAuth flows where the s
 6. The benign server receives a callback/redirect form the third-party authorization server, and assumes it's Alice's request
 7. The tokens for the third-party server are bound to Alice's session and identity, instead of Bob's, resulting in an account takeover
 
-To prevent this attack, the server **MUST** check the identity of the user (step 6 in the above example), and confirm that the user who is completing the authorization is the same user who initiated the elicitation request.
+To prevent this attack, the server **MUST** ensure that the user who started the elicitation request (the end-user who is accessing the server via the MCP client) is the same user who completes the authorization flow.
+
+There are many ways to achieve this and the best way will depend on the specific implementation.
+
+As a common, non-normative example, consider a case where the MCP server is accessible via the web and desires to perform a third-party authorization code flow.
+To prevent the phishing attack, the server would create a URL mode elicitation to `https://mcp.example.com/connect?elicitationId=...` rather than the third-party authorization endpoint.
+This "connect URL" must ensure the user who opened the page is the same user who the elicitation was generated for.
+It would, for example, check that the user has a valid session cookie and that the session cookie is for the same user who was using the MCP client to generate the URL mode elicitation.
+This could be done by comparing the authoritative subject (`sub` claim) from the MCP server's authorization server to the subject from the session cookie.
+Once that page ensures the same user, it can send the user to the third-party authorization server at `https://example.com/authorize?...` where a normal OAuth flow can be completed.
+
+In other cases, the server may not be accessible via the web and may not be able to use a session cookie to identify the user.
+In this case, the server must use a different mechanism to identify the user who opens the elicitation URL is the same user who the elicitation was generated for.
+
+In all implementations, the server **MUST** ensure that the mechanism to determine the user's identity is resilient to attacks where an attacker can modify the elicitation URL.
