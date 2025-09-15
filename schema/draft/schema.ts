@@ -315,6 +315,59 @@ export interface ServerCapabilities {
 }
 
 /**
+ * An optionally-sized icon that can be displayed in a user interface.
+ */
+export interface Icon {
+  /**
+   * A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a
+   * `data:` URI with Base64-encoded image data.
+   *
+   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
+   * same domain as the client/server or a trusted domain.
+   *
+   * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
+   * executable JavaScript.
+   *
+   * @format uri
+   */
+  src: string;
+
+  /**
+   * Optional MIME type override if the source MIME type is missing or generic.
+   * For example: `"image/png"`, `"image/jpeg"`, or `"image/svg+xml"`.
+   */
+  mimeType?: string;
+
+  /**
+   * Optional string that specifies one or more sizes at which the icon can be used.
+   * For example: `"48x48"`, `"48x48 96x96"`, or `"any"` for scalable formats like SVG.
+   *
+   * If not provided, the client should assume that the icon can be used at any size.
+   */
+  sizes?: string;
+}
+
+/**
+ * Base interface to add `icons` property.
+ *
+ * @internal
+ */
+export interface Icons {
+  /**
+   * Optional set of sized icons that the client can display in a user interface.
+   *
+   * Clients that support rendering icons MUST support at least the following MIME types:
+   * - `image/png` - PNG images (safe, universal compatibility)
+   * - `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)
+   *
+   * Clients that support rendering icons SHOULD also support:
+   * - `image/svg+xml` - SVG images (scalable but requires security precautions)
+   * - `image/webp` - WebP images (modern, efficient format)
+   */
+  icons?: Icon[];
+}
+
+/**
  * Base interface for metadata with name (identifier) and title (display name) properties.
  *
  * @internal
@@ -337,10 +390,17 @@ export interface BaseMetadata {
 }
 
 /**
- * Describes the name and version of an MCP implementation, with an optional title for UI representation.
+ * Describes the MCP implementation
  */
-export interface Implementation extends BaseMetadata {
+export interface Implementation extends BaseMetadata, Icons {
   version: string;
+
+  /**
+   * An optional URL of the website for this implementation.
+   *
+   * @format: uri
+   */
+  websiteUrl?: string;
 }
 
 /* Ping */
@@ -532,7 +592,7 @@ export interface ResourceUpdatedNotification extends JSONRPCNotification {
 /**
  * A known resource that the server is capable of reading.
  */
-export interface Resource extends BaseMetadata {
+export interface Resource extends BaseMetadata, Icons {
   /**
    * The URI of this resource.
    *
@@ -695,11 +755,12 @@ export interface GetPromptResult extends Result {
 /**
  * A prompt or prompt template that the server offers.
  */
-export interface Prompt extends BaseMetadata {
+export interface Prompt extends BaseMetadata, Icons {
   /**
    * An optional description of what this prompt provides
    */
   description?: string;
+
   /**
    * A list of arguments to use for templating the prompt.
    */
@@ -910,7 +971,7 @@ export interface ToolAnnotations {
 /**
  * Definition for a tool the client can call.
  */
-export interface Tool extends BaseMetadata {
+export interface Tool extends BaseMetadata, Icons {
   /**
    * A human-readable description of the tool.
    *
@@ -1533,6 +1594,7 @@ export interface StringSchema {
   minLength?: number;
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
+  default?: string;
 }
 
 export interface NumberSchema {
@@ -1541,6 +1603,7 @@ export interface NumberSchema {
   description?: string;
   minimum?: number;
   maximum?: number;
+  default?: number;
 }
 
 export interface BooleanSchema {
@@ -1556,6 +1619,7 @@ export interface EnumSchema {
   description?: string;
   enum: string[];
   enumNames?: string[]; // Display names for enum values
+  default?: string;
 }
 
 /**
