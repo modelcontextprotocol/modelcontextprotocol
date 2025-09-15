@@ -770,10 +770,7 @@ body:has(#schema-reference) {
   .cta-cards {
     grid-template-columns: 1fr;
   }
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-  }
+  /* keep default gaps and padding */
   .cta-buttons {
     flex-direction: column;
     width: 100%;
@@ -811,5 +808,20 @@ body:has(#schema-reference) {
     width: 100%;
     max-width: 200px;
     margin: 0 auto;
+  }
+}
+/* Tablet: switch to 2 columns */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Extra-small screens: stack stats and reduce spacing */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    /* keep default gap */
   }
 }
