@@ -167,7 +167,9 @@ function renderReflection(reflection, context) {
     replaceAll(/\n+</g, " <"). // Newlines around tags are not significant
     replaceAll("[", "&#x5B;"). // `[` inside HTML tags != link
     replaceAll("_", "&#x5F;"). // `_` inside HTML tags != emphasis
-    replaceAll("{", "&#x7B;"); // Plain *.md is not supported, so must escape JSX interpolation
+    replaceAll("{", "&#x7B;"). // Plain *.md is not supported, so must escape JSX interpolation
+    replaceAll("$", "&#x24;"); // `$` does not demarcate LaTeX(?)
+
 
   // Remove `@TJS-type` tags.  (Ideally, we would include this tag in
   // `excludeTags`, but a TypeDoc bug rejects tag names with dashes.)
