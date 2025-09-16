@@ -838,18 +838,18 @@
             "type": "object"
         },
         "Icon": {
-            "description": "A url pointing to an icon URL or a base64-encoded data URI\n\nClients that support rendering icons MUST support at least the following MIME types:\n- image/png - PNG images (safe, universal compatibility)\n- image/jpeg (and image/jpg) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- image/svg+xml - SVG images (scalable but requires security precautions)\n- image/webp - WebP images (modern, efficient format)",
+            "description": "An optionally-sized icon that can be displayed in a user interface.",
             "properties": {
                 "mimeType": {
-                    "description": "Optional override if the server's MIME type is missing or generic.",
+                    "description": "Optional MIME type override if the source MIME type is missing or generic.\nFor example: `\"image/png\"`, `\"image/jpeg\"`, or `\"image/svg+xml\"`.",
                     "type": "string"
                 },
                 "sizes": {
-                    "description": "e.g. \"48x48\", \"any\" (for SVG), or \"48x48 96x96\"",
+                    "description": "Optional string that specifies one or more sizes at which the icon can be used.\nFor example: `\"48x48\"`, `\"48x48 96x96\"`, or `\"any\"` for scalable formats like SVG.\n\nIf not provided, the client should assume that the icon can be used at any size.",
                     "type": "string"
                 },
                 "src": {
-                    "description": "A standard URI pointing to an icon resource.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript",
+                    "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
                     "format": "uri",
                     "type": "string"
                 }
@@ -857,6 +857,19 @@
             "required": [
                 "src"
             ],
+            "type": "object"
+        },
+        "Icons": {
+            "description": "Base interface to add `icons` property.",
+            "properties": {
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                }
+            },
             "type": "object"
         },
         "ImageContent": {
@@ -896,7 +909,7 @@
             "description": "Describes the MCP implementation",
             "properties": {
                 "icons": {
-                    "description": "An optional list of icons for this implementation.\nThis can be used by clients to display the implementation in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
                         "$ref": "#/definitions/Icon"
                     },
@@ -914,7 +927,7 @@
                     "type": "string"
                 },
                 "websiteUrl": {
-                    "description": "An optional URL of the website for this implementation.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript",
+                    "description": "An optional URL of the website for this implementation.",
                     "format": ": uri",
                     "type": "string"
                 }
@@ -1747,7 +1760,7 @@
                     "type": "string"
                 },
                 "icons": {
-                    "description": "An optional list of icons for a prompt.\nThis can be used by clients to display the prompt's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
                         "$ref": "#/definitions/Icon"
                     },
@@ -1974,7 +1987,7 @@
                     "type": "string"
                 },
                 "icons": {
-                    "description": "An optional list of icons for a resource.\nThis can be used by clients to display the resource's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
                         "$ref": "#/definitions/Icon"
                     },
@@ -2048,7 +2061,7 @@
                     "type": "string"
                 },
                 "icons": {
-                    "description": "An optional list of icons for a resource.\nThis can be used by clients to display the resource's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
                         "$ref": "#/definitions/Icon"
                     },
@@ -2618,7 +2631,7 @@
                     "type": "string"
                 },
                 "icons": {
-                    "description": "An optional list of icons for a tool.\nThis can be used by clients to display the tool's icon in a user interface.\nEach icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.\nThe `mimeType` property should be a valid MIME type for the icon file, such as \"image/png\" or \"image/svg+xml\".\nThe `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as \"48x48\" or \"any\" for scalable formats like SVG.\nThe `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.",
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
                         "$ref": "#/definitions/Icon"
                     },
