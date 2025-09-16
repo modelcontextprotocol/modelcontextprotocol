@@ -25,6 +25,7 @@ This document lists current maintainers and working groups in the Model Context 
 
 - [Christian Tzolov](https://github.com/tzolov)
 - [Dariusz Jędrzejczyk](https://github.com/chemicL)
+- [Daniel Garnier-Moiroux](https://github.com/Kehrlann)
 
 ### Ruby SDK
 
