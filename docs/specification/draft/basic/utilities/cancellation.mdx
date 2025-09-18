@@ -17,6 +17,9 @@ notification containing:
 
 - The ID of the request to cancel
 - An optional reason string that can be logged or displayed
+- An optional timeout field (in seconds) when the cancellation is due to a timeout
+
+When a requester triggers a timeout, implementations **SHOULD** include the `timeout` field to indicate the timeout duration that was exceeded, which can help application monitoring differentiate timeouts from other cancellations. Timeout cancellations allow the requester to stop waiting for a response and free associated resources.
 
 ```json
 {
@@ -25,6 +28,20 @@ notification containing:
   "params": {
     "requestId": "123",
     "reason": "User requested cancellation"
+  }
+}
+```
+
+Example cancellation due to timeout:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/cancelled",
+  "params": {
+    "requestId": "456",
+    "reason": "Request timeout exceeded",
+    "timeout": 30
   }
 }
 ```

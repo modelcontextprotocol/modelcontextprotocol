@@ -89,6 +89,9 @@ either, or both:
 To discover available resources, clients send a `resources/list` request. This operation
 supports [pagination](/specification/draft/server/utilities/pagination).
 
+Clients **SHOULD** respect the timeout declared by the server in its `resources.timeouts.list`
+capability, or use the protocol default of 60 seconds if not specified.
+
 **Request:**
 
 ```json
@@ -132,7 +135,10 @@ supports [pagination](/specification/draft/server/utilities/pagination).
 
 ### Reading Resources
 
-To retrieve resource contents, clients send a `resources/read` request:
+To retrieve resource contents, clients send a `resources/read` request.
+
+Clients **SHOULD** respect the timeout declared by the server in its `resources.timeouts.read`
+capability, or use the protocol default of 30 seconds if not specified.
 
 **Request:**
 
@@ -221,6 +227,9 @@ The protocol supports optional subscriptions to resource changes. Clients can su
 to specific resources and receive notifications when they change:
 
 **Subscribe Request:**
+
+Clients **SHOULD** respect the timeout declared by the server in its `resources.timeouts.subscribe`
+capability, or use the protocol default of 30 seconds if not specified.
 
 ```json
 {

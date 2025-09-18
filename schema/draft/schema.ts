@@ -161,6 +161,12 @@ export interface CancelledNotification extends JSONRPCNotification {
      * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
      */
     reason?: string;
+
+    /**
+     * The timeout duration in seconds that triggered this cancellation.
+     * This field SHOULD be included when the cancellation is due to a timeout.
+     */
+    timeout?: number;
   };
 }
 
