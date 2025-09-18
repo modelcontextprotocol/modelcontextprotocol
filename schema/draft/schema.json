@@ -2771,7 +2771,7 @@
             "type": "object"
         },
         "UnsubscribeRequest": {
-            "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous (accepted) resources/subscribe request.",
+            "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
