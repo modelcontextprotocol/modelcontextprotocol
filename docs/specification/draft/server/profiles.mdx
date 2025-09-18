@@ -6,7 +6,7 @@ title: Profiles
 
 <Info>**Protocol Revision**: draft</Info>
 
-The Model Context Protocol enables the definition of a collection of behaviors and properties as Profiles. Standard Profiles are available through the Model Context Protocol, and anyone may define custom Profiles. MCP Servers can declare the profiles they support. MCP Clients can discover which profiles an MCP Server supports, request the use of specific profiles, and negotiate mutually agreed profiles to use within a session with the MCP Server.
+The Model Context Protocol enables the definition of a collection of behaviors and properties as Profiles. Standard Profiles are available through the Model Context Protocol, and anyone may define custom Profiles. MCP Servers can declare the profiles they support. MCP Clients can discover which profiles an MCP Server supports, request the use of specific profiles, and select mutually agreed profiles to use within a session with the MCP Server.
 
 ## Why MCP Servers Need Profiles
 As the Model Context Protocol ecosystem grows, organizations need assurances on the behavioral characteristics such as performance, resource consumption constraints, data residency, service levels, and security of any MCP Server. MCP Servers may also offer different levels of service to different types of customers, and MCP clients may need to act accordingly.
@@ -66,7 +66,7 @@ Anyone can create a profile, and can maintain it at a Profile Specification URL 
 Once made available, Profiles MUST NOT be changed. In order to make changes to a Profile, the author MUST create a new version of the Profile, with its own Profile Specification URL.
 
 ### Using Profiles
-MCP Servers can declare the profiles they support by referring to their Profile Specification URL. MCP Clients discover which profiles an MCP Server supports and negotiate the right profiles to use. The following section describes how all this happens.
+MCP Servers can declare the profiles they support by referring to their Profile Specification URL. MCP Clients discover which profiles an MCP Server supports and select the right profiles to use. The following section describes how all this happens.
 
 ## Declaring Supported Profiles
 An MCP Server makes it possible for Clients to discover the profiles it supports as follows:
@@ -152,15 +152,15 @@ interface InitializeResult extends Result {
 
 The value of the `profiles` field is an array of one or more Profile Specification URLs of the selected Profiles. If the MCP Server has a Supported Profiles Declaration, then the MCP Server MUST have the `profiles` field in the `InitializeResult`, and its value MUST have at least one array element. If the MCP Server does not have a Supported Profiles Declaration, then the `InitializeResult` MUST NOT have a `profiles` field.
 
-## Profile Negotiation
+## Profile Selection
 
-The following diagram outlines the negotiation flow that is described below the diagram:
+The following diagram outlines the selection flow that is described below the diagram:
 ```mermaid
   sequenceDiagram
       participant C as MCP Client
       participant S as MCP Server
 
-      Note over C,S: Profile Negotiation Process
+      Note over C,S: Profile Selection Process
 
       C->>S: GET /.well-known/mcp-supported-profiles
       S-->>C: Supported Profiles Declaration (ProfileSpec[])
