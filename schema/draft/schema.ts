@@ -387,6 +387,13 @@ export interface PingRequest extends JSONRPCRequest {
   method: "ping";
 }
 
+/**
+ * The response to a ping request, indicating that the connection is still alive.
+ *
+ * @category ping
+ */
+export type PingResult = EmptyResult
+
 /* Progress notifications */
 /**
  * An out-of-band notification used to inform the receiver of a progress update for a long-running request.
