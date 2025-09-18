@@ -1672,6 +1672,9 @@
             ],
             "type": "object"
         },
+        "PingResult": {
+            "$ref": "#/definitions/Result"
+        },
         "PrimitiveSchemaDefinition": {
             "anyOf": [
                 {
@@ -2487,6 +2490,9 @@
                 "params"
             ],
             "type": "object"
+        },
+        "SetLevelResult": {
+            "$ref": "#/definitions/Result"
         },
         "StringSchema": {
             "properties": {
