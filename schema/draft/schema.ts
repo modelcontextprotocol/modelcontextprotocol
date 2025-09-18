@@ -1023,6 +1023,11 @@ export interface SetLevelRequest extends JSONRPCRequest {
 }
 
 /**
+ * Response sent by the server to confirm a logging/setLevel request from the client.
+ */
+export type SetLevelResult = EmptyResult;
+
+/**
  * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
  *
  * @category notifications/message
