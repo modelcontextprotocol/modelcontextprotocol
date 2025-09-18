@@ -25,6 +25,7 @@ This document lists current maintainers and working groups in the Model Context 
 
 - [Christian Tzolov](https://github.com/tzolov)
 - [Dariusz Jędrzejczyk](https://github.com/chemicL)
+- [Daniel Garnier-Moiroux](https://github.com/Kehrlann)
 
 ### Ruby SDK
 
@@ -70,13 +71,28 @@ This document lists current maintainers and working groups in the Model Context 
 
 ## Project Maintainers
 
-- [Glen Maddern](https://github.com/geelen) (use-mcp)
-- [Ola Hungerford](https://github.com/olaservo) (Inspector, Reference Servers)
-- [Cliff Hall](https://github.com/cliffhall) (Inspector, Reference Servers)
-- [Toby Padilla](https://github.com/toby) (Registry)
-- [Tadas Antanavicius](https://github.com/tadasant) (Registry, Reference Servers)
-- [Shaun Smith](https://github.com/evalstate) (Reference Servers)
-- [Jonathan Hefner](https://github.com/jonathanhefner) (Reference Servers)
+### use-mcp
+
+- [Glen Maddern](https://github.com/geelen)
+
+### Inspector
+
+- [Ola Hungerford](https://github.com/olaservo)
+- [Cliff Hall](https://github.com/cliffhall)
+
+### Registry
+
+- [Toby Padilla](https://github.com/toby)
+- [Tadas Antanavicius](https://github.com/tadasant)
+- [Adam Jones](https://github.com/domdomegg)
+
+### Reference Servers
+
+- [Ola Hungerford](https://github.com/olaservo)
+- [Cliff Hall](https://github.com/cliffhall)
+- [Tadas Antanavicius](https://github.com/tadasant)
+- [Shaun Smith](https://github.com/evalstate)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
 
 ## Community Moderators
 
@@ -105,6 +121,13 @@ This document lists current maintainers and working groups in the Model Context 
 - [Michael Feldstein](https://github.com/msfeldstein)
 - [Harald Kirschner](https://github.com/digitarald)
 - [Connor Peet](https://github.com/connor4312)
+
+### Transports Working Group
+
+- [Kurtis Van Gent](https://github.com/kurtisvg)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
+- [Shaun Smith](https://github.com/evalstate)
+- [Harvey Tuch](https://github.com/htuch)
 
 ## About This Document
 

@@ -1,9 +1,11 @@
 ---
-title: "Build an MCP Client"
+title: "Build an MCP client"
 description: "Get started building your own client that can integrate with all MCP servers."
 ---
 
-In this tutorial, you'll learn how to build an LLM-powered chatbot client that connects to MCP servers. It helps to have gone through the [Server quickstart](/quickstart/server) that guides you through the basics of building your first server.
+In this tutorial, you'll learn how to build an LLM-powered chatbot client that connects to MCP servers.
+
+Before you begin, it helps to have gone through our [Build an MCP Server](/docs/develop/build-server) tutorial so you can understand how clients and servers communicate.
 
 <Tabs>
 <Tab title="Python">
@@ -33,7 +35,7 @@ uv venv
 # Activate virtual environment
 # On Windows:
 .venv\Scripts\activate
-# On Unix or MacOS:
+# On Unix or macOS:
 source .venv/bin/activate
 
 # Install required packages
@@ -42,7 +44,7 @@ uv add mcp anthropic python-dotenv
 # Remove boilerplate files
 # On Windows:
 del main.py
-# On Unix or MacOS:
+# On Unix or macOS:
 rm main.py
 
 # Create our main file
@@ -305,13 +307,11 @@ You can find the complete `client.py` file [here.](https://gist.github.com/zckly
 ## Common Customization Points
 
 1. **Tool Handling**
-
    - Modify `process_query()` to handle specific tool types
    - Add custom error handling for tool calls
    - Implement tool-specific response formatting
 
 2. **Response Processing**
-
    - Customize how tool results are formatted
    - Add response filtering or transformation
    - Implement custom logging
@@ -366,13 +366,11 @@ When you submit a query:
 ## Best practices
 
 1. **Error Handling**
-
    - Always wrap tool calls in try-catch blocks
    - Provide meaningful error messages
    - Gracefully handle connection issues
 
 2. **Resource Management**
-
    - Use `AsyncExitStack` for proper cleanup
    - Close connections when done
    - Handle server disconnections
@@ -445,7 +443,7 @@ First, let's create and set up our project:
 
 <CodeGroup>
 
-```bash MacOS/Linux
+```bash macOS/Linux
 # Create project directory
 mkdir mcp-client-typescript
 cd mcp-client-typescript
@@ -776,7 +774,6 @@ When you submit a query:
 ## Best practices
 
 1. **Error Handling**
-
    - Use TypeScript's type system for better error detection
    - Wrap tool calls in try-catch blocks
    - Provide meaningful error messages
@@ -967,12 +964,6 @@ var chatClient = chatClientBuilder
     .build();
 ```
 
-<Warning>
-
-Breaking change: From SpringAI 1.0.0-M8 onwards, use `.defaultToolCallbacks(...)` instead of `.defaultTool(...)` to register MCP tools.
-
-</Warning>
-
 Key features:
 
 - Uses Claude AI model for natural language understanding
@@ -1049,7 +1040,7 @@ Now, let's create and set up your project:
 
 <CodeGroup>
 
-```bash MacOS/Linux
+```bash macOS/Linux
 # Create a new directory for our project
 mkdir kotlin-mcp-client
 cd kotlin-mcp-client
@@ -1390,7 +1381,6 @@ When you submit a query:
 ## Best practices
 
 1. **Error Handling**
-
    - Leverage Kotlin's type system to model errors explicitly
    - Wrap external tool and API calls in `try-catch` blocks when exceptions are possible
    - Provide clear and meaningful error messages
@@ -1455,7 +1445,7 @@ Before starting, ensure your system meets these requirements:
 
 - .NET 8.0 or higher
 - Anthropic API key (Claude)
-- Windows, Linux, or MacOS
+- Windows, Linux, or macOS
 
 ## Setting up your environment
 
@@ -1543,7 +1533,7 @@ static (string command, string[] arguments) GetCommandAndArguments(string[] args
 }
 ```
 
-This creates a MCP client that will connect to a server that is provided as a command line argument. It then lists the available tools from the connected server.
+This creates an MCP client that will connect to a server that is provided as a command line argument. It then lists the available tools from the connected server.
 
 ### Query processing logic
 
@@ -1657,21 +1647,7 @@ Here's an example of what it should look like it connected to a weather server q
   <Card title="Example servers" icon="grid" href="/examples">
     Check out our gallery of official MCP servers and implementations
   </Card>
-  <Card title="Clients" icon="cubes" href="/clients">
+  <Card title="Example clients" icon="cubes" href="/clients">
     View the list of clients that support MCP integrations
-  </Card>
-  <Card
-    title="Building MCP with LLMs"
-    icon="comments"
-    href="/tutorials/building-mcp-with-llms"
-  >
-    Learn how to use LLMs like Claude to speed up your MCP development
-  </Card>
-  <Card
-    title="Core architecture"
-    icon="sitemap"
-    href="/legacy/concepts/architecture"
-  >
-    Understand how MCP connects clients, servers, and LLMs
   </Card>
 </CardGroup>

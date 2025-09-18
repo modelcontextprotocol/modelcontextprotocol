@@ -31,6 +31,9 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   # Custom copyright
   copyright = '© 2025 Model Context Protocol Project'
 
+  [params.assets]
+    favicon = "favicon.svg"
+
   [[params.socialIcons]]
     name = "github"
     url = "https://github.com/modelcontextprotocol"
