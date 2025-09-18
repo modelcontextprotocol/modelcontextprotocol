@@ -531,7 +531,6 @@ export interface SubscribeRequest extends JSONRPCRequest {
 
 /**
  * Sent from the server to the client, to confirm a request to subscribe to resource modifications.
- * If the request is denied, errors out, or is a duplicate of an existing subscription, the server should send an Error response.
  *
  * @category resources/subscribe
  */
