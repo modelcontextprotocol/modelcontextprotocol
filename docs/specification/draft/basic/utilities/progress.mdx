@@ -90,3 +90,7 @@ sequenceDiagram
 - Senders and receivers **SHOULD** track active progress tokens
 - Both parties **SHOULD** implement rate limiting to prevent flooding
 - Progress notifications **MUST** stop after completion
+
+## Timeout Interaction
+
+Progress notifications help indicate that an operation is still running, and may help prevent responders from sending timeout errors when processing a long-running operation. However, responders **SHOULD NOT** assume that the requesters will reset the timeout upon a progress notification, and responders **SHOULD** declare timeouts that are sufficient for the entire operation to complete.

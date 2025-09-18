@@ -61,10 +61,21 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
     "protocolVersion": "2024-11-05",
     "capabilities": {
       "roots": {
-        "listChanged": true
+        "listChanged": true,
+        "timeouts": {
+          "list": 10
+        }
       },
-      "sampling": {},
-      "elicitation": {}
+      "sampling": {
+        "timeouts": {
+          "createMessage": 300
+        }
+      },
+      "elicitation": {
+        "timeouts": {
+          "create": 600
+        }
+      }
     },
     "clientInfo": {
       "name": "ExampleClient",
@@ -94,14 +105,28 @@ The server **MUST** respond with its own capabilities and information:
     "capabilities": {
       "logging": {},
       "prompts": {
-        "listChanged": true
+        "listChanged": true,
+        "timeouts": {
+          "list": 60,
+          "get": 15
+        }
       },
       "resources": {
         "subscribe": true,
-        "listChanged": true
+        "listChanged": true,
+        "timeouts": {
+          "list": 60,
+          "read": 30,
+          "subscribe": 30,
+          "unsubscribe": 10
+        }
       },
       "tools": {
-        "listChanged": true
+        "listChanged": true,
+        "timeouts": {
+          "list": 60,
+          "call": 30
+        }
       }
     },
     "serverInfo": {
@@ -179,11 +204,73 @@ Key capabilities include:
 | Server   | `completions`  | Supports argument [autocompletion](/specification/draft/server/utilities/completion) |
 | Server   | `experimental` | Describes support for non-standard experimental features                             |
 
+##### Sub-capabilities
+
 Capability objects can describe sub-capabilities like:
 
 - `listChanged`: Support for list change notifications (for prompts, resources, and
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
+
+##### Operation Timeouts
+
+Both clients and servers **MAY** declare timeout requirements for the operations they handle, which inform the requester what timeout to use. Each capability includes a `timeouts` object with per-method timeout values in seconds:
+
+**Server capabilities** (for operations servers handle):
+
+```json
+{
+  "tools": {
+    "listChanged": true,
+    "timeouts": {
+      "list": 60,
+      "call": 30
+    }
+  },
+  "resources": {
+    "subscribe": true,
+    "listChanged": true,
+    "timeouts": {
+      "list": 60,
+      "read": 30,
+      "subscribe": 30,
+      "unsubscribe": 10
+    }
+  },
+  "prompts": {
+    "listChanged": true,
+    "timeouts": {
+      "list": 60,
+      "get": 15
+    }
+  }
+}
+```
+
+**Client capabilities** (for operations clients handle):
+
+```json
+{
+  "roots": {
+    "listChanged": true,
+    "timeouts": {
+      "list": 10
+    }
+  },
+  "sampling": {
+    "timeouts": {
+      "createMessage": 300
+    }
+  },
+  "elicitation": {
+    "timeouts": {
+      "create": 600
+    }
+  }
+}
+```
+
+If a method's timeout is not specified, the protocol default for that method is used.
 
 ### Operation
 
@@ -221,20 +308,33 @@ associated HTTP connection(s).
 
 ## Timeouts
 
-Implementations **SHOULD** establish timeouts for all sent requests, to prevent hung
-connections and resource exhaustion. When the request has not received a success or error
-response within the timeout period, the sender **SHOULD** issue a [cancellation
-notification](/specification/draft/basic/utilities/cancellation) for that request and stop waiting for
-a response.
+Since MCP is bidirectional (both clients and servers can send requests), timeout handling applies to both directions of communication.
 
-SDKs and other middleware **SHOULD** allow these timeouts to be configured on a
-per-request basis.
+### Requesters (whether client or server)
 
-Implementations **MAY** choose to reset the timeout clock when receiving a [progress
-notification](/specification/draft/basic/utilities/progress) corresponding to the request, as this
-implies that work is actually happening. However, implementations **SHOULD** always
-enforce a maximum timeout, regardless of progress notifications, to limit the impact of a
-misbehaving client or server.
+To prevent hung connections and resource exhaustion, implementations **SHOULD** establish timeouts for all sent requests based on the the responder's declared requirements for that operation or, if none was provided, the protocol defaults defined below. When the request has not received a success or error response within the timeout period, the sender **SHOULD** issue a [cancellation notification](/specification/draft/basic/utilities/cancellation) for that request and stop waiting for a response.
+
+Implementations **MAY** choose to reset the timeout clock when receiving a [progress notification](/specification/draft/basic/utilities/progress) corresponding to the request, as this implies that work is actually happening. However, implementations **SHOULD** always enforce a reasonable maximum timeout, regardless of progress notifications, to limit the impact of a misbehaving client or server.
+
+### Responders (whether client or server)
+
+Implementations **MAY** declare timeout requirements for each operation type during initialization, and they **SHOULD** complete operations within their declared timeouts. Implemenations **MAY** send [progress notifications](/specification/draft/basic/utilities/progress) for long operations to indicate work is actually happening.
+
+### Default Timeouts
+
+Different operation types have different performance characteristics. In the absence of more specific timeout information from the requester, implementations **SHOULD** use these recommendations:
+
+**Client-to-Server Operations:**
+
+- **List operations** (`tools/list`, `resources/list`, `prompts/list`): 60 seconds
+- **Resource operations** (`resources/read`, `resources/subscribe`): 30 seconds
+- **Tool operations** (`tools/call`): 60 seconds
+- **Prompt operations** (`prompts/get`): 15 seconds
+
+**Server-to-Client Operations:**
+
+- **Elicitation** (`elicitation/create`): 600 seconds
+- **Sampling** (`sampling/createMessage`): 240 seconds
 
 ## Error Handling
 
