@@ -211,6 +211,10 @@
                         "requestId": {
                             "$ref": "#/definitions/RequestId",
                             "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
+                        },
+                        "timeout": {
+                            "description": "The timeout duration in seconds that triggered this cancellation.\nThis field SHOULD be included when the cancellation is due to a timeout.",
+                            "type": "integer"
                         }
                     },
                     "required": [
