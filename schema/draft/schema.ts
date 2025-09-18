@@ -544,7 +544,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
 export type SubscribeResult = EmptyResult
 
 /**
- * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous (accepted) resources/subscribe request.
+ * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
  *
  * @category resources/unsubscribe
  */
@@ -1615,8 +1615,10 @@ export type ServerNotification =
 /** @internal */
 export type ServerResult =
   | EmptyResult
+  | PingResult
   | InitializeResult
   | CompleteResult
+  | SetLevelResult
   | GetPromptResult
   | ListPromptsResult
   | ListResourceTemplatesResult
