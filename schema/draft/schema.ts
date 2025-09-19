@@ -77,7 +77,7 @@ export interface Error {
    * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
    */
   data?: unknown;
-};
+}
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
@@ -161,6 +161,12 @@ export interface CancelledNotification extends JSONRPCNotification {
      * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
      */
     reason?: string;
+
+    /**
+     * The timeout duration in seconds that triggered this cancellation.
+     * This field SHOULD be included when the cancellation is due to a timeout.
+     */
+    timeout?: number;
   };
 }
 
@@ -228,15 +234,44 @@ export interface ClientCapabilities {
      * Whether the client supports notifications for changes to the roots list.
      */
     listChanged?: boolean;
+    /**
+     * Per-method timeout configuration for roots operations.
+     */
+    timeouts?: {
+      /**
+       * Maximum timeout in seconds for roots/list operations.
+       */
+      list?: number;
+    };
   };
   /**
    * Present if the client supports sampling from an LLM.
    */
-  sampling?: object;
+  sampling?: {
+    /**
+     * Per-method timeout configuration for sampling operations.
+     */
+    timeouts?: {
+      /**
+       * Maximum timeout in seconds for sampling/createMessage operations.
+       */
+      createMessage?: number;
+    };
+  };
   /**
    * Present if the client supports elicitation from the server.
    */
-  elicitation?: object;
+  elicitation?: {
+    /**
+     * Per-method timeout configuration for elicitation operations.
+     */
+    timeouts?: {
+      /**
+       * Maximum timeout in seconds for elicitation/create operations.
+       */
+      create?: number;
+    };
+  };
 }
 
 /**
@@ -263,6 +298,19 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the prompt list.
      */
     listChanged?: boolean;
+    /**
+     * Per-method timeout configuration for prompt operations.
+     */
+    timeouts?: {
+      /**
+       * Maximum timeout in seconds for prompts/list operations.
+       */
+      list?: number;
+      /**
+       * Maximum timeout in seconds for prompts/get operations.
+       */
+      get?: number;
+    };
   };
   /**
    * Present if the server offers any resources to read.
@@ -276,6 +324,27 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the resource list.
      */
     listChanged?: boolean;
+    /**
+     * Per-method timeout configuration for resource operations.
+     */
+    timeouts?: {
+      /**
+       * Maximum timeout in seconds for resources/list operations.
+       */
+      list?: number;
+      /**
+       * Maximum timeout in seconds for resources/read operations.
+       */
+      read?: number;
+      /**
+       * Maximum timeout in seconds for resources/subscribe operations.
+       */
+      subscribe?: number;
+      /**
+       * Maximum timeout in seconds for resources/unsubscribe operations.
+       */
+      unsubscribe?: number;
+    };
   };
   /**
    * Present if the server offers any tools to call.
@@ -285,6 +354,19 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the tool list.
      */
     listChanged?: boolean;
+    /**
+     * Per-method timeout configuration for tool operations.
+     */
+    timeouts?: {
+      /**
+       * Maximum timeout in seconds for tools/list operations.
+       */
+      list?: number;
+      /**
+       * Maximum timeout in seconds for tools/call operations.
+       */
+      call?: number;
+    };
   };
 }
 
