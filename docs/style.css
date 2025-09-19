@@ -29,6 +29,25 @@
 }
 
 
+#implementation-tracking-matrix-wrapper table {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 0.85rem;
+}
+
+#implementation-tracking-matrix-wrapper td,
+#implementation-tracking-matrix-wrapper th {
+  padding: 0.6rem;
+  text-align: center;
+}
+
+/* Left align Client column */
+#implementation-tracking-matrix-wrapper td:first-child,
+#implementation-tracking-matrix-wrapper th:first-child {
+  text-align: left;
+}
+
+
 
 /*** Add automatic section numbers to headings and table of contents items ***/
 
