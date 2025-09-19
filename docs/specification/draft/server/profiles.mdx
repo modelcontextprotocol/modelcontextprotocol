@@ -9,12 +9,15 @@ title: Profiles
 The Model Context Protocol enables the definition of a collection of behaviors and properties as Profiles. Standard Profiles are available through the Model Context Protocol, and anyone may define custom Profiles. MCP Servers can declare the profiles they support. MCP Clients can discover which profiles an MCP Server supports, request the use of specific profiles, and select mutually agreed profiles to use within a session with the MCP Server.
 
 ## Why MCP Servers Need Profiles
+
 As the Model Context Protocol ecosystem grows, organizations need assurances on the behavioral characteristics such as performance, resource consumption constraints, data residency, service levels, and security of any MCP Server. MCP Servers may also offer different levels of service to different types of customers, and MCP clients may need to act accordingly.
 
 ### The Challenge:
+
 When an MCP client encounters a new server, it has no upfront knowledge of that server's behavioral guarantees, security posture, or operational characteristics. This uncertainty prevents organizations from being able to enforce certain policies for their use of MCP, and for consumer facing services that act as MCP Clients from complying with required regulation or adjusting behavior based on the user's relationship with the MCP Server.
 
 ### Profiles as Contracts:
+
 Server profiles act as behavioral contracts between MCP Clients and MCP Servers. Just as USB devices declare their class (storage, audio, input device) to ensure proper driver selection, MCP Servers can declare their profiles to communicate their capabilities and constraints before any connection is established. This enables:
 
 - **Predictable Integration**: Clients can make informed decisions about which Servers to connect with based on the Client's requirements, or how to communicate based on the Server's requirements.
@@ -24,17 +27,22 @@ Server profiles act as behavioral contracts between MCP Clients and MCP Servers.
 Without profiles, the MCP ecosystem risks becoming a maze of implementation choices where each Server behaves differently. Profiles provide the standardization layer that enables large scale organizational deployments, and / or compliance to consumer regulations.
 
 ### Examples
+
 #### Organizational Use
+
 Say the following profiles are specified:
+
 - High Security Profile: Which defines certain constraints on bearer tokens, and specifies audit requirements
 - GDPR Profile: Which defines data residency requirements and data deletion requirements for users who are accessing from certain countries
 
 An organization can now implement a policy that all of its MCP Clients must use the High Security Profile with any MCP Server, and when an MCP Client is acting interactively on behalf of a user accessing from certain countries, it must use the GDPR Profile with any MCP Server.
 
 #### Consumer Use
+
 Say an MCP Server specifies that "premium users" have access to higher limits in their tool usage, whereas other users will have a lower limit. The MCP Server defines its own custom "Premium Profile" to indicate this difference. An MCP Client can adjust their use of the Server's tools based on the Profile it is able to use with the Server.
 
 ## Profile Specification
+
 Each Profile has a specification document that describes the profile in detail. The profile specification is a document written using best practices prescribed in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) that unambiguously specifies the characteristics of a profile.
 
 ### Profile Specification URL
@@ -52,6 +60,7 @@ https://modelcontextprotocol.io/specification/2025-06-18/server/standard-profile
 ```
 
 ### Standard and Custom Profiles
+
 - Standard profiles are governed by the Model Context Protocol and stored in the "Standard Profiles" folder in the Server section of this specification. Standard profiles always have the profile specification URL prefix:
   ```
   https://modelcontextprotocol.io/specification/<version>/server/standard-profiles/
@@ -61,14 +70,17 @@ https://modelcontextprotocol.io/specification/2025-06-18/server/standard-profile
 - MCP Servers may simultaneously support a mix of standard and custom profiles.
 
 ### Profile Creation and Maintenance
+
 Anyone can create a profile, and can maintain it at a Profile Specification URL of their choice. The MCP community creates and maintains standard profiles.
 
 Once made available, Profiles MUST NOT be changed. In order to make changes to a Profile, the author MUST create a new version of the Profile, with its own Profile Specification URL.
 
 ### Using Profiles
+
 MCP Servers can declare the profiles they support by referring to their Profile Specification URL. MCP Clients discover which profiles an MCP Server supports and select the right profiles to use. The following section describes how all this happens.
 
 ## Declaring Supported Profiles
+
 An MCP Server makes it possible for Clients to discover the profiles it supports as follows:
 
 ### ProfileSpec Object
@@ -80,7 +92,7 @@ A ProfileSpec object has the following fields:
 
 ```TypeScript
 interface ProfileSpec {
-  "profileURL": string; 
+  "profileURL": string;
   // The unique URL identifying the profile,
   // which is also location where the profile is specified.
 
@@ -90,6 +102,7 @@ interface ProfileSpec {
 ```
 
 ### Supported Profiles Declaration
+
 The profiles supported by an MCP Server are available through the Supported Profiles Declaration JSON format document that is an array of `ProfileSpec` objects:
 
 ```TypeScript
@@ -97,6 +110,7 @@ The profiles supported by an MCP Server are available through the Supported Prof
 ```
 
 ### Well-known URL
+
 The Supported Profiles Declaration is made available by an MCP Server at its "well-known" location, as described in [RFC8615](https://datatracker.ietf.org/doc/html/rfc8615). The file name for the MCP Supported Profiles Declaration document is: `mcp-supported-profiles`. The well-known URL for the MCP Supported Profiles Declaration is obtained by inserting the path:
 
 ```
@@ -106,16 +120,20 @@ The Supported Profiles Declaration is made available by an MCP Server at its "we
 between the Authority component (as defined in [Section 3.2 of RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2)) and any Path component (as defined in [Section 3.3 of RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.3)) of the MCP Server's URL.
 
 #### Examples:
+
 - If an MCP server is located at: `https://mymcpserver.mycompany.com`, then the supported profiles declaration document is at: `https://mymcpserver.mycompany.com/.well-known/mcp-supported-profiles`.
 - If an MCP server is located at: `https://mycompany.com/mymcpserver`, then the supported profiles declaration document is at: `https://mycompany.com/.well-known/mcp-supported-profiles/mymcpserver`.
 
 ### Backward compatibility
+
 If the Supported Profiles Declaration resource does not exist on the MCP Server, or if the document returned is empty, then the Client MUST assume that the MCP Server does not support Profiles.
 
 ## Profile Discovery
+
 Before connecting to an MCP Server, an MCP Client MAY fetch the Server’s Well Known URL to understand which profiles the server supports (if any). Alternatively, an MCP Client may, through proprietary means, already know the profiles a specific MCP Server supports and simply use those.
 
 ## Initialization With Profiles
+
 The MCP Client makes an `InitializeRequest` based on its knowledge of which (if any) profiles the MCP Server supports.
 
 ### Requested Profiles
@@ -155,6 +173,7 @@ The value of the `profiles` field is an array of one or more Profile Specificati
 ## Profile Selection
 
 The following diagram outlines the selection flow that is described below the diagram:
+
 ```mermaid
   sequenceDiagram
       participant C as MCP Client
