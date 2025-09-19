@@ -83,7 +83,8 @@ Servers expose a list of resources via the `resources/list` request. Each resour
 ```typescript
 {
   uri: string;           // Unique identifier for the resource
-  name: string;          // Human-readable name
+  name: string;          // The name of the resource
+  title?: string;        // Optional human-readable name of the resource for display purposes
   description?: string;  // Optional description
   mimeType?: string;     // Optional MIME type
   size?: number;         // Optional size in bytes
@@ -97,7 +98,8 @@ For dynamic resources, servers can expose [URI templates](https://datatracker.ie
 ```typescript
 {
   uriTemplate: string;   // URI template following RFC 6570
-  name: string;          // Human-readable name for this type
+  name: string;          // The name of the type
+  title?: string;        // Optional Human-readable name of the type for display purposes
   description?: string;  // Optional description
   mimeType?: string;     // Optional MIME type for all matching resources
 }
@@ -114,6 +116,8 @@ The server responds with a list of resource contents:
   contents: [
     {
       uri: string;        // The URI of the resource
+      name?: string;      // The name of the resource
+      title?: string;     // Optional human-readable name of the resource for display purposes
       mimeType?: string;  // Optional MIME type
 
       // One of:
