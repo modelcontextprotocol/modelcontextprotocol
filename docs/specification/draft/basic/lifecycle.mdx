@@ -212,9 +212,11 @@ Capability objects can describe sub-capabilities like:
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
 
-##### Operation Timeouts
+##### Declared Timeout Recommendations
 
-Both clients and servers **MAY** declare timeout requirements for the operations they handle, which inform the requester what timeout to use. Each capability includes a `timeouts` object with per-method timeout values in seconds:
+To improve interoperability, both clients and servers **MAY** declare timeout recommendations for the methods they support.
+
+Each capability includes a `timeouts` object with per-method timeout values in seconds:
 
 **Server capabilities** (for operations servers handle):
 
@@ -272,6 +274,8 @@ Both clients and servers **MAY** declare timeout requirements for the operations
 
 If a method's timeout is not specified, the protocol default for that method is used.
 
+To avoid unbounded timeouts, requesters **SHOULD** enforce reasonable maximum timeouts for all methods.
+
 ### Operation
 
 During the operation phase, the client and server exchange messages according to the
@@ -312,17 +316,19 @@ Since MCP is bidirectional (both clients and servers can send requests), timeout
 
 ### Requesters (whether client or server)
 
-To prevent hung connections and resource exhaustion, implementations **SHOULD** establish timeouts for all sent requests based on the the responder's declared requirements for that operation or, if none was provided, the protocol defaults defined below. When the request has not received a success or error response within the timeout period, the sender **SHOULD** issue a [cancellation notification](/specification/draft/basic/utilities/cancellation) for that request and stop waiting for a response.
+To prevent hung connections and resource exhaustion, implementations **SHOULD** establish timeouts for all sent requests based on the responder's declared timeout or the protocol default for that method. However, requesters **SHOULD** always enforce their own reasonable maximum timeout limits to prevent potential abuse from excessively long or infinite timeout declarations.
+
+When the request has not received a success or error response within the timeout period, the sender **SHOULD** issue a [cancellation notification](/specification/draft/basic/utilities/cancellation) for that request and stop waiting for a response.
 
 Implementations **MAY** choose to reset the timeout clock when receiving a [progress notification](/specification/draft/basic/utilities/progress) corresponding to the request, as this implies that work is actually happening. However, implementations **SHOULD** always enforce a reasonable maximum timeout, regardless of progress notifications, to limit the impact of a misbehaving client or server.
 
 ### Responders (whether client or server)
 
-Implementations **MAY** declare timeout requirements for each operation type during initialization, and they **SHOULD** complete operations within their declared timeouts. Implemenations **MAY** send [progress notifications](/specification/draft/basic/utilities/progress) for long operations to indicate work is actually happening.
+Implementations **MAY** declare timeout recommendations for each method during initialization, and they **SHOULD** complete operations within their declared timeouts. Implementations **MAY** send [progress notifications](/specification/draft/basic/utilities/progress) for long operations to indicate work is actually happening.
 
 ### Default Timeouts
 
-Different operation types have different performance characteristics. In the absence of more specific timeout information from the requester, implementations **SHOULD** use these recommendations:
+Different operation types have different performance characteristics. In the absence of more specific timeout recommendations from the requester, implementations **SHOULD** use these recommendations:
 
 **Client-to-Server Operations:**
 
