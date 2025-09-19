@@ -1,0 +1,50 @@
+---
+title: Extensions
+---
+
+<div id="enable-section-numbers" />
+
+<Info>**Protocol Revision**: draft</Info>
+
+## Introduction
+
+### Purpose and Scope
+
+The Model Context Protocol specification defines baseline requirements for core
+functionality. Extensions provide additional capabilities that implementations
+may adopt to support specific use cases beyond the baseline requirements.
+
+### Extension Design Principles
+
+To ensure extensions integrate seamlessly with the core protocol while maintaining
+flexibility for diverse implementation needs, all extensions must adhere to the
+following architectural principles:
+
+1. **Independence**: Extensions MUST provide complete specifications that can be
+   implemented independently without dependencies on other extensions.
+2. **Composability**: Extensions MUST be modular such that multiple extensions
+   can be composed together within a single implementation without conflicts.
+
+### Extension Conformance Model
+
+Implementations **MAY** choose to adopt one or more extensions based on their
+specific requirements. Once an extension is adopted, implementations **MUST**
+conform to all requirements specified in that extension.
+
+### Extension Governance
+
+Extensions defined within this directory follow established MCP governance and
+review processes.
+
+Implementations **MAY** define additional extensions outside of this
+specification. Such extensions are not subject to MCP governance processes. The
+design, maintenance, and interoperability of external extensions are the
+responsibility of their respective communities.
+
+### Available Extensions
+
+The following extensions are currently available:
+
+- **[OAuth Client Credentials Extension](./specifications/auth-client-credentials.mdx)** -
+  Enables machine-to-machine authentication without user interaction using OAuth
+  2.1 Client Credentials flow
