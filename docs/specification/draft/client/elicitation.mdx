@@ -689,9 +689,13 @@ Additionally, the server:
 
 When handling URL mode elicitation requests, MCP clients:
 
-1. **MUST NOT** open a user agent (e.g. browser) without explicit consent from the user.
-2. **MUST** render the URL provided by the server in a browser which does not enable the client or LLM to inspect the content or user inputs.
+1. **MUST NOT** automatically pre-fetch the URL or any of its metadata.
+2. **MUST NOT** open the URL without explicit consent from the user.
+3. **MUST** show the full URL to the user for examination before consent.
+4. **MUST** open the URL provided by the server in a browser which does not enable the client or LLM to inspect the content or user inputs.
    For example, on iOS, [SFSafariViewController](https://developer.apple.com/documentation/safariservices/sfsafariviewcontroller) is good, but [WkWebView](https://developer.apple.com/documentation/webkit/wkwebview) is not.
+5. **SHOULD** highlight the domain of the URL to mitigate subdomain spoofing.
+6. **SHOULD** have warnings for ambiguous/suspicious URIs (i.e., containing Punycode).
 
 ### Identifying the User
 
@@ -708,19 +712,6 @@ Non-normative examples:
 1. Servers **MUST NOT** request sensitive information (passwords, API keys, etc.) via form mode
 2. Clients **SHOULD** validate all responses against the provided schema
 3. Servers **SHOULD** validate received data matches the requested schema
-
-#### Server-Side Request Forgery (SSRF)
-
-Since clients facilitate the opening of URLs provided by servers, they **MUST** implement SSRF protections.
-
-The following are recommendations for implementing SSRF protections. Clients that choose to relax these constraints should be aware of the risks.
-
-- Require the `https://` scheme for all URL mode URLs (no `http://`, `file://`, etc.)
-- Block requests to internal IP ranges (e.g., `127.0.0.1`, `10.0.0.0/8`, etc.)
-- Clearly render or distinguish Unicode characters (e.g. punycode URLs) to avoid "look-alike" misdirections
-- Clearly communicate the destination server and target URL to the user when asking for consent before opening the URL
-
-Further recommendations can be found in the OWASP [SSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html).
 
 #### Phishing
 
