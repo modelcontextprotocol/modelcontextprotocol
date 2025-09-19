@@ -50,6 +50,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [gptme][gptme]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [HyperAgent][HyperAgent]                         | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [JetBrains AI Assistant][JetBrains AI Assistant] | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [Jiki][Jiki]                                     | ✅          | ✅        | ✅      | ✅                     | ✅         | ❌    | ❓            | Orchestration framework with dynamic tool/roots discovery |
 | [Kilo Code][Kilo Code]                           | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
 | [Klavis AI Slack/Discord/Web][Klavis AI]         | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Langflow][Langflow]                             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
@@ -92,7 +93,6 @@ This page provides an overview of applications that support the Model Context Pr
 | [Witsy][Witsy]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Zed][Zed]                                       | ❌          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [Zencoder][Zencoder]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
-
 
 {/* prettier-ignore-end */}
 
@@ -140,6 +140,7 @@ This page provides an overview of applications that support the Model Context Pr
 [GitHubCopilotCodingAgent]: https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/about-copilot-coding-agent
 [Goose]: https://block.github.io/goose/docs/goose-architecture/#interoperability-with-extensions
 [JetBrains AI Assistant]: https://plugins.jetbrains.com/plugin/22282-jetbrains-ai-assistant
+[Jiki]: https://github.com/teilomillet/jiki
 [Kilo Code]: https://github.com/Kilo-Org/kilocode
 [LibreChat]: https://github.com/danny-avila/LibreChat
 [LM Studio]: https://lmstudio.ai
@@ -604,6 +605,14 @@ Delegate tasks to [GitHub Copilot coding agent](https://docs.github.com/en/copil
 - Access to top-tier models from OpenAI, Anthropic, and Google.
 - Offline mode with connected local LLMs via Ollama or LM Studio.
 - Deep integration into IDE workflows, including code suggestions in the editor, VCS assistance, runtime error explanation, and more.
+
+### Jiki
+[Jiki](https://github.com/teilomillet/jiki) is a flexible LLM orchestration framework designed for building applications that leverage tool calling via the Multi-Capability Protocol (MCP).
+
+**Key features:**
+- Orchestration framework [docs](https://docs.jiki.dev)
+- Auto-discover tools from MCP servers (stdio and SSE).
+- Detailed interaction data with tool_calls and raw traces.
 
 ### Kilo Code
 
