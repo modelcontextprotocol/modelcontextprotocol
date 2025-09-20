@@ -143,8 +143,9 @@ for MCP because:
 **Pre-provisioned registration fallback**
 
 MCP **clients MUST** support a pre-provisioned registration path in addition to Dynamic Client Registration (DCR). Clients **MUST** provide either:
-(a) a user-facing input mechanism for a pre-provisioned `client_id` (and `client_secret` for confidential clients), **or**
-(b) a managed configuration mechanism (e.g., OS-standard configuration file).
+
+1. A user-facing input mechanism for a pre-provisioned `client_id` (and `client_secret` for confidential clients), or
+2. A managed configuration mechanism (e.g., an OS-standard configuration file).
 
 When a corresponding authorization server does not support DCR—or when enterprise policy requires pre-registration—clients **MUST** allow users or administrators to supply these values.
 
@@ -291,7 +292,8 @@ Servers **MUST** return appropriate HTTP status codes for authorization errors:
 
 Implementations **MUST** follow OAuth 2.1 security best practices as laid out in [OAuth 2.1 Section 7. "Security Considerations"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#name-security-considerations).
 
-**Pre-registration: operational risks and mitigations**  
+**Pre-registration: operational risks and mitigations**
+
 Pre-registration can cause client-secret sprawl and lifecycle/rotation risks; implementations **SHOULD** prefer public clients where feasible.
 
 
