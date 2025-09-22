@@ -41,6 +41,8 @@ This document lists current maintainers and working groups in the Model Context 
 ### Go SDK
 
 - [Rob Findley](https://github.com/findleyr)
+- [Jonathan Amsterdam](https://github.com/jba)
+- [Sam Thanawalla](https://github.com/samthanawalla)
 
 ### C# SDK
 
