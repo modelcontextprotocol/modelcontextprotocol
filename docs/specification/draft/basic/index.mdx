@@ -184,7 +184,7 @@ Consumers of icon metadata **MUST** take appropriate security precautions when h
 - Fetch icons without credentials. Do not send cookies, `Authorization` headers, or client credentials.
 - Verify that icon URIs are from the same origin as the server. This minimizes the risk of exposing data or tracking information to third-parties.
 - Exercise caution when fetching and rendering icons as the payload **MAY** contain executable content (e.g., SVG with [embedded JavaScript](https://www.w3.org/TR/SVG11/script.html) or [extended capabilities](https://www.w3.org/TR/SVG11/extend.html)).
-  - Consumers **MAY** choose to disallow specific file types or otherwize sanitize icon files before rendering.
+  - Consumers **MAY** choose to disallow specific file types or otherwise sanitize icon files before rendering.
 - Validate MIME types and file contents before rendering. Treat the MIME type information as advisory. Detect content type via magic bytes; reject on mismatch or unknown types.
   - Maintain a strict allowlist of image types.
 
