@@ -363,7 +363,7 @@
       "destination": "/docs/develop/connect-remote-servers"
     },
     {
-      "source": "/docs/quickstart/user",
+      "source": "/quickstart/user",
       "destination": "/docs/develop/connect-local-servers"
     },
     {
