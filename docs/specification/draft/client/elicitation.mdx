@@ -318,13 +318,13 @@ of band and the client is not aware of the outcome, unless the client requests p
 
 ### Progress Tracking
 
-The client **MAY** request progress updates from the server by sending an `elicitation/track` request with a [progress token](../basic/utilities/progress#progress-token). This is particularly useful in URL mode, because the client is not involved in the interaction.
+The client **MAY** request progress updates from the server by sending an `elicitation/track` request with a [progress token](../basic/utilities/progress). This is particularly useful in URL mode, because the client is not involved in the interaction.
 
-The client **MUST** include an `elicitationId` in the request to identify which elicitation to send progress updates for. The client **SHOULD** include a `progressToken` in the request's `_meta` field.
+The client **MUST** include an `elicitationId` in the `elicitation/track` request to identify which elicitation to send progress updates for. The client **SHOULD** include a `progressToken` in the request's `_meta` field.
 
 The server **MUST** respond with an [error](#error-handling) if the client sends an `elicitation/track` request containing an `elicitationId` that is not known or does not belong to the client.
 
-The server **MAY** send a `notifications/progress` notification to the client with the progress token and the progress status.
+After the client has requested progress updates via an `elicitation/track` request, the server **MAY** send [progress notifications](../basic/utilities/progress) to the client.
 
 The server **SHOULD** send a `elicitation/track` response to the client once the elicitation is complete.
 
