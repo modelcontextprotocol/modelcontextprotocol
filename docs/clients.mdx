@@ -60,6 +60,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [Lutra][Lutra]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [mcp-agent][mcp-agent]                           | ✅          | ✅        | ✅      | ❓                     | ⚠️         | ✅    | ✅            |
 | [mcp-client-chatbot][mcp-client-chatbot]         | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
+| [MCPJam][MCPJam]                                 | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ✅            |
 | [mcp-use][mcp-use]                               | ✅          | ✅        | ✅      | ✅                     | ✅         | ❌    | ✅            |
 | [modelcontextchat.com][modelcontextchat.com]     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [MCPHub][MCPHub]                                 | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
@@ -151,6 +152,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Lutra]: https://lutra.ai
 [mcp-agent]: https://github.com/lastmile-ai/mcp-agent
 [mcp-client-chatbot]: https://github.com/cgoinglove/mcp-client-chatbot
+[MCPJam]: [https://github.com/MCPJam/inspector]
 [mcp-use]: https://github.com/pietrozullo/mcp-use
 [modelcontextchat.com]: https://modelcontextchat.com
 [MCPHub]: https://github.com/ravitemer/mcphub.nvim
@@ -740,6 +742,18 @@ Langflow is an open-source visual builder that lets developers rapidly prototype
 - It supports standard MCP tool calling and includes both a custom MCP server and a standalone UI for testing MCP tools outside the chat flow.
 - All MCP tools are provided to the LLM by default, but the project also includes an optional `@toolname` mention feature to make tool invocation more explicit—particularly useful when connecting to multiple MCP servers with many tools.
 - Visual workflow builder that lets you create custom tools by chaining LLM nodes and MCP tools together. Published workflows become callable as `@workflow_name` tools in chat, enabling complex multi-step automation sequences.
+
+### MCPJam
+
+[MCPJam] is an open source testing and debugging tool for MCP servers - Postman for MCP servers. 
+
+**Key features:**
+
+- Test your MCP server's tools, resources, prompts, and OAuth. MCP spec compliant. 
+- LLM playground to test your server against different LLMs. 
+- Tracing and logging error messages.
+- Connect and test multiple MCP servers simultaneously.
+- Supports all transports - STDIO, SSE, and Streamable HTTP. 
 
 ### mcp-use
 
