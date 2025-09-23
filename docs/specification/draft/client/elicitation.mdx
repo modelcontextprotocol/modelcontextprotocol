@@ -552,7 +552,7 @@ Servers implementing elicitation **MUST** securely associate this state with ind
 
 ### URL Mode Elicitation for Sensitive Data
 
-For servers that interact with downstream APIs requiring sensitive information (e.g., credentials, payment information), URL mode elicitation provides a secure mechanism for users to provide this information without exposing it to the MCP client.
+For servers that interact with external APIs requiring sensitive information (e.g., credentials, payment information), URL mode elicitation provides a secure mechanism for users to provide this information without exposing it to the MCP client.
 
 In this pattern:
 
@@ -567,14 +567,14 @@ This approach ensures that sensitive credentials never pass through the MCP clie
 ### URL Mode Elicitation for OAuth Flows
 
 URL mode elicitation enables a pattern where MCP servers act as OAuth clients to third-party resource servers.
-Authorization with downstream APIs enabled by URL mode elicitation is separate from [MCP authorization](../basic/authorization). MCP servers **MUST NOT** rely on URL mode elicitation to authorize users for themselves.
+Authorization with external APIs enabled by URL mode elicitation is separate from [MCP authorization](../basic/authorization). MCP servers **MUST NOT** rely on URL mode elicitation to authorize users for themselves.
 
 #### Understanding the Distinction
 
 - **MCP Authorization**: Required OAuth flow between the MCP client and MCP server (covered in the [authorization specification](../basic/authorization))
-- **Downstream Authorization**: Optional authorization between the MCP server and a third-party resource server, initiated via URL mode elicitation
+- **External (third-party) Authorization**: Optional authorization between the MCP server and a third-party resource server, initiated via URL mode elicitation
 
-In downstream authorization, the server acts as both:
+In external authorization, the server acts as both:
 
 - An OAuth resource server (to the MCP client)
 - An OAuth client (to the third-party resource server)
@@ -603,7 +603,7 @@ Credentials obtained via URL mode elicitation are distinct from the MCP server c
 
 #### Implementation Pattern
 
-When implementing downstream authorization via URL mode elicitation:
+When implementing external authorization via URL mode elicitation:
 
 1. The MCP server generates an authorization URL, acting as an OAuth client to the third-party service
 2. The server creates a URL mode elicitation request with this URL
