@@ -266,6 +266,7 @@
           "community/communication",
           "community/governance",
           "community/sep-guidelines",
+          "community/working-interest-groups",
           "development/roadmap",
           "clients",
           "examples"
@@ -363,7 +364,7 @@
       "destination": "/docs/develop/connect-remote-servers"
     },
     {
-      "source": "/docs/quickstart/user",
+      "source": "/quickstart/user",
       "destination": "/docs/develop/connect-local-servers"
     },
     {
@@ -376,6 +377,9 @@
     }
   ],
   "contextual": {
-    "options": ["copy", "view"]
+    "options": [
+      "copy",
+      "view"
+    ]
   }
 }
