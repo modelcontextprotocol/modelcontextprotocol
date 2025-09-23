@@ -313,12 +313,12 @@ export interface Icon {
   mimeType?: string;
 
   /**
-   * Optional string that specifies one or more sizes at which the icon can be used.
-   * For example: `"48x48"`, `"48x48 96x96"`, or `"any"` for scalable formats like SVG.
+   * Optional array of strings that specify sizes at which the icon can be used.
+   * Each string should be in WxH format (e.g., `"48x48"`, `"96x96"`) or `"any"` for scalable formats like SVG.
    *
    * If not provided, the client should assume that the icon can be used at any size.
    */
-  sizes?: string;
+  sizes?: string[];
 }
 
 /**
