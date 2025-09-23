@@ -175,7 +175,7 @@ based on the `application_type` parameter as defined in
 MCP clients **SHOULD** specify an appropriate `application_type` during Dynamic Client Registration:
 
 - **Native applications** (desktop applications, mobile apps, CLI tools) **SHOULD** use `application_type: "native"`
-- **Web applications** (browser-based applications) **SHOULD** use `application_type: "web"`
+- **Web applications** (remote browser-based applications) **SHOULD** use `application_type: "web"`
 
 MCP clients **SHOULD** be prepared to handle registration failures due to redirect URI constraints when authorization servers implement OIDC.
 
