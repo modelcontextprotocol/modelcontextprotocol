@@ -141,6 +141,11 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Inna Harper](https://github.com/ihrpr)
 
+
+### Financial Services Interest Group
+
+- [Sambhav Kothari](https://github.com/sambhav)
+
 ## About This Document
 
 This document is updated by the MCP maintainers and reflects the current
