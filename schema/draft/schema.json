@@ -493,7 +493,7 @@
                             "type": "string"
                         },
                         "maxTokens": {
-                            "description": "The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.",
+                            "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
                             "type": "integer"
                         },
                         "messages": {

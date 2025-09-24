@@ -1004,7 +1004,9 @@ export interface CreateMessageRequest extends Request {
      */
     temperature?: number;
     /**
-     * The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.
+     * The requested maximum number of tokens to sample (to prevent runaway completions).
+     *
+     * The client MAY choose to sample fewer tokens than the requested maximum.
      */
     maxTokens: number;
     stopSequences?: string[];
