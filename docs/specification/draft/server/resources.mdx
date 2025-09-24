@@ -370,9 +370,21 @@ Resources can contain either text or binary data:
 {
   "uri": "file:///example.txt",
   "mimeType": "text/plain",
+  "metadata": {
+    "uri": "file:///example.txt",
+    "name": "example.txt",
+    "mimeType": "text/plain"
+  },
   "text": "Resource content"
 }
 ```
+
+<Note>
+  The top-level `uri` and `mimeType` fields are **deprecated** and superseded by
+  `metadata.uri` and `metadata.mimeType`. When present, they **MUST** match
+  their corresponding values in the `metadata` object. These fields will be
+  removed in a future protocol version.
+</Note>
 
 #### Binary Content
 
@@ -380,9 +392,21 @@ Resources can contain either text or binary data:
 {
   "uri": "file:///example.png",
   "mimeType": "image/png",
+  "metadata": {
+    "uri": "file:///example.png",
+    "name": "example.png",
+    "mimeType": "image/png"
+  },
   "blob": "base64-encoded-data"
 }
 ```
+
+<Note>
+  The top-level `uri` and `mimeType` fields are **deprecated** and superseded by
+  `metadata.uri` and `metadata.mimeType`. When present, they **MUST** match
+  their corresponding values in the `metadata` object. These fields will be
+  removed in a future protocol version.
+</Note>
 
 ### Annotations
 
