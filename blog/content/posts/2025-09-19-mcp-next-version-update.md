@@ -33,7 +33,7 @@ We [launched the MCP Registry in preview](https://blog.modelcontextprotocol.io/p
 
 The MCP registry represents a collaborative effort involving multiple companies and developers, with community-driven moderation mechanisms to maintain a high quality quality bar.
 
-MCP clients can also consume the registry content to provide convenient ways for customers to discover and integrate MCP servers in their AI workflows without the hassle of searching for individual server instructions.
+MCP clients can also consume registry content via registry aggregators, enabling users to easily discover and integrate MCP servers into their AI workflows.
 
 All of these initiatives set the foundation for MCP's continued development - we know that there is more work ahead and we want to lean on the broad expertise of our community to help shape the protocol in a way that serves it.
 
