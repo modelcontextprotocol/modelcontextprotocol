@@ -2110,6 +2110,10 @@
                     "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
+                "metadata": {
+                    "$ref": "#/definitions/Resource",
+                    "description": "Resource metadata matching the Resource type from resources/list."
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
@@ -2121,6 +2125,7 @@
                 }
             },
             "required": [
+                "metadata",
                 "uri"
             ],
             "type": "object"
