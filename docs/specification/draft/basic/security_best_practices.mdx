@@ -284,6 +284,7 @@ The MCP client **SHOULD** implement additional checks and guardrails to mitigate
 - Use platform-appropriate sandboxing technologies (containers, chroot, application sandboxes, etc.)
 
 MCP servers intending for their servers to be run locally **SHOULD** implement measures to prevent unauthorized usage from malicious processes:
+
 - Use the `stdio` transport to limit access to just the MCP client
 - Restrict access if using an HTTP transport, such as:
   - Require an authorization token
