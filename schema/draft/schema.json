@@ -928,7 +928,7 @@
                 },
                 "websiteUrl": {
                     "description": "An optional URL of the website for this implementation.",
-                    "format": ": uri",
+                    "format": "uri",
                     "type": "string"
                 }
             },

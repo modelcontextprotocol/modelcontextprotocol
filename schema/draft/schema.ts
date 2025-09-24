@@ -372,7 +372,7 @@ export interface Implementation extends BaseMetadata, Icons {
   /**
    * An optional URL of the website for this implementation.
    *
-   * @format: uri
+   * @format uri
    */
   websiteUrl?: string;
 }
