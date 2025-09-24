@@ -37,7 +37,7 @@ MCP clients can also consume the registry content to provide convenient ways for
 
 All of these initiatives set the foundation for MCP's continued development - we know that there is more work ahead and we want to lean on the broad expertise of our community to help shape the protocol in a way that serves it.
 
-Our governance model and formalized working groups will enable focused development on the highest priority protocol improvements while still incorporating community input and contributions. MCP continues to be an **open protocol**, where **anyone can contribute**.
+Our governance model and formalized working groups will enable focused development on the highest priority protocol improvements while incorporating community input and contributions. MCP continues to be an **open protocol**, where **anyone can contribute**.
 
 ## Priority Areas for the Next Release
 
