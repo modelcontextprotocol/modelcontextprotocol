@@ -29,7 +29,7 @@ While the working group model is evolving, we're also actively developing govern
 
 ### [Registry development](https://github.com/modelcontextprotocol/registry)
 
-We [launched the MCP Registry in preview](https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/) as an open catalog and API for publicly available MCP servers to improve discoverability across the ecosystem. This centralized infrastructure serves as a single source of truth for MCP servers while supporting both public and private sub-registries that organizations can customize for their specific needs.
+We [launched the MCP Registry in preview](https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/) as an open catalog and API for publicly available MCP servers to improve discoverability across the ecosystem. This centralized infrastructure serves as a single source of truth for MCP servers, supporting both public and private sub-registries that organizations can customize for their specific needs.
 
 The MCP registry represents a collaborative effort involving multiple companies and developers, with community-driven moderation mechanisms to maintain a high quality bar.
 
