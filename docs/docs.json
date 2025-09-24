@@ -374,6 +374,10 @@
     {
       "source": "/quickstart/client",
       "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/development/contributing",
+      "destination": "/community/communication"
     }
   ],
   "contextual": {
