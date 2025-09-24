@@ -35,7 +35,7 @@ The MCP registry represents a collaborative effort involving multiple companies 
 
 MCP clients can also consume registry content via registry aggregators, enabling users to easily discover and integrate MCP servers into their AI workflows.
 
-All of these initiatives set the foundation for MCP's continued development - we know that there is more work ahead and we want to lean on the broad expertise of our community to help shape the protocol in a way that serves it.
+All of these initiatives set the foundation for MCP's continued development. We know that there is more work ahead, and we want to lean on the broad expertise of our community to help shape the protocol in a way that serves it.
 
 Our governance model and formalized working groups will enable focused development on the highest priority protocol improvements while incorporating community input and contributions. MCP continues to be an **open protocol**, where **anyone can contribute**.
 
