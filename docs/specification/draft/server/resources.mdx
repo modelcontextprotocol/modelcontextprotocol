@@ -158,12 +158,84 @@ To retrieve resource contents, clients send a `resources/read` request:
       {
         "uri": "file:///project/src/main.rs",
         "mimeType": "text/x-rust",
+        "metadata": {
+          "uri": "file:///project/src/main.rs",
+          "name": "main.rs",
+          "title": "Rust Software Application Main File",
+          "description": "Primary application entry point",
+          "mimeType": "text/x-rust",
+          "size": 45,
+          "icons": [
+            {
+              "src": "https://example.com/rust-file-icon.png",
+              "mimeType": "image/png",
+              "sizes": "48x48"
+            }
+          ],
+          "annotations": {
+            "audience": ["assistant"],
+            "priority": 0.9,
+            "lastModified": "2025-09-24T15:30:00Z"
+          }
+        },
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
     ]
   }
 }
 ```
+
+Servers **MUST** include the `metadata` field containing resource metadata matching the `Resource` type from `resources/list` responses. This provides consistency across the API.
+
+#### Metadata-Only Reads
+
+Clients can request only metadata without fetching the actual content by setting `metadataOnly` to `true`:
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "resources/read",
+  "params": {
+    "uri": "file:///project/data/large-file.bin",
+    "metadataOnly": true
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "contents": [
+      {
+        "uri": "file:///project/data/large-file.bin",
+        "mimeType": "application/octet-stream",
+        "metadata": {
+          "uri": "file:///project/data/large-file.bin",
+          "name": "large-file.bin",
+          "title": "Large Binary Dataset",
+          "description": "Compiled dataset for analysis",
+          "mimeType": "application/octet-stream",
+          "size": 52428800,
+          "annotations": {
+            "audience": ["assistant"],
+            "priority": 0.5,
+            "lastModified": "2025-09-24T10:00:00Z"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+When `metadataOnly` is `true`, servers **MUST** include the `metadata` field and **MUST NOT** include the `text` or `blob` field in the response. This allows clients to efficiently check resource metadata (e.g., to verify if a resource has been modified via the `lastModified` annotation) without fetching potentially large contents.
 
 ### Resource Templates
 
