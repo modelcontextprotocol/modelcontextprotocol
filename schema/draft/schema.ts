@@ -101,7 +101,7 @@ export interface JSONRPCNotification extends Notification {
 /**
  * A successful (non-error) response to a request.
  */
-export interface JSONRPCResponseSuccess {
+export interface JSONRPCResultResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
@@ -110,7 +110,7 @@ export interface JSONRPCResponseSuccess {
 /**
  * A response to a request that indicates an error occurred.
  */
-export interface JSONRPCResponseError {
+export interface JSONRPCErrorResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id?: RequestId;
   error: Error;
@@ -119,7 +119,7 @@ export interface JSONRPCResponseError {
 /**
  * A response to a request, containing either the result or error.
  */
-export type JSONRPCResponse = JSONRPCResponseSuccess | JSONRPCResponseError;
+export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
 // Standard JSON-RPC error codes
 /** @internal */

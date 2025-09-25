@@ -54,9 +54,9 @@ these types of messages:
 
 Responses are sent in reply to requests, containing either the result or error of the operation.
 
-#### Success Responses
+#### Result Responses
 
-[Success responses](/specification/draft/schema#jsonrpcresponsesuccess) are sent when the operation completes successfully.
+[Result responses](/specification/draft/schema#jsonrpcresultresponse) are sent when the operation completes successfully.
 
 ```typescript
 {
@@ -68,13 +68,13 @@ Responses are sent in reply to requests, containing either the result or error o
 }
 ```
 
-- Success responses **MUST** include the same ID as the request they correspond to.
-- Success responses **MUST** include a `result` field.
+- Result responses **MUST** include the same ID as the request they correspond to.
+- Result responses **MUST** include a `result` field.
 - The `result` **MAY** follow any JSON object structure.
 
 #### Error Responses
 
-[Error responses](/specification/draft/schema#jsonrpcresponseerror) are sent when the operation fails or encounters an error.
+[Error responses](/specification/draft/schema#jsonrpcerrorresponse) are sent when the operation fails or encounters an error.
 
 ```typescript
 {
