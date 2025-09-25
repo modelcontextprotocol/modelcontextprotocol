@@ -1040,27 +1040,6 @@
             ],
             "type": "object"
         },
-        "JSONRPCError": {
-            "description": "A response to a request that indicates an error occurred.",
-            "properties": {
-                "error": {
-                    "$ref": "#/definitions/Error"
-                },
-                "id": {
-                    "$ref": "#/definitions/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "error",
-                "id",
-                "jsonrpc"
-            ],
-            "type": "object"
-        },
         "JSONRPCMessage": {
             "anyOf": [
                 {
@@ -1070,10 +1049,10 @@
                     "$ref": "#/definitions/JSONRPCNotification"
                 },
                 {
-                    "$ref": "#/definitions/JSONRPCResponse"
+                    "$ref": "#/definitions/JSONRPCResponseSuccess"
                 },
                 {
-                    "$ref": "#/definitions/JSONRPCError"
+                    "$ref": "#/definitions/JSONRPCResponseError"
                 }
             ],
             "description": "Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent."
@@ -1145,6 +1124,37 @@
             "type": "object"
         },
         "JSONRPCResponse": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/JSONRPCResponseSuccess"
+                },
+                {
+                    "$ref": "#/definitions/JSONRPCResponseError"
+                }
+            ],
+            "description": "A response to a request, containing either the result or error."
+        },
+        "JSONRPCResponseError": {
+            "description": "A response to a request that indicates an error occurred.",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/Error"
+                },
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "error",
+                "jsonrpc"
+            ],
+            "type": "object"
+        },
+        "JSONRPCResponseSuccess": {
             "description": "A successful (non-error) response to a request.",
             "properties": {
                 "id": {

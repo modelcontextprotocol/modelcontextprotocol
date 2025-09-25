@@ -52,16 +52,35 @@ these types of messages:
 
 ### Responses
 
-[Responses](/specification/draft/schema#jsonrpcresponse) are sent in reply to requests, containing the result or error of the operation.
+Responses are sent in reply to requests, containing either the result or error of the operation.
+
+#### Success Responses
+
+[Success responses](/specification/draft/schema#jsonrpcresponsesuccess) are sent when the operation completes successfully.
 
 ```typescript
 {
   jsonrpc: "2.0";
   id: string | number;
-  result?: {
+  result: {
     [key: string]: unknown;
   }
-  error?: {
+}
+```
+
+- Success responses **MUST** include the same ID as the request they correspond to.
+- Success responses **MUST** include a `result` field.
+- The `result` **MAY** follow any JSON object structure.
+
+#### Error Responses
+
+[Error responses](/specification/draft/schema#jsonrpcresponseerror) are sent when the operation fails or encounters an error.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  id?: string | number;
+  error: {
     code: number;
     message: string;
     data?: unknown;
@@ -69,12 +88,8 @@ these types of messages:
 }
 ```
 
-- Responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
-- **Responses** are further sub-categorized as either **successful results** or
-  **errors**. Either a `result` or an `error` **MUST** be set. A response **MUST NOT**
-  set both.
-- Results **MAY** follow any JSON object structure, while errors **MUST** include an
-  error code and message at minimum.
+- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
+- Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
 
 ### Notifications
