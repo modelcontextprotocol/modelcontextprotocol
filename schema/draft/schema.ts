@@ -147,7 +147,7 @@ export interface JSONRPCNotification extends Notification {
  *
  * @category JSON-RPC
  */
-export interface JSONRPCResponseSuccess {
+export interface JSONRPCResultResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
@@ -158,7 +158,7 @@ export interface JSONRPCResponseSuccess {
  *
  * @category JSON-RPC
  */
-export interface JSONRPCResponseError {
+export interface JSONRPCErrorResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id?: RequestId;
   error: Error;
@@ -167,7 +167,7 @@ export interface JSONRPCResponseError {
 /**
  * A response to a request, containing either the result or error.
  */
-export type JSONRPCResponse = JSONRPCResponseSuccess | JSONRPCResponseError;
+export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
 // Standard JSON-RPC error codes
 export const PARSE_ERROR = -32700;
@@ -186,7 +186,7 @@ export const URL_ELICITATION_REQUIRED = -32042;
  * @internal
  */
 export interface URLElicitationRequiredError
-  extends Omit<JSONRPCResponseError, "error"> {
+  extends Omit<JSONRPCErrorResponse, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
