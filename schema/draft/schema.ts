@@ -543,14 +543,7 @@ export interface ResourceRequestParams extends RequestParams {
  *
  * @category resources/read
  */
-export interface ReadResourceRequestParams extends ResourceRequestParams {
-  /**
-   * If true, the server should return only metadata fields (name, title, description, icons, annotations, size) without the actual content (text or blob).
-   *
-   * This allows clients to efficiently check resource metadata (e.g., lastModified timestamp, size) without fetching potentially large contents.
-   */
-  metadataOnly?: boolean;
-}
+export interface ReadResourceRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -569,6 +562,32 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  */
 export interface ReadResourceResult extends Result {
   contents: (TextResourceContents | BlobResourceContents)[];
+}
+
+/**
+ * Sent from the client to the server, to read metadata for a specific resource URI.
+ *
+ * @category resources/metadata
+ */
+export interface ReadResourceMetadataRequest extends JSONRPCRequest {
+  method: "resources/metadata";
+  params: {
+    /**
+     * The URI of the resource to read metadata for. The URI can use any protocol; it is up to the server how to interpret it.
+     *
+     * @format uri
+     */
+    uri: string;
+  };
+}
+
+/**
+ * The server's response to a resources/metadata request from the client.
+ *
+ * @category resources/metadata
+ */
+export interface ReadResourceMetadataResult extends Result {
+  metadata: Resource[];
 }
 
 /**
@@ -714,49 +733,20 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
   _meta?: { [key: string]: unknown };
 }
 
-/**
- * The contents of a specific resource or sub-resource.
- */
-export interface ResourceContents {
-  /**
-   * The URI of this resource.
-   *
-   * @deprecated This field is superseded by metadata.uri and MUST match it. This field will be removed in a future protocol version.
-   * @format uri
-   */
-  uri: string;
-  /**
-   * The MIME type of this resource, if known.
-   *
-   * @deprecated This field is superseded by metadata.mimeType. When present, it MUST match metadata.mimeType. This field will be removed in a future protocol version.
-   */
-  mimeType?: string;
-
-  /**
-   * Resource metadata matching the Resource type from resources/list.
-   */
-  metadata: Resource;
-
-  /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
-   */
-  _meta?: { [key: string]: unknown };
-}
-
-export interface TextResourceContents extends ResourceContents {
+export interface TextResourceContents extends Resource {
   /**
    * The text of the item. This must only be set if the item can actually be represented as text (not binary data).
    */
-  text?: string;
+  text: string;
 }
 
-export interface BlobResourceContents extends ResourceContents {
+export interface BlobResourceContents extends Resource {
   /**
    * A base64-encoded string representing the binary data of the item.
    *
    * @format byte
    */
-  blob?: string;
+  blob: string;
 }
 
 /* Prompts */
@@ -1695,6 +1685,7 @@ export type ClientRequest =
   | ListResourcesRequest
   | ListResourceTemplatesRequest
   | ReadResourceRequest
+  | ReadResourceMetadataRequest
   | SubscribeRequest
   | UnsubscribeRequest
   | CallToolRequest
@@ -1742,5 +1733,6 @@ export type ServerResult =
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | ReadResourceMetadataResult
   | CallToolResult
   | ListToolsResult;
