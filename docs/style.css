@@ -492,10 +492,9 @@ body:has(#schema-reference) {
   .step-number {
     height: fit-content;
     border-radius: 50%;
-    border: 3px solid var(--highlight-color);
+    border: 3px solid;
     text-align: center;
     color: var(--highlight-color);
-    background: transparent;
   }
 
   .step-content {
@@ -579,8 +578,7 @@ body:has(#schema-reference) {
     border-radius: 9999px;
 
     border: 6px solid var(--highlight-color);
-    background: light-dark(#111827, #e5e7eb);
-    color: light-dark(white, #111827);
+    color: white
 
     font-size: 1.5rem;
     font-weight: 700;
