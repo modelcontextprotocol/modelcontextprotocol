@@ -388,7 +388,7 @@ MCP clients that support the `stdio` transport typically run a local proxy servi
 
 1. Attacker achieves XSS or other client-side code execution (e.g., through OAuth URL vulnerabilities)
 2. Malicious JavaScript accesses the MCP proxy authentication token from the client's environment
-3. JavaScript makes authenticated requests to the local MCP proxy service  
+3. JavaScript makes authenticated requests to the local MCP proxy service
 4. Proxy spawns arbitrary commands via the `stdio` transport
 5. Attacker achieves Remote Code Execution with user privileges
 
