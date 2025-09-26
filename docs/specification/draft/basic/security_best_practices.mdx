@@ -388,7 +388,7 @@ The `stdio` transport itself is not inherently vulnerable. However, in proxy arc
 
 In proxy-based MCP implementations, a local proxy service sits between the client and MCP servers, spawning servers as child processes via the `stdio` transport. This architecture creates a privileged escalation path when combined with client-side vulnerabilities:
 
-1. Attacker achieves XSS or other client-side code execution (e.g., through OAuth URL vulnerabilities)  
+1. Attacker achieves XSS or other client-side code execution (e.g., through OAuth URL vulnerabilities)
 2. Using the attack vector above, the malicious actor accesses the MCP proxy authentication token established between the client and the proxy from the client's environment
 3. Malicious actor makes authenticated requests to the local MCP proxy service
 4. Proxy spawns arbitrary commands via the `stdio` transport (believing they are legitimate MCP server commands)
@@ -397,7 +397,7 @@ In proxy-based MCP implementations, a local proxy service sits between the clien
 #### Risks
 
 - **Privilege Escalation**. Web-based vulnerabilities (XSS) can escalate to arbitrary code execution on the host system through proxy command execution
-- **Authentication Bypass**. Stolen proxy authentication tokens allow unauthorized access to stdio process spawning capabilities  
+- **Authentication Bypass**. Stolen proxy authentication tokens allow unauthorized access to stdio process spawning capabilities
 - **System Compromise**. Attackers can execute any command that the MCP proxy process has privileges to run
 
 #### Mitigation
@@ -414,7 +414,7 @@ Since XSS fundamentally compromises the client's security context, focus on limi
 
 MCP proxy services **SHOULD** implement additional security controls for `stdio` transport:
 
-- Implement sandboxing or containerization for spawned processes  
+- Implement sandboxing or containerization for spawned processes
 - Restrict file system access for spawned MCP servers
 - Log all `stdio` transport usage for security monitoring
 - Require additional authorization for potentially dangerous commands
