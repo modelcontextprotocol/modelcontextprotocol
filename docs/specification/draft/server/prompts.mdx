@@ -52,6 +52,9 @@ available prompts changes.
 To retrieve available prompts, clients send a `prompts/list` request. This operation
 supports [pagination](/specification/draft/server/utilities/pagination).
 
+Clients **SHOULD** respect the timeout declared by the server in its `prompts.timeouts.list`
+capability, or use the protocol default of 60 seconds if not specified.
+
 **Request:**
 
 ```json
@@ -102,6 +105,9 @@ supports [pagination](/specification/draft/server/utilities/pagination).
 
 To retrieve a specific prompt, clients send a `prompts/get` request. Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+
+Clients **SHOULD** respect the timeout declared by the server in its `prompts.timeouts.get`
+capability, or use the protocol default of 15 seconds if not specified.
 
 **Request:**
 

@@ -52,7 +52,12 @@ Clients that support sampling **MUST** declare the `sampling` capability during
 
 ### Creating Messages
 
-To request a language model generation, servers send a `sampling/createMessage` request:
+To request a language model generation, servers send a `sampling/createMessage` request.
+
+Servers **SHOULD** respect the timeout declared by the client in its `sampling.timeouts.createMessage`
+capability, or use the protocol default of 240 seconds if not specified. Due to the nature
+of LLM generation, clients **MAY** send [progress notifications](/specification/draft/basic/utilities/progress)
+to indicate generation is still in progress.
 
 **Request:**
 

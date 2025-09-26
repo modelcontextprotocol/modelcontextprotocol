@@ -59,6 +59,9 @@ available tools changes.
 To discover available tools, clients send a `tools/list` request. This operation supports
 [pagination](/specification/draft/server/utilities/pagination).
 
+Clients **SHOULD** respect the timeout declared by the server in its `tools.timeouts.list`
+capability, or use the protocol default of 60 seconds if not specified.
+
 **Request:**
 
 ```json
@@ -110,7 +113,10 @@ To discover available tools, clients send a `tools/list` request. This operation
 
 ### Calling Tools
 
-To invoke a tool, clients send a `tools/call` request:
+To invoke a tool, clients send a `tools/call` request.
+
+Clients **SHOULD** respect the timeout declared by the server in its `tools.timeouts.call`
+capability, or use the protocol default of 60 seconds if not specified.
 
 **Request:**
 

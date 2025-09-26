@@ -58,7 +58,11 @@ Clients that support elicitation **MUST** declare the `elicitation` capability d
 
 ### Creating Elicitation Requests
 
-To request information from a user, servers send an `elicitation/create` request:
+To request information from a user, servers send an `elicitation/create` request.
+
+Servers **SHOULD** respect the timeout declared by the client in its `elicitation.timeouts.create`
+capability, or use the protocol default of 600 seconds if not specified. This extended
+timeout accommodates the time needed for human interaction.
 
 #### Simple Text Request
 
