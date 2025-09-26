@@ -318,12 +318,12 @@ When XSS vulnerabilities are combined with `stdio` transport capabilities, attac
 
 ```mermaid
 sequenceDiagram
-    participant Attacker
+    participant MaliciousMCP as Malicious MCP Server
     participant Client as MCP Client
     participant Proxy as MCP Proxy
     participant System as Host System
 
-    Attacker->>Client: Malicious authorization URL (javascript:)
+    MaliciousMCP->>Client: Malicious authorization URL (javascript:)
     Client->>Client: Execute JavaScript (XSS)
     Client->>Client: Extract proxy auth token
     Client->>Proxy: Malicious stdio command request
@@ -331,7 +331,7 @@ sequenceDiagram
     Proxy->>System: Execute arbitrary command
     System-->>Proxy: Command output
     Proxy-->>Client: Command result
-    Client-->>Attacker: Exfiltrate data/establish persistence
+    Client-->>MaliciousMCP: Exfiltrate data/establish persistence
 ```
 
 #### Risks
@@ -378,52 +378,52 @@ MCP clients **MUST** sanitize and validate all URLs received from MCP servers:
 - Consider using dedicated URL sanitization libraries
 - Log suspicious authorization URLs for security monitoring
 
-### stdio Transport Security
+### stdio Transport Security in Proxy Scenarios
 
-The `stdio` transport, when combined with other vulnerabilities, can provide a critical escalation path from web-based attacks to full system compromise.
+The `stdio` transport itself is not inherently vulnerable. However, in proxy architectures where a separate proxy service manages `stdio` connections and can spawn MCP servers as child processes, it can provide a critical escalation path from web-based attacks to full system compromise.
 
 #### Attack Description
 
-MCP clients that support the `stdio` transport typically run a local proxy service that can spawn MCP servers as child processes. This architecture creates a privileged escalation path when combined with client-side vulnerabilities:
+**Important**: This attack vector only applies to MCP implementations that use a proxy architecture, not to direct `stdio` transport usage.
 
-1. Attacker achieves XSS or other client-side code execution (e.g., through OAuth URL vulnerabilities)
-2. Malicious JavaScript accesses the MCP proxy authentication token from the client's environment
-3. JavaScript makes authenticated requests to the local MCP proxy service
-4. Proxy spawns arbitrary commands via the `stdio` transport
+In proxy-based MCP implementations, a local proxy service sits between the client and MCP servers, spawning servers as child processes via the `stdio` transport. This architecture creates a privileged escalation path when combined with client-side vulnerabilities:
+
+1. Attacker achieves XSS or other client-side code execution (e.g., through OAuth URL vulnerabilities)  
+2. Using the attack vector above, the malicious actor accesses the MCP proxy authentication token established between the client and the proxy from the client's environment
+3. Malicious actor makes authenticated requests to the local MCP proxy service
+4. Proxy spawns arbitrary commands via the `stdio` transport (believing they are legitimate MCP server commands)
 5. Attacker achieves Remote Code Execution with user privileges
 
 #### Risks
 
-- **Privilege Escalation**. Web-based vulnerabilities (XSS) can escalate to arbitrary code execution on the host system
-- **Authentication Bypass**. Stolen proxy authentication tokens allow unauthorized access to `stdio` transport capabilities
+- **Privilege Escalation**. Web-based vulnerabilities (XSS) can escalate to arbitrary code execution on the host system through proxy command execution
+- **Authentication Bypass**. Stolen proxy authentication tokens allow unauthorized access to stdio process spawning capabilities  
 - **System Compromise**. Attackers can execute any command that the MCP proxy process has privileges to run
 
 #### Mitigation
 
-**Proxy Authentication Security**
+The primary defense is to prevent classes of vulnerabilities that enable this attack vector:
 
-MCP proxy services **MUST** implement robust authentication mechanisms:
+- Implement the mitigations described in [OAuth Authorization URL Validation](#oauth-authorization-url-validation)
+- Use Content Security Policy (CSP) to prevent JavaScript execution from untrusted sources
+- Validate and sanitize all input from MCP servers before processing
 
-- **MUST** use cryptographically secure, unpredictable authentication tokens
-- **SHOULD** rotate authentication tokens regularly or on each session
-- **MUST** validate that all `stdio` requests are properly authenticated
-- **SHOULD** implement request rate limiting to prevent abuse
+Since XSS fundamentally compromises the client's security context, focus on limiting the damage:
 
 **stdio Transport Restrictions**
 
 MCP proxy services **SHOULD** implement additional security controls for `stdio` transport:
 
-- Maintain an allowlist of permitted MCP server executables
-- Implement sandboxing or containerization for spawned processes
+- Implement sandboxing or containerization for spawned processes  
 - Restrict file system access for spawned MCP servers
 - Log all `stdio` transport usage for security monitoring
 - Require additional authorization for potentially dangerous commands
 
 **Client-Side Protections**
 
-MCP clients **MUST** protect proxy authentication tokens:
+MCP clients **SHOULD** implement defense-in-depth measures:
 
-- Store authentication tokens securely (not in accessible JavaScript globals)
-- Use secure communication channels between client and proxy
-- Implement token scoping to limit what operations can be performed
-- Clear authentication tokens when clients disconnect or terminate
+- Isolate proxy communication in a separate security context when possible
+- Use principle of least privilege for proxy process permissions
+- Implement process-level sandboxing for the proxy service itself
+- Consider running the proxy in a container or restricted environment
