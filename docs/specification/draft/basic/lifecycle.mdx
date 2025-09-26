@@ -39,7 +39,9 @@ sequenceDiagram
 
 ### Initialization
 
-The initialization phase **MUST** be the first interaction between client and server.
+The initialization phase **SHOULD** be the first interaction between client and server.
+Bypassing initialization is appropriate when the client has prior knowledge of, and accounts for,
+the protocol versions, capabilities, and initialization bypass support of all servers it interacts with.
 During this phase, the client and server:
 
 - Establish protocol version compatibility
