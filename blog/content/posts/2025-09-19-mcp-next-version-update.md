@@ -43,13 +43,13 @@ Any MCP client can consume registry content via the native registry API or throu
 
 With governance and infrastructure foundations in place, we're ready to focus on some major protocol improvements. Our working groups have been busy identifying the areas where MCP needs to evolve, and we've narrowed it down to five key priorities for the upcoming release.
 
-### Asynchronous Operations
+### Asynchronous operations
 
 Right now, MCP is built around _mostly_ synchronous operations - when you call a tool, everything stops and waits for it to finish. That works great for quick tasks, but what about operations that take minutes or hours to complete?
 
 The Agents Working Group is tackling this by adding async support, so servers can kick off long-running tasks and clients can check back later for results. You can follow the progress in [SEP-1391](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1391).
 
-### Statelessness and Scalability
+### Statelessness and scalability
 
 As MCP grows, we're seeing more organizations want to deploy servers at enterprise scale, with all the requirements that stem from enterprise-ready infrastructure. Current MCP implementations often need to remember things between requests, which makes it harder to scale horizontally across multiple server instances.
 
@@ -57,25 +57,29 @@ We already have some stateless support through [Streamable HTTP](https://modelco
 
 The Transport Working Group is working on smoothing out these rough edges, making it easier to run MCP servers in production while keeping a simple upgrade path for teams who want more sophisticated stateful features.
 
-### Server Identity
+### Server identity
 
 If you want to know what an MCP server can do, you have to connect to it first. That makes it really hard for clients to easily browse available servers or for systems like our registry to automatically catalog what's out there.
 
 We're solving this by letting servers advertise themselves through [`.well-known` URLs](https://en.wikipedia.org/wiki/Well-known_URI) - an established standard for providing relevant metadata. Think of it like a server's business card that anyone can read without having to knock on the door first. This will make discovery much more intuitive for every MCP consumer.
 
-### Official Extensions
+### Official extensions
 
-Establishing officially endorsed extensions for MCP. We see patterns emerging in the MCP ecosystem that are highly relevant to specific use cases and industry domains. While not all of them can be embedded directly into the specification, we recognize that there is still a very real need to provide extensibility points that enable folks to build the experiences they need on top of MCP.
+As MCP has grown, we've noticed some interesting patterns emerging in the community. Folks are building a variety of extensions for specific industries or use cases - implementations that are super valuable but don't necessarily fit in the core protocol specification.
 
-The extensibility project will document the most widely adopted extensions and those best suited for particular areas as official **Extensions to MCP** to encourage broader ecosystem adoption.
+Rather than leaving everyone to reinvent the wheel, we want to officially recognize and document the most popular protocol extensions. Think of it as a curated collection of plug-ins that have proven themselves in the wild.
 
-### SDK Support Standardization
+For example, if you're building MCP clients or servers for specialized domains like healthcare, finance, or education, you'll have a solid starting point instead of building every custom integration from scratch.
 
-We will be introducing a tiering system for MCP SDKs to provide clarity about support levels and spec conformance. This standardization will be based on factors including specification compliance velocity, maintainer responsiveness, and feature completeness. The tiering framework will help users make informed decisions when selecting SDKs for their projects while also having clear expectations for different levels of support they can get from taking on the dependency.
+### SDK support standardization
+
+Right now, if you're choosing an MCP SDK for your project, it can be hard to gauge the level of support or spec compliance that you'll get by taking a dependency on it. Some SDKs are lightning-fast with updates, while others might be a bit behind feature-wise. The level of community support also varies depending on the platform and programming language.
+
+To help developers, we will be introducing a clear tiering system that will bring a bit more clarity to the decision. The tier designation will act like a nutrition label for SDKs - you'll know exactly what you're signing up for before you commit to a dependency.
 
 ## Call for Contributors
 
-As MCP grows, we welcome contributors - both individuals and companies. Contributions are especially needed in several areas key to the MCP success:
+MCP is only as strong as the community behind it. As we've grown, we've realized there are some key areas where we could really use more help. Whether you're an individual developer passionate about building SDKs or a company looking to invest in the ecosystem, we welcome your contributions and expertise.
 
 ### SDK Maintenance
 
@@ -85,14 +89,16 @@ As MCP grows, we welcome contributors - both individuals and companies. Contribu
 
 ### Tooling
 
-- [**Inspector**](https://github.com/modelcontextprotocol/inspector) - Development and maintenance of debugging tools
-- [**Registry**](https://github.com/modelcontextprotocol/registry) - Backend API and CLI development for the server registry; in particular, Go expertise would be very welcome
+- [**Inspector**](https://github.com/modelcontextprotocol/inspector) - Development and maintenance of debugging tools to help MCP server developers test their implementations
+- [**Registry**](https://github.com/modelcontextprotocol/registry) - Backend API and CLI development for the server registry; **Go expertise would be particularly welcome**
 
-## Input from Client Implementors
+## Input from client developers
 
-MCP is also not just about servers, but also clients - the tools that enable customers to connect to our ecosystem. If you are implementing MCP clients, your experience and understanding of requirements are crucial for shaping the protocol's evolution. We want to hear from you on both protocol capabilities as well as processes that will enable you to scale your work as we add new features.
+We talk a lot about MCP servers, but clients are just as important. They're the bridge that connects users to the entire MCP ecosystem. If you're building an MCP client, you're seeing the protocol from a completely different angle, and we need that perspective embedded in the protocol design.
 
-Client implementors are invited to join the `#client-implementors` working group channel in the [MCP Discord](https://modelcontextprotocol.io/community/communication).
+Your real-world experience with implementation challenges, performance bottlenecks, and user needs will help directly shape where the protocol should go next. Whether it's feedback on existing capabilities or ideas for streamlining the developer experience as we add new features, we want to hear from you.
+
+Come join us in the `#client-implementors` working group channel in the [MCP Discord](https://modelcontextprotocol.io/community/communication).
 
 ## Looking ahead
 
