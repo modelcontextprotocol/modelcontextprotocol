@@ -7,39 +7,41 @@ author: "David Soria Parra"
 description: "An update on the timeline and priorities for the next Model Context Protocol specification version"
 ---
 
-## Release Timeline Update
+It's been a busy Summer building out MCP's governance, working groups, and registry infrastructure. With that foundation in place, we're ready to talk about what's coming in the next protocol release and where we need your help.
 
-The next version of the Model Context Protocol specification will be released on **November 25th, 2025**, with a release candidate available on **November 11th, 2025**. This 14-day release candidate period will allow client implementors and SDK maintainers to validate protocol changes before the final release. This updated timeline allows for proper focus on delivering critical improvements needed for the protocol's evolution and ensures our [new governance model](https://modelcontextprotocol.io/community/governance) is functioning effectively.
+## Release timeline update
 
-## Summer Progress
+The next version of the Model Context Protocol specification will have a release candidate (RC) available on **November 11th, 2025**, with the final release on **November 25th, 2025**.
 
-Over the past few months, we've focused on establishing the foundations for the broader MCP ecosystem:
+We're building in a 14-day RC validation window so client implementors and SDK maintainers can thoroughly test the protocol changes. This approach also gives us the focused time we need to deliver critical improvements while applying our [new governance model](https://modelcontextprotocol.io/community/governance) to the process.
+
+## Summer progress
+
+Over the past few months, we've been heads-down building the infrastructure and [governance foundations ](https://blog.modelcontextprotocol.io/posts/2025-07-31-governance-for-mcp/)that MCP needs to scale sustainably. While this work might not be as flashy as new protocol features, it's essential groundwork for the broader MCP ecosystem.
 
 ### Formal governance structures
 
-We established a [formal governance model for MCP](https://modelcontextprotocol.io/community/governance), including defined roles and decision-making mechanisms. Additionally, we developed the Specification Enhancement Proposal (SEP) process to provide clear guidelines for contributing specification changes and transparent decision-making procedures.
+We started the new season by establishing a [formal governance model for MCP](https://modelcontextprotocol.io/community/governance), including defined roles and decision-making mechanisms. We also developed the [Specification Enhancement Proposal (SEP)](https://modelcontextprotocol.io/community/sep-guidelines) process to provide clear guidelines for the community for contributing specification changes. Our goal here is to be as transparent about decision-making procedures as possible.
 
-Our governance model is still in its early stages and we're iterating on making it scale better as the protocol and the community around it grows.
+Like any new system that involves a fast-evolving community, our governance model is still finding its footing. We're actively learning and refining how it works as both the protocol and community continue to grow.
 
 ### Working groups
 
-We've established [Working Groups and Interest Groups](https://modelcontextprotocol.io/community/working-interest-groups) to foster community collaboration and drive the specification forward. These groups serve multiple purposes: they provide clear entry points for new contributors, empower community members to lead initiatives in their areas of expertise, and distribute ownership across the ecosystem rather than concentrating it among core maintainers.
+We've established [Working Groups and Interest Groups](https://modelcontextprotocol.io/community/working-interest-groups) to foster community collaboration and drive the specification forward. These groups serve multiple purposes. They provide clear entry points for new contributors, empower community members to lead initiatives in their areas of expertise, and distribute ownership across the ecosystem rather than concentrating it among core maintainers.
 
-While the working group model is evolving, we're also actively developing governance structures that will grant these groups greater autonomy in decision-making and implementation. This distributed approach ensures the protocol can grow sustainably while maintaining quality and consistency across different focus areas.
+While the working group model is also evolving, we're working on crafting governance structures that will grant these groups greater autonomy in decision-making and implementation, helping us move even faster with protocol improvements. This distributed approach ensures the protocol can grow to meet the community needs while maintaining quality and consistency across different domains.
 
 ### Registry development
 
-We [launched the MCP Registry in preview](https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/) as an open catalog and API for publicly available MCP servers to improve discoverability across the ecosystem. This centralized infrastructure serves as a single source of truth for MCP servers, supporting both public and private sub-registries that organizations can customize for their specific needs.
+Earlier in September, we [launched the MCP Registry preview](https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/) - an open catalog and API for indexing and discovery of MCP servers. The MCP Registry is the single source of truth for available MCP servers, supporting both public and private sub-registries that organizations can customize for their specific needs.
 
-The MCP registry represents a collaborative effort involving multiple companies and developers, with community-driven moderation mechanisms to maintain a high quality bar.
+Building the MCP Registry has been a true community effort, with companies and independent developers working together to build something that benefits the entire MCP ecosystem. We've also put community-driven moderation in place to keep the quality bar high.
 
-MCP clients can also consume registry content via registry aggregators, enabling users to easily discover and integrate MCP servers into their AI workflows.
+Any MCP client can consume registry content via the native registry API or through third-party registry aggregators. It's a great tool to help customers easily discover and integrate MCP servers into their AI workflows.
 
-All of these initiatives set the foundation for MCP's continued development. We know that there is more work ahead, and we want to lean on the broad expertise of our community to help shape the protocol in a way that serves it.
+## Priority areas for the next release
 
-Our governance model and formalized working groups will enable focused development on the highest priority protocol improvements while incorporating community input and contributions. MCP continues to be an **open protocol**, where **anyone can contribute**.
-
-## Priority Areas for the Next Release
+With governance and infrastructure foundations in place, we're ready to focus on some major protocol improvements. Our working groups have been busy identifying the areas where MCP needs to evolve, and we've narrowed it down to five key priorities for the upcoming release.
 
 ### Asynchronous Operations
 
@@ -87,3 +89,9 @@ As MCP grows, we welcome contributors - both individuals and companies. Contribu
 MCP is also not just about servers, but also clients - the tools that enable customers to connect to our ecosystem. If you are implementing MCP clients, your experience and understanding of requirements are crucial for shaping the protocol's evolution. We want to hear from you on both protocol capabilities as well as processes that will enable you to scale your work as we add new features.
 
 Client implementors are invited to join the `#client-implementors` working group channel in the [MCP Discord](https://modelcontextprotocol.io/community/communication).
+
+## Looking ahead
+
+These foundational pieces give us a solid base to build from, but we're just getting started. There's still plenty of work ahead, and we can't do it all ourselves - we need the community's expertise to help enhance and grow MCP.
+
+With our new governance structures and working groups in place, we can now tackle the big protocol improvements much more efficiently while making sure everyone has a voice in the process. We strongly believe that the MCP superpower is that it's an **open protocol** built **by the community, for the community**.
