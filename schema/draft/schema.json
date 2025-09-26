@@ -1917,6 +1917,7 @@
                     "type": "object"
                 },
                 "contents": {
+                    "description": "A list of resource contents. The array SHOULD contain multiple elements only when returning\nthe same resource in different MIME types (e.g., a PDF as both `application/pdf` blob and\n`text/plain` extracted text). This allows clients to choose the most appropriate format based\non their capabilities.\n\nWhen returning multiple contents:\n- All elements MUST represent the same logical resource\n- All elements MUST have the same `uri` value\n- Each element SHOULD have a different `mimeType`\n- Metadata fields (such as `_meta` properties) SHOULD be consistent across all elements\n\nExample: A PDF resource could include both the binary PDF data and extracted plain text,\nallowing clients without PDF rendering capabilities to still access the content.",
                     "items": {
                         "anyOf": [
                             {

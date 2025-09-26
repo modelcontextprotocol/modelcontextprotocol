@@ -500,6 +500,21 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  * @category resources/read
  */
 export interface ReadResourceResult extends Result {
+  /**
+   * A list of resource contents. The array SHOULD contain multiple elements only when returning
+   * the same resource in different MIME types (e.g., a PDF as both `application/pdf` blob and
+   * `text/plain` extracted text). This allows clients to choose the most appropriate format based
+   * on their capabilities.
+   *
+   * When returning multiple contents:
+   * - All elements MUST represent the same logical resource
+   * - All elements MUST have the same `uri` value
+   * - Each element SHOULD have a different `mimeType`
+   * - Metadata fields (such as `_meta` properties) SHOULD be consistent across all elements
+   *
+   * Example: A PDF resource could include both the binary PDF data and extracted plain text,
+   * allowing clients without PDF rendering capabilities to still access the content.
+   */
   contents: (TextResourceContents | BlobResourceContents)[];
 }
 
