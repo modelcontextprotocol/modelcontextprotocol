@@ -45,19 +45,23 @@ With governance and infrastructure foundations in place, we're ready to focus on
 
 ### Asynchronous Operations
 
-Implementing support for asynchronous tasks and tool calling in MCP to enable long-running operations. This enhancement will allow server and client authors to build patterns for longer-running server-side agentic tasks. The Agents Working Group is leading this effort, with current development focused on [SEP-1391](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1391).
+Right now, MCP is built around _mostly_ synchronous operations - when you call a tool, everything stops and waits for it to finish. That works great for quick tasks, but what about operations that take minutes or hours to complete?
+
+The Agents Working Group is tackling this by adding async support, so servers can kick off long-running tasks and clients can check back later for results. You can follow the progress in [SEP-1391](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1391).
 
 ### Statelessness and Scalability
 
-Improving the protocol's stateless capabilities to enable easier scaling for MCP server deployments in large production environments.
+As MCP grows, we're seeing more organizations want to deploy servers at enterprise scale, with all the requirements that stem from enterprise-ready infrastructure. Current MCP implementations often need to remember things between requests, which makes it harder to scale horizontally across multiple server instances.
 
-While Streamable HTTP supports stateless deployments of MCP servers, production environments face challenges with initialization sequences and session management. The Transport Working Group is developing improvements to the transport layer that will support stateless MCP while maintaining straightforward upgrade paths to stateful implementations when needed.
+We already have some stateless support through [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http), but there are still pain points around server startup and session handling.
+
+The Transport Working Group is working on smoothing out these rough edges, making it easier to run MCP servers in production while keeping a simple upgrade path for teams who want more sophisticated stateful features.
 
 ### Server Identity
 
-Implementing server identity through well-known URLs that expose server metadata, improving discovery and authorization mechanisms.
+If you want to know what an MCP server can do, you have to connect to it first. That makes it really hard for clients to easily browse available servers or for systems like our registry to automatically catalog what's out there.
 
-Currently, clients must initialize a connection to an MCP server to obtain server information. This requirement complicates discovery for clients and crawlers (such as registry systems). The planned implementation will use the standardized [`.well-known` format](https://en.wikipedia.org/wiki/Well-known_URI), allowing server authors to expose MCP server information in a static, cacheable, and easily discoverable manner.
+We're solving this by letting servers advertise themselves through [`.well-known` URLs](https://en.wikipedia.org/wiki/Well-known_URI) - an established standard for providing relevant metadata. Think of it like a server's business card that anyone can read without having to knock on the door first. This will make discovery much more intuitive for every MCP consumer.
 
 ### Official Extensions
 
