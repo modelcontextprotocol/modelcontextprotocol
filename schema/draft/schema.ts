@@ -504,6 +504,32 @@ export interface ReadResourceResult extends Result {
 }
 
 /**
+ * Sent from the client to the server, to read metadata for a specific resource URI.
+ *
+ * @category resources/metadata
+ */
+export interface ReadResourceMetadataRequest extends JSONRPCRequest {
+  method: "resources/metadata";
+  params: {
+    /**
+     * The URI of the resource to read metadata for. The URI can use any protocol; it is up to the server how to interpret it.
+     *
+     * @format uri
+     */
+    uri: string;
+  };
+}
+
+/**
+ * The server's response to a resources/metadata request from the client.
+ *
+ * @category resources/metadata
+ */
+export interface ReadResourceMetadataResult extends Result {
+  metadata: Resource[];
+}
+
+/**
  * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.
  *
  * @category notifications/resources/list_changed
@@ -638,35 +664,14 @@ export interface ResourceTemplate extends BaseMetadata {
   _meta?: { [key: string]: unknown };
 }
 
-/**
- * The contents of a specific resource or sub-resource.
- */
-export interface ResourceContents {
-  /**
-   * The URI of this resource.
-   *
-   * @format uri
-   */
-  uri: string;
-  /**
-   * The MIME type of this resource, if known.
-   */
-  mimeType?: string;
-
-  /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
-   */
-  _meta?: { [key: string]: unknown };
-}
-
-export interface TextResourceContents extends ResourceContents {
+export interface TextResourceContents extends Resource {
   /**
    * The text of the item. This must only be set if the item can actually be represented as text (not binary data).
    */
   text: string;
 }
 
-export interface BlobResourceContents extends ResourceContents {
+export interface BlobResourceContents extends Resource {
   /**
    * A base64-encoded string representing the binary data of the item.
    *
@@ -1551,6 +1556,7 @@ export type ClientRequest =
   | ListResourcesRequest
   | ListResourceTemplatesRequest
   | ReadResourceRequest
+  | ReadResourceMetadataRequest
   | SubscribeRequest
   | UnsubscribeRequest
   | CallToolRequest
@@ -1598,5 +1604,6 @@ export type ServerResult =
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | ReadResourceMetadataResult
   | CallToolResult
   | ListToolsResult;
