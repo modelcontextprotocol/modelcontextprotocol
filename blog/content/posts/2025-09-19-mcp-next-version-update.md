@@ -102,6 +102,8 @@ Come join us in the `#client-implementors` working group channel in the [MCP Dis
 
 ## Looking ahead
 
-These foundational pieces give us a solid base to build from, but we're just getting started. There's still plenty of work ahead, and we can't do it all ourselves - we need the community's expertise to help enhance and grow MCP.
+With governance structures and working groups in place, we're now much better positioned to tackle major protocol improvements efficiently while ensuring everyone has a voice in the process. The foundational work we've done this Summer gives us a solid base to build from, but the real work is just beginning.
 
-With our new governance structures and working groups in place, we can now tackle the big protocol improvements much more efficiently while making sure everyone has a voice in the process. We strongly believe that the MCP superpower is that it's an **open protocol** built **by the community, for the community**.
+The improvements coming in November — async operations, better scalability, server discovery, and standardized extensions - will help MCP become a stronger backbone for production AI integrations. But we can't do it alone.
+
+MCP's superpower has always been that it's an **open protocol built by the community, for the community**. We're excited to keep building it together.
