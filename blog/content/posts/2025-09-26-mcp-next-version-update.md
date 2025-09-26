@@ -3,7 +3,7 @@ title: "Update on the Next MCP Protocol Release"
 date: 2025-09-26T10:00:00-08:00
 draft: false
 tags: ["mcp", "protocol", "roadmap", "community"]
-author: "David Soria Parra"
+author: "David Soria Parra, Den Delimarsky"
 description: "An update on the timeline and priorities for the next Model Context Protocol specification version"
 ---
 
