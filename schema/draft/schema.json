@@ -1040,6 +1040,63 @@
             ],
             "type": "object"
         },
+        "InvalidPromptArgumentsError": {
+            "properties": {
+                "code": {
+                    "const": -32602,
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "code"
+            ],
+            "type": "object"
+        },
+        "InvalidPromptError": {
+            "properties": {
+                "code": {
+                    "const": -32602,
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "code"
+            ],
+            "type": "object"
+        },
+        "InvalidResourceError": {
+            "properties": {
+                "code": {
+                    "const": -32002,
+                    "description": "The error type that occurred.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
+                },
+                "message": {
+                    "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ],
+            "type": "object"
+        },
+        "InvalidToolError": {
+            "properties": {
+                "code": {
+                    "const": -32602,
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "code"
+            ],
+            "type": "object"
+        },
         "JSONRPCError": {
             "description": "A response to a request that indicates an error occurred.",
             "properties": {
