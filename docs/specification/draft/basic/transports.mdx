@@ -8,11 +8,12 @@ title: Transports
 
 MCP uses JSON-RPC to encode messages. JSON-RPC messages **MUST** be UTF-8 encoded.
 
-The protocol currently defines two standard transport mechanisms for client-server
+The protocol currently defines the following standard transport mechanisms for client-server
 communication:
 
 1. [stdio](#stdio), communication over standard in and standard out
 2. [Streamable HTTP](#streamable-http)
+3. [WebSocket](#websocket)
 
 Clients **SHOULD** support stdio whenever possible.
 
@@ -288,6 +289,122 @@ protocol version 2024-11-05) as follows:
      - When the `endpoint` event arrives, the client can assume this is a server running
        the old HTTP+SSE transport, and should use that transport for all subsequent
        communication.
+
+## WebSocket
+
+This section defines bidirectional transport of MCP over a WebSocket connection which provides better support for maintaining long-lived sessions in spite of connection disruptions, particularly in cloud environments and through intermediaries. Long-lived session state that survives reconnection are necessary for server-initiated notifications like `notifications/resources/updated` and `notifications/*/list_changed` which enable real-time use cases.
+
+The server **MUST** provide an HTTP endpoint path that supports WebSocket upgrade HTTP request. This **MAY** be the same endpoint as the Streamable HTTP transport.
+
+### Message Handling
+
+All messages **MUST** be sent as UTF-8 encoded text frames. Binary frames are not supported and **MUST** result in connection termination with close code `1003` (Unsupported Data).
+
+### MCP Session Management for WebSockets
+
+An MCP "session" consists of logically related interactions between a client and a
+server, beginning with the [initialization phase](/specification/draft/basic/lifecycle).
+
+- If the server does not support MCP sessions, it **MUST** omit this field.
+- If the server wishes to support MCP sessions, it **MUST** assign an MCP session ID in response to an `initialize` call, by including a `result.mcpSessionId` field in the JSON-RPC response.
+  - The session ID **SHOULD** be globally unique and cryptographically secure (e.g., a securely generated UUID, a JWT, or a cryptographic hash).
+  - The session ID **MUST** only contain visible ASCII characters (ranging from 0x21 to 0x7E).
+- Clients who wish the server to maintain state using the WebSocket transport **MUST** include the `params.mcpSessionId` field in all of their subsequent MCP communications.
+- The server **MAY** terminate the session at any time, after which it **MUST** respond to requests containing that `mcpSessionId` with a JSON-RPC error code `-32602` and message "Invalid mcpSessionId".
+- The server **MUST** include a `params.mcpSessionId` field in all of its MCP communications related to that session.
+- The relationship of MCP sessions to WebSocket connections is many to one, so:
+  - multiple sessions **MAY** share the same connection
+  - there **MUST** only be one active connection for a particular session
+  - clients **MAY** create additional MCP sessions on the same connection by calling `initialize` without a `params.mcpSessionId`
+- Subscriptions (e.g. `resources/subscribe`, `list_changed`, etc.) are associated with a particular session so server-initiated notifications **MUST** only be sent over the active connection for that session.
+- Clients **MAY** renegotiate version and capabilities for a given session at any time by sending a new `initialize` message with the desired parameters and including `params.mcpSessionId`.
+
+### WebSocket Transport Lifecycle
+
+#### Initial Connection and Session Establishment
+
+**Client Behavior:**
+- Send initial HTTP GET WebSocket upgrade request. Not all WebSocket clients (e.g. browsers) have direct access to headers for the initial HTTP GET WebSocket upgrade request but they all have access to the subprotocols list which gets included in the `Sec-WebSocket-Protocol` header. Therefore this WebSocket transport mimics the behavior of the Streamable HTTP transport by:
+  - Clients **MUST** include an `mcp` string as the first entry in the WebSocket subprotocol list
+  - Clients *MUST* include an `mcp.auth.${token}` string in WebSocket subprotocol list (see [Authorization](#authorization) for details)
+  - Clients *MUST* include an `mcp.version.${protocolVersion}` value in the subprotocols list with the latest version supported by the client.
+- Await acceptance or rejection response
+- If accepted, establish MCP session by sending `initialize` without `mcpSessionId`
+
+**Server Behavior:**
+- Receive HTTP GET WebSocket upgrade request with auth token and protocol version in subprotocols list
+- If auth fails, reject the WebSocket upgrade request
+- If auth succeeds, accept the WebSocket connection
+- Await the completion of the initialization phase before processing any other messages
+
+#### Normal Operation
+
+During normal operation:
+- For session-specific communications, the client **MUST** include the `params.mcpSessionId` in all messages except the first `initialize`
+- Server maintains session state and processes requests normally
+
+#### Unintended Disconnection Handling
+
+WebSocket connection interruption might occur at any time (e.g., due to network conditions). Therefore:
+- WebSocket connection interruption **MUST NOT** be interpreted as the client cancelling an ongoing request
+- To cancel, the client **SHOULD** explicitly send an MCP `CancelledNotification`
+- Similarly, disconnection **MUST NOT** be interpreted as terminating the MCP sessions associated with the connection
+- Server **MUST** preserve the state of any sessions associated with this connection for a reasonable timeout period to allow reconnection
+
+#### Reconnection and Session Recovery
+
+To reconnect:
+- Client **MAY** include one `mcp.session-id.${mcpSessionId}` value in the WebSocket subprotocols list via the `Sec-WebSocket-Protocol` header in the WebSocket upgrade request to help with session affinity
+- Client **MUST** include `mcp.auth.${token}` in the WebSocket subprotocols list
+- Server **MUST** validate auth before proceeding. Auth is associated with the connection, not a particular session
+- For subsequent session-specific communication, the client **MUST** include the `params.mcpSessionId` from the previous session in any message after reconnection
+- Client **MAY** send an `initialize` message including a `params.mcpSessionId` after reconnecting over a different WebSocket connection to an existing session. If it does:
+  - Server **MUST** associate this new connection with that session and update any renegotiated version or capabilities
+  - Client **MAY** include a `params.lastEventId` in the `initialize` message. If it does:
+    - After responding to the `initialize` call, the server **MUST** send the missed notifications from that event ID
+    - The client **SHOULD NOT** send the `notifications/initialized` message to the server until it has received all missed notifications
+- Even if the reconnecting client does not reinitialize but includes a `params.mcpSessionId` in any message, the server **MUST** make this the only active connection for the session
+- Server **MUST** disassociate any previous connection associated with the same `mcpSessionId` and ignore any messages that arrive for that MCP session on any connection but the active one
+- Server **SHOULD** keep track of recently disassociated connection-session pairs to prevent thrashing of a session between two connections
+- If no other sessions are active on the recently disassociated connection, the server **SHOULD** close that connection with a `1000` "Normal Closure" status code
+- Normal operation can resume
+
+#### Intentional Connection Close Handling
+
+- The server or client **MAY** close the WebSocket connection at any time by sending a close frame with an appropriate close code and reason.
+- Session termination is independent of connection. So, the server **SHOULD NOT** automatically terminate sessions associated with the connection being closed.
+
+### Error Handling
+
+#### HTTP to WS Upgrade Errors
+
+Servers **MUST** return appropriate HTTP status codes during WebSocket upgrade failures:
+
+- `404 Not Found`: WebSocket endpoint not found
+
+#### WebSocket Protocol Errors
+
+The only way to communicate errors at the WebSocket protocol level is to terminate the connection with a close code and an optional reason. These include:
+
+- `1003` "Unsupported Data" 
+
+#### JSON-RPC Errors
+
+The JSON-RPC errors specified in this WebSockets transport section are related to sessions as described above including:
+
+- `-32602` "Missing mcpSessionId"
+- `-32602` "Invalid mcpSessionId"
+
+### Security
+
+**Warning: MCP session is not a security mechanism**. It does not provide authentication or authorization. This specification defines MCP session management for reconnection, which is orthogonal to user authentication and authorization.
+
+When implementing WebSocket transport:
+1. Servers **MUST** validate the `Origin` header on all incoming WebSocket upgrade requests to prevent Cross-Site WebSocket Hijacking and DNS rebinding attacks
+2. When running locally, servers **SHOULD** bind only to localhost (127.0.0.1) rather than all network interfaces (0.0.0.0)
+3. Servers **SHOULD** implement proper authentication for all connections
+
+Refer to [Authorization](/specification/draft/basic/authorization) for guidance on how to implement authorization for HTTP and WebSocket transports with the noted difference that the WebSocket transport smuggles in the auth token within the list of subprotocols provided by the client (which ends up in "Sec-WebSocket-Protocol" header) rather than by directly setting the "Authorization" header due to the inaccessibility of headers in the browser WebSocket API.
 
 ## Custom Transports
 
