@@ -264,13 +264,28 @@
         "tab": "Community",
         "pages": [
           "community/communication",
-          "community/governance",
-          "community/antitrust",
-          "community/sep-guidelines",
-          "community/working-interest-groups",
-          "development/roadmap",
-          "clients",
-          "examples"
+          {
+            "group": "Governance",
+            "pages": [
+              "community/governance",
+              "community/sep-guidelines",
+              "community/working-interest-groups",
+              "community/antitrust"
+            ]
+          },
+          {
+            "group": "Roadmap",
+            "pages": [
+              "development/roadmap"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
+            ]
+          }
         ]
       },
       {
