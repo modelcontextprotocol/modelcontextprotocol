@@ -607,7 +607,7 @@ export interface Resource extends BaseMetadata, Icons {
 /**
  * A template description for resources available on the server.
  */
-export interface ResourceTemplate extends BaseMetadata {
+export interface ResourceTemplate extends BaseMetadata, Icons {
   /**
    * A URI template (according to RFC 6570) that can be used to construct resource URIs.
    *
