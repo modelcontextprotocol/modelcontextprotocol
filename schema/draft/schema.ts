@@ -64,6 +64,21 @@ export interface Result {
   [key: string]: unknown;
 }
 
+export interface Error {
+  /**
+   * The error type that occurred.
+   */
+  code: number;
+  /**
+   * A short description of the error. The message SHOULD be limited to a concise single sentence.
+   */
+  message: string;
+  /**
+   * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
+   */
+  data?: unknown;
+};
+
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
  */
@@ -111,20 +126,7 @@ export const INTERNAL_ERROR = -32603;
 export interface JSONRPCError {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
-  error: {
-    /**
-     * The error type that occurred.
-     */
-    code: number;
-    /**
-     * A short description of the error. The message SHOULD be limited to a concise single sentence.
-     */
-    message: string;
-    /**
-     * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
-     */
-    data?: unknown;
-  };
+  error: Error;
 }
 
 /* Empty result */
@@ -145,7 +147,7 @@ export type EmptyResult = Result;
  *
  * @category notifications/cancelled
  */
-export interface CancelledNotification extends Notification {
+export interface CancelledNotification extends JSONRPCNotification {
   method: "notifications/cancelled";
   params: {
     /**
@@ -168,7 +170,7 @@ export interface CancelledNotification extends Notification {
  *
  * @category initialize
  */
-export interface InitializeRequest extends Request {
+export interface InitializeRequest extends JSONRPCRequest {
   method: "initialize";
   params: {
     /**
@@ -206,7 +208,7 @@ export interface InitializeResult extends Result {
  *
  * @category notifications/initialized
  */
-export interface InitializedNotification extends Notification {
+export interface InitializedNotification extends JSONRPCNotification {
   method: "notifications/initialized";
 }
 
@@ -287,6 +289,59 @@ export interface ServerCapabilities {
 }
 
 /**
+ * An optionally-sized icon that can be displayed in a user interface.
+ */
+export interface Icon {
+  /**
+   * A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a
+   * `data:` URI with Base64-encoded image data.
+   *
+   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
+   * same domain as the client/server or a trusted domain.
+   *
+   * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
+   * executable JavaScript.
+   *
+   * @format uri
+   */
+  src: string;
+
+  /**
+   * Optional MIME type override if the source MIME type is missing or generic.
+   * For example: `"image/png"`, `"image/jpeg"`, or `"image/svg+xml"`.
+   */
+  mimeType?: string;
+
+  /**
+   * Optional array of strings that specify sizes at which the icon can be used.
+   * Each string should be in WxH format (e.g., `"48x48"`, `"96x96"`) or `"any"` for scalable formats like SVG.
+   *
+   * If not provided, the client should assume that the icon can be used at any size.
+   */
+  sizes?: string[];
+}
+
+/**
+ * Base interface to add `icons` property.
+ *
+ * @internal
+ */
+export interface Icons {
+  /**
+   * Optional set of sized icons that the client can display in a user interface.
+   *
+   * Clients that support rendering icons MUST support at least the following MIME types:
+   * - `image/png` - PNG images (safe, universal compatibility)
+   * - `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)
+   *
+   * Clients that support rendering icons SHOULD also support:
+   * - `image/svg+xml` - SVG images (scalable but requires security precautions)
+   * - `image/webp` - WebP images (modern, efficient format)
+   */
+  icons?: Icon[];
+}
+
+/**
  * Base interface for metadata with name (identifier) and title (display name) properties.
  *
  * @internal
@@ -309,10 +364,17 @@ export interface BaseMetadata {
 }
 
 /**
- * Describes the name and version of an MCP implementation, with an optional title for UI representation.
+ * Describes the MCP implementation
  */
-export interface Implementation extends BaseMetadata {
+export interface Implementation extends BaseMetadata, Icons {
   version: string;
+
+  /**
+   * An optional URL of the website for this implementation.
+   *
+   * @format uri
+   */
+  websiteUrl?: string;
 }
 
 /* Ping */
@@ -321,7 +383,7 @@ export interface Implementation extends BaseMetadata {
  *
  * @category ping
  */
-export interface PingRequest extends Request {
+export interface PingRequest extends JSONRPCRequest {
   method: "ping";
 }
 
@@ -331,7 +393,7 @@ export interface PingRequest extends Request {
  *
  * @category notifications/progress
  */
-export interface ProgressNotification extends Notification {
+export interface ProgressNotification extends JSONRPCNotification {
   method: "notifications/progress";
   params: {
     /**
@@ -359,7 +421,7 @@ export interface ProgressNotification extends Notification {
 
 /* Pagination */
 /** @internal */
-export interface PaginatedRequest extends Request {
+export interface PaginatedRequest extends JSONRPCRequest {
   params?: {
     /**
      * An opaque token representing the current pagination position.
@@ -420,7 +482,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category resources/read
  */
-export interface ReadResourceRequest extends Request {
+export interface ReadResourceRequest extends JSONRPCRequest {
   method: "resources/read";
   params: {
     /**
@@ -446,7 +508,7 @@ export interface ReadResourceResult extends Result {
  *
  * @category notifications/resources/list_changed
  */
-export interface ResourceListChangedNotification extends Notification {
+export interface ResourceListChangedNotification extends JSONRPCNotification {
   method: "notifications/resources/list_changed";
 }
 
@@ -455,7 +517,7 @@ export interface ResourceListChangedNotification extends Notification {
  *
  * @category resources/subscribe
  */
-export interface SubscribeRequest extends Request {
+export interface SubscribeRequest extends JSONRPCRequest {
   method: "resources/subscribe";
   params: {
     /**
@@ -472,7 +534,7 @@ export interface SubscribeRequest extends Request {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeRequest extends Request {
+export interface UnsubscribeRequest extends JSONRPCRequest {
   method: "resources/unsubscribe";
   params: {
     /**
@@ -489,7 +551,7 @@ export interface UnsubscribeRequest extends Request {
  *
  * @category notifications/resources/updated
  */
-export interface ResourceUpdatedNotification extends Notification {
+export interface ResourceUpdatedNotification extends JSONRPCNotification {
   method: "notifications/resources/updated";
   params: {
     /**
@@ -504,7 +566,7 @@ export interface ResourceUpdatedNotification extends Notification {
 /**
  * A known resource that the server is capable of reading.
  */
-export interface Resource extends BaseMetadata {
+export interface Resource extends BaseMetadata, Icons {
   /**
    * The URI of this resource.
    *
@@ -637,7 +699,7 @@ export interface ListPromptsResult extends PaginatedResult {
  *
  * @category prompts/get
  */
-export interface GetPromptRequest extends Request {
+export interface GetPromptRequest extends JSONRPCRequest {
   method: "prompts/get";
   params: {
     /**
@@ -667,11 +729,12 @@ export interface GetPromptResult extends Result {
 /**
  * A prompt or prompt template that the server offers.
  */
-export interface Prompt extends BaseMetadata {
+export interface Prompt extends BaseMetadata, Icons {
   /**
    * An optional description of what this prompt provides
    */
   description?: string;
+
   /**
    * A list of arguments to use for templating the prompt.
    */
@@ -747,7 +810,7 @@ export interface EmbeddedResource {
  *
  * @category notifications/prompts/list_changed
  */
-export interface PromptListChangedNotification extends Notification {
+export interface PromptListChangedNotification extends JSONRPCNotification {
   method: "notifications/prompts/list_changed";
 }
 
@@ -808,7 +871,7 @@ export interface CallToolResult extends Result {
  *
  * @category tools/call
  */
-export interface CallToolRequest extends Request {
+export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
   params: {
     name: string;
@@ -821,7 +884,7 @@ export interface CallToolRequest extends Request {
  *
  * @category notifications/tools/list_changed
  */
-export interface ToolListChangedNotification extends Notification {
+export interface ToolListChangedNotification extends JSONRPCNotification {
   method: "notifications/tools/list_changed";
 }
 
@@ -882,7 +945,7 @@ export interface ToolAnnotations {
 /**
  * Definition for a tool the client can call.
  */
-export interface Tool extends BaseMetadata {
+export interface Tool extends BaseMetadata, Icons {
   /**
    * A human-readable description of the tool.
    *
@@ -928,7 +991,7 @@ export interface Tool extends BaseMetadata {
  *
  * @category logging/setLevel
  */
-export interface SetLevelRequest extends Request {
+export interface SetLevelRequest extends JSONRPCRequest {
   method: "logging/setLevel";
   params: {
     /**
@@ -939,11 +1002,11 @@ export interface SetLevelRequest extends Request {
 }
 
 /**
- * Notification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
+ * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
  *
  * @category notifications/message
  */
-export interface LoggingMessageNotification extends Notification {
+export interface LoggingMessageNotification extends JSONRPCNotification {
   method: "notifications/message";
   params: {
     /**
@@ -983,7 +1046,7 @@ export type LoggingLevel =
  *
  * @category sampling/createMessage
  */
-export interface CreateMessageRequest extends Request {
+export interface CreateMessageRequest extends JSONRPCRequest {
   method: "sampling/createMessage";
   params: {
     messages: SamplingMessage[];
@@ -1004,7 +1067,9 @@ export interface CreateMessageRequest extends Request {
      */
     temperature?: number;
     /**
-     * The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.
+     * The requested maximum number of tokens to sample (to prevent runaway completions).
+     *
+     * The client MAY choose to sample fewer tokens than the requested maximum.
      */
     maxTokens: number;
     stopSequences?: string[];
@@ -1247,7 +1312,7 @@ export interface ModelHint {
  *
  * @category completion/complete
  */
-export interface CompleteRequest extends Request {
+export interface CompleteRequest extends JSONRPCRequest {
   method: "completion/complete";
   params: {
     ref: PromptReference | ResourceTemplateReference;
@@ -1331,7 +1396,7 @@ export interface PromptReference extends BaseMetadata {
  *
  * @category roots/list
  */
-export interface ListRootsRequest extends Request {
+export interface ListRootsRequest extends JSONRPCRequest {
   method: "roots/list";
 }
 
@@ -1378,7 +1443,7 @@ export interface Root {
  *
  * @category notifications/roots/list_changed
  */
-export interface RootsListChangedNotification extends Notification {
+export interface RootsListChangedNotification extends JSONRPCNotification {
   method: "notifications/roots/list_changed";
 }
 
@@ -1387,7 +1452,7 @@ export interface RootsListChangedNotification extends Notification {
  *
  * @category elicitation/create
  */
-export interface ElicitRequest extends Request {
+export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
   params: {
     /**
@@ -1425,6 +1490,7 @@ export interface StringSchema {
   minLength?: number;
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
+  default?: string;
 }
 
 export interface NumberSchema {
@@ -1433,6 +1499,7 @@ export interface NumberSchema {
   description?: string;
   minimum?: number;
   maximum?: number;
+  default?: number;
 }
 
 export interface BooleanSchema {
@@ -1448,6 +1515,7 @@ export interface EnumSchema {
   description?: string;
   enum: string[];
   enumNames?: string[]; // Display names for enum values
+  default?: string;
 }
 
 /**
