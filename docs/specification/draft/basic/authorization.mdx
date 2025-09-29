@@ -360,7 +360,8 @@ Implementations **MUST** follow [OAuth 2.1 Section 1.5 "Communication Security"]
 Specifically:
 
 1. All authorization server endpoints **MUST** be served over HTTPS.
-1. All redirect URIs **MUST** be either `localhost` or use HTTPS.
+2. All redirect URIs **MUST** be either `localhost` or use HTTPS.
+3. Servers and clients MAY use hybrid TLS (X25519MLKEM768) key exchange to protect against "Harvest Now, Decrypt Later" attacks.
 
 ### Authorization Code Protection
 
