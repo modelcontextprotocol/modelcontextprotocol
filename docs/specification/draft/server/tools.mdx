@@ -98,7 +98,7 @@ To discover available tools, clients send a `tools/list` request. This operation
           {
             "src": "https://example.com/weather-icon.png",
             "mimeType": "image/png",
-            "sizes": "48x48"
+            "sizes": ["48x48"]
           }
         ]
       }
@@ -283,7 +283,6 @@ or data using a suitable [URI scheme](./resources#common-uri-schemes). Servers t
   "type": "resource",
   "resource": {
     "uri": "file:///project/src/main.rs",
-    "title": "Project Rust Main File",
     "mimeType": "text/x-rust",
     "text": "fn main() {\n    println!(\"Hello world!\");\n}",
     "annotations": {

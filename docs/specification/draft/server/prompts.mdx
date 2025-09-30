@@ -88,7 +88,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
           {
             "src": "https://example.com/review-icon.svg",
             "mimeType": "image/svg+xml",
-            "sizes": "any"
+            "sizes": ["any"]
           }
         ]
       }
@@ -251,8 +251,6 @@ Embedded resources allow referencing server-side resources directly in messages:
   "type": "resource",
   "resource": {
     "uri": "resource://example",
-    "name": "example",
-    "title": "My Example Resource",
     "mimeType": "text/plain",
     "text": "Resource content"
   }

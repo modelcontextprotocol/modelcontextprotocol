@@ -24,7 +24,9 @@ Before starting, ensure your system meets these requirements:
 
 First, create a new Python project with `uv`:
 
-```bash
+<CodeGroup>
+
+```bash macOS/Linux
 # Create project directory
 uv init mcp-client
 cd mcp-client
@@ -33,23 +35,40 @@ cd mcp-client
 uv venv
 
 # Activate virtual environment
-# On Windows:
-.venv\Scripts\activate
-# On Unix or macOS:
 source .venv/bin/activate
 
 # Install required packages
 uv add mcp anthropic python-dotenv
 
 # Remove boilerplate files
-# On Windows:
-del main.py
-# On Unix or macOS:
 rm main.py
 
 # Create our main file
 touch client.py
 ```
+
+```powershell Windows
+# Create project directory
+uv init mcp-client
+cd mcp-client
+
+# Create virtual environment
+uv venv
+
+# Activate virtual environment
+.venv\Scripts\activate
+
+# Install required packages
+uv add mcp anthropic python-dotenv
+
+# Remove boilerplate files
+del main.py
+
+# Create our main file
+new-item client.py
+```
+
+</CodeGroup>
 
 ## Setting Up Your API Key
 
@@ -58,14 +77,7 @@ You'll need an Anthropic API key from the [Anthropic Console](https://console.an
 Create a `.env` file to store it:
 
 ```bash
-# Create .env file
-touch .env
-```
-
-Add your key to the `.env` file:
-
-```bash
-ANTHROPIC_API_KEY=<your key here>
+echo "ANTHROPIC_API_KEY=<your key here>" > .env
 ```
 
 Add `.env` to your `.gitignore`:
@@ -267,7 +279,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-You can find the complete `client.py` file [here.](https://gist.github.com/zckly/f3f28ea731e096e53b39b47bf0a2d4b1)
+You can find the complete `client.py` file [here](https://github.com/modelcontextprotocol/quickstart-resources/blob/main/mcp-client-python/client.py).
 
 ## Key Components Explained
 
@@ -332,7 +344,7 @@ uv run client.py path/to/build/index.js # node server
 
 <Note>
 
-If you're continuing the weather tutorial from the server quickstart, your command might look something like this: `python client.py .../quickstart-resources/weather-server-python/weather.py`
+If you're continuing [the weather tutorial from the server quickstart](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-python), your command might look something like this: `python client.py .../quickstart-resources/weather-server-python/weather.py`
 
 </Note>
 
@@ -746,7 +758,7 @@ node build/index.js path/to/build/index.js # node server
 
 <Note>
 
-If you're continuing the weather tutorial from the server quickstart, your command might look something like this: `node build/index.js .../quickstart-resources/weather-server-typescript/build/index.js`
+If you're continuing [the weather tutorial from the server quickstart](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-typescript), your command might look something like this: `node build/index.js .../quickstart-resources/weather-server-typescript/build/index.js`
 
 </Note>
 

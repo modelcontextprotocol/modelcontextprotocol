@@ -493,7 +493,7 @@
                             "type": "string"
                         },
                         "maxTokens": {
-                            "description": "The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.",
+                            "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
                             "type": "integer"
                         },
                         "messages": {
@@ -845,8 +845,11 @@
                     "type": "string"
                 },
                 "sizes": {
-                    "description": "Optional string that specifies one or more sizes at which the icon can be used.\nFor example: `\"48x48\"`, `\"48x48 96x96\"`, or `\"any\"` for scalable formats like SVG.\n\nIf not provided, the client should assume that the icon can be used at any size.",
-                    "type": "string"
+                    "description": "Optional array of strings that specify sizes at which the icon can be used.\nEach string should be in WxH format (e.g., `\"48x48\"`, `\"96x96\"`) or `\"any\"` for scalable formats like SVG.\n\nIf not provided, the client should assume that the icon can be used at any size.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "src": {
                     "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
@@ -928,7 +931,7 @@
                 },
                 "websiteUrl": {
                     "description": "An optional URL of the website for this implementation.",
-                    "format": ": uri",
+                    "format": "uri",
                     "type": "string"
                 }
             },
@@ -2147,6 +2150,13 @@
                 "description": {
                     "description": "A description of what this template is for.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
                 },
                 "mimeType": {
                     "description": "The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.",
