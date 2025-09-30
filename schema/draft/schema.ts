@@ -77,7 +77,7 @@ export interface Error {
    * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
    */
   data?: unknown;
-};
+}
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
@@ -367,6 +367,9 @@ export interface BaseMetadata {
  * Describes the MCP implementation
  */
 export interface Implementation extends BaseMetadata, Icons {
+  /**
+   * The version of this implementation.
+   */
   version: string;
 
   /**
