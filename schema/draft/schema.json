@@ -211,6 +211,10 @@
                         "requestId": {
                             "$ref": "#/definitions/RequestId",
                             "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
+                        },
+                        "timeout": {
+                            "description": "The timeout duration in seconds that triggered this cancellation.\nThis field SHOULD be included when the cancellation is due to a timeout.",
+                            "type": "integer"
                         }
                     },
                     "required": [
@@ -230,9 +234,19 @@
             "description": "Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.",
             "properties": {
                 "elicitation": {
-                    "additionalProperties": true,
                     "description": "Present if the client supports elicitation from the server.",
-                    "properties": {},
+                    "properties": {
+                        "timeouts": {
+                            "description": "Per-method timeout configuration for elicitation operations.",
+                            "properties": {
+                                "create": {
+                                    "description": "Maximum timeout in seconds for elicitation/create operations.",
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
                     "type": "object"
                 },
                 "experimental": {
@@ -250,14 +264,34 @@
                         "listChanged": {
                             "description": "Whether the client supports notifications for changes to the roots list.",
                             "type": "boolean"
+                        },
+                        "timeouts": {
+                            "description": "Per-method timeout configuration for roots operations.",
+                            "properties": {
+                                "list": {
+                                    "description": "Maximum timeout in seconds for roots/list operations.",
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
                         }
                     },
                     "type": "object"
                 },
                 "sampling": {
-                    "additionalProperties": true,
                     "description": "Present if the client supports sampling from an LLM.",
-                    "properties": {},
+                    "properties": {
+                        "timeouts": {
+                            "description": "Per-method timeout configuration for sampling operations.",
+                            "properties": {
+                                "createMessage": {
+                                    "description": "Maximum timeout in seconds for sampling/createMessage operations.",
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
                     "type": "object"
                 }
             },
@@ -2350,6 +2384,20 @@
                         "listChanged": {
                             "description": "Whether this server supports notifications for changes to the prompt list.",
                             "type": "boolean"
+                        },
+                        "timeouts": {
+                            "description": "Per-method timeout configuration for prompt operations.",
+                            "properties": {
+                                "get": {
+                                    "description": "Maximum timeout in seconds for prompts/get operations.",
+                                    "type": "integer"
+                                },
+                                "list": {
+                                    "description": "Maximum timeout in seconds for prompts/list operations.",
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
                         }
                     },
                     "type": "object"
@@ -2364,6 +2412,28 @@
                         "subscribe": {
                             "description": "Whether this server supports subscribing to resource updates.",
                             "type": "boolean"
+                        },
+                        "timeouts": {
+                            "description": "Per-method timeout configuration for resource operations.",
+                            "properties": {
+                                "list": {
+                                    "description": "Maximum timeout in seconds for resources/list operations.",
+                                    "type": "integer"
+                                },
+                                "read": {
+                                    "description": "Maximum timeout in seconds for resources/read operations.",
+                                    "type": "integer"
+                                },
+                                "subscribe": {
+                                    "description": "Maximum timeout in seconds for resources/subscribe operations.",
+                                    "type": "integer"
+                                },
+                                "unsubscribe": {
+                                    "description": "Maximum timeout in seconds for resources/unsubscribe operations.",
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
                         }
                     },
                     "type": "object"
@@ -2374,6 +2444,20 @@
                         "listChanged": {
                             "description": "Whether this server supports notifications for changes to the tool list.",
                             "type": "boolean"
+                        },
+                        "timeouts": {
+                            "description": "Per-method timeout configuration for tool operations.",
+                            "properties": {
+                                "call": {
+                                    "description": "Maximum timeout in seconds for tools/call operations.",
+                                    "type": "integer"
+                                },
+                                "list": {
+                                    "description": "Maximum timeout in seconds for tools/list operations.",
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
                         }
                     },
                     "type": "object"

@@ -260,6 +260,10 @@ version `2025-03-26`.
 If the server receives a request with an invalid or unsupported
 `MCP-Protocol-Version`, it **MUST** respond with `400 Bad Request`.
 
+### Timeout Considerations
+
+When using transports that have their own timeouts, implementations **SHOULD** configure transport timeouts based on the timeout declarations negotiated during initialization. For example, HTTP client timeouts **SHOULD** be set slightly higher than the declared operation timeout to account for network latency.
+
 ### Backwards Compatibility
 
 Clients and servers can maintain backwards compatibility with the deprecated [HTTP+SSE
