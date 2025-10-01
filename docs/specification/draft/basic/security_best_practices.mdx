@@ -298,13 +298,13 @@ risks stemming from improper consent prompt implementation.
 
 #### Context
 
-When an MCP proxy server:
+Under certain conditions, attackers can exploit the MCP server-managed consent cookie to redirect authorization codes to malicious clients without re-prompting the user.
 
-- Uses a **static client ID** with a third-party authorization server
-- Allows MCP clients to **dynamically register** (each getting their own client_id)
+These conditions include:
+
+- MCP server uses a **static client ID** with a third-party authorization server
+- MCP server allows MCP clients to **dynamically register** (each getting their own client_id)
 - The third-party authorization server sets a **consent cookie** after the first authorization
-
-Then attackers can exploit the consent cookie to redirect authorization codes to malicious clients without re-prompting the user.
 
 #### Consent Flow Implementation
 
@@ -334,15 +334,15 @@ sequenceDiagram
     Note over Browser: "Allow [Client Name] to access [Third-Party API]?"
     Browser->>MCP: POST /consent (approve)
     MCP->>MCP: Store consent decision for client_id
-    
+
     Note over Client,ThirdParty: 3. Forward to Third-Party
     MCP->>Browser: Redirect to third-party /authorize
     Note over MCP: Use static client_id for third-party
-    
+
     Browser->>ThirdParty: Authorization request (static client_id)
     ThirdParty->>Browser: User authenticates & consents
     ThirdParty->>Browser: Redirect with auth code
-    
+
     Browser->>MCP: Callback with third-party code
     MCP->>ThirdParty: Exchange code for token (using static client_id)
     MCP->>Browser: Redirect to client's registered redirect_uri
