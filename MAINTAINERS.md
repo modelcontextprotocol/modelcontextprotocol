@@ -126,6 +126,10 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Harald Kirschner](https://github.com/digitarald)
 - [Connor Peet](https://github.com/connor4312)
 
+### Financial Services Interest Group
+
+- [Sambhav Kothari](https://github.com/sambhav)
+
 ### Transports Interest Group
 
 - [Kurtis Van Gent](https://github.com/kurtisvg)
