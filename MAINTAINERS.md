@@ -137,8 +137,10 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Nick Cooper](https://github.com/nicknotfun)
 
-### Long-Running / Async Tool Calls Working Group
+### Agents Working Group
 
+- [Peter Alexander](https://github.com/pja-ant)
+- [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
 
 ## About This Document
