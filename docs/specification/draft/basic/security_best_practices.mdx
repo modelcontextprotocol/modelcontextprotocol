@@ -289,3 +289,118 @@ MCP servers intending for their servers to be run locally **SHOULD** implement m
 - Restrict access if using an HTTP transport, such as:
   - Require an authorization token
   - Use unix domain sockets or other Interprocess Communication (IPC) mechanisms with restricted access
+
+### Per-Client Consent for Proxy Servers
+
+As described in the [Confused Deputy Problem](#confused-deputy-problem) section, MCP proxy servers using a static client ID to access third-party APIs
+create a security risk when combined with dynamic client registration. This section extends the guidance on implementing user consent flows to mitigate additional
+risks stemming from improper consent prompt implementation.
+
+#### Context
+
+When an MCP proxy server:
+
+- Uses a **static client ID** with a third-party authorization server
+- Allows MCP clients to **dynamically register** (each getting their own client_id)
+- The third-party authorization server sets a **consent cookie** after the first authorization
+
+Then attackers can exploit the consent cookie to redirect authorization codes to malicious clients without re-prompting the user.
+
+#### Consent Flow Implementation
+
+The following diagram shows how to properly implement per-client consent that runs **before** the third-party authorization flow:
+
+```mermaid
+sequenceDiagram
+    participant Client as MCP Client
+    participant Browser as User's Browser
+    participant MCP as MCP Proxy Server
+    participant ThirdParty as Third-Party AuthZ Server
+
+    Note over Client,ThirdParty: 1. Client Registration (Dynamic)
+    Client->>MCP: Register with redirect_uri
+    MCP->>Client: client_id
+
+    Note over Client,ThirdParty: 2. Authorization Request
+    Client->>Browser: Open MCP authorization URL
+    Browser->>MCP: GET /authorize?client_id=...&redirect_uri=...
+
+    alt Check MCP-Level Consent
+        MCP->>MCP: Check consent for this client_id
+        Note over MCP: Not previously approved
+    end
+
+    MCP->>Browser: Show MCP consent page
+    Note over Browser: "Allow [Client Name] to access [Third-Party API]?"
+    Browser->>MCP: POST /consent (approve)
+    MCP->>MCP: Store consent decision for client_id
+    
+    Note over Client,ThirdParty: 3. Forward to Third-Party
+    MCP->>Browser: Redirect to third-party /authorize
+    Note over MCP: Use static client_id for third-party
+    
+    Browser->>ThirdParty: Authorization request (static client_id)
+    ThirdParty->>Browser: User authenticates & consents
+    ThirdParty->>Browser: Redirect with auth code
+    
+    Browser->>MCP: Callback with third-party code
+    MCP->>ThirdParty: Exchange code for token (using static client_id)
+    MCP->>Browser: Redirect to client's registered redirect_uri
+```
+
+#### Required Protections
+
+**Per-Client Consent Storage**
+
+MCP proxy servers **MUST**:
+
+- Maintain a registry of approved `client_id` values per user
+- Check this registry **before** initiating the third-party authorization flow
+- Store consent decisions securely (server-side database, not just cookies)
+
+Example consent record:
+
+```json
+{
+  "user_id": "user123",
+  "client_id": "mcp-client-abc",
+  "approved_scopes": ["read:data"],
+  "timestamp": "2025-10-01T12:00:00Z",
+  "redirect_uri": "https://client.example.com/callback"
+}
+```
+
+**Consent UI Requirements**
+
+The MCP-level consent page **MUST**:
+
+- Clearly identify the requesting MCP client by name
+- Display the specific third-party API scopes being requested
+- Show the registered `redirect_uri` where tokens will be sent
+- Implement CSRF protection (e.g., state parameter, CSRF tokens)
+- Use `X-Frame-Options: DENY` to prevent clickjacking
+
+**Consent Cookie Security**
+
+If using cookies to track consent decisions, they **MUST**:
+
+- Use `__Host-` prefix for cookie names
+- Set `Secure`, `HttpOnly`, and `SameSite=Lax` attributes
+- Be cryptographically signed or use server-side sessions
+- Bind to the specific `client_id` (not just "user has consented")
+
+**Scope Changes**
+
+If a previously-approved client requests **different or broader scopes**:
+
+- The MCP server **MUST** force re-consent
+- Store scope fingerprints (e.g., hash of sorted scope list) with each approval
+- Compare requested scopes against stored fingerprint on each authorization
+
+**Redirect URI Validation**
+
+The MCP proxy server **MUST**:
+
+- Validate that the `redirect_uri` in authorization requests exactly matches the registered URI
+- Reject requests if the `redirect_uri` has changed without re-registration
+- Use exact string matching (not pattern matching or wildcards)
