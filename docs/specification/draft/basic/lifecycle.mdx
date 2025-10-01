@@ -77,7 +77,7 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
         {
           "src": "https://example.com/icon.png",
           "mimeType": "image/png",
-          "sizes": "48x48"
+          "sizes": ["48x48"]
         }
       ],
       "websiteUrl": "https://example.com"
@@ -115,7 +115,7 @@ The server **MUST** respond with its own capabilities and information:
         {
           "src": "https://example.com/server-icon.svg",
           "mimeType": "image/svg+xml",
-          "sizes": "any"
+          "sizes": ["any"]
         }
       ],
       "websiteUrl": "https://example.com/server"
