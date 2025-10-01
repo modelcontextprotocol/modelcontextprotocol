@@ -314,23 +314,23 @@ The following diagram shows how to properly implement per-client consent that ru
 sequenceDiagram
     participant Client as MCP Client
     participant Browser as User's Browser
-    participant MCP as MCP Proxy Server
+    participant MCP as MCP Server
     participant ThirdParty as Third-Party AuthZ Server
 
     Note over Client,ThirdParty: 1. Client Registration (Dynamic)
     Client->>MCP: Register with redirect_uri
-    MCP->>Client: client_id
+    MCP-->>Client: client_id
 
     Note over Client,ThirdParty: 2. Authorization Request
-    Client->>Browser: Open MCP authorization URL
+    Client->>Browser: Open MCP server authorization URL
     Browser->>MCP: GET /authorize?client_id=...&redirect_uri=...
 
-    alt Check MCP-Level Consent
+    alt Check MCP Server Consent
         MCP->>MCP: Check consent for this client_id
         Note over MCP: Not previously approved
     end
 
-    MCP->>Browser: Show MCP consent page
+    MCP->>Browser: Show MCP server-owned consent page
     Note over Browser: "Allow [Client Name] to access [Third-Party API]?"
     Browser->>MCP: POST /consent (approve)
     MCP->>MCP: Store consent decision for client_id
