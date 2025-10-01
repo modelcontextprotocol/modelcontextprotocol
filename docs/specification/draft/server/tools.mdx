@@ -93,7 +93,14 @@ To discover available tools, clients send a `tools/list` request. This operation
             }
           },
           "required": ["location"]
-        }
+        },
+        "icons": [
+          {
+            "src": "https://example.com/weather-icon.png",
+            "mimeType": "image/png",
+            "sizes": ["48x48"]
+          }
+        ]
       }
     ],
     "nextCursor": "next-page-cursor"
@@ -276,7 +283,6 @@ or data using a suitable [URI scheme](./resources#common-uri-schemes). Servers t
   "type": "resource",
   "resource": {
     "uri": "file:///project/src/main.rs",
-    "title": "Project Rust Main File",
     "mimeType": "text/x-rust",
     "text": "fn main() {\n    println!(\"Hello world!\");\n}",
     "annotations": {
@@ -376,7 +382,6 @@ Providing an output schema helps clients and LLMs understand and properly handle
 Tools use two error reporting mechanisms:
 
 1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
-
    - Unknown tools
    - Invalid arguments
    - Server errors
@@ -420,7 +425,6 @@ Example tool execution error:
 ## Security Considerations
 
 1. Servers **MUST**:
-
    - Validate all tool inputs
    - Implement proper access controls
    - Rate limit tool invocations

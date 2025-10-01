@@ -1,0 +1,105 @@
+---
+title: Contributor Communication
+description: Communication strategy and framework for the Model Context Protocol community
+---
+
+This document explains how to communicate and collaborate within the Model Context Protocol (MCP) project.
+
+## Communication Channels
+
+In short:
+
+- **[Discord][discord-join]**: For real-time or ad-hoc discussions.
+- **[GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions)**: For structured, longer-form discussions.
+- **[GitHub Issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues)**: For actionable tasks, bug reports, and feature requests.
+- **For security-sensitive issues**: Follow the process in [SECURITY.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/SECURITY.md).
+
+All communication is governed by our [Code of Conduct](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CODE_OF_CONDUCT.md). We expect all participants to maintain respectful, professional, and inclusive interactions across all channels.
+
+### Discord
+
+For real-time contributor discussion and collaboration. The server is designed around **MCP contributors** and is not intended
+to be a place for general MCP support.
+
+The Discord server will have both public and private channels.
+
+[Join the Discord server here][discord-join].
+
+#### Public Channels (Default)
+
+- **Purpose**: Open community engagement, collaborative development, and transparent project coordination.
+- Primary use cases:
+  - **Public SDK and tooling development**: All development, from ideation to release planning, happens in public channels (e.g., `#typescript-sdk-dev`, `#inspector-dev`).
+  - **[Working and Interest Group](/community/working-interest-groups) discussions**
+  - **Community onboarding** and contribution guidance.
+  - **Community feedback** and collaborative brainstorming.
+  - Public **office hours** and **maintainer availability**.
+- Avoid:
+  - MCP user support: participants are expected to read official documentation and start new GitHub Discussions for questions or support.
+  - Service or product marketing: interactions on this Discord are expected to be vendor-neutral and not used for brand-building or sales. Mentions of brands or products are discouraged outside of being used as examples or responses to conversations that start off focused on the specification.
+
+#### Private channels (Exceptions)
+
+- **Purpose**: Confidential coordination and sensitive matters that cannot be discussed publicly. Access will be restricted to designated maintainers.
+- **Strict criteria for private use**:
+  - **Security incidents** (CVEs, protocol vulnerabilities).
+  - **People matters** (maintainer-related discussions, code of conduct policies).
+  - Select channels will be configured to be **read-only**. This can be good for example for maintainer decision making.
+  - Coordination requiring **immediate** or otherwise **focused response** with a limited audience.
+- **Transparency**:
+  - **All technical and governance decisions** affecting the community **must be documented** in GitHub Discussions and/or Issues, and will be labeled with `notes`.
+  - **Some matters related to individual contributors** may remain private when appropriate (e.g., personal circumstances, disciplinary actions, or other sensitive individual matters).
+  - Private channels are to be used as **temporary "incident rooms,"** not for routine development.
+
+Any significant discussion on Discord that leads to a potential decision or proposal must be moved to a GitHub Discussion or GitHub Issue to create a persistent, searchable record. Proposals will then be promoted to full-fledged PRs with associated work items (GitHub Issues) as needed.
+
+### GitHub Discussions
+
+For structured, long-form discussion and debate on project direction, features, improvements, and community topics.
+
+When to use:
+
+- Project roadmap planning and milestone discussions
+- Announcements and release communications
+- Community polls and consensus-building processes
+- Feature requests with context and rationale
+  - If a particular repository does not have GitHub Discussions enabled, feel free to open a GitHub Issue instead.
+
+### GitHub Issues
+
+For bug reports, feature tracking, and actionable development tasks.
+
+When to use:
+
+- Submit SEP proposals (following the [SEP guidelines](./sep-guidelines))
+- Bug reports with reproducible steps
+- Documentation improvements with specific scope
+- CI/CD problems and infrastructure issues
+- Release tasks and milestone tracking
+
+### Security Issues
+
+**Do not post security issues publicly.** Instead:
+
+1. Use the private security reporting process. For protocol-level security issues, follow the process in [SECURITY.md in the modelcontextprotocol GitHub repository](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/SECURITY.md).
+2. Contact lead and/or [core maintainers](./governance#current-core-maintainers) directly.
+3. Follow responsible disclosure guidelines.
+
+## Decision Records
+
+All MCP decisions are documented and captured in public channels.
+
+- **Technical decisions**: [GitHub Issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues) and SEPs.
+- **Specification changes**: [On the Model Context Protocol website](https://modelcontextprotocol.io/specification/draft/changelog).
+- **Process changes**: [Community documentation](https://modelcontextprotocol.io/community/governance).
+- **Governance decisions and updates**: [GitHub Issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues) and SEPs.
+
+When documenting decisions, we will retain as much context as possible:
+
+- Decision makers
+- Background context and motivation
+- Options that were considered
+- Rationale for the chosen approach
+- Implementation steps
+
+[discord-join]: https://discord.gg/6CSzBmMkjX
