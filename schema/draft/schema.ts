@@ -179,7 +179,7 @@ export interface InitializeRequest extends JSONRPCRequest {
     protocolVersion: string;
     capabilities: ClientCapabilities;
     clientInfo: Implementation;
-    supportedServerCapabilties?: ServerCapabilities;
+    supportedServerCapabilities?: ServerCapabilities;
   };
 }
 
