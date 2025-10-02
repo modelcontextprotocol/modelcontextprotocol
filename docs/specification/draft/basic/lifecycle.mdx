@@ -51,6 +51,7 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
 - Protocol version supported
 - Client capabilities
 - Client implementation information
+- Client supported server capabilities [optional]
 
 ```json
 {
@@ -78,6 +79,12 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
         }
       ],
       "websiteUrl": "https://example.com"
+    },
+    "supportedServerCapabilities": {
+      "tools": {},
+      "resources": {
+        "listChanged": false
+      }
     }
   }
 }
