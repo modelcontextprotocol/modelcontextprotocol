@@ -189,10 +189,9 @@ server. To support establishing stateful sessions:
      `Mcp-Session-Id` header (other than initialization) with HTTP 400 Bad Request.
 3. The server **MAY** terminate the session at any time, after which it **MUST** respond
    to requests containing that session ID with HTTP 404 Not Found.
-4. When a client receives HTTP 404 in response to a request containing an
-   `Mcp-Session-Id` obtained through an [initialization phase](/specification/draft/basic/lifecycle),
-   it **SHOULD** start a new session by sending a new `InitializeRequest`
-   without a session ID attached.
+4. When a client receives HTTP 404 in response to a request containing an `Mcp-Session-Id`,
+   it **MUST** stop using that `Mcp-Sesssion-Id` and **SHOULD** start a new session by
+   sending a new `InitializeRequest` without a session ID attached.
 5. Clients that no longer need a particular session (e.g., because the user is leaving
    the client application) **SHOULD** send an HTTP DELETE to the MCP endpoint with the
    `Mcp-Session-Id` header, to explicitly terminate the session.
