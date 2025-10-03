@@ -313,12 +313,21 @@ export interface Icon {
   mimeType?: string;
 
   /**
-   * Optional string that specifies one or more sizes at which the icon can be used.
-   * For example: `"48x48"`, `"48x48 96x96"`, or `"any"` for scalable formats like SVG.
+   * Optional array of strings that specify sizes at which the icon can be used.
+   * Each string should be in WxH format (e.g., `"48x48"`, `"96x96"`) or `"any"` for scalable formats like SVG.
    *
    * If not provided, the client should assume that the icon can be used at any size.
    */
-  sizes?: string;
+  sizes?: string[];
+
+  /**
+   * Optional specifier for the theme this icon is designed for. `light` indicates
+   * the icon is designed to be used with a light background, and `dark` indicates
+   * the icon is designed to be used with a dark background.
+   *
+   * If not provided, the client should assume the icon can be used with any theme.
+   */
+  theme?: 'light' | 'dark';
 }
 
 /**
@@ -372,7 +381,7 @@ export interface Implementation extends BaseMetadata, Icons {
   /**
    * An optional URL of the website for this implementation.
    *
-   * @format: uri
+   * @format uri
    */
   websiteUrl?: string;
 }
@@ -607,7 +616,7 @@ export interface Resource extends BaseMetadata, Icons {
 /**
  * A template description for resources available on the server.
  */
-export interface ResourceTemplate extends BaseMetadata {
+export interface ResourceTemplate extends BaseMetadata, Icons {
   /**
    * A URI template (according to RFC 6570) that can be used to construct resource URIs.
    *
@@ -923,7 +932,7 @@ export interface ToolAnnotations {
 
   /**
    * If true, calling the tool repeatedly with the same arguments
-   * will have no additional effect on the its environment.
+   * will have no additional effect on its environment.
    *
    * (This property is meaningful only when `readOnlyHint == false`)
    *
@@ -1067,7 +1076,9 @@ export interface CreateMessageRequest extends JSONRPCRequest {
      */
     temperature?: number;
     /**
-     * The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.
+     * The requested maximum number of tokens to sample (to prevent runaway completions).
+     *
+     * The client MAY choose to sample fewer tokens than the requested maximum.
      */
     maxTokens: number;
     stopSequences?: string[];

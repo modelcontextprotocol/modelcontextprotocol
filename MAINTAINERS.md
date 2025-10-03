@@ -41,6 +41,8 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Go SDK
 
 - [Rob Findley](https://github.com/findleyr)
+- [Jonathan Amsterdam](https://github.com/jba)
+- [Sam Thanawalla](https://github.com/samthanawalla)
 
 ### C# SDK
 
@@ -124,6 +126,10 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Harald Kirschner](https://github.com/digitarald)
 - [Connor Peet](https://github.com/connor4312)
 
+### Financial Services Interest Group
+
+- [Sambhav Kothari](https://github.com/sambhav)
+
 ### Transports Interest Group
 
 - [Kurtis Van Gent](https://github.com/kurtisvg)
@@ -135,8 +141,10 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Nick Cooper](https://github.com/nicknotfun)
 
-### Long-Running / Async Tool Calls Working Group
+### Agents Working Group
 
+- [Peter Alexander](https://github.com/pja-ant)
+- [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
 
 ## About This Document

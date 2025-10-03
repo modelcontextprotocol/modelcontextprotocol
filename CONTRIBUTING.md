@@ -18,37 +18,38 @@ The following software is required to work on the spec:
 ### Getting Started
 
 1. [Fork the repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)
+
 2. Clone your fork:
 
-```bash
-git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
-cd modelcontextprotocol
-```
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
+   cd modelcontextprotocol
+   ```
 
 3. Install dependencies:
 
-```bash
-nvm install  # install correct Node version
-npm install  # install dependencies
-```
+   ```bash
+   nvm install  # install correct Node version
+   npm install  # install dependencies
+   ```
+
+4. Create a new branch:
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
 ## Schema changes
 
-Note that schema changes are made to `schema.ts`, and `schema.json` is generated from
-`schema.ts`.
-
-1. Create a new branch:
-
-```bash
-git checkout -b feature/your-feature-name
-```
-
-2. Make your changes.
-
-3. Validate schema changes and generate `schema.json`:
+Schema changes go in `schema/draft/schema.ts`. To validate your changes, run:
 
 ```bash
 npm run check:schema:ts
+```
+
+`schema/draft/schema.json` and `docs/specification/draft/schema.mdx` are generated from `schema/draft/schema.ts`; do not edit them directly. To generate them, run:
+
+```bash
 npm run generate:schema
 ```
 
