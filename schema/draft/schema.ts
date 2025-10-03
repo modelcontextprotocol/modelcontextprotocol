@@ -684,6 +684,10 @@ export interface BlobResourceContents extends ResourceContents {
   blob: string;
 }
 
+export interface InvalidResourceError extends Error {
+  code: -32002;
+}
+
 /* Prompts */
 /**
  * Sent from the client to request a list of prompts and prompt templates the server has.
@@ -783,6 +787,14 @@ export type Role = "user" | "assistant";
 export interface PromptMessage {
   role: Role;
   content: ContentBlock;
+}
+
+export interface InvalidPromptError {
+  code: -32602;
+}
+
+export interface InvalidPromptArgumentsError {
+  code: -32602;
 }
 
 /**
@@ -949,6 +961,10 @@ export interface ToolAnnotations {
    * Default: true
    */
   openWorldHint?: boolean;
+}
+
+export interface InvalidToolError {
+  code: -32602;
 }
 
 /**
