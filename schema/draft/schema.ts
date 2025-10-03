@@ -932,7 +932,7 @@ export interface ToolAnnotations {
 
   /**
    * If true, calling the tool repeatedly with the same arguments
-   * will have no additional effect on the its environment.
+   * will have no additional effect on its environment.
    *
    * (This property is meaningful only when `readOnlyHint == false`)
    *
