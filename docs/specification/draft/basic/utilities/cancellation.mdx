@@ -10,6 +10,19 @@ The Model Context Protocol (MCP) supports optional cancellation of in-progress r
 through notification messages. Either side can send a cancellation notification to
 indicate that a previously-issued request should be terminated.
 
+## Capabilities
+
+Clients or Servers that support cancellation **MUST** declare the `cancellation` capability during
+[initialization](/specification/draft/basic/lifecycle#initialization):
+
+```json
+{
+  "capabilities": {
+    "cancellation": {}
+  }
+}
+```
+
 ## Cancellation Flow
 
 When a party wants to cancel an in-progress request, it sends a `notifications/cancelled`

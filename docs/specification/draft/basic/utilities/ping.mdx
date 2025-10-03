@@ -14,6 +14,19 @@ to verify that their counterpart is still responsive and the connection is alive
 The ping functionality is implemented through a simple request/response pattern. Either
 the client or server can initiate a ping by sending a `ping` request.
 
+## Capabilities
+
+Clients or Servers that support ping **MUST** declare the `ping` capability during
+[initialization](/specification/draft/basic/lifecycle#initialization):
+
+```json
+{
+  "capabilities": {
+    "ping": {}
+  }
+}
+```
+
 ## Message Format
 
 A ping request is a standard JSON-RPC request with no parameters:
