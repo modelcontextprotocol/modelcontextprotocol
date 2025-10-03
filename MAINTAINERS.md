@@ -71,6 +71,11 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Alex Hancock](https://github.com/alexhancock)
 
+### PHP SDK
+
+- [Kyrian Obikwelu](https://github.com/CodeWithKyrian)
+- [Christopher Hertel](https://github.com/chr-hertel)
+
 ## Project Maintainers
 
 ### use-mcp
