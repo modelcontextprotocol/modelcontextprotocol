@@ -26,22 +26,26 @@ export type ProgressToken = string | number;
  */
 export type Cursor = string;
 
+/**
+ * Common params for any request.
+ */
+export interface BaseRequestParams {
+  /**
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   */
+  _meta?: {
+    /**
+     * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
+     */
+    progressToken?: ProgressToken;
+    [key: string]: unknown;
+  };
+}
+
 /** @internal */
 export interface Request {
   method: string;
-  params?: {
-    /**
-     * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
-     */
-    _meta?: {
-      /**
-       * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
-       */
-      progressToken?: ProgressToken;
-      [key: string]: unknown;
-    };
-    [key: string]: unknown;
-  };
+  params?: BaseRequestParams;
 }
 
 /** @internal */
@@ -166,20 +170,25 @@ export interface CancelledNotification extends JSONRPCNotification {
 
 /* Initialization */
 /**
+ * @category initialize
+ */
+export interface InitializeParams extends BaseRequestParams {
+  /**
+   * The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
+   */
+  protocolVersion: string;
+  capabilities: ClientCapabilities;
+  clientInfo: Implementation;
+}
+
+/**
  * This request is sent from the client to the server when it first connects, asking it to begin initialization.
  *
  * @category initialize
  */
 export interface InitializeRequest extends JSONRPCRequest {
   method: "initialize";
-  params: {
-    /**
-     * The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
-     */
-    protocolVersion: string;
-    capabilities: ClientCapabilities;
-    clientInfo: Implementation;
-  };
+  params: InitializeParams;
 }
 
 /**
@@ -429,15 +438,20 @@ export interface ProgressNotification extends JSONRPCNotification {
 }
 
 /* Pagination */
+/**
+ * Common parameters for paginated requests
+ */
+export interface PaginatedRequestParams extends BaseRequestParams {
+  /**
+   * An opaque token representing the current pagination position.
+   * If provided, the server should return results starting after this cursor.
+   */
+  cursor?: Cursor;
+}
+
 /** @internal */
 export interface PaginatedRequest extends JSONRPCRequest {
-  params?: {
-    /**
-     * An opaque token representing the current pagination position.
-     * If provided, the server should return results starting after this cursor.
-     */
-    cursor?: Cursor;
-  };
+  params?: PaginatedRequestParams;
 }
 
 /** @internal */
@@ -487,20 +501,27 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
 }
 
 /**
+ * Common parameters when working with resources
+ *
+ * @category resources/read
+ */
+export interface ResourceParams extends BaseRequestParams {
+  /**
+   * The URI of the resource to read, subscribe to, or unsubscribe from. The URI can use any protocol; it is up to the server how to interpret it.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
  * Sent from the client to the server, to read a specific resource URI.
  *
  * @category resources/read
  */
 export interface ReadResourceRequest extends JSONRPCRequest {
   method: "resources/read";
-  params: {
-    /**
-     * The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: ResourceParams;
 }
 
 /**
@@ -528,14 +549,7 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
  */
 export interface SubscribeRequest extends JSONRPCRequest {
   method: "resources/subscribe";
-  params: {
-    /**
-     * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: ResourceParams;
 }
 
 /**
@@ -545,14 +559,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
  */
 export interface UnsubscribeRequest extends JSONRPCRequest {
   method: "resources/unsubscribe";
-  params: {
-    /**
-     * The URI of the resource to unsubscribe from.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: ResourceParams;
 }
 
 /**
@@ -704,22 +711,27 @@ export interface ListPromptsResult extends PaginatedResult {
 }
 
 /**
+ * Common parameters used when making an optionally parameterized request
+ */
+export interface ParameterizedRequestParams extends BaseRequestParams {
+  /**
+   * The name of the tool, prompt, or prompt template.
+   */
+  name: string;
+  /**
+   * Arguments to use for the tool call or for templating the prompt.
+   */
+  arguments?: { [key: string]: string };
+}
+
+/**
  * Used by the client to get a prompt provided by the server.
  *
  * @category prompts/get
  */
 export interface GetPromptRequest extends JSONRPCRequest {
   method: "prompts/get";
-  params: {
-    /**
-     * The name of the prompt or prompt template.
-     */
-    name: string;
-    /**
-     * Arguments to use for templating the prompt.
-     */
-    arguments?: { [key: string]: string };
-  };
+  params: ParameterizedRequestParams;
 }
 
 /**
@@ -882,10 +894,7 @@ export interface CallToolResult extends Result {
  */
 export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
-  params: {
-    name: string;
-    arguments?: { [key: string]: unknown };
-  };
+  params: ParameterizedRequestParams;
 }
 
 /**
@@ -995,6 +1004,18 @@ export interface Tool extends BaseMetadata, Icons {
 }
 
 /* Logging */
+
+/**
+ *
+ * @category logging/setLevel
+ */
+export interface LevelParams extends BaseRequestParams {
+  /**
+   * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
+   */
+  level: LoggingLevel;
+}
+
 /**
  * A request from the client to the server, to enable or adjust logging.
  *
@@ -1002,12 +1023,7 @@ export interface Tool extends BaseMetadata, Icons {
  */
 export interface SetLevelRequest extends JSONRPCRequest {
   method: "logging/setLevel";
-  params: {
-    /**
-     * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
-     */
-    level: LoggingLevel;
-  };
+  params: LevelParams;
 }
 
 /**
@@ -1051,42 +1067,48 @@ export type LoggingLevel =
 
 /* Sampling */
 /**
+ *
+ * @category sampling/createMessage
+ */
+export interface CreateMessageParams extends BaseRequestParams {
+  messages: SamplingMessage[];
+  /**
+   * The server's preferences for which model to select. The client MAY ignore these preferences.
+   */
+  modelPreferences?: ModelPreferences;
+  /**
+   * An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.
+   */
+  systemPrompt?: string;
+  /**
+   * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.
+   */
+  includeContext?: "none" | "thisServer" | "allServers";
+  /**
+   * @TJS-type number
+   */
+  temperature?: number;
+  /**
+   * The requested maximum number of tokens to sample (to prevent runaway completions).
+   *
+   * The client MAY choose to sample fewer tokens than the requested maximum.
+   */
+  maxTokens: number;
+  stopSequences?: string[];
+  /**
+   * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
+   */
+  metadata?: object;
+}
+
+/**
  * A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.
  *
  * @category sampling/createMessage
  */
 export interface CreateMessageRequest extends JSONRPCRequest {
   method: "sampling/createMessage";
-  params: {
-    messages: SamplingMessage[];
-    /**
-     * The server's preferences for which model to select. The client MAY ignore these preferences.
-     */
-    modelPreferences?: ModelPreferences;
-    /**
-     * An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.
-     */
-    systemPrompt?: string;
-    /**
-     * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.
-     */
-    includeContext?: "none" | "thisServer" | "allServers";
-    /**
-     * @TJS-type number
-     */
-    temperature?: number;
-    /**
-     * The requested maximum number of tokens to sample (to prevent runaway completions).
-     *
-     * The client MAY choose to sample fewer tokens than the requested maximum.
-     */
-    maxTokens: number;
-    stopSequences?: string[];
-    /**
-     * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
-     */
-    metadata?: object;
-  };
+  params: CreateMessageParams;
 }
 
 /**
@@ -1317,38 +1339,44 @@ export interface ModelHint {
 
 /* Autocomplete */
 /**
+ *
+ * @category completion/complete
+ */
+export interface CompletionParams extends BaseRequestParams {
+  ref: PromptReference | ResourceTemplateReference;
+  /**
+   * The argument's information
+   */
+  argument: {
+    /**
+     * The name of the argument
+     */
+    name: string;
+    /**
+     * The value of the argument to use for completion matching.
+     */
+    value: string;
+  };
+
+  /**
+   * Additional, optional context for completions
+   */
+  context?: {
+    /**
+     * Previously-resolved variables in a URI template or prompt.
+     */
+    arguments?: { [key: string]: string };
+  };
+}
+
+/**
  * A request from the client to the server, to ask for completion options.
  *
  * @category completion/complete
  */
 export interface CompleteRequest extends JSONRPCRequest {
   method: "completion/complete";
-  params: {
-    ref: PromptReference | ResourceTemplateReference;
-    /**
-     * The argument's information
-     */
-    argument: {
-      /**
-       * The name of the argument
-       */
-      name: string;
-      /**
-       * The value of the argument to use for completion matching.
-       */
-      value: string;
-    };
-
-    /**
-     * Additional, optional context for completions
-     */
-    context?: {
-      /**
-       * Previously-resolved variables in a URI template or prompt.
-       */
-      arguments?: { [key: string]: string };
-    };
-  };
+  params: CompletionParams;
 }
 
 /**
@@ -1457,29 +1485,35 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
 }
 
 /**
+ *
+ * @category elicitation/create
+ */
+export interface ElicitationParams extends BaseRequestParams {
+  /**
+   * The message to present to the user.
+   */
+  message: string;
+  /**
+   * A restricted subset of JSON Schema.
+   * Only top-level properties are allowed, without nesting.
+   */
+  requestedSchema: {
+    type: "object";
+    properties: {
+      [key: string]: PrimitiveSchemaDefinition;
+    };
+    required?: string[];
+  };
+}
+
+/**
  * A request from the server to elicit additional information from the user via the client.
  *
  * @category elicitation/create
  */
 export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
-  params: {
-    /**
-     * The message to present to the user.
-     */
-    message: string;
-    /**
-     * A restricted subset of JSON Schema.
-     * Only top-level properties are allowed, without nesting.
-     */
-    requestedSchema: {
-      type: "object";
-      properties: {
-        [key: string]: PrimitiveSchemaDefinition;
-      };
-      required?: string[];
-    };
-  };
+  params: ElicitationParams;
 }
 
 /**
