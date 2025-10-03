@@ -145,6 +145,13 @@
                         },
                         "name": {
                             "type": "string"
+                        },
+                        "tool_requirements": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "A key-value map where the key is the tool name (string) and the value is a version specifier (string). Version specifiers follow conventions from modern package managers and support operators like ^, ~, >, >=, <, <=, and exact versions.",
+                            "type": "object"
                         }
                     },
                     "required": [
@@ -2715,6 +2722,10 @@
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The semantic version of this tool. Must follow Semantic Versioning 2.0.0 standard (e.g., MAJOR.MINOR.PATCH). Examples: \"1.2.3\", \"2.0.0\", \"0.1.0-alpha.1\".",
                     "type": "string"
                 }
             },
