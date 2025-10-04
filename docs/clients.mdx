@@ -14,6 +14,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [5ire][5ire]                                | ❌          | ❌        | ✅      | ❓                     | ❌          | ❌    | Supports tools.                                                             |
 | [AgentAI][AgentAI]                          | ❌          | ❌        | ✅      | ❓                     | ❌          | ❌    | Agent Library written in Rust with tools support                            |
 | [AgenticFlow][AgenticFlow]                  | ✅          | ✅        | ✅      | ✅                     | ❌          | ❌    | Supports tools, prompts, and resources for no-code AI agents and multi-agent workflows.             |
+| [Alice][Alice]                              | ✅          | ✅        | ✅      | ❓                     | ✅          | ❌    | Supports tools, resources, prompts, and sampling with stdio, streamable HTTP, and SSE transport.    |
 | [Amazon Q CLI][Amazon Q CLI]                | ❌          | ✅        | ✅      | ❓                     | ❌          | ❌    | Supports prompts and tools.                                                 |
 | [Apify MCP Tester][Apify MCP Tester]        | ❌          | ❌        | ✅      | ✅                     | ❌          | ❌    | Supports remote MCP servers and tool discovery.                             |
 | [BeeAI Framework][BeeAI Framework]          | ❌          | ❌        | ✅      | ❌                     | ❌          | ❌    | Supports tools in agentic workflows.                                        |
@@ -64,6 +65,7 @@ This page provides an overview of applications that support the Model Context Pr
 [5ire]: https://github.com/nanbingxyz/5ire
 [AgentAI]: https://github.com/AdamStrojek/rust-agentai
 [AgenticFlow]: https://agenticflow.ai/mcp
+[Alice]: https://heyalice.app
 [Amazon Q CLI]: https://github.com/aws/amazon-q-developer-cli
 [Apify MCP Tester]: https://apify.com/jiri.spilka/tester-mcp-client
 [BeeAI Framework]: https://i-am-bee.github.io/beeai-framework
@@ -151,6 +153,19 @@ This page provides an overview of applications that support the Model Context Pr
 
 **Learn more:**
 - [AgenticFlow MCP Integration](https://agenticflow.ai/mcp)
+
+### Alice
+[Alice](https://heyalice.app) is a desktop application for macOS, Windows, and Linux. It connects directly to AI providers with configuration and chat history stored locally. Alice's servers only retain license information and basic usage statistics.
+
+**Key features:**
+- Full support for MCP resources, prompts, tools, and sampling  
+- Multiple transport protocols: stdio, streamable HTTP, and SSE  
+- Integration with OpenAI, Anthropic, Gemini, xAI, Groq, Ollama, OpenRouter, and custom servers  
+- Assistant profiles with custom settings, prompts, and skills  
+- Skill/Prompt Library with configurable prompts that can be called during chat sessions  
+- Documents that give assistants access to text-based files in an exploratory, agentic way  
+- Assistant library available through subscription plans  
+- Custom connections for direct integration with local or remote servers supporting the OpenAI API format
 
 ### Amazon Q CLI
 [Amazon Q CLI](https://github.com/aws/amazon-q-developer-cli) is an open-source, agentic coding assistant for terminals.
