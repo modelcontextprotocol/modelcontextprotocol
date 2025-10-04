@@ -206,15 +206,16 @@ for MCP because:
 - It enables seamless connection to new MCP servers and their authorization servers.
 - Authorization servers can implement their own registration policies.
 
-Any authorization servers that _do not_ support Dynamic Client Registration need to provide
-alternative ways to obtain a client ID (and, if applicable, client credentials). For one of
-these authorization servers, MCP clients will have to either:
+### Pre-provisioned registration fallback
 
-1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
-   interacting with that authorization server, or
-2. Present a UI to users that allows them to enter these details, after registering an
-   OAuth client themselves (e.g., through a configuration interface hosted by the
-   server).
+MCP **clients MUST** support a pre-provisioned registration path in addition to Dynamic Client Registration (DCR). Clients **MUST** provide either:
+
+1. A user-facing input mechanism for a pre-provisioned `client_id`; or
+2. A managed configuration mechanism (e.g., a configuration file).
+
+When a corresponding authorization server does not support DCR—or when enterprise policy requires pre-registration, clients **MUST** allow users or administrators to supply these values.
+
+**Authorization servers** that do not support DCR **MUST** provide a non-DCR mechanism to register a client and obtain the resulting `client_id` (e.g., an administrative portal), allowing **users or administrators** to supply any required **client metadata** (such as redirect URIs) during registration.
 
 #### Scope Selection Strategy
 
