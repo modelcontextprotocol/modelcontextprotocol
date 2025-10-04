@@ -1,0 +1,39 @@
+---
+title: Overview
+---
+
+<Info>**Protocol Revision**: 2025-06-18</Info>
+
+Clients provide the fundamental capabilities that enable servers to interact with the user's environment, language models, and gather additional information via MCP. These primitives enable rich interactions between servers, clients, and users, with the client acting as a trusted intermediary:
+
+- **Roots**: Filesystem boundaries that define where servers can operate within the user's environment
+- **Sampling**: Language model access that allows servers to request AI-powered completions without requiring their own API keys
+- **Elicitation**: User interaction capabilities that enable servers to request structured information from users dynamically
+
+Each primitive can be summarized in the following control hierarchy:
+
+| Primitive   | Control                | Description                                       | Examples                               |
+| ----------- | ---------------------- | ------------------------------------------------- | -------------------------------------- |
+| Roots       | Application-controlled | Filesystem boundaries managed by the client       | Project directories, workspaces        |
+| Sampling    | Server-controlled      | LLM access for completions and generations        | Agentic workflows, nested AI calls     |
+| Elicitation | Server-controlled      | Dynamic information requests requiring user input | Configuration prompts, data collection |
+
+Explore these key primitives in more detail below:
+
+<CardGroup cols={3}>
+  <Card
+    title="Roots"
+    icon="folder-tree"
+    href="/specification/2025-06-18/client/roots"
+  />
+  <Card
+    title="Sampling"
+    icon="sparkles"
+    href="/specification/2025-06-18/client/sampling"
+  />
+  <Card
+    title="Elicitation"
+    icon="messages-question"
+    href="/specification/2025-06-18/client/elicitation"
+  />
+</CardGroup>
