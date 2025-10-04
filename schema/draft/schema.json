@@ -935,6 +935,7 @@
                     "type": "string"
                 },
                 "version": {
+                    "description": "The version of this implementation.",
                     "type": "string"
                 },
                 "websiteUrl": {
