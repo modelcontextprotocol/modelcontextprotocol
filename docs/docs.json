@@ -84,6 +84,7 @@
               {
                 "group": "Client Features",
                 "pages": [
+                  "specification/2025-06-18/client/index",
                   "specification/2025-06-18/client/roots",
                   "specification/2025-06-18/client/sampling",
                   "specification/2025-06-18/client/elicitation"
@@ -233,6 +234,7 @@
               {
                 "group": "Client Features",
                 "pages": [
+                  "specification/draft/client/index",
                   "specification/draft/client/roots",
                   "specification/draft/client/sampling",
                   "specification/draft/client/elicitation"
