@@ -319,6 +319,15 @@ export interface Icon {
    * If not provided, the client should assume that the icon can be used at any size.
    */
   sizes?: string[];
+
+  /**
+   * Optional specifier for the theme this icon is designed for. `light` indicates
+   * the icon is designed to be used with a light background, and `dark` indicates
+   * the icon is designed to be used with a dark background.
+   *
+   * If not provided, the client should assume the icon can be used with any theme.
+   */
+  theme?: 'light' | 'dark';
 }
 
 /**
@@ -926,7 +935,7 @@ export interface ToolAnnotations {
 
   /**
    * If true, calling the tool repeatedly with the same arguments
-   * will have no additional effect on the its environment.
+   * will have no additional effect on its environment.
    *
    * (This property is meaningful only when `readOnlyHint == false`)
    *

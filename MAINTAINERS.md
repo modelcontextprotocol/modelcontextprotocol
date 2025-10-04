@@ -71,6 +71,11 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Alex Hancock](https://github.com/alexhancock)
 
+### PHP SDK
+
+- [Kyrian Obikwelu](https://github.com/CodeWithKyrian)
+- [Christopher Hertel](https://github.com/chr-hertel)
+
 ## Project Maintainers
 
 ### use-mcp
@@ -126,6 +131,10 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Harald Kirschner](https://github.com/digitarald)
 - [Connor Peet](https://github.com/connor4312)
 
+### Financial Services Interest Group
+
+- [Sambhav Kothari](https://github.com/sambhav)
+
 ### Transports Interest Group
 
 - [Kurtis Van Gent](https://github.com/kurtisvg)
@@ -137,8 +146,10 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Nick Cooper](https://github.com/nicknotfun)
 
-### Long-Running / Async Tool Calls Working Group
+### Agents Working Group
 
+- [Peter Alexander](https://github.com/pja-ant)
+- [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
 
 ## About This Document

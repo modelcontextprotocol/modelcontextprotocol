@@ -98,7 +98,33 @@ MCP servers **MUST** implement one of the following discovery mechanisms to prov
    - At the path of the server's MCP endpoint: `https://example.com/public/mcp` could host metadata at `https://example.com/.well-known/oauth-protected-resource/public/mcp`
    - At the root: `https://example.com/.well-known/oauth-protected-resource`
 
-MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed WWW-Authenticate headers when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
+MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed `WWW-Authenticate` headers when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
+
+MCP servers **SHOULD** include a `scope` parameter in the `WWW-Authenticate` header as defined in
+[RFC 6750 Section 3](https://datatracker.ietf.org/doc/html/rfc6750#section-3)
+to indicate the scopes required for accessing the resource. This provides clients with immediate
+guidance on the appropriate scopes to request during authorization,
+following the principle of least privilege and preventing clients from requesting excessive permissions.
+
+The scopes included in the `WWW-Authenticate` challenge **MAY** match `scopes_supported`, be a subset
+or superset of it, or an alternative collection that is neither a strict subset nor
+superset. Clients **MUST NOT** assume any particular set relationship between the challenged
+scope set and `scopes_supported`. Clients **MUST** treat the scopes provided in the
+challenge as authoritative for satisfying the current request. Servers **SHOULD** strive for
+consistency in how they construct scope sets but they are not required to surface every dynamically
+issued scope through `scopes_supported`.
+
+Example 401 response with scope guidance:
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
+                         scope="files:read"
+```
+
+MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
+
+If the `scope` parameter is absent, clients **SHOULD** apply the fallback behavior defined in the [Scope Selection Strategy](#scope-selection-strategy) section.
 
 #### Authorization Server Metadata Discovery
 
@@ -190,6 +216,23 @@ these authorization servers, MCP clients will have to either:
    OAuth client themselves (e.g., through a configuration interface hosted by the
    server).
 
+#### Scope Selection Strategy
+
+When implementing authorization flows, MCP clients **SHOULD** follow the principle of least privilege by requesting
+only the scopes necessary for their intended operations. During the initial authorization handshake, MCP clients
+**SHOULD** follow this priority order for scope selection:
+
+1. **Use `scope` parameter** from the initial `WWW-Authenticate` header in the 401 response, if provided
+2. **If `scope` is not available**, use all scopes defined in `scopes_supported` from the Protected Resource Metadata document, omitting the `scope` parameter if `scopes_supported` is undefined.
+
+This approach accommodates the general-purpose nature of MCP clients, which typically lack domain-specific knowledge to make informed decisions about individual scope selection. Requesting all available scopes allows the authorization server and end-user to determine appropriate permissions during the consent process.
+
+This approach minimizes user friction while following the principle of least privilege.
+The `scopes_supported` field is intended to represent the minimal set of scopes necessary
+for basic functionality (see [Scope Minimization](/specification/draft/basic/security_best_practices#scope-minimization)),
+with additional scopes requested incrementally through the step-up authorization flow steps
+described in the [Scope Challenge Handling](#scope-challenge-handling) section.
+
 ### Authorization Flow Steps
 
 The complete Authorization flow proceeds as follows:
@@ -219,7 +262,7 @@ sequenceDiagram
         A->>C: Client Credentials
     end
 
-    Note over C: Generate PKCE parameters<br/>Include resource parameter
+    Note over C: Generate PKCE parameters<br/>Include resource parameter<br/>Apply scope selection strategy
     C->>B: Open browser with authorization URL + code_challenge + resource
     B->>A: Authorization request with resource parameter
     Note over A: User authorizes
@@ -326,6 +369,69 @@ Servers **MUST** return appropriate HTTP status codes for authorization errors:
 | 401         | Unauthorized | Authorization required or token invalid    |
 | 403         | Forbidden    | Invalid scopes or insufficient permissions |
 | 400         | Bad Request  | Malformed authorization request            |
+
+#### Scope Challenge Handling
+
+This section covers handling insufficient scope errors during runtime operations when
+a client already has a token but needs additional permissions. This follows the error
+handling patterns defined in [OAuth 2.1 Section 5](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5)
+and leverages the metadata fields from [RFC 9728 (OAuth 2.0 Protected Resource Metadata)](https://datatracker.ietf.org/doc/html/rfc9728).
+
+##### Runtime Insufficient Scope Errors
+
+When a client makes a request with an access token with insufficient
+scope during runtime operations, the server **SHOULD** respond with:
+
+- `HTTP 403 Forbidden` status code (per [RFC 6750 Section 3.1](https://datatracker.ietf.org/doc/html/rfc6750#section-3.1))
+- `WWW-Authenticate` header with the `Bearer` scheme and additional parameters:
+  - `error="insufficient_scope"` - indicating the specific type of authorization failure
+  - `scope="required_scope1 required_scope2"` - specifying the minimum scopes needed for the operation
+  - `resource_metadata` - the URI of the Protected Resource Metadata document (for consistency with 401 responses)
+  - `error_description` (optional) - human-readable description of the error
+
+**Server Scope Management**: When responding with insufficient scope errors, servers
+**SHOULD** include the scopes needed to satisfy the current request in the `scope`
+parameter.
+
+Servers have flexibility in determining which scopes to include:
+
+- **Minimum approach**: Include the newly-required scopes for the specific operation. Include any existing granted scopes as well, if they are required, to prevent clients from losing previously granted permissions.
+- **Recommended approach**: Include both existing relevant scopes and newly required scopes to prevent clients from losing previously granted permissions
+- **Extended approach**: Include existing scopes, newly required scopes, and related scopes that commonly work together
+
+The choice depends on the server's assessment of user experience impact and authorization friction.
+
+Servers **SHOULD** be consistent in their scope inclusion strategy to provide predictable behavior for clients.
+
+Servers **SHOULD** consider the user experience impact when determining which scopes to include in the
+response, as misconfigured scopes may require frequent user interaction.
+
+Example insufficient scope response:
+
+```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="insufficient_scope",
+                         scope="files:read files:write user:profile",
+                         resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
+                         error_description="Additional file write permission required"
+```
+
+##### Step-Up Authorization Flow
+
+Clients will receive scope-related errors during initial authorization or at runtime (`insufficient_scope`).
+Clients **SHOULD** respond to these errors by requesting a new access token with an increased set of scopes via a step-up authorization flow or handle the errors in other, appropriate ways.
+Clients acting on behalf of a user **SHOULD** attempt the step-up authorization flow. Clients acting on their own behalf (`client_credentials` clients)
+**MAY** attempt the step-up authorization flow or abort the request immediately.
+
+The flow is as follows:
+
+1. **Parse error information** from the authorization server response or `WWW-Authenticate` header
+2. **Determine required scopes** as outlined in [Scope Selection Strategy](#scope-selection-strategy).
+3. **Initiate (re-)authorization** with the determined scope set
+4. **Retry the original request** with the new authorization no more than a few times and treat this as a permanent authorization failure
+
+Clients **SHOULD** implement retry limits and **SHOULD** track scope upgrade attempts to avoid
+repeated failures for the same resource and operation combination.
 
 ## Security Considerations
 
