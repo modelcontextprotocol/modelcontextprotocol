@@ -1125,6 +1125,14 @@
                     "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
                     "format": "uri",
                     "type": "string"
+                },
+                "theme": {
+                    "description": "Optional specifier for the theme this icon is designed for. `light` indicates\nthe icon is designed to be used with a light background, and `dark` indicates\nthe icon is designed to be used with a dark background.\n\nIf not provided, the client should assume the icon can be used with any theme.",
+                    "enum": [
+                        "dark",
+                        "light"
+                    ],
+                    "type": "string"
                 }
             },
             "required": [
@@ -2955,7 +2963,7 @@
                     "type": "boolean"
                 },
                 "idempotentHint": {
-                    "description": "If true, calling the tool repeatedly with the same arguments\nwill have no additional effect on the its environment.\n\n(This property is meaningful only when `readOnlyHint == false`)\n\nDefault: false",
+                    "description": "If true, calling the tool repeatedly with the same arguments\nwill have no additional effect on its environment.\n\n(This property is meaningful only when `readOnlyHint == false`)\n\nDefault: false",
                     "type": "boolean"
                 },
                 "openWorldHint": {
