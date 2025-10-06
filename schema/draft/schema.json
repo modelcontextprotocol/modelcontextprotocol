@@ -138,7 +138,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CallToolRequestParams"
+                    "$ref": "#/definitions/CallToolRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -222,26 +223,36 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "reason": {
-                            "description": "An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.",
-                            "type": "string"
-                        },
-                        "requestId": {
-                            "$ref": "#/definitions/RequestId",
-                            "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
-                        }
-                    },
-                    "required": [
-                        "requestId"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/CancelledNotificationParams",
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "CancelledNotificationParams": {
+            "description": "Parameters for a `notifications/cancelled` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "reason": {
+                    "description": "An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.",
+                    "type": "string"
+                },
+                "requestId": {
+                    "$ref": "#/definitions/RequestId",
+                    "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
+                }
+            },
+            "required": [
+                "requestId"
             ],
             "type": "object"
         },
@@ -372,7 +383,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CompleteRequestParams"
+                    "$ref": "#/definitions/CompleteRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -516,7 +528,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CreateMessageRequestParams"
+                    "$ref": "#/definitions/CreateMessageRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -649,7 +662,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/ElicitRequestParams"
+                    "$ref": "#/definitions/ElicitRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -850,7 +864,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/GetPromptRequestParams"
+                    "$ref": "#/definitions/GetPromptRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1043,7 +1058,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/InitializeRequestParams"
+                    "$ref": "#/definitions/InitializeRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1128,15 +1144,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1194,15 +1211,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1225,7 +1243,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/RequestParams"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/RequestParams"
+                        },
+                        {
+                            "additionalProperties": {},
+                            "type": "object"
+                        }
+                    ],
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1271,7 +1298,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams"
+                    "$ref": "#/definitions/PaginatedRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1320,7 +1348,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams"
+                    "$ref": "#/definitions/PaginatedRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1369,7 +1398,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams"
+                    "$ref": "#/definitions/PaginatedRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1418,7 +1448,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/RequestParams"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/RequestParams"
+                        },
+                        {
+                            "additionalProperties": {},
+                            "type": "object"
+                        }
+                    ],
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1463,7 +1502,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams"
+                    "$ref": "#/definitions/PaginatedRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1523,30 +1563,40 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "data": {
-                            "description": "The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here."
-                        },
-                        "level": {
-                            "$ref": "#/definitions/LoggingLevel",
-                            "description": "The severity of this log message."
-                        },
-                        "logger": {
-                            "description": "An optional name of the logger issuing this message.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "data",
-                        "level"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/LoggingMessageNotificationParams",
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "LoggingMessageNotificationParams": {
+            "description": "Parameters for a `notifications/message` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "data": {
+                    "description": "The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here."
+                },
+                "level": {
+                    "$ref": "#/definitions/LoggingLevel",
+                    "description": "The severity of this log message."
+                },
+                "logger": {
+                    "description": "An optional name of the logger issuing this message.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "data",
+                "level"
             ],
             "type": "object"
         },
@@ -1597,20 +1647,31 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
                 "method"
             ],
+            "type": "object"
+        },
+        "NotificationParams": {
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                }
+            },
             "type": "object"
         },
         "NumberSchema": {
@@ -1656,7 +1717,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams"
+                    "$ref": "#/definitions/PaginatedRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1716,7 +1778,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/RequestParams"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/RequestParams"
+                        },
+                        {
+                            "additionalProperties": {},
+                            "type": "object"
+                        }
+                    ],
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1755,35 +1826,45 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "message": {
-                            "description": "An optional message describing the current progress.",
-                            "type": "string"
-                        },
-                        "progress": {
-                            "description": "The progress thus far. This should increase every time progress is made, even if the total is unknown.",
-                            "type": "number"
-                        },
-                        "progressToken": {
-                            "$ref": "#/definitions/ProgressToken",
-                            "description": "The progress token which was given in the initial request, used to associate this notification with the request that is proceeding."
-                        },
-                        "total": {
-                            "description": "Total number of items to process (or total progress required), if known.",
-                            "type": "number"
-                        }
-                    },
-                    "required": [
-                        "progress",
-                        "progressToken"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/ProgressNotificationParams",
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ProgressNotificationParams": {
+            "description": "Parameters for a `notifications/progress` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "message": {
+                    "description": "An optional message describing the current progress.",
+                    "type": "string"
+                },
+                "progress": {
+                    "description": "The progress thus far. This should increase every time progress is made, even if the total is unknown.",
+                    "type": "number"
+                },
+                "progressToken": {
+                    "$ref": "#/definitions/ProgressToken",
+                    "description": "The progress token which was given in the initial request, used to associate this notification with the request that is proceeding."
+                },
+                "total": {
+                    "description": "Total number of items to process (or total progress required), if known.",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "progress",
+                "progressToken"
             ],
             "type": "object"
         },
@@ -1871,15 +1952,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
@@ -1941,7 +2023,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/ReadResourceRequestParams"
+                    "$ref": "#/definitions/ReadResourceRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2010,7 +2093,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/RequestParams"
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/RequestParams"
+                        },
+                        {
+                            "additionalProperties": {},
+                            "type": "object"
+                        }
+                    ],
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2026,7 +2118,6 @@
             ]
         },
         "RequestParams": {
-            "additionalProperties": {},
             "description": "Common params for any request.",
             "properties": {
                 "_meta": {
@@ -2185,15 +2276,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2305,23 +2397,33 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/ResourceUpdatedNotificationParams",
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ResourceUpdatedNotificationParams": {
+            "description": "Parameters for a `notifications/resources/updated` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         },
@@ -2379,15 +2481,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2573,7 +2676,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/SetLevelRequestParams"
+                    "$ref": "#/definitions/SetLevelRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2659,7 +2763,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/SubscribeRequestParams"
+                    "$ref": "#/definitions/SubscribeRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2879,15 +2984,16 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/NotificationParams"
+                        },
+                        {
                             "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
                 }
             },
             "required": [
@@ -2911,7 +3017,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/UnsubscribeRequestParams"
+                    "$ref": "#/definitions/UnsubscribeRequestParams",
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
                 }
             },
             "required": [
