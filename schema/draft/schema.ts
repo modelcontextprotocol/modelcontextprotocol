@@ -48,7 +48,7 @@ export interface Request {
   /**
    * Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code
    */
-  params?: RequestParams | { [key: string]: unknown };
+  params?: { [key: string]: any };
 }
 
 /** @internal */
@@ -66,7 +66,7 @@ export interface Notification {
   /**
    * Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code
    */
-  params?: NotificationParams  | { [key: string]: unknown };
+  params?: { [key: string]: any };
 }
 
 export interface Result {

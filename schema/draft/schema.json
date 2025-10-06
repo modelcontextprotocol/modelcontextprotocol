@@ -1144,16 +1144,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -1211,16 +1204,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -1243,16 +1229,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/RequestParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -1448,16 +1427,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/RequestParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -1647,16 +1619,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -1778,16 +1743,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/RequestParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -1952,16 +1910,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -2093,16 +2044,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/RequestParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -2276,16 +2220,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -2481,16 +2418,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
@@ -2984,16 +2914,9 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/NotificationParams"
-                        },
-                        {
-                            "additionalProperties": {},
-                            "type": "object"
-                        }
-                    ],
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "additionalProperties": {},
+                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
+                    "type": "object"
                 }
             },
             "required": [
