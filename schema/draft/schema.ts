@@ -40,25 +40,33 @@ export interface RequestParams {
     progressToken?: ProgressToken;
     [key: string]: unknown;
   };
-  [key: string]: unknown;
 }
 
 /** @internal */
 export interface Request {
   method: string;
-  params?: RequestParams;
+  /**
+   * Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code
+   */
+  params?: RequestParams | { [key: string]: unknown };
 }
+
+/** @internal */
+export interface NotificationParams {
+  /**
+   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   */
+  _meta?: { [key: string]: unknown };
+}
+
 
 /** @internal */
 export interface Notification {
   method: string;
-  params?: {
-    /**
-     * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
-     */
-    _meta?: { [key: string]: unknown };
-    [key: string]: unknown;
-  };
+  /**
+   * Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code
+   */
+  params?: NotificationParams  | { [key: string]: unknown };
 }
 
 export interface Result {
@@ -142,6 +150,25 @@ export type EmptyResult = Result;
 
 /* Cancellation */
 /**
+ * Parameters for a `notifications/cancelled` notification.
+ *
+ * @category notifications/cancelled
+ */
+export interface CancelledNotificationParams extends NotificationParams {
+  /**
+   * The ID of the request to cancel.
+   *
+   * This MUST correspond to the ID of a request previously issued in the same direction.
+   */
+  requestId: RequestId;
+
+  /**
+   * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
+   */
+  reason?: string;
+}
+
+/**
  * This notification can be sent by either side to indicate that it is cancelling a previously-issued request.
  *
  * The request SHOULD still be in-flight, but due to communication latency, it is always possible that this notification MAY arrive after the request has already finished.
@@ -154,19 +181,7 @@ export type EmptyResult = Result;
  */
 export interface CancelledNotification extends JSONRPCNotification {
   method: "notifications/cancelled";
-  params: {
-    /**
-     * The ID of the request to cancel.
-     *
-     * This MUST correspond to the ID of a request previously issued in the same direction.
-     */
-    requestId: RequestId;
-
-    /**
-     * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
-     */
-    reason?: string;
-  };
+  params: CancelledNotificationParams;
 }
 
 /* Initialization */
@@ -409,6 +424,35 @@ export interface PingRequest extends JSONRPCRequest {
 }
 
 /* Progress notifications */
+
+/**
+ * Parameters for a `notifications/progress` notification.
+ *
+ * @category notifications/progress
+ */
+export interface ProgressNotificationParams extends NotificationParams {
+  /**
+   * The progress token which was given in the initial request, used to associate this notification with the request that is proceeding.
+   */
+  progressToken: ProgressToken;
+  /**
+   * The progress thus far. This should increase every time progress is made, even if the total is unknown.
+   *
+   * @TJS-type number
+   */
+  progress: number;
+  /**
+   * Total number of items to process (or total progress required), if known.
+   *
+   * @TJS-type number
+   */
+  total?: number;
+  /**
+   * An optional message describing the current progress.
+   */
+  message?: string;
+}
+
 /**
  * An out-of-band notification used to inform the receiver of a progress update for a long-running request.
  *
@@ -416,28 +460,7 @@ export interface PingRequest extends JSONRPCRequest {
  */
 export interface ProgressNotification extends JSONRPCNotification {
   method: "notifications/progress";
-  params: {
-    /**
-     * The progress token which was given in the initial request, used to associate this notification with the request that is proceeding.
-     */
-    progressToken: ProgressToken;
-    /**
-     * The progress thus far. This should increase every time progress is made, even if the total is unknown.
-     *
-     * @TJS-type number
-     */
-    progress: number;
-    /**
-     * Total number of items to process (or total progress required), if known.
-     *
-     * @TJS-type number
-     */
-    total?: number;
-    /**
-     * An optional message describing the current progress.
-     */
-    message?: string;
-  };
+  params: ProgressNotificationParams;
 }
 
 /* Pagination */
@@ -587,20 +610,27 @@ export interface UnsubscribeRequest extends JSONRPCRequest {
 }
 
 /**
+ * Parameters for a `notifications/resources/updated` notification.
+ *
+ * @category notifications/resources/updated
+ */
+export interface ResourceUpdatedNotificationParams extends NotificationParams {
+  /**
+   * The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
  *
  * @category notifications/resources/updated
  */
 export interface ResourceUpdatedNotification extends JSONRPCNotification {
   method: "notifications/resources/updated";
-  params: {
-    /**
-     * The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.
-     *
-     * @format uri
-     */
-    uri: string;
-  };
+  params: ResourceUpdatedNotificationParams;
 }
 
 /**
@@ -1070,26 +1100,33 @@ export interface SetLevelRequest extends JSONRPCRequest {
 }
 
 /**
+ * Parameters for a `notifications/message` notification.
+ *
+ * @category notifications/message
+ */
+export interface LoggingMessageNotificationParams extends NotificationParams {
+  /**
+   * The severity of this log message.
+   */
+  level: LoggingLevel;
+  /**
+   * An optional name of the logger issuing this message.
+   */
+  logger?: string;
+  /**
+   * The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here.
+   */
+  data: unknown;
+}
+
+/**
  * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
  *
  * @category notifications/message
  */
 export interface LoggingMessageNotification extends JSONRPCNotification {
   method: "notifications/message";
-  params: {
-    /**
-     * The severity of this log message.
-     */
-    level: LoggingLevel;
-    /**
-     * An optional name of the logger issuing this message.
-     */
-    logger?: string;
-    /**
-     * The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here.
-     */
-    data: unknown;
-  };
+  params: LoggingMessageNotificationParams;
 }
 
 /**
