@@ -29,7 +29,7 @@ export type Cursor = string;
 /**
  * Common params for any request.
  */
-export interface BaseRequestParams {
+export interface RequestParams {
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
@@ -40,12 +40,13 @@ export interface BaseRequestParams {
     progressToken?: ProgressToken;
     [key: string]: unknown;
   };
+  [key: string]: unknown;
 }
 
 /** @internal */
 export interface Request {
   method: string;
-  params?: BaseRequestParams;
+  params?: RequestParams;
 }
 
 /** @internal */
@@ -170,9 +171,11 @@ export interface CancelledNotification extends JSONRPCNotification {
 
 /* Initialization */
 /**
+ * Parameters for an `initialize` request.
+ *
  * @category initialize
  */
-export interface InitializeParams extends BaseRequestParams {
+export interface InitializeRequestParams extends RequestParams {
   /**
    * The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
    */
@@ -188,7 +191,7 @@ export interface InitializeParams extends BaseRequestParams {
  */
 export interface InitializeRequest extends JSONRPCRequest {
   method: "initialize";
-  params: InitializeParams;
+  params: InitializeRequestParams;
 }
 
 /**
@@ -439,9 +442,9 @@ export interface ProgressNotification extends JSONRPCNotification {
 
 /* Pagination */
 /**
- * Common parameters for paginated requests
+ * Common parameters for paginated requests.
  */
-export interface PaginatedRequestParams extends BaseRequestParams {
+export interface PaginatedRequestParams extends RequestParams {
   /**
    * An opaque token representing the current pagination position.
    * If provided, the server should return results starting after this cursor.
@@ -501,18 +504,25 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
 }
 
 /**
- * Common parameters when working with resources
+ * Common parameters when working with resources.
  *
- * @category resources/read
+ * @internal
  */
-export interface ResourceParams extends BaseRequestParams {
+export interface ResourceRequestParams extends RequestParams {
   /**
-   * The URI of the resource to read, subscribe to, or unsubscribe from. The URI can use any protocol; it is up to the server how to interpret it.
+   * The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.
    *
    * @format uri
    */
   uri: string;
 }
+
+/**
+ * Parameters for a `resources/read` request.
+ *
+ * @category resources/read
+ */
+export interface ReadResourceRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -521,7 +531,7 @@ export interface ResourceParams extends BaseRequestParams {
  */
 export interface ReadResourceRequest extends JSONRPCRequest {
   method: "resources/read";
-  params: ResourceParams;
+  params: ReadResourceRequestParams;
 }
 
 /**
@@ -543,14 +553,28 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
 }
 
 /**
+ * Parameters for a `resources/subscribe` request.
+ *
+ * @category resources/subscribe
+ */
+export interface SubscribeRequestParams extends ResourceRequestParams {}
+
+/**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
  *
  * @category resources/subscribe
  */
 export interface SubscribeRequest extends JSONRPCRequest {
   method: "resources/subscribe";
-  params: ResourceParams;
+  params: SubscribeRequestParams;
 }
+
+/**
+ * Parameters for a `resources/unsubscribe` request.
+ *
+ * @category resources/unsubscribe
+ */
+export interface UnsubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
@@ -559,7 +583,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
  */
 export interface UnsubscribeRequest extends JSONRPCRequest {
   method: "resources/unsubscribe";
-  params: ResourceParams;
+  params: UnsubscribeRequestParams;
 }
 
 /**
@@ -711,15 +735,17 @@ export interface ListPromptsResult extends PaginatedResult {
 }
 
 /**
- * Common parameters used when making an optionally parameterized request
+ * Parameters for a `prompts/get` request.
+ *
+ * @category prompts/get
  */
-export interface ParameterizedRequestParams extends BaseRequestParams {
+export interface GetPromptRequestParams extends RequestParams {
   /**
-   * The name of the tool, prompt, or prompt template.
+   * The name of the prompt or prompt template.
    */
   name: string;
   /**
-   * Arguments to use for the tool call or for templating the prompt.
+   * Arguments to use for templating the prompt.
    */
   arguments?: { [key: string]: string };
 }
@@ -731,7 +757,7 @@ export interface ParameterizedRequestParams extends BaseRequestParams {
  */
 export interface GetPromptRequest extends JSONRPCRequest {
   method: "prompts/get";
-  params: ParameterizedRequestParams;
+  params: GetPromptRequestParams;
 }
 
 /**
@@ -888,13 +914,29 @@ export interface CallToolResult extends Result {
 }
 
 /**
+ * Parameters for a `tools/call` request.
+ *
+ * @category tools/call
+ */
+export interface CallToolRequestParams extends RequestParams {
+  /**
+   * The name of the tool.
+   */
+  name: string;
+  /**
+   * Arguments to use for the tool call.
+   */
+  arguments?: { [key: string]: string };
+}
+
+/**
  * Used by the client to invoke a tool provided by the server.
  *
  * @category tools/call
  */
 export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
-  params: ParameterizedRequestParams;
+  params: CallToolRequestParams;
 }
 
 /**
@@ -1006,10 +1048,11 @@ export interface Tool extends BaseMetadata, Icons {
 /* Logging */
 
 /**
+ * Parameters for a `logging/setLevel` request.
  *
  * @category logging/setLevel
  */
-export interface LevelParams extends BaseRequestParams {
+export interface SetLevelRequestParams extends RequestParams {
   /**
    * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
    */
@@ -1023,7 +1066,7 @@ export interface LevelParams extends BaseRequestParams {
  */
 export interface SetLevelRequest extends JSONRPCRequest {
   method: "logging/setLevel";
-  params: LevelParams;
+  params: SetLevelRequestParams;
 }
 
 /**
@@ -1067,10 +1110,11 @@ export type LoggingLevel =
 
 /* Sampling */
 /**
+ * Parameters for a `sampling/createMessage` request.
  *
  * @category sampling/createMessage
  */
-export interface CreateMessageParams extends BaseRequestParams {
+export interface CreateMessageRequestParams extends RequestParams {
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -1108,7 +1152,7 @@ export interface CreateMessageParams extends BaseRequestParams {
  */
 export interface CreateMessageRequest extends JSONRPCRequest {
   method: "sampling/createMessage";
-  params: CreateMessageParams;
+  params: CreateMessageRequestParams;
 }
 
 /**
@@ -1339,10 +1383,11 @@ export interface ModelHint {
 
 /* Autocomplete */
 /**
+ * Parameters for a `completion/complete` request.
  *
  * @category completion/complete
  */
-export interface CompletionParams extends BaseRequestParams {
+export interface CompleteRequestParams extends RequestParams {
   ref: PromptReference | ResourceTemplateReference;
   /**
    * The argument's information
@@ -1376,7 +1421,7 @@ export interface CompletionParams extends BaseRequestParams {
  */
 export interface CompleteRequest extends JSONRPCRequest {
   method: "completion/complete";
-  params: CompletionParams;
+  params: CompleteRequestParams;
 }
 
 /**
@@ -1485,10 +1530,11 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
 }
 
 /**
+ * Parameters for an `elicitation/create` request.
  *
  * @category elicitation/create
  */
-export interface ElicitationParams extends BaseRequestParams {
+export interface ElicitRequestParams extends RequestParams {
   /**
    * The message to present to the user.
    */
@@ -1513,7 +1559,7 @@ export interface ElicitationParams extends BaseRequestParams {
  */
 export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
-  params: ElicitationParams;
+  params: ElicitRequestParams;
 }
 
 /**
