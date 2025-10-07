@@ -44,6 +44,8 @@ export interface Request {
   };
 }
 
+type RequestParamsBase = NonNullable<Request["params"]>;
+
 /** @internal */
 export interface Notification {
   method: string;
@@ -172,7 +174,7 @@ export interface CancelledNotification extends JSONRPCNotification {
  */
 export interface InitializeRequest extends JSONRPCRequest {
   method: "initialize";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
      */
@@ -431,7 +433,7 @@ export interface ProgressNotification extends JSONRPCNotification {
 /* Pagination */
 /** @internal */
 export interface PaginatedRequest extends JSONRPCRequest {
-  params?: {
+  params?: RequestParamsBase & {
     /**
      * An opaque token representing the current pagination position.
      * If provided, the server should return results starting after this cursor.
@@ -493,7 +495,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  */
 export interface ReadResourceRequest extends JSONRPCRequest {
   method: "resources/read";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.
      *
@@ -528,7 +530,7 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
  */
 export interface SubscribeRequest extends JSONRPCRequest {
   method: "resources/subscribe";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
      *
@@ -545,7 +547,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
  */
 export interface UnsubscribeRequest extends JSONRPCRequest {
   method: "resources/unsubscribe";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The URI of the resource to unsubscribe from.
      *
@@ -710,7 +712,7 @@ export interface ListPromptsResult extends PaginatedResult {
  */
 export interface GetPromptRequest extends JSONRPCRequest {
   method: "prompts/get";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The name of the prompt or prompt template.
      */
@@ -882,7 +884,7 @@ export interface CallToolResult extends Result {
  */
 export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
-  params: {
+  params: RequestParamsBase & {
     name: string;
     arguments?: { [key: string]: unknown };
   };
@@ -1002,7 +1004,7 @@ export interface Tool extends BaseMetadata, Icons {
  */
 export interface SetLevelRequest extends JSONRPCRequest {
   method: "logging/setLevel";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message.
      */
@@ -1057,7 +1059,7 @@ export type LoggingLevel =
  */
 export interface CreateMessageRequest extends JSONRPCRequest {
   method: "sampling/createMessage";
-  params: {
+  params: RequestParamsBase & {
     messages: SamplingMessage[];
     /**
      * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -1323,7 +1325,7 @@ export interface ModelHint {
  */
 export interface CompleteRequest extends JSONRPCRequest {
   method: "completion/complete";
-  params: {
+  params: RequestParamsBase & {
     ref: PromptReference | ResourceTemplateReference;
     /**
      * The argument's information
@@ -1463,7 +1465,7 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  */
 export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
-  params: {
+  params: RequestParamsBase & {
     /**
      * The message to present to the user.
      */
