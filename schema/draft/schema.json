@@ -2732,7 +2732,7 @@
                     "type": "boolean"
                 },
                 "idempotentHint": {
-                    "description": "If true, calling the tool repeatedly with the same arguments\nwill have no additional effect on the its environment.\n\n(This property is meaningful only when `readOnlyHint == false`)\n\nDefault: false",
+                    "description": "If true, calling the tool repeatedly with the same arguments\nwill have no additional effect on its environment.\n\n(This property is meaningful only when `readOnlyHint == false`)\n\nDefault: false",
                     "type": "boolean"
                 },
                 "openWorldHint": {

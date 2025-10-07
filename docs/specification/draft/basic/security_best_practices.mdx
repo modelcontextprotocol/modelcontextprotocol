@@ -399,3 +399,49 @@ MCP proxy servers implementing OAuth flows **MUST**:
 - Ensure `state` values are single-use (delete after validation) and have a short expiration time (e.g., 10 minutes)
 
 The consent cookie or session containing the `state` value **MUST NOT** be set until **after** the user has approved the consent screen at the MCP server's authorization endpoint. Setting this cookie before consent approval renders the consent screen ineffective, as an attacker could bypass it by crafting a malicious authorization request.
+
+### Scope Minimization
+
+Poor scope design increases token compromise impact, elevates user friction, and obscures audit trails.
+
+#### Attack Description
+
+An attacker obtains (via log leakage, memory scraping, or local interception) an access token carrying broad scopes (`files:*`, `db:*`, `admin:*`) that were granted up front because the MCP server exposed every scope in `scopes_supported` and the client requested them all. The token enables lateral data access, privilege chaining, and difficult revocation without re-consenting the entire surface.
+
+#### Risks
+
+- Expanded blast radius: stolen broad token enables unrelated tool/resource access
+- Higher friction on revocation: revoking a max-privilege token disrupts all workflows
+- Audit noise: single omnibus scope masks user intent per operation
+- Privilege chaining: attacker can immediately invoke high-risk tools without further elevation prompts
+- Consent abandonment: users decline dialogs listing excessive scopes
+- Scope inflation blindness: lack of metrics makes over-broad requests normalised
+
+#### Mitigation
+
+Implement a progressive, least-privilege scope model:
+
+- Minimal initial scope set (e.g., `mcp:tools-basic`) containing only low-risk discovery/read operations
+- Incremental elevation via targeted `WWW-Authenticate` `scope="..."` challenges when privileged operations are first attempted
+- Down-scoping tolerance: server should accept reduced scope tokens; auth server MAY issue a subset of requested scopes
+
+Server guidance:
+
+- Emit precise scope challenges; avoid returning the full catalog
+- Log elevation events (scope requested, granted subset) with correlation IDs
+
+Client guidance:
+
+- Begin with only baseline scopes (or those specified by initial `WWW-Authenticate`)
+- Cache recent failures to avoid repeated elevation loops for denied scopes
+
+#### Common Mistakes
+
+- Publishing all possible scopes in `scopes_supported`
+- Using wildcard or omnibus scopes (`*`, `all`, `full-access`)
+- Bundling unrelated privileges to preempt future prompts
+- Returning entire scope catalog in every challenge
+- Silent scope semantic changes without versioning
+- Treating claimed scopes in token as sufficient without server-side authorization logic
+
+Proper minimization constrains compromise impact, improves audit clarity, and reduces consent churn.

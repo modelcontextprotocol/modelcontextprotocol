@@ -372,10 +372,6 @@
       "destination": "/docs/learn/architecture"
     },
     {
-      "source": "/docs/tools",
-      "destination": "/legacy/tools/inspector"
-    },
-    {
       "source": "/docs/tutorials/use-remote-mcp-server",
       "destination": "/docs/develop/connect-remote-servers"
     },
