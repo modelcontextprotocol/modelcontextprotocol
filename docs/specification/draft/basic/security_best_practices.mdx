@@ -358,18 +358,6 @@ MCP proxy servers **MUST**:
 - Check this registry **before** initiating the third-party authorization flow
 - Store consent decisions securely (server-side database, not just cookies)
 
-Example consent record:
-
-```json
-{
-  "user_id": "user123",
-  "client_id": "mcp-client-abc",
-  "approved_scopes": ["read:data"],
-  "timestamp": "2025-10-01T12:00:00Z",
-  "redirect_uri": "https://client.example.com/callback"
-}
-```
-
 **Consent UI Requirements**
 
 The MCP-level consent page **MUST**:
@@ -389,14 +377,6 @@ If using cookies to track consent decisions, they **MUST**:
 - Be cryptographically signed or use server-side sessions
 - Bind to the specific `client_id` (not just "user has consented")
 
-**Scope Changes**
-
-If a previously-approved client requests **different or broader scopes**:
-
-- The MCP server **MUST** force re-consent
-- Store scope fingerprints (e.g., hash of sorted scope list) with each approval
-- Compare requested scopes against stored fingerprint on each authorization
-
 **Redirect URI Validation**
 
 The MCP proxy server **MUST**:
@@ -404,3 +384,18 @@ The MCP proxy server **MUST**:
 - Validate that the `redirect_uri` in authorization requests exactly matches the registered URI
 - Reject requests if the `redirect_uri` has changed without re-registration
 - Use exact string matching (not pattern matching or wildcards)
+
+#### OAuth State Parameter Validation
+
+The OAuth `state` parameter is critical to prevent authorization code interception and CSRF attacks. Proper state validation ensures that consent approval at the authorization endpoint is enforced at the callback endpoint.
+
+MCP proxy servers implementing OAuth flows **MUST**:
+
+- Generate a cryptographically secure random `state` value for each authorization request
+- Store the `state` value server-side (in a secure session store or encrypted cookie) **only after** consent has been explicitly approved
+- Set the `state` tracking cookie/session **immediately before** redirecting to the third-party identity provider (not before consent approval)
+- Validate at the callback endpoint that the `state` query parameter exactly matches the stored value
+- Reject any callback requests where the `state` parameter is missing or does not match
+- Ensure `state` values are single-use (delete after validation) and have a short expiration time (e.g., 10 minutes)
+
+The consent cookie or session containing the `state` value **MUST NOT** be set until **after** the user has approved the consent screen at the MCP server's authorization endpoint. Setting this cookie before consent approval renders the consent screen ineffective, as an attacker could bypass it by crafting a malicious authorization request.
