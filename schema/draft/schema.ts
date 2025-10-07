@@ -45,9 +45,7 @@ export interface RequestParams {
 /** @internal */
 export interface Request {
   method: string;
-  /**
-   * Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code
-   */
+  // Allow unofficial extensions of `Request.params` without impacting `RequestParams`.
   params?: { [key: string]: any };
 }
 
@@ -63,9 +61,7 @@ export interface NotificationParams {
 /** @internal */
 export interface Notification {
   method: string;
-  /**
-   * Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code
-   */
+  // Allow unofficial extensions of `Notification.params` without impacting `NotificationParams`.
   params?: { [key: string]: any };
 }
 
