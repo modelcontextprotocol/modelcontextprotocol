@@ -138,8 +138,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CallToolRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/CallToolRequestParams"
                 }
             },
             "required": [
@@ -223,8 +222,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CancelledNotificationParams",
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "$ref": "#/definitions/CancelledNotificationParams"
                 }
             },
             "required": [
@@ -383,8 +381,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CompleteRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/CompleteRequestParams"
                 }
             },
             "required": [
@@ -528,8 +525,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/CreateMessageRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/CreateMessageRequestParams"
                 }
             },
             "required": [
@@ -662,8 +658,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/ElicitRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/ElicitRequestParams"
                 }
             },
             "required": [
@@ -864,8 +859,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/GetPromptRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/GetPromptRequestParams"
                 }
             },
             "required": [
@@ -1058,8 +1052,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/InitializeRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/InitializeRequestParams"
                 }
             },
             "required": [
@@ -1145,7 +1138,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1205,7 +1197,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1230,7 +1221,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1277,8 +1267,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1327,8 +1316,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1377,8 +1365,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1428,7 +1415,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1474,8 +1460,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1535,8 +1520,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/LoggingMessageNotificationParams",
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "$ref": "#/definitions/LoggingMessageNotificationParams"
                 }
             },
             "required": [
@@ -1620,7 +1604,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1682,8 +1665,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/PaginatedRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1744,7 +1726,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1784,8 +1765,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/ProgressNotificationParams",
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "$ref": "#/definitions/ProgressNotificationParams"
                 }
             },
             "required": [
@@ -1911,7 +1891,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -1974,8 +1953,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/ReadResourceRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/ReadResourceRequestParams"
                 }
             },
             "required": [
@@ -2045,7 +2023,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -2221,7 +2198,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -2334,8 +2310,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/ResourceUpdatedNotificationParams",
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code"
+                    "$ref": "#/definitions/ResourceUpdatedNotificationParams"
                 }
             },
             "required": [
@@ -2419,7 +2394,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -2606,8 +2580,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/SetLevelRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/SetLevelRequestParams"
                 }
             },
             "required": [
@@ -2693,8 +2666,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/SubscribeRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/SubscribeRequestParams"
                 }
             },
             "required": [
@@ -2915,7 +2887,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "description": "Intended to enable unofficial extensions of `NotificationParams` without negatively impacting how a `Notification` is validated by intermediary code",
                     "type": "object"
                 }
             },
@@ -2940,8 +2911,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/UnsubscribeRequestParams",
-                    "description": "Intended to enable unofficial extensions of `RequestParams` without negatively impacting how a `Request` is validated by intermediary code"
+                    "$ref": "#/definitions/UnsubscribeRequestParams"
                 }
             },
             "required": [
