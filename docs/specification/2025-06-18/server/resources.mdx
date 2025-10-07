@@ -286,8 +286,6 @@ Resources can contain either text or binary data:
 ```json
 {
   "uri": "file:///example.txt",
-  "name": "example.txt",
-  "title": "Example Text File",
   "mimeType": "text/plain",
   "text": "Resource content"
 }
@@ -298,8 +296,6 @@ Resources can contain either text or binary data:
 ```json
 {
   "uri": "file:///example.png",
-  "name": "example.png",
-  "title": "Example Image",
   "mimeType": "image/png",
   "blob": "base64-encoded-data"
 }
@@ -312,6 +308,7 @@ Resources, resource templates and content blocks support optional annotations th
 - **`audience`**: An array indicating the intended audience(s) for this resource. Valid values are `"user"` and `"assistant"`. For example, `["user", "assistant"]` indicates content useful for both.
 - **`priority`**: A number from 0.0 to 1.0 indicating the importance of this resource. A value of 1 means "most important" (effectively required), while 0 means "least important" (entirely optional).
 - **`lastModified`**: An ISO 8601 formatted timestamp indicating when the resource was last modified (e.g., `"2025-01-12T15:00:58Z"`).
+- **`title`**: Intended for UI and end-user contexts — optimized to be human-readable and easily understood, even by those unfamiliar with domain-specific terminology.
 
 Example resource with annotations:
 
