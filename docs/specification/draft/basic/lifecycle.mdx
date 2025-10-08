@@ -48,7 +48,8 @@ During this phase, the client and server:
 
 The client **MUST** initiate this phase by sending an `initialize` request containing:
 
-- Protocol version supported
+- Preferred protocol version
+- Optionally, the set of protocol versions supported
 - Client capabilities
 - Client implementation information
 
@@ -58,7 +59,8 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
   "id": 1,
   "method": "initialize",
   "params": {
-    "protocolVersion": "2024-11-05",
+    "protocolVersion": "2025-06-18",
+    "supportedProtocolVersions": ["2025-03-26", "2025-06-18"],
     "capabilities": {
       "roots": {
         "listChanged": true
@@ -142,12 +144,15 @@ to indicate it is ready to begin normal operations:
 
 #### Version Negotiation
 
-In the `initialize` request, the client **MUST** send a protocol version it supports.
+In the `initialize` request, the client **MUST** send a preferred protocol version it supports.
 This **SHOULD** be the _latest_ version supported by the client.
+The client **MAY** also send a set of supported protocol versions.
 
-If the server supports the requested protocol version, it **MUST** respond with the same
-version. Otherwise, the server **MUST** respond with another protocol version it
-supports. This **SHOULD** be the _latest_ version supported by the server.
+If the server supports the preferred protocol version, it **MUST** respond with the same
+version. If the client supplied additional supported protocol versions, the server **MUST**
+respond with one of the protocol versions supported by the client. Otherwise, the server
+**MUST** respond with another protocol version it supports. This **SHOULD** be the _latest_
+version supported by the server.
 
 If the client does not support the version in the server's response, it **SHOULD**
 disconnect.
