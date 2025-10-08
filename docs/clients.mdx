@@ -80,10 +80,10 @@ This page provides an overview of applications that support the Model Context Pr
 | [Postman][postman]                               | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [RecurseChat][RecurseChat]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Roo Code][Roo Code]                             | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
-| [Smithery Playground][Smithery]                  | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Shortwave][Shortwave]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Simtheory][Simtheory]                           | ✅          | ✅        | ✅      | ✅                     | ❌         | ❌    | ❓            |
 | [Slack MCP Client][Slack MCP Client]             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Smithery Playground][Smithery]                  | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [SpinAI][SpinAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Superinterface][Superinterface]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Superjoin][Superjoin]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
@@ -180,6 +180,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Shortwave]: https://www.shortwave.com
 [Simtheory]: https://simtheory.ai
 [Slack MCP Client]: https://github.com/tuannvm/slack-mcp-client
+[Smithery Playground]: https://smithery.ai/playground
 [SpinAI]: https://spinai.dev
 [Superinterface]: https://superinterface.ai
 [Superjoin]: https://superjoin.ai
@@ -1043,6 +1044,16 @@ Simtheory is an agentic AI workspace that unifies multiple AI models, tools, and
 
 - [Simtheory website](https://simtheory.ai)
 
+### Slack MCP Client
+
+[Slack MCP Client](https://github.com/tuannvm/slack-mcp-client) acts as a bridge between Slack and Model Context Protocol (MCP) servers. Using Slack as the interface, it enables large language models (LLMs) to connect and interact with various MCP servers through standardized MCP tools.
+
+**Key features:**
+
+- **Supports Popular LLM Providers:** Integrates seamlessly with leading large language model providers such as OpenAI, Anthropic, and Ollama, allowing users to leverage advanced conversational AI and orchestration capabilities within Slack.
+- **Dynamic and Secure Integration:** Supports dynamic registration of MCP tools, works in both channels and direct messages and manages credentials securely via environment variables or Kubernetes secrets.
+- **Easy Deployment and Extensibility:** Offers official Docker images, a Helm chart for Kubernetes, and Docker Compose for local development, making it simple to deploy, configure, and extend with additional MCP servers or tools.
+
 ### Smithery Playground
 
 Smithery Playground is a developer-first MCP client for exploring, testing and debugging MCP servers against LLMs. It provides detailed traces of MCP RPCs to help troubleshoot implementation issues.
@@ -1054,16 +1065,6 @@ Smithery Playground is a developer-first MCP client for exploring, testing and d
 - Inspect tools, prompts, resources, and sampling configurations with live previews
 - Run conversational or raw tool calls to verify MCP behavior before shipping
 - Full OAuth MCP-spec support
-
-### Slack MCP Client
-
-[Slack MCP Client](https://github.com/tuannvm/slack-mcp-client) acts as a bridge between Slack and Model Context Protocol (MCP) servers. Using Slack as the interface, it enables large language models (LLMs) to connect and interact with various MCP servers through standardized MCP tools.
-
-**Key features:**
-
-- **Supports Popular LLM Providers:** Integrates seamlessly with leading large language model providers such as OpenAI, Anthropic, and Ollama, allowing users to leverage advanced conversational AI and orchestration capabilities within Slack.
-- **Dynamic and Secure Integration:** Supports dynamic registration of MCP tools, works in both channels and direct messages and manages credentials securely via environment variables or Kubernetes secrets.
-- **Easy Deployment and Extensibility:** Offers official Docker images, a Helm chart for Kubernetes, and Docker Compose for local development, making it simple to deploy, configure, and extend with additional MCP servers or tools.
 
 ### SpinAI
 
