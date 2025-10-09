@@ -1856,6 +1856,17 @@ tail -n 20 -f ~/Library/Logs/Claude/mcp*.log
 2. Make sure the path to your project is absolute and not relative
 3. Restart Claude for Desktop completely
 
+<Warning>
+
+To properly restart Claude for Desktop, you must fully quit the application:
+
+- **Windows**: Right-click the Claude icon in the system tray (which may be hidden in the "hidden icons" menu) and select "Quit" or "Exit".
+- **macOS**: Use Cmd+Q or select "Quit Claude" from the menu bar.
+
+Simply closing the window does not fully quit the application, and your MCP server configuration changes will not take effect.
+
+</Warning>
+
 **Tool calls failing silently**
 
 If Claude attempts to use the tools but they fail:
