@@ -26,6 +26,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [BoltAI][BoltAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Call Chirp][Call Chirp]                         | ❌          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [Chatbox][Chatbox]                               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❌            |
+| [ChatFrame][ChatFrame]                           | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❌            |
 | [ChatGPT][ChatGPT]                               | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [ChatWise][ChatWise]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [Claude.ai][Claude.ai]                           | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
@@ -83,6 +84,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [Shortwave][Shortwave]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Simtheory][Simtheory]                           | ✅          | ✅        | ✅      | ✅                     | ❌         | ❌    | ❓            |
 | [Slack MCP Client][Slack MCP Client]             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [Smithery Playground][Smithery Playground]       | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [SpinAI][SpinAI]                                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Superinterface][Superinterface]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Superjoin][Superjoin]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
@@ -125,6 +127,7 @@ This page provides an overview of applications that support the Model Context Pr
 [BoltAI]: https://boltai.com
 [Call Chirp]: https://www.call-chirp.com
 [Chatbox]: https://chatboxai.app
+[ChatFrame]: https://chatframe.co
 [ChatGPT]: https://chatgpt.com
 [ChatWise]: https://chatwise.app
 [Claude.ai]: https://claude.ai
@@ -179,6 +182,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Shortwave]: https://www.shortwave.com
 [Simtheory]: https://simtheory.ai
 [Slack MCP Client]: https://github.com/tuannvm/slack-mcp-client
+[Smithery Playground]: https://smithery.ai/playground
 [SpinAI]: https://spinai.dev
 [Superinterface]: https://superinterface.ai
 [Superjoin]: https://superjoin.ai
@@ -368,6 +372,17 @@ Chatbox is a better UI and desktop app for ChatGPT, Claude, and other LLMs, avai
 - Tools support for MCP servers
 - Support both local and remote MCP servers
 - Built-in MCP servers marketplace
+
+### ChatFrame
+
+A cross-platform desktop chatbot that unifies access to multiple AI language models, supports custom tool integration via MCP servers, and enables RAG conversations with your local files—all in a single, polished app for macOS and Windows.
+
+**Key features:**
+
+- Unified access to top LLM providers (OpenAI, Anthropic, DeepSeek, xAI, and more) in one interface
+- Built-in retrieval-augmented generation (RAG) for instant, private search across your PDFs, text, and code files
+- Plug-in system for custom tools via Model Context Protocol (MCP) servers
+- Multimodal chat: supports images, text, and live interactive artifacts
 
 ### ChatGPT
 
@@ -1051,6 +1066,18 @@ Simtheory is an agentic AI workspace that unifies multiple AI models, tools, and
 - **Supports Popular LLM Providers:** Integrates seamlessly with leading large language model providers such as OpenAI, Anthropic, and Ollama, allowing users to leverage advanced conversational AI and orchestration capabilities within Slack.
 - **Dynamic and Secure Integration:** Supports dynamic registration of MCP tools, works in both channels and direct messages and manages credentials securely via environment variables or Kubernetes secrets.
 - **Easy Deployment and Extensibility:** Offers official Docker images, a Helm chart for Kubernetes, and Docker Compose for local development, making it simple to deploy, configure, and extend with additional MCP servers or tools.
+
+### Smithery Playground
+
+Smithery Playground is a developer-first MCP client for exploring, testing and debugging MCP servers against LLMs. It provides detailed traces of MCP RPCs to help troubleshoot implementation issues.
+
+**Key features:**
+
+- One-click connect to MCP servers via URL or from Smithery's registry
+- Develop MCP servers that are running on localhost
+- Inspect tools, prompts, resources, and sampling configurations with live previews
+- Run conversational or raw tool calls to verify MCP behavior before shipping
+- Full OAuth MCP-spec support
 
 ### SpinAI
 
