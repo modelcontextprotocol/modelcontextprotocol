@@ -12,13 +12,13 @@ title: Authorization
 
 The Model Context Protocol provides authorization capabilities at the transport level,
 enabling MCP clients to make requests to restricted MCP servers on behalf of resource
-owners. This specification defines the authorization flow for HTTP-based transports.
+owners. This specification defines the authorization flow for HTTP-based and WebSocket transports.
 
 ### Protocol Requirements
 
 Authorization is **OPTIONAL** for MCP implementations. When supported:
 
-- Implementations using an HTTP-based transport **SHOULD** conform to this specification.
+- Implementations using HTTP-based or WebSocket transports **SHOULD** conform to this specification.
 - Implementations using an STDIO transport **SHOULD NOT** follow this specification, and
   instead retrieve credentials from the environment.
 - Implementations using alternative transports **MUST** follow established security best
@@ -320,27 +320,38 @@ MCP clients **MUST** send this parameter regardless of whether authorization ser
 
 Access token handling when making requests to MCP servers **MUST** conform to the requirements defined in
 [OAuth 2.1 Section 5 "Resource Requests"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5).
-Specifically:
 
-1. MCP client **MUST** use the Authorization request header field defined in
-   [OAuth 2.1 Section 5.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.1):
+#### Transport-Specific Token Transmission
 
-```
+**Streamable HTTP Transport:**
+
+MCP clients **MUST** include access tokens in the `Authorization` header as specified in [OAuth 2.1 Section 5.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.1):
+
+```http
 Authorization: Bearer <access-token>
 ```
 
-Note that authorization **MUST** be included in every HTTP request from client to server,
-even if they are part of the same logical session.
-
-2. Access tokens **MUST NOT** be included in the URI query string
+Access tokens **MUST NOT** be included in the URI query string for HTTP transport.
 
 Example request:
-
 ```http
 GET /mcp HTTP/1.1
 Host: mcp.example.com
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
+
+**WebSocket Transport:**
+
+Due to browser WebSocket API limitations that prevent setting headers during the WebSocket upgrade request, auth tokens are smuggled in using the WebSocket subprotocol list.
+
+```javascript
+const ws = new WebSocket('wss://mcp.example.com/mcp', ['mcp', `mcp.auth.${token}`]);
+```
+
+- Authorization **MUST** be validated during the initial WebSocket upgrade request before accepting the WebSocket connection.
+- Upgrade requests with invalid authorization **MUST** be rejected with HTTP 401 Unauthorized.
+- Server **MUST** treat the `mcp.auth.${token}` the same way it would an `Authorization: Bearer ${token}` header in the Streamable HTTP protocol and validate it accordingly.
+- Server **MUST** respond with the `mcp` as the chosen subprotocol, not `mcp.auth.${token}`.
 
 #### Token Handling
 
