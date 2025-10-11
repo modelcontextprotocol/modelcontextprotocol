@@ -18,7 +18,7 @@ This section gives a detailed description of attacks on MCP implementations, alo
 
 ### Confused Deputy Problem
 
-Attackers can exploit MCP servers proxying other resource servers, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities.
+Attackers can exploit MCP proxy servers that connect to third-party APIs, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities. This attack allows malicious clients to obtain authorization codes without proper user consent by exploiting the combination of static client IDs, dynamic client registration, and consent cookies.
 
 #### Terminology
 
@@ -37,6 +37,15 @@ API requires tokens issued by the third-party authorization server.
 the third-party authorization server. This Client ID refers to the MCP server acting as a client
 to the Third-Party API. It is the same value for all MCP server to Third-Party API interactions regardless of
 which MCP client initiated the request.
+
+#### Vulnerable Conditions
+
+This attack becomes possible when all of the following conditions are present:
+
+- MCP proxy server uses a **static client ID** with a third-party authorization server
+- MCP proxy server allows MCP clients to **dynamically register** (each getting their own client_id)
+- The third-party authorization server sets a **consent cookie** after the first authorization
+- MCP proxy server does not implement proper per-client consent before forwarding to third-party authorization
 
 #### Architecture and Attack Flows
 
@@ -99,8 +108,7 @@ sequenceDiagram
 #### Attack Description
 
 When an MCP proxy server uses a static client ID to authenticate with a third-party
-authorization server that does not support dynamic client registration, the following
-attack becomes possible:
+authorization server, the following attack becomes possible:
 
 1. A user authenticates normally through the MCP proxy server to access the third-party API
 2. During this flow, the third-party authorization server sets a cookie on the user agent
@@ -114,26 +122,9 @@ attack becomes possible:
 
 #### Mitigation
 
-MCP proxy servers using static client IDs **MUST** obtain user consent for each dynamically
-registered client before forwarding to third-party authorization servers (which may require additional consent).
+To prevent confused deputy attacks, MCP proxy servers **MUST** implement per-client consent and proper security controls as detailed below.
 
-### Per-Client Consent for Proxy Servers
-
-As described in the [Confused Deputy Problem](#confused-deputy-problem) section, MCP proxy servers using a static client ID to access third-party APIs
-create a security risk when combined with dynamic client registration. This section extends the guidance on implementing user consent flows to mitigate additional
-risks stemming from improper consent prompt implementation.
-
-#### Context
-
-Under certain conditions, attackers can exploit the MCP server-managed consent cookie to redirect authorization codes to malicious clients without re-prompting the user.
-
-These conditions include:
-
-- MCP server uses a **static client ID** with a third-party authorization server
-- MCP server allows MCP clients to **dynamically register** (each getting their own client_id)
-- The third-party authorization server sets a **consent cookie** after the first authorization
-
-#### Consent Flow Implementation
+##### Consent Flow Implementation
 
 The following diagram shows how to properly implement per-client consent that runs **before** the third-party authorization flow:
 
@@ -175,7 +166,7 @@ sequenceDiagram
     MCP->>Browser: Redirect to client's registered redirect_uri
 ```
 
-#### Required Protections
+##### Required Protections
 
 **Per-Client Consent Storage**
 
@@ -212,7 +203,7 @@ The MCP proxy server **MUST**:
 - Reject requests if the `redirect_uri` has changed without re-registration
 - Use exact string matching (not pattern matching or wildcards)
 
-#### OAuth State Parameter Validation
+**OAuth State Parameter Validation**
 
 The OAuth `state` parameter is critical to prevent authorization code interception and CSRF attacks. Proper state validation ensures that consent approval at the authorization endpoint is enforced at the callback endpoint.
 
