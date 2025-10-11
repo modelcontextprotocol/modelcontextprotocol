@@ -185,6 +185,114 @@ Capability objects can describe sub-capabilities like:
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
 
+#### Configuration Schema Declaration
+
+Servers can optionally declare their configuration requirements during initialization by including a `configurationSchema` field in the `InitializeResult`. This enables clients to detect and assist with missing configuration before attempting tool execution.
+
+**Purpose**
+
+Configuration schema declaration solves several critical usability issues:
+
+1. **Chicken-and-egg Problem**: Clients must successfully connect to discover tools, but servers often fail to start without proper configuration
+2. **Poor User Experience**: Users only discover missing configuration after connection failures with cryptic error messages
+3. **Fragmented Documentation**: Configuration requirements are scattered across READMEs and error messages
+4. **No Programmatic Discovery**: Clients cannot automatically detect or assist with configuration setup
+
+**Schema Structure**
+
+The `configurationSchema` field contains three optional arrays:
+
+- `environmentVariables`: Environment variables needed by the server
+- `arguments`: Command-line arguments required for stdio servers
+- `other`: Other configuration (files, URLs, etc.)
+
+Each parameter declaration includes:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ✓ | Unique identifier (e.g., "GITHUB_TOKEN", "allowed-directory") |
+| `description` | string | ✓ | Human-readable explanation of the parameter |
+| `type` | string | ✓ | One of: "string", "number", "boolean", "path", "url" |
+| `required` | boolean | ✓ | Whether this parameter is required |
+| `sensitive` | boolean |  | Whether this contains sensitive data (passwords, API keys) |
+| `default` | string\|number\|boolean |  | Default value if not provided |
+| `multiple` | boolean |  | Whether multiple values are allowed |
+| `pattern` | string |  | Validation regex for string parameters |
+| `examples` | string[] |  | Example values to guide users |
+
+**Example: Filesystem Server**
+
+A filesystem server that requires directory paths as command-line arguments:
+
+```json
+{
+  "protocolVersion": "2025-06-18",
+  "serverInfo": {
+    "name": "filesystem",
+    "version": "1.0.0"
+  },
+  "capabilities": {},
+  "configurationSchema": {
+    "arguments": [
+      {
+        "name": "allowed-directory",
+        "description": "Directory path that the server is allowed to access",
+        "type": "path",
+        "required": true,
+        "multiple": true,
+        "examples": ["/home/user/projects", "/tmp"]
+      }
+    ]
+  }
+}
+```
+
+**Example: GitHub Server**
+
+An API-based server that requires an authentication token:
+
+```json
+{
+  "protocolVersion": "2025-06-18",
+  "serverInfo": {
+    "name": "github",
+    "version": "1.0.0"
+  },
+  "capabilities": {},
+  "configurationSchema": {
+    "environmentVariables": [
+      {
+        "name": "GITHUB_TOKEN",
+        "description": "GitHub personal access token with repo permissions",
+        "type": "string",
+        "required": true,
+        "sensitive": true,
+        "pattern": "^ghp_[a-zA-Z0-9]{36}$"
+      }
+    ]
+  }
+}
+```
+
+**Benefits**
+
+For **server developers**:
+- Self-documenting configuration
+- Better error messages from clients
+- Programmatic validation
+
+For **client developers**:
+- Proactive configuration detection
+- Build setup wizards and configuration tools
+- Better user experience
+
+For **end users**:
+- Clear guidance on what's needed upfront
+- Interactive setup assistance
+- Fewer connection failures
+
+The `configurationSchema` field is **optional** and **fully backward compatible** - servers that don't provide it continue to work as before.
+
 ### Operation
 
 During the operation phase, the client and server exchange messages according to the
