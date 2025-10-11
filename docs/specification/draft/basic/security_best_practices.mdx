@@ -117,6 +117,116 @@ attack becomes possible:
 MCP proxy servers using static client IDs **MUST** obtain user consent for each dynamically
 registered client before forwarding to third-party authorization servers (which may require additional consent).
 
+### Per-Client Consent for Proxy Servers
+
+As described in the [Confused Deputy Problem](#confused-deputy-problem) section, MCP proxy servers using a static client ID to access third-party APIs
+create a security risk when combined with dynamic client registration. This section extends the guidance on implementing user consent flows to mitigate additional
+risks stemming from improper consent prompt implementation.
+
+#### Context
+
+Under certain conditions, attackers can exploit the MCP server-managed consent cookie to redirect authorization codes to malicious clients without re-prompting the user.
+
+These conditions include:
+
+- MCP server uses a **static client ID** with a third-party authorization server
+- MCP server allows MCP clients to **dynamically register** (each getting their own client_id)
+- The third-party authorization server sets a **consent cookie** after the first authorization
+
+#### Consent Flow Implementation
+
+The following diagram shows how to properly implement per-client consent that runs **before** the third-party authorization flow:
+
+```mermaid
+sequenceDiagram
+    participant Client as MCP Client
+    participant Browser as User's Browser
+    participant MCP as MCP Server
+    participant ThirdParty as Third-Party AuthZ Server
+
+    Note over Client,ThirdParty: 1. Client Registration (Dynamic)
+    Client->>MCP: Register with redirect_uri
+    MCP-->>Client: client_id
+
+    Note over Client,ThirdParty: 2. Authorization Request
+    Client->>Browser: Open MCP server authorization URL
+    Browser->>MCP: GET /authorize?client_id=...&redirect_uri=...
+
+    alt Check MCP Server Consent
+        MCP->>MCP: Check consent for this client_id
+        Note over MCP: Not previously approved
+    end
+
+    MCP->>Browser: Show MCP server-owned consent page
+    Note over Browser: "Allow [Client Name] to access [Third-Party API]?"
+    Browser->>MCP: POST /consent (approve)
+    MCP->>MCP: Store consent decision for client_id
+
+    Note over Client,ThirdParty: 3. Forward to Third-Party
+    MCP->>Browser: Redirect to third-party /authorize
+    Note over MCP: Use static client_id for third-party
+
+    Browser->>ThirdParty: Authorization request (static client_id)
+    ThirdParty->>Browser: User authenticates & consents
+    ThirdParty->>Browser: Redirect with auth code
+
+    Browser->>MCP: Callback with third-party code
+    MCP->>ThirdParty: Exchange code for token (using static client_id)
+    MCP->>Browser: Redirect to client's registered redirect_uri
+```
+
+#### Required Protections
+
+**Per-Client Consent Storage**
+
+MCP proxy servers **MUST**:
+
+- Maintain a registry of approved `client_id` values per user
+- Check this registry **before** initiating the third-party authorization flow
+- Store consent decisions securely (server-side database, not just cookies)
+
+**Consent UI Requirements**
+
+The MCP-level consent page **MUST**:
+
+- Clearly identify the requesting MCP client by name
+- Display the specific third-party API scopes being requested
+- Show the registered `redirect_uri` where tokens will be sent
+- Implement CSRF protection (e.g., state parameter, CSRF tokens)
+- Use `X-Frame-Options: DENY` to prevent clickjacking
+
+**Consent Cookie Security**
+
+If using cookies to track consent decisions, they **MUST**:
+
+- Use `__Host-` prefix for cookie names
+- Set `Secure`, `HttpOnly`, and `SameSite=Lax` attributes
+- Be cryptographically signed or use server-side sessions
+- Bind to the specific `client_id` (not just "user has consented")
+
+**Redirect URI Validation**
+
+The MCP proxy server **MUST**:
+
+- Validate that the `redirect_uri` in authorization requests exactly matches the registered URI
+- Reject requests if the `redirect_uri` has changed without re-registration
+- Use exact string matching (not pattern matching or wildcards)
+
+#### OAuth State Parameter Validation
+
+The OAuth `state` parameter is critical to prevent authorization code interception and CSRF attacks. Proper state validation ensures that consent approval at the authorization endpoint is enforced at the callback endpoint.
+
+MCP proxy servers implementing OAuth flows **MUST**:
+
+- Generate a cryptographically secure random `state` value for each authorization request
+- Store the `state` value server-side (in a secure session store or encrypted cookie) **only after** consent has been explicitly approved
+- Set the `state` tracking cookie/session **immediately before** redirecting to the third-party identity provider (not before consent approval)
+- Validate at the callback endpoint that the `state` query parameter exactly matches the stored value in the callback request's cookies or in the request's cookie-based session
+- Reject any callback requests where the `state` parameter is missing or does not match
+- Ensure `state` values are single-use (delete after validation) and have a short expiration time (e.g., 10 minutes)
+
+The consent cookie or session containing the `state` value **MUST NOT** be set until **after** the user has approved the consent screen at the MCP server's authorization endpoint. Setting this cookie before consent approval renders the consent screen ineffective, as an attacker could bypass it by crafting a malicious authorization request.
+
 ### Token Passthrough
 
 "Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and passes them through to the downstream API.
@@ -289,116 +399,6 @@ MCP servers intending for their servers to be run locally **SHOULD** implement m
 - Restrict access if using an HTTP transport, such as:
   - Require an authorization token
   - Use unix domain sockets or other Interprocess Communication (IPC) mechanisms with restricted access
-
-### Per-Client Consent for Proxy Servers
-
-As described in the [Confused Deputy Problem](#confused-deputy-problem) section, MCP proxy servers using a static client ID to access third-party APIs
-create a security risk when combined with dynamic client registration. This section extends the guidance on implementing user consent flows to mitigate additional
-risks stemming from improper consent prompt implementation.
-
-#### Context
-
-Under certain conditions, attackers can exploit the MCP server-managed consent cookie to redirect authorization codes to malicious clients without re-prompting the user.
-
-These conditions include:
-
-- MCP server uses a **static client ID** with a third-party authorization server
-- MCP server allows MCP clients to **dynamically register** (each getting their own client_id)
-- The third-party authorization server sets a **consent cookie** after the first authorization
-
-#### Consent Flow Implementation
-
-The following diagram shows how to properly implement per-client consent that runs **before** the third-party authorization flow:
-
-```mermaid
-sequenceDiagram
-    participant Client as MCP Client
-    participant Browser as User's Browser
-    participant MCP as MCP Server
-    participant ThirdParty as Third-Party AuthZ Server
-
-    Note over Client,ThirdParty: 1. Client Registration (Dynamic)
-    Client->>MCP: Register with redirect_uri
-    MCP-->>Client: client_id
-
-    Note over Client,ThirdParty: 2. Authorization Request
-    Client->>Browser: Open MCP server authorization URL
-    Browser->>MCP: GET /authorize?client_id=...&redirect_uri=...
-
-    alt Check MCP Server Consent
-        MCP->>MCP: Check consent for this client_id
-        Note over MCP: Not previously approved
-    end
-
-    MCP->>Browser: Show MCP server-owned consent page
-    Note over Browser: "Allow [Client Name] to access [Third-Party API]?"
-    Browser->>MCP: POST /consent (approve)
-    MCP->>MCP: Store consent decision for client_id
-
-    Note over Client,ThirdParty: 3. Forward to Third-Party
-    MCP->>Browser: Redirect to third-party /authorize
-    Note over MCP: Use static client_id for third-party
-
-    Browser->>ThirdParty: Authorization request (static client_id)
-    ThirdParty->>Browser: User authenticates & consents
-    ThirdParty->>Browser: Redirect with auth code
-
-    Browser->>MCP: Callback with third-party code
-    MCP->>ThirdParty: Exchange code for token (using static client_id)
-    MCP->>Browser: Redirect to client's registered redirect_uri
-```
-
-#### Required Protections
-
-**Per-Client Consent Storage**
-
-MCP proxy servers **MUST**:
-
-- Maintain a registry of approved `client_id` values per user
-- Check this registry **before** initiating the third-party authorization flow
-- Store consent decisions securely (server-side database, not just cookies)
-
-**Consent UI Requirements**
-
-The MCP-level consent page **MUST**:
-
-- Clearly identify the requesting MCP client by name
-- Display the specific third-party API scopes being requested
-- Show the registered `redirect_uri` where tokens will be sent
-- Implement CSRF protection (e.g., state parameter, CSRF tokens)
-- Use `X-Frame-Options: DENY` to prevent clickjacking
-
-**Consent Cookie Security**
-
-If using cookies to track consent decisions, they **MUST**:
-
-- Use `__Host-` prefix for cookie names
-- Set `Secure`, `HttpOnly`, and `SameSite=Lax` attributes
-- Be cryptographically signed or use server-side sessions
-- Bind to the specific `client_id` (not just "user has consented")
-
-**Redirect URI Validation**
-
-The MCP proxy server **MUST**:
-
-- Validate that the `redirect_uri` in authorization requests exactly matches the registered URI
-- Reject requests if the `redirect_uri` has changed without re-registration
-- Use exact string matching (not pattern matching or wildcards)
-
-#### OAuth State Parameter Validation
-
-The OAuth `state` parameter is critical to prevent authorization code interception and CSRF attacks. Proper state validation ensures that consent approval at the authorization endpoint is enforced at the callback endpoint.
-
-MCP proxy servers implementing OAuth flows **MUST**:
-
-- Generate a cryptographically secure random `state` value for each authorization request
-- Store the `state` value server-side (in a secure session store or encrypted cookie) **only after** consent has been explicitly approved
-- Set the `state` tracking cookie/session **immediately before** redirecting to the third-party identity provider (not before consent approval)
-- Validate at the callback endpoint that the `state` query parameter exactly matches the stored value
-- Reject any callback requests where the `state` parameter is missing or does not match
-- Ensure `state` values are single-use (delete after validation) and have a short expiration time (e.g., 10 minutes)
-
-The consent cookie or session containing the `state` value **MUST NOT** be set until **after** the user has approved the consent screen at the MCP server's authorization endpoint. Setting this cookie before consent approval renders the consent screen ineffective, as an attacker could bypass it by crafting a malicious authorization request.
 
 ### Scope Minimization
 
