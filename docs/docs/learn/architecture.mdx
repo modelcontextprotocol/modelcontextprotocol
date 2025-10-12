@@ -28,7 +28,7 @@ The Model Context Protocol includes the following projects:
 
 ### Participants
 
-MCP follows a client-server architecture where an MCP host — an AI application like [Claude Code](https://www.anthropic.com/claude-code) or [Claude Desktop](https://www.claude.ai/download) — establishes connections to one or more MCP servers. The MCP host accomplishes this by creating one MCP client for each MCP server. Each MCP client maintains a dedicated one-to-one connection with its corresponding MCP server.
+MCP follows a client-server architecture where an MCP host — an AI application like [Claude Code](https://www.anthropic.com/claude-code) or [Claude Desktop](https://www.claude.ai/download) — establishes connections to one or more MCP servers. The MCP host accomplishes this by creating one MCP client for each MCP server. Each MCP client maintains a dedicated connection with its corresponding MCP server.
 
 The key participants in the MCP architecture are:
 
@@ -58,9 +58,9 @@ graph TB
     Server2["MCP Server 2<br/>(e.g., Filesystem)"]
     Server3["MCP Server 3<br/>(e.g., Database)"]
 
-    Client1 ---|"One-to-one<br/>connection"| Server1
-    Client2 ---|"One-to-one<br/>connection"| Server2
-    Client3 ---|"One-to-one<br/>connection"| Server3
+    Client1 ---|"Many-to-one<br/>relationship"| Server1
+    Client2 ---|"One-to-one<br/>relationship"| Server2
+    Client3 ---|"One-to-one<br/>relationship"| Server3
 ```
 
 Note that **MCP server** refers to the program that serves context data, regardless of
