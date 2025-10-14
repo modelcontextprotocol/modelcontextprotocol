@@ -184,7 +184,7 @@ The MCP-level consent page **MUST**:
 - Display the specific third-party API scopes being requested
 - Show the registered `redirect_uri` where tokens will be sent
 - Implement CSRF protection (e.g., state parameter, CSRF tokens)
-- Use `X-Frame-Options: DENY` to prevent clickjacking
+- Prevent iframing via `frame-ancestors` CSP directive or `X-Frame-Options: DENY` to prevent clickjacking
 
 **Consent Cookie Security**
 
