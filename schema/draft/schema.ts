@@ -1579,7 +1579,7 @@ export type MultiSelectEnumSchema =
  * @deprecated Use TitledSingleSelectEnumSchema instead.
  * This interface will be removed in a future version.
  */
-export interface DeprecatedEnumSchema {
+export interface LegacyTitledEnumSchema {
   type: "string";
   title?: string;
   description?: string;
@@ -1593,10 +1593,10 @@ export interface DeprecatedEnumSchema {
 }
 
 // Union type for all enum schemas
-export type EnumSchema = 
-  | SingleSelectEnumSchema 
-  | MultiSelectEnumSchema 
-  | DeprecatedEnumSchema;
+export type EnumSchema =
+  | SingleSelectEnumSchema
+  | MultiSelectEnumSchema
+  | LegacyTitledEnumSchema;
 
 /**
  * The client's response to an elicitation request.
