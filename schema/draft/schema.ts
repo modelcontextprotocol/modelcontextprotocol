@@ -1585,7 +1585,7 @@ export interface LegacyTitledEnumSchema {
   description?: string;
   enum: string[];
   /**
-   * Legacy titles for enum values.
+   * (Legacy) Display names for enum values.
    * Non-standard according to JSON schema 2020-12.
    */
   enumNames?: string[];

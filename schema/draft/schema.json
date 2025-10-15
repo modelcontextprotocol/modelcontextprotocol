@@ -1332,7 +1332,7 @@
                     "type": "array"
                 },
                 "enumNames": {
-                    "description": "Legacy titles for enum values.\nNon-standard according to JSON schema 2020-12.",
+                    "description": "(Legacy) Display names for enum values.\nNon-standard according to JSON schema 2020-12.",
                     "items": {
                         "type": "string"
                     },
