@@ -1317,6 +1317,7 @@
             "type": "object"
         },
         "LegacyTitledEnumSchema": {
+            "description": "Use TitledSingleSelectEnumSchema instead.\nThis interface will be removed in a future version.",
             "properties": {
                 "default": {
                     "type": "string"
@@ -1331,7 +1332,7 @@
                     "type": "array"
                 },
                 "enumNames": {
-                    "description": "Titles for enum values (non-standard, deprecated)",
+                    "description": "Legacy titles for enum values.\nNon-standard according to JSON schema 2020-12.",
                     "items": {
                         "type": "string"
                     },

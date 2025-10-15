@@ -1576,7 +1576,7 @@ export type MultiSelectEnumSchema =
   | TitledMultiSelectEnumSchema;
 
 /**
- * @deprecated Use TitledSingleSelectEnumSchema instead.
+ * Use TitledSingleSelectEnumSchema instead.
  * This interface will be removed in a future version.
  */
 export interface LegacyTitledEnumSchema {
@@ -1585,8 +1585,8 @@ export interface LegacyTitledEnumSchema {
   description?: string;
   enum: string[];
   /**
-   * Titles for enum values (non-standard, deprecated)
-   * @deprecated This property will be removed in a future version.
+   * Legacy titles for enum values.
+   * Non-standard according to JSON schema 2020-12.
    */
   enumNames?: string[];
   default?: string;
