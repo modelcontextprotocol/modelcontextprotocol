@@ -578,7 +578,7 @@ body:has(#schema-reference) {
     border-radius: 9999px;
 
     border: 6px solid var(--highlight-color);
-    color: white;
+    color: light-dark(#111827, #e5e7eb);
 
     font-size: 1.5rem;
     font-weight: 700;
@@ -586,6 +586,7 @@ body:has(#schema-reference) {
     transition: all 0.3s;
 
     &:hover {
+      color: white;
       background: var(--highlight-color);
     }
   }
