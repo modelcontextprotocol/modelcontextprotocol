@@ -30,6 +30,8 @@ The Model Context Protocol includes the following projects:
 
 MCP follows a client-server architecture where an MCP host — an AI application like [Claude Code](https://www.anthropic.com/claude-code) or [Claude Desktop](https://www.claude.ai/download) — establishes connections to one or more MCP servers. The MCP host accomplishes this by creating one MCP client for each MCP server. Each MCP client maintains a dedicated connection with its corresponding MCP server.
 
+Local MCP servers that use the STDIO transport typically serve a single MCP client, whereas remote MCP servers that use the Streamable HTTP transport will typically serve many MCP clients.
+
 The key participants in the MCP architecture are:
 
 - **MCP Host**: The AI application that coordinates and manages one or multiple MCP clients
@@ -39,22 +41,23 @@ The key participants in the MCP architecture are:
 **For example**: Visual Studio Code acts as an MCP host. When Visual Studio Code establishes a connection to an MCP server, such as the [Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/), the Visual Studio Code runtime instantiates an MCP client object that maintains the connection to the Sentry MCP server.
 When Visual Studio Code subsequently connects to another MCP server, such as the [local filesystem server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem), the Visual Studio Code runtime instantiates an additional MCP client object to maintain this connection.
 
-
 ```mermaid
 graph TB
     subgraph "MCP Host (AI Application)"
         Client1["MCP Client 1"]
         Client2["MCP Client 2"]
         Client3["MCP Client 3"]
+        Client4["MCP Client 4"]
     end
 
-    Server1["MCP Server 1<br/>(e.g., Sentry)"]
-    Server2["MCP Server 2<br/>(e.g., Filesystem)"]
-    Server3["MCP Server 3<br/>(e.g., Database)"]
+    ServerA["MCP Server A<br/>(e.g., Sentry)"]
+    ServerB["MCP Server B<br/>(e.g., Filesystem)"]
+    ServerC["MCP Server C<br/>(e.g., Database)"]
 
-    Client1 ---|"Many-to-one<br/>relationship"| Server1
-    Client2 ---|"One-to-one<br/>relationship"| Server2
-    Client3 ---|"One-to-one<br/>relationship"| Server3
+    Client1 ---|"Dedicated<br/>connection"| ServerA
+    Client2 ---|"Dedicated<br/>connection"| ServerA
+    Client3 ---|"Dedicated<br/>connection"| ServerB
+    Client4 ---|"Dedicated<br/>connection"| ServerC
 ```
 
 Note that **MCP server** refers to the program that serves context data, regardless of
