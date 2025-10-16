@@ -39,11 +39,6 @@ The key participants in the MCP architecture are:
 **For example**: Visual Studio Code acts as an MCP host. When Visual Studio Code establishes a connection to an MCP server, such as the [Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/), the Visual Studio Code runtime instantiates an MCP client object that maintains the connection to the Sentry MCP server.
 When Visual Studio Code subsequently connects to another MCP server, such as the [local filesystem server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem), the Visual Studio Code runtime instantiates an additional MCP client object to maintain this connection.
 
-<Note>
-  Note that local MCP servers using the STDIO transport typically serve a single
-  MCP client, whereas remotely hosted MCP servers using StreamableHttp may
-  accept concurrent connections from many MCP clients.
-</Note>
 
 ```mermaid
 graph TB
