@@ -43,20 +43,23 @@ When Visual Studio Code subsequently connects to another MCP server, such as the
 
 ```mermaid
 graph TB
-    subgraph "MCP Host (AI Application)"
+    subgraph "MCP Host (AI App)"
         Client1["MCP Client 1"]
         Client2["MCP Client 2"]
         Client3["MCP Client 3"]
+    end
+
+    subgraph "2nd MCP Host (AI App)"
         Client4["MCP Client 4"]
     end
 
-    ServerA["MCP Server A<br/>(e.g., Sentry)"]
-    ServerB["MCP Server B<br/>(e.g., Filesystem)"]
-    ServerC["MCP Server C<br/>(e.g., Database)"]
+    ServerA["MCP Server A - Local<br/>(e.g. Filesystem)"]
+    ServerB["MCP Server B - Local<br/>(e.g. Database)"]
+    ServerC["MCP Server C - Remote<br/>(e.g. Sentry)"]
 
     Client1 ---|"Dedicated<br/>connection"| ServerA
-    Client2 ---|"Dedicated<br/>connection"| ServerA
-    Client3 ---|"Dedicated<br/>connection"| ServerB
+    Client2 ---|"Dedicated<br/>connection"| ServerB
+    Client3 ---|"Dedicated<br/>connection"| ServerC
     Client4 ---|"Dedicated<br/>connection"| ServerC
 ```
 
