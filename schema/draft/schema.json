@@ -1683,6 +1683,9 @@
             ],
             "type": "object"
         },
+        "PingResult": {
+            "$ref": "#/definitions/Result"
+        },
         "PrimitiveSchemaDefinition": {
             "anyOf": [
                 {
@@ -2506,6 +2509,9 @@
             ],
             "type": "object"
         },
+        "SetLevelResult": {
+            "$ref": "#/definitions/Result"
+        },
         "StringSchema": {
             "properties": {
                 "default": {
@@ -2577,6 +2583,9 @@
                 "params"
             ],
             "type": "object"
+        },
+        "SubscribeResult": {
+            "$ref": "#/definitions/Result"
         },
         "TextContent": {
             "description": "Text provided to or from an LLM.",
@@ -2814,6 +2823,9 @@
                 "params"
             ],
             "type": "object"
+        },
+        "UnsubscribeResult": {
+            "$ref": "#/definitions/Result"
         }
     }
 }
