@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-compliance-python"
+version = "1.0.0"
+description = "MCP compliance test binaries for Python SDK"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]",
+    "pydantic>=2.7.2,<3.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio",
+    "pyright",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["asyncio: marks tests as async"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pyright]
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.0.0",
+]
