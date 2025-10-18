@@ -265,14 +265,69 @@ The schema is restricted to these primitive types:
    ```
 
 4. **Enum Schema**
+
+   Single-select enum (without titles):
+
    ```json
    {
      "type": "string",
-     "title": "Display Name",
-     "description": "Description text",
-     "enum": ["option1", "option2", "option3"],
-     "enumNames": ["Option 1", "Option 2", "Option 3"],
-     "default": "option1"
+     "title": "Color Selection",
+     "description": "Choose your favorite color",
+     "enum": ["Red", "Green", "Blue"],
+     "default": "Red"
+   }
+   ```
+
+   Single-select enum (with titles):
+
+   ```json
+   {
+     "type": "string",
+     "title": "Color Selection",
+     "description": "Choose your favorite color",
+     "oneOf": [
+       { "const": "#FF0000", "title": "Red" },
+       { "const": "#00FF00", "title": "Green" },
+       { "const": "#0000FF", "title": "Blue" }
+     ],
+     "default": "#FF0000"
+   }
+   ```
+
+   Multi-select enum (without titles):
+
+   ```json
+   {
+     "type": "array",
+     "title": "Color Selection",
+     "description": "Choose your favorite colors",
+     "minItems": 1,
+     "maxItems": 2,
+     "items": {
+       "type": "string",
+       "enum": ["Red", "Green", "Blue"]
+     },
+     "default": ["Red", "Green"]
+   }
+   ```
+
+   Multi-select enum (with titles):
+
+   ```json
+   {
+     "type": "array",
+     "title": "Color Selection",
+     "description": "Choose your favorite colors",
+     "minItems": 1,
+     "maxItems": 2,
+     "items": {
+       "oneOf": [
+         { "const": "#FF0000", "title": "Red" },
+         { "const": "#00FF00", "title": "Green" },
+         { "const": "#0000FF", "title": "Blue" }
+       ]
+     },
+     "default": ["#FF0000", "#00FF00"]
    }
    ```
 
@@ -284,7 +339,7 @@ Clients can use this schema to:
 
 All primitive types support optional default values to provide sensible starting points. Clients that support defaults SHOULD pre-populate form fields with these values.
 
-Note that complex nested structures, arrays of objects, and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
+Note that complex nested structures, arrays of objects (beyond enums), and other advanced JSON Schema features are intentionally not supported to simplify client user experience.
 
 ## Response Actions
 

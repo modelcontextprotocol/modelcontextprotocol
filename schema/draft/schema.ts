@@ -1518,14 +1518,85 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
-export interface EnumSchema {
+// Single select enum without titles
+export type UntitledSingleSelectEnumSchema = {
+  type: "string";
+  title?: string;
+  description?: string;
+  enum: string[]; // Plain enum without titles
+};
+
+// Single select enum with titles
+export type TitledSingleSelectEnumSchema = {
+  type: "string";
+  title?: string;
+  description?: string;
+  oneOf: Array<{
+    const: string; // Enum value
+    title: string; // Display name for enum value
+  }>;
+};
+
+// Combined single selection enumeration
+export type SingleSelectEnumSchema = 
+  | UntitledSingleSelectEnumSchema
+  | TitledSingleSelectEnumSchema;
+
+// Multiple select enum without titles
+export type UntitledMultiSelectEnumSchema = {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number; // Minimum number of items to choose
+  maxItems?: number; // Maximum number of items to choose
+  items: {
+    type: "string";
+    enum: string[]; // Plain enum without titles
+  };
+};
+
+// Multiple select enum with titles
+export type TitledMultiSelectEnumSchema = {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number; // Minimum number of items to choose
+  maxItems?: number; // Maximum number of items to choose
+  items: {
+    oneOf: Array<{
+      const: string; // Enum value
+      title: string; // Display name for enum value
+    }>;
+  };
+};
+
+// Combined multiple selection enumeration
+export type MultiSelectEnumSchema = 
+  | UntitledMultiSelectEnumSchema
+  | TitledMultiSelectEnumSchema;
+
+/**
+ * Use TitledSingleSelectEnumSchema instead.
+ * This interface will be removed in a future version.
+ */
+export interface LegacyTitledEnumSchema {
   type: "string";
   title?: string;
   description?: string;
   enum: string[];
-  enumNames?: string[]; // Display names for enum values
+  /**
+   * (Legacy) Display names for enum values.
+   * Non-standard according to JSON schema 2020-12.
+   */
+  enumNames?: string[];
   default?: string;
 }
+
+// Union type for all enum schemas
+export type EnumSchema =
+  | SingleSelectEnumSchema
+  | MultiSelectEnumSchema
+  | LegacyTitledEnumSchema;
 
 /**
  * The client's response to an elicitation request.
@@ -1545,7 +1616,7 @@ export interface ElicitResult extends Result {
    * The submitted form data, only present when action is "accept".
    * Contains values matching the requested schema.
    */
-  content?: { [key: string]: string | number | boolean };
+  content?: { [key: string]: string | number | boolean | string[] };
 }
 
 /* Client messages */
