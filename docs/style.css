@@ -578,6 +578,7 @@ body:has(#schema-reference) {
     border-radius: 9999px;
 
     border: 6px solid var(--highlight-color);
+    background: #0e0e10;
     color: white;
 
     font-size: 1.5rem;
