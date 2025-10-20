@@ -233,6 +233,7 @@ export interface InitializeResult extends Result {
  */
 export interface InitializedNotification extends JSONRPCNotification {
   method: "notifications/initialized";
+  params?: NotificationParams;
 }
 
 /**
@@ -417,6 +418,7 @@ export interface Implementation extends BaseMetadata, Icons {
  */
 export interface PingRequest extends JSONRPCRequest {
   method: "ping";
+  params?: RequestParams
 }
 
 /* Progress notifications */
@@ -569,6 +571,7 @@ export interface ReadResourceResult extends Result {
  */
 export interface ResourceListChangedNotification extends JSONRPCNotification {
   method: "notifications/resources/list_changed";
+  params?: NotificationParams;
 }
 
 /**
@@ -885,6 +888,7 @@ export interface EmbeddedResource {
  */
 export interface PromptListChangedNotification extends JSONRPCNotification {
   method: "notifications/prompts/list_changed";
+  params?: NotificationParams;
 }
 
 /* Tools */
@@ -972,6 +976,7 @@ export interface CallToolRequest extends JSONRPCRequest {
  */
 export interface ToolListChangedNotification extends JSONRPCNotification {
   method: "notifications/tools/list_changed";
+  params?: NotificationParams;
 }
 
 /**
@@ -1513,6 +1518,7 @@ export interface PromptReference extends BaseMetadata {
  */
 export interface ListRootsRequest extends JSONRPCRequest {
   method: "roots/list";
+  params?: RequestParams;
 }
 
 /**
@@ -1560,6 +1566,7 @@ export interface Root {
  */
 export interface RootsListChangedNotification extends JSONRPCNotification {
   method: "notifications/roots/list_changed";
+  params?: NotificationParams;
 }
 
 /**

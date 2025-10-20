@@ -1137,8 +1137,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -1414,8 +1413,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1725,8 +1723,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/RequestParams"
                 }
             },
             "required": [
@@ -1890,8 +1887,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -2197,8 +2193,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -2393,8 +2388,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -2886,8 +2880,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
