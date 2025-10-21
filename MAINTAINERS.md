@@ -92,6 +92,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Toby Padilla](https://github.com/toby)
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Adam Jones](https://github.com/domdomegg)
+- [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
 
 ### Reference Servers
 
