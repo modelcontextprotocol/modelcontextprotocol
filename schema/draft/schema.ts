@@ -1518,22 +1518,50 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
-// Single select enum without titles
+/**
+ * Schema for single-selection enumeration without display titles for options.
+ */
 export type UntitledSingleSelectEnumSchema = {
   type: "string";
+  /**
+   * Optional title for the enum field.
+   */
   title?: string;
+  /**
+   * Optional description for the enum field.
+   */
   description?: string;
-  enum: string[]; // Plain enum without titles
+  /**
+   * Array of enum values to choose from.
+   */
+  enum: string[];
 };
 
-// Single select enum with titles
+/**
+ * Schema for single-selection enumeration with display titles for each option.
+ */
 export type TitledSingleSelectEnumSchema = {
   type: "string";
+  /**
+   * Optional title for the enum field.
+   */
   title?: string;
+  /**
+   * Optional description for the enum field.
+   */
   description?: string;
+  /**
+   * Array of enum options with values and display labels.
+   */
   oneOf: Array<{
-    const: string; // Enum value
-    title: string; // Display name for enum value
+    /**
+     * The enum value.
+     */
+    const: string;
+    /**
+     * Display label for this option.
+     */
+    title: string;
   }>;
 };
 
@@ -1542,30 +1570,70 @@ export type SingleSelectEnumSchema =
   | UntitledSingleSelectEnumSchema
   | TitledSingleSelectEnumSchema;
 
-// Multiple select enum without titles
+/**
+ * Schema for multiple-selection enumeration without display titles for options.
+ */
 export type UntitledMultiSelectEnumSchema = {
   type: "array";
+  /**
+   * Optional title for the enum field.
+   */
   title?: string;
+  /**
+   * Optional description for the enum field.
+   */
   description?: string;
-  minItems?: number; // Minimum number of items to choose
-  maxItems?: number; // Maximum number of items to choose
+  /**
+   * Minimum number of items to select.
+   */
+  minItems?: number;
+  /**
+   * Maximum number of items to select.
+   */
+  maxItems?: number;
   items: {
     type: "string";
-    enum: string[]; // Plain enum without titles
+    /**
+     * Array of enum values to choose from.
+     */
+    enum: string[];
   };
 };
 
-// Multiple select enum with titles
+/**
+ * Schema for multiple-selection enumeration with display titles for each option.
+ */
 export type TitledMultiSelectEnumSchema = {
   type: "array";
+  /**
+   * Optional title for the enum field.
+   */
   title?: string;
+  /**
+   * Optional description for the enum field.
+   */
   description?: string;
-  minItems?: number; // Minimum number of items to choose
-  maxItems?: number; // Maximum number of items to choose
+  /**
+   * Minimum number of items to select.
+   */
+  minItems?: number;
+  /**
+   * Maximum number of items to select.
+   */
+  maxItems?: number;
   items: {
+    /**
+     * Array of enum options with values and display labels.
+     */
     oneOf: Array<{
-      const: string; // Enum value
-      title: string; // Display name for enum value
+      /**
+       * The enum value.
+       */
+      const: string;
+      /**
+       * Display label for this option.
+       */
+      title: string;
     }>;
   };
 };

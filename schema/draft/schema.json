@@ -730,17 +730,21 @@
         "EnumSchema": {
             "anyOf": [
                 {
+                    "description": "Schema for single-selection enumeration without display titles for options.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "enum": {
+                            "description": "Array of enum values to choose from.",
                             "items": {
                                 "type": "string"
                             },
                             "type": "array"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -755,17 +759,22 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for single-selection enumeration with display titles for each option.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "oneOf": {
+                            "description": "Array of enum options with values and display labels.",
                             "items": {
                                 "properties": {
                                     "const": {
+                                        "description": "The enum value.",
                                         "type": "string"
                                     },
                                     "title": {
+                                        "description": "Display label for this option.",
                                         "type": "string"
                                     }
                                 },
@@ -778,6 +787,7 @@
                             "type": "array"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -792,13 +802,16 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for multiple-selection enumeration without display titles for options.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "items": {
                             "properties": {
                                 "enum": {
+                                    "description": "Array of enum values to choose from.",
                                     "items": {
                                         "type": "string"
                                     },
@@ -816,12 +829,15 @@
                             "type": "object"
                         },
                         "maxItems": {
+                            "description": "Maximum number of items to select.",
                             "type": "integer"
                         },
                         "minItems": {
+                            "description": "Minimum number of items to select.",
                             "type": "integer"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -836,19 +852,24 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for multiple-selection enumeration with display titles for each option.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "items": {
                             "properties": {
                                 "oneOf": {
+                                    "description": "Array of enum options with values and display labels.",
                                     "items": {
                                         "properties": {
                                             "const": {
+                                                "description": "The enum value.",
                                                 "type": "string"
                                             },
                                             "title": {
+                                                "description": "Display label for this option.",
                                                 "type": "string"
                                             }
                                         },
@@ -867,12 +888,15 @@
                             "type": "object"
                         },
                         "maxItems": {
+                            "description": "Maximum number of items to select.",
                             "type": "integer"
                         },
                         "minItems": {
+                            "description": "Minimum number of items to select.",
                             "type": "integer"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -1728,13 +1752,16 @@
         "MultiSelectEnumSchema": {
             "anyOf": [
                 {
+                    "description": "Schema for multiple-selection enumeration without display titles for options.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "items": {
                             "properties": {
                                 "enum": {
+                                    "description": "Array of enum values to choose from.",
                                     "items": {
                                         "type": "string"
                                     },
@@ -1752,12 +1779,15 @@
                             "type": "object"
                         },
                         "maxItems": {
+                            "description": "Maximum number of items to select.",
                             "type": "integer"
                         },
                         "minItems": {
+                            "description": "Minimum number of items to select.",
                             "type": "integer"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -1772,19 +1802,24 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for multiple-selection enumeration with display titles for each option.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "items": {
                             "properties": {
                                 "oneOf": {
+                                    "description": "Array of enum options with values and display labels.",
                                     "items": {
                                         "properties": {
                                             "const": {
+                                                "description": "The enum value.",
                                                 "type": "string"
                                             },
                                             "title": {
+                                                "description": "Display label for this option.",
                                                 "type": "string"
                                             }
                                         },
@@ -1803,12 +1838,15 @@
                             "type": "object"
                         },
                         "maxItems": {
+                            "description": "Maximum number of items to select.",
                             "type": "integer"
                         },
                         "minItems": {
+                            "description": "Minimum number of items to select.",
                             "type": "integer"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -1970,17 +2008,21 @@
                     "$ref": "#/definitions/BooleanSchema"
                 },
                 {
+                    "description": "Schema for single-selection enumeration without display titles for options.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "enum": {
+                            "description": "Array of enum values to choose from.",
                             "items": {
                                 "type": "string"
                             },
                             "type": "array"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -1995,17 +2037,22 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for single-selection enumeration with display titles for each option.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "oneOf": {
+                            "description": "Array of enum options with values and display labels.",
                             "items": {
                                 "properties": {
                                     "const": {
+                                        "description": "The enum value.",
                                         "type": "string"
                                     },
                                     "title": {
+                                        "description": "Display label for this option.",
                                         "type": "string"
                                     }
                                 },
@@ -2018,6 +2065,7 @@
                             "type": "array"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -2032,13 +2080,16 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for multiple-selection enumeration without display titles for options.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "items": {
                             "properties": {
                                 "enum": {
+                                    "description": "Array of enum values to choose from.",
                                     "items": {
                                         "type": "string"
                                     },
@@ -2056,12 +2107,15 @@
                             "type": "object"
                         },
                         "maxItems": {
+                            "description": "Maximum number of items to select.",
                             "type": "integer"
                         },
                         "minItems": {
+                            "description": "Minimum number of items to select.",
                             "type": "integer"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -2076,19 +2130,24 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for multiple-selection enumeration with display titles for each option.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "items": {
                             "properties": {
                                 "oneOf": {
+                                    "description": "Array of enum options with values and display labels.",
                                     "items": {
                                         "properties": {
                                             "const": {
+                                                "description": "The enum value.",
                                                 "type": "string"
                                             },
                                             "title": {
+                                                "description": "Display label for this option.",
                                                 "type": "string"
                                             }
                                         },
@@ -2107,12 +2166,15 @@
                             "type": "object"
                         },
                         "maxItems": {
+                            "description": "Maximum number of items to select.",
                             "type": "integer"
                         },
                         "minItems": {
+                            "description": "Minimum number of items to select.",
                             "type": "integer"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -2941,17 +3003,21 @@
         "SingleSelectEnumSchema": {
             "anyOf": [
                 {
+                    "description": "Schema for single-selection enumeration without display titles for options.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "enum": {
+                            "description": "Array of enum values to choose from.",
                             "items": {
                                 "type": "string"
                             },
                             "type": "array"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -2966,17 +3032,22 @@
                     "type": "object"
                 },
                 {
+                    "description": "Schema for single-selection enumeration with display titles for each option.",
                     "properties": {
                         "description": {
+                            "description": "Optional description for the enum field.",
                             "type": "string"
                         },
                         "oneOf": {
+                            "description": "Array of enum options with values and display labels.",
                             "items": {
                                 "properties": {
                                     "const": {
+                                        "description": "The enum value.",
                                         "type": "string"
                                     },
                                     "title": {
+                                        "description": "Display label for this option.",
                                         "type": "string"
                                     }
                                 },
@@ -2989,6 +3060,7 @@
                             "type": "array"
                         },
                         "title": {
+                            "description": "Optional title for the enum field.",
                             "type": "string"
                         },
                         "type": {
@@ -3131,19 +3203,24 @@
             "type": "object"
         },
         "TitledMultiSelectEnumSchema": {
+            "description": "Schema for multiple-selection enumeration with display titles for each option.",
             "properties": {
                 "description": {
+                    "description": "Optional description for the enum field.",
                     "type": "string"
                 },
                 "items": {
                     "properties": {
                         "oneOf": {
+                            "description": "Array of enum options with values and display labels.",
                             "items": {
                                 "properties": {
                                     "const": {
+                                        "description": "The enum value.",
                                         "type": "string"
                                     },
                                     "title": {
+                                        "description": "Display label for this option.",
                                         "type": "string"
                                     }
                                 },
@@ -3162,12 +3239,15 @@
                     "type": "object"
                 },
                 "maxItems": {
+                    "description": "Maximum number of items to select.",
                     "type": "integer"
                 },
                 "minItems": {
+                    "description": "Minimum number of items to select.",
                     "type": "integer"
                 },
                 "title": {
+                    "description": "Optional title for the enum field.",
                     "type": "string"
                 },
                 "type": {
@@ -3182,17 +3262,22 @@
             "type": "object"
         },
         "TitledSingleSelectEnumSchema": {
+            "description": "Schema for single-selection enumeration with display titles for each option.",
             "properties": {
                 "description": {
+                    "description": "Optional description for the enum field.",
                     "type": "string"
                 },
                 "oneOf": {
+                    "description": "Array of enum options with values and display labels.",
                     "items": {
                         "properties": {
                             "const": {
+                                "description": "The enum value.",
                                 "type": "string"
                             },
                             "title": {
+                                "description": "Display label for this option.",
                                 "type": "string"
                             }
                         },
@@ -3205,6 +3290,7 @@
                     "type": "array"
                 },
                 "title": {
+                    "description": "Optional title for the enum field.",
                     "type": "string"
                 },
                 "type": {
@@ -3402,13 +3488,16 @@
             "type": "object"
         },
         "UntitledMultiSelectEnumSchema": {
+            "description": "Schema for multiple-selection enumeration without display titles for options.",
             "properties": {
                 "description": {
+                    "description": "Optional description for the enum field.",
                     "type": "string"
                 },
                 "items": {
                     "properties": {
                         "enum": {
+                            "description": "Array of enum values to choose from.",
                             "items": {
                                 "type": "string"
                             },
@@ -3426,12 +3515,15 @@
                     "type": "object"
                 },
                 "maxItems": {
+                    "description": "Maximum number of items to select.",
                     "type": "integer"
                 },
                 "minItems": {
+                    "description": "Minimum number of items to select.",
                     "type": "integer"
                 },
                 "title": {
+                    "description": "Optional title for the enum field.",
                     "type": "string"
                 },
                 "type": {
@@ -3446,17 +3538,21 @@
             "type": "object"
         },
         "UntitledSingleSelectEnumSchema": {
+            "description": "Schema for single-selection enumeration without display titles for options.",
             "properties": {
                 "description": {
+                    "description": "Optional description for the enum field.",
                     "type": "string"
                 },
                 "enum": {
+                    "description": "Array of enum values to choose from.",
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
                 },
                 "title": {
+                    "description": "Optional title for the enum field.",
                     "type": "string"
                 },
                 "type": {
