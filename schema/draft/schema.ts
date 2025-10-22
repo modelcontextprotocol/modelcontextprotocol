@@ -1591,6 +1591,9 @@ export type UntitledMultiSelectEnumSchema = {
    * Maximum number of items to select.
    */
   maxItems?: number;
+  /**
+   * Schema for the array items.
+   */
   items: {
     type: "string";
     /**
@@ -1621,6 +1624,9 @@ export type TitledMultiSelectEnumSchema = {
    * Maximum number of items to select.
    */
   maxItems?: number;
+  /**
+   * Schema for the array items.
+   */
   items: {
     /**
      * Array of enum options with values and display labels.

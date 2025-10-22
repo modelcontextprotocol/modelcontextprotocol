@@ -809,6 +809,7 @@
                             "type": "string"
                         },
                         "items": {
+                            "description": "Schema for the array items.",
                             "properties": {
                                 "enum": {
                                     "description": "Array of enum values to choose from.",
@@ -859,6 +860,7 @@
                             "type": "string"
                         },
                         "items": {
+                            "description": "Schema for the array items.",
                             "properties": {
                                 "oneOf": {
                                     "description": "Array of enum options with values and display labels.",
@@ -1759,6 +1761,7 @@
                             "type": "string"
                         },
                         "items": {
+                            "description": "Schema for the array items.",
                             "properties": {
                                 "enum": {
                                     "description": "Array of enum values to choose from.",
@@ -1809,6 +1812,7 @@
                             "type": "string"
                         },
                         "items": {
+                            "description": "Schema for the array items.",
                             "properties": {
                                 "oneOf": {
                                     "description": "Array of enum options with values and display labels.",
@@ -2087,6 +2091,7 @@
                             "type": "string"
                         },
                         "items": {
+                            "description": "Schema for the array items.",
                             "properties": {
                                 "enum": {
                                     "description": "Array of enum values to choose from.",
@@ -2137,6 +2142,7 @@
                             "type": "string"
                         },
                         "items": {
+                            "description": "Schema for the array items.",
                             "properties": {
                                 "oneOf": {
                                     "description": "Array of enum options with values and display labels.",
@@ -3210,6 +3216,7 @@
                     "type": "string"
                 },
                 "items": {
+                    "description": "Schema for the array items.",
                     "properties": {
                         "oneOf": {
                             "description": "Array of enum options with values and display labels.",
@@ -3495,6 +3502,7 @@
                     "type": "string"
                 },
                 "items": {
+                    "description": "Schema for the array items.",
                     "properties": {
                         "enum": {
                             "description": "Array of enum values to choose from.",
