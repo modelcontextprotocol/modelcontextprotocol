@@ -1625,23 +1625,18 @@ export type TitledMultiSelectEnumSchema = {
    */
   maxItems?: number;
   /**
-   * Schema for the array items.
+   * Array of enum options with values and display labels.
    */
-  items: {
+  anyOf: Array<{
     /**
-     * Array of enum options with values and display labels.
+     * The enum value.
      */
-    oneOf: Array<{
-      /**
-       * The enum value.
-       */
-      const: string;
-      /**
-       * Display label for this option.
-       */
-      title: string;
-    }>;
-  };
+    const: string;
+    /**
+     * Display label for this option.
+     */
+    title: string;
+  }>;
 };
 
 // Combined multiple selection enumeration

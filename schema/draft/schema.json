@@ -855,39 +855,30 @@
                 {
                     "description": "Schema for multiple-selection enumeration with display titles for each option.",
                     "properties": {
+                        "anyOf": {
+                            "description": "Array of enum options with values and display labels.",
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "description": "The enum value.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Display label for this option.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
-                        },
-                        "items": {
-                            "description": "Schema for the array items.",
-                            "properties": {
-                                "oneOf": {
-                                    "description": "Array of enum options with values and display labels.",
-                                    "items": {
-                                        "properties": {
-                                            "const": {
-                                                "description": "The enum value.",
-                                                "type": "string"
-                                            },
-                                            "title": {
-                                                "description": "Display label for this option.",
-                                                "type": "string"
-                                            }
-                                        },
-                                        "required": [
-                                            "const",
-                                            "title"
-                                        ],
-                                        "type": "object"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            "required": [
-                                "oneOf"
-                            ],
-                            "type": "object"
                         },
                         "maxItems": {
                             "description": "Maximum number of items to select.",
@@ -907,7 +898,7 @@
                         }
                     },
                     "required": [
-                        "items",
+                        "anyOf",
                         "type"
                     ],
                     "type": "object"
@@ -1807,39 +1798,30 @@
                 {
                     "description": "Schema for multiple-selection enumeration with display titles for each option.",
                     "properties": {
+                        "anyOf": {
+                            "description": "Array of enum options with values and display labels.",
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "description": "The enum value.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Display label for this option.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
-                        },
-                        "items": {
-                            "description": "Schema for the array items.",
-                            "properties": {
-                                "oneOf": {
-                                    "description": "Array of enum options with values and display labels.",
-                                    "items": {
-                                        "properties": {
-                                            "const": {
-                                                "description": "The enum value.",
-                                                "type": "string"
-                                            },
-                                            "title": {
-                                                "description": "Display label for this option.",
-                                                "type": "string"
-                                            }
-                                        },
-                                        "required": [
-                                            "const",
-                                            "title"
-                                        ],
-                                        "type": "object"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            "required": [
-                                "oneOf"
-                            ],
-                            "type": "object"
                         },
                         "maxItems": {
                             "description": "Maximum number of items to select.",
@@ -1859,7 +1841,7 @@
                         }
                     },
                     "required": [
-                        "items",
+                        "anyOf",
                         "type"
                     ],
                     "type": "object"
@@ -2137,39 +2119,30 @@
                 {
                     "description": "Schema for multiple-selection enumeration with display titles for each option.",
                     "properties": {
+                        "anyOf": {
+                            "description": "Array of enum options with values and display labels.",
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "description": "The enum value.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Display label for this option.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
-                        },
-                        "items": {
-                            "description": "Schema for the array items.",
-                            "properties": {
-                                "oneOf": {
-                                    "description": "Array of enum options with values and display labels.",
-                                    "items": {
-                                        "properties": {
-                                            "const": {
-                                                "description": "The enum value.",
-                                                "type": "string"
-                                            },
-                                            "title": {
-                                                "description": "Display label for this option.",
-                                                "type": "string"
-                                            }
-                                        },
-                                        "required": [
-                                            "const",
-                                            "title"
-                                        ],
-                                        "type": "object"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            "required": [
-                                "oneOf"
-                            ],
-                            "type": "object"
                         },
                         "maxItems": {
                             "description": "Maximum number of items to select.",
@@ -2189,7 +2162,7 @@
                         }
                     },
                     "required": [
-                        "items",
+                        "anyOf",
                         "type"
                     ],
                     "type": "object"
@@ -3211,39 +3184,30 @@
         "TitledMultiSelectEnumSchema": {
             "description": "Schema for multiple-selection enumeration with display titles for each option.",
             "properties": {
+                "anyOf": {
+                    "description": "Array of enum options with values and display labels.",
+                    "items": {
+                        "properties": {
+                            "const": {
+                                "description": "The enum value.",
+                                "type": "string"
+                            },
+                            "title": {
+                                "description": "Display label for this option.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "const",
+                            "title"
+                        ],
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
                 "description": {
                     "description": "Optional description for the enum field.",
                     "type": "string"
-                },
-                "items": {
-                    "description": "Schema for the array items.",
-                    "properties": {
-                        "oneOf": {
-                            "description": "Array of enum options with values and display labels.",
-                            "items": {
-                                "properties": {
-                                    "const": {
-                                        "description": "The enum value.",
-                                        "type": "string"
-                                    },
-                                    "title": {
-                                        "description": "Display label for this option.",
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "const",
-                                    "title"
-                                ],
-                                "type": "object"
-                            },
-                            "type": "array"
-                        }
-                    },
-                    "required": [
-                        "oneOf"
-                    ],
-                    "type": "object"
                 },
                 "maxItems": {
                     "description": "Maximum number of items to select.",
@@ -3263,7 +3227,7 @@
                 }
             },
             "required": [
-                "items",
+                "anyOf",
                 "type"
             ],
             "type": "object"
