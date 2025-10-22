@@ -59,6 +59,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [Klavis AI Slack/Discord/Web][Klavis AI]         | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Langflow][Langflow]                             | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [LibreChat][LibreChat]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
+| [LM-Kit.NET][LM-Kit.NET]                         | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❌            |
 | [LM Studio][LM Studio]                           | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Lutra][Lutra]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [MCP Bundler for MacOS][mcp-bundler]                                   | ✅          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❌            |
@@ -124,7 +125,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Amp]: https://ampcode.com
 [Apify MCP Tester]: https://apify.com/jiri.spilka/tester-mcp-client
 [AugmentCode]: https://augmentcode.com
-[BeeAI Framework]: https://i-am-bee.github.io/beeai-framework
+[BeeAI Framework]: https://framework.beeai.dev
 [BoltAI]: https://boltai.com
 [Call Chirp]: https://www.call-chirp.com
 [Chatbox]: https://chatboxai.app
@@ -159,6 +160,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Kilo Code]: https://github.com/Kilo-Org/kilocode
 [Langflow]: https://github.com/langflow-ai/langflow
 [LibreChat]: https://github.com/danny-avila/LibreChat
+[LM-Kit.NET]: https://lm-kit.com/products/lm-kit-net/
 [LM Studio]: https://lmstudio.ai
 [Lutra]: https://lutra.ai
 [mcp-bundler]: https://mcp-bundler.maketry.xyz
@@ -185,7 +187,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Simtheory]: https://simtheory.ai
 [Slack MCP Client]: https://github.com/tuannvm/slack-mcp-client
 [Smithery Playground]: https://smithery.ai/playground
-[SpinAI]: https://spinai.dev
+[SpinAI]: https://docs.spinai.dev
 [Superinterface]: https://superinterface.ai
 [Superjoin]: https://superjoin.ai
 [Swarms]: https://github.com/kyegomez/swarms
@@ -327,7 +329,7 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 
 ### BeeAI Framework
 
-[BeeAI Framework](https://i-am-bee.github.io/beeai-framework) is an open-source framework for building, deploying, and serving powerful agentic workflows at scale. The framework includes the **MCP Tool**, a native feature that simplifies the integration of MCP servers into agentic workflows.
+[BeeAI Framework](https://framework.beeai.dev) is an open-source framework for building, deploying, and serving powerful agentic workflows at scale. The framework includes the **MCP Tool**, a native feature that simplifies the integration of MCP servers into agentic workflows.
 
 **Key features:**
 
@@ -747,6 +749,22 @@ Langflow is an open-source visual builder that lets developers rapidly prototype
 - Open-source and self-hostable, with secure multi-user support
 - Future roadmap includes expanded MCP feature support
 
+### LM-Kit.NET
+
+[LM-Kit.NET] is a local-first Generative AI SDK for .NET (C# / VB.NET) that can act as an **MCP client**. Current MCP support: **Tools only**.
+
+**Key features:**
+
+- Consume MCP server tools over HTTP/JSON-RPC 2.0 (initialize, list tools, call tools).
+- Programmatic tool discovery and invocation via `McpClient`.
+- Easy integration in .NET agents and applications.
+
+**Learn more:**
+
+- [Docs: Using MCP in LM-Kit.NET](https://docs.lm-kit.com/lm-kit-net/api/LMKit.Mcp.Client.McpClient.html)
+- [Creating AI agents](https://lm-kit.com/solutions/ai-agents)
+- Product page: [LM-Kit.NET]
+
 ### LM Studio
 
 [LM Studio](https://lmstudio.ai) is a cross-platform desktop app for discovering, downloading, and running open-source LLMs locally. You can now connect local models to tools via Model Context Protocol (MCP).
@@ -964,7 +982,7 @@ MooPoint is a web-based AI chat platform built for developers and advanced users
 
 ### Needle
 
-[Needle](https://needle.app) is a RAG worflow platform that also works as an MCP client, letting you connect and use MCP servers in seconds.
+[Needle](https://needle.app) is a RAG workflow platform that also works as an MCP client, letting you connect and use MCP servers in seconds.
 
 **Key features:**
 
@@ -1099,7 +1117,7 @@ Smithery Playground is a developer-first MCP client for exploring, testing and d
 
 ### SpinAI
 
-[SpinAI](https://spinai.dev) is an open-source TypeScript framework for building observable AI agents. The framework provides native MCP compatibility, allowing agents to seamlessly integrate with MCP servers and tools.
+[SpinAI](https://docs.spinai.dev) is an open-source TypeScript framework for building observable AI agents. The framework provides native MCP compatibility, allowing agents to seamlessly integrate with MCP servers and tools.
 
 **Key features:**
 
