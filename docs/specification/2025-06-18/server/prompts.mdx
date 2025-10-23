@@ -163,7 +163,7 @@ sequenceDiagram
     opt listChanged
       Client->>+Server: GET /mcp<br>(starts background SSE stream)
       Note over Client,Server: Changes
-      Server--)Client: prompts/list_changed<br>as a notification
+      Server--)Client: prompts/list_changed<br>(notification on background SSE stream)
       Client->>Server: prompts/list
       Server-->>Client: Updated prompts
     end
