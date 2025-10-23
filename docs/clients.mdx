@@ -97,13 +97,13 @@ This page provides an overview of applications that support the Model Context Pr
 | [Tome][Tome]                                     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [TypingMind App][TypingMind App]                 | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [VS Code GitHub Copilot][VS Code]                | ✅          | ✅        | ✅      | ✅                     | ✅         | ✅    | ✅            |
+| [VT Code][VT Code]                               | ✅          | ✅        | ✅      | ✅                     | ⚠️         | ✅    | ✅            |
 | [Warp][Warp]                                     | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
 | [WhatsMCP][WhatsMCP]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [Windsurf Editor][Windsurf]                      | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            |
 | [Witsy][Witsy]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            |
 | [Zed][Zed]                                       | ❌          | ✅        | ✅      | ❌                     | ❌         | ❌    | ❓            |
 | [Zencoder][Zencoder]                             | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            |
-| [VT Code][VT Code]                               | ✅          | ✅        | ✅      | ✅                     | ⚠️         | ✅    | ✅            |
 
 {/* prettier-ignore-end */}
 
@@ -196,6 +196,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Tome]: https://github.com/runebookai/tome
 [TypingMind App]: https://www.typingmind.com
 [VS Code]: https://code.visualstudio.com/
+[VT Code]: https://github.com/vinhnx/vtcode
 [Windsurf]: https://codeium.com/windsurf
 [gptme]: https://github.com/gptme/gptme
 [Warp]: https://www.warp.dev/
@@ -204,7 +205,6 @@ This page provides an overview of applications that support the Model Context Pr
 [Zed]: https://zed.dev
 [Zencoder]: https://zencoder.ai
 [HyperAgent]: https://github.com/hyperbrowserai/HyperAgent
-[VT Code]: https://github.com/vinhnx/vtcode
 
 </div>
 
@@ -1233,6 +1233,17 @@ Theia AI and Theia IDE's MCP integration provide users with flexibility, making 
 - Tool calls with editable inputs and always-allow toggle
 - Integration with existing VS Code extension system to register MCP servers from extensions
 
+### VT Code
+
+[VT Code](https://github.com/vinhnx/vtcode) is a lightweight code assistant that integrates with Model Context Protocol (MCP) servers, focusing on predictable tool permissions and robust transport controls.
+
+**Key features:**
+
+- Connect to MCP servers over stdio; optional experimental RMCP/streamable HTTP support
+- Configurable per-provider concurrency, startup/tool timeouts, and retries via `vtcode.toml`
+- Pattern-based allowlists for tools, resources, and prompts with provider-level overrides
+- Test suite for configuration parsing and allowlist enforcement, plus an opt-in Context7 smoke test
+
 ### Warp
 
 [Warp](https://www.warp.dev/) is the intelligent terminal with AI and your dev team's knowledge built-in. With natural language capabilities integrated directly into an agentic command line, Warp enables developers to code, automate, and collaborate more efficiently -- all within a terminal that features a modern UX.
@@ -1305,17 +1316,6 @@ Theia AI and Theia IDE's MCP integration provide users with flexibility, making 
 **Learn more:**
 
 - [Zencoder Documentation](https://docs.zencoder.ai)
-
-### VT Code
-
-[VT Code](https://github.com/vinhnx/vtcode) is a lightweight code assistant that integrates with Model Context Protocol (MCP) servers, focusing on predictable tool permissions and robust transport controls.
-
-**Key features:**
-
-- Connect to MCP servers over stdio; optional experimental RMCP/streamable HTTP support
-- Configurable per-provider concurrency, startup/tool timeouts, and retries via `vtcode.toml`
-- Pattern-based allowlists for tools, resources, and prompts with provider-level overrides
-- Test suite for configuration parsing and allowlist enforcement, plus an opt-in Context7 smoke test
 
 **Learn more:**
 
