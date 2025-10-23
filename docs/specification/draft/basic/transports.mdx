@@ -177,8 +177,9 @@ An MCP "session" consists of logically related interactions between a client and
 server, beginning with the [initialization phase](/specification/draft/basic/lifecycle). To support
 servers which want to establish stateful sessions:
 
-1. A server using the Streamable HTTP transport **MAY** assign a session ID by including
-   it in an `Mcp-Session-Id` header on any HTTP response.
+1. A server using the Streamable HTTP transport **MAY** assign a session ID at
+   initialization time, by including it in an `Mcp-Session-Id` header on the HTTP
+   response containing the `InitializeResult`.
    - The session ID **SHOULD** be globally unique and cryptographically secure (e.g., a
      securely generated UUID, a JWT, or a cryptographic hash).
    - The session ID **MUST** only contain visible ASCII characters (ranging from 0x21 to
