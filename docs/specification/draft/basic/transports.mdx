@@ -174,7 +174,8 @@ act as a cursor within that particular stream.
 ### Session Management
 
 An MCP "session" consists of logically related interactions between a client and a
-server. To support establishing stateful sessions:
+server, beginning with the [initialization phase](/specification/draft/basic/lifecycle). To support
+servers which want to establish stateful sessions:
 
 1. A server using the Streamable HTTP transport **MAY** assign a session ID by including
    it in an `Mcp-Session-Id` header on any HTTP response.
