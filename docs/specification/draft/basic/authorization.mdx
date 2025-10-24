@@ -530,3 +530,16 @@ MCP clients **MUST** implement and use the `resource` parameter as defined in [R
 to explicitly specify the target resource for which the token is being requested. This requirement aligns with the recommendation in
 [RFC 9728 Section 7.4](https://datatracker.ietf.org/doc/html/rfc9728#section-7.4). This ensures that access tokens are bound to their intended resources and
 cannot be misused across different services.
+
+## MCP Authorization Extensions
+
+There are several authorization extensions to the core protocol that define additional authorization mechanisms. These extensions are:
+
+- **Optional** - Implementations can choose to adopt these extensions
+- **Additive** - Extensions do not modify or break core protocol functionality; they add new capabilities while preserving core protocol behavior
+- **Composable** - Extensions are modular and designed to work together without conflicts, allowing implementations to adopt multiple extensions simultaneously
+- **Versioned independently** - Extensions follow the core MCP versioning cycle but may adopt independent versioning as needed
+
+A list of supported extensions can be found here:
+
+[modelcontextprotocol/ext-auth](https://github.com/modelcontextprotocol/ext-auth)
