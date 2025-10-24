@@ -250,6 +250,10 @@
                         "listChanged": {
                             "description": "Whether the client supports notifications for changes to the roots list.",
                             "type": "boolean"
+                        },
+                        "remoteProxy": {
+                            "description": "Whether the client supports remote filesystem proxy access for servers.",
+                            "type": "boolean"
                         }
                     },
                     "type": "object"
@@ -332,6 +336,12 @@
                 },
                 {
                     "$ref": "#/definitions/ListRootsResult"
+                },
+                {
+                    "$ref": "#/definitions/RequestFilesystemConsentResult"
+                },
+                {
+                    "$ref": "#/definitions/SetupFilesystemProxyResult"
                 },
                 {
                     "$ref": "#/definitions/ElicitResult"
@@ -1974,6 +1984,74 @@
             ],
             "type": "object"
         },
+        "RequestFilesystemConsentRequest": {
+            "description": "A request from the server to the client, asking for user consent to access filesystem roots\nvia a remote proxy connection. This is part of the remote filesystem access protocol.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "request_filesystem_consent",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "message": {
+                            "description": "A human-readable message explaining what filesystem access is needed and why.",
+                            "type": "string"
+                        },
+                        "requestedPaths": {
+                            "description": "Array of filesystem paths or patterns the server wants to access.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "message",
+                        "requestedPaths"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "RequestFilesystemConsentResult": {
+            "description": "The client's response to a request_filesystem_consent request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "approvedPaths": {
+                    "description": "If consent was granted, the specific paths that were approved for access.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "granted": {
+                    "description": "Whether the user granted consent for filesystem access.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "granted"
+            ],
+            "type": "object"
+        },
         "RequestId": {
             "description": "A uniquely identifying ID for a request in JSON-RPC.",
             "type": [
@@ -2383,6 +2461,16 @@
                     },
                     "type": "object"
                 },
+                "roots": {
+                    "description": "Present if the server requires filesystem access via roots.",
+                    "properties": {
+                        "remoteProxySupported": {
+                            "description": "Whether this server supports remote filesystem proxy connections.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
                 "tools": {
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
@@ -2431,6 +2519,12 @@
                 },
                 {
                     "$ref": "#/definitions/ListRootsRequest"
+                },
+                {
+                    "$ref": "#/definitions/RequestFilesystemConsentRequest"
+                },
+                {
+                    "$ref": "#/definitions/SetupFilesystemProxyRequest"
                 },
                 {
                     "$ref": "#/definitions/ElicitRequest"
@@ -2503,6 +2597,71 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "SetupFilesystemProxyRequest": {
+            "description": "A request from the server to the client, asking for the setup of a filesystem proxy\nconnection. This follows a successful consent request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "setup_filesystem_proxy",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "paths": {
+                            "description": "The paths that the proxy should provide access to.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "paths"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "SetupFilesystemProxyResult": {
+            "description": "The client's response to a setup_filesystem_proxy request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "expiresAt": {
+                    "description": "Optional expiration time for the token as an ISO 8601 string.",
+                    "type": "string"
+                },
+                "proxyUrl": {
+                    "description": "WebSocket URL for the filesystem proxy connection.",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "Authentication token for the proxy connection.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "proxyUrl",
+                "token"
             ],
             "type": "object"
         },

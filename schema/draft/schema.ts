@@ -228,6 +228,10 @@ export interface ClientCapabilities {
      * Whether the client supports notifications for changes to the roots list.
      */
     listChanged?: boolean;
+    /**
+     * Whether the client supports remote filesystem proxy access for servers.
+     */
+    remoteProxy?: boolean;
   };
   /**
    * Present if the client supports sampling from an LLM.
@@ -285,6 +289,15 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the tool list.
      */
     listChanged?: boolean;
+  };
+  /**
+   * Present if the server requires filesystem access via roots.
+   */
+  roots?: {
+    /**
+     * Whether this server supports remote filesystem proxy connections.
+     */
+    remoteProxySupported?: boolean;
   };
 }
 
@@ -1457,6 +1470,78 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
 }
 
 /**
+ * A request from the server to the client, asking for user consent to access filesystem roots
+ * via a remote proxy connection. This is part of the remote filesystem access protocol.
+ *
+ * @category request_filesystem_consent
+ */
+export interface RequestFilesystemConsentRequest extends JSONRPCRequest {
+  method: "request_filesystem_consent";
+  params: {
+    /**
+     * A human-readable message explaining what filesystem access is needed and why.
+     */
+    message: string;
+    /**
+     * Array of filesystem paths or patterns the server wants to access.
+     */
+    requestedPaths: string[];
+  };
+}
+
+/**
+ * The client's response to a request_filesystem_consent request from the server.
+ *
+ * @category request_filesystem_consent
+ */
+export interface RequestFilesystemConsentResult extends Result {
+  /**
+   * Whether the user granted consent for filesystem access.
+   */
+  granted: boolean;
+  /**
+   * If consent was granted, the specific paths that were approved for access.
+   */
+  approvedPaths?: string[];
+}
+
+/**
+ * A request from the server to the client, asking for the setup of a filesystem proxy
+ * connection. This follows a successful consent request.
+ *
+ * @category setup_filesystem_proxy
+ */
+export interface SetupFilesystemProxyRequest extends JSONRPCRequest {
+  method: "setup_filesystem_proxy";
+  params: {
+    /**
+     * The paths that the proxy should provide access to.
+     */
+    paths: string[];
+  };
+}
+
+/**
+ * The client's response to a setup_filesystem_proxy request from the server.
+ *
+ * @category setup_filesystem_proxy
+ */
+export interface SetupFilesystemProxyResult extends Result {
+  /**
+   * WebSocket URL for the filesystem proxy connection.
+   */
+  proxyUrl: string;
+  /**
+   * Authentication token for the proxy connection.
+   */
+  token: string;
+  /**
+   * Optional expiration time for the token as an ISO 8601 string.
+   */
+  expiresAt?: string;
+}
+
+/**
  * A request from the server to elicit additional information from the user via the client.
  *
  * @category elicitation/create
@@ -1577,7 +1662,9 @@ export type ClientResult =
   | EmptyResult
   | CreateMessageResult
   | ListRootsResult
-  | ElicitResult;
+  | ElicitResult
+  | RequestFilesystemConsentResult
+  | SetupFilesystemProxyResult;
 
 /* Server messages */
 /** @internal */
@@ -1585,7 +1672,9 @@ export type ServerRequest =
   | PingRequest
   | CreateMessageRequest
   | ListRootsRequest
-  | ElicitRequest;
+  | ElicitRequest
+  | RequestFilesystemConsentRequest
+  | SetupFilesystemProxyRequest;
 
 /** @internal */
 export type ServerNotification =

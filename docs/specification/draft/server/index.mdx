@@ -13,6 +13,8 @@ models:
 - **Resources**: Structured data or content that provides additional context to the model
 - **Tools**: Executable functions that allow models to perform actions or retrieve
   information
+- **Roots**: Filesystem boundaries that define where servers can operate, enabling secure
+  local and remote file access
 
 Each primitive can be summarized in the following control hierarchy:
 
@@ -21,10 +23,11 @@ Each primitive can be summarized in the following control hierarchy:
 | Prompts   | User-controlled        | Interactive templates invoked by user choice       | Slash commands, menu options    |
 | Resources | Application-controlled | Contextual data attached and managed by the client | File contents, git history      |
 | Tools     | Model-controlled       | Functions exposed to the LLM to take actions       | API POST requests, file writing |
+| Roots     | Client-controlled      | Filesystem boundaries for secure file operations   | Project directories, sandboxes  |
 
 Explore these key primitives in more detail below:
 
-<CardGroup cols={3}>
+<CardGroup cols={4}>
   <Card
     title="Prompts"
     icon="message"
@@ -36,4 +39,5 @@ Explore these key primitives in more detail below:
     href="/specification/draft/server/resources"
   />
   <Card title="Tools" icon="wrench" href="/specification/draft/server/tools" />
+  <Card title="Roots" icon="folder" href="/specification/draft/client/roots" />
 </CardGroup>
