@@ -329,6 +329,72 @@ When storing or transmitting session-related data (e.g., in a queue), combine th
 
 MCP servers can optionally leverage additional unique identifiers.
 
+### Remote Filesystem Proxy Security
+
+Remote filesystem proxy functionality allows remote MCP servers to access client-local filesystems via WebSocket connections. This powerful capability requires careful security considerations to prevent unauthorized access and data exfiltration.
+
+#### Attack Description
+
+Remote filesystem proxy creates several potential attack vectors:
+
+1. **Unauthorized File Access**: Malicious servers could attempt to access files outside approved root boundaries
+2. **Data Exfiltration**: Compromised servers could read sensitive files and transmit them to attackers
+3. **Path Traversal**: Servers could use relative paths (e.g., `../../../etc/passwd`) to escape root constraints
+4. **Consent Bypass**: Malicious servers could manipulate users into approving overly broad filesystem access
+5. **WebSocket Hijacking**: Attackers could intercept or manipulate proxy connections
+6. **Token Compromise**: Leaked authentication tokens could enable unauthorized filesystem access
+
+#### Risks
+
+- **Data Breach**: Sensitive local files could be accessed and exfiltrated
+- **System Compromise**: File writes could modify system configurations or install malware
+- **Privacy Violation**: Personal documents, credentials, and private keys could be exposed
+- **Lateral Movement**: Attackers could use filesystem access to discover and compromise additional systems
+- **Persistence**: Malicious files could be written to achieve persistence on the local system
+
+#### Mitigation
+
+Clients implementing remote filesystem proxy **MUST** implement comprehensive security controls:
+
+**Path Validation and Scoping**
+
+- Validate all file paths against approved root boundaries before any filesystem operation
+- Reject requests containing path traversal sequences (`../`, `..\`, absolute paths starting with `/`)
+- Use canonical path resolution to prevent bypass attempts
+- Implement allowlist-based path validation rather than blocklist approaches
+
+**User Consent and Authorization**
+
+- Require explicit user consent before establishing any proxy connection
+- Display the exact root directory being shared in clear, understandable terms
+- Show which server and what organization will have access to the files
+- Provide easy mechanisms to revoke access at any time
+- Log all filesystem access for user review
+
+**Connection Security**
+
+- Use TLS 1.3 or higher for all WebSocket proxy connections
+- Implement proper certificate validation and pinning where appropriate
+- Use short-lived JWT tokens (recommended: 1 hour maximum)
+- Include client IP binding in authentication tokens where possible
+- Implement rate limiting and abuse detection
+
+**Operational Security**
+
+- Monitor proxy connections for unusual activity patterns
+- Implement file access logging with tamper protection
+- Provide clear audit trails of all filesystem operations
+- Alert users to high-risk operations (access to sensitive directories, large data transfers)
+- Implement automatic disconnection on suspicious activity
+
+**Access Controls**
+
+- Default to minimal necessary permissions (read-only when possible)
+- Implement fine-grained permissions (per-directory, per-operation type)
+- Respect existing filesystem permissions and access controls
+- Provide easy mechanisms to limit access scope after initial consent
+- Consider implementing "temporary access" modes with automatic expiration
+
 ### Local MCP Server Compromise
 
 Local MCP servers are MCP Servers running on a user's local machine, either by the user downloading and executing a server, authoring a server themselves, or installing through a client's configuration flows. These servers may have direct access to the user's system and may be accessible to other processes running on the user's machine, making them attractive targets for attacks.

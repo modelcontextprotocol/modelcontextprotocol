@@ -1,0 +1,372 @@
+---
+title: Roots and Filesystem Access
+---
+
+<div id="enable-section-numbers" />
+
+<Info>**Protocol Revision**: draft</Info>
+
+MCP servers can request access to client filesystems through the roots mechanism. This enables servers to perform file operations while maintaining security boundaries and user consent. Servers can operate with both local filesystem access (when running locally) and remote filesystem access (when running as remote services).
+
+## Overview
+
+Roots define the filesystem boundaries where servers are permitted to operate. They provide:
+
+- **Security boundaries**: Servers cannot access files outside approved roots
+- **User consent**: Explicit approval required for each filesystem access request
+- **Cross-platform compatibility**: Works with local and remote server deployments
+- **Standard APIs**: Servers use familiar filesystem operations regardless of deployment
+
+## Server Capabilities
+
+Servers that require filesystem access **MUST** declare the `roots` capability with `remoteProxySupported` during initialization:
+
+```json
+{
+  "capabilities": {
+    "roots": {
+      "remoteProxySupported": true
+    }
+  }
+}
+```
+
+This capability indicates:
+
+- The server may require filesystem access to function properly
+- The server supports remote filesystem access via WebSocket proxy connections
+- The server will gracefully handle cases where filesystem access is unavailable
+
+## Connection Type Detection
+
+Servers **MUST** detect their connection type during initialization and handle filesystem access appropriately:
+
+```json
+// Example server initialization logic
+function handleInitialize(request) {
+  const connectionType = detectConnectionType(); // 'local' or 'remote'
+  const clientCapabilities = request.params.capabilities;
+
+  if (connectionType === 'remote') {
+    if (!clientCapabilities.roots?.remoteProxy) {
+      throw new Error({
+        code: -32603,
+        message: "Filesystem access unavailable over remote connection"
+      });
+    }
+  }
+
+  return {
+    capabilities: {
+      roots: {
+        remoteProxySupported: true
+      }
+    }
+  };
+}
+```
+
+## Filesystem Access Patterns
+
+### Local Deployment
+
+When running locally (stdio transport), servers have direct filesystem access:
+
+```javascript
+const fs = require("fs");
+
+// Direct filesystem access
+const content = fs.readFileSync("/approved/root/file.txt", "utf8");
+fs.writeFileSync("/approved/root/output.txt", content);
+```
+
+### Remote Deployment with Proxy
+
+When running remotely (HTTP/SSE transport), servers use wrapper libraries:
+
+```javascript
+const fs = require("mcp-fs"); // Pluggable wrapper
+
+// Initialize proxy connection (handled automatically)
+fs.init({
+  remote: true,
+  wsUrl: process.env.MCP_PROXY_URL,
+  clientId: process.env.MCP_CLIENT_ID,
+  rootPath: "/approved/root",
+});
+
+// Same API as local filesystem
+const content = fs.readFileSync("/approved/root/file.txt", "utf8");
+fs.writeFileSync("/approved/root/output.txt", content);
+```
+
+### Hybrid Deployment Support
+
+Servers **SHOULD** support both local and remote deployment with minimal code changes:
+
+```javascript
+const fs = require("mcp-fs"); // Wrapper that handles both cases
+
+// Auto-detect and configure based on connection type
+fs.init({
+  remote: process.env.MCP_CONNECTION_TYPE === "remote",
+  wsUrl: process.env.MCP_PROXY_URL,
+  clientId: process.env.MCP_CLIENT_ID,
+  rootPath: process.env.MCP_ROOT_PATH || "/default/root",
+});
+
+// Unified API works in both cases
+function processFile(filename) {
+  const content = fs.readFileSync(filename, "utf8");
+  return content.toUpperCase();
+}
+```
+
+## Consent and User Interaction
+
+### Requesting Filesystem Access
+
+Before performing filesystem operations, servers **MUST** request consent:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "request_filesystem_consent",
+  "params": {
+    "root": "file:///home/user/project",
+    "reason": "Process configuration files and generate reports"
+  },
+  "id": 1
+}
+```
+
+The client will prompt the user and respond with approval status:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "approved": true,
+    "root": "file:///home/user/project"
+  },
+  "id": 1
+}
+```
+
+### Best Practices for Consent
+
+1. **Clear Reasoning**: Explain why filesystem access is needed
+2. **Specific Scope**: Request access to the minimal necessary directory
+3. **Graceful Degradation**: Handle denial gracefully with alternative workflows
+4. **Respect Boundaries**: Never attempt to access files outside approved roots
+
+## Error Handling
+
+Servers **MUST** handle filesystem access errors appropriately:
+
+### Remote Connection Without Proxy Support
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32603,
+    "message": "Filesystem access unavailable over remote connection",
+    "data": {
+      "connectionType": "remote",
+      "proxySupported": false,
+      "suggestion": "Use local deployment or client with proxy support"
+    }
+  },
+  "id": 1
+}
+```
+
+### Common Filesystem Errors
+
+```javascript
+try {
+  const content = fs.readFileSync("/approved/root/nonexistent.txt");
+} catch (error) {
+  if (error.code === "FILE_NOT_FOUND") {
+    // Handle missing file
+    return null;
+  } else if (error.code === "PERMISSION_DENIED") {
+    // Handle access denied (outside root)
+    throw new Error("Access denied: file outside approved root");
+  } else {
+    // Handle other filesystem errors
+    throw new Error(`Filesystem operation failed: ${error.message}`);
+  }
+}
+```
+
+## Implementation Guidelines
+
+### Server Requirements
+
+1. **Capability Declaration**: Always declare `remoteProxySupported: true` if filesystem access is needed
+2. **Connection Detection**: Detect local vs remote deployment
+3. **Graceful Fallbacks**: Handle cases where filesystem access is unavailable
+4. **Error Handling**: Implement proper error handling for all filesystem operations
+5. **Path Validation**: Ensure all operations stay within approved root boundaries
+
+### Recommended Libraries
+
+- **Node.js**: `mcp-fs` wrapper library
+- **Python**: `mcp-filesystem` wrapper library
+- **Rust**: `mcp-fs` crate
+- **Other Languages**: Implement wrapper following the proxy protocol specification
+
+### Security Considerations
+
+1. **Path Sanitization**: Always validate and sanitize file paths
+2. **Root Boundaries**: Never access files outside approved roots
+3. **Input Validation**: Validate all file content and metadata
+4. **Resource Limits**: Implement appropriate limits on file sizes and operation counts
+5. **Audit Logging**: Log filesystem operations for security monitoring
+
+## Examples
+
+### File Processing Server
+
+```javascript
+const fs = require("mcp-fs");
+
+class FileProcessorServer {
+  async initialize(request) {
+    // Auto-configure filesystem wrapper
+    await fs.init({
+      remote: this.isRemoteConnection(),
+      wsUrl: process.env.MCP_PROXY_URL,
+      clientId: request.params.clientInfo.name,
+      rootPath: "/project/files",
+    });
+
+    return {
+      capabilities: {
+        tools: { listChanged: true },
+        roots: { remoteProxySupported: true },
+      },
+    };
+  }
+
+  async processFiles(params) {
+    // Request filesystem consent
+    const consent = await this.requestConsent({
+      root: params.projectRoot,
+      reason: "Process and analyze project files",
+    });
+
+    if (!consent.approved) {
+      throw new Error("Filesystem access denied by user");
+    }
+
+    // Process files within approved root
+    const files = fs.readdirSync(params.projectRoot);
+    const results = [];
+
+    for (const file of files) {
+      const filePath = path.join(params.projectRoot, file);
+      try {
+        const content = fs.readFileSync(filePath, "utf8");
+        results.push({
+          file,
+          processed: this.processFileContent(content),
+        });
+      } catch (error) {
+        results.push({
+          file,
+          error: error.message,
+        });
+      }
+    }
+
+    return results;
+  }
+}
+```
+
+### Configuration Management Server
+
+```javascript
+class ConfigServer {
+  async initialize() {
+    await fs.init({
+      remote: process.env.NODE_ENV === "production",
+      wsUrl: process.env.MCP_PROXY_URL,
+      rootPath: "/app/config",
+    });
+
+    return {
+      capabilities: {
+        tools: { listChanged: true },
+        resources: { listChanged: true },
+        roots: { remoteProxySupported: true },
+      },
+    };
+  }
+
+  async loadConfig(configName) {
+    const configPath = `/app/config/${configName}.json`;
+
+    try {
+      const content = fs.readFileSync(configPath, "utf8");
+      return JSON.parse(content);
+    } catch (error) {
+      if (error.code === "FILE_NOT_FOUND") {
+        return this.getDefaultConfig(configName);
+      }
+      throw error;
+    }
+  }
+
+  async saveConfig(configName, config) {
+    const configPath = `/app/config/${configName}.json`;
+    const content = JSON.stringify(config, null, 2);
+
+    fs.writeFileSync(configPath, content, "utf8");
+    return { saved: true, path: configPath };
+  }
+}
+```
+
+## Migration Guide
+
+### From Direct Filesystem Access
+
+**Before (Local only):**
+
+```javascript
+const fs = require("fs");
+
+function processFile(path) {
+  return fs.readFileSync(path, "utf8");
+}
+```
+
+**After (Local + Remote):**
+
+```javascript
+const fs = require("mcp-fs");
+
+async function initialize() {
+  await fs.init({
+    remote: process.env.MCP_REMOTE === "true",
+    wsUrl: process.env.MCP_PROXY_URL,
+    clientId: process.env.MCP_CLIENT_ID,
+  });
+}
+
+function processFile(path) {
+  return fs.readFileSync(path, "utf8"); // Same API!
+}
+```
+
+### Adding Proxy Support to Existing Servers
+
+1. Replace filesystem imports with wrapper libraries
+2. Add initialization logic to detect connection type
+3. Update capability declarations
+4. Add proper error handling for remote connection failures
+5. Test both local and remote deployment scenarios
