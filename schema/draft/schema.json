@@ -608,6 +608,9 @@
                         "requestedSchema": {
                             "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
                             "properties": {
+                                "$schema": {
+                                    "type": "string"
+                                },
                                 "properties": {
                                     "additionalProperties": {
                                         "$ref": "#/definitions/PrimitiveSchemaDefinition"
@@ -2658,6 +2661,9 @@
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
                     "properties": {
+                        "$schema": {
+                            "type": "string"
+                        },
                         "properties": {
                             "additionalProperties": {
                                 "additionalProperties": true,
@@ -2687,8 +2693,11 @@
                     "type": "string"
                 },
                 "outputSchema": {
-                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult.",
+                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a CallToolResult.\n\nDefaults to JSON Schema 2020-12 when no explicit $schema is provided.\nCurrently restricted to type: \"object\" at the root level.",
                     "properties": {
+                        "$schema": {
+                            "type": "string"
+                        },
                         "properties": {
                             "additionalProperties": {
                                 "additionalProperties": true,

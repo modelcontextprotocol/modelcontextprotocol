@@ -24,7 +24,7 @@
     "check": "npm run check:schema && npm run check:docs",
     "check:schema": "npm run check:schema:ts && npm run check:schema:json && npm run check:schema:md",
     "check:schema:ts": "tsc",
-    "check:schema:json": "for f in schema/*/schema.ts; do typescript-json-schema --defaultNumberType integer --required --skipLibCheck \"$f\" \"*\" | cat | cmp \"${f%.ts}.json\" - || exit 1; done",
+    "check:schema:json": "for f in schema/*/schema.ts; do typescript-json-schema --defaultNumberType integer --required --skipLibCheck \"$f\" \"*\" | cmp \"${f%.ts}.json\" - || exit 1; done",
     "check:schema:md": "for f in docs/specification/*/schema.mdx; do typedoc --entryPoints \"schema/$(basename -- $(dirname -- \"$f\"))/schema.ts\" | cmp \"$f\" - || exit 1; done",
     "check:docs": "npm run check:docs:format && npm run check:docs:links",
     "check:docs:format": "prettier --check \"**/*.{md,mdx}\"",
