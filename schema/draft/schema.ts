@@ -1518,14 +1518,154 @@ export interface BooleanSchema {
   default?: boolean;
 }
 
-export interface EnumSchema {
+/**
+ * Schema for single-selection enumeration without display titles for options.
+ */
+export type UntitledSingleSelectEnumSchema = {
+  type: "string";
+  /**
+   * Optional title for the enum field.
+   */
+  title?: string;
+  /**
+   * Optional description for the enum field.
+   */
+  description?: string;
+  /**
+   * Array of enum values to choose from.
+   */
+  enum: string[];
+};
+
+/**
+ * Schema for single-selection enumeration with display titles for each option.
+ */
+export type TitledSingleSelectEnumSchema = {
+  type: "string";
+  /**
+   * Optional title for the enum field.
+   */
+  title?: string;
+  /**
+   * Optional description for the enum field.
+   */
+  description?: string;
+  /**
+   * Array of enum options with values and display labels.
+   */
+  oneOf: Array<{
+    /**
+     * The enum value.
+     */
+    const: string;
+    /**
+     * Display label for this option.
+     */
+    title: string;
+  }>;
+};
+
+// Combined single selection enumeration
+export type SingleSelectEnumSchema = 
+  | UntitledSingleSelectEnumSchema
+  | TitledSingleSelectEnumSchema;
+
+/**
+ * Schema for multiple-selection enumeration without display titles for options.
+ */
+export type UntitledMultiSelectEnumSchema = {
+  type: "array";
+  /**
+   * Optional title for the enum field.
+   */
+  title?: string;
+  /**
+   * Optional description for the enum field.
+   */
+  description?: string;
+  /**
+   * Minimum number of items to select.
+   */
+  minItems?: number;
+  /**
+   * Maximum number of items to select.
+   */
+  maxItems?: number;
+  /**
+   * Schema for the array items.
+   */
+  items: {
+    type: "string";
+    /**
+     * Array of enum values to choose from.
+     */
+    enum: string[];
+  };
+};
+
+/**
+ * Schema for multiple-selection enumeration with display titles for each option.
+ */
+export type TitledMultiSelectEnumSchema = {
+  type: "array";
+  /**
+   * Optional title for the enum field.
+   */
+  title?: string;
+  /**
+   * Optional description for the enum field.
+   */
+  description?: string;
+  /**
+   * Minimum number of items to select.
+   */
+  minItems?: number;
+  /**
+   * Maximum number of items to select.
+   */
+  maxItems?: number;
+  /**
+   * Array of enum options with values and display labels.
+   */
+  anyOf: Array<{
+    /**
+     * The enum value.
+     */
+    const: string;
+    /**
+     * Display label for this option.
+     */
+    title: string;
+  }>;
+};
+
+// Combined multiple selection enumeration
+export type MultiSelectEnumSchema = 
+  | UntitledMultiSelectEnumSchema
+  | TitledMultiSelectEnumSchema;
+
+/**
+ * Use TitledSingleSelectEnumSchema instead.
+ * This interface will be removed in a future version.
+ */
+export interface LegacyTitledEnumSchema {
   type: "string";
   title?: string;
   description?: string;
   enum: string[];
-  enumNames?: string[]; // Display names for enum values
+  /**
+   * (Legacy) Display names for enum values.
+   * Non-standard according to JSON schema 2020-12.
+   */
+  enumNames?: string[];
   default?: string;
 }
+
+// Union type for all enum schemas
+export type EnumSchema =
+  | SingleSelectEnumSchema
+  | MultiSelectEnumSchema
+  | LegacyTitledEnumSchema;
 
 /**
  * The client's response to an elicitation request.
@@ -1545,7 +1685,7 @@ export interface ElicitResult extends Result {
    * The submitted form data, only present when action is "accept".
    * Contains values matching the requested schema.
    */
-  content?: { [key: string]: string | number | boolean };
+  content?: { [key: string]: string | number | boolean | string[] };
 }
 
 /* Client messages */
