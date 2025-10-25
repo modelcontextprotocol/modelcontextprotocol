@@ -45,7 +45,13 @@
               "docs/develop/connect-remote-servers",
               "docs/develop/build-server",
               "docs/develop/build-client",
-              "docs/sdk"
+              "docs/sdk",
+              {
+                "group": "Security",
+                "pages": [
+                  "docs/tutorials/security/authorization"
+                ]
+              }
             ]
           },
           {
@@ -370,10 +376,6 @@
     {
       "source": "/docs/concepts",
       "destination": "/docs/learn/architecture"
-    },
-    {
-      "source": "/docs/tools",
-      "destination": "/legacy/tools/inspector"
     },
     {
       "source": "/docs/tutorials/use-remote-mcp-server",
