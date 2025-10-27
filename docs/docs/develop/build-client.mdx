@@ -77,7 +77,7 @@ You'll need an Anthropic API key from the [Anthropic Console](https://console.an
 Create a `.env` file to store it:
 
 ```bash
-echo "ANTHROPIC_API_KEY=<your key here>" > .env
+echo "ANTHROPIC_API_KEY=your-api-key-goes-here" > .env
 ```
 
 Add `.env` to your `.gitignore`:
@@ -391,6 +391,10 @@ When you submit a query:
    - Store API keys securely in `.env`
    - Validate server responses
    - Be cautious with tool permissions
+
+4. **Tool Names**
+   - Tool names can be validated according to the format specified [here](/specification/draft/server/tools#tool-names)
+   - If a tool name conforms to the specified format, it should not fail validation by an MCP client
 
 ## Troubleshooting
 
