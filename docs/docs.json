@@ -267,6 +267,31 @@
         ]
       },
       {
+        "tab": "Registry",
+        "pages": [
+          "registry/about",
+          "registry/quickstart",
+          {
+            "group": "Publishing",
+            "pages": [
+              "registry/package-types",
+              "registry/remote-servers",
+              "registry/authentication",
+              "registry/versioning",
+              "registry/github-actions",
+              "registry/moderation-policy"
+            ]
+          },
+          {
+            "group": "Consuming",
+            "pages": [
+              "registry/registry-aggregators"
+            ]
+          },
+          "registry/terms-of-service"
+        ]
+      },
+      {
         "tab": "Community",
         "pages": [
           "community/communication",
