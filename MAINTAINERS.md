@@ -84,8 +84,9 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Inspector
 
-- [Ola Hungerford](https://github.com/olaservo)
 - [Cliff Hall](https://github.com/cliffhall)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Ola Hungerford](https://github.com/olaservo)
 
 ### Registry
 
