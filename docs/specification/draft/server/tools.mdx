@@ -84,6 +84,7 @@ To discover available tools, clients send a `tools/list` request. This operation
         "name": "get_weather",
         "title": "Weather Information Provider",
         "description": "Get current weather information for a location",
+        "version": "2.1.0",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -123,6 +124,9 @@ To invoke a tool, clients send a `tools/call` request:
     "name": "get_weather",
     "arguments": {
       "location": "New York"
+    },
+    "tool_requirements": {
+      "get_weather": "^2.0.0"
     }
   }
 }
@@ -184,6 +188,60 @@ sequenceDiagram
     Server-->>Client: Updated tools
 ```
 
+## Tool Versioning
+
+MCP supports semantic versioning for tools to prevent breakages caused by un-versioned, dynamic tool updates. This allows clients to specify version constraints for the tools they are designed to work with.
+
+### Tool Version Declaration
+
+Tools can declare their version using the optional `version` field in their definition. The version string MUST adhere to the **Semantic Versioning 2.0.0** standard (e.g., MAJOR.MINOR.PATCH). Examples: "1.2.3", "2.0.0", "0.1.0-alpha.1".
+
+### Client Version Requirements
+
+Clients can specify version requirements for tools using the optional `tool_requirements` field in tool call requests. This field is a key-value map where:
+- **Key**: Tool name (string)
+- **Value**: Version specifier (string)
+
+The version specifier SHOULD follow conventions from modern package managers and supports the following operators:
+
+- **Caret (`^`)**: Allows non-breaking updates. `^1.2.3` is equivalent to `>=1.2.3 <2.0.0`
+- **Tilde (`~`)**: Allows patch-level updates. `~1.2.3` is equivalent to `>=1.2.3 <1.3.0`
+- **Comparison Operators**: `>`, `>=`, `<`, `<=`
+- **Exact Version**: A version number without any operator (e.g., `"1.2.3"`)
+
+### Version Validation Flow
+
+1. **Tool Discovery**: The client fetches the list of available tools from the server (e.g., via tools/list). The server response SHOULD include the version field for each tool that has one.
+2. **Client-Side Pre-validation (Recommended)**: Before making a tool call, the client SHOULD evaluate the available tool versions against its tool_requirements. This allows the client to identify potential mismatches early.
+3. **Tool Call with Requirements**: The client sends the tool call request, including the tool_requirements object.
+4. **Server-Side Validation (Mandatory)**: Upon receiving a request with tool_requirements, the server MUST perform validation before execution:
+   - For each key (tool name) in the tool_requirements object, the server MUST check if it has a version of that tool that satisfies the specified version constraint.
+   - If multiple versions satisfy a constraint, the server MUST select the **latest, stable** version that satisfies it.
+   - If all constraints are satisfied, the server proceeds with execution using the selected tool versions.
+   - If any constraint cannot be satisfied, the server MUST NOT execute the tool call and MUST return an error.
+
+### Error Handling
+
+If server-side validation fails, the server MUST return an error response with the error code `UNSATISFIED_TOOL_VERSION`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "error": {
+    "code": -32602,
+    "message": "Tool requirement for 'data_analyzer' (~1.4.1) could not be satisfied. Available versions: [1.3.2, 2.0.0]"
+  }
+}
+```
+
+### Backwards Compatibility
+
+This versioning system is designed to be fully backwards compatible:
+
+- **Un-versioned Tools**: If a tool definition does not include a version field, it will only satisfy a request that does not specify a version for that tool (or uses a wildcard `*` specifier).
+- **Legacy Clients**: If a client request does not include the tool_requirements field, the server MUST default to providing the latest stable version of the requested tools, preserving existing behavior.
+
 ## Data Types
 
 ### Tool
@@ -193,6 +251,7 @@ A tool definition includes:
 - `name`: Unique identifier for the tool
 - `title`: Optional human-readable name of the tool for display purposes.
 - `description`: Human-readable description of functionality
+- `version`: Optional semantic version of the tool (SemVer 2.0.0)
 - `inputSchema`: JSON Schema defining expected parameters
 - `outputSchema`: Optional JSON Schema defining expected output structure
 - `annotations`: optional properties describing tool behavior
