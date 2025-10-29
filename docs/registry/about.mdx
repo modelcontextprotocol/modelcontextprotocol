@@ -1,0 +1,60 @@
+---
+title: The MCP Registry
+sidebarTitle: About
+---
+
+The MCP Registry is the official centralized metadata repository for publicly accessible MCP servers, backed by major trusted contributors to the MCP ecosystem such as Anthropic, GitHub, PulseMCP, and Microsoft.
+
+The MCP Registry provides:
+
+- A single place for server creators to publish metadata about their servers
+- Namespace management through DNS verification
+- A REST API for MCP clients and aggregators to discover available servers
+- Standardized installation and configuration information
+
+Server metadata is stored in a standardized [`server.json` format](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/server.schema.json), which contains:
+
+- The server's unique name (e.g., `io.github.user/server-name`)
+- Where to locate the server (e.g., npm package name, remote server URL)
+- Execution instructions (e.g., command-line args, env vars)
+- Other discovery data (e.g., description, server capabilities)
+
+## The MCP Registry Ecosystem
+
+The MCP Registry is part of an ecosystem that looks something like:
+
+![The MCP Registry ecosystem](./ecosystem-diagram.excalidraw.svg)
+
+### Relationship with Package Registries
+
+Package registries — such as npm, PyPI, and Docker Hub — host packages with code and binaries.
+
+The MCP Registry hosts metadata that points to those packages.
+
+For example, a `weather-mcp` package could be hosted on npm, and metadata in the MCP Registry could map the "weather v1.2.0" server to `npm:weather-mcp`.
+
+The [Package Types guide](./package-types.mdx) lists the supported package types and registries. More package registries may be supported in the future based on community demand. If you are interested in building support for a package registry, please [open an issue](https://github.com/modelcontextprotocol/registry).
+
+### Relationship with Server Developers
+
+The MCP Registry supports both open-source and closed-source servers. Server developers can publish their server's metadata to the registry as long as the server's installation method is publicly available (e.g., an npm package or a Docker image on a public registry) _or_ the server itself is publicly accessible (e.g., a remote server that is not restricted to private networks).
+
+The MCP Registry **does not** support private servers. Private servers are those that are only accessible to a narrow set of users. For example, servers published on a private network (like `mcp.acme-corp.internal`) or on private package registries (e.g. `npx -y @acme/mcp --registry https://artifactory.acme-corp.internal/npm`). If you want to publish private servers, we recommend that you host your own private MCP registry and add them there.
+
+### Relationship with Downstream Aggregators
+
+The MCP Registry is intended to be consumed primarily by downstream aggregators, such as MCP server marketplaces.
+
+The metadata hosted by the MCP Registry is deliberately unopinionated. Downstream aggregators can provide curation or additional metadata such as community ratings.
+
+We expect that downstream aggregators will use the MCP Registry API to pull new metadata on a regular but infrequent basis (for example, once per hour). See the [MCP Registry Aggregators guide](./registry-aggregators.mdx) for more information.
+
+### Relationship with Other MCP Registries
+
+In addition to a public REST API, the MCP Registry defines an [OpenAPI spec](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/api/openapi.yaml) that other MCP registries can implement in order to provide a standardized interface for MCP host applications.
+
+We expect that many downstream aggregators will implement this interface. Private MCP registries can implement it as well to benefit from existing host application support.
+
+### Relationship with MCP Host Applications
+
+The MCP Registry is not intended to be directly consumed by host applications. Instead, host applications should consume other MCP registries, such as downstream marketplaces, via a REST API conforming to the official MCP Registry's OpenAPI spec.
