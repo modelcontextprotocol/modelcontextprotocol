@@ -150,8 +150,6 @@ To retrieve resource contents, clients send a `resources/read` request:
     "contents": [
       {
         "uri": "file:///project/src/main.rs",
-        "name": "main.rs",
-        "title": "Rust Software Application Main File",
         "mimeType": "text/x-rust",
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
@@ -286,8 +284,6 @@ Resources can contain either text or binary data:
 ```json
 {
   "uri": "file:///example.txt",
-  "name": "example.txt",
-  "title": "Example Text File",
   "mimeType": "text/plain",
   "text": "Resource content"
 }
@@ -298,8 +294,6 @@ Resources can contain either text or binary data:
 ```json
 {
   "uri": "file:///example.png",
-  "name": "example.png",
-  "title": "Example Image",
   "mimeType": "image/png",
   "blob": "base64-encoded-data"
 }
@@ -318,8 +312,6 @@ Example resource with annotations:
 ```json
 {
   "uri": "file:///project/README.md",
-  "name": "README.md",
-  "title": "Project Documentation",
   "mimeType": "text/markdown",
   "annotations": {
     "audience": ["user"],
