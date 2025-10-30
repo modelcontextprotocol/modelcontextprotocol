@@ -90,7 +90,7 @@ MCP endpoint.
 2. The client **MUST** include an `Accept` header, listing both `application/json` and
    `text/event-stream` as supported content types.
 3. The body of the POST request **MUST** be a single JSON-RPC _request_, _notification_, or _response_.
-4. If the input is a JSON-RPC _response_ or _notification_:
+4. If the input is a JSON-RPC _response_ for an eariler request, or it is a _notification_:
    - If the server accepts the input, the server **MUST** return HTTP status code 202
      Accepted with no body.
    - If the server cannot accept the input, it **MUST** return an HTTP error status code
