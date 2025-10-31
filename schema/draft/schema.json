@@ -247,6 +247,10 @@
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
+                        "filesystemBrokering": {
+                            "description": "Whether the client supports brokered filesystem operations for servers.",
+                            "type": "boolean"
+                        },
                         "listChanged": {
                             "description": "Whether the client supports notifications for changes to the roots list.",
                             "type": "boolean"
@@ -276,6 +280,9 @@
                 },
                 {
                     "$ref": "#/definitions/RootsListChangedNotification"
+                },
+                {
+                    "$ref": "#/definitions/FsChangedNotification"
                 }
             ]
         },
@@ -332,6 +339,30 @@
                 },
                 {
                     "$ref": "#/definitions/ListRootsResult"
+                },
+                {
+                    "$ref": "#/definitions/RequestFilesystemConsentResult"
+                },
+                {
+                    "$ref": "#/definitions/FsReadResult"
+                },
+                {
+                    "$ref": "#/definitions/FsWriteResult"
+                },
+                {
+                    "$ref": "#/definitions/FsListResult"
+                },
+                {
+                    "$ref": "#/definitions/FsCreateResult"
+                },
+                {
+                    "$ref": "#/definitions/FsDeleteResult"
+                },
+                {
+                    "$ref": "#/definitions/FsRenameResult"
+                },
+                {
+                    "$ref": "#/definitions/FsWatchResult"
                 },
                 {
                     "$ref": "#/definitions/ElicitResult"
@@ -768,6 +799,528 @@
             "required": [
                 "code",
                 "message"
+            ],
+            "type": "object"
+        },
+        "FsChangedNotification": {
+            "description": "A notification from the client to the server about filesystem changes.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/files/changed",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "event": {
+                            "description": "The type of change that occurred.",
+                            "enum": [
+                                "created",
+                                "deleted",
+                                "modified"
+                            ],
+                            "type": "string"
+                        },
+                        "path": {
+                            "description": "The path that changed, relative to the root directory.",
+                            "type": "string"
+                        },
+                        "timestamp": {
+                            "description": "The timestamp when the change occurred as an ISO 8601 string.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "event",
+                        "path",
+                        "timestamp"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsCreateRequest": {
+            "description": "A request from the server to the client to create files or directories via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/create",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "path": {
+                            "description": "The path to create, relative to an approved root directory.",
+                            "type": "string"
+                        },
+                        "type": {
+                            "description": "The type of entry to create.",
+                            "enum": [
+                                "directory",
+                                "file"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path",
+                        "type"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsCreateResult": {
+            "description": "The client's response to a files/create request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "created": {
+                    "description": "Whether the creation was successful.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "created"
+            ],
+            "type": "object"
+        },
+        "FsDeleteRequest": {
+            "description": "A request from the server to the client to delete files or directories via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/delete",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "path": {
+                            "description": "The path to delete, relative to an approved root directory.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsDeleteResult": {
+            "description": "The client's response to a files/delete request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "deleted": {
+                    "description": "Whether the deletion was successful.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "deleted"
+            ],
+            "type": "object"
+        },
+        "FsEntry": {
+            "description": "Information about a filesystem entry.",
+            "properties": {
+                "modified": {
+                    "description": "The last modified timestamp as an ISO 8601 string.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the file or directory.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The size of the entry in bytes (for files).",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "The type of the entry.",
+                    "enum": [
+                        "directory",
+                        "file"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "FsListRequest": {
+            "description": "A request from the server to the client to list directory contents via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/list",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "includeHidden": {
+                            "description": "Whether to include hidden files and directories. Defaults to false.",
+                            "type": "boolean"
+                        },
+                        "path": {
+                            "description": "The path to the directory to list, relative to an approved root directory.",
+                            "type": "string"
+                        },
+                        "recursive": {
+                            "description": "Whether to list contents recursively. Defaults to false.",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsListResult": {
+            "description": "The client's response to a files/list request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "entries": {
+                    "description": "Array of filesystem entries.",
+                    "items": {
+                        "$ref": "#/definitions/FsEntry"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "entries"
+            ],
+            "type": "object"
+        },
+        "FsReadRequest": {
+            "description": "A request from the server to the client to read file contents via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/read",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "encoding": {
+                            "description": "The character encoding to use when reading the file. Defaults to \"utf-8\".",
+                            "type": "string"
+                        },
+                        "length": {
+                            "description": "Optional maximum number of bytes to read.",
+                            "type": "integer"
+                        },
+                        "offset": {
+                            "description": "Optional byte offset to start reading from.",
+                            "type": "integer"
+                        },
+                        "path": {
+                            "description": "The path to the file to read, relative to an approved root directory.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsReadResult": {
+            "description": "The client's response to a files/read request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "content": {
+                    "description": "The file contents as a string or base64-encoded data.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "The MIME type of the file if detectable.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The total size of the file in bytes.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "content",
+                "size"
+            ],
+            "type": "object"
+        },
+        "FsRenameRequest": {
+            "description": "A request from the server to the client to rename/move files or directories via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/rename",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "newPath": {
+                            "description": "The new path for the file or directory, relative to an approved root directory.",
+                            "type": "string"
+                        },
+                        "oldPath": {
+                            "description": "The current path of the file or directory, relative to an approved root directory.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "newPath",
+                        "oldPath"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsRenameResult": {
+            "description": "The client's response to a files/rename request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "renamed": {
+                    "description": "Whether the rename operation was successful.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "renamed"
+            ],
+            "type": "object"
+        },
+        "FsWatchRequest": {
+            "description": "A request from the server to the client to watch for filesystem changes via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/watch",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "events": {
+                            "description": "Array of event types to watch for.",
+                            "items": {
+                                "enum": [
+                                    "created",
+                                    "deleted",
+                                    "modified"
+                                ],
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "path": {
+                            "description": "The path to watch for changes, relative to an approved root directory.",
+                            "type": "string"
+                        },
+                        "recursive": {
+                            "description": "Whether to watch recursively. Defaults to false.",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsWatchResult": {
+            "description": "The client's response to a files/watch request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "watching": {
+                    "description": "Whether the watch was successfully established.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "watching"
+            ],
+            "type": "object"
+        },
+        "FsWriteRequest": {
+            "description": "A request from the server to the client to write file contents via brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/write",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "content": {
+                            "description": "The content to write to the file.",
+                            "type": "string"
+                        },
+                        "create": {
+                            "description": "Whether to create the file if it doesn't exist. Defaults to false.",
+                            "type": "boolean"
+                        },
+                        "encoding": {
+                            "description": "The character encoding to use when writing the file. Defaults to \"utf-8\".",
+                            "type": "string"
+                        },
+                        "path": {
+                            "description": "The path to the file to write, relative to an approved root directory.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "content",
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsWriteResult": {
+            "description": "The client's response to a files/write request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "bytesWritten": {
+                    "description": "The number of bytes written.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "bytesWritten"
             ],
             "type": "object"
         },
@@ -1974,6 +2527,74 @@
             ],
             "type": "object"
         },
+        "RequestFilesystemConsentRequest": {
+            "description": "A request from the server to the client, asking for user consent to access filesystem paths\nvia brokered filesystem operations.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/consent",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "message": {
+                            "description": "A human-readable message explaining what filesystem access is needed and why.",
+                            "type": "string"
+                        },
+                        "requestedPaths": {
+                            "description": "Array of filesystem paths or patterns the server wants to access.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "message",
+                        "requestedPaths"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "RequestFilesystemConsentResult": {
+            "description": "The client's response to a files/consent request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "approvedPaths": {
+                    "description": "If consent was granted, the specific paths that were approved for access.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "granted": {
+                    "description": "Whether the user granted consent for filesystem access.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "granted"
+            ],
+            "type": "object"
+        },
         "RequestId": {
             "description": "A uniquely identifying ID for a request in JSON-RPC.",
             "type": [
@@ -2431,6 +3052,30 @@
                 },
                 {
                     "$ref": "#/definitions/ListRootsRequest"
+                },
+                {
+                    "$ref": "#/definitions/RequestFilesystemConsentRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsReadRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsWriteRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsListRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsCreateRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsDeleteRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsRenameRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsWatchRequest"
                 },
                 {
                     "$ref": "#/definitions/ElicitRequest"

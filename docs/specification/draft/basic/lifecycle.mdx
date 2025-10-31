@@ -166,18 +166,19 @@ available during the session.
 
 Key capabilities include:
 
-| Category | Capability     | Description                                                                          |
-| -------- | -------------- | ------------------------------------------------------------------------------------ |
-| Client   | `roots`        | Ability to provide filesystem [roots](/specification/draft/client/roots)             |
-| Client   | `sampling`     | Support for LLM [sampling](/specification/draft/client/sampling) requests            |
-| Client   | `elicitation`  | Support for server [elicitation](/specification/draft/client/elicitation) requests   |
-| Client   | `experimental` | Describes support for non-standard experimental features                             |
-| Server   | `prompts`      | Offers [prompt templates](/specification/draft/server/prompts)                       |
-| Server   | `resources`    | Provides readable [resources](/specification/draft/server/resources)                 |
-| Server   | `tools`        | Exposes callable [tools](/specification/draft/server/tools)                          |
-| Server   | `logging`      | Emits structured [log messages](/specification/draft/server/utilities/logging)       |
-| Server   | `completions`  | Supports argument [autocompletion](/specification/draft/server/utilities/completion) |
-| Server   | `experimental` | Describes support for non-standard experimental features                             |
+| Category | Capability     | Description                                                                                                                                |
+| -------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Client   | `roots`        | Ability to provide filesystem [roots](/specification/draft/client/roots) including brokered filesystem access                              |
+| Client   | `sampling`     | Support for LLM [sampling](/specification/draft/client/sampling) requests                                                                  |
+| Client   | `elicitation`  | Support for server [elicitation](/specification/draft/client/elicitation) requests                                                         |
+| Client   | `experimental` | Describes support for non-standard experimental features                                                                                   |
+| Server   | `prompts`      | Offers [prompt templates](/specification/draft/server/prompts)                                                                             |
+| Server   | `resources`    | Provides readable [resources](/specification/draft/server/resources)                                                                       |
+| Server   | `roots`        | Requests filesystem access and supports [brokered filesystem operations](/specification/draft/client/roots#brokered-filesystem-operations) |
+| Server   | `tools`        | Exposes callable [tools](/specification/draft/server/tools)                                                                                |
+| Server   | `logging`      | Emits structured [log messages](/specification/draft/server/utilities/logging)                                                             |
+| Server   | `completions`  | Supports argument [autocompletion](/specification/draft/server/utilities/completion)                                                       |
+| Server   | `experimental` | Describes support for non-standard experimental features                                                                                   |
 
 Capability objects can describe sub-capabilities like:
 

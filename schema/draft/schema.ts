@@ -228,6 +228,10 @@ export interface ClientCapabilities {
      * Whether the client supports notifications for changes to the roots list.
      */
     listChanged?: boolean;
+    /**
+     * Whether the client supports brokered filesystem operations for servers.
+     */
+    filesystemBrokering?: boolean;
   };
   /**
    * Present if the client supports sampling from an LLM.
@@ -1457,6 +1461,332 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
 }
 
 /**
+ * A request from the server to the client, asking for user consent to access filesystem paths
+ * via brokered filesystem operations.
+ *
+ * @category files/consent
+ */
+export interface RequestFilesystemConsentRequest extends JSONRPCRequest {
+  method: "files/consent";
+  params: {
+    /**
+     * A human-readable message explaining what filesystem access is needed and why.
+     */
+    message: string;
+    /**
+     * Array of filesystem paths or patterns the server wants to access.
+     */
+    requestedPaths: string[];
+  };
+}
+
+/**
+ * The client's response to a files/consent request from the server.
+ *
+ * @category files/consent
+ */
+export interface RequestFilesystemConsentResult extends Result {
+  /**
+   * Whether the user granted consent for filesystem access.
+   */
+  granted: boolean;
+  /**
+   * If consent was granted, the specific paths that were approved for access.
+   */
+  approvedPaths?: string[];
+}
+
+/**
+ * A request from the server to the client to read file contents via brokered filesystem operations.
+ *
+ * @category files/read
+ */
+export interface FsReadRequest extends JSONRPCRequest {
+  method: "files/read";
+  params: {
+    /**
+     * The path to the file to read, relative to an approved root directory.
+     */
+    path: string;
+    /**
+     * The character encoding to use when reading the file. Defaults to "utf-8".
+     */
+    encoding?: string;
+    /**
+     * Optional byte offset to start reading from.
+     */
+    offset?: number;
+    /**
+     * Optional maximum number of bytes to read.
+     */
+    length?: number;
+  };
+}
+
+/**
+ * The client's response to a files/read request from the server.
+ *
+ * @category files/read
+ */
+export interface FsReadResult extends Result {
+  /**
+   * The file contents as a string or base64-encoded data.
+   */
+  content: string;
+  /**
+   * The total size of the file in bytes.
+   */
+  size: number;
+  /**
+   * The MIME type of the file if detectable.
+   */
+  mimeType?: string;
+}
+
+/**
+ * A request from the server to the client to write file contents via brokered filesystem operations.
+ *
+ * @category files/write
+ */
+export interface FsWriteRequest extends JSONRPCRequest {
+  method: "files/write";
+  params: {
+    /**
+     * The path to the file to write, relative to an approved root directory.
+     */
+    path: string;
+    /**
+     * The content to write to the file.
+     */
+    content: string;
+    /**
+     * The character encoding to use when writing the file. Defaults to "utf-8".
+     */
+    encoding?: string;
+    /**
+     * Whether to create the file if it doesn't exist. Defaults to false.
+     */
+    create?: boolean;
+  };
+}
+
+/**
+ * The client's response to a files/write request from the server.
+ *
+ * @category files/write
+ */
+export interface FsWriteResult extends Result {
+  /**
+   * The number of bytes written.
+   */
+  bytesWritten: number;
+}
+
+/**
+ * A request from the server to the client to list directory contents via brokered filesystem operations.
+ *
+ * @category files/list
+ */
+export interface FsListRequest extends JSONRPCRequest {
+  method: "files/list";
+  params: {
+    /**
+     * The path to the directory to list, relative to an approved root directory.
+     */
+    path: string;
+    /**
+     * Whether to list contents recursively. Defaults to false.
+     */
+    recursive?: boolean;
+    /**
+     * Whether to include hidden files and directories. Defaults to false.
+     */
+    includeHidden?: boolean;
+  };
+}
+
+/**
+ * Information about a filesystem entry.
+ */
+export interface FsEntry {
+  /**
+   * The name of the file or directory.
+   */
+  name: string;
+  /**
+   * The type of the entry.
+   */
+  type: "file" | "directory";
+  /**
+   * The size of the entry in bytes (for files).
+   */
+  size?: number;
+  /**
+   * The last modified timestamp as an ISO 8601 string.
+   */
+  modified?: string;
+}
+
+/**
+ * The client's response to a files/list request from the server.
+ *
+ * @category files/list
+ */
+export interface FsListResult extends Result {
+  /**
+   * Array of filesystem entries.
+   */
+  entries: FsEntry[];
+}
+
+/**
+ * A request from the server to the client to create files or directories via brokered filesystem operations.
+ *
+ * @category files/create
+ */
+export interface FsCreateRequest extends JSONRPCRequest {
+  method: "files/create";
+  params: {
+    /**
+     * The path to create, relative to an approved root directory.
+     */
+    path: string;
+    /**
+     * The type of entry to create.
+     */
+    type: "file" | "directory";
+  };
+}
+
+/**
+ * The client's response to a files/create request from the server.
+ *
+ * @category files/create
+ */
+export interface FsCreateResult extends Result {
+  /**
+   * Whether the creation was successful.
+   */
+  created: boolean;
+}
+
+/**
+ * A request from the server to the client to delete files or directories via brokered filesystem operations.
+ *
+ * @category files/delete
+ */
+export interface FsDeleteRequest extends JSONRPCRequest {
+  method: "files/delete";
+  params: {
+    /**
+     * The path to delete, relative to an approved root directory.
+     */
+    path: string;
+  };
+}
+
+/**
+ * The client's response to a files/delete request from the server.
+ *
+ * @category files/delete
+ */
+export interface FsDeleteResult extends Result {
+  /**
+   * Whether the deletion was successful.
+   */
+  deleted: boolean;
+}
+
+/**
+ * A request from the server to the client to rename/move files or directories via brokered filesystem operations.
+ *
+ * @category files/rename
+ */
+export interface FsRenameRequest extends JSONRPCRequest {
+  method: "files/rename";
+  params: {
+    /**
+     * The current path of the file or directory, relative to an approved root directory.
+     */
+    oldPath: string;
+    /**
+     * The new path for the file or directory, relative to an approved root directory.
+     */
+    newPath: string;
+  };
+}
+
+/**
+ * The client's response to a files/rename request from the server.
+ *
+ * @category files/rename
+ */
+export interface FsRenameResult extends Result {
+  /**
+   * Whether the rename operation was successful.
+   */
+  renamed: boolean;
+}
+
+/**
+ * A request from the server to the client to watch for filesystem changes via brokered filesystem operations.
+ *
+ * @category files/watch
+ */
+export interface FsWatchRequest extends JSONRPCRequest {
+  method: "files/watch";
+  params: {
+    /**
+     * The path to watch for changes, relative to an approved root directory.
+     */
+    path: string;
+    /**
+     * Whether to watch recursively. Defaults to false.
+     */
+    recursive?: boolean;
+    /**
+     * Array of event types to watch for.
+     */
+    events?: ("modified" | "created" | "deleted")[];
+  };
+}
+
+/**
+ * The client's response to a files/watch request from the server.
+ *
+ * @category files/watch
+ */
+export interface FsWatchResult extends Result {
+  /**
+   * Whether the watch was successfully established.
+   */
+  watching: boolean;
+}
+
+/**
+ * A notification from the client to the server about filesystem changes.
+ *
+ * @category notifications/files/changed
+ */
+export interface FsChangedNotification extends JSONRPCNotification {
+  method: "notifications/files/changed";
+  params: {
+    /**
+     * The path that changed, relative to the root directory.
+     */
+    path: string;
+    /**
+     * The type of change that occurred.
+     */
+    event: "modified" | "created" | "deleted";
+    /**
+     * The timestamp when the change occurred as an ISO 8601 string.
+     */
+    timestamp: string;
+  };
+}
+
+/**
  * A request from the server to elicit additional information from the user via the client.
  *
  * @category elicitation/create
@@ -1570,14 +1900,23 @@ export type ClientNotification =
   | CancelledNotification
   | ProgressNotification
   | InitializedNotification
-  | RootsListChangedNotification;
+  | RootsListChangedNotification
+  | FsChangedNotification;
 
 /** @internal */
 export type ClientResult =
   | EmptyResult
   | CreateMessageResult
   | ListRootsResult
-  | ElicitResult;
+  | ElicitResult
+  | RequestFilesystemConsentResult
+  | FsReadResult
+  | FsWriteResult
+  | FsListResult
+  | FsCreateResult
+  | FsDeleteResult
+  | FsRenameResult
+  | FsWatchResult;
 
 /* Server messages */
 /** @internal */
@@ -1585,7 +1924,15 @@ export type ServerRequest =
   | PingRequest
   | CreateMessageRequest
   | ListRootsRequest
-  | ElicitRequest;
+  | ElicitRequest
+  | RequestFilesystemConsentRequest
+  | FsReadRequest
+  | FsWriteRequest
+  | FsListRequest
+  | FsCreateRequest
+  | FsDeleteRequest
+  | FsRenameRequest
+  | FsWatchRequest;
 
 /** @internal */
 export type ServerNotification =
