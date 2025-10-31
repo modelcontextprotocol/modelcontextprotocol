@@ -1535,6 +1535,10 @@ export type UntitledSingleSelectEnumSchema = {
    * Array of enum values to choose from.
    */
   enum: string[];
+  /**
+   * Optional default value.
+   */
+  default?: string;
 };
 
 /**
@@ -1563,6 +1567,10 @@ export type TitledSingleSelectEnumSchema = {
      */
     title: string;
   }>;
+  /**
+   * Optional default value.
+   */
+  default?: string;
 };
 
 // Combined single selection enumeration
@@ -1601,6 +1609,10 @@ export type UntitledMultiSelectEnumSchema = {
      */
     enum: string[];
   };
+  /**
+   * Optional default value.
+   */
+  default?: string[];
 };
 
 /**
@@ -1637,6 +1649,10 @@ export type TitledMultiSelectEnumSchema = {
      */
     title: string;
   }>;
+  /**
+   * Optional default value.
+   */
+  default?: string[];
 };
 
 // Combined multiple selection enumeration

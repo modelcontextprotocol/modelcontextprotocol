@@ -732,6 +732,10 @@
                 {
                     "description": "Schema for single-selection enumeration without display titles for options.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "type": "string"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -761,6 +765,10 @@
                 {
                     "description": "Schema for single-selection enumeration with display titles for each option.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "type": "string"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -804,6 +812,13 @@
                 {
                     "description": "Schema for multiple-selection enumeration without display titles for options.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -873,6 +888,13 @@
                                     "title"
                                 ],
                                 "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "default": {
+                            "description": "Optional default value.",
+                            "items": {
+                                "type": "string"
                             },
                             "type": "array"
                         },
@@ -1747,6 +1769,13 @@
                 {
                     "description": "Schema for multiple-selection enumeration without display titles for options.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -1816,6 +1845,13 @@
                                     "title"
                                 ],
                                 "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "default": {
+                            "description": "Optional default value.",
+                            "items": {
+                                "type": "string"
                             },
                             "type": "array"
                         },
@@ -1996,6 +2032,10 @@
                 {
                     "description": "Schema for single-selection enumeration without display titles for options.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "type": "string"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -2025,6 +2065,10 @@
                 {
                     "description": "Schema for single-selection enumeration with display titles for each option.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "type": "string"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -2068,6 +2112,13 @@
                 {
                     "description": "Schema for multiple-selection enumeration without display titles for options.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -2137,6 +2188,13 @@
                                     "title"
                                 ],
                                 "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "default": {
+                            "description": "Optional default value.",
+                            "items": {
+                                "type": "string"
                             },
                             "type": "array"
                         },
@@ -2984,6 +3042,10 @@
                 {
                     "description": "Schema for single-selection enumeration without display titles for options.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "type": "string"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -3013,6 +3075,10 @@
                 {
                     "description": "Schema for single-selection enumeration with display titles for each option.",
                     "properties": {
+                        "default": {
+                            "description": "Optional default value.",
+                            "type": "string"
+                        },
                         "description": {
                             "description": "Optional description for the enum field.",
                             "type": "string"
@@ -3205,6 +3271,13 @@
                     },
                     "type": "array"
                 },
+                "default": {
+                    "description": "Optional default value.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "description": {
                     "description": "Optional description for the enum field.",
                     "type": "string"
@@ -3235,6 +3308,10 @@
         "TitledSingleSelectEnumSchema": {
             "description": "Schema for single-selection enumeration with display titles for each option.",
             "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "type": "string"
+                },
                 "description": {
                     "description": "Optional description for the enum field.",
                     "type": "string"
@@ -3461,6 +3538,13 @@
         "UntitledMultiSelectEnumSchema": {
             "description": "Schema for multiple-selection enumeration without display titles for options.",
             "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "description": {
                     "description": "Optional description for the enum field.",
                     "type": "string"
@@ -3512,6 +3596,10 @@
         "UntitledSingleSelectEnumSchema": {
             "description": "Schema for single-selection enumeration without display titles for options.",
             "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "type": "string"
+                },
                 "description": {
                     "description": "Optional description for the enum field.",
                     "type": "string"
