@@ -336,17 +336,88 @@ The client sends notifications for file changes:
 }
 ```
 
+### File Locking
+
+The filesystem operations support optional file locking to prevent concurrent access conflicts. Locks are exclusive per file and automatically released when operations complete unless `keepLocked` is set to `true`.
+
+#### Persistent Locking
+
+File operations can maintain locks beyond completion:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/read",
+  "params": {
+    "path": "project/config.json",
+    "keepLocked": true
+  },
+  "id": 8
+}
+```
+
+The response includes a lock identifier:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": "{ \"version\": \"1.0\" }",
+    "size": 18,
+    "mimeType": "application/json",
+    "lockId": "lock_abc123def456"
+  },
+  "id": 8
+}
+```
+
+#### Lock Release
+
+Explicitly release a lock when no longer needed:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/unlock",
+  "params": {
+    "lockId": "lock_abc123def456"
+  },
+  "id": 9
+}
+```
+
+#### Lock Conflicts
+
+If a file is already locked, operations return an immediate error:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "error": {
+    "code": -32100,
+    "message": "File is locked",
+    "data": {
+      "path": "project/config.json",
+      "lockId": "lock_abc123def456",
+      "lockedBy": "previous_operation"
+    }
+  }
+}
+```
+
 ### Supported Operations
 
-| Method         | Description                              | Binary Support |
-| -------------- | ---------------------------------------- | -------------- |
-| `files/read`   | Read file contents with chunking support | Yes (base64)   |
-| `files/write`  | Write file contents with streaming       | Yes (base64)   |
-| `files/list`   | List directory contents                  | N/A            |
-| `files/create` | Create files or directories              | N/A            |
-| `files/delete` | Remove files or directories              | N/A            |
-| `files/rename` | Move/rename files or directories         | N/A            |
-| `files/watch`  | Monitor filesystem changes               | N/A            |
+| Method         | Description                              | Binary Support | Locking Support |
+| -------------- | ---------------------------------------- | -------------- | --------------- |
+| `files/read`   | Read file contents with chunking support | Yes (base64)   | Yes             |
+| `files/write`  | Write file contents with streaming       | Yes (base64)   | Yes             |
+| `files/list`   | List directory contents                  | N/A            | No              |
+| `files/create` | Create files or directories              | N/A            | Yes             |
+| `files/delete` | Remove files or directories              | N/A            | Yes             |
+| `files/rename` | Move/rename files or directories         | N/A            | Yes             |
+| `files/watch`  | Monitor filesystem changes               | N/A            | No              |
+| `files/unlock` | Release an exclusive file lock           | N/A            | N/A             |
 
 ### Error Codes
 
@@ -357,6 +428,7 @@ The client sends notifications for file changes:
 | `INVALID_PATH`         | Malformed or unsafe path         |
 | `IO_ERROR`             | Filesystem operation failed      |
 | `TIMEOUT`              | Operation timed out              |
+| `FILE_LOCKED`          | File is locked by another operation (-32100) |
 | `CONCURRENCY_CONFLICT` | File locked by concurrent access |
 | `QUOTA_EXCEEDED`       | Operation exceeds size limits    |
 

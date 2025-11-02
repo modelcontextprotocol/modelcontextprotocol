@@ -248,7 +248,7 @@
                     "description": "Present if the client supports listing roots.",
                     "properties": {
                         "filesystemBrokering": {
-                            "description": "Whether the client supports brokered filesystem operations for servers.",
+                            "description": "Whether the client supports brokered filesystem operations for servers.\n\nWhen true, the client can process files/* method calls and enforce security boundaries.\nServers MUST request consent via files/consent before any filesystem access.\n\nSecurity implications:\n- Clients MUST implement path validation and consent management\n- All filesystem operations MUST be bounded by user-approved paths\n- Connection termination MUST revoke all filesystem access\n- Clients SHOULD provide user-friendly permission management interfaces",
                             "type": "boolean"
                         },
                         "listChanged": {
@@ -363,6 +363,9 @@
                 },
                 {
                     "$ref": "#/definitions/FsWatchResult"
+                },
+                {
+                    "$ref": "#/definitions/FsUnlockResult"
                 },
                 {
                     "$ref": "#/definitions/ElicitResult"
@@ -849,7 +852,7 @@
             "type": "object"
         },
         "FsCreateRequest": {
-            "description": "A request from the server to the client to create files or directories via brokered filesystem operations.",
+            "description": "A request from the server to the client to create files or directories via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -864,8 +867,12 @@
                 },
                 "params": {
                     "properties": {
+                        "keepLocked": {
+                            "description": "If true, keep an exclusive lock on the file after the operation completes.\nThe lock can be released later using files/unlock. If false or omitted,\nthe lock is automatically released when the operation completes.",
+                            "type": "boolean"
+                        },
                         "path": {
-                            "description": "The path to create, relative to an approved root directory.",
+                            "description": "The path to create, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- Parent directory MUST be within approved boundaries\n- MUST reject creation attempts outside approved paths",
                             "type": "string"
                         },
                         "type": {
@@ -903,15 +910,20 @@
                 "created": {
                     "description": "Whether the creation was successful.",
                     "type": "boolean"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
                 }
             },
             "required": [
-                "created"
+                "created",
+                "lockId"
             ],
             "type": "object"
         },
         "FsDeleteRequest": {
-            "description": "A request from the server to the client to delete files or directories via brokered filesystem operations.",
+            "description": "A request from the server to the client to delete files or directories via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -926,8 +938,12 @@
                 },
                 "params": {
                     "properties": {
+                        "keepLocked": {
+                            "description": "If true, keep an exclusive lock on the file after the operation completes.\nThe lock can be released later using files/unlock. If false or omitted,\nthe lock is automatically released when the operation completes.",
+                            "type": "boolean"
+                        },
                         "path": {
-                            "description": "The path to delete, relative to an approved root directory.",
+                            "description": "The path to delete, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject deletion attempts outside approved boundaries\n- Recursive directory deletion MUST respect approved path boundaries",
                             "type": "string"
                         }
                     },
@@ -956,10 +972,15 @@
                 "deleted": {
                     "description": "Whether the deletion was successful.",
                     "type": "boolean"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
                 }
             },
             "required": [
-                "deleted"
+                "deleted",
+                "lockId"
             ],
             "type": "object"
         },
@@ -994,7 +1015,7 @@
             "type": "object"
         },
         "FsListRequest": {
-            "description": "A request from the server to the client to list directory contents via brokered filesystem operations.",
+            "description": "A request from the server to the client to list directory contents via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1014,7 +1035,7 @@
                             "type": "boolean"
                         },
                         "path": {
-                            "description": "The path to the directory to list, relative to an approved root directory.",
+                            "description": "The path to the directory to list, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject attempts to list directories outside approved boundaries\n- Recursive listings MUST respect approved path boundaries",
                             "type": "string"
                         },
                         "recursive": {
@@ -1058,7 +1079,7 @@
             "type": "object"
         },
         "FsReadRequest": {
-            "description": "A request from the server to the client to read file contents via brokered filesystem operations.",
+            "description": "A request from the server to the client to read file contents via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1077,6 +1098,10 @@
                             "description": "The character encoding to use when reading the file. Defaults to \"utf-8\".",
                             "type": "string"
                         },
+                        "keepLocked": {
+                            "description": "Whether to maintain the file lock after the read operation completes.\nIf true, the server must call files/unlock to release the lock.\nIf false or omitted, the lock is automatically released when the read completes.",
+                            "type": "boolean"
+                        },
                         "length": {
                             "description": "Optional maximum number of bytes to read.",
                             "type": "integer"
@@ -1086,7 +1111,7 @@
                             "type": "integer"
                         },
                         "path": {
-                            "description": "The path to the file to read, relative to an approved root directory.",
+                            "description": "The path to the file to read, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject attempts to access files outside approved boundaries\n- Symbolic links MUST be resolved and validated",
                             "type": "string"
                         }
                     },
@@ -1116,6 +1141,10 @@
                     "description": "The file contents as a string or base64-encoded data.",
                     "type": "string"
                 },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                },
                 "mimeType": {
                     "description": "The MIME type of the file if detectable.",
                     "type": "string"
@@ -1127,12 +1156,13 @@
             },
             "required": [
                 "content",
+                "lockId",
                 "size"
             ],
             "type": "object"
         },
         "FsRenameRequest": {
-            "description": "A request from the server to the client to rename/move files or directories via brokered filesystem operations.",
+            "description": "A request from the server to the client to rename/move files or directories via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1147,12 +1177,16 @@
                 },
                 "params": {
                     "properties": {
+                        "keepLocked": {
+                            "description": "If true, keep an exclusive lock on the file after the operation completes.\nThe lock can be released later using files/unlock. If false or omitted,\nthe lock is automatically released when the operation completes.",
+                            "type": "boolean"
+                        },
                         "newPath": {
-                            "description": "The new path for the file or directory, relative to an approved root directory.",
+                            "description": "The new path for the file or directory, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- Both source and destination MUST be within approved boundaries",
                             "type": "string"
                         },
                         "oldPath": {
-                            "description": "The current path of the file or directory, relative to an approved root directory.",
+                            "description": "The current path of the file or directory, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal",
                             "type": "string"
                         }
                     },
@@ -1179,18 +1213,76 @@
                     "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                },
                 "renamed": {
                     "description": "Whether the rename operation was successful.",
                     "type": "boolean"
                 }
             },
             "required": [
+                "lockId",
                 "renamed"
             ],
             "type": "object"
         },
+        "FsUnlockRequest": {
+            "description": "A request from the server to the client to unlock a previously locked file.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/unlock",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "lockId": {
+                            "description": "The unique identifier of the lock to release.\nThis ID was returned by a previous file operation with keepLocked=true.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "lockId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsUnlockResult": {
+            "description": "The client's response to a files/unlock request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "unlocked": {
+                    "description": "Whether the unlock operation was successful.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "unlocked"
+            ],
+            "type": "object"
+        },
         "FsWatchRequest": {
-            "description": "A request from the server to the client to watch for filesystem changes via brokered filesystem operations.",
+            "description": "A request from the server to the client to watch for filesystem changes via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1218,7 +1310,7 @@
                             "type": "array"
                         },
                         "path": {
-                            "description": "The path to watch for changes, relative to an approved root directory.",
+                            "description": "The path to watch for changes, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- Recursive watches MUST respect approved path boundaries\n- Watch notifications MUST only report changes within approved paths",
                             "type": "string"
                         },
                         "recursive": {
@@ -1259,7 +1351,7 @@
             "type": "object"
         },
         "FsWriteRequest": {
-            "description": "A request from the server to the client to write file contents via brokered filesystem operations.",
+            "description": "A request from the server to the client to write file contents via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -1286,8 +1378,12 @@
                             "description": "The character encoding to use when writing the file. Defaults to \"utf-8\".",
                             "type": "string"
                         },
+                        "keepLocked": {
+                            "description": "Whether to maintain the file lock after the write operation completes.\nIf true, the server must call files/unlock to release the lock.\nIf false or omitted, the lock is automatically released when the write completes.",
+                            "type": "boolean"
+                        },
                         "path": {
-                            "description": "The path to the file to write, relative to an approved root directory.",
+                            "description": "The path to the file to write, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject attempts to access files outside approved boundaries\n- For file creation, parent directory MUST be within approved paths",
                             "type": "string"
                         }
                     },
@@ -1317,10 +1413,15 @@
                 "bytesWritten": {
                     "description": "The number of bytes written.",
                     "type": "integer"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
                 }
             },
             "required": [
-                "bytesWritten"
+                "bytesWritten",
+                "lockId"
             ],
             "type": "object"
         },
@@ -2528,7 +2629,7 @@
             "type": "object"
         },
         "RequestFilesystemConsentRequest": {
-            "description": "A request from the server to the client, asking for user consent to access filesystem paths\nvia brokered filesystem operations.",
+            "description": "A request from the server to the client, asking for user consent to access filesystem paths\nvia brokered filesystem operations.\n\nThis is a critical security method that MUST be implemented with proper safeguards:\n- Servers MUST request consent before any filesystem access\n- Clients MUST validate and present requests clearly to users\n- Users MUST have explicit control over what paths are approved\n- Consent is session-scoped and revoked on connection termination",
             "properties": {
                 "id": {
                     "$ref": "#/definitions/RequestId"
@@ -2544,11 +2645,11 @@
                 "params": {
                     "properties": {
                         "message": {
-                            "description": "A human-readable message explaining what filesystem access is needed and why.",
+                            "description": "A human-readable message explaining what filesystem access is needed and why.\nThis message MUST clearly describe the purpose and scope of requested access.\nClients SHOULD present this message to users as part of the consent dialog.",
                             "type": "string"
                         },
                         "requestedPaths": {
-                            "description": "Array of filesystem paths or patterns the server wants to access.",
+                            "description": "Array of filesystem paths or patterns the server wants to access.\n\nSecurity requirements:\n- Paths MUST be validated by clients before approval\n- Clients MUST canonicalize paths and check for directory traversal attempts\n- Symbolic links MUST be resolved and validated against security boundaries\n- Users MUST be able to approve/deny individual paths",
                             "items": {
                                 "type": "string"
                             },
@@ -2571,7 +2672,7 @@
             "type": "object"
         },
         "RequestFilesystemConsentResult": {
-            "description": "The client's response to a files/consent request from the server.",
+            "description": "The client's response to a files/consent request from the server.\n\nSecurity implications:\n- approvedPaths becomes the authoritative allow-list for subsequent operations\n- Clients MUST enforce these boundaries for all files/* operations\n- Empty approvedPaths with granted=true is invalid and MUST be rejected\n- Partial approvals are encouraged for principle of least privilege",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -2579,14 +2680,14 @@
                     "type": "object"
                 },
                 "approvedPaths": {
-                    "description": "If consent was granted, the specific paths that were approved for access.",
+                    "description": "If consent was granted, the specific paths that were approved for access.\n\nSecurity requirements:\n- MUST be a subset of the originally requested paths\n- Clients MUST validate all subsequent operations against these paths\n- Empty array when granted=true indicates no access was approved\n- Paths MUST be canonicalized and validated before storage",
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
                 },
                 "granted": {
-                    "description": "Whether the user granted consent for filesystem access.",
+                    "description": "Whether the user granted consent for filesystem access.\nIf false, approvedPaths MUST be empty or omitted.",
                     "type": "boolean"
                 }
             },
@@ -3076,6 +3177,9 @@
                 },
                 {
                     "$ref": "#/definitions/FsWatchRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsUnlockRequest"
                 },
                 {
                     "$ref": "#/definitions/ElicitRequest"

@@ -113,12 +113,48 @@ export interface JSONRPCResponse {
 export const PARSE_ERROR = -32700;
 /** @internal */
 export const INVALID_REQUEST = -32600;
-/** @internal */
+/**
+ * Method not found error.
+ * 
+ * Security context for filesystem operations:
+ * When remote servers require filesystem access but client doesn't support
+ * filesystemBrokering capability, servers SHOULD return this error with descriptive
+ * message: "Filesystem access unavailable over remote connection"
+ * 
+ * @internal
+ */
 export const METHOD_NOT_FOUND = -32601;
-/** @internal */
+/**
+ * Invalid parameters error.
+ * 
+ * Security context for filesystem operations:
+ * Clients MUST return this error code as PERMISSION_DENIED for:
+ * - Paths outside approved root directories  
+ * - Directory traversal attempts (e.g., "../", symbolic links escaping approved areas)
+ * - Access to system files or sensitive directories not explicitly approved
+ * - Operations on revoked paths
+ * 
+ * The error message SHOULD NOT reveal sensitive path information to prevent
+ * information disclosure to malicious servers.
+ * 
+ * @internal
+ */
 export const INVALID_PARAMS = -32602;
 /** @internal */
 export const INTERNAL_ERROR = -32603;
+
+// MCP-specific error codes
+
+/**
+ * File is locked by another operation.
+ * Used when attempting to access a file that has an exclusive lock held by another operation.
+ * 
+ * Security note: This error prevents race conditions and ensures data integrity during
+ * concurrent filesystem operations across multiple MCP clients or operations.
+ * 
+ * @internal
+ */
+export const FILE_LOCKED = -32100;
 
 /**
  * A response to a request that indicates an error occurred.
@@ -230,6 +266,15 @@ export interface ClientCapabilities {
     listChanged?: boolean;
     /**
      * Whether the client supports brokered filesystem operations for servers.
+     * 
+     * When true, the client can process files/* method calls and enforce security boundaries.
+     * Servers MUST request consent via files/consent before any filesystem access.
+     * 
+     * Security implications:
+     * - Clients MUST implement path validation and consent management
+     * - All filesystem operations MUST be bounded by user-approved paths
+     * - Connection termination MUST revoke all filesystem access
+     * - Clients SHOULD provide user-friendly permission management interfaces
      */
     filesystemBrokering?: boolean;
   };
@@ -1464,6 +1509,13 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  * A request from the server to the client, asking for user consent to access filesystem paths
  * via brokered filesystem operations.
  *
+ * This is a critical security method that MUST be implemented with proper safeguards:
+ * - Servers MUST request consent before any filesystem access
+ * - Clients MUST validate and present requests clearly to users
+ * - Users MUST have explicit control over what paths are approved
+ * - Consent is session-scoped and revoked on connection termination
+ *
+ * @security CRITICAL - This method controls filesystem access boundaries
  * @category files/consent
  */
 export interface RequestFilesystemConsentRequest extends JSONRPCRequest {
@@ -1471,10 +1523,18 @@ export interface RequestFilesystemConsentRequest extends JSONRPCRequest {
   params: {
     /**
      * A human-readable message explaining what filesystem access is needed and why.
+     * This message MUST clearly describe the purpose and scope of requested access.
+     * Clients SHOULD present this message to users as part of the consent dialog.
      */
     message: string;
     /**
      * Array of filesystem paths or patterns the server wants to access.
+     * 
+     * Security requirements:
+     * - Paths MUST be validated by clients before approval
+     * - Clients MUST canonicalize paths and check for directory traversal attempts
+     * - Symbolic links MUST be resolved and validated against security boundaries
+     * - Users MUST be able to approve/deny individual paths
      */
     requestedPaths: string[];
   };
@@ -1483,15 +1543,29 @@ export interface RequestFilesystemConsentRequest extends JSONRPCRequest {
 /**
  * The client's response to a files/consent request from the server.
  *
+ * Security implications:
+ * - approvedPaths becomes the authoritative allow-list for subsequent operations
+ * - Clients MUST enforce these boundaries for all files/* operations
+ * - Empty approvedPaths with granted=true is invalid and MUST be rejected
+ * - Partial approvals are encouraged for principle of least privilege
+ *
+ * @security CRITICAL - This response establishes filesystem access boundaries
  * @category files/consent
  */
 export interface RequestFilesystemConsentResult extends Result {
   /**
    * Whether the user granted consent for filesystem access.
+   * If false, approvedPaths MUST be empty or omitted.
    */
   granted: boolean;
   /**
    * If consent was granted, the specific paths that were approved for access.
+   * 
+   * Security requirements:
+   * - MUST be a subset of the originally requested paths
+   * - Clients MUST validate all subsequent operations against these paths
+   * - Empty array when granted=true indicates no access was approved
+   * - Paths MUST be canonicalized and validated before storage
    */
   approvedPaths?: string[];
 }
@@ -1499,6 +1573,10 @@ export interface RequestFilesystemConsentResult extends Result {
 /**
  * A request from the server to the client to read file contents via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/read
  */
 export interface FsReadRequest extends JSONRPCRequest {
@@ -1506,6 +1584,12 @@ export interface FsReadRequest extends JSONRPCRequest {
   params: {
     /**
      * The path to the file to read, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - MUST reject attempts to access files outside approved boundaries
+     * - Symbolic links MUST be resolved and validated
      */
     path: string;
     /**
@@ -1520,6 +1604,12 @@ export interface FsReadRequest extends JSONRPCRequest {
      * Optional maximum number of bytes to read.
      */
     length?: number;
+    /**
+     * Whether to maintain the file lock after the read operation completes.
+     * If true, the server must call files/unlock to release the lock.
+     * If false or omitted, the lock is automatically released when the read completes.
+     */
+    keepLocked?: boolean;
   };
 }
 
@@ -1541,11 +1631,21 @@ export interface FsReadResult extends Result {
    * The MIME type of the file if detectable.
    */
   mimeType?: string;
+  /**
+   * Unique identifier for the file lock created during this operation.
+   * This ID can be used with files/unlock to release the lock if keepLocked was true.
+   * The lock is automatically released when the operation completes unless keepLocked was true.
+   */
+  lockId: string;
 }
 
 /**
  * A request from the server to the client to write file contents via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/write
  */
 export interface FsWriteRequest extends JSONRPCRequest {
@@ -1553,6 +1653,12 @@ export interface FsWriteRequest extends JSONRPCRequest {
   params: {
     /**
      * The path to the file to write, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - MUST reject attempts to access files outside approved boundaries
+     * - For file creation, parent directory MUST be within approved paths
      */
     path: string;
     /**
@@ -1567,6 +1673,12 @@ export interface FsWriteRequest extends JSONRPCRequest {
      * Whether to create the file if it doesn't exist. Defaults to false.
      */
     create?: boolean;
+    /**
+     * Whether to maintain the file lock after the write operation completes.
+     * If true, the server must call files/unlock to release the lock.
+     * If false or omitted, the lock is automatically released when the write completes.
+     */
+    keepLocked?: boolean;
   };
 }
 
@@ -1580,11 +1692,21 @@ export interface FsWriteResult extends Result {
    * The number of bytes written.
    */
   bytesWritten: number;
+  /**
+   * Unique identifier for the file lock created during this operation.
+   * This ID can be used with files/unlock to release the lock if keepLocked was true.
+   * The lock is automatically released when the operation completes unless keepLocked was true.
+   */
+  lockId: string;
 }
 
 /**
  * A request from the server to the client to list directory contents via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/list
  */
 export interface FsListRequest extends JSONRPCRequest {
@@ -1592,6 +1714,12 @@ export interface FsListRequest extends JSONRPCRequest {
   params: {
     /**
      * The path to the directory to list, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - MUST reject attempts to list directories outside approved boundaries
+     * - Recursive listings MUST respect approved path boundaries
      */
     path: string;
     /**
@@ -1642,6 +1770,10 @@ export interface FsListResult extends Result {
 /**
  * A request from the server to the client to create files or directories via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/create
  */
 export interface FsCreateRequest extends JSONRPCRequest {
@@ -1649,12 +1781,24 @@ export interface FsCreateRequest extends JSONRPCRequest {
   params: {
     /**
      * The path to create, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - Parent directory MUST be within approved boundaries
+     * - MUST reject creation attempts outside approved paths
      */
     path: string;
     /**
      * The type of entry to create.
      */
     type: "file" | "directory";
+    /**
+     * If true, keep an exclusive lock on the file after the operation completes.
+     * The lock can be released later using files/unlock. If false or omitted,
+     * the lock is automatically released when the operation completes.
+     */
+    keepLocked?: boolean;
   };
 }
 
@@ -1668,11 +1812,21 @@ export interface FsCreateResult extends Result {
    * Whether the creation was successful.
    */
   created: boolean;
+  /**
+   * Unique identifier for the file lock created during this operation.
+   * This ID can be used with files/unlock to release the lock if keepLocked was true.
+   * The lock is automatically released when the operation completes unless keepLocked was true.
+   */
+  lockId: string;
 }
 
 /**
  * A request from the server to the client to delete files or directories via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/delete
  */
 export interface FsDeleteRequest extends JSONRPCRequest {
@@ -1680,8 +1834,20 @@ export interface FsDeleteRequest extends JSONRPCRequest {
   params: {
     /**
      * The path to delete, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - MUST reject deletion attempts outside approved boundaries
+     * - Recursive directory deletion MUST respect approved path boundaries
      */
     path: string;
+    /**
+     * If true, keep an exclusive lock on the file after the operation completes.
+     * The lock can be released later using files/unlock. If false or omitted,
+     * the lock is automatically released when the operation completes.
+     */
+    keepLocked?: boolean;
   };
 }
 
@@ -1695,11 +1861,21 @@ export interface FsDeleteResult extends Result {
    * Whether the deletion was successful.
    */
   deleted: boolean;
+  /**
+   * Unique identifier for the file lock created during this operation.
+   * This ID can be used with files/unlock to release the lock if keepLocked was true.
+   * The lock is automatically released when the operation completes unless keepLocked was true.
+   */
+  lockId: string;
 }
 
 /**
  * A request from the server to the client to rename/move files or directories via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/rename
  */
 export interface FsRenameRequest extends JSONRPCRequest {
@@ -1707,12 +1883,27 @@ export interface FsRenameRequest extends JSONRPCRequest {
   params: {
     /**
      * The current path of the file or directory, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
      */
     oldPath: string;
     /**
      * The new path for the file or directory, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - Both source and destination MUST be within approved boundaries
      */
     newPath: string;
+    /**
+     * If true, keep an exclusive lock on the file after the operation completes.
+     * The lock can be released later using files/unlock. If false or omitted,
+     * the lock is automatically released when the operation completes.
+     */
+    keepLocked?: boolean;
   };
 }
 
@@ -1726,11 +1917,21 @@ export interface FsRenameResult extends Result {
    * Whether the rename operation was successful.
    */
   renamed: boolean;
+  /**
+   * Unique identifier for the file lock created during this operation.
+   * This ID can be used with files/unlock to release the lock if keepLocked was true.
+   * The lock is automatically released when the operation completes unless keepLocked was true.
+   */
+  lockId: string;
 }
 
 /**
  * A request from the server to the client to watch for filesystem changes via brokered filesystem operations.
  *
+ * Security: All paths MUST be validated against approved paths from files/consent.
+ * Clients MUST return PERMISSION_DENIED for unauthorized access attempts.
+ *
+ * @security Path validation required - enforce consent boundaries
  * @category files/watch
  */
 export interface FsWatchRequest extends JSONRPCRequest {
@@ -1738,6 +1939,12 @@ export interface FsWatchRequest extends JSONRPCRequest {
   params: {
     /**
      * The path to watch for changes, relative to an approved root directory.
+     * 
+     * Security requirements:
+     * - MUST be validated against paths approved via files/consent
+     * - MUST be canonicalized to prevent directory traversal
+     * - Recursive watches MUST respect approved path boundaries
+     * - Watch notifications MUST only report changes within approved paths
      */
     path: string;
     /**
@@ -1761,6 +1968,34 @@ export interface FsWatchResult extends Result {
    * Whether the watch was successfully established.
    */
   watching: boolean;
+}
+
+/**
+ * A request from the server to the client to unlock a previously locked file.
+ *
+ * @category files/unlock
+ */
+export interface FsUnlockRequest extends JSONRPCRequest {
+  method: "files/unlock";
+  params: {
+    /**
+     * The unique identifier of the lock to release.
+     * This ID was returned by a previous file operation with keepLocked=true.
+     */
+    lockId: string;
+  };
+}
+
+/**
+ * The client's response to a files/unlock request from the server.
+ *
+ * @category files/unlock
+ */
+export interface FsUnlockResult extends Result {
+  /**
+   * Whether the unlock operation was successful.
+   */
+  unlocked: boolean;
 }
 
 /**
@@ -1916,7 +2151,8 @@ export type ClientResult =
   | FsCreateResult
   | FsDeleteResult
   | FsRenameResult
-  | FsWatchResult;
+  | FsWatchResult
+  | FsUnlockResult;
 
 /* Server messages */
 /** @internal */
@@ -1932,7 +2168,8 @@ export type ServerRequest =
   | FsCreateRequest
   | FsDeleteRequest
   | FsRenameRequest
-  | FsWatchRequest;
+  | FsWatchRequest
+  | FsUnlockRequest;
 
 /** @internal */
 export type ServerNotification =
