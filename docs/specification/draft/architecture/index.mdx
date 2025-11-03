@@ -172,3 +172,27 @@ example:
 
 This capability negotiation ensures clients and servers have a clear understanding of
 supported functionality while maintaining protocol extensibility.
+
+## Extensions
+
+MCP supports optional extensions that allow for experimentation and specialization beyond the core protocol. Extensions enable:
+
+- **Protocol Evolution**: New capabilities can be developed and tested without modifying the core specification
+- **Domain-Specific Features**: Specialized functionality for particular industries or use cases
+- **Community Innovation**: Third-party developers can create extensions that integrate with the broader MCP ecosystem
+
+Extensions are negotiated during initialization through the `extensions` field within client and server capabilities. Each extension is identified by a unique identifier in the format `{vendor-prefix}/{extension-name}` (e.g., `modelcontextprotocol.io/official-extension`).
+
+### Extension Types
+
+MCP recognizes three categories of extensions:
+
+1. **Official Extensions**: Maintained in the [modelcontextprotocol GitHub organization](https://github.com/modelcontextprotocol) under repositories with the `ext-` prefix. These extensions undergo review by core maintainers and follow the same governance as the core protocol.
+
+2. **Recommended Extensions**: Community-developed extensions that have been vetted and are listed on the [official extensions registry](/extensions). While not officially maintained, these extensions meet quality and compatibility standards.
+
+3. **Unofficial Extensions**: Developed independently without MCP oversight. These extensions use vendor-specific prefixes and may be used at implementers' own discretion.
+
+Extensions are optional and composable—implementations can choose which extensions to support based on their requirements. The core protocol remains stable and simple while extensions enable innovation and specialization.
+
+For detailed information about available extensions and how to propose new ones, see the [Extensions](/extensions) page. For implementation details on extension negotiation, see the [Lifecycle](/specification/draft/basic/lifecycle) documentation.

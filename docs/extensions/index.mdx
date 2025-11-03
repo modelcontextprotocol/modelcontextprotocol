@@ -1,0 +1,208 @@
+---
+title: Overview
+description: Optional extensions to the Model Context Protocol
+---
+
+Extensions are optional additions to the Model Context Protocol that provide functionality or guidance for specific use cases without requiring changes to the core specification.
+
+## What are Extensions?
+
+Extensions allow the MCP ecosystem to evolve and experiment with new capabilities while maintaining core protocol stability. An extension is appropriate when:
+
+- **Experimental** - There is sufficient uncertainty about an approach that would make it premature for the core specification
+- **Scoped** - The functionality is useful to a significant subset of users (e.g., specific industries or use cases) but may not be broadly applicable
+
+Extensions provide a way for the MCP community to officially formalize and recommend approaches to common problems without the long-term commitment or scrutiny needed for core protocol changes.
+
+## Extension Types
+
+MCP recognizes three categories of extensions:
+
+| Type            | Description                                                                                                           | Governance                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Official**    | Maintained in MCP GitHub organization under `ext-` prefixed repositories                                              | Core maintainer review and approval required |
+| **Recommended** | Community-developed extensions that are vetted by core maintainers and listed in the [registry](/extensions/registry) | Listed after review                          |
+| **Unofficial**  | Developed independently without MCP oversight                                                                         | No MCP involvement                           |
+
+### Official Extensions
+
+Official extensions are maintained by the MCP core team and extension maintainers in repositories within the [modelcontextprotocol GitHub organization](https://github.com/modelcontextprotocol). These extensions:
+
+- Follow the same governance and contribution process as the core protocol
+- Are held to the same quality and documentation standards
+- Use the `modelcontextprotocol.io` vendor prefix
+
+### Recommended Extensions
+
+Recommended extensions are community-developed but have been reviewed and endorsed by MCP maintainers. To be listed as recommended, an extension must:
+
+- Demonstrate clear value to a significant subset of MCP users
+- Meet quality and documentation standards
+- Be actively maintained
+- Not conflict with core protocol principles
+
+### Unofficial Extensions
+
+Unofficial extensions are developed independently and may be used by any implementation. These extensions:
+
+- Do not require MCP approval or review
+- Use vendor-specific identifier prefixes
+- Are used at implementers' own discretion
+- May later become recommended or official extensions
+
+## Extension Identifiers
+
+All extensions are identified using a consistent format:
+
+```
+{vendor-prefix}/{extension-name}
+```
+
+**Examples:**
+
+- `modelcontextprotocol.io/official-extension` (official)
+- `example.com/custom-extension` (recommended or unofficial)
+- `mycompany.io/proprietary-feature` (unofficial)
+
+The `vendor-prefix` follows the same format and reservation rules as prefixes in [`_meta`](/specification/draft/basic#meta). Specifically, any prefix beginning with zero or more valid labels, followed by `modelcontextprotocol` or `mcp`, followed by any valid label, is **reserved** for MCP use.
+
+The vendor prefix helps avoid naming collisions and clearly indicates the source and governance of an extension.
+
+## Extension Negotiation
+
+Extensions are negotiated during the MCP initialization phase through the `extensions` field within capabilities in the initialize request and response.
+
+### How It Works
+
+1. During initialization, clients declare supported extensions in the `extensions` field
+2. Servers respond with their own supported extensions in their `extensions` field
+3. Each extension specification defines whether support from both parties is required
+4. Extensions may include optional configuration parameters
+
+### Example: Client Initialization with Extensions
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-11-25",
+    "capabilities": {
+      "roots": {
+        "listChanged": true
+      },
+      "extensions": {
+        "example.com/custom-extension": {
+          "exampleSetting": "value"
+        },
+        "modelcontextprotocol.io/official-extension": {}
+      }
+    },
+    "clientInfo": {
+      "name": "ExampleClient",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+### Example: Server Response with Extensions
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-11-25",
+    "capabilities": {
+      "logging": {},
+      "extensions": {
+        "modelcontextprotocol.io/official-extension": {
+          "serverConfig": "enabled"
+        }
+      }
+    },
+    "serverInfo": {
+      "name": "ExampleServer",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+### Extension Configuration
+
+Each extension in the `extensions` object can have an associated configuration object:
+
+- **Empty object `{}`**: Indicates support for the extension with default settings
+- **Configuration object**: Provides extension-specific settings and parameters
+- **Omission**: Extension is not supported
+
+Implementations SHOULD:
+
+- Ignore extensions they don't recognize
+- Gracefully handle missing configuration parameters
+- Validate configuration values before using them
+
+For detailed protocol-level documentation on capability negotiation, see the [Lifecycle documentation](/specification/draft/basic/lifecycle#extension-negotiation).
+
+## Extension Repositories
+
+Extension repositories are official repositories within the [modelcontextprotocol GitHub organization](https://github.com/modelcontextprotocol) with the `ext-` prefix. Each repository focuses on a specific area and is maintained by appointed maintainers.
+
+| Repository                                                   | Description                                         | Maintainers                                                                                 |
+| ------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [ext-auth](https://github.com/modelcontextprotocol/ext-auth) | Authentication and authorization extensions for MCP | [MAINTAINERS.md](https://github.com/modelcontextprotocol/ext-auth/blob/main/MAINTAINERS.md) |
+
+## Available Extensions
+
+See the [Extension Registry](/extensions/registry) for a complete list of official and recommended extensions.
+
+## Using Extensions
+
+### For Implementers
+
+Extensions are **optional**. MCP clients and servers can choose which extensions to implement based on their requirements. When implementing an extension:
+
+- Review the extension's specification carefully
+- Declare the extension in the `extensions` field during initialization
+- Check SDK documentation to see if the extension is supported
+- Consider the extension's status (Draft, Approved, etc.)
+- Implement proper handling for missing or unrecognized extensions
+
+Extensions are negotiated through the [initialization exchange](/specification/draft/basic/lifecycle#extension-negotiation) during session initialization. Both client and server must declare support for an extension for it to be active in a session.
+
+### SDK Support
+
+MCP SDKs may provide built-in support for extensions. Check your SDK's documentation for:
+
+- List of supported extensions
+- How to enable/disable extensions
+- Any SDK-specific configuration required
+
+### For Specification Writers
+
+If you're writing specifications that reference MCP, you may wish to reference specific extensions. When doing so:
+
+- Clearly indicate that the referenced capability is an **extension**
+- Link to the extension's specification
+- Note that support for the extension is optional
+
+## Proposing a New Extension
+
+Extensions are proposed through the SEP (Specification Enhancement Proposal) process:
+
+1. **Create a SEP** using the [SEP template](https://github.com/modelcontextprotocol/specification/tree/main/seps) with Track set to "Extensions"
+2. **Engage with maintainers** of the relevant extension repository or working group to build alignment
+3. **Submit for review** following the standard SEP approval process
+4. **Implement the extension** once approved, by creating a PR to the extension repository
+
+See the [SEP guidelines](/community/sep-guidelines) for detailed information about the SEP process and the extension governance model.
+
+## Extension Governance
+
+- **Extension Repository Maintainers** oversee extensions within their repository and ensure consistency and quality
+- **Core Maintainers** retain authority over the extension system, including the ability to require changes, deprecate, or promote extensions to the core protocol
+
+Extensions evolve independently of the core protocol, allowing for rapid iteration while maintaining protocol stability.
