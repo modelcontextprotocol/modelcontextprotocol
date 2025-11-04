@@ -3,9 +3,11 @@ title: Roadmap
 description: Our plans for evolving Model Context Protocol
 ---
 
-<Info>Last updated: **2025-07-22**</Info>
+<Info>Last updated: **2025-10-31**</Info>
 
-The Model Context Protocol is rapidly evolving. This page outlines our current thinking on key priorities and direction for approximately **the next six months**, though these may change significantly as the project develops. To see what's changed recently, check out the **[specification changelog](/specification/2025-06-18/changelog/)**.
+The Model Context Protocol is rapidly evolving. This page outlines our priorities for **the next release on November 25th, 2025**, with a release candidate available on November 11th, 2025. To see what's changing in the upcoming release, check out the **[specification changelog](/specification/draft/changelog/)**.
+
+For more context on our release timeline and governance process, read our [blog post on the next version update](https://blog.modelcontextprotocol.io/posts/2025-09-26-mcp-next-version-update/).
 
 <Note>
 
@@ -17,21 +19,35 @@ We value community participation! Each section links to relevant discussions whe
 
 For a technical view of our standardization process, visit the [Standards Track](https://github.com/orgs/modelcontextprotocol/projects/2/views/2) on GitHub, which tracks how proposals progress toward inclusion in the official [MCP specification](https://spec.modelcontextprotocol.io).
 
-## Agents
+## Priority Areas for the Next Release
 
-As MCP increasingly becomes part of agentic workflows, we're focusing on key improvements:
+### Asynchronous Operations
 
-- **Asynchronous Operations**: supporting long-running operations that may take extended periods, with resilient handling of disconnections and reconnections
+Currently, MCP is built around mostly synchronous operations. We're adding async support to allow servers to kick off long-running tasks while clients can check back later for results. This will enable operations that take minutes or hours without blocking.
 
-## Authentication and Security
+Follow the progress in [SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686).
 
-We're evolving our authorization and security resources to improve user safety and provide a better developer experience:
+### Statelessness and Scalability
 
-- **Guides and Best Practices**: documenting specifics about deploying MCP securely in the form of guides and best practices to help developers avoid common pitfalls.
-- **Alternatives to Dynamic Client Registration (DCR)**: exploring alternatives to DCR, attempting to address operational challenges while preserving a smooth user experience.
-- **Fine-grained Authorization**: developing mechanisms and guidelines for primitive authorization for sensitive actions
-- **Enterprise Managed Authorization**: adding the capability for enterprises to simplify MCP server authorization with the help of Single Sign-On (SSO)
-- **Secure Authorization Elicitation**: enable developers to integrate secure authorization flows for downstream APIs outside the main MCP server authorization
+As organizations deploy MCP servers at enterprise scale, we're addressing challenges around horizontal scaling. While [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) provides some stateless support, we're smoothing out rough edges around server startup and session handling to make it easier to run MCP servers in production.
+
+The current focus point for this effort is [SEP-1442](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442).
+
+### Server Identity
+
+We're enabling servers to advertise themselves through [`.well-known` URLs](https://en.wikipedia.org/wiki/Well-known_URI)—an established standard for providing metadata. This will allow clients to discover what a server can do without having to connect to it first, making discovery much more intuitive and enabling systems like our registry to automatically catalog capabilities. We are working closely across multiple projects in the industry to rely on a common standard on agent cards.
+
+### Official Extensions
+
+As MCP has grown, valuable patterns have emerged for specific industries and use cases. Rather than leaving everyone to reinvent the wheel, we're officially recognizing and documenting the most popular protocol extensions. This curated collection will give developers building for specialized domains like healthcare, finance, or education a solid starting point.
+
+### SDK Support Standardization
+
+We're introducing a clear tiering system for SDKs based on factors like specification compliance speed, maintenance responsiveness, and feature completeness. This will help developers understand exactly what level of support they're getting before committing to a dependency.
+
+### MCP Registry General Availability
+
+The [MCP Registry](https://github.com/modelcontextprotocol/registry) launched in preview in September 2025 and is progressing toward general availability. We're stabilizing the v0.1 API through real-world integrations and community feedback, with plans to transition from preview to a production-ready service. This will provide developers with a reliable, community-driven platform for discovering and sharing MCP servers.
 
 ## Validation
 
@@ -42,19 +58,6 @@ To foster a robust developer ecosystem, we plan to invest in:
 - **Compliance Test Suites**: automated verification that clients, servers, and SDKs properly implement the specification
 
 These tools will help developers confidently implement MCP while ensuring consistent behavior across the ecosystem.
-
-## Registry
-
-For MCP to reach its full potential, we need streamlined ways to distribute and discover MCP servers.
-
-We plan to develop an [**MCP Registry**](https://github.com/orgs/modelcontextprotocol/discussions/159) that will enable centralized server discovery and metadata. This registry will primarily function as an API layer that third-party marketplaces and discovery services can build upon.
-
-## Multimodality
-
-Supporting the full spectrum of AI capabilities in MCP, including:
-
-- **Additional Modalities**: video and other media types
-- **[Streaming](https://github.com/modelcontextprotocol/specification/issues/117)**: multipart, chunked messages, and bidirectional communication for interactive experiences
 
 ## Get Involved
 
