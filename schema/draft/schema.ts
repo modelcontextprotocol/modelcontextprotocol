@@ -177,6 +177,10 @@ export interface InitializeRequest extends JSONRPCRequest {
      * The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
      */
     protocolVersion: string;
+    /**
+     * The set of versions of the Model Context Protocol that the client supports. The client MAY supply a list of supported versions to facilitate version negotiation with the server.
+     */
+    supportedProtocolVersions?: string[];
     capabilities: ClientCapabilities;
     clientInfo: Implementation;
   };
