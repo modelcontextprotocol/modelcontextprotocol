@@ -396,6 +396,13 @@ export interface PingRequest extends JSONRPCRequest {
   method: "ping";
 }
 
+/**
+ * The response to a ping request, indicating that the connection is still alive.
+ *
+ * @category ping
+ */
+export type PingResult = EmptyResult
+
 /* Progress notifications */
 /**
  * An out-of-band notification used to inform the receiver of a progress update for a long-running request.
@@ -539,6 +546,13 @@ export interface SubscribeRequest extends JSONRPCRequest {
 }
 
 /**
+ * Sent from the server to the client, to confirm a request to subscribe to resource modifications.
+ *
+ * @category resources/subscribe
+ */
+export type SubscribeResult = EmptyResult
+
+/**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
  *
  * @category resources/unsubscribe
@@ -554,6 +568,13 @@ export interface UnsubscribeRequest extends JSONRPCRequest {
     uri: string;
   };
 }
+
+/**
+ * Sent from the server to the client, to confirm a request to unsubscribe from resource modification notifications.
+ * 
+ * @category resources/unsubscribe
+ */
+export type UnsubscribeResult = EmptyResult
 
 /**
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
@@ -1009,6 +1030,11 @@ export interface SetLevelRequest extends JSONRPCRequest {
     level: LoggingLevel;
   };
 }
+
+/**
+ * Response sent by the server to confirm a logging/setLevel request from the client.
+ */
+export type SetLevelResult = EmptyResult;
 
 /**
  * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
@@ -1600,12 +1626,16 @@ export type ServerNotification =
 /** @internal */
 export type ServerResult =
   | EmptyResult
+  | PingResult
   | InitializeResult
   | CompleteResult
+  | SetLevelResult
   | GetPromptResult
   | ListPromptsResult
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | SubscribeResult
+  | UnsubscribeResult
   | CallToolResult
   | ListToolsResult;
