@@ -1521,7 +1521,7 @@ export interface BooleanSchema {
 /**
  * Schema for single-selection enumeration without display titles for options.
  */
-export type UntitledSingleSelectEnumSchema = {
+export interface UntitledSingleSelectEnumSchema {
   type: "string";
   /**
    * Optional title for the enum field.
@@ -1544,7 +1544,7 @@ export type UntitledSingleSelectEnumSchema = {
 /**
  * Schema for single-selection enumeration with display titles for each option.
  */
-export type TitledSingleSelectEnumSchema = {
+export interface TitledSingleSelectEnumSchema {
   type: "string";
   /**
    * Optional title for the enum field.
@@ -1581,7 +1581,7 @@ export type SingleSelectEnumSchema =
 /**
  * Schema for multiple-selection enumeration without display titles for options.
  */
-export type UntitledMultiSelectEnumSchema = {
+export interface UntitledMultiSelectEnumSchema {
   type: "array";
   /**
    * Optional title for the enum field.
@@ -1618,7 +1618,7 @@ export type UntitledMultiSelectEnumSchema = {
 /**
  * Schema for multiple-selection enumeration with display titles for each option.
  */
-export type TitledMultiSelectEnumSchema = {
+export interface TitledMultiSelectEnumSchema {
   type: "array";
   /**
    * Optional title for the enum field.
