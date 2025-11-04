@@ -404,10 +404,10 @@ Tools use two error reporting mechanisms:
    - Input validation errors (e.g., date in wrong format, value out of range)
    - Business logic errors
 
-**Tool Execution Errors** typically contain actionable feedback that language models can use to self-correct and retry with adjusted parameters.
-**Protocol Errors** generally indicate issues with the request structure itself that models are less likely to be able to fix.
+**Tool Execution Errors** contain actionable feedback that language models can use to self-correct and retry with adjusted parameters.
+**Protocol Errors** indicate issues with the request structure itself that models are less likely to be able to fix.
 Clients **SHOULD** provide tool execution errors to language models to enable self-correction.
-Clients **MAY** also provide protocol errors to language models, though these are less likely to result in successful recovery.
+Clients **MAY** provide protocol errors to language models, though these are less likely to result in successful recovery.
 
 Example protocol error:
 
