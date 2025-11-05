@@ -15,6 +15,10 @@ compatibility.
 The official MCP documentation is built using Mintlify and available at
 [modelcontextprotocol.io](https://modelcontextprotocol.io).
 
+## Authors
+
+The Model Context Protocol was created by David Soria Parra ([@dsp](https://github.com/dsp)) and Justin Spahr-Summers ([@jspahrsummers](https://github.com/jspahrsummers)).
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

@@ -98,7 +98,7 @@ To discover available tools, clients send a `tools/list` request. This operation
           {
             "src": "https://example.com/weather-icon.png",
             "mimeType": "image/png",
-            "sizes": "48x48"
+            "sizes": ["48x48"]
           }
         ]
       }
@@ -203,6 +203,19 @@ For trust & safety and security, clients **MUST** consider
 tool annotations to be untrusted unless they come from trusted servers.
 
 </Warning>
+
+#### Tool Names
+
+- Tool names SHOULD be between 1 and 128 characters in length (inclusive).
+- Tool names SHOULD be considered case-sensitive.
+- The following SHOULD be the only allowed characters: uppercase and lowercase ASCII letters (A-Z, a-z), digits
+  (0-9), underscore (\_), dash (-), and dot (.)
+- Tool names SHOULD NOT contain spaces, commas, or other special characters.
+- Tool names SHOULD be unique within a server.
+- Example valid tool names:
+  - getUser
+  - DATA_EXPORT_v2
+  - admin.tools.list
 
 ### Tool Result
 

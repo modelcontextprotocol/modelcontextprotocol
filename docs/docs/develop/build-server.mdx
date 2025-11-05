@@ -59,6 +59,7 @@ Writing to stdout will corrupt the JSON-RPC messages and break your server.
 ### Best Practices
 
 1. Use a logging library that writes to stderr or files.
+1. Tool names should follow the format specified [here](/specification/draft/server/tools#tool-names).
 
 ### Quick Examples
 
@@ -252,9 +253,12 @@ Forecast: {period['detailedForecast']}
 Finally, let's initialize and run the server:
 
 ```python
-if __name__ == "__main__":
+def main():
     # Initialize and run the server
     mcp.run(transport='stdio')
+
+if __name__ == "__main__":
+    main()
 ```
 
 Your server is complete! Run `uv run weather.py` to start the MCP server, which will listen for messages from MCP hosts.
@@ -1852,6 +1856,17 @@ tail -n 20 -f ~/Library/Logs/Claude/mcp*.log
 1. Check your `claude_desktop_config.json` file syntax
 2. Make sure the path to your project is absolute and not relative
 3. Restart Claude for Desktop completely
+
+<Warning>
+
+To properly restart Claude for Desktop, you must fully quit the application:
+
+- **Windows**: Right-click the Claude icon in the system tray (which may be hidden in the "hidden icons" menu) and select "Quit" or "Exit".
+- **macOS**: Use Cmd+Q or select "Quit Claude" from the menu bar.
+
+Simply closing the window does not fully quit the application, and your MCP server configuration changes will not take effect.
+
+</Warning>
 
 **Tool calls failing silently**
 
