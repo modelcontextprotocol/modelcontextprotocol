@@ -956,7 +956,7 @@ export interface CallToolRequestParams extends RequestParams {
   /**
    * Arguments to use for the tool call.
    */
-  arguments?: { [key: string]: string };
+  arguments?: { [key: string]: unknown };
 }
 
 /**

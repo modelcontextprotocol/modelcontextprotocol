@@ -164,9 +164,7 @@
                     "type": "object"
                 },
                 "arguments": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
+                    "additionalProperties": {},
                     "description": "Arguments to use for the tool call.",
                     "type": "object"
                 },
