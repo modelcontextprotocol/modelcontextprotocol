@@ -956,60 +956,6 @@
             ],
             "type": "object"
         },
-        "ElicitTrackParams": {
-            "description": "The parameters for a request to track the progress of an elicitation.",
-            "properties": {
-                "_meta": {
-                    "additionalProperties": {},
-                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                    "properties": {
-                        "progressToken": {
-                            "$ref": "#/definitions/ProgressToken",
-                            "description": "The progress token as specified in the Progress capability, required in this request."
-                        }
-                    },
-                    "required": [
-                        "progressToken"
-                    ],
-                    "type": "object"
-                },
-                "elicitationId": {
-                    "description": "The ID of the elicitation to track.",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "_meta",
-                "elicitationId"
-            ],
-            "type": "object"
-        },
-        "ElicitTrackRequest": {
-            "description": "A request from the client to track the progress of an elicitation.",
-            "properties": {
-                "id": {
-                    "$ref": "#/definitions/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "elicitation/track",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/definitions/ElicitTrackParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
         "ElicitationRequiredError": {
             "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
             "properties": {
@@ -2057,7 +2003,7 @@
                     "$ref": "#/definitions/EnumSchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "/**\n Restricted schema definitions that only allow primitive types\n without nested objects or arrays."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -2815,6 +2761,9 @@
                 },
                 {
                     "$ref": "#/definitions/LoggingMessageNotification"
+                },
+                {
+                    "$ref": "#/definitions/URLModeElicitationCompleteNotification"
                 }
             ]
         },
@@ -3195,6 +3144,37 @@
             "required": [
                 "jsonrpc",
                 "method"
+            ],
+            "type": "object"
+        },
+        "URLModeElicitationCompleteNotification": {
+            "description": "An out-of-band notification used to inform the receiver of a completion of a URL mode elicitation.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/urlModeElicitationComplete",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "elicitationId": {
+                            "description": "The ID of the elicitation that completed.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "elicitationId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
             ],
             "type": "object"
         },

@@ -314,60 +314,32 @@ The same request could direct the user into an OAuth authorization flow, or a pa
 
 The response with `action: "accept"` indicates that the user has consented to the
 interaction. It does not mean that the interaction is complete. The interaction occurs out
-of band and the client is not aware of the outcome, unless the client requests progress updates.
+of band and the client is not aware of the outcome until and unless the server sends a notification indicating completion.
 
-### Progress Tracking
+### Completion Notifications for URL Mode Elicitation
 
-The client **MAY** request progress updates from the server by sending an `elicitation/track` request with a [progress token](../basic/utilities/progress). This is particularly useful in URL mode, because the client is not involved in the interaction.
+Servers **SHOULD** send a `notifications/urlModeElicitationComplete` notification when an
+out-of-band interaction started by URL mode elicitation is completed. This allows clients to react programmatically if appropriate.
 
-The client **MUST** include an `elicitationId` in the `elicitation/track` request to identify which elicitation to send progress updates for. The client **SHOULD** include a `progressToken` in the request's `_meta` field.
+- The notification **MUST** only be sent to the client that initiated the elicitation request.
+- The notification **MUST** include the `elicitationId` established in the original
+  `elicitation/create` request.
+- Servers **MUST NOT** send more than one completion notification per `elicitationId`.
+- Clients **MUST** ignore notifications referencing unknown or already-completed IDs.
+- If a completion notification never arrives, clients **SHOULD** provide a manual
+  way for the user to continue the interaction.
 
-The server **MUST** respond with an [error](#error-handling) if the client sends an `elicitation/track` request containing an `elicitationId` that is not known or does not belong to the client.
-
-After the client has requested progress updates via an `elicitation/track` request, the server **MAY** send [progress notifications](../basic/utilities/progress) to the client.
-
-The server **SHOULD** send a `elicitation/track` response to the client once the elicitation is complete.
+Clients **MAY** use the notification to resume queued requests or update their user
+interface, but the absence of a notification must not block user progress entirely.
 
 #### Example
 
-**Progress Tracking Request:**
-
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 4,
-  "method": "elicitation/track",
+  "method": "notifications/urlModeElicitationComplete",
   "params": {
-    "_meta": {
-      "progressToken": "abc123"
-    },
     "elicitationId": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
-
-**Progress Tracking Notification:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/progress",
-  "params": {
-    "progressToken": "abc123",
-    "progress": 42,
-    "message": "Consent pending..."
-  }
-}
-```
-
-**Progress Tracking Response:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "result": {
-    "status": "complete"
   }
 }
 ```
@@ -443,12 +415,10 @@ sequenceDiagram
 
     Client->>UserAgent: Open URL
     Client->>Server: Accept response
-    Client-->>Server: elicitation/track request (optional)
 
     Note over User,UserAgent: User interaction
-    Server-->>Client: notifications/progress (optional)
     UserAgent-->>Server: Interaction complete
-    Server-->>Client: elicitation/track response (optional)
+    Server-->>Client: notifications/urlModeElicitationComplete (optional)
 
     Note over Server: Continue processing with new information
 ```
@@ -473,13 +443,11 @@ sequenceDiagram
 
     Client->>UserAgent: Open URL
     Client->>Server: Accept response
-    Client-->>Server: elicitation/track request (optional)
 
     Note over User,UserAgent: User interaction
-    Server-->>Client: notifications/progress (optional)
 
     UserAgent-->>Server: Interaction complete
-    Server-->>Client: elicitation/track response (optional)
+    Server-->>Client: notifications/urlModeElicitationComplete (optional)
 
     Client->>Server: Retry tools/call (optional)
 ```
@@ -626,7 +594,6 @@ sequenceDiagram
     User->>Client: Provide consent
     Client->>UserAgent: Open URL
     Client->>Server: Accept response
-    Client-->>Server: elicitation/track request (optional)
     UserAgent->>Server: Load connect route
     Note over Server: Confirm: user is logged into MCP Server or MCP AS<br>Confirm: elicitation user matches session user
     Server->>UserAgent: Redirect to third-party authorization endpoint
@@ -638,7 +605,7 @@ sequenceDiagram
     Server->>3AS: Exchange authorization code for  OAuth tokens
     3AS->>Server: Grants tokens
     Note over Server: Bind tokens to MCP user identity
-    Server-->>Client: elicitation/track response (optional)
+    Server-->>Client: notifications/urlModeElicitationComplete (optional)
     Client->>Server: Retry tools/call
     Note over Server: Retrieve token bound to user identity
     Server->>3RS: Call 3rd-party API
@@ -650,8 +617,6 @@ This pattern maintains clear security boundaries while enabling rich integration
 
 Servers **MUST** return standard JSON-RPC errors for common failure cases:
 
-- Unknown `elicitationId` in an `elicitation/track` request: `-32602` (Invalid params)
-- An `elicitationId` belonging to a different client in an `elicitation/track` request: `-32602` (Invalid params)
 - When a request cannot be processed until an elicitation is completed: `-32000` (ElicitationRequired)
 
 Clients **MUST** return standard JSON-RPC errors for common failure cases:
