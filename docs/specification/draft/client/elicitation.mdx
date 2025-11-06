@@ -339,7 +339,7 @@ out-of-band interaction started by URL mode elicitation is completed. This allow
 - If a completion notification never arrives, clients **SHOULD** provide a manual
   way for the user to continue the interaction.
 
-Clients **MAY** use the notification to automatically retry requests that received an [ElicitationRequired error](#error-handling) error, update the user interface, or otherwise continue an interaction.
+Clients **MAY** use the notification to automatically retry requests that received a [UrlElicitationRequiredError](#error-handling), update the user interface, or otherwise continue an interaction.
 However, because delivery of the notification is not guaranteed, clients must not wait indefinitely for a notification from the server.
 
 #### Example
@@ -356,7 +356,7 @@ However, because delivery of the notification is not guaranteed, clients must no
 
 ### Elicitation Required Error
 
-When another request cannot be processed until an elicitation is completed, the server **SHOULD** return an [ElicitationRequired error](#error-handling) (code `-32000`) to indicate to the client that an elicitation is required.
+When another request cannot be processed until an elicitation is completed, the server **SHOULD** return a [`UrlElicitationRequiredError`](#error-handling) (code `-32042`) to indicate to the client that an elicitation is required.
 
 The error **MUST** include a list of elicitations that are required to complete before the original can be retried.
 
@@ -370,7 +370,7 @@ Servers that want elicit data from the user via form mode **SHOULD** make a sepa
   "jsonrpc": "2.0",
   "id": 2,
   "error": {
-    "code": -32000, // ELICITATION_REQUIRED
+    "code": -32042, // URL_ELICITATION_REQUIRED
     "message": "This request requires more information.",
     "data": {
       "elicitations": [
@@ -445,7 +445,7 @@ sequenceDiagram
     Client->>Server: tools/call
 
     Note over Server: Server needs authorization
-    Server->>Client: ElicitationRequired error
+    Server->>Client: UrlElicitationRequiredError
     Note over Client: Client notes the original request can be retried after elicitation
 
     Client->>User: Present consent to open URL
@@ -598,7 +598,7 @@ sequenceDiagram
     Client->>Server: tools/call
     Note over Server: Needs 3rd-party authorization for user
     Note over Server: Store state (bind the elicitation request to the user)
-    Server->>Client: ElicitationRequired error<br> (mode: "url", url: "https://mcp.example.com/connect?...")
+    Server->>Client: UrlElicitationRequiredError<br> (mode: "url", url: "https://mcp.example.com/connect?...")
     Note over Client: Client notes the tools/call request can be retried later
     Client->>User: Present consent to open URL
     User->>Client: Provide consent
@@ -627,7 +627,7 @@ This pattern maintains clear security boundaries while enabling rich integration
 
 Servers **MUST** return standard JSON-RPC errors for common failure cases:
 
-- When a request cannot be processed until an elicitation is completed: `-32000` (ElicitationRequired)
+- When a request cannot be processed until an elicitation is completed: `-32042` (`UrlElicitationRequiredError`)
 
 Clients **MUST** return standard JSON-RPC errors for common failure cases:
 

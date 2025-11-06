@@ -131,7 +131,7 @@ export const INTERNAL_ERROR = -32603;
 
 // Implementation-specific JSON-RPC error codes [-32000, -32099]
 /** @internal */
-export const ELICITATION_REQUIRED = -32000;
+export const URL_ELICITATION_REQUIRED = -32042;
 
 /**
  * A response to a request that indicates an error occurred.
@@ -147,9 +147,9 @@ export interface JSONRPCError {
  *
  * @internal
  */
-export interface ElicitationRequiredError extends Omit<JSONRPCError, 'error'> {
+export interface UrlElicitationRequiredError extends Omit<JSONRPCError, 'error'> {
   error: Error & {
-    code: typeof ELICITATION_REQUIRED;
+    code: typeof URL_ELICITATION_REQUIRED;
     data: {
       elicitations: ElicitRequestURLParams[];
       [key: string]: unknown;
