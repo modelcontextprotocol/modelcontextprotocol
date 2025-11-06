@@ -329,8 +329,8 @@ out-of-band interaction started by URL mode elicitation is completed. This allow
 - If a completion notification never arrives, clients **SHOULD** provide a manual
   way for the user to continue the interaction.
 
-Clients **MAY** use the notification to resume queued requests or update their user
-interface, but the absence of a notification must not block user progress entirely.
+Clients **MAY** use the notification to automatically retry requests that received an [ElicitationRequired error](#error-handling) error, update the user interface, or otherwise continue an interaction.
+However, because delivery of the notification is not guaranteed, clients must not wait indefinitely for a notification from the server.
 
 #### Example
 
