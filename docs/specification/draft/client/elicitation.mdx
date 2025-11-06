@@ -354,14 +354,13 @@ However, because delivery of the notification is not guaranteed, clients must no
 }
 ```
 
-### Elicitation Required Error
+### URL Elicitation Required Error
 
-When another request cannot be processed until an elicitation is completed, the server **SHOULD** return a [`UrlElicitationRequiredError`](#error-handling) (code `-32042`) to indicate to the client that an elicitation is required.
+When a request cannot be processed until an elicitation is completed, the server **MAY** return a [`UrlElicitationRequiredError`](#error-handling) (code `-32042`) to indicate to the client that a URL mode elicitation is required. The server **MUST NOT** return this error except when URL mode elicitation is required.
 
 The error **MUST** include a list of elicitations that are required to complete before the original can be retried.
 
 Any elicitations returned in the error **MUST** be URL mode elicitations and have an `elicitationId` property.
-Servers that want elicit data from the user via form mode **SHOULD** make a separate elicitation request for each form mode elicitation.
 
 **Error Response:**
 
