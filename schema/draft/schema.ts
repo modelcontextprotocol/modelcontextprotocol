@@ -227,13 +227,13 @@ export interface ClientCapabilities {
    * The vendor-prefix follows the same format and reservation rules as prefixes in _meta.
    * Prefixes containing `modelcontextprotocol` or `mcp` are reserved for MCP use.
    *
-   * Values are optional configuration objects specific to each extension.
+   * Values are optional capabilities objects specific to each extension.
    *
    * Examples:
    * - `modelcontextprotocol.io/official-extension`
    * - `example.com/custom-extension`
    *
-   * An empty object `{}` indicates support without additional configuration.
+   * An empty object `{}` indicates support without additional capabilities.
    */
   extensions?: { [key: string]: object };
   /**
@@ -270,13 +270,13 @@ export interface ServerCapabilities {
    * The vendor-prefix follows the same format and reservation rules as prefixes in _meta.
    * Prefixes containing `modelcontextprotocol` or `mcp` are reserved for MCP use.
    *
-   * Values are optional configuration objects specific to each extension.
+   * Values are optional capabilities objects specific to each extension.
    *
    * Examples:
    * - `modelcontextprotocol.io/official-extension`
    * - `example.com/custom-extension`
    *
-   * An empty object `{}` indicates support without additional configuration.
+   * An empty object `{}` indicates support without additional capabilities.
    */
   extensions?: { [key: string]: object };
   /**

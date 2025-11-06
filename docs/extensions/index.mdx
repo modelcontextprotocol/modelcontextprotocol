@@ -78,7 +78,7 @@ Extensions are negotiated during the MCP initialization phase through the `exten
 1. During initialization, clients declare supported extensions in the `extensions` field
 2. Servers respond with their own supported extensions in their `extensions` field
 3. Each extension specification defines whether support from both parties is required
-4. Extensions may include optional configuration parameters
+4. Extensions may include optional capability parameters
 
 ### Example: Client Initialization with Extensions
 
@@ -132,19 +132,19 @@ Extensions are negotiated during the MCP initialization phase through the `exten
 }
 ```
 
-### Extension Configuration
+### Extension Capabilities
 
-Each extension in the `extensions` object can have an associated configuration object:
+Each extension in the `extensions` object can have an associated capabilities object:
 
 - **Empty object `{}`**: Indicates support for the extension with default settings
-- **Configuration object**: Provides extension-specific settings and parameters
+- **Capabilities object**: Provides extension-specific capabilities and parameters
 - **Omission**: Extension is not supported
 
 Implementations **SHOULD**:
 
 - Ignore extensions they don't recognize
-- Gracefully handle missing configuration parameters
-- Validate configuration values before using them
+- Gracefully handle missing capability parameters
+- Validate capability values before using them
 
 For detailed protocol-level documentation on capability negotiation, see the [Lifecycle documentation](/specification/draft/basic/lifecycle#extension-negotiation).
 

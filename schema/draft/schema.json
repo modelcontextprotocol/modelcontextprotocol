@@ -250,7 +250,7 @@
                         "properties": {},
                         "type": "object"
                     },
-                    "description": "Optional extensions that the client supports.\n\nKeys are extension identifiers in the format `{vendor-prefix}/{extension-name}`.\nThe vendor-prefix follows the same format and reservation rules as prefixes in _meta.\nPrefixes containing `modelcontextprotocol` or `mcp` are reserved for MCP use.\n\nValues are optional configuration objects specific to each extension.\n\nExamples:\n- `modelcontextprotocol.io/official-extension`\n- `example.com/custom-extension`\n\nAn empty object `{}` indicates support without additional configuration.",
+                    "description": "Optional extensions that the client supports.\n\nKeys are extension identifiers in the format `{vendor-prefix}/{extension-name}`.\nThe vendor-prefix follows the same format and reservation rules as prefixes in _meta.\nPrefixes containing `modelcontextprotocol` or `mcp` are reserved for MCP use.\n\nValues are optional capabilities objects specific to each extension.\n\nExamples:\n- `modelcontextprotocol.io/official-extension`\n- `example.com/custom-extension`\n\nAn empty object `{}` indicates support without additional capabilities.",
                     "type": "object"
                 },
                 "roots": {
@@ -2368,7 +2368,7 @@
                         "properties": {},
                         "type": "object"
                     },
-                    "description": "Optional extensions that the server supports.\n\nKeys are extension identifiers in the format `{vendor-prefix}/{extension-name}`.\nThe vendor-prefix follows the same format and reservation rules as prefixes in _meta.\nPrefixes containing `modelcontextprotocol` or `mcp` are reserved for MCP use.\n\nValues are optional configuration objects specific to each extension.\n\nExamples:\n- `modelcontextprotocol.io/official-extension`\n- `example.com/custom-extension`\n\nAn empty object `{}` indicates support without additional configuration.",
+                    "description": "Optional extensions that the server supports.\n\nKeys are extension identifiers in the format `{vendor-prefix}/{extension-name}`.\nThe vendor-prefix follows the same format and reservation rules as prefixes in _meta.\nPrefixes containing `modelcontextprotocol` or `mcp` are reserved for MCP use.\n\nValues are optional capabilities objects specific to each extension.\n\nExamples:\n- `modelcontextprotocol.io/official-extension`\n- `example.com/custom-extension`\n\nAn empty object `{}` indicates support without additional capabilities.",
                     "type": "object"
                 },
                 "logging": {
