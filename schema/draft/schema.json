@@ -138,19 +138,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "arguments": {
-                            "additionalProperties": {},
-                            "type": "object"
-                        },
-                        "name": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "name"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/CallToolRequestParams"
                 }
             },
             "required": [
@@ -158,6 +146,37 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "CallToolRequestParams": {
+            "description": "Parameters for a `tools/call` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "arguments": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Arguments to use for the tool call.",
+                    "type": "object"
+                },
+                "name": {
+                    "description": "The name of the tool.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
             ],
             "type": "object"
         },
@@ -203,26 +222,35 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "reason": {
-                            "description": "An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.",
-                            "type": "string"
-                        },
-                        "requestId": {
-                            "$ref": "#/definitions/RequestId",
-                            "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
-                        }
-                    },
-                    "required": [
-                        "requestId"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/CancelledNotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "CancelledNotificationParams": {
+            "description": "Parameters for a `notifications/cancelled` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "reason": {
+                    "description": "An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.",
+                    "type": "string"
+                },
+                "requestId": {
+                    "$ref": "#/definitions/RequestId",
+                    "description": "The ID of the request to cancel.\n\nThis MUST correspond to the ID of a request previously issued in the same direction."
+                }
+            },
+            "required": [
+                "requestId"
             ],
             "type": "object"
         },
@@ -416,54 +444,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "argument": {
-                            "description": "The argument's information",
-                            "properties": {
-                                "name": {
-                                    "description": "The name of the argument",
-                                    "type": "string"
-                                },
-                                "value": {
-                                    "description": "The value of the argument to use for completion matching.",
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "name",
-                                "value"
-                            ],
-                            "type": "object"
-                        },
-                        "context": {
-                            "description": "Additional, optional context for completions",
-                            "properties": {
-                                "arguments": {
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    },
-                                    "description": "Previously-resolved variables in a URI template or prompt.",
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        "ref": {
-                            "anyOf": [
-                                {
-                                    "$ref": "#/definitions/PromptReference"
-                                },
-                                {
-                                    "$ref": "#/definitions/ResourceTemplateReference"
-                                }
-                            ]
-                        }
-                    },
-                    "required": [
-                        "argument",
-                        "ref"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/CompleteRequestParams"
                 }
             },
             "required": [
@@ -471,6 +452,68 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "CompleteRequestParams": {
+            "description": "Parameters for a `completion/complete` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "argument": {
+                    "description": "The argument's information",
+                    "properties": {
+                        "name": {
+                            "description": "The name of the argument",
+                            "type": "string"
+                        },
+                        "value": {
+                            "description": "The value of the argument to use for completion matching.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "value"
+                    ],
+                    "type": "object"
+                },
+                "context": {
+                    "description": "Additional, optional context for completions",
+                    "properties": {
+                        "arguments": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "Previously-resolved variables in a URI template or prompt.",
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                },
+                "ref": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/PromptReference"
+                        },
+                        {
+                            "$ref": "#/definitions/ResourceTemplateReference"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "argument",
+                "ref"
             ],
             "type": "object"
         },
@@ -545,55 +588,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "includeContext": {
-                            "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.",
-                            "enum": [
-                                "allServers",
-                                "none",
-                                "thisServer"
-                            ],
-                            "type": "string"
-                        },
-                        "maxTokens": {
-                            "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
-                            "type": "integer"
-                        },
-                        "messages": {
-                            "items": {
-                                "$ref": "#/definitions/SamplingMessage"
-                            },
-                            "type": "array"
-                        },
-                        "metadata": {
-                            "additionalProperties": true,
-                            "description": "Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.",
-                            "properties": {},
-                            "type": "object"
-                        },
-                        "modelPreferences": {
-                            "$ref": "#/definitions/ModelPreferences",
-                            "description": "The server's preferences for which model to select. The client MAY ignore these preferences."
-                        },
-                        "stopSequences": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "systemPrompt": {
-                            "description": "An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.",
-                            "type": "string"
-                        },
-                        "temperature": {
-                            "type": "number"
-                        }
-                    },
-                    "required": [
-                        "maxTokens",
-                        "messages"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/CreateMessageRequestParams"
                 }
             },
             "required": [
@@ -601,6 +596,69 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "CreateMessageRequestParams": {
+            "description": "Parameters for a `sampling/createMessage` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "includeContext": {
+                    "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt. The client MAY ignore this request.",
+                    "enum": [
+                        "allServers",
+                        "none",
+                        "thisServer"
+                    ],
+                    "type": "string"
+                },
+                "maxTokens": {
+                    "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
+                    "type": "integer"
+                },
+                "messages": {
+                    "items": {
+                        "$ref": "#/definitions/SamplingMessage"
+                    },
+                    "type": "array"
+                },
+                "metadata": {
+                    "additionalProperties": true,
+                    "description": "Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.",
+                    "properties": {},
+                    "type": "object"
+                },
+                "modelPreferences": {
+                    "$ref": "#/definitions/ModelPreferences",
+                    "description": "The server's preferences for which model to select. The client MAY ignore these preferences."
+                },
+                "stopSequences": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "systemPrompt": {
+                    "description": "An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.",
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "maxTokens",
+                "messages"
             ],
             "type": "object"
         },
@@ -685,7 +743,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "properties": {
                         "progressToken": {
                             "$ref": "#/definitions/ProgressToken",
@@ -695,7 +753,7 @@
                     "type": "object"
                 },
                 "message": {
-                    "description": "The message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
+                    "description": "The message to present to the user.\nThe message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
                     "type": "string"
                 },
                 "mode": {
@@ -738,11 +796,11 @@
             "type": "object"
         },
         "ElicitRequestParams": {
-            "description": "The parameters for a request to elicit additional information from the user via the client.",
+            "description": "Parameters for an `elicitation/create` request.\nThe parameters for a request to elicit additional information from the user via the client.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "properties": {
                         "progressToken": {
                             "$ref": "#/definitions/ProgressToken",
@@ -752,7 +810,7 @@
                     "type": "object"
                 },
                 "message": {
-                    "description": "The message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
+                    "description": "The message to present to the user.\nThe message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
                     "type": "string"
                 },
                 "mode": {
@@ -762,11 +820,38 @@
                         "url"
                     ],
                     "type": "string"
+                },
+                "requestedSchema": {
+                    "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
+                    "properties": {
+                        "properties": {
+                            "additionalProperties": {
+                                "$ref": "#/definitions/PrimitiveSchemaDefinition"
+                            },
+                            "type": "object"
+                        },
+                        "required": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "type": {
+                            "const": "object",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "properties",
+                        "type"
+                    ],
+                    "type": "object"
                 }
             },
             "required": [
                 "message",
-                "mode"
+                "mode",
+                "requestedSchema"
             ],
             "type": "object"
         },
@@ -774,7 +859,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "properties": {
                         "progressToken": {
                             "$ref": "#/definitions/ProgressToken",
@@ -788,13 +873,39 @@
                     "type": "string"
                 },
                 "message": {
-                    "description": "The message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
+                    "description": "The message to present to the user.\nThe message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
                     "type": "string"
                 },
                 "mode": {
                     "const": "url",
                     "description": "The elicitation mode.",
                     "type": "string"
+                },
+                "requestedSchema": {
+                    "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
+                    "properties": {
+                        "properties": {
+                            "additionalProperties": {
+                                "$ref": "#/definitions/PrimitiveSchemaDefinition"
+                            },
+                            "type": "object"
+                        },
+                        "required": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "type": {
+                            "const": "object",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "properties",
+                        "type"
+                    ],
+                    "type": "object"
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -806,6 +917,7 @@
                 "elicitationId",
                 "message",
                 "mode",
+                "requestedSchema",
                 "url"
             ],
             "type": "object"
@@ -849,7 +961,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "properties": {
                         "progressToken": {
                             "$ref": "#/definitions/ProgressToken",
@@ -1056,23 +1168,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "arguments": {
-                            "additionalProperties": {
-                                "type": "string"
-                            },
-                            "description": "Arguments to use for templating the prompt.",
-                            "type": "object"
-                        },
-                        "name": {
-                            "description": "The name of the prompt or prompt template.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "name"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/GetPromptRequestParams"
                 }
             },
             "required": [
@@ -1080,6 +1176,37 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "GetPromptRequestParams": {
+            "description": "Parameters for a `prompts/get` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "arguments": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Arguments to use for templating the prompt.",
+                    "type": "object"
+                },
+                "name": {
+                    "description": "The name of the prompt or prompt template.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
             ],
             "type": "object"
         },
@@ -1234,24 +1361,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "capabilities": {
-                            "$ref": "#/definitions/ClientCapabilities"
-                        },
-                        "clientInfo": {
-                            "$ref": "#/definitions/Implementation"
-                        },
-                        "protocolVersion": {
-                            "description": "The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "capabilities",
-                        "clientInfo",
-                        "protocolVersion"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/InitializeRequestParams"
                 }
             },
             "required": [
@@ -1259,6 +1369,38 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "InitializeRequestParams": {
+            "description": "Parameters for an `initialize` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "capabilities": {
+                    "$ref": "#/definitions/ClientCapabilities"
+                },
+                "clientInfo": {
+                    "$ref": "#/definitions/Implementation"
+                },
+                "protocolVersion": {
+                    "description": "The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "capabilities",
+                "clientInfo",
+                "protocolVersion"
             ],
             "type": "object"
         },
@@ -1304,15 +1446,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -1371,13 +1505,6 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
                     "type": "object"
                 }
             },
@@ -1401,7 +1528,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/RequestParams"
+                    "additionalProperties": {},
+                    "type": "object"
                 }
             },
             "required": [
@@ -1447,13 +1575,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1502,13 +1624,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1557,13 +1673,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1657,13 +1767,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1723,30 +1827,39 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "data": {
-                            "description": "The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here."
-                        },
-                        "level": {
-                            "$ref": "#/definitions/LoggingLevel",
-                            "description": "The severity of this log message."
-                        },
-                        "logger": {
-                            "description": "An optional name of the logger issuing this message.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "data",
-                        "level"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/LoggingMessageNotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "LoggingMessageNotificationParams": {
+            "description": "Parameters for a `notifications/message` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "data": {
+                    "description": "The data to be logged, such as a string message or an object. Any JSON serializable type is allowed here."
+                },
+                "level": {
+                    "$ref": "#/definitions/LoggingLevel",
+                    "description": "The severity of this log message."
+                },
+                "logger": {
+                    "description": "An optional name of the logger issuing this message.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "data",
+                "level"
             ],
             "type": "object"
         },
@@ -1798,19 +1911,22 @@
                 },
                 "params": {
                     "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
                     "type": "object"
                 }
             },
             "required": [
                 "method"
             ],
+            "type": "object"
+        },
+        "NotificationParams": {
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                }
+            },
             "type": "object"
         },
         "NumberSchema": {
@@ -1856,13 +1972,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "cursor": {
-                            "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1870,6 +1980,27 @@
                 "jsonrpc",
                 "method"
             ],
+            "type": "object"
+        },
+        "PaginatedRequestParams": {
+            "description": "Common parameters for paginated requests.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "cursor": {
+                    "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
+                    "type": "string"
+                }
+            },
             "type": "object"
         },
         "PaginatedResult": {
@@ -1940,35 +2071,44 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "message": {
-                            "description": "An optional message describing the current progress.",
-                            "type": "string"
-                        },
-                        "progress": {
-                            "description": "The progress thus far. This should increase every time progress is made, even if the total is unknown.",
-                            "type": "number"
-                        },
-                        "progressToken": {
-                            "$ref": "#/definitions/ProgressToken",
-                            "description": "The progress token which was given in the initial request, used to associate this notification with the request that is proceeding."
-                        },
-                        "total": {
-                            "description": "Total number of items to process (or total progress required), if known.",
-                            "type": "number"
-                        }
-                    },
-                    "required": [
-                        "progress",
-                        "progressToken"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/ProgressNotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ProgressNotificationParams": {
+            "description": "Parameters for a `notifications/progress` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "message": {
+                    "description": "An optional message describing the current progress.",
+                    "type": "string"
+                },
+                "progress": {
+                    "description": "The progress thus far. This should increase every time progress is made, even if the total is unknown.",
+                    "type": "number"
+                },
+                "progressToken": {
+                    "$ref": "#/definitions/ProgressToken",
+                    "description": "The progress token which was given in the initial request, used to associate this notification with the request that is proceeding."
+                },
+                "total": {
+                    "description": "Total number of items to process (or total progress required), if known.",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "progress",
+                "progressToken"
             ],
             "type": "object"
         },
@@ -2056,15 +2196,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -2126,17 +2258,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource to read. The URI can use any protocol; it is up to the server how to interpret it.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/ReadResourceRequestParams"
                 }
             },
             "required": [
@@ -2144,6 +2266,31 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ReadResourceRequestParams": {
+            "description": "Parameters for a `resources/read` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         },
@@ -2180,7 +2327,8 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/definitions/RequestParams"
+                    "additionalProperties": {},
+                    "type": "object"
                 }
             },
             "required": [
@@ -2197,10 +2345,11 @@
         },
         "RequestParams": {
             "additionalProperties": {},
+            "description": "Common params for any request.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/draft/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "properties": {
                         "progressToken": {
                             "$ref": "#/definitions/ProgressToken",
@@ -2354,20 +2503,37 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method"
+            ],
+            "type": "object"
+        },
+        "ResourceRequestParams": {
+            "description": "Common parameters when working with resources.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         },
@@ -2449,23 +2615,32 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/ResourceUpdatedNotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ResourceUpdatedNotificationParams": {
+            "description": "Parameters for a `notifications/resources/updated` notification.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         },
@@ -2523,15 +2698,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -2717,16 +2884,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "level": {
-                            "$ref": "#/definitions/LoggingLevel",
-                            "description": "The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message."
-                        }
-                    },
-                    "required": [
-                        "level"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/SetLevelRequestParams"
                 }
             },
             "required": [
@@ -2734,6 +2892,30 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "SetLevelRequestParams": {
+            "description": "Parameters for a `logging/setLevel` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "level": {
+                    "$ref": "#/definitions/LoggingLevel",
+                    "description": "The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/message."
+                }
+            },
+            "required": [
+                "level"
             ],
             "type": "object"
         },
@@ -2788,17 +2970,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/SubscribeRequestParams"
                 }
             },
             "required": [
@@ -2806,6 +2978,31 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "SubscribeRequestParams": {
+            "description": "Parameters for a `resources/subscribe` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         },
@@ -2993,15 +3190,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "additionalProperties": {},
-                    "properties": {
-                        "_meta": {
-                            "additionalProperties": {},
-                            "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
+                    "$ref": "#/definitions/NotificationParams"
                 }
             },
             "required": [
@@ -3025,17 +3214,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "uri": {
-                            "description": "The URI of the resource to unsubscribe from.",
-                            "format": "uri",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "uri"
-                    ],
-                    "type": "object"
+                    "$ref": "#/definitions/UnsubscribeRequestParams"
                 }
             },
             "required": [
@@ -3043,6 +3222,31 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "UnsubscribeRequestParams": {
+            "description": "Parameters for a `resources/unsubscribe` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "uri": {
+                    "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         }
