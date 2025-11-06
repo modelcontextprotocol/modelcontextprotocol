@@ -81,13 +81,40 @@
                     "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
+                "annotations": {
+                    "$ref": "#/definitions/Annotations",
+                    "description": "Optional annotations for the client."
+                },
                 "blob": {
                     "description": "A base64-encoded string representing the binary data of the item.",
                     "format": "byte",
                     "type": "string"
                 },
+                "description": {
+                    "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 },
                 "uri": {
@@ -98,6 +125,7 @@
             },
             "required": [
                 "blob",
+                "name",
                 "uri"
             ],
             "type": "object"
@@ -323,6 +351,9 @@
                 },
                 {
                     "$ref": "#/definitions/ReadResourceRequest"
+                },
+                {
+                    "$ref": "#/definitions/ReadResourceMetadataRequest"
                 },
                 {
                     "$ref": "#/definitions/SubscribeRequest"
@@ -1934,6 +1965,62 @@
             ],
             "type": "object"
         },
+        "ReadResourceMetadataRequest": {
+            "description": "Sent from the client to the server, to read metadata for a specific resource URI.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "resources/metadata",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "uri": {
+                            "description": "The URI of the resource to read metadata for. The URI can use any protocol; it is up to the server how to interpret it.",
+                            "format": "uri",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "uri"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "ReadResourceMetadataResult": {
+            "description": "The server's response to a resources/metadata request from the client.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "metadata": {
+                    "items": {
+                        "$ref": "#/definitions/Resource"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "metadata"
+            ],
+            "type": "object"
+        },
         "ReadResourceRequest": {
             "description": "Sent from the client to the server, to read a specific resource URI.",
             "properties": {
@@ -2098,34 +2185,6 @@
             },
             "required": [
                 "name",
-                "uri"
-            ],
-            "type": "object"
-        },
-        "ResourceContents": {
-            "description": "The contents of a specific resource or sub-resource.",
-            "properties": {
-                "_meta": {
-                    "additionalProperties": {},
-                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                    "type": "object"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/Resource",
-                    "description": "Resource metadata matching the Resource type from resources/list."
-                },
-                "mimeType": {
-                    "description": "The MIME type of this resource, if known.",
-                    "type": "string"
-                },
-                "uri": {
-                    "description": "The URI of this resource.",
-                    "format": "uri",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "metadata",
                 "uri"
             ],
             "type": "object"
@@ -2548,6 +2607,9 @@
                     "$ref": "#/definitions/ReadResourceResult"
                 },
                 {
+                    "$ref": "#/definitions/ReadResourceMetadataResult"
+                },
+                {
                     "$ref": "#/definitions/ListPromptsResult"
                 },
                 {
@@ -2735,12 +2797,39 @@
                     "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
+                "annotations": {
+                    "$ref": "#/definitions/Annotations",
+                    "description": "Optional annotations for the client."
+                },
+                "description": {
+                    "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
+                    "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/definitions/Icon"
+                    },
+                    "type": "array"
+                },
                 "mimeType": {
                     "description": "The MIME type of this resource, if known.",
                     "type": "string"
                 },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "type": "integer"
+                },
                 "text": {
                     "description": "The text of the item. This must only be set if the item can actually be represented as text (not binary data).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for Tool,\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
                     "type": "string"
                 },
                 "uri": {
@@ -2750,6 +2839,7 @@
                 }
             },
             "required": [
+                "name",
                 "text",
                 "uri"
             ],
