@@ -172,7 +172,7 @@ Extensions are **optional**. MCP clients and servers can choose which extensions
 - Declare the extension in the `extensions` field during initialization
 - Implement proper handling for missing or unrecognized extensions
 
-Extensions are negotiated through the [initialization exchange](/specification/draft/basic/lifecycle#extension-negotiation) during session initialization. Both client and server must declare support for an extension for it to be active in a session.
+Extensions are negotiated through the [initialization exchange](/specification/draft/basic/lifecycle#extension-negotiation) during session initialization. Each extension specification defines whether support from both parties is required.
 
 ### SDK Support
 
