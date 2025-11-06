@@ -58,6 +58,16 @@ Clients that support elicitation **MUST** declare the `elicitation` capability d
 }
 ```
 
+For backwards compatibility, an empty capabilities object is equivalent to declaring support for `form` mode only:
+
+```jsonc
+{
+  "capabilities": {
+    "elicitation": {} // Equivalent to { "form": {} }
+  }
+}
+```
+
 Clients declaring the `elicitation` capability **MUST** support at least one mode (`form` or `url`).
 
 Servers **MUST NOT** send elicitation requests with modes that are not supported by the client.

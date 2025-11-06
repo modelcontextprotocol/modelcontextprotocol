@@ -258,73 +258,20 @@
             "description": "Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.",
             "properties": {
                 "elicitation": {
-                    "anyOf": [
-                        {
-                            "allOf": [
-                                {
-                                    "properties": {
-                                        "form": {
-                                            "additionalProperties": true,
-                                            "properties": {},
-                                            "type": "object"
-                                        },
-                                        "url": {
-                                            "additionalProperties": true,
-                                            "properties": {},
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                {
-                                    "properties": {
-                                        "form": {
-                                            "additionalProperties": true,
-                                            "properties": {},
-                                            "type": "object"
-                                        }
-                                    },
-                                    "required": [
-                                        "form"
-                                    ],
-                                    "type": "object"
-                                }
-                            ]
+                    "description": "Present if the client supports elicitation from the server.",
+                    "properties": {
+                        "form": {
+                            "additionalProperties": true,
+                            "properties": {},
+                            "type": "object"
                         },
-                        {
-                            "allOf": [
-                                {
-                                    "properties": {
-                                        "form": {
-                                            "additionalProperties": true,
-                                            "properties": {},
-                                            "type": "object"
-                                        },
-                                        "url": {
-                                            "additionalProperties": true,
-                                            "properties": {},
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                {
-                                    "properties": {
-                                        "url": {
-                                            "additionalProperties": true,
-                                            "properties": {},
-                                            "type": "object"
-                                        }
-                                    },
-                                    "required": [
-                                        "url"
-                                    ],
-                                    "type": "object"
-                                }
-                            ]
+                        "url": {
+                            "additionalProperties": true,
+                            "properties": {},
+                            "type": "object"
                         }
-                    ],
-                    "description": "Present if the client supports elicitation from the server."
+                    },
+                    "type": "object"
                 },
                 "experimental": {
                     "additionalProperties": {

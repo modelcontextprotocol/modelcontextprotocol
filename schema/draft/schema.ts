@@ -279,7 +279,7 @@ export interface ClientCapabilities {
   /**
    * Present if the client supports elicitation from the server.
    */
-  elicitation?: { form?: object; url?: object } & ({ form: object } | { url: object });
+  elicitation?: { form?: object; url?: object };
 }
 
 /**
