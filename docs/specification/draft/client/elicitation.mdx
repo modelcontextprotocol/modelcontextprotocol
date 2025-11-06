@@ -634,17 +634,17 @@ Clients **MUST** return standard JSON-RPC errors for common failure cases:
 
 ### Safe URL Handling
 
-Clients implementing URL mode elicitation **MUST** handle URLs carefully to prevent users from unknowingly clicking malicious links.
+MCP servers requesting elicitation:
 
-1. Servers **MUST NOT** include URLs in any message or schema fields as part of a form mode elicitation request.
-2. Servers **MUST NOT** include URLs in any message or schema fields as part of an URL mode elicitation request, except for the `url` field.
-
-These requirements ensure that client implementations have clear rules about when to present a URL to the user, so that other rules about user consent and SSRF protection (below) can be consistently applied.
-
-Additionally, the server:
-
+1. **MUST NOT** include URLs in any message or schema fields as part of a form mode elicitation request.
+1. **MUST NOT** include URLs in any message or schema fields as part of an URL mode elicitation request, except for the `url` field.
 1. **MUST NOT** include plain text sensitive information about the end-user, including credentials, personal identifiable information, etc., in the URL sent to the client.
-2. **MUST NOT** provide a URL which is "pre-signed" or otherwise does not require the user to authenticate with the server before opening the URL, as the URL could be used to impersonate the user by a malicious client.
+1. **MUST NOT** provide a URL which is pre-signed to access a protected resource, as the URL could be used to impersonate the user by a malicious client.
+1. **SHOULD** use HTTPS URLs for non-development environments.
+
+These server requirements ensure that client implementations have clear rules about when to present a URL to the user, so that the client-side rules (below) can be consistently applied.
+
+Clients implementing URL mode elicitation **MUST** handle URLs carefully to prevent users from unknowingly clicking malicious links.
 
 When handling URL mode elicitation requests, MCP clients:
 
