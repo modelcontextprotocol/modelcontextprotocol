@@ -334,7 +334,6 @@ out-of-band interaction started by URL mode elicitation is completed. This allow
 - The notification **MUST** only be sent to the client that initiated the elicitation request.
 - The notification **MUST** include the `elicitationId` established in the original
   `elicitation/create` request.
-- Servers **MUST NOT** send more than one completion notification per `elicitationId`.
 - Clients **MUST** ignore notifications referencing unknown or already-completed IDs.
 - If a completion notification never arrives, clients **SHOULD** provide a manual
   way for the user to continue the interaction.
