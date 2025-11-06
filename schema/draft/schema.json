@@ -2344,7 +2344,6 @@
             ]
         },
         "RequestParams": {
-            "additionalProperties": {},
             "description": "Common params for any request.",
             "properties": {
                 "_meta": {

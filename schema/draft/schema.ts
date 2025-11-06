@@ -40,11 +40,6 @@ export interface RequestParams {
     progressToken?: ProgressToken;
     [key: string]: unknown;
   };
-
-  /**
-   * Allow any unknown parameters to be passed in.
-   */
-  [key: string]: unknown;
 }
 
 /** @internal */
@@ -567,7 +562,7 @@ export interface ResourceRequestParams extends RequestParams {
  *
  * @category resources/read
  */
-export interface ReadResourceRequestParams extends ResourceRequestParams { }
+export interface ReadResourceRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -603,7 +598,7 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
  *
  * @category resources/subscribe
  */
-export interface SubscribeRequestParams extends ResourceRequestParams { }
+export interface SubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
@@ -620,7 +615,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeRequestParams extends ResourceRequestParams { }
+export interface UnsubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
