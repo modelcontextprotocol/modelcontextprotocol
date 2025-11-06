@@ -187,14 +187,12 @@ Capability objects can describe sub-capabilities like:
 
 #### Extension Negotiation
 
-Both client and server MAY declare support for optional MCP extensions through the `extensions` field within their capabilities during initialization.
+Both client and server **MAY** declare support for optional MCP extensions through the `extensions` field within their capabilities during initialization.
 
 Extension identifiers MUST follow the format `{vendor-prefix}/{extension-name}`, for example:
 
 - `modelcontextprotocol.io/official-extension`
 - `example.com/custom-extension`
-
-The `vendor-prefix` follows the same format and reservation rules as prefixes in [`_meta`](/specification/draft/basic#meta). Specifically, any prefix beginning with zero or more valid labels, followed by `modelcontextprotocol` or `mcp`, followed by any valid label, is **reserved** for MCP use.
 
 The value for each extension is an optional capabilities object specific to that extension. An empty object `{}` indicates support for the extension without additional capabilities.
 
@@ -250,7 +248,7 @@ Example server response with extensions:
 }
 ```
 
-Extensions are optional and composable. Implementations SHOULD gracefully handle:
+Extensions are optional and composable. Implementations **SHOULD** gracefully handle:
 
 - Extensions they don't recognize (ignore them)
 - Missing extensions they expect (fall back to core protocol behavior)
