@@ -166,10 +166,10 @@ See the [Extension Registry](/extensions/registry) for a complete list of offici
 
 Extensions are **optional**. MCP clients and servers can choose which extensions to implement based on their requirements. When implementing an extension:
 
-- Review the extension's specification carefully
-- Declare the extension in the `extensions` field during initialization
-- Check SDK documentation to see if the extension is supported
 - Consider the extension's status (Draft, Approved, etc.)
+- Review the extension's specification carefully
+- Check SDK documentation to see if the extension is supported
+- Declare the extension in the `extensions` field during initialization
 - Implement proper handling for missing or unrecognized extensions
 
 Extensions are negotiated through the [initialization exchange](/specification/draft/basic/lifecycle#extension-negotiation) during session initialization. Both client and server must declare support for an extension for it to be active in a session.
