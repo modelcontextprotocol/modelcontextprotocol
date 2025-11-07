@@ -36,7 +36,7 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- OAuth Client ID Metadata Documents ([draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt))
+- OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
 
 ## Authorization Flow
 
@@ -158,21 +158,22 @@ MCP supports three client registration mechanisms. Choose based on your scenario
 ### Client ID Metadata Documents
 
 MCP clients and authorization servers **SHOULD** support OAuth Client ID Metadata Documents as specified in
-[draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt).
+[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00).
 This approach enables clients to use HTTPS URLs as client identifiers, where the URL points to a JSON document
-containing client metadata. This specifically addresses the common MCP scenario where servers and clients have
+containing client metadata. This addresses the common MCP scenario where servers and clients have
 no pre-existing relationship.
-
 
 #### Implementation Requirements
 
 MCP implementations supporting Client ID Metadata Documents **MUST** follow the requirements specified in
-[draft-parecki-oauth-client-id-metadata-document-03](https://www.ietf.org/archive/id/draft-parecki-oauth-client-id-metadata-document-03.txt).
+[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00).
 Key requirements include:
 
 **For MCP Clients:**
-- The client_id URL **MUST** use the "https" scheme and contain a path component
+- Clients **MUST** host their metadata document at an HTTPS URL following RFC requirements
+- The `client_id` URL **MUST** use the "https" scheme and contain a path component
 - The metadata document **MUST** include at minimum: `client_id`, `client_name`, `redirect_uris`
+- Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
 - Clients **MAY** use `private_key_jwt` for token endpoint authentication with appropriate JWKS configuration
 
 **For Authorization Servers:**
@@ -180,6 +181,66 @@ Key requirements include:
 - **MUST** validate that the fetched document's `client_id` matches the URL exactly
 - **SHOULD** cache metadata respecting HTTP cache headers
 - **MUST** validate redirect URIs against those in the metadata document
+- **MUST** validate the document structure is valid JSON and contains required fields
+
+#### Example Metadata Document
+
+```json
+{
+  "client_id": "https://app.example.com/oauth/client-metadata.json",
+  "client_name": "Example MCP Client",
+  "client_uri": "https://app.example.com",
+  "logo_uri": "https://app.example.com/logo.png",
+  "redirect_uris": [
+    "http://127.0.0.1:3000/callback",
+    "http://localhost:3000/callback"
+  ],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+#### Client ID Metadata Documents Flow
+
+The following diagram illustrates the complete flow when using Client ID Metadata Documents:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client as MCP Client
+    participant Server as Authorization Server
+    participant Metadata as Metadata Endpoint<br/>(Client's HTTPS URL)
+    participant Resource as MCP Server
+
+    Note over Client,Metadata: Client hosts metadata at<br/>https://app.example.com/oauth/metadata.json
+
+    User->>Client: Initiates connection to MCP Server
+    Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://localhost:3000/callback
+
+    Note over Server: Authenticates user
+
+    Note over Server: Detects URL-formatted client_id
+
+    Server->>Metadata: GET https://app.example.com/oauth/metadata.json
+    Metadata-->>Server: JSON Metadata Document<br/>{client_id, client_name, redirect_uris, ...}
+
+    Note over Server: Validates:<br/>1. client_id matches URL<br/>2. redirect_uri in allowed list<br/>3. Document structure valid<br/>4. Domain allowed via trust policy
+
+    alt Validation Success
+        Server->>User: Display consent page with client_name
+        User->>Server: Approves access
+        Server->>Client: Authorization code via redirect_uri
+        Client->>Server: Exchange code for token<br/>client_id=https://app.example.com/oauth/metadata.json
+        Server-->>Client: Access token
+        Client->>Resource: MCP requests with access token
+        Resource-->>Client: MCP responses
+    else Validation Failure
+        Server->>User: Error response<br/>error=invalid_client or invalid_request
+    end
+
+    Note over Server: Cache metadata for future requests<br/>(respecting HTTP cache headers)
+```
 
 #### Discovery
 
@@ -432,24 +493,56 @@ Key considerations include:
 #### SSRF Protection
 
 Authorization servers fetching metadata documents **MUST** protect against Server-Side Request Forgery (SSRF) attacks:
+
 - Validate URLs and resolved IP addresses before fetching
 - Limit response size (recommended 5 kilobytes)
 - Implement request timeouts
+- Rate limit outbound metadata fetches
 - Never cache error responses or invalid documents
+
+The authorization server takes a URL as input from an unknown client and fetches that URL.
+A malicious client could use this to send non-metadata requests on behalf of the authorization server,
+such as requests to private administration endpoints the authorization server has access to.
+
+#### DDoS Protection
+
+Authorization servers **MUST** protect against being used as DDoS amplifiers:
+
+- Implement aggressive caching of metadata documents (respecting HTTP cache headers)
+- Rate limit metadata fetch requests per client
+- Monitor and alert on unusual metadata fetch patterns
+
+While there is no amplification in the fetch request bandwidth, aggressive caching minimizes
+the risk of authorization servers being used in distributed denial of service attacks.
 
 #### Localhost Redirect URI Risks
 
-Client ID Metadata Documents cannot prevent localhost URL impersonation by themselves. Authorization servers:
-- **SHOULD** display additional warnings for localhost-only redirect URIs
+Client ID Metadata Documents cannot prevent `localhost` URL impersonation by themselves. An attacker can claim to be any client by:
+
+1. Providing the legitimate client's metadata URL as their `client_id`
+2. Binding to the same `localhost` port the legitimate client uses
+3. Intercepting the authorization code when the user approves
+
+The server will see the correct metadata document and the user will see the correct client name, making attack detection difficult.
+
+Authorization servers:
+
+- **SHOULD** display additional warnings for `localhost`-only redirect URIs
+- **SHOULD** only fetch client metadata after authenticating the user
 - **MAY** require additional attestation mechanisms for enhanced security
 - **MUST** clearly display the client's hostname during authorization
 
 #### Trust Policies
 
 Authorization servers **MAY** implement domain-based trust policies:
-- Allowlists for trusted domains
+
+- Allowlists for trusted domains (for protected servers)
+- Accept any HTTPS `client_id` (for open servers)
 - Reputation checks for unknown domains
 - Restrictions based on domain age or certificate validation
+- Display the client hostname prominently to prevent phishing
+
+Servers maintain full control over their access policies.
 
 ### Confused Deputy Problem
 
