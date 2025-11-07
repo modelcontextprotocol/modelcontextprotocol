@@ -16,13 +16,11 @@ This guide is for macOS. Guides for other platforms are coming soon.
 MCP provides several tools for debugging at different levels:
 
 1. **MCP Inspector**
-
    - Interactive debugging interface
    - Direct server testing
-   - See the [Inspector guide](/legacy/tools/inspector) for details
+   - See the [Inspector guide](/docs/tools/inspector) for details
 
 2. **Claude Desktop Developer Tools**
-
    - Integration testing
    - Log collection
    - Chrome DevTools integration
@@ -39,7 +37,6 @@ MCP provides several tools for debugging at different levels:
 The Claude.app interface provides basic server status information:
 
 1. Click the <img src="/images/claude-desktop-mcp-plug-icon.svg" style={{display: 'inline', margin: 0, height: '1.3em'}} /> icon to view:
-
    - Connected servers
    - Available prompts and resources
 
@@ -133,14 +130,12 @@ To override the default variables or provide your own, you can specify an `env` 
 Common initialization problems:
 
 1. **Path Issues**
-
    - Incorrect server executable path
    - Missing required files
    - Permission problems
    - Try using an absolute path for `command`
 
 2. **Configuration Errors**
-
    - Invalid JSON syntax
    - Missing required fields
    - Type mismatches
@@ -156,7 +151,7 @@ When servers fail to connect:
 
 1. Check Claude Desktop logs
 2. Verify server process is running
-3. Test standalone with [Inspector](/legacy/tools/inspector)
+3. Test standalone with [Inspector](/docs/tools/inspector)
 4. Verify protocol compatibility
 
 ## Implementing logging
@@ -213,7 +208,6 @@ In client applications:
 ### Development cycle
 
 1. Initial Development
-
    - Use [Inspector](/legacy/tools/inspector) for basic testing
    - Implement core functionality
    - Add logging points
@@ -236,14 +230,12 @@ To test changes efficiently:
 ### Logging strategy
 
 1. **Structured Logging**
-
    - Use consistent formats
    - Include context
    - Add timestamps
    - Track request IDs
 
 2. **Error Handling**
-
    - Log stack traces
    - Include error context
    - Track error patterns
@@ -260,7 +252,6 @@ To test changes efficiently:
 When debugging:
 
 1. **Sensitive Data**
-
    - Sanitize logs
    - Protect credentials
    - Mask personal information
@@ -275,14 +266,12 @@ When debugging:
 When encountering issues:
 
 1. **First Steps**
-
    - Check server logs
    - Test with [Inspector](/legacy/tools/inspector)
    - Review configuration
    - Verify environment
 
 2. **Support Channels**
-
    - GitHub issues
    - GitHub discussions
 

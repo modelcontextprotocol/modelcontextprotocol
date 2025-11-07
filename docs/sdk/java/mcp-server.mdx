@@ -3,27 +3,28 @@ title: Java MCP Server
 description: Learn how to implement and configure a Model Context Protocol (MCP) server
 ---
 
-Go to the [Java MCP Client](/sdk/java/mcp-client) to learn how to build MCP clients or [Java MCP Overview](/sdk/java/mcp-overview) for a general overview of the Model Context Protocol (MCP) in Java.
+## SDK Contents
 
-## Overview
+[Java MCP Overview](/sdk/java/mcp-overview)
+
+[Java MCP Client](/sdk/java/mcp-client)
+
+[[Java MCP Server](/sdk/java/mcp-server)]
+
+## Server Features
 
 The MCP Server is a foundational component in the Model Context Protocol (MCP) architecture that provides tools, resources, and capabilities to clients. It implements the server-side of the protocol, responsible for:
 
-- Exposing tools that clients can discover and execute
+- Exposing tools that clients can discover and execute.
+  Supports input and output schemas and returns structured and unstructured content types.
 - Managing resources with URI-based access patterns
 - Providing prompt templates and handling prompt requests
 - Supporting capability negotiation with clients
 - Implementing server-side protocol operations
 - Managing concurrent client connections
-- Providing structured logging and notifications
-
-<Tip>
-
-The core `io.modelcontextprotocol.sdk:mcp` module provides STDIO and SSE server transport implementations without requiring external web frameworks.
-
-Spring-specific transport implementations are available as an **optional** dependencies `io.modelcontextprotocol.sdk:mcp-spring-webflux`, `io.modelcontextprotocol.sdk:mcp-spring-webmvc` for [Spring Framework](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-client-boot-starter-docs.html) users.
-
-</Tip>
+- Providing structured logging, progress tracking, and notifications
+- Provides `STDIO`, `Streamable-HTTP` and `SSE` server transport implementations without requiring external web frameworks.
+- **Optional**, Spring-specific transport dependencies `io.modelcontextprotocol.sdk:mcp-spring-webflux`, `io.modelcontextprotocol.sdk:mcp-spring-webmvc` for [Spring AI](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html) users.
 
 <Tip>
   This [quickstart demo](/quickstart/server), based on Spring AI MCP, will show
@@ -34,64 +35,73 @@ The server supports both synchronous and asynchronous APIs, allowing for flexibl
 
 <Tabs>
   <Tab title="Sync API">
+    ```java
+    // Create a server with custom configuration
+    McpSyncServer syncServer = McpServer.sync(transportProvider)
+        .serverInfo("my-server", "1.0.0")
+        .capabilities(ServerCapabilities.builder()
+            .resources(false, true)  // Enable resource support
+            .tools(true)             // Enable tool support
+            .prompts(true)           // Enable prompt support
+            .logging()               // Enable logging support
+            .completions()           // Enable completions support
+            .build())
+        .build();
 
-```java
-// Create a server with custom configuration
-McpSyncServer syncServer = McpServer.sync(transportProvider)
-    .serverInfo("my-server", "1.0.0")
-    .capabilities(ServerCapabilities.builder()
-        .resources(false, true)  // Enable resource support
-        .tools(true)             // Enable tool support
-        .prompts(true)           // Enable prompt support
-        .logging()               // Enable logging support
-        .completions()           // Enable completions support
-        .build())
-    .build();
+    // Register tools, resources, and prompts
+    syncServer.addTool(syncToolSpecification);
+    syncServer.addResource(syncResourceSpecification);
+    syncServer.addPrompt(syncPromptSpecification);
 
-// Register tools, resources, and prompts
-syncServer.addTool(syncToolSpecification);
-syncServer.addResource(syncResourceSpecification);
-syncServer.addPrompt(syncPromptSpecification);
+    // Close the server when done
+    syncServer.close();
+    ```
 
-// Close the server when done
-syncServer.close();
-```
+    ### Preserving thread-locals in handlers
+
+    `McpSyncServer` delegates execution to an underlying `McpAsyncServer`.
+    Execution of handlers for tools, resources, etc, may not happen on the thread calling the method.
+    In that case, thread-locals are lost, which may break certain features in frameworks relying on thread-bound work.
+    To ensure execution happens on the calling thread, and that thread-locals remain available, set `McpServer.sync(...).immediateExecution(true)`.
+
+    <Note>
+    This is only relevant to Sync servers. Async servers use the reactive stack and should not rely on thread-locals.
+    </Note>
 
   </Tab>
 
   <Tab title="Async API">
+    ```java
+    // Create an async server with custom configuration
+    McpAsyncServer asyncServer = McpServer.async(transportProvider)
+        .serverInfo("my-server", "1.0.0")
+        .capabilities(ServerCapabilities.builder()
+            .resources(false, true)     // Enable resource support
+            .tools(true)                // Enable tool support
+            .prompts(true)              // Enable prompt support
+            .logging()                  // Enable logging support
+            .completions()              // Enable completions support
+            .build())
+        .build();
 
-```java
-// Create an async server with custom configuration
-McpAsyncServer asyncServer = McpServer.async(transportProvider)
-    .serverInfo("my-server", "1.0.0")
-    .capabilities(ServerCapabilities.builder()
-        .resources(false, true)     // Enable resource support
-        .tools(true)                // Enable tool support
-        .prompts(true)              // Enable prompt support
-        .logging()                  // Enable logging support
-        .completions()              // Enable completions support
-        .build())
-    .build();
+    // Register tools, resources, and prompts
+    asyncServer.addTool(asyncToolSpecification)
+        .doOnSuccess(v -> logger.info("Tool registered"))
+        .subscribe();
 
-// Register tools, resources, and prompts
-asyncServer.addTool(asyncToolSpecification)
-    .doOnSuccess(v -> logger.info("Tool registered"))
-    .subscribe();
+    asyncServer.addResource(asyncResourceSpecification)
+        .doOnSuccess(v -> logger.info("Resource registered"))
+        .subscribe();
 
-asyncServer.addResource(asyncResourceSpecification)
-    .doOnSuccess(v -> logger.info("Resource registered"))
-    .subscribe();
+    asyncServer.addPrompt(asyncPromptSpecification)
+        .doOnSuccess(v -> logger.info("Prompt registered"))
+        .subscribe();
 
-asyncServer.addPrompt(asyncPromptSpecification)
-    .doOnSuccess(v -> logger.info("Prompt registered"))
-    .subscribe();
-
-// Close the server when done
-asyncServer.close()
-    .doOnSuccess(v -> logger.info("Server closed"))
-    .subscribe();
-```
+    // Close the server when done
+    asyncServer.close()
+        .doOnSuccess(v -> logger.info("Server closed"))
+        .subscribe();
+    ```
 
   </Tab>
 </Tabs>
@@ -105,139 +115,407 @@ The SDK includes several built-in transport provider implementations:
 <Tabs>
 
   <Tab title="STDIO">
+    Create in-process based transport:
 
-    <>
-      Create in-process based transport:
+    ```java
+    StdioServerTransportProvider transportProvider = new StdioServerTransportProvider(new ObjectMapper());
+    ```
 
-      ```java
-      StdioServerTransportProvider transportProvider = new StdioServerTransportProvider(new ObjectMapper());
-      ```
+    Provides bidirectional JSON-RPC message handling over standard input/output streams with non-blocking message processing, serialization/deserialization, and graceful shutdown support.
 
-      Provides bidirectional JSON-RPC message handling over standard input/output streams with non-blocking message processing, serialization/deserialization, and graceful shutdown support.
-
-      Key features:
-      <ul>
-        <li>Bidirectional communication through stdin/stdout</li>
-        <li>Process-based integration support</li>
-        <li>Simple setup and configuration</li>
-        <li>Lightweight implementation</li>
-      </ul>
-    </>
+    Key features:
+    <ul>
+      <li>Bidirectional communication through stdin/stdout</li>
+      <li>Process-based integration support</li>
+      <li>Simple setup and configuration</li>
+      <li>Lightweight implementation</li>
+    </ul>
 
   </Tab>
+  <Tab title="WebFlux">
+    <p>WebFlux-based SSE and Streamable-HTTP server transport. [Requires the `mcp-spring-webflux` dependency](/sdk/java/mcp-overview#dependencies).</p>
+    <Tabs>    
+      <Tab title="Streamable-HTTP (WebFlux)">
+          ```java
+          @Configuration
+          class McpConfig {
+              @Bean
+              WebFluxStreamableServerTransportProvider webFluxStreamableServerTransportProvider(ObjectMapper mapper) {
+                	return this.mcpStreamableServerTransportProvider = WebFluxStreamableServerTransportProvider.builder()
+    		              .objectMapper(mapper)
+    		              .messageEndpoint("/mcp")
+    		              .build();
+              }
 
-<Tab title="SSE (WebFlux)">
+              @Bean
+              RouterFunction<?> mcpRouterFunction(WebFluxStreamableServerTransportProvider transportProvider) {
+                  return transportProvider.getRouterFunction();
+              }
+          }
+          ```
 
-  <>
-    <p>Creates WebFlux-based SSE server transport.<br />Requires the <code>mcp-spring-webflux</code> dependency.</p>
+          <p>Implements the Streamable HTTP transport specification, providing:</p>
+          <ul>
+            <li>Bidirectional communication through Streamable-HTTP</li>
+            <li>Reactive HTTP streaming with WebFlux</li>
+            <li>Concurrent client connections through Streamable-HTTP endpoints</li>
+            <li>Message routing and session management</li>
+            <li>Graceful shutdown capabilities</li>
+          </ul>
 
-    ```java
-    @Configuration
-    class McpConfig {
-        @Bean
-        WebFluxSseServerTransportProvider webFluxSseServerTransportProvider(ObjectMapper mapper) {
-            return new WebFluxSseServerTransportProvider(mapper, "/mcp/message");
+          <Note>
+          Current implementation lacks resumability due to lack of session storage
+          </Note>
+
+          <Tip>
+          In distributed environments with multiple MCP Server instances, proper message routing is required.
+          To achieve scalability without significant infrastructure overhead consider the `Stateless Streamable-HTTP` server transport implementation.
+          </Tip>
+      </Tab>
+      <Tab title="Stateless Streamable-HTTP (WebFlux)">
+          Stateless MCP servers are designed for simplified deployments where session state is not maintained between requests.
+          They implement a subset of `Streamable-HTTP` specification that return `application/json` responses.
+          They are called stateless because unlike the standard Streamable-HTTP transport, they do not maintain session state between requests.
+          These servers are ideal for microservices architectures and cloud-native deployments.
+
+          ```java
+          @Configuration
+          class McpConfig {
+              @Bean
+              WebFluxStatelessServerTransport webFluxStatelessServerTransport(ObjectMapper mapper) {
+                	return this.mcpStatelessServerTransport = WebFluxStatelessServerTransport.builder()
+    		              .objectMapper(mapper)
+    		              .messageEndpoint("/mcp")
+    		              .build();
+              }
+
+              @Bean
+              RouterFunction<?> mcpRouterFunction(WebFluxStatelessServerTransport transportProvider) {
+                  return transportProvider.getRouterFunction();
+              }
+
+              @Bean
+              public McpStatelessSyncServer prepareSyncServerBuilder(WebFluxStatelessServerTransport statelessServerTransport) {
+                return McpServer.sync(statelessServerTransport)
+                        //...
+                        .build();
+              }
+
+          }
+          ```
+
+          <p>Implements the MCP Stateless Streamable-HTTP transport specification, providing:</p>
+          <ul>
+            <li>Unidirectional (client to server) communication through Streamable-HTTP</li>
+            <li>Reactive HTTP streaming with WebFlux</li>
+            <li>Concurrent client connections through Stateless endpoints</li>
+            <li>Message routing and session management</li>
+            <li>Graceful shutdown capabilities</li>
+          </ul>
+
+          <Note>
+          Current implementation doesn't support sending Notifications back to the clients.
+          </Note>
+      </Tab>
+      <Tab title="SSE (WebFlux)">
+          ```java
+          @Configuration
+          class McpConfig {
+              @Bean
+              WebFluxSseServerTransportProvider webFluxSseServerTransportProvider(ObjectMapper mapper) {
+                  return new WebFluxSseServerTransportProvider(mapper, "/mcp/message");
+              }
+
+              @Bean
+              RouterFunction<?> mcpRouterFunction(WebFluxSseServerTransportProvider transportProvider) {
+                  return transportProvider.getRouterFunction();
+              }
+          }
+          ```
+
+          <p>Implements the MCP SSE transport specification, providing:</p>
+          <ul>
+            <li>Reactive HTTP streaming with WebFlux</li>
+            <li>Concurrent client connections through SSE endpoints</li>
+            <li>Message routing and session management</li>
+            <li>Graceful shutdown capabilities</li>
+          </ul>
+      </Tab>
+    </Tabs>
+
+  </Tab>
+  <Tab title="WebMVC">
+    <p>Creates WebMvc-based SSE server transport. Requires the <code>mcp-spring-webmvc</code> dependency.</p>
+    <Tabs>
+      <Tab title="Streamable-HTTP (WebMvc)">
+        ```java
+        @Configuration
+        @EnableWebMvc
+        class McpConfig {
+            @Bean
+            WebMvcStreamableServerTransportProvider webMvcStreamableHttpServerTransportProvider(ObjectMapper mapper) {
+                return new WebMvcStreamableServerTransportProvider(mapper, "/mcp/message");
+            }
+
+            @Bean
+            RouterFunction<ServerResponse> mcpRouterFunction(WebMvcStreamableServerTransportProvider transportProvider) {
+                return transportProvider.getRouterFunction();
+            }
         }
+        ```
 
-        @Bean
-        RouterFunction<?> mcpRouterFunction(WebFluxSseServerTransportProvider transportProvider) {
-            return transportProvider.getRouterFunction();
-        }
-    }
-    ```
-
-    <p>Implements the MCP HTTP with SSE transport specification, providing:</p>
-    <ul>
-      <li>Reactive HTTP streaming with WebFlux</li>
-      <li>Concurrent client connections through SSE endpoints</li>
-      <li>Message routing and session management</li>
-      <li>Graceful shutdown capabilities</li>
-    </ul>
-
-  </>
-
-</Tab>
-
-<Tab title="SSE (WebMvc)">
-
-  <>
-    <p>Creates WebMvc-based SSE server transport.<br />Requires the <code>mcp-spring-webmvc</code> dependency.</p>
-
-    ```java
-    @Configuration
-    @EnableWebMvc
-    class McpConfig {
-        @Bean
-        WebMvcSseServerTransportProvider webMvcSseServerTransportProvider(ObjectMapper mapper) {
-            return new WebMvcSseServerTransportProvider(mapper, "/mcp/message");
-        }
-
-        @Bean
-        RouterFunction<ServerResponse> mcpRouterFunction(WebMvcSseServerTransportProvider transportProvider) {
-            return transportProvider.getRouterFunction();
-        }
-    }
-    ```
-
-    <p>Implements the MCP HTTP with SSE transport specification, providing:</p>
-    <ul>
-      <li>Server-side event streaming</li>
-      <li>Integration with Spring WebMVC</li>
-      <li>Support for traditional web applications</li>
-      <li>Synchronous operation handling</li>
-    </ul>
-
-  </>
-
-</Tab>
-
-<Tab title="SSE (Servlet)">
-
-  <>
-    <p>
-      Creates a Servlet-based SSE server transport. It is included in the core <code>mcp</code> module.<br />
-      The <code>HttpServletSseServerTransport</code> can be used with any Servlet container.<br />
-      To use it with a Spring Web application, you can register it as a Servlet bean:
-    </p>
-
-    ```java
-    @Configuration
-    @EnableWebMvc
-    public class McpServerConfig implements WebMvcConfigurer {
-
-        @Bean
-        public HttpServletSseServerTransportProvider servletSseServerTransportProvider() {
-            return new HttpServletSseServerTransportProvider(new ObjectMapper(), "/mcp/message");
-        }
-
-        @Bean
-        public ServletRegistrationBean customServletBean(HttpServletSseServerTransportProvider transportProvider) {
-            return new ServletRegistrationBean(transportProvider);
-        }
-    }
-    ```
-
-    <p>
-      Implements the MCP HTTP with SSE transport specification using the traditional Servlet API, providing:
-    </p>
-    <ul>
-      <li>Asynchronous message handling using Servlet 6.0 async support</li>
-      <li>Session management for multiple client connections</li>
-      <li>
-        Two types of endpoints:
+        <p>Implements the Streamable HTTP transport specification, providing:</p>
         <ul>
-          <li>SSE endpoint (<code>/sse</code>) for server-to-client events</li>
-          <li>Message endpoint (configurable) for client-to-server requests</li>
+          <li>Bidirectional communication through Streamable-HTTP</li>
+          <li>Reactive HTTP streaming with WebFlux</li>
+          <li>Concurrent client connections through Streamable-HTTP endpoints</li>
+          <li>Message routing and session management</li>
+          <li>Graceful shutdown capabilities</li>
         </ul>
-      </li>
-      <li>Error handling and response formatting</li>
-      <li>Graceful shutdown support</li>
-    </ul>
 
-  </>
+        <Note>
+        Current implementation lacks resumability due to lack of session storage
+        </Note>
 
-</Tab>
+        <Tip>
+        In distributed environments with multiple MCP Server instances, proper message routing is required.
+        To achieve scalability without significant infrastructure overhead consider the `Stateless Streamable-HTTP` server transport implementation.
+        </Tip>
+      </Tab>
+      <Tab title="Stateless Streamable-HTTP (WebMvc)">
+        Stateless MCP servers are designed for simplified deployments where session state is not maintained between requests.
+        They implement a subset of `Streamable-HTTP` specification that return `application/json` responses.
+        They are called stateless because unlike the standard Streamable-HTTP transport, they do not maintain session state between requests.
+        These servers are ideal for microservices architectures and cloud-native deployments.
 
+        ```java
+        @Configuration
+        @EnableWebMvc
+        static class McpConfig {
+
+          @Bean
+          public WebMvcStatelessServerTransport webMvcStatelessServerTransport() {
+
+            return WebMvcStatelessServerTransport.builder()
+              .objectMapper(new ObjectMapper())
+              .messageEndpoint(MESSAGE_ENDPOINT)
+              .build();
+
+          }
+
+          @Bean
+          public RouterFunction<ServerResponse> routerFunction(WebMvcStatelessServerTransport statelessServerTransport) {
+            return statelessServerTransport.getRouterFunction();
+          }
+
+          @Bean
+          public McpStatelessSyncServer prepareSyncServerBuilder(WebMvcStatelessServerTransport statelessServerTransport) {
+            return McpServer.sync(statelessServerTransport)
+                    //...
+                    .build();
+          }
+        }
+        ```
+
+        <p>Implements the MCP Streamable-HTTP, Stateless transport specification, providing:</p>
+        <ul>
+          <li>Unidirectional (client to server) communication through Streamable-HTTP</li>
+          <li>Reactive HTTP streaming with WebFlux</li>
+          <li>Concurrent client connections through Stateless endpoints</li>
+          <li>Message routing and session management</li>
+          <li>Graceful shutdown capabilities</li>
+        </ul>
+
+        <Note>
+        Current implementation doesn't support sending Notifications back to the clients.
+        </Note>
+
+      </Tab>
+      <Tab title="SSE (WebMvc)">
+        ```java
+        @Configuration
+        @EnableWebMvc
+        class McpConfig {
+            @Bean
+            WebMvcSseServerTransportProvider webMvcSseServerTransportProvider(ObjectMapper mapper) {
+                return new WebMvcSseServerTransportProvider(mapper, "/mcp/message");
+            }
+
+            @Bean
+            RouterFunction<ServerResponse> mcpRouterFunction(WebMvcSseServerTransportProvider transportProvider) {
+                return transportProvider.getRouterFunction();
+            }
+        }
+        ```
+
+        <p>Implements the MCP SSE transport specification, providing:</p>
+        <ul>
+          <li>Server-side event streaming</li>
+          <li>Integration with Spring WebMVC</li>
+          <li>Support for traditional web applications</li>
+          <li>Synchronous operation handling</li>
+        </ul>
+      </Tab>
+    </Tabs>
+
+  </Tab>
+  <Tab title="Servlet">
+    <p>
+      Creates a Servlet-based `SSE`, `Streamable-HTTP`, and `Stateless` server transport. 
+      It can be used with any Servlet container.      
+    </p>
+
+    <Tabs>
+      <Tab title="Streamable-HTTP (Servlet)">
+        ```java
+        @Configuration
+        @EnableWebMvc
+        public class McpServerConfig implements WebMvcConfigurer {
+
+            @Bean
+            public HttpServletStreamableServerTransportProvider servletStreamableMcpSessionTransport() {
+                return HttpServletStreamableServerTransportProvider.builder()
+                  .objectMapper(new ObjectMapper())
+                  .contextExtractor(TEST_CONTEXT_EXTRACTOR)
+                  .mcpEndpoint(MESSAGE_ENDPOINT)
+                  .keepAliveInterval(Duration.ofSeconds(1))
+                  .build();
+            }
+
+            //(Optionally) To use it with a Spring Web application, you can register it as a Servlet bean
+            @Bean
+            public ServletRegistrationBean customServletBean(HttpServletStreamableServerTransportProvider transportProvider) {
+                return new ServletRegistrationBean(transportProvider);
+            }
+        }
+        ```
+
+        <p>
+          Implements the Streamable HTTP transport specification using the traditional Servlet API, providing:
+        </p>
+        <ul>
+          <li>Bidirectional communication through Streamable-HTTP</li>
+          <li>Asynchronous message handling using Servlet 6.0 async support</li>
+          <li>Session management for multiple client connections</li>
+          <li>
+            One endpoint:
+            <ul>
+              <li>Message endpoint (configurable) for client-to-server requests</li>
+            </ul>
+          </li>
+          <li>Error handling and response formatting</li>
+          <li>Graceful shutdown support</li>
+        </ul>
+
+        <Note>
+        Current implementation lacks resumability due to lack of session storage
+        </Note>
+
+        <Tip>
+        In distributed environments with multiple MCP Server instances, proper message routing is required.
+        To achieve scalability without significant infrastructure overhead consider the `Stateless Streamable-HTTP` server transport implementation.
+        </Tip>
+      </Tab>
+      <Tab title="Stateless Streamable-HTTP (Servlet)">
+        Stateless MCP servers are designed for simplified deployments where session state is not maintained between requests.
+        They implement a subset of `Streamable-HTTP` specification that return `application/json` responses.
+        They are called stateless because unlike the standard Streamable-HTTP transport, they do not maintain session state between requests.
+        These servers are ideal for microservices architectures and cloud-native deployments.
+
+        ```java
+        @Configuration
+        @EnableWebMvc
+        public class McpServerConfig implements WebMvcConfigurer {
+
+            @Bean
+            public HttpServletStatelessServerTransport servletStatelessMcpSessionTransport() {
+                return HttpServletStatelessServerTransport.builder()
+                  .objectMapper(new ObjectMapper())
+                  .mcpEndpoint(MESSAGE_ENDPOINT)
+                  .keepAliveInterval(Duration.ofSeconds(1))
+                  .build();
+            }
+
+
+            //(Optionally) To use it with a Spring Web application, you can register it as a Servlet bean
+            @Bean
+            public ServletRegistrationBean customServletBean(HttpServletStatelessServerTransport transportProvider) {
+                return new ServletRegistrationBean(transportProvider);
+            }
+
+            @Bean
+            public McpStatelessSyncServer prepareSyncServerBuilder(HttpServletStatelessServerTransport statelessServerTransport) {
+                return McpServer.sync(statelessServerTransport)
+                        .build();
+            }
+          }
+        }
+        ```
+
+        <p>
+          Implements the Streamable-HTTP Stateless transport specification using the traditional Servlet API, providing:
+        </p>
+        <ul>
+          <li>Unidirectional (client to server) communication through Streamable-HTTP</li>
+          <li>Asynchronous message handling using Servlet 6.0 async support</li>
+          <li>Session management for multiple client connections</li>
+          <li>
+            One endpoint:
+            <ul>
+              <li>Message endpoint (configurable) for client-to-server requests</li>
+            </ul>
+          </li>
+          <li>Error handling and response formatting</li>
+          <li>Graceful shutdown support</li>
+        </ul>
+
+        <Note>
+        Current implementation doesn't support sending Notifications back to the clients.
+        </Note>
+      </Tab>
+      <Tab title="SSE (Servlet)">
+        ```java
+        @Configuration
+        @EnableWebMvc
+        public class McpServerConfig implements WebMvcConfigurer {
+
+            @Bean
+            public HttpServletSseServerTransportProvider servletSseServerTransportProvider() {
+                return HttpServletSseServerTransportProvider.builder()
+                    .objectMapper(new ObjectMapper())
+                    .messageEndpoint("/mcp/message")
+                    .keepAliveInterval(Duration.ofSeconds(1))
+                    .build();
+            }
+
+            //(Optionally) To use it with a Spring Web application, you can register it as a Servlet bean
+            @Bean
+            public ServletRegistrationBean customServletBean(HttpServletSseServerTransportProvider transportProvider) {
+                return new ServletRegistrationBean(transportProvider);
+            }
+        }
+        ```
+
+        <p>
+          Implements the MCP SSE transport specification using the traditional Servlet API, providing:
+        </p>
+        <ul>
+          <li>Asynchronous message handling using Servlet 6.0 async support</li>
+          <li>Session management for multiple client connections</li>
+          <li>
+            Two types of endpoints:
+            <ul>
+              <li>SSE endpoint (<code>/sse</code>) for server-to-client events</li>
+              <li>Message endpoint (configurable) for client-to-server requests</li>
+            </ul>
+          </li>
+          <li>Error handling and response formatting</li>
+          <li>Graceful shutdown support</li>
+        </ul>
+      </Tab>
+    </Tabs>
+
+  </Tab>
 </Tabs>
 
 ## Server Capabilities
@@ -252,22 +530,6 @@ var capabilities = ServerCapabilities.builder()
     .logging()              // Enable logging support (enabled by default with logging level INFO)
     .build();
 ```
-
-### Logging Support
-
-The server provides structured logging capabilities that allow sending log messages to clients with different severity levels:
-
-```java
-// Send a log message to clients
-server.loggingNotification(LoggingMessageNotification.builder()
-    .level(LoggingLevel.INFO)
-    .logger("custom-logger")
-    .data("Custom log message")
-    .build());
-```
-
-Clients can control the minimum logging level they receive through the `mcpClient.setLoggingLevel(level)` request. Messages below the set level will be filtered out.
-Supported logging levels (in order of increasing severity): DEBUG (0), INFO (1), NOTICE (2), WARNING (3), ERROR (4), CRITICAL (5), ALERT (6), EMERGENCY (7)
 
 ### Tool Specification
 
@@ -435,7 +697,7 @@ The first argument is `McpAsyncServerExchange` for client interaction, and the s
 
 ### Completion Specification
 
-As part of the [Completion capabilities](/specification/2025-03-26/server/utilities/completion), MCP provides a provides a standardized way for servers to offer argument autocompletion suggestions for prompts and resource URIs.
+As part of the [Completion capabilities](/specification/2025-03-26/server/utilities/completion), MCP provides a standardized way for servers to offer argument autocompletion suggestions for prompts and resource URIs.
 
 <Tabs>
   <Tab title="Sync">
@@ -505,7 +767,7 @@ var mcpServer = McpServer.async(mcpServerTransportProvider)
   </Tab>
 </Tabs>
 
-The `McpSchema.CompletionReference` definition defines the type (`PromptRefernce` or `ResourceRefernce`) and the identifier for the completion specification (e.g handler).
+The `McpSchema.CompletionReference` definition defines the type (`PromptReference` or `ResourceReference`) and the identifier for the completion specification (e.g handler).
 The handler function processes requests and returns the completion response.
 The first argument is `McpAsyncServerExchange` for client interaction, and the second argument is a `CompleteRequest` instance.
 
@@ -513,11 +775,11 @@ Check the [using completion](/sdk/java/mcp-client#using-completion) to learn how
 
 ### Using Sampling from a Server
 
-To use [Sampling capabilities](/specification/2024-11-05/client/sampling/), connect to a client that supports sampling.
+To use [Sampling capabilities](/specification/2024-11-05/client/sampling/), you need a compatible client that supports sampling.
 No special server configuration is needed, but verify client sampling support before making requests.
 Learn about [client sampling support](./mcp-client#sampling-support).
 
-Once connected to a compatible client, the server can request language model generations:
+When a compatible client connects to a stateful server, the server can request language model generations:
 
 <Tabs>
   <Tab title="Sync API">
@@ -621,6 +883,96 @@ server.addTool(calculatorTool)
 The `CreateMessageRequest` object allows you to specify: `Content` - the input text or image for the model,
 `Model Preferences` - hints and priorities for model selection, `System Prompt` - instructions for the model's behavior and
 `Max Tokens` - maximum length of the generated response.
+
+### Using Elicitation from a Server
+
+To use [Elicitation capabilities](/specification/2025-06-18/client/elicitation), you need a compatible client that supports elicitation.
+No special server configuration is needed, but verify client elicitation support before making requests.
+Learn about [client elicitation support](./mcp-client#elicitation-support).
+
+When a compatible client connects to a stateful server, the server can request language model generations:
+
+<Tabs>
+  <Tab title="Sync API">
+
+```java
+// Create a server
+McpSyncServer server = McpServer.sync(transportProvider)
+    .serverInfo("my-server", "1.0.0")
+    .build();
+
+// Define a tool that uses sampling
+var calculatorTool = new McpServerFeatures.SyncToolSpecification(
+    new Tool("ai-calculator", "Performs calculations using AI", schema),
+    (exchange, arguments) -> {
+        // Check if client supports elicitation
+        if (exchange.getClientCapabilities().elicitation() == null) {
+            return new CallToolResult("Client does not support elicitation capabilities", false);
+        }
+
+        // Create a elicitation request
+        McpSchema.ElicitRequest request = McpSchema.ElicitRequest.builder()
+					.message("Test message")
+					.requestedSchema(
+							Map.of("type", "object", "properties", Map.of("message", Map.of("type", "string"))))
+					.build();
+
+        // Request elicitation  from the client
+        McpSchema.ElicitResult result = exchange.createElicitation(request);
+
+        // Process the result
+        Map<String, Object> answer = result.content();
+        return new CallToolResult(answer, false);
+    }
+);
+
+// Add the tool to the server
+server.addTool(calculatorTool);
+```
+
+  </Tab>
+
+  <Tab title="Async API">
+
+```java
+// Create a server
+McpAsyncServer server = McpServer.async(transportProvider)
+    .serverInfo("my-server", "1.0.0")
+    .build();
+
+// Define a tool that uses elicitation
+var calculatorTool = new McpServerFeatures.AsyncToolSpecification(
+    new Tool("ai-calculator", "Performs calculations using AI", schema),
+    (exchange, arguments) -> {
+        // Check if client supports elicitation
+        if (exchange.getClientCapabilities().elicitation() == null) {
+            return Mono.just(new CallToolResult("Client does not support elicitation capabilities", false));
+        }
+
+        // Create a elicitation request
+        McpSchema.ElicitRequest request = McpSchema.ElicitRequest.builder()
+            .message("Test message")
+            .requestedSchema(
+                    Map.of("type", "object", "properties", Map.of("message", Map.of("type", "string"))))
+            .build();
+
+        // Request elicitation from the client
+        return exchange.createElicitation(request)
+            .map(result -> {
+                // Process the result
+                Map<String, Object> answer = result.content();
+                return new CallToolResult(answer, false);
+            });
+    }
+);
+
+// Add the tool to the server
+server.addTool(calculatorTool)
+    .subscribe();
+```
+
+  </Tab>
+</Tabs>
 
 ### Logging Support
 
