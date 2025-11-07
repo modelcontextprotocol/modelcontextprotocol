@@ -198,7 +198,6 @@ When you have multiple stateful HTTP servers that handle MCP requests, the follo
 
 1. The client connects to **Server A** and receives a session ID.
 1. The attacker obtains an existing session ID and sends a malicious event to **Server B** with said session ID.
-
    - When a server supports [redelivery/resumable streams](/specification/2025-06-18/basic/transports#resumability-and-redelivery), deliberately terminating the request before receiving the response could lead to it being resumed by the original client via the GET request for server sent events.
    - If a particular server initiates server sent events as a consequence of a tool call such as a `notifications/tools/list_changed`, where it is possible to affect the tools that are offered by the server, a client could end up with tools that they were not aware were enabled.
 
