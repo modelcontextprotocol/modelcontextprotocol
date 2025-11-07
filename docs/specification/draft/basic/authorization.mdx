@@ -68,7 +68,6 @@ specifies how an MCP server indicates the location of its corresponding authoriz
    MCP clients **MUST** use OAuth 2.0 Protected Resource Metadata for authorization server discovery.
 
 5. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
-
    - OAuth 2.0 Authorization Server Metadata ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414))
    - [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 
@@ -170,6 +169,7 @@ MCP implementations supporting Client ID Metadata Documents **MUST** follow the 
 Key requirements include:
 
 **For MCP Clients:**
+
 - Clients **MUST** host their metadata document at an HTTPS URL following RFC requirements
 - The `client_id` URL **MUST** use the "https" scheme and contain a path component
 - The metadata document **MUST** include at minimum: `client_id`, `client_name`, `redirect_uris`
@@ -177,6 +177,7 @@ Key requirements include:
 - Clients **MAY** use `private_key_jwt` for token endpoint authentication with appropriate JWKS configuration
 
 **For Authorization Servers:**
+
 - **SHOULD** fetch metadata documents when encountering URL-formatted client_ids
 - **MUST** validate that the fetched document's `client_id` matches the URL exactly
 - **SHOULD** cache metadata respecting HTTP cache headers
@@ -245,6 +246,7 @@ sequenceDiagram
 #### Discovery
 
 Authorization servers advertise support via their metadata:
+
 ```json
 {
   "client_id_metadata_document_supported": true
