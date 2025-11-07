@@ -147,7 +147,7 @@ export interface JSONRPCError {
  *
  * @internal
  */
-export interface UrlElicitationRequiredError extends Omit<JSONRPCError, 'error'> {
+export interface URLElicitationRequiredError extends Omit<JSONRPCError, 'error'> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -562,7 +562,7 @@ export interface ResourceRequestParams extends RequestParams {
  *
  * @category resources/read
  */
-export interface ReadResourceRequestParams extends ResourceRequestParams {}
+export interface ReadResourceRequestParams extends ResourceRequestParams { }
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -598,7 +598,7 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
  *
  * @category resources/subscribe
  */
-export interface SubscribeRequestParams extends ResourceRequestParams {}
+export interface SubscribeRequestParams extends ResourceRequestParams { }
 
 /**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
@@ -615,7 +615,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeRequestParams extends ResourceRequestParams {}
+export interface UnsubscribeRequestParams extends ResourceRequestParams { }
 
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
@@ -1803,15 +1803,15 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
-  | URLModeElicitationCompleteNotification;
+  | URLElicitationCompleteNotification;
 
 /**
- * An out-of-band notification used to inform the receiver of a completion of a URL mode elicitation.
+ * An optional notification from the server to the client, informing it of a completion of a URL mode elicitation.
  *
- * @category notifications/urlModeElicitationComplete
+ * @category notifications/elicitation/url/complete
  */
-export interface URLModeElicitationCompleteNotification extends JSONRPCNotification {
-  method: "notifications/urlModeElicitationComplete";
+export interface URLElicitationCompleteNotification extends JSONRPCNotification {
+  method: "notifications/elicitation/url/complete";
   params: {
     /**
      * The ID of the elicitation that completed.

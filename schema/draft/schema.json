@@ -2657,7 +2657,7 @@
                     "$ref": "#/definitions/LoggingMessageNotification"
                 },
                 {
-                    "$ref": "#/definitions/URLModeElicitationCompleteNotification"
+                    "$ref": "#/definitions/URLElicitationCompleteNotification"
                 }
             ]
         },
@@ -3041,15 +3041,15 @@
             ],
             "type": "object"
         },
-        "URLModeElicitationCompleteNotification": {
-            "description": "An out-of-band notification used to inform the receiver of a completion of a URL mode elicitation.",
+        "URLElicitationCompleteNotification": {
+            "description": "An optional notification from the server to the client, informing it of a completion of a URL mode elicitation.",
             "properties": {
                 "jsonrpc": {
                     "const": "2.0",
                     "type": "string"
                 },
                 "method": {
-                    "const": "notifications/urlModeElicitationComplete",
+                    "const": "notifications/elicitation/url/complete",
                     "type": "string"
                 },
                 "params": {
@@ -3069,6 +3069,59 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "URLElicitationRequiredError": {
+            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
+            "properties": {
+                "error": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/Error"
+                        },
+                        {
+                            "properties": {
+                                "code": {
+                                    "const": -32042,
+                                    "type": "integer"
+                                },
+                                "data": {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                        "elicitations": {
+                                            "items": {
+                                                "$ref": "#/definitions/ElicitRequestURLParams"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "required": [
+                                        "elicitations"
+                                    ],
+                                    "type": "object"
+                                }
+                            },
+                            "required": [
+                                "code",
+                                "data"
+                            ],
+                            "type": "object"
+                        }
+                    ]
+                },
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "error",
+                "id",
+                "jsonrpc"
             ],
             "type": "object"
         },
@@ -3120,59 +3173,6 @@
             },
             "required": [
                 "uri"
-            ],
-            "type": "object"
-        },
-        "UrlElicitationRequiredError": {
-            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
-            "properties": {
-                "error": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/Error"
-                        },
-                        {
-                            "properties": {
-                                "code": {
-                                    "const": -32042,
-                                    "type": "integer"
-                                },
-                                "data": {
-                                    "additionalProperties": {},
-                                    "properties": {
-                                        "elicitations": {
-                                            "items": {
-                                                "$ref": "#/definitions/ElicitRequestURLParams"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "elicitations"
-                                    ],
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "code",
-                                "data"
-                            ],
-                            "type": "object"
-                        }
-                    ]
-                },
-                "id": {
-                    "$ref": "#/definitions/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "error",
-                "id",
-                "jsonrpc"
             ],
             "type": "object"
         }
