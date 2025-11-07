@@ -644,6 +644,7 @@ Authorization servers **MUST** protect against being used as DDoS amplifiers:
 - Implement aggressive caching of metadata documents (respecting HTTP cache headers)
 - Rate limit metadata fetch requests per client
 - Monitor and alert on unusual metadata fetch patterns
+- Only fetch client metadata after authenticating the user
 
 While there is no amplification in the fetch request bandwidth, aggressive caching minimizes
 the risk of authorization servers being used in distributed denial of service attacks.
