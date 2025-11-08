@@ -1663,7 +1663,7 @@ export interface UntitledSingleSelectEnumSchema {
    * Optional default value.
    */
   default?: string;
-};
+}
 
 /**
  * Schema for single-selection enumeration with display titles for each option.
@@ -1695,10 +1695,10 @@ export interface TitledSingleSelectEnumSchema {
    * Optional default value.
    */
   default?: string;
-};
+}
 
 // Combined single selection enumeration
-export type SingleSelectEnumSchema = 
+export type SingleSelectEnumSchema =
   | UntitledSingleSelectEnumSchema
   | TitledSingleSelectEnumSchema;
 
@@ -1737,7 +1737,7 @@ export interface UntitledMultiSelectEnumSchema {
    * Optional default value.
    */
   default?: string[];
-};
+}
 
 /**
  * Schema for multiple-selection enumeration with display titles for each option.
@@ -1777,10 +1777,10 @@ export interface TitledMultiSelectEnumSchema {
    * Optional default value.
    */
   default?: string[];
-};
+}
 
 // Combined multiple selection enumeration
-export type MultiSelectEnumSchema = 
+export type MultiSelectEnumSchema =
   | UntitledMultiSelectEnumSchema
   | TitledMultiSelectEnumSchema;
 
