@@ -328,7 +328,7 @@ of band and the client is not aware of the outcome until and unless the server s
 
 ### Completion Notifications for URL Mode Elicitation
 
-Servers **SHOULD** send a `notifications/elicitation/url/complete` notification when an
+Servers **SHOULD** send a `notifications/elicitation/complete` notification when an
 out-of-band interaction started by URL mode elicitation is completed. This allows clients to react programmatically if appropriate.
 
 - The notification **MUST** only be sent to the client that initiated the elicitation request.
@@ -346,7 +346,7 @@ However, because delivery of the notification is not guaranteed, clients must no
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "notifications/elicitation/url/complete",
+  "method": "notifications/elicitation/complete",
   "params": {
     "elicitationId": "550e8400-e29b-41d4-a716-446655440000"
   }
@@ -426,7 +426,7 @@ sequenceDiagram
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
-    Server-->>Client: notifications/elicitation/url/complete (optional)
+    Server-->>Client: notifications/elicitation/complete (optional)
 
     Note over Server: Continue processing with new information
 ```
@@ -455,7 +455,7 @@ sequenceDiagram
     Note over User,UserAgent: User interaction
 
     UserAgent-->>Server: Interaction complete
-    Server-->>Client: notifications/elicitation/url/complete (optional)
+    Server-->>Client: notifications/elicitation/complete (optional)
 
     Client->>Server: Retry tools/call (optional)
 ```
@@ -613,7 +613,7 @@ sequenceDiagram
     Server->>3AS: Exchange authorization code for  OAuth tokens
     3AS->>Server: Grants tokens
     Note over Server: Bind tokens to MCP user identity
-    Server-->>Client: notifications/elicitation/url/complete (optional)
+    Server-->>Client: notifications/elicitation/complete (optional)
     Client->>Server: Retry tools/call
     Note over Server: Retrieve token bound to user identity
     Server->>3RS: Call 3rd-party API

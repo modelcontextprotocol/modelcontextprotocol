@@ -1803,15 +1803,15 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
-  | URLElicitationCompleteNotification;
+  | ElicitationCompleteNotification;
 
 /**
- * An optional notification from the server to the client, informing it of a completion of a URL mode elicitation.
+ * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
  *
- * @category notifications/elicitation/url/complete
+ * @category notifications/elicitation/complete
  */
-export interface URLElicitationCompleteNotification extends JSONRPCNotification {
-  method: "notifications/elicitation/url/complete";
+export interface ElicitationCompleteNotification extends JSONRPCNotification {
+  method: "notifications/elicitation/complete";
   params: {
     /**
      * The ID of the elicitation that completed.

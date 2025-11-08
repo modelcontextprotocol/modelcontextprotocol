@@ -903,6 +903,37 @@
             ],
             "type": "object"
         },
+        "ElicitationCompleteNotification": {
+            "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/elicitation/complete",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "elicitationId": {
+                            "description": "The ID of the elicitation that completed.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "elicitationId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
@@ -2657,7 +2688,7 @@
                     "$ref": "#/definitions/LoggingMessageNotification"
                 },
                 {
-                    "$ref": "#/definitions/URLElicitationCompleteNotification"
+                    "$ref": "#/definitions/ElicitationCompleteNotification"
                 }
             ]
         },
@@ -3038,37 +3069,6 @@
             "required": [
                 "jsonrpc",
                 "method"
-            ],
-            "type": "object"
-        },
-        "URLElicitationCompleteNotification": {
-            "description": "An optional notification from the server to the client, informing it of a completion of a URL mode elicitation.",
-            "properties": {
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "notifications/elicitation/url/complete",
-                    "type": "string"
-                },
-                "params": {
-                    "properties": {
-                        "elicitationId": {
-                            "description": "The ID of the elicitation that completed.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "elicitationId"
-                    ],
-                    "type": "object"
-                }
-            },
-            "required": [
-                "jsonrpc",
-                "method",
-                "params"
             ],
             "type": "object"
         },
