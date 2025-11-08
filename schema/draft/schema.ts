@@ -46,6 +46,7 @@ export interface RequestParams {
 export interface Request {
   method: string;
   // Allow unofficial extensions of `Request.params` without impacting `RequestParams`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: { [key: string]: any };
 }
 
@@ -57,11 +58,11 @@ export interface NotificationParams {
   _meta?: { [key: string]: unknown };
 }
 
-
 /** @internal */
 export interface Notification {
   method: string;
   // Allow unofficial extensions of `Notification.params` without impacting `NotificationParams`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params?: { [key: string]: any };
 }
 
@@ -86,7 +87,7 @@ export interface Error {
    * Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.).
    */
   data?: unknown;
-};
+}
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
@@ -370,7 +371,7 @@ export interface Icon {
    *
    * If not provided, the client should assume the icon can be used with any theme.
    */
-  theme?: 'light' | 'dark';
+  theme?: "light" | "dark";
 }
 
 /**
@@ -437,7 +438,7 @@ export interface Implementation extends BaseMetadata, Icons {
  */
 export interface PingRequest extends JSONRPCRequest {
   method: "ping";
-  params?: RequestParams
+  params?: RequestParams;
 }
 
 /* Progress notifications */
@@ -562,7 +563,8 @@ export interface ResourceRequestParams extends RequestParams {
  *
  * @category resources/read
  */
-export interface ReadResourceRequestParams extends ResourceRequestParams { }
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ReadResourceRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -598,7 +600,8 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
  *
  * @category resources/subscribe
  */
-export interface SubscribeRequestParams extends ResourceRequestParams { }
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface SubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
@@ -615,7 +618,8 @@ export interface SubscribeRequest extends JSONRPCRequest {
  *
  * @category resources/unsubscribe
  */
-export interface UnsubscribeRequestParams extends ResourceRequestParams { }
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface UnsubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
@@ -975,7 +979,7 @@ export interface CallToolRequestParams extends RequestParams {
   /**
    * Arguments to use for the tool call.
    */
-  arguments?: { [key: string]: string };
+  arguments?: { [key: string]: unknown };
 }
 
 /**
