@@ -1,0 +1,47 @@
+{
+  "name": "@webvamp/mcp-design-system",
+  "version": "1.0.0",
+  "description": "Next-generation web templates: AI-consultable designer intelligence extracted from any template",
+  "type": "module",
+  "main": "./build/index.js",
+  "bin": {
+    "webvamp-mcp": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x build/index.js",
+    "dev": "tsc --watch",
+    "start": "node build/index.js",
+    "ingest": "node build/cli/ingest.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "design-system",
+    "web-templates",
+    "component-extraction",
+    "design-tokens",
+    "ai-design"
+  ],
+  "author": "WebVamp",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8",
+    "postcss": "^8.4.49",
+    "postcss-selector-parser": "^7.0.0",
+    "css-tree": "^3.0.2",
+    "posthtml": "^0.16.6",
+    "posthtml-parser": "^0.11.0",
+    "glob": "^11.0.0",
+    "chromadb": "^1.9.2",
+    "openai": "^4.73.1",
+    "style-dictionary": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
