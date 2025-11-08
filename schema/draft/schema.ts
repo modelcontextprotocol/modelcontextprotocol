@@ -1761,18 +1761,23 @@ export interface TitledMultiSelectEnumSchema {
    */
   maxItems?: number;
   /**
-   * Array of enum options with values and display labels.
+   * Schema for array items with enum options and display labels.
    */
-  anyOf: Array<{
+  items: {
     /**
-     * The enum value.
+     * Array of enum options with values and display labels.
      */
-    const: string;
-    /**
-     * Display label for this option.
-     */
-    title: string;
-  }>;
+    anyOf: Array<{
+      /**
+       * The constant enum value.
+       */
+      const: string;
+      /**
+       * Display title for this option.
+       */
+      title: string;
+    }>;
+  };
   /**
    * Optional default value.
    */

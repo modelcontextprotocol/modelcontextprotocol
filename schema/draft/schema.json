@@ -2814,27 +2814,6 @@
         "TitledMultiSelectEnumSchema": {
             "description": "Schema for multiple-selection enumeration with display titles for each option.",
             "properties": {
-                "anyOf": {
-                    "description": "Array of enum options with values and display labels.",
-                    "items": {
-                        "properties": {
-                            "const": {
-                                "description": "The enum value.",
-                                "type": "string"
-                            },
-                            "title": {
-                                "description": "Display label for this option.",
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "const",
-                            "title"
-                        ],
-                        "type": "object"
-                    },
-                    "type": "array"
-                },
                 "default": {
                     "description": "Optional default value.",
                     "items": {
@@ -2845,6 +2824,36 @@
                 "description": {
                     "description": "Optional description for the enum field.",
                     "type": "string"
+                },
+                "items": {
+                    "description": "Schema for array items with enum options and display labels.",
+                    "properties": {
+                        "anyOf": {
+                            "description": "Array of enum options with values and display labels.",
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "description": "The constant enum value.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Display title for this option.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "anyOf"
+                    ],
+                    "type": "object"
                 },
                 "maxItems": {
                     "description": "Maximum number of items to select.",
@@ -2864,7 +2873,7 @@
                 }
             },
             "required": [
-                "anyOf",
+                "items",
                 "type"
             ],
             "type": "object"
