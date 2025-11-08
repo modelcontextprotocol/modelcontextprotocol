@@ -148,7 +148,8 @@ export interface JSONRPCError {
  *
  * @internal
  */
-export interface URLElicitationRequiredError extends Omit<JSONRPCError, 'error'> {
+export interface URLElicitationRequiredError
+  extends Omit<JSONRPCError, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
