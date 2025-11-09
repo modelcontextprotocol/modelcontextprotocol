@@ -58,8 +58,8 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Inna Harper](https://github.com/ihrpr)
 - [Jerome Swannack](https://github.com/jerome3o)
-- [Samuel Colvin](https://github.com/samuelcolvin)
 - [Marcelo Trylesinski](https://github.com/Kludex)
+- [Max Isbey](https://github.com/maxisbey)
 
 ### TypeScript SDK
 
@@ -84,8 +84,9 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Inspector
 
-- [Ola Hungerford](https://github.com/olaservo)
 - [Cliff Hall](https://github.com/cliffhall)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Ola Hungerford](https://github.com/olaservo)
 
 ### Registry
 
