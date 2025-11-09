@@ -168,7 +168,7 @@ body:has(#schema-reference) {
       font-family: var(--font-mono);
       font-weight: 700;
 
-      scroll-margin-top: 5rem;
+      scroll-margin-top: 8rem;
     }
 
     & > .tsd-comment,
