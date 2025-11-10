@@ -654,8 +654,8 @@ the risk of authorization servers being used in distributed denial of service at
 Client ID Metadata Documents cannot prevent `localhost` URL impersonation by themselves. An attacker can claim to be any client by:
 
 1. Providing the legitimate client's metadata URL as their `client_id`
-2. Binding to the same `localhost` port the legitimate client uses
-3. Intercepting the authorization code when the user approves
+2. Binding to the any `localhost` port, and providing that address as the redirect_uri
+3. Receiving the authorization code via the redirect when the user approves
 
 The server will see the correct metadata document and the user will see the correct client name, making attack detection difficult.
 
