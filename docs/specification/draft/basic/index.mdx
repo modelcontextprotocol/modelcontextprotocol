@@ -143,6 +143,8 @@ The `_meta` property/parameter allows clients and servers to attach additional m
 The following keys are reserved for MCP protocol use:
 
 - `progressToken` (for backwards compatibility)
-- Any key with a prefix containing `modelcontextprotocol.` or `mcp.` (e.g., `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, `tools.mcp.com/`)
+- Any key with a prefix `io.modelcontextprotocol` (e.g., `io.modelcontextprotocol/auth`, `io.modelcontextprotocol.registry/version`)
 
 All other keys are available for arbitrary use by implementations.
+
+Implementations SHOULD use reverse DNS notation for custom keys (e.g., `com.example/customData`) to avoid collisions with other implementations.

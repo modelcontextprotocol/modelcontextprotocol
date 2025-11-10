@@ -32,7 +32,7 @@ export interface Request {
   params?: {
     /**
      * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
-     * Importantly, if adding new things to the official spec, use the `modelcontextprotocol.io/` prefix
+     * Importantly, if adding new things to the official spec, use the `io.modelcontextprotocol/` prefix
      */
     _meta?: {
       /**
