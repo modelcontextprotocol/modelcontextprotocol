@@ -401,6 +401,9 @@ export interface BaseMetadata {
  * Describes the MCP implementation
  */
 export interface Implementation extends BaseMetadata, Icons {
+  /**
+   * The version of this implementation.
+   */
   version: string;
 
   /**
