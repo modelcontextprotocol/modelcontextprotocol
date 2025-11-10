@@ -273,6 +273,10 @@
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
+                        "filesystemBrokering": {
+                            "description": "Whether the client supports brokered filesystem operations for servers.\n\nWhen true, the client can process files/* method calls and enforce security boundaries.\nServers MUST request consent via files/consent before any filesystem access.\n\nSecurity implications:\n- Clients MUST implement path validation and consent management\n- All filesystem operations MUST be bounded by user-approved paths\n- Connection termination MUST revoke all filesystem access\n- Clients SHOULD provide user-friendly permission management interfaces",
+                            "type": "boolean"
+                        },
                         "listChanged": {
                             "description": "Whether the client supports notifications for changes to the roots list.",
                             "type": "boolean"
@@ -302,6 +306,9 @@
                 },
                 {
                     "$ref": "#/definitions/RootsListChangedNotification"
+                },
+                {
+                    "$ref": "#/definitions/FsChangedNotification"
                 }
             ]
         },
@@ -358,6 +365,33 @@
                 },
                 {
                     "$ref": "#/definitions/ListRootsResult"
+                },
+                {
+                    "$ref": "#/definitions/RequestFilesystemConsentResult"
+                },
+                {
+                    "$ref": "#/definitions/FsReadResult"
+                },
+                {
+                    "$ref": "#/definitions/FsWriteResult"
+                },
+                {
+                    "$ref": "#/definitions/FsListResult"
+                },
+                {
+                    "$ref": "#/definitions/FsCreateResult"
+                },
+                {
+                    "$ref": "#/definitions/FsDeleteResult"
+                },
+                {
+                    "$ref": "#/definitions/FsRenameResult"
+                },
+                {
+                    "$ref": "#/definitions/FsWatchResult"
+                },
+                {
+                    "$ref": "#/definitions/FsUnlockResult"
                 },
                 {
                     "$ref": "#/definitions/ElicitResult"
@@ -839,6 +873,626 @@
             "required": [
                 "code",
                 "message"
+            ],
+            "type": "object"
+        },
+        "FsChangedNotification": {
+            "description": "A notification from the client to the server about filesystem changes.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/files/changed",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "event": {
+                            "description": "The type of change that occurred.",
+                            "enum": [
+                                "created",
+                                "deleted",
+                                "modified"
+                            ],
+                            "type": "string"
+                        },
+                        "path": {
+                            "description": "The path that changed, relative to the root directory.",
+                            "type": "string"
+                        },
+                        "timestamp": {
+                            "description": "The timestamp when the change occurred as an ISO 8601 string.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "event",
+                        "path",
+                        "timestamp"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsCreateRequest": {
+            "description": "A request from the server to the client to create files or directories via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/create",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "keepLocked": {
+                            "description": "If true, keep an exclusive lock on the file after the operation completes.\nThe lock can be released later using files/unlock. If false or omitted,\nthe lock is automatically released when the operation completes.",
+                            "type": "boolean"
+                        },
+                        "path": {
+                            "description": "The path to create, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- Parent directory MUST be within approved boundaries\n- MUST reject creation attempts outside approved paths",
+                            "type": "string"
+                        },
+                        "type": {
+                            "description": "The type of entry to create.",
+                            "enum": [
+                                "directory",
+                                "file"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path",
+                        "type"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsCreateResult": {
+            "description": "The client's response to a files/create request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "created": {
+                    "description": "Whether the creation was successful.",
+                    "type": "boolean"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "created",
+                "lockId"
+            ],
+            "type": "object"
+        },
+        "FsDeleteRequest": {
+            "description": "A request from the server to the client to delete files or directories via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/delete",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "keepLocked": {
+                            "description": "If true, keep an exclusive lock on the file after the operation completes.\nThe lock can be released later using files/unlock. If false or omitted,\nthe lock is automatically released when the operation completes.",
+                            "type": "boolean"
+                        },
+                        "path": {
+                            "description": "The path to delete, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject deletion attempts outside approved boundaries\n- Recursive directory deletion MUST respect approved path boundaries",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsDeleteResult": {
+            "description": "The client's response to a files/delete request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "deleted": {
+                    "description": "Whether the deletion was successful.",
+                    "type": "boolean"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "deleted",
+                "lockId"
+            ],
+            "type": "object"
+        },
+        "FsEntry": {
+            "description": "Information about a filesystem entry.",
+            "properties": {
+                "modified": {
+                    "description": "The last modified timestamp as an ISO 8601 string.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the file or directory.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The size of the entry in bytes (for files).",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "The type of the entry.",
+                    "enum": [
+                        "directory",
+                        "file"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "type": "object"
+        },
+        "FsListRequest": {
+            "description": "A request from the server to the client to list directory contents via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/list",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "includeHidden": {
+                            "description": "Whether to include hidden files and directories. Defaults to false.",
+                            "type": "boolean"
+                        },
+                        "path": {
+                            "description": "The path to the directory to list, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject attempts to list directories outside approved boundaries\n- Recursive listings MUST respect approved path boundaries",
+                            "type": "string"
+                        },
+                        "recursive": {
+                            "description": "Whether to list contents recursively. Defaults to false.",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsListResult": {
+            "description": "The client's response to a files/list request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "entries": {
+                    "description": "Array of filesystem entries.",
+                    "items": {
+                        "$ref": "#/definitions/FsEntry"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "entries"
+            ],
+            "type": "object"
+        },
+        "FsReadRequest": {
+            "description": "A request from the server to the client to read file contents via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/read",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "encoding": {
+                            "description": "The character encoding to use when reading the file. Defaults to \"utf-8\".",
+                            "type": "string"
+                        },
+                        "keepLocked": {
+                            "description": "Whether to maintain the file lock after the read operation completes.\nIf true, the server must call files/unlock to release the lock.\nIf false or omitted, the lock is automatically released when the read completes.",
+                            "type": "boolean"
+                        },
+                        "length": {
+                            "description": "Optional maximum number of bytes to read.",
+                            "type": "integer"
+                        },
+                        "offset": {
+                            "description": "Optional byte offset to start reading from.",
+                            "type": "integer"
+                        },
+                        "path": {
+                            "description": "The path to the file to read, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject attempts to access files outside approved boundaries\n- Symbolic links MUST be resolved and validated",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsReadResult": {
+            "description": "The client's response to a files/read request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "content": {
+                    "description": "The file contents as a string or base64-encoded data.",
+                    "type": "string"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "The MIME type of the file if detectable.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The total size of the file in bytes.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "content",
+                "lockId",
+                "size"
+            ],
+            "type": "object"
+        },
+        "FsRenameRequest": {
+            "description": "A request from the server to the client to rename/move files or directories via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/rename",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "keepLocked": {
+                            "description": "If true, keep an exclusive lock on the file after the operation completes.\nThe lock can be released later using files/unlock. If false or omitted,\nthe lock is automatically released when the operation completes.",
+                            "type": "boolean"
+                        },
+                        "newPath": {
+                            "description": "The new path for the file or directory, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- Both source and destination MUST be within approved boundaries",
+                            "type": "string"
+                        },
+                        "oldPath": {
+                            "description": "The current path of the file or directory, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "newPath",
+                        "oldPath"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsRenameResult": {
+            "description": "The client's response to a files/rename request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                },
+                "renamed": {
+                    "description": "Whether the rename operation was successful.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "lockId",
+                "renamed"
+            ],
+            "type": "object"
+        },
+        "FsUnlockRequest": {
+            "description": "A request from the server to the client to unlock a previously locked file.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/unlock",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "lockId": {
+                            "description": "The unique identifier of the lock to release.\nThis ID was returned by a previous file operation with keepLocked=true.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "lockId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsUnlockResult": {
+            "description": "The client's response to a files/unlock request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "unlocked": {
+                    "description": "Whether the unlock operation was successful.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "unlocked"
+            ],
+            "type": "object"
+        },
+        "FsWatchRequest": {
+            "description": "A request from the server to the client to watch for filesystem changes via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/watch",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "events": {
+                            "description": "Array of event types to watch for.",
+                            "items": {
+                                "enum": [
+                                    "created",
+                                    "deleted",
+                                    "modified"
+                                ],
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "path": {
+                            "description": "The path to watch for changes, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- Recursive watches MUST respect approved path boundaries\n- Watch notifications MUST only report changes within approved paths",
+                            "type": "string"
+                        },
+                        "recursive": {
+                            "description": "Whether to watch recursively. Defaults to false.",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsWatchResult": {
+            "description": "The client's response to a files/watch request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "watching": {
+                    "description": "Whether the watch was successfully established.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "watching"
+            ],
+            "type": "object"
+        },
+        "FsWriteRequest": {
+            "description": "A request from the server to the client to write file contents via brokered filesystem operations.\n\nSecurity: All paths MUST be validated against approved paths from files/consent.\nClients MUST return PERMISSION_DENIED for unauthorized access attempts.",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/write",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "content": {
+                            "description": "The content to write to the file.",
+                            "type": "string"
+                        },
+                        "create": {
+                            "description": "Whether to create the file if it doesn't exist. Defaults to false.",
+                            "type": "boolean"
+                        },
+                        "encoding": {
+                            "description": "The character encoding to use when writing the file. Defaults to \"utf-8\".",
+                            "type": "string"
+                        },
+                        "keepLocked": {
+                            "description": "Whether to maintain the file lock after the write operation completes.\nIf true, the server must call files/unlock to release the lock.\nIf false or omitted, the lock is automatically released when the write completes.",
+                            "type": "boolean"
+                        },
+                        "path": {
+                            "description": "The path to the file to write, relative to an approved root directory.\n\nSecurity requirements:\n- MUST be validated against paths approved via files/consent\n- MUST be canonicalized to prevent directory traversal\n- MUST reject attempts to access files outside approved boundaries\n- For file creation, parent directory MUST be within approved paths",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "content",
+                        "path"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "FsWriteResult": {
+            "description": "The client's response to a files/write request from the server.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "bytesWritten": {
+                    "description": "The number of bytes written.",
+                    "type": "integer"
+                },
+                "lockId": {
+                    "description": "Unique identifier for the file lock created during this operation.\nThis ID can be used with files/unlock to release the lock if keepLocked was true.\nThe lock is automatically released when the operation completes unless keepLocked was true.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "bytesWritten",
+                "lockId"
             ],
             "type": "object"
         },
@@ -2025,6 +2679,74 @@
             ],
             "type": "object"
         },
+        "RequestFilesystemConsentRequest": {
+            "description": "A request from the server to the client, asking for user consent to access filesystem paths\nvia brokered filesystem operations.\n\nThis is a critical security method that MUST be implemented with proper safeguards:\n- Servers MUST request consent before any filesystem access\n- Clients MUST validate and present requests clearly to users\n- Users MUST have explicit control over what paths are approved\n- Consent is session-scoped and revoked on connection termination",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/consent",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "message": {
+                            "description": "A human-readable message explaining what filesystem access is needed and why.\nThis message MUST clearly describe the purpose and scope of requested access.\nClients SHOULD present this message to users as part of the consent dialog.",
+                            "type": "string"
+                        },
+                        "requestedPaths": {
+                            "description": "Array of filesystem paths or patterns the server wants to access.\n\nSecurity requirements:\n- Paths MUST be validated by clients before approval\n- Clients MUST canonicalize paths and check for directory traversal attempts\n- Symbolic links MUST be resolved and validated against security boundaries\n- Users MUST be able to approve/deny individual paths",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "message",
+                        "requestedPaths"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "RequestFilesystemConsentResult": {
+            "description": "The client's response to a files/consent request from the server.\n\nSecurity implications:\n- approvedPaths becomes the authoritative allow-list for subsequent operations\n- Clients MUST enforce these boundaries for all files/* operations\n- Empty approvedPaths with granted=true is invalid and MUST be rejected\n- Partial approvals are encouraged for principle of least privilege",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "approvedPaths": {
+                    "description": "If consent was granted, the specific paths that were approved for access.\n\nSecurity requirements:\n- MUST be a subset of the originally requested paths\n- Clients MUST validate all subsequent operations against these paths\n- Empty array when granted=true indicates no access was approved\n- Paths MUST be canonicalized and validated before storage",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "granted": {
+                    "description": "Whether the user granted consent for filesystem access.\nIf false, approvedPaths MUST be empty or omitted.",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "granted"
+            ],
+            "type": "object"
+        },
         "RequestId": {
             "description": "A uniquely identifying ID for a request in JSON-RPC.",
             "type": [
@@ -2517,6 +3239,33 @@
                 },
                 {
                     "$ref": "#/definitions/ListRootsRequest"
+                },
+                {
+                    "$ref": "#/definitions/RequestFilesystemConsentRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsReadRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsWriteRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsListRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsCreateRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsDeleteRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsRenameRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsWatchRequest"
+                },
+                {
+                    "$ref": "#/definitions/FsUnlockRequest"
                 },
                 {
                     "$ref": "#/definitions/ElicitRequest"

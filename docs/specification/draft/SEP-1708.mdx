@@ -1,0 +1,579 @@
+# SEP-1708: MCP Client-Brokered Filesystem Access
+## Preamble
+* title: SEP-1708: MCP Client-Brokered Filesystem Access
+* author: Casey Boyle <boylec@live.com> (GitHub: boylec)
+* status: Draft
+* type: Standards Track (Protocol Extension)
+* created: 2025-10-23
+* revised: 2025-11-02
+* note: Enhanced with comprehensive security requirements addressing malicious server threats, user consent control, and access revocation mechanisms.
+## Abstract
+This SEP enables MCP servers to access local filesystems of clients using **standard JSON-RPC methods** (e.g., `files/read`) with **minimal code changes**, enabling uniform methods of filesystem access for both remotely and locally hosted MCP servers among other things.
+Clients advertise support via a newly introduced `filesystemBrokering` capability. After consent, the client brokers file operation messages received from the MCP server using the existing MCP transport. This keeps server code simple, promoting wide adoption across diverse runtimes.
+
+Brokering filesystem operation messages means carrying out the requests (read/write) upon the local filesystem while supporting concurrent operations against the same file across multiple MCP clients via comprehensive file locking mechanisms with optional persistent locks; and also protecting against invalid access/exfiltration by leveraging "roots" as an explicit allow list of valid files/directories for those respective operations. 
+
+## Motivation
+Currently MCP Hosts can only practically operate upon their local filesystems via a locally running MCP server which introduces tools for accessing that filesystem. The MCP Host invokes the filesystem MCP server to read/write files and directories.
+
+This works brilliantly to allow the MCP Host to operate on the local filesystem, but there is much to be gained by allowing other MCP servers to operate on the local filesystem directly; especially in the case of remote/cloud-hosted MCP servers.
+
+A few examples:
+* Distributed work where an MCP Host on one machine could operate across multiple filesystems shared across 2 or more geographically disparate MCP Clients which share a common cloud-hosted MCP server. Imagine the locally running filesystem MCP server of today, but running in the cloud across multiple client filesystems.
+* MCP Hosts running on compute-restricted devices (e.g. IoT or Embedded Systems) offloading compute-intensive work which relies on locally-stored data to cloud-hosted MCP servers. This is advantageous in situations where storage and network bandwidth are cheap but compute is scarce/expensive.
+* Vendors host MCP servers that carry out operations directly upon filesystems that exist in local storage without needing to send instructions indirectly to the MCP Host to then carry out those operations via a separate locally running filesystem MCP server.
+* Vendors host MCP servers which operate directly upon files which could/should only ever be operated on directly by the vendor themselves. For example, with digitally signed content, binaries, and the like.  (Digital assets, code, documents, binaries, etc)
+* The list goes on.
+
+It's hard to overstate how powerful this would be in this author's opinion. It is equally hard to overstate the importance of security in this context.
+
+MCP servers should remain agnostic to local/remote deployment, allowing tool authors to use standard RPC calls without extensive rewrites. Remote access is essential for hosted platforms, but traditional protocols (NFS, SSHFS, rclone) are impractical due to firewall, OS, and setup issues.
+This SEP provides **secure, cross-platform filesystem access** via the existing MCP transport.
+## Specification
+### Capability Negotiation (Bidirectional)
+**Client advertises**:
+```json
+{
+  "capabilities": {
+    "roots": {
+      "listChanged": true,
+      "filesystemBrokering": true
+    }
+  }
+}
+```
+- If `filesystemBrokering` is `false` or omitted, server **MUST NOT** request brokered access.
+- Servers **MUST** verify during negotiation: If remote and filesystem access is required but `filesystemBrokering` is missing or unsupported, throw error early (e.g., in handshake response):
+  ```json
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "code": -32603,
+      "message": "Filesystem access unavailable over remote connection"
+    },
+    "id": 1
+  }
+  ```
+### User Consent and Access Control
+**Servers MUST request user consent before accessing filesystem operations**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/consent",
+  "params": {
+    "message": "Server requests access to project files for analysis",
+    "requestedPaths": ["/home/user/project", "/home/user/config.json"]
+  },
+  "id": 1
+}
+```
+Client responds with approval status:
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "granted": true,
+    "approvedPaths": ["/home/user/project"]
+  },
+  "id": 1
+}
+```
+
+#### Security Requirements
+- **Path Validation**: Clients MUST validate all filesystem operations against approved paths before execution
+- **Consent Granularity**: Implementations MAY support different consent models (session-wide, per-path-pattern, or just-in-time)
+- **Access Revocation**: Implementations SHOULD provide mechanisms for users to revoke filesystem permissions during active sessions
+- **Connection Termination**: Clients MUST terminate server connections as the primary revocation mechanism when requested by users
+
+#### Addressing Malicious Server Concerns
+The primary security concern is malicious MCP servers having "direct and non-revocable access" to user filesystems. This SEP addresses these concerns through:
+
+1. **User Consent Control**: 
+   - Users explicitly approve each path before any access
+   - Clients can implement granular consent (per-directory, operation-specific, time-limited)
+   - No "blanket" filesystem access without explicit approval
+
+2. **Revocation Mechanisms**:
+   - Connection termination immediately revokes all filesystem access
+   - Implementations SHOULD provide UI for granular permission management
+   - Session-scoped permissions prevent persistent unauthorized access
+
+3. **Exfiltration Prevention**:
+   - All access is bounded by user-approved paths
+   - Clients enforce boundaries through technical controls (path validation)
+   - Optional monitoring can detect and alert on suspicious access patterns
+   - Users maintain ultimate control through connection management
+### Brokered Filesystem Methods
+- **Transport**: Existing MCP transport with JSON-RPC.
+- **Operations**: `files/read`, `files/write`, `files/list`, `files/create`, `files/delete`, `files/rename`, `files/watch`, `files/unlock`.
+
+#### File Reading
+**Request**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/read",
+  "params": {
+    "path": "project/src/main.py",
+    "encoding": "utf-8",
+    "offset": 0,
+    "length": 1048576,
+    "keepLocked": true
+  },
+  "id": 1
+}
+```
+**Response**:
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": "# Python file contents...",
+    "size": 1234,
+    "mimeType": "text/x-python",
+    "lockId": "lock_abc123def456"
+  },
+  "id": 1
+}
+```
+
+#### File Writing
+**Request**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/write",
+  "params": {
+    "path": "project/output.txt",
+    "content": "Hello, World!",
+    "encoding": "utf-8",
+    "create": true,
+    "keepLocked": false
+  },
+  "id": 2
+}
+```
+**Response**:
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "bytesWritten": 13,
+    "lockId": "lock_def789ghi012"
+  },
+  "id": 2
+}
+```
+#### File Locking
+Operations can maintain exclusive locks beyond completion using the `keepLocked` parameter:
+
+**Lock Release**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/unlock",
+  "params": {
+    "lockId": "lock_abc123def456"
+  },
+  "id": 3
+}
+```
+
+#### Directory Operations
+**List Directory**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/list",
+  "params": {
+    "path": "project/src",
+    "recursive": false,
+    "includeHidden": false
+  },
+  "id": 4
+}
+```
+
+**Create File/Directory**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/create",
+  "params": {
+    "path": "project/new_directory",
+    "type": "directory",
+    "keepLocked": false
+  },
+  "id": 5
+}
+```
+
+#### File Watching
+**Start Watching**:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "files/watch",
+  "params": {
+    "path": "project/src",
+    "recursive": true,
+    "events": ["modified", "created", "deleted"]
+  },
+  "id": 6
+}
+```
+
+Client pushes change notifications:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/files/changed",
+  "params": {
+    "path": "project/src/main.py",
+    "event": "modified",
+    "timestamp": "2025-11-02T12:30:00Z"
+  }
+}
+```
+
+- **Binary Data**: Use base64 encoding for binary content in text fields
+- **Large Files**: Use chunked operations with offset/length parameters for large file transfers
+#### Constraints
+- **Chunk Size**: 1MB default.
+- **Timeout**: 60s base; extend for large files.
+- **Retries**: 3 with backoff.
+- **Path Scope**: Relative to approved root.
+### Error Codes
+| Code | Meaning |
+|---------------------|-----------------------------|
+| `FILE_NOT_FOUND` | Path does not exist |
+| `PERMISSION_DENIED` | Outside approved paths or access denied |
+| `INVALID_PATH` | Malformed path or directory traversal attempt |
+| `IO_ERROR` | Filesystem failure |
+| `TIMEOUT` | Operation timed out |
+| -32100 (`FILE_LOCKED`) | File is locked by another operation |
+| -32603 | Filesystem access unavailable over remote connection |
+
+#### Security Error Handling
+Clients MUST return `PERMISSION_DENIED` errors for:
+- Paths outside approved root directories
+- Directory traversal attempts (e.g., `../`, symbolic links escaping approved areas)
+- Access to system files or sensitive directories not explicitly approved
+- Operations on revoked paths
+
+**Lock Conflict Example**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "error": {
+    "code": -32100,
+    "message": "File is locked",
+    "data": {
+      "path": "project/config.json",
+      "lockId": "lock_existing123",
+      "lockedBy": "previous_operation"
+    }
+  }
+}
+```
+### File Locking Mechanism
+The filesystem operations support exclusive file locking to prevent concurrent access conflicts:
+
+- **Automatic Locks**: All file operations acquire exclusive locks during execution
+- **Persistent Locks**: Operations can maintain locks beyond completion with `keepLocked: true`
+- **Lock Tracking**: Each lock has a unique `lockId` returned in operation results
+- **Explicit Release**: Use `files/unlock` method to release persistent locks
+- **Automatic Cleanup**: Locks are automatically released on operation completion (unless `keepLocked` is true) and on connection disconnect
+- **Conflict Handling**: Operations on locked files return immediate `FILE_LOCKED` (-32100) errors
+
+**Lock Lifecycle**:
+1. Operation acquires exclusive file lock
+2. If `keepLocked: false` (default): Lock released on operation completion
+3. If `keepLocked: true`: Lock persists, `lockId` returned for later release
+4. Use `files/unlock` with `lockId` to explicitly release persistent locks
+## MCP Client Implementation
+- Processes `files/*` methods via existing JSON-RPC transport
+- Enforces root scoping and path validation
+- Manages user consent flow (prompt or configuration)
+- Implements file locking mechanism with lock tracking
+- Handles file watching with native OS capabilities
+
+## MCP Server Implementation
+- **Minimal Changes**: Use standard JSON-RPC calls following MCP patterns
+- Example (Node.js):
+  ```javascript
+  // Read file with persistent lock
+  const readResult = await client.request({
+    method: 'files/read',
+    params: {
+      path: 'config.json',
+      keepLocked: true
+    }
+  });
+  
+  console.log('Content:', readResult.content);
+  const lockId = readResult.lockId;
+  
+  // Perform operations while file is locked...
+  
+  // Release lock when done
+  await client.request({
+    method: 'files/unlock',
+    params: { lockId }
+  });
+  ```
+- Must handle `FILE_LOCKED` (-32100) errors for locked files
+- Throws -32603 error if remote FS required but unsupported
+## Rationale
+### Why Client-Brokered
+- **Adoption-Friendly**: Standard RPC calls; no additional setup.
+- **Package-Controlled**: Fits diverse runtimes (serverless, edge).
+- **Scalable**: Clients handle brokering; servers stay simple.
+- **Fail-Fast Safety**: Mandatory errors for unsupported FS prevent silent failures.
+- Simpler, unified transport; centralizes security in Client/Host.
+### Security Risks & Mitigations
+| Risk | Mitigation |
+|-----------------------|-------------------------------------------------|
+| **Malicious Server Access** | Mandatory path validation, user consent, connection termination |
+| **Data Exfiltration** | Root-scoped access control, optional monitoring/notifications |
+| **Directory Traversal** | Path canonicalization, symlink validation, strict boundary enforcement |
+| **Privilege Escalation** | No elevated permissions required; client-enforced boundaries |
+| **Network Latency** | Chunking, caching; warn for large files |
+| **Lock Deadlocks** | Automatic cleanup on disconnect, lock timeouts |
+| **Session Hijacking** | Use existing MCP transport security (TLS), secure lock IDs |
+### Alternatives Considered
+| Approach | Rejected Because |
+|----------------|----------------------------------------------|
+| Sidecar Daemon | Infra-heavy; not package-controlled |
+| Monkey-Patching| Brittle across languages/runtimes |
+| In-Memory Sync | Memory bloat; eventual consistency |
+| Separate Channel (e.g., WebSocket) | Added overhead |
+| External Protocols (e.g., rclone, SSHFS) | Setup heavy |
+### Best Practices
+- Request consent early.
+- Cache frequent reads server-side.
+- Use config for client pre-approvals.
+## Backward Compatibility
+Optional. Local servers unchanged. Remote without support falls back with error -32603. Existing wrappers can adapt.
+## Reference Implementation
+- **Client (Python)** - Processes `files/*` operations with locking:
+  ```python
+  import json
+  import os
+  import uuid
+  import fcntl
+  from watchdog.observers import Observer
+  from watchdog.events import FileSystemEventHandler
+
+  class FileLockManager:
+      def __init__(self):
+          self.locks = {}  # lockId -> file handle
+      
+      def acquire_lock(self, path, keep_locked=False):
+          lock_id = str(uuid.uuid4())
+          try:
+              # Open file and acquire exclusive lock
+              f = open(path, 'r+b')
+              fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+              
+              if keep_locked:
+                  self.locks[lock_id] = f
+              else:
+                  f.close()
+              return lock_id
+          except (IOError, OSError) as e:
+              raise Exception("FILE_LOCKED", -32100, {"path": path})
+      
+      def release_lock(self, lock_id):
+          if lock_id in self.locks:
+              self.locks[lock_id].close()
+              del self.locks[lock_id]
+              return True
+          return False
+
+  class FSHandler(FileSystemEventHandler):
+      def __init__(self, notifier, root):
+          self.notifier = notifier
+          self.root = root
+
+      def dispatch(self, event):
+          rel_path = os.path.relpath(event.src_path, self.root)
+          self.notifier.send(json.dumps({
+              'jsonrpc': '2.0',
+              'method': 'notifications/files/changed',
+              'params': {
+                  'path': rel_path, 
+                  'event': event.event_type,
+                  'timestamp': datetime.utcnow().isoformat() + 'Z'
+              }
+          }))
+
+  def handle_files_request(req, root, notifier, lock_manager, approved_paths):
+      method_parts = req['method'].split('/')
+      if len(method_parts) != 2 or method_parts[0] != 'files':
+          return {'jsonrpc': '2.0', 'error': {'code': -32601, 'message': 'Method not found'}, 'id': req['id']}
+      
+      action = method_parts[1]
+      params = req['params']
+      
+      if action == 'consent':
+          # Handle consent request - validate and store approved paths
+          requested = params['requestedPaths']
+          # Security: Only approve paths user explicitly confirms
+          approved = user_consent_dialog(requested)  # Implementation-specific
+          approved_paths.update(approved)
+          return {'jsonrpc': '2.0', 'result': {'granted': len(approved) > 0, 'approvedPaths': approved}, 'id': req['id']}
+      
+      path = params.get('path', '')
+      
+      # Security: Validate path against approved paths
+      if not validate_path_access(path, approved_paths):
+          return {'jsonrpc': '2.0', 'error': {'code': -32602, 'message': 'PERMISSION_DENIED'}, 'id': req['id']}
+      
+      # Security: Prevent directory traversal
+      full_path = os.path.realpath(os.path.join(root, path))
+      if not full_path.startswith(os.path.realpath(root)):
+          return {'jsonrpc': '2.0', 'error': {'code': -32602, 'message': 'PERMISSION_DENIED'}, 'id': req['id']}
+      
+      try:
+          keep_locked = params.get('keepLocked', False)
+          lock_id = lock_manager.acquire_lock(full_path, keep_locked)
+          
+          if action == 'read':
+              with open(full_path, 'r', encoding=params.get('encoding', 'utf-8')) as f:
+                  content = f.read(params.get('length', -1))
+              return {'jsonrpc': '2.0', 'result': {
+                  'content': content, 
+                  'size': os.path.getsize(full_path),
+                  'lockId': lock_id
+              }, 'id': req['id']}
+          
+          elif action == 'write':
+              with open(full_path, 'w', encoding=params.get('encoding', 'utf-8')) as f:
+                  bytes_written = f.write(params['content'])
+              return {'jsonrpc': '2.0', 'result': {
+                  'bytesWritten': bytes_written,
+                  'lockId': lock_id
+              }, 'id': req['id']}
+          
+          elif action == 'unlock':
+              success = lock_manager.release_lock(params['lockId'])
+              return {'jsonrpc': '2.0', 'result': {'unlocked': success}, 'id': req['id']}
+              
+      except Exception as e:
+          if hasattr(e, 'args') and len(e.args) >= 2 and e.args[1] == -32100:
+              return {'jsonrpc': '2.0', 'error': {'code': -32100, 'message': 'File is locked'}, 'id': req['id']}
+          return {'jsonrpc': '2.0', 'error': {'code': -32603, 'message': str(e)}, 'id': req['id']}
+
+  # In client RPC handler: if method starts with 'files/', call handle_files_request
+  ```
+- **Server (Node.js)** - Using MCP-style JSON-RPC with file locking:
+  ```javascript
+  // Atomic file update with persistent locking
+  async function atomicFileUpdate(client, path, updateFunction) {
+    let lockId = null;
+    
+    try {
+      // Read with persistent lock
+      const readResult = await client.request({
+        method: 'files/read',
+        params: { path, keepLocked: true }
+      });
+      
+      lockId = readResult.lockId;
+      
+      // Modify content
+      const updatedContent = updateFunction(readResult.content);
+      
+      // Write back (file still locked)
+      await client.request({
+        method: 'files/write',
+        params: { path, content: updatedContent }
+      });
+      
+    } catch (error) {
+      if (error.code === -32100) { // FILE_LOCKED
+        throw new Error(`Cannot perform atomic update - file is locked: ${error.data?.path}`);
+      }
+      throw error;
+    } finally {
+      // Always release the lock
+      if (lockId) {
+        await client.request({
+          method: 'files/unlock',
+          params: { lockId }
+        });
+      }
+    }
+  }
+  ```
+- **Error Handling Pattern**:
+  ```javascript
+  try {
+    const result = await client.request({
+      method: 'files/read',
+      params: { path: 'config.json' }
+    });
+  } catch (error) {
+    if (error.code === -32100) {
+      console.log('File is locked, retrying later...');
+    } else if (error.code === -32601) {
+      throw new Error('Client does not support filesystem operations');
+    }
+  }
+  ```
+## Security Implications
+
+### Critical Security Requirements (MUST)
+- **Mandatory User Consent**: Clients MUST obtain explicit user consent before granting any filesystem access to servers
+- **Path Validation**: Clients MUST validate all filesystem operations against approved paths and reject unauthorized access attempts
+- **Boundary Enforcement**: Clients MUST prevent directory traversal attacks through path canonicalization and symlink validation
+- **Connection Control**: Clients MUST provide users the ability to terminate server connections to revoke all filesystem access
+
+### Recommended Security Measures (SHOULD)
+- **Access Revocation**: Implementations SHOULD provide mechanisms for granular permission revocation during active sessions
+- **User Notifications**: Clients SHOULD notify users of filesystem access attempts, especially for sensitive operations
+- **Rate Limiting**: Clients SHOULD implement rate limiting to prevent abuse and detect suspicious activity patterns
+- **Operation Monitoring**: Clients SHOULD track filesystem operations to detect potential exfiltration attempts
+
+### Optional Security Enhancements (MAY)
+- **Audit Logging**: Implementations MAY log filesystem operations for security auditing and forensic analysis
+- **Consent Granularity**: Clients MAY support fine-grained consent models (per-path, per-operation-type, time-limited access)
+- **Anomaly Detection**: Advanced implementations MAY implement behavioral analysis to detect malicious server activity
+
+### Threat Model and Mitigations
+
+#### Malicious Server Scenarios
+1. **Unauthorized File Access**: 
+   - **Threat**: Server attempts to access files outside approved paths
+   - **Mitigation**: Strict path validation with `PERMISSION_DENIED` errors for violations
+
+2. **Data Exfiltration**: 
+   - **Threat**: Server reads sensitive files or excessive amounts of data
+   - **Mitigation**: User consent boundaries, optional monitoring, connection termination
+
+3. **Directory Traversal**: 
+   - **Threat**: Server uses `../` or symlinks to escape approved directories  
+   - **Mitigation**: Path canonicalization, symlink resolution validation, absolute path checking
+
+4. **Persistence After Revocation**: 
+   - **Threat**: Server maintains access after user attempts to revoke permissions
+   - **Mitigation**: Connection termination as primary revocation mechanism, session-scoped permissions
+
+#### Implementation Responsibilities
+- **Client Implementations**: Must enforce all security boundaries and provide user control mechanisms
+- **Server Implementations**: Should handle permission errors gracefully and respect user consent decisions
+- **Host Applications**: Should integrate filesystem access controls with their existing security frameworks
+
+### Transport Security
+- Uses existing MCP transport encryption (TLS) without introducing new attack surfaces
+- File lock identifiers use cryptographically secure random generation to prevent unauthorized unlock attempts
+- No additional network endpoints or protocols required
+
+### Best Practices for Implementors
+- Always prompt users before granting initial filesystem access
+- Provide clear visibility into which paths are accessible to which servers
+- Implement "principle of least privilege" - grant minimal necessary access
+- Consider time-limited permissions that require periodic re-consent
+- Log security-relevant events (permission grants, denials, revocations) for audit trails

@@ -1,0 +1,295 @@
+# Server Roots
+
+Servers can request filesystem access from clients through the brokered filesystem operations. This enables servers to read, write, and manage files on the client's machine with explicit user consent.
+
+## Overview
+
+The brokered filesystem operates over the existing MCP transport using JSON-RPC methods prefixed with `files/`. This approach eliminates the need for separate WebSocket connections and provides a unified interface for filesystem operations.
+
+## Prerequisites
+
+Before making filesystem requests, servers must:
+
+1. Verify the client supports filesystem brokering (check client capabilities)
+2. Request explicit user consent for filesystem access
+3. Handle appropriate error responses for unsupported operations
+
+## User Consent Flow
+
+Servers **MUST** request user consent before accessing filesystem operations:
+
+```javascript
+// Request consent for filesystem access
+const consent = await client.request({
+  method: "files/consent",
+  params: {
+    message: "Server requests access to project files for analysis",
+    requestedPaths: ["/home/user/project", "/home/user/config.json"]
+  }
+});
+
+if (!consent.granted) {
+  throw new Error("Filesystem access denied by user");
+}
+```
+
+## File Operations
+
+### Reading Files
+
+```javascript
+try {
+  const result = await client.request({
+    method: "files/read",
+    params: {
+      path: "project/src/main.py",
+      encoding: "utf-8",
+      offset: 0,
+      length: 1048576
+    }
+  });
+  
+  console.log(`Read ${result.size} bytes:`, result.content);
+} catch (error) {
+  if (error.code === -32100) { // FILE_LOCKED
+    console.error("File is locked by another operation");
+  }
+}
+```
+
+### Writing Files
+
+```javascript
+const result = await client.request({
+  method: "files/write",
+  params: {
+    path: "project/output.txt",
+    content: "Hello, World!",
+    encoding: "utf-8",
+    create: true
+  }
+});
+
+console.log(`Wrote ${result.bytesWritten} bytes`);
+```
+
+### Directory Operations
+
+```javascript
+// List directory contents
+const listing = await client.request({
+  method: "files/list",
+  params: {
+    path: "project/src",
+    recursive: false,
+    includeHidden: false
+  }
+});
+
+// Create directory
+await client.request({
+  method: "files/create",
+  params: {
+    path: "project/new_directory",
+    type: "directory"
+  }
+});
+
+// Delete file or directory
+await client.request({
+  method: "files/delete",
+  params: {
+    path: "project/temp_file.txt"
+  }
+});
+
+// Rename/move file
+await client.request({
+  method: "files/rename",
+  params: {
+    oldPath: "project/old_name.txt",
+    newPath: "project/new_name.txt"
+  }
+});
+```
+
+### File Watching
+
+```javascript
+// Start watching for file changes
+await client.request({
+  method: "files/watch",
+  params: {
+    path: "project/src",
+    recursive: true,
+    events: ["modified", "created", "deleted"]
+  }
+});
+
+// Listen for file change notifications
+client.onNotification("notifications/files/changed", (params) => {
+  console.log(`File ${params.path} was ${params.event} at ${params.timestamp}`);
+});
+```
+
+## File Locking
+
+The filesystem operations support exclusive file locking to coordinate access between concurrent operations. This is particularly useful for multi-step operations that need to maintain consistency.
+
+### Persistent Locking
+
+Operations can maintain locks beyond completion by setting `keepLocked: true`:
+
+```javascript
+// Read a file and keep it locked
+const result = await client.request({
+  method: "files/read",
+  params: {
+    path: "project/config.json",
+    keepLocked: true
+  }
+});
+
+// Store the lock ID for later use
+const lockId = result.lockId;
+console.log(`File locked with ID: ${lockId}`);
+
+// Perform additional operations knowing the file is locked...
+
+// Release the lock when done
+await client.request({
+  method: "files/unlock",
+  params: {
+    lockId: lockId
+  }
+});
+```
+
+### Lock Coordination
+
+```javascript
+async function atomicFileUpdate(path, updateFunction) {
+  let lockId = null;
+  
+  try {
+    // Read with persistent lock
+    const readResult = await client.request({
+      method: "files/read",
+      params: { path, keepLocked: true }
+    });
+    
+    lockId = readResult.lockId;
+    
+    // Modify the content
+    const updatedContent = updateFunction(readResult.content);
+    
+    // Write back (lock is already held)
+    await client.request({
+      method: "files/write",
+      params: { path, content: updatedContent }
+    });
+    
+  } catch (error) {
+    if (error.code === -32100) { // FILE_LOCKED
+      console.error("File is locked by another operation:", error.data);
+      throw new Error("Cannot perform atomic update - file is locked");
+    }
+    throw error;
+  } finally {
+    // Always release the lock
+    if (lockId) {
+      await client.request({
+        method: "files/unlock",
+        params: { lockId }
+      });
+    }
+  }
+}
+```
+
+### Handling Lock Conflicts
+
+```javascript
+async function readWithRetry(path, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await client.request({
+        method: "files/read",
+        params: { path }
+      });
+    } catch (error) {
+      if (error.code === -32100 && attempt < maxRetries) {
+        console.log(`File locked, retrying in ${attempt * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## Error Handling
+
+Servers should handle filesystem operation errors gracefully:
+
+```javascript
+async function safeFileOperation(operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    switch (error.code) {
+      case -32601: // Method not found
+        throw new Error("Client does not support filesystem operations");
+      
+      case -32100: // FILE_LOCKED
+        throw new Error(`File is locked: ${error.data.path}`);
+        
+      default:
+        if (error.message === "FILE_NOT_FOUND") {
+          throw new Error(`File not found: ${error.data?.path || 'unknown'}`);
+        } else if (error.message === "PERMISSION_DENIED") {
+          throw new Error("Access denied - check file permissions and root paths");
+        }
+        throw error;
+    }
+  }
+}
+```
+
+## Best Practices
+
+### Path Management
+- Always use relative paths within approved root directories
+- Validate paths before making requests to avoid errors
+- Use forward slashes for cross-platform compatibility
+
+### Performance Considerations
+- Use chunked operations for large files
+- Implement appropriate timeouts for filesystem operations
+- Consider caching frequently accessed file contents
+
+### Security
+- Request minimal necessary permissions in consent flows
+- Validate file contents when reading untrusted files
+- Handle sensitive data appropriately (avoid logging file contents)
+
+### Locking Strategy
+- Use persistent locks only when necessary for multi-step operations
+- Always release locks in finally blocks to prevent deadlocks
+- Implement retry logic for lock conflicts in non-critical operations
+- Consider lock timeout and cleanup mechanisms for long-running operations
+
+## Capabilities Declaration
+
+Servers do not need to declare filesystem capabilities - this is entirely client-driven based on the client's `filesystemBrokering` capability.
+
+```javascript
+// Client capabilities include filesystem support
+const clientCapabilities = {
+  roots: {
+    listChanged: true,
+    filesystemBrokering: true  // Client supports brokered filesystem
+  }
+};
+```

@@ -329,6 +329,80 @@ When storing or transmitting session-related data (e.g., in a queue), combine th
 
 MCP servers can optionally leverage additional unique identifiers.
 
+### Brokered Filesystem Security
+
+Brokered filesystem functionality allows MCP servers to request filesystem operations through the client over the existing MCP transport. When servers declare the `filesystemBrokering` capability and request consent, clients broker filesystem operations on behalf of the server. This requires careful security considerations to prevent unauthorized access and data exfiltration.
+
+#### Attack Description
+
+Brokered filesystem operations create several potential attack vectors:
+
+1. **Unauthorized File Access**: Malicious servers could attempt to access files outside approved root boundaries through fs.\* requests
+2. **Data Exfiltration**: Compromised servers could use fs.read requests to access sensitive files and transmit them to attackers
+3. **Path Traversal**: Servers could use relative paths (e.g., `../../../etc/passwd`) to escape root constraints in fs.\* operations
+4. **Consent Bypass**: Malicious servers could manipulate users into approving overly broad filesystem access during consent flows
+5. **Operation Abuse**: Servers could abuse fs.write, fs.create, or fs.delete operations to modify or destroy local files
+6. **Notification Flooding**: Malicious servers could request fs.watch operations to overwhelm clients with filesystem change notifications
+
+#### Risks
+
+- **Data Breach**: Sensitive local files could be accessed via fs.read and exfiltrated over MCP transport
+- **System Compromise**: File writes via fs.write/fs.create could modify system configurations or install malware
+- **Privacy Violation**: Personal documents, credentials, and private keys could be exposed through fs.\* operations
+- **Data Loss**: Malicious or buggy servers could use fs.delete or fs.rename to destroy important local files
+- **Resource Exhaustion**: Excessive fs.watch requests could consume system resources monitoring filesystem changes
+
+#### Mitigation
+
+Clients implementing brokered filesystem operations **MUST** implement comprehensive security controls:
+
+**Path Validation and Scoping**
+
+- Validate all file paths in fs.\* requests against approved root boundaries before any filesystem operation
+- Reject fs.\* requests containing path traversal sequences (`../`, `..\`, absolute paths outside roots)
+- Use canonical path resolution to prevent bypass attempts
+- Implement allowlist-based path validation rather than blocklist approaches
+- Enforce root directory constraints for all fs.read, fs.write, fs.list, fs.create, fs.delete, fs.rename, and fs.watch operations
+
+**User Consent and Authorization**
+
+- Require explicit user consent via request_filesystem_consent before processing any fs.\* requests
+- Display the exact root directories being shared in clear, understandable terms
+- Show which server and what organization will have filesystem access
+- Provide easy mechanisms to revoke filesystem access at any time
+- Log all fs.\* operations for user review and audit trails
+
+**Operation Authorization**
+
+- Implement per-operation type authorization (read-only vs. read-write access)
+- Default to minimal necessary permissions (read-only when possible)
+- Require additional consent for destructive operations (fs.delete, fs.rename with overwrite)
+- Validate operation parameters (file size limits, encoding restrictions) for fs.write and fs.create
+- Implement rate limiting for fs.\* requests to prevent abuse
+
+**Transport Security**
+
+- All fs.\* operations occur over existing MCP transport (no additional connections)
+- Leverage existing MCP transport security (TLS for remote servers, process isolation for local servers)
+- Implement proper authentication and authorization for each fs.\* request
+- Use request/response correlation to prevent operation tampering
+
+**Operational Security**
+
+- Monitor fs.\* request patterns for unusual activity
+- Implement filesystem operation logging with tamper protection
+- Provide clear audit trails of all brokered operations
+- Alert users to high-risk operations (access to sensitive directories, large file operations)
+- Implement automatic access revocation on suspicious activity patterns
+
+**Access Controls**
+
+- Respect existing filesystem permissions and access controls
+- Implement fine-grained permissions (per-directory, per-operation type)
+- Provide mechanisms to limit operation scope after initial consent
+- Consider implementing "temporary access" modes with automatic expiration
+- Support consent granularity (read vs. write vs. delete permissions per root)
+
 ### Local MCP Server Compromise
 
 Local MCP servers are MCP Servers running on a user's local machine, either by the user downloading and executing a server, authoring a server themselves, or installing through a client's configuration flows. These servers may have direct access to the user's system and may be accessible to other processes running on the user's machine, making them attractive targets for attacks.
