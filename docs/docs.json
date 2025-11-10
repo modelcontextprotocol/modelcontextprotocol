@@ -275,6 +275,13 @@
             "pages": [
               "community/governance",
               "community/sep-guidelines",
+              {
+                "group": "Extensions",
+                "pages": [
+                  "extensions/index",
+                  "extensions/registry"
+                ]
+              },
               "community/working-interest-groups",
               "community/antitrust"
             ]

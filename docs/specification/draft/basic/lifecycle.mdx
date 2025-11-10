@@ -185,6 +185,77 @@ Capability objects can describe sub-capabilities like:
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
 
+#### Extension Negotiation
+
+Both client and server **MAY** declare support for optional MCP extensions through the `extensions` field within their capabilities during initialization.
+
+Extension identifiers MUST follow the format `{vendor-prefix}/{extension-name}`, for example:
+
+- `modelcontextprotocol.io/official-extension`
+- `example.com/custom-extension`
+
+The value for each extension is an optional capabilities object specific to that extension. An empty object `{}` indicates support for the extension without additional capabilities.
+
+Example client initialization with extensions:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-11-25",
+    "capabilities": {
+      "roots": {
+        "listChanged": true
+      },
+      "extensions": {
+        "example.com/custom-extension": {
+          "exampleSetting": "value"
+        },
+        "modelcontextprotocol.io/official-extension": {}
+      }
+    },
+    "clientInfo": {
+      "name": "ExampleClient",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+Example server response with extensions:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-11-25",
+    "capabilities": {
+      "logging": {},
+      "extensions": {
+        "modelcontextprotocol.io/official-extension": {
+          "serverConfig": "enabled"
+        }
+      }
+    },
+    "serverInfo": {
+      "name": "ExampleServer",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+Extensions are optional and composable. Implementations **SHOULD** gracefully handle:
+
+- Extensions they don't recognize (ignore them)
+- Missing extensions they expect (fall back to core protocol behavior)
+- Configuration conflicts (prioritize safety and explicit user consent)
+
+For more information about extensions, see the [Extensions](/extensions) page.
+
 ### Operation
 
 During the operation phase, the client and server exchange messages according to the

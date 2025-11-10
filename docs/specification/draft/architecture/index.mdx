@@ -172,3 +172,15 @@ example:
 
 This capability negotiation ensures clients and servers have a clear understanding of
 supported functionality while maintaining protocol extensibility.
+
+## Extensions
+
+MCP supports optional extensions that allow for experimentation and specialization beyond the core protocol. Extensions enable:
+
+- **Protocol Evolution**: New capabilities can be developed and tested without modifying the core specification
+- **Domain-Specific Features**: Specialized functionality for particular industries or use cases
+- **Community Innovation**: Third-party developers can create extensions that integrate with the broader MCP ecosystem
+
+Extensions are optional and composable—implementations can choose which extensions to support based on their requirements. The core protocol remains stable and simple while extensions enable innovation and specialization.
+
+For detailed information about available extensions and how to propose new ones, see the [Extensions](/extensions) page. For implementation details on extension negotiation, see the [Lifecycle](/specification/draft/basic/lifecycle) documentation.
