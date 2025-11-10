@@ -38,7 +38,7 @@ It's like having a pile of notes on my garage workbench, each trying to explain 
 
 Similarly, for global instructions that you want the LLM to follow, it's best to inject them into the model's system prompt instead of including them in multiple tool descriptions or standalone prompts.
 
-This is where **server instructions** come in. Server instructions give the server a way to inject information that the LLM should always read in order to understand how to use the server - independent of individual prompts, tools, or messages.
+This is where **server instructions** come in. [Server instructions](https://modelcontextprotocol.io/specification/draft/schema#initializeresult) give the server a way to inject information that the LLM should always read in order to understand how to use the server - independent of individual prompts, tools, or messages.
 
 ### A Note on Implementation Variability
 
