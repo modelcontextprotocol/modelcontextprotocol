@@ -1,0 +1,17 @@
+{
+  "client_id": "https://modelcontextprotocol.io/examples/client-metadata.json",
+  "client_name": "Simple OAuth Client",
+  "client_uri": "http://localhost:8090",
+  "redirect_uris": [
+    "http://localhost:8090/callback"
+  ],
+  "token_endpoint_auth_method": "none",
+  "grant_types": [
+    "authorization_code",
+    "refresh_token"
+  ],
+  "response_types": [
+    "code"
+  ],
+  "logo_uri": "https://modelcontextprotocol.io/mcp.png"
+}
