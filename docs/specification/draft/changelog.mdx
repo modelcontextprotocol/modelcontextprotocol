@@ -14,6 +14,8 @@ the previous revision, [2025-06-18](/specification/2025-06-18).
 3. Enhance authorization flows with incremental scope consent via `WWW-Authenticate` ([SEP-835](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/835))
 4. Provide guidance on tool names ([SEP-986](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1603))
 5. Update `ElicitResult` and `EnumSchema` to use a more standards-based approach and support titled, untitled, single-select, and multi-select enums ([SEP-1330](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1330)).
+6. Add support for tasks primitive to enable long-running operations with status tracking and result retrieval ([SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686)).
+7. Add tool calling support to sampling with `tools` and `toolChoice` parameters ([SEP-1577](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1577)).
 
 ## Minor changes
 
@@ -21,10 +23,23 @@ the previous revision, [2025-06-18](/specification/2025-06-18).
 2. Updated the [Security Best Practices guidance](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices).
 3. Clarify that input validation errors should be returned as Tool Execution Errors rather than Protocol Errors to enable model self-correction ([SEP-1303](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1303)).
 4. Support polling SSE streams by allowing servers to disconnect at will ([SEP-1699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699)).
+5. Align OAuth 2.0 Protected Resource Metadata discovery with RFC 9728, making `WWW-Authenticate` header optional with fallback to `.well-known` endpoint ([SEP-985](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/985)).
+6. Add OAuth Client ID Metadata Documents support for URL-based client registration without pre-coordination ([SEP-991](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/991)).
+7. Add support for default values in all primitive types (string, number, enum) for elicitation schemas ([SEP-1034](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1034)).
+8. Introduce URL mode elicitation for secure out-of-band interactions including OAuth flows and sensitive data collection ([SEP-1036](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1036)).
+9. Establish JSON Schema 2020-12 as the default dialect for MCP schema definitions ([SEP-1613](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1613)).
 
 ## Other schema changes
 
 1. Decouple request payloads from RPC method definitions into standalone parameter schemas. ([SEP-1319](https://github.com/modelcontextprotocol/specification/issues/1319), PR [#1284](https://github.com/modelcontextprotocol/specification/pull/1284))
+
+## Governance and process updates
+
+1. Formalize Model Context Protocol governance structure ([SEP-932](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/932)).
+2. Establish shared communication practices and guidelines for the MCP community ([SEP-994](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/994)).
+3. Formalize Working Groups and Interest Groups in MCP governance ([SEP-1302](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1302)).
+4. Introduce specification version management guidelines ([SEP-1309](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1309)).
+5. Establish SDK tiering system with clear requirements for feature support and maintenance commitments ([SEP-1730](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1730)).
 
 ## Full changelog
 
