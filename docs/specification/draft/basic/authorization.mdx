@@ -199,8 +199,8 @@ sequenceDiagram
 
 MCP supports three client registration mechanisms. Choose based on your scenario:
 
-- **Pre-registration**: When client and server have an existing relationship
 - **Client ID Metadata Documents**: When client and server have no prior relationship (most common)
+- **Pre-registration**: When client and server have an existing relationship
 - **Dynamic Client Registration**: For backwards compatibility or specific requirements
 
 ### Client ID Metadata Documents
@@ -305,6 +305,16 @@ Authorization servers advertise support via their metadata:
 MCP clients **SHOULD** check for this capability and **MAY** fall back to Dynamic Client Registration
 or pre-registration if unavailable.
 
+### Preregistration
+
+MCP clients **SHOULD** allow for support supplying static credentials such as those supplied by a preregistration flow. This could be:
+
+1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
+   interacting with that authorization server, or
+2. Present a UI to users that allows them to enter these details, after registering an
+   OAuth client themselves (e.g., through a configuration interface hosted by the
+   server).
+
 ### Dynamic Client Registration
 
 MCP clients and authorization servers **MAY** support the
@@ -312,18 +322,6 @@ OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.iet
 to allow MCP clients to obtain OAuth client IDs without user interaction. This provides a
 standardized way for clients to automatically register with new authorization servers.
 
-### Preregistration
-
-Any authorization servers that support neither Client ID Metadata Documents nor Dynamic Client Registration
-need to provide alternative ways to obtain a client ID (and, if applicable, client credentials).
-
-For these authorization servers, MCP clients **SHOULD** allow for support supplying static credentials such as those supplied by a preregistration flow. This could be:
-
-1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
-   interacting with that authorization server, or
-2. Present a UI to users that allows them to enter these details, after registering an
-   OAuth client themselves (e.g., through a configuration interface hosted by the
-   server).
 
 ## Scope Selection Strategy
 
