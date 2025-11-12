@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2025-11-12
-- **Author(s)**: Nick C. (@nickc)
+- **Author(s)**: Nick C. (@nickcoai)
 - **Sponsor**: @nickcoai
 - **PR**: #1802
 
