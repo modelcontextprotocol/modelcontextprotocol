@@ -1,6 +1,6 @@
 # Specification Enhancement Proposals (SEPs)
 
-This directory now holds the canonical, file-based SEP workflow described in [SEP-DRAFT: File-Based SEP Workflow](./DRAFT-file-based-sep-workflow.md) until it receives its permanent number. The contributor-facing guidelines at https://modelcontextprotocol.io/community/sep-guidelines mirror the steps below.
+This directory now holds the canonical, file-based SEP workflow described in [SEP-1802: File-Based SEP Workflow](./1802-file-based-sep-workflow.md) until it receives its permanent number. The contributor-facing guidelines at https://modelcontextprotocol.io/community/sep-guidelines mirror the steps below.
 
 ## Overview
 
