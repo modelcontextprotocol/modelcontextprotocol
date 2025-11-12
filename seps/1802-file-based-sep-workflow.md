@@ -1,11 +1,11 @@
-# SEP-DRAFT: File-Based SEP Workflow
+# SEP-1802: File-Based SEP Workflow
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2025-11-12
 - **Author(s)**: Nick C. (@nickc)
 - **Sponsor**: @nickcoai
-- **PR**: #TBD
+- **PR**: #1802
 
 ## Abstract
 
