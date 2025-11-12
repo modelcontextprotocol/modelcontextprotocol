@@ -1,14 +1,11 @@
-# SEP-2000: Event Subscriptions
+# SEP-1803: Event Subscriptions
 
-## Preamble
-
-- **Authors:** Casey Chow (@caseychow-oai)
-- **Discussion:** TBD
-- **Sponsor**: Nick Cooper (@nickcoai)
 - **Status:** Draft
 - **Type:** Standards Track
-- **Category:** Core
 - **Created:** 2025-11-12
+- **Authors:** Casey Chow <caseychow@openai.com> (@caseychow-oai)
+- **Sponsor**: Nick Cooper (@nickcoai)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1803
 
 ## Abstract
 
@@ -177,11 +174,11 @@ interface DeregisterSubscriptionRequest {
 - New RPCs `resources/subscriptions/register` and `resources/subscriptions/deregister`. The out-of-band subscription capability is advertised so naming collisions are mitigated by checking for that capability. These are client-driven, so clients with support for events/subscriptions can continue to interoperate with servers without support.
 - New special-case URIs `event://` and `subscription://`. This represents a moderate naming collision risk since these are fairly common terms. However, reserving usage for these protocols in a later version of MCP is quite safe since the `resources.events` capability must be advertised.
 
-## Reference Implementation
-
-TODO for shareout. I have an example server built on FastMCP that required a non-trivial amount of monkey-patching, but modifying FastMCP itself to support this proposal and building off of that appears straightforward.
-
 ## Security Implications
 
 - Webhook secrets: out-of-band notifications requires establishing shared secrets in some cases. The security of the secret handoff should be validated, and server implementations need to store secrets securely.
 - More generally, partial adoption of webhook security is a major security risk. That said, mandating full adoption is infeasible; it's better to be practical and make full adoption easier than it is to detect and block partial adoption.
+
+## Reference Implementation
+
+TODO for shareout. I have an example server built on FastMCP that required a non-trivial amount of monkey-patching, but modifying FastMCP itself to support this proposal and building off of that appears straightforward.
