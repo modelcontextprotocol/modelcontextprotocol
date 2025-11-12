@@ -221,7 +221,7 @@ Key requirements include:
 
 - Clients **MUST** host their metadata document at an HTTPS URL following RFC requirements
 - The `client_id` URL **MUST** use the "https" scheme and contain a path component, e.g. `https://example.com/client.json`
-- The metadata document **MUST** include at minimum: `client_id`, `client_name`, `redirect_uris`
+- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`
 - Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
 - Clients **MAY** use `private_key_jwt` for token endpoint authentication with appropriate JWKS configuration
 
