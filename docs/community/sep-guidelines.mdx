@@ -72,13 +72,13 @@ Each SEP should have the following parts:
 
 SEPs move through the following states, which are recorded in the SEP header:
 
-- `Draft`: The initial proposal text, typically while searching for or working with a sponsor.
-- `In-Review`: The sponsor believes the SEP is ready for broad maintainer review and community feedback.
-- `Accepted`: Core Maintainers approved the proposal, pending completion of the reference implementation.
-- `Final`: The reference implementation is complete and merged, and the SEP is considered normative.
-- `Rejected`: The proposal will not move forward after review.
-- `Withdrawn`: The author chose to stop pursuing the proposal.
-- `Superseded`: A newer SEP replaces this one (the replacing SEP must be referenced explicitly).
+- `draft`: SEP proposal with a sponsor.
+- `review`: SEP proposal ready for review.
+- `accepted`: SEP accepted by Core Maintainers, but still requires final wording and reference implementation.
+- `rejected`: SEP rejected by Core Maintainers.
+- `withdrawn`: SEP withdrawn.
+- `final`: SEP finalized.
+- `superseded`: SEP has been replaced by a newer SEP.
 
 ### SEP Review & Resolution
 
