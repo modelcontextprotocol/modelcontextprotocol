@@ -5,11 +5,13 @@ description: Specification Enhancement Proposal (SEP) guidelines for proposing c
 
 ## What is a SEP?
 
+The canonical SEP workflow keeps every proposal as a Markdown file in the `seps/` directory of this repository; the process below mirrors `seps/README.md` and the corresponding SEP that established this workflow.
+
 SEP stands for Specification Enhancement Proposal. A SEP is a design document providing information to the MCP community, or describing a new feature for the Model Context Protocol or its processes or environment. The SEP should provide a concise technical specification of the feature and a rationale for the feature.
 
 We intend SEPs to be the primary mechanisms for proposing major new features, for collecting community input on an issue, and for documenting the design decisions that have gone into MCP. The SEP author is responsible for building consensus within the community and documenting dissenting opinions.
 
-Because the SEPs are maintained as text files in a versioned repository (GitHub Issues), their revision history is the historical record of the feature proposal.
+Because SEPs are Markdown files stored in the `seps/` directory of the specification repository, Git provides the authoritative revision history for every proposal.
 
 ## What qualifies a SEP?
 
@@ -42,14 +44,16 @@ Each SEP must have an **SEP author** -- someone who writes the SEP using the sty
 
 ### SEP Workflow
 
-SEPs should be submitted as a GitHub Issue in the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol). The standard SEP workflow is:
+SEPs are submitted as pull requests that add a Markdown file to the `seps/` directory in the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol). The standard workflow is:
 
-1. You, the SEP author, create a [well-formatted](#sep-format) GitHub Issue with the `SEP` and `proposal` tags. The SEP number is the same as the GitHub Issue number, the two can be used interchangeably.
-2. Find a Core Maintainer or Maintainer to sponsor your proposal. Core Maintainers and Maintainers will regularly go over the list of open proposals to determine which proposals to sponsor. You can tag relevant maintainers from [the maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) in your proposal.
-3. Once a sponsor is found, the GitHub Issue is assigned to the sponsor. The sponsor will add the `draft` tag, ensure the SEP number is in the title, and assign a milestone.
-4. The sponsor will informally review the proposal and may request changes based on community feedback. When ready for formal review, the sponsor will add the `in-review` tag.
-5. After the `in-review` tag is added, the SEP enters formal review by the Core Maintainers team. The SEP may be accepted, rejected, or returned for revision.
-6. If the SEP has not found a sponsor within three months, Core Maintainers may close the SEP as `dormant`.
+1. Draft the proposal as `seps/DRAFT-your-feature.md`, following the [SEP format](#sep-format) including header metadata (status, type, created date, author, sponsor placeholder, and PR reference).
+2. Open a pull request containing the draft SEP (and any supporting material). The pull request discussion replaces the historical GitHub Issue thread, and the SEP should start with status `Draft`.
+3. Find a Core Maintainer or Maintainer to sponsor your proposal. Tag potential sponsors from [MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md). Once someone agrees, record their handle in the `Sponsor` field.
+4. After the pull request number is known, rename the file to `seps/{PR-number}-{slug}.md` and update the title/header to `SEP-{PR-number}` along with `PR: #{PR-number}`.
+5. Work with your sponsor to iterate on the proposal. Sponsors move the SEP through `Draft → In-Review → Accepted → Final` by updating the `Status` field in the file and using matching pull request labels.
+6. Provide or link to a reference implementation before requesting `Final` status. The pull request containing the SEP should include links to any tracking issues or additional PRs needed to implement the change.
+
+> You can still open a GitHub Issue or discussion for early feedback, but the Markdown file in `seps/` is the single source of truth for every SEP once the pull request exists.
 
 ### SEP Format
 
@@ -66,17 +70,15 @@ Each SEP should have the following parts:
 
 ### SEP States
 
-SEPs can be one one of the following states
+SEPs move through the following states, which are recorded in the SEP header:
 
-- `proposal`: SEP proposal without a sponsor.
-- `draft`: SEP proposal with a sponsor.
-- `in-review`: SEP proposal ready for review.
-- `accepted`: SEP accepted by Core Maintainers, but still requires final wording and reference implementation.
-- `rejected`: SEP rejected by Core Maintainers.
-- `withdrawn`: SEP withdrawn.
-- `final`: SEP finalized.
-- `superseded`: SEP has been replaced by a newer SEP.
-- `dormant`: SEP that has not found sponsors and was subsequently closed.
+- `Draft`: The initial proposal text, typically while searching for or working with a sponsor.
+- `In-Review`: The sponsor believes the SEP is ready for broad maintainer review and community feedback.
+- `Accepted`: Core Maintainers approved the proposal, pending completion of the reference implementation.
+- `Final`: The reference implementation is complete and merged, and the SEP is considered normative.
+- `Rejected`: The proposal will not move forward after review.
+- `Withdrawn`: The author chose to stop pursuing the proposal.
+- `Superseded`: A newer SEP replaces this one (the replacing SEP must be referenced explicitly).
 
 ### SEP Review & Resolution
 
@@ -94,7 +96,7 @@ A SEP can also be "Rejected" or "Withdrawn". A SEP that is "Withdrawn" may be re
 
 ## Reporting SEP Bugs, or Submitting SEP Updates
 
-How you report a bug, or submit a SEP update depends on several factors, such as the maturity of the SEP, the preferences of the SEP author, and the nature of your comments. For SEPs not yet reaching `final` state, it's probably best to send your comments and changes directly to the SEP author. Once SEP is finalized, you may want to submit corrections as a GitHub comment on the issue or pull request to the reference implementation.
+How you report a bug, or submit a SEP update depends on several factors, such as the maturity of the SEP, the preferences of the SEP author, and the nature of your comments. For SEPs that have not yet reached `Final`, comment on the active pull request or open a follow-up pull request editing the SEP file directly. Once a SEP is finalized, submit corrections through a new pull request against the SEP file or the relevant reference implementation.
 
 ## Transferring SEP Ownership
 

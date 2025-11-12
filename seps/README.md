@@ -1,6 +1,6 @@
 # Specification Enhancement Proposals (SEPs)
 
-> **Experimental**: This is an experimental alternative method for creating SEPs. The default method remains using GitHub issues as described at https://modelcontextprotocol.io/community/sep-guidelines.
+This directory now holds the canonical, file-based SEP workflow described in [SEP-DRAFT: File-Based SEP Workflow](./DRAFT-file-based-sep-workflow.md) until it receives its permanent number. The contributor-facing guidelines at https://modelcontextprotocol.io/community/sep-guidelines mirror the steps below.
 
 ## Overview
 
@@ -22,15 +22,11 @@ Examples:
 
 ## Creating a New SEP
 
-1. **Draft your SEP** as a markdown file with a temporary name (e.g., `DRAFT-your-feature.md`)
-
-2. **Create a pull request** adding your SEP file to the `seps/` directory
-
-3. **Rename your file** to use the PR number as the SEP number (e.g., PR #1850 → `1850-your-feature.md`)
-
-4. **Update the SEP header** to reference the correct number
-
-5. **Find a Sponsor** - A Core Maintainer or Maintainer who will shepherd your proposal through review
+1. **Draft your SEP** inside `seps/` with a temporary filename such as `DRAFT-your-feature.md`.
+2. **Open a pull request** that includes the draft and any supporting material.
+3. **Find a Sponsor** — tag potential sponsors from [`MAINTAINERS.md`](../MAINTAINERS.md) and record the confirmed sponsor in the SEP header.
+4. **Rename the file after the PR number** once the pull request exists (`PR #1850 → seps/1850-your-feature.md`) and update the header to `SEP-1850`.
+5. **Iterate in the pull request** until the sponsor promotes the proposal through `Draft → In-Review → Accepted → Final`.
 
 ## SEP File Structure
 
@@ -121,4 +117,4 @@ Using the PR number as the SEP number:
 
 ## Relationship to Issue-Based SEPs
 
-This file-based approach complements the existing issue-based SEP process. Contributors may choose either method based on preference. The canonical SEP guidelines remain at https://modelcontextprotocol.io/community/sep-guidelines
+GitHub Issues remain useful for early discussion or coordinating reference implementations, but the file inside `seps/` is the single source of truth for every SEP. Authors who start in an issue should link to the draft file once a pull request exists, and the SEP number must always match the pull request number that first introduces the file.
