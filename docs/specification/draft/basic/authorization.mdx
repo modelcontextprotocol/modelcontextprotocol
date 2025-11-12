@@ -223,7 +223,7 @@ Key requirements include:
 - The `client_id` URL **MUST** use the "https" scheme and contain a path component, e.g. `https://example.com/client.json`
 - The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`
 - Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
-- Clients **MAY** use `private_key_jwt` for token endpoint authentication with appropriate JWKS configuration
+- Clients **MAY** use `private_key_jwt` for token endpoint authentication with appropriate JWKS configuration as described in [Section 6.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)
 
 **For Authorization Servers:**
 
