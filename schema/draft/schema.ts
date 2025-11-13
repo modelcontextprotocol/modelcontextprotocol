@@ -3,7 +3,7 @@
 /**
  * Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent.
  *
- * @internal
+ * @category JSON-RPC
  */
 export type JSONRPCMessage =
   | JSONRPCRequest
@@ -18,16 +18,22 @@ export const JSONRPC_VERSION = "2.0";
 
 /**
  * A progress token, used to associate progress notifications with the original request.
+ *
+ * @category Common Types
  */
 export type ProgressToken = string | number;
 
 /**
  * An opaque token used to represent a cursor for pagination.
+ *
+ * @category Common Types
  */
 export type Cursor = string;
 
 /**
  * Common params for any request.
+ *
+ * @internal
  */
 export interface RequestParams {
   /**
@@ -66,6 +72,9 @@ export interface Notification {
   params?: { [key: string]: any };
 }
 
+/**
+ * @category Common Types
+ */
 export interface Result {
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
@@ -74,6 +83,9 @@ export interface Result {
   [key: string]: unknown;
 }
 
+/**
+ * @category Common Types
+ */
 export interface Error {
   /**
    * The error type that occurred.
@@ -91,11 +103,15 @@ export interface Error {
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
+ *
+ * @category Common Types
  */
 export type RequestId = string | number;
 
 /**
  * A request that expects a response.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCRequest extends Request {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -104,6 +120,8 @@ export interface JSONRPCRequest extends Request {
 
 /**
  * A notification which does not expect a response.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCNotification extends Notification {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -111,6 +129,8 @@ export interface JSONRPCNotification extends Notification {
 
 /**
  * A successful (non-error) response to a request.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCResponse {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -119,19 +139,16 @@ export interface JSONRPCResponse {
 }
 
 // Standard JSON-RPC error codes
-/** @internal */
 export const PARSE_ERROR = -32700;
-/** @internal */
 export const INVALID_REQUEST = -32600;
-/** @internal */
 export const METHOD_NOT_FOUND = -32601;
-/** @internal */
 export const INVALID_PARAMS = -32602;
-/** @internal */
 export const INTERNAL_ERROR = -32603;
 
 /**
  * A response to a request that indicates an error occurred.
+ *
+ * @category JSON-RPC
  */
 export interface JSONRPCError {
   jsonrpc: typeof JSONRPC_VERSION;
@@ -142,6 +159,8 @@ export interface JSONRPCError {
 /* Empty result */
 /**
  * A response that indicates success but carries no data.
+ *
+ * @category Common Types
  */
 export type EmptyResult = Result;
 
@@ -149,7 +168,7 @@ export type EmptyResult = Result;
 /**
  * Parameters for a `notifications/cancelled` notification.
  *
- * @category notifications/cancelled
+ * @category `notifications/cancelled`
  */
 export interface CancelledNotificationParams extends NotificationParams {
   /**
@@ -174,7 +193,7 @@ export interface CancelledNotificationParams extends NotificationParams {
  *
  * A client MUST NOT attempt to cancel its `initialize` request.
  *
- * @category notifications/cancelled
+ * @category `notifications/cancelled`
  */
 export interface CancelledNotification extends JSONRPCNotification {
   method: "notifications/cancelled";
@@ -185,7 +204,7 @@ export interface CancelledNotification extends JSONRPCNotification {
 /**
  * Parameters for an `initialize` request.
  *
- * @category initialize
+ * @category `initialize`
  */
 export interface InitializeRequestParams extends RequestParams {
   /**
@@ -199,7 +218,7 @@ export interface InitializeRequestParams extends RequestParams {
 /**
  * This request is sent from the client to the server when it first connects, asking it to begin initialization.
  *
- * @category initialize
+ * @category `initialize`
  */
 export interface InitializeRequest extends JSONRPCRequest {
   method: "initialize";
@@ -209,7 +228,7 @@ export interface InitializeRequest extends JSONRPCRequest {
 /**
  * After receiving an initialize request from the client, the server sends this response.
  *
- * @category initialize
+ * @category `initialize`
  */
 export interface InitializeResult extends Result {
   /**
@@ -230,7 +249,7 @@ export interface InitializeResult extends Result {
 /**
  * This notification is sent from the client to the server after initialization has finished.
  *
- * @category notifications/initialized
+ * @category `notifications/initialized`
  */
 export interface InitializedNotification extends JSONRPCNotification {
   method: "notifications/initialized";
@@ -239,6 +258,8 @@ export interface InitializedNotification extends JSONRPCNotification {
 
 /**
  * Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.
+ *
+ * @category `initialize`
  */
 export interface ClientCapabilities {
   /**
@@ -266,6 +287,8 @@ export interface ClientCapabilities {
 
 /**
  * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
+ *
+ * @category `initialize`
  */
 export interface ServerCapabilities {
   /**
@@ -315,6 +338,8 @@ export interface ServerCapabilities {
 
 /**
  * An optionally-sized icon that can be displayed in a user interface.
+ *
+ * @category Common Types
  */
 export interface Icon {
   /**
@@ -398,7 +423,9 @@ export interface BaseMetadata {
 }
 
 /**
- * Describes the MCP implementation
+ * Describes the MCP implementation.
+ *
+ * @category `initialize`
  */
 export interface Implementation extends BaseMetadata, Icons {
   version: string;
@@ -415,7 +442,7 @@ export interface Implementation extends BaseMetadata, Icons {
 /**
  * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
  *
- * @category ping
+ * @category `ping`
  */
 export interface PingRequest extends JSONRPCRequest {
   method: "ping";
@@ -427,7 +454,7 @@ export interface PingRequest extends JSONRPCRequest {
 /**
  * Parameters for a `notifications/progress` notification.
  *
- * @category notifications/progress
+ * @category `notifications/progress`
  */
 export interface ProgressNotificationParams extends NotificationParams {
   /**
@@ -455,7 +482,7 @@ export interface ProgressNotificationParams extends NotificationParams {
 /**
  * An out-of-band notification used to inform the receiver of a progress update for a long-running request.
  *
- * @category notifications/progress
+ * @category `notifications/progress`
  */
 export interface ProgressNotification extends JSONRPCNotification {
   method: "notifications/progress";
@@ -465,6 +492,8 @@ export interface ProgressNotification extends JSONRPCNotification {
 /* Pagination */
 /**
  * Common parameters for paginated requests.
+ *
+ * @internal
  */
 export interface PaginatedRequestParams extends RequestParams {
   /**
@@ -492,7 +521,7 @@ export interface PaginatedResult extends Result {
 /**
  * Sent from the client to request a list of resources the server has.
  *
- * @category resources/list
+ * @category `resources/list`
  */
 export interface ListResourcesRequest extends PaginatedRequest {
   method: "resources/list";
@@ -501,7 +530,7 @@ export interface ListResourcesRequest extends PaginatedRequest {
 /**
  * The server's response to a resources/list request from the client.
  *
- * @category resources/list
+ * @category `resources/list`
  */
 export interface ListResourcesResult extends PaginatedResult {
   resources: Resource[];
@@ -510,7 +539,7 @@ export interface ListResourcesResult extends PaginatedResult {
 /**
  * Sent from the client to request a list of resource templates the server has.
  *
- * @category resources/templates/list
+ * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesRequest extends PaginatedRequest {
   method: "resources/templates/list";
@@ -519,7 +548,7 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
 /**
  * The server's response to a resources/templates/list request from the client.
  *
- * @category resources/templates/list
+ * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesResult extends PaginatedResult {
   resourceTemplates: ResourceTemplate[];
@@ -542,7 +571,7 @@ export interface ResourceRequestParams extends RequestParams {
 /**
  * Parameters for a `resources/read` request.
  *
- * @category resources/read
+ * @category `resources/read`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ReadResourceRequestParams extends ResourceRequestParams {}
@@ -550,7 +579,7 @@ export interface ReadResourceRequestParams extends ResourceRequestParams {}
 /**
  * Sent from the client to the server, to read a specific resource URI.
  *
- * @category resources/read
+ * @category `resources/read`
  */
 export interface ReadResourceRequest extends JSONRPCRequest {
   method: "resources/read";
@@ -560,7 +589,7 @@ export interface ReadResourceRequest extends JSONRPCRequest {
 /**
  * The server's response to a resources/read request from the client.
  *
- * @category resources/read
+ * @category `resources/read`
  */
 export interface ReadResourceResult extends Result {
   contents: (TextResourceContents | BlobResourceContents)[];
@@ -569,7 +598,7 @@ export interface ReadResourceResult extends Result {
 /**
  * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.
  *
- * @category notifications/resources/list_changed
+ * @category `notifications/resources/list_changed`
  */
 export interface ResourceListChangedNotification extends JSONRPCNotification {
   method: "notifications/resources/list_changed";
@@ -579,7 +608,7 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
 /**
  * Parameters for a `resources/subscribe` request.
  *
- * @category resources/subscribe
+ * @category `resources/subscribe`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface SubscribeRequestParams extends ResourceRequestParams {}
@@ -587,7 +616,7 @@ export interface SubscribeRequestParams extends ResourceRequestParams {}
 /**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
  *
- * @category resources/subscribe
+ * @category `resources/subscribe`
  */
 export interface SubscribeRequest extends JSONRPCRequest {
   method: "resources/subscribe";
@@ -597,7 +626,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
 /**
  * Parameters for a `resources/unsubscribe` request.
  *
- * @category resources/unsubscribe
+ * @category `resources/unsubscribe`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface UnsubscribeRequestParams extends ResourceRequestParams {}
@@ -605,7 +634,7 @@ export interface UnsubscribeRequestParams extends ResourceRequestParams {}
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
  *
- * @category resources/unsubscribe
+ * @category `resources/unsubscribe`
  */
 export interface UnsubscribeRequest extends JSONRPCRequest {
   method: "resources/unsubscribe";
@@ -615,7 +644,7 @@ export interface UnsubscribeRequest extends JSONRPCRequest {
 /**
  * Parameters for a `notifications/resources/updated` notification.
  *
- * @category notifications/resources/updated
+ * @category `notifications/resources/updated`
  */
 export interface ResourceUpdatedNotificationParams extends NotificationParams {
   /**
@@ -629,7 +658,7 @@ export interface ResourceUpdatedNotificationParams extends NotificationParams {
 /**
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
  *
- * @category notifications/resources/updated
+ * @category `notifications/resources/updated`
  */
 export interface ResourceUpdatedNotification extends JSONRPCNotification {
   method: "notifications/resources/updated";
@@ -638,6 +667,8 @@ export interface ResourceUpdatedNotification extends JSONRPCNotification {
 
 /**
  * A known resource that the server is capable of reading.
+ *
+ * @category `resources/list`
  */
 export interface Resource extends BaseMetadata, Icons {
   /**
@@ -679,6 +710,8 @@ export interface Resource extends BaseMetadata, Icons {
 
 /**
  * A template description for resources available on the server.
+ *
+ * @category `resources/templates/list`
  */
 export interface ResourceTemplate extends BaseMetadata, Icons {
   /**
@@ -713,6 +746,8 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
 
 /**
  * The contents of a specific resource or sub-resource.
+ *
+ * @internal
  */
 export interface ResourceContents {
   /**
@@ -732,6 +767,9 @@ export interface ResourceContents {
   _meta?: { [key: string]: unknown };
 }
 
+/**
+ * @category Content
+ */
 export interface TextResourceContents extends ResourceContents {
   /**
    * The text of the item. This must only be set if the item can actually be represented as text (not binary data).
@@ -739,6 +777,9 @@ export interface TextResourceContents extends ResourceContents {
   text: string;
 }
 
+/**
+ * @category Content
+ */
 export interface BlobResourceContents extends ResourceContents {
   /**
    * A base64-encoded string representing the binary data of the item.
@@ -752,7 +793,7 @@ export interface BlobResourceContents extends ResourceContents {
 /**
  * Sent from the client to request a list of prompts and prompt templates the server has.
  *
- * @category prompts/list
+ * @category `prompts/list`
  */
 export interface ListPromptsRequest extends PaginatedRequest {
   method: "prompts/list";
@@ -761,7 +802,7 @@ export interface ListPromptsRequest extends PaginatedRequest {
 /**
  * The server's response to a prompts/list request from the client.
  *
- * @category prompts/list
+ * @category `prompts/list`
  */
 export interface ListPromptsResult extends PaginatedResult {
   prompts: Prompt[];
@@ -770,7 +811,7 @@ export interface ListPromptsResult extends PaginatedResult {
 /**
  * Parameters for a `prompts/get` request.
  *
- * @category prompts/get
+ * @category `prompts/get`
  */
 export interface GetPromptRequestParams extends RequestParams {
   /**
@@ -786,7 +827,7 @@ export interface GetPromptRequestParams extends RequestParams {
 /**
  * Used by the client to get a prompt provided by the server.
  *
- * @category prompts/get
+ * @category `prompts/get`
  */
 export interface GetPromptRequest extends JSONRPCRequest {
   method: "prompts/get";
@@ -796,7 +837,7 @@ export interface GetPromptRequest extends JSONRPCRequest {
 /**
  * The server's response to a prompts/get request from the client.
  *
- * @category prompts/get
+ * @category `prompts/get`
  */
 export interface GetPromptResult extends Result {
   /**
@@ -808,6 +849,8 @@ export interface GetPromptResult extends Result {
 
 /**
  * A prompt or prompt template that the server offers.
+ *
+ * @category `prompts/list`
  */
 export interface Prompt extends BaseMetadata, Icons {
   /**
@@ -828,6 +871,8 @@ export interface Prompt extends BaseMetadata, Icons {
 
 /**
  * Describes an argument that a prompt can accept.
+ *
+ * @category `prompts/list`
  */
 export interface PromptArgument extends BaseMetadata {
   /**
@@ -842,6 +887,8 @@ export interface PromptArgument extends BaseMetadata {
 
 /**
  * The sender or recipient of messages and data in a conversation.
+ *
+ * @category Common Types
  */
 export type Role = "user" | "assistant";
 
@@ -850,6 +897,8 @@ export type Role = "user" | "assistant";
  *
  * This is similar to `SamplingMessage`, but also supports the embedding of
  * resources from the MCP server.
+ *
+ * @category `prompts/get`
  */
 export interface PromptMessage {
   role: Role;
@@ -860,6 +909,8 @@ export interface PromptMessage {
  * A resource that the server is capable of reading, included in a prompt or tool call result.
  *
  * Note: resource links returned by tools are not guaranteed to appear in the results of `resources/list` requests.
+ *
+ * @category Content
  */
 export interface ResourceLink extends Resource {
   type: "resource_link";
@@ -870,6 +921,8 @@ export interface ResourceLink extends Resource {
  *
  * It is up to the client how best to render embedded resources for the benefit
  * of the LLM and/or the user.
+ *
+ * @category Content
  */
 export interface EmbeddedResource {
   type: "resource";
@@ -888,7 +941,7 @@ export interface EmbeddedResource {
 /**
  * An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.
  *
- * @category notifications/prompts/list_changed
+ * @category `notifications/prompts/list_changed`
  */
 export interface PromptListChangedNotification extends JSONRPCNotification {
   method: "notifications/prompts/list_changed";
@@ -899,7 +952,7 @@ export interface PromptListChangedNotification extends JSONRPCNotification {
 /**
  * Sent from the client to request a list of tools the server has.
  *
- * @category tools/list
+ * @category `tools/list`
  */
 export interface ListToolsRequest extends PaginatedRequest {
   method: "tools/list";
@@ -908,7 +961,7 @@ export interface ListToolsRequest extends PaginatedRequest {
 /**
  * The server's response to a tools/list request from the client.
  *
- * @category tools/list
+ * @category `tools/list`
  */
 export interface ListToolsResult extends PaginatedResult {
   tools: Tool[];
@@ -917,7 +970,7 @@ export interface ListToolsResult extends PaginatedResult {
 /**
  * The server's response to a tool call.
  *
- * @category tools/call
+ * @category `tools/call`
  */
 export interface CallToolResult extends Result {
   /**
@@ -950,7 +1003,7 @@ export interface CallToolResult extends Result {
 /**
  * Parameters for a `tools/call` request.
  *
- * @category tools/call
+ * @category `tools/call`
  */
 export interface CallToolRequestParams extends RequestParams {
   /**
@@ -966,7 +1019,7 @@ export interface CallToolRequestParams extends RequestParams {
 /**
  * Used by the client to invoke a tool provided by the server.
  *
- * @category tools/call
+ * @category `tools/call`
  */
 export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
@@ -976,7 +1029,7 @@ export interface CallToolRequest extends JSONRPCRequest {
 /**
  * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
  *
- * @category notifications/tools/list_changed
+ * @category `notifications/tools/list_changed`
  */
 export interface ToolListChangedNotification extends JSONRPCNotification {
   method: "notifications/tools/list_changed";
@@ -992,6 +1045,8 @@ export interface ToolListChangedNotification extends JSONRPCNotification {
  *
  * Clients should never make tool use decisions based on ToolAnnotations
  * received from untrusted servers.
+ *
+ * @category `tools/list`
  */
 export interface ToolAnnotations {
   /**
@@ -1039,6 +1094,8 @@ export interface ToolAnnotations {
 
 /**
  * Definition for a tool the client can call.
+ *
+ * @category `tools/list`
  */
 export interface Tool extends BaseMetadata, Icons {
   /**
@@ -1085,7 +1142,7 @@ export interface Tool extends BaseMetadata, Icons {
 /**
  * Parameters for a `logging/setLevel` request.
  *
- * @category logging/setLevel
+ * @category `logging/setLevel`
  */
 export interface SetLevelRequestParams extends RequestParams {
   /**
@@ -1097,7 +1154,7 @@ export interface SetLevelRequestParams extends RequestParams {
 /**
  * A request from the client to the server, to enable or adjust logging.
  *
- * @category logging/setLevel
+ * @category `logging/setLevel`
  */
 export interface SetLevelRequest extends JSONRPCRequest {
   method: "logging/setLevel";
@@ -1107,7 +1164,7 @@ export interface SetLevelRequest extends JSONRPCRequest {
 /**
  * Parameters for a `notifications/message` notification.
  *
- * @category notifications/message
+ * @category `notifications/message`
  */
 export interface LoggingMessageNotificationParams extends NotificationParams {
   /**
@@ -1127,7 +1184,7 @@ export interface LoggingMessageNotificationParams extends NotificationParams {
 /**
  * JSONRPCNotification of a log message passed from server to client. If no logging/setLevel request has been sent from the client, the server MAY decide which messages to send automatically.
  *
- * @category notifications/message
+ * @category `notifications/message`
  */
 export interface LoggingMessageNotification extends JSONRPCNotification {
   method: "notifications/message";
@@ -1139,6 +1196,8 @@ export interface LoggingMessageNotification extends JSONRPCNotification {
  *
  * These map to syslog message severities, as specified in RFC-5424:
  * https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1
+ *
+ * @category Common Types
  */
 export type LoggingLevel =
   | "debug"
@@ -1154,7 +1213,7 @@ export type LoggingLevel =
 /**
  * Parameters for a `sampling/createMessage` request.
  *
- * @category sampling/createMessage
+ * @category `sampling/createMessage`
  */
 export interface CreateMessageRequestParams extends RequestParams {
   messages: SamplingMessage[];
@@ -1190,7 +1249,7 @@ export interface CreateMessageRequestParams extends RequestParams {
 /**
  * A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.
  *
- * @category sampling/createMessage
+ * @category `sampling/createMessage`
  */
 export interface CreateMessageRequest extends JSONRPCRequest {
   method: "sampling/createMessage";
@@ -1200,7 +1259,7 @@ export interface CreateMessageRequest extends JSONRPCRequest {
 /**
  * The client's response to a sampling/create_message request from the server. The client should inform the user before returning the sampled message, to allow them to inspect the response (human in the loop) and decide whether to allow the server to see it.
  *
- * @category sampling/createMessage
+ * @category `sampling/createMessage`
  */
 export interface CreateMessageResult extends Result, SamplingMessage {
   /**
@@ -1215,6 +1274,8 @@ export interface CreateMessageResult extends Result, SamplingMessage {
 
 /**
  * Describes a message issued to or received from an LLM API.
+ *
+ * @category `sampling/createMessage`
  */
 export interface SamplingMessage {
   role: Role;
@@ -1223,6 +1284,8 @@ export interface SamplingMessage {
 
 /**
  * Optional annotations for the client. The client can use annotations to inform how objects are used or displayed
+ *
+ * @category Common Types
  */
 export interface Annotations {
   /**
@@ -1256,6 +1319,9 @@ export interface Annotations {
   lastModified?: string;
 }
 
+/**
+ * @category Content
+ */
 export type ContentBlock =
   | TextContent
   | ImageContent
@@ -1265,6 +1331,8 @@ export type ContentBlock =
 
 /**
  * Text provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface TextContent {
   type: "text";
@@ -1287,6 +1355,8 @@ export interface TextContent {
 
 /**
  * An image provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface ImageContent {
   type: "image";
@@ -1316,6 +1386,8 @@ export interface ImageContent {
 
 /**
  * Audio provided to or from an LLM.
+ *
+ * @category Content
  */
 export interface AudioContent {
   type: "audio";
@@ -1355,6 +1427,8 @@ export interface AudioContent {
  * These preferences are always advisory. The client MAY ignore them. It is also
  * up to the client to decide how to interpret these preferences and how to
  * balance them against other considerations.
+ *
+ * @category `sampling/createMessage`
  */
 export interface ModelPreferences {
   /**
@@ -1407,6 +1481,8 @@ export interface ModelPreferences {
  *
  * Keys not declared here are currently left unspecified by the spec and are up
  * to the client to interpret.
+ *
+ * @category `sampling/createMessage`
  */
 export interface ModelHint {
   /**
@@ -1427,7 +1503,7 @@ export interface ModelHint {
 /**
  * Parameters for a `completion/complete` request.
  *
- * @category completion/complete
+ * @category `completion/complete`
  */
 export interface CompleteRequestParams extends RequestParams {
   ref: PromptReference | ResourceTemplateReference;
@@ -1459,7 +1535,7 @@ export interface CompleteRequestParams extends RequestParams {
 /**
  * A request from the client to the server, to ask for completion options.
  *
- * @category completion/complete
+ * @category `completion/complete`
  */
 export interface CompleteRequest extends JSONRPCRequest {
   method: "completion/complete";
@@ -1469,7 +1545,7 @@ export interface CompleteRequest extends JSONRPCRequest {
 /**
  * The server's response to a completion/complete request
  *
- * @category completion/complete
+ * @category `completion/complete`
  */
 export interface CompleteResult extends Result {
   completion: {
@@ -1490,6 +1566,8 @@ export interface CompleteResult extends Result {
 
 /**
  * A reference to a resource or resource template definition.
+ *
+ * @category `completion/complete`
  */
 export interface ResourceTemplateReference {
   type: "ref/resource";
@@ -1503,6 +1581,8 @@ export interface ResourceTemplateReference {
 
 /**
  * Identifies a prompt.
+ *
+ * @category `completion/complete`
  */
 export interface PromptReference extends BaseMetadata {
   type: "ref/prompt";
@@ -1518,7 +1598,7 @@ export interface PromptReference extends BaseMetadata {
  * This request is typically used when the server needs to understand the file system
  * structure or access specific locations that the client has permission to read from.
  *
- * @category roots/list
+ * @category `roots/list`
  */
 export interface ListRootsRequest extends JSONRPCRequest {
   method: "roots/list";
@@ -1530,7 +1610,7 @@ export interface ListRootsRequest extends JSONRPCRequest {
  * This result contains an array of Root objects, each representing a root directory
  * or file that the server can operate on.
  *
- * @category roots/list
+ * @category `roots/list`
  */
 export interface ListRootsResult extends Result {
   roots: Root[];
@@ -1538,6 +1618,8 @@ export interface ListRootsResult extends Result {
 
 /**
  * Represents a root directory or file that the server can operate on.
+ *
+ * @category `roots/list`
  */
 export interface Root {
   /**
@@ -1566,7 +1648,7 @@ export interface Root {
  * This notification should be sent whenever the client adds, removes, or modifies any root.
  * The server should then request an updated list of roots using the ListRootsRequest.
  *
- * @category notifications/roots/list_changed
+ * @category `notifications/roots/list_changed`
  */
 export interface RootsListChangedNotification extends JSONRPCNotification {
   method: "notifications/roots/list_changed";
@@ -1576,7 +1658,7 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
 /**
  * Parameters for an `elicitation/create` request.
  *
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitRequestParams extends RequestParams {
   /**
@@ -1599,7 +1681,7 @@ export interface ElicitRequestParams extends RequestParams {
 /**
  * A request from the server to elicit additional information from the user via the client.
  *
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
@@ -1609,6 +1691,8 @@ export interface ElicitRequest extends JSONRPCRequest {
 /**
  * Restricted schema definitions that only allow primitive types
  * without nested objects or arrays.
+ *
+ * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
   | StringSchema
@@ -1616,6 +1700,9 @@ export type PrimitiveSchemaDefinition =
   | BooleanSchema
   | EnumSchema;
 
+/**
+ * @category `elicitation/create`
+ */
 export interface StringSchema {
   type: "string";
   title?: string;
@@ -1626,6 +1713,9 @@ export interface StringSchema {
   default?: string;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
@@ -1635,6 +1725,9 @@ export interface NumberSchema {
   default?: number;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 export interface BooleanSchema {
   type: "boolean";
   title?: string;
@@ -1644,6 +1737,8 @@ export interface BooleanSchema {
 
 /**
  * Schema for single-selection enumeration without display titles for options.
+ *
+ * @category `elicitation/create`
  */
 export interface UntitledSingleSelectEnumSchema {
   type: "string";
@@ -1667,6 +1762,8 @@ export interface UntitledSingleSelectEnumSchema {
 
 /**
  * Schema for single-selection enumeration with display titles for each option.
+ *
+ * @category `elicitation/create`
  */
 export interface TitledSingleSelectEnumSchema {
   type: "string";
@@ -1697,6 +1794,9 @@ export interface TitledSingleSelectEnumSchema {
   default?: string;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
   | UntitledSingleSelectEnumSchema
@@ -1704,6 +1804,8 @@ export type SingleSelectEnumSchema =
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
+ *
+ * @category `elicitation/create`
  */
 export interface UntitledMultiSelectEnumSchema {
   type: "array";
@@ -1741,6 +1843,8 @@ export interface UntitledMultiSelectEnumSchema {
 
 /**
  * Schema for multiple-selection enumeration with display titles for each option.
+ *
+ * @category `elicitation/create`
  */
 export interface TitledMultiSelectEnumSchema {
   type: "array";
@@ -1784,6 +1888,9 @@ export interface TitledMultiSelectEnumSchema {
   default?: string[];
 }
 
+/**
+ * @category `elicitation/create`
+ */
 // Combined multiple selection enumeration
 export type MultiSelectEnumSchema =
   | UntitledMultiSelectEnumSchema
@@ -1792,6 +1899,8 @@ export type MultiSelectEnumSchema =
 /**
  * Use TitledSingleSelectEnumSchema instead.
  * This interface will be removed in a future version.
+ *
+ * @category `elicitation/create`
  */
 export interface LegacyTitledEnumSchema {
   type: "string";
@@ -1806,6 +1915,9 @@ export interface LegacyTitledEnumSchema {
   default?: string;
 }
 
+/**
+ * @category `elicitation/create`
+ */
 // Union type for all enum schemas
 export type EnumSchema =
   | SingleSelectEnumSchema
@@ -1815,7 +1927,7 @@ export type EnumSchema =
 /**
  * The client's response to an elicitation request.
  *
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitResult extends Result {
   /**
