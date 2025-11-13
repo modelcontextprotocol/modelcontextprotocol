@@ -31,7 +31,6 @@ For trust & safety and security:
 
 - Servers **MUST NOT** use form mode elicitation to request sensitive information
 - Servers **MUST** use URL mode for interactions involving sensitive information, such as credentials
-- URLs **MUST NOT** appear in any field of an elicitation request, other than the `url` field in an URL mode request
 
 MCP clients **MUST**:
 
@@ -699,11 +698,10 @@ Clients **MUST** return standard JSON-RPC errors for common failure cases:
 
 MCP servers requesting elicitation:
 
-1. **MUST NOT** include URLs in any message or schema fields as part of a form mode elicitation request.
-1. **MUST NOT** include URLs in any message or schema fields as part of an URL mode elicitation request, except for the `url` field.
-1. **MUST NOT** include plain text sensitive information about the end-user, including credentials, personal identifiable information, etc., in the URL sent to the client.
-1. **MUST NOT** provide a URL which is pre-authenticated to access a protected resource, as the URL could be used to impersonate the user by a malicious client.
-1. **SHOULD** use HTTPS URLs for non-development environments.
+1. **MUST NOT** include sensitive information about the end-user, including credentials, personal identifiable information, etc., in the URL sent to the client in a URL elicitation request.
+2. **MUST NOT** provide a URL which is pre-authenticated to access a protected resource, as the URL could be used to impersonate the user by a malicious client.
+3. **SHOULD NOT** include URLs intended to be clickable in any field of a form mode elicitation request.
+4. **SHOULD** use HTTPS URLs for non-development environments.
 
 These server requirements ensure that client implementations have clear rules about when to present a URL to the user, so that the client-side rules (below) can be consistently applied.
 
@@ -718,6 +716,7 @@ When handling URL mode elicitation requests, MCP clients:
    For example, on iOS, [SFSafariViewController](https://developer.apple.com/documentation/safariservices/sfsafariviewcontroller) is good, but [WkWebView](https://developer.apple.com/documentation/webkit/wkwebview) is not.
 5. **SHOULD** highlight the domain of the URL to mitigate subdomain spoofing.
 6. **SHOULD** have warnings for ambiguous/suspicious URIs (i.e., containing Punycode).
+7. **SHOULD NOT** render URLs as clickable in any field of an elicitation request, except for the `url` field in a URL elicitation request (with the restrictions detailed above).
 
 ### Identifying the User
 
