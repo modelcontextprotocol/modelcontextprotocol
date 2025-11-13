@@ -666,14 +666,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/ElicitRequestURLParams"
-                        },
-                        {
-                            "$ref": "#/definitions/ElicitRequestFormParams"
-                        }
-                    ]
+                    "$ref": "#/definitions/ElicitRequestParams"
                 }
             },
             "required": [
@@ -685,6 +678,7 @@
             "type": "object"
         },
         "ElicitRequestFormParams": {
+            "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -698,7 +692,7 @@
                     "type": "object"
                 },
                 "message": {
-                    "description": "The message to present to the user.\nThe message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
+                    "description": "The message to present to the user describing what information is being requested.",
                     "type": "string"
                 },
                 "mode": {
@@ -741,66 +735,18 @@
             "type": "object"
         },
         "ElicitRequestParams": {
-            "description": "Parameters for an `elicitation/create` request.\nThe parameters for a request to elicit additional information from the user via the client.",
-            "properties": {
-                "_meta": {
-                    "additionalProperties": {},
-                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
-                    "properties": {
-                        "progressToken": {
-                            "$ref": "#/definitions/ProgressToken",
-                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
-                        }
-                    },
-                    "type": "object"
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ElicitRequestURLParams"
                 },
-                "message": {
-                    "description": "The message to present to the user.\nThe message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
-                    "type": "string"
-                },
-                "mode": {
-                    "description": "The mode of elicitation.\n- \"form\": In-band structured data collection with optional schema validation\n- \"url\": Out-of-band interaction via URL navigation",
-                    "enum": [
-                        "form",
-                        "url"
-                    ],
-                    "type": "string"
-                },
-                "requestedSchema": {
-                    "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
-                    "properties": {
-                        "properties": {
-                            "additionalProperties": {
-                                "$ref": "#/definitions/PrimitiveSchemaDefinition"
-                            },
-                            "type": "object"
-                        },
-                        "required": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "type": {
-                            "const": "object",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "properties",
-                        "type"
-                    ],
-                    "type": "object"
+                {
+                    "$ref": "#/definitions/ElicitRequestFormParams"
                 }
-            },
-            "required": [
-                "message",
-                "mode",
-                "requestedSchema"
             ],
-            "type": "object"
+            "description": "The parameters for a request to elicit additional information from the user via the client."
         },
         "ElicitRequestURLParams": {
+            "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -818,39 +764,13 @@
                     "type": "string"
                 },
                 "message": {
-                    "description": "The message to present to the user.\nThe message to present to the user.\nFor form mode: Describes what information is being requested.\nFor url mode: Explains why the interaction is needed.",
+                    "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
                 },
                 "mode": {
                     "const": "url",
                     "description": "The elicitation mode.",
                     "type": "string"
-                },
-                "requestedSchema": {
-                    "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
-                    "properties": {
-                        "properties": {
-                            "additionalProperties": {
-                                "$ref": "#/definitions/PrimitiveSchemaDefinition"
-                            },
-                            "type": "object"
-                        },
-                        "required": {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "type": {
-                            "const": "object",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "properties",
-                        "type"
-                    ],
-                    "type": "object"
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -862,7 +782,6 @@
                 "elicitationId",
                 "message",
                 "mode",
-                "requestedSchema",
                 "url"
             ],
             "type": "object"

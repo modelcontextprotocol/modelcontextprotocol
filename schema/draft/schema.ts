@@ -1676,38 +1676,22 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
 }
 
 /**
- * Parameters for an `elicitation/create` request.
+ * The parameters for a request to elicit non-sensitive information from the user via a form in the client.
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestParams extends RequestParams {
-  /**
-   * The message to present to the user.
-   */
-  message: string;
-  /**
-   * A restricted subset of JSON Schema.
-   * Only top-level properties are allowed, without nesting.
-   */
-  requestedSchema: {
-    type: "object";
-    properties: {
-      [key: string]: PrimitiveSchemaDefinition;
-    };
-    required?: string[];
-  };
-}
-
-/**
- * @category `elicitation/create`
- */
-export interface ElicitRequestFormParams extends ElicitRequestParams {
+export interface ElicitRequestFormParams extends RequestParams {
   /**
    * The elicitation mode.
    */
   mode: "form";
 
   /**
+   * The message to present to the user describing what information is being requested.
+   */
+  message: string;
+
+  /**
    * A restricted subset of JSON Schema.
    * Only top-level properties are allowed, without nesting.
    */
@@ -1721,13 +1705,20 @@ export interface ElicitRequestFormParams extends ElicitRequestParams {
 }
 
 /**
+ * The parameters for a request to elicit information from the user via a URL in the client.
+ *
  * @category `elicitation/create`
  */
-export interface ElicitRequestURLParams extends ElicitRequestParams {
+export interface ElicitRequestURLParams extends RequestParams {
   /**
    * The elicitation mode.
    */
   mode: "url";
+
+  /**
+   * The message to present to the user explaining why the interaction is needed.
+   */
+  message: string;
 
   /**
    * The ID of the elicitation, which must be unique within the context of the server.
@@ -1746,23 +1737,11 @@ export interface ElicitRequestURLParams extends ElicitRequestParams {
 /**
  * The parameters for a request to elicit additional information from the user via the client.
  *
- * @internal
+ * @category `elicitation/create`
  */
-export interface ElicitRequestParams extends RequestParams {
-  /**
-   * The mode of elicitation.
-   * - "form": In-band structured data collection with optional schema validation
-   * - "url": Out-of-band interaction via URL navigation
-   */
-  mode: "form" | "url";
-
-  /**
-   * The message to present to the user.
-   * For form mode: Describes what information is being requested.
-   * For url mode: Explains why the interaction is needed.
-   */
-  message: string;
-}
+export type ElicitRequestParams =
+  | ElicitRequestFormParams
+  | ElicitRequestURLParams;
 
 /**
  * A request from the server to elicit additional information from the user via the client.
@@ -1771,7 +1750,7 @@ export interface ElicitRequestParams extends RequestParams {
  */
 export interface ElicitRequest extends JSONRPCRequest {
   method: "elicitation/create";
-  params: ElicitRequestFormParams | ElicitRequestURLParams;
+  params: ElicitRequestParams;
 }
 
 /**
