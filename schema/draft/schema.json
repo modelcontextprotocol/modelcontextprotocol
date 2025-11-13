@@ -164,9 +164,7 @@
                     "type": "object"
                 },
                 "arguments": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
+                    "additionalProperties": {},
                     "description": "Arguments to use for the tool call.",
                     "type": "object"
                 },
@@ -258,9 +256,19 @@
             "description": "Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.",
             "properties": {
                 "elicitation": {
-                    "additionalProperties": true,
                     "description": "Present if the client supports elicitation from the server.",
-                    "properties": {},
+                    "properties": {
+                        "form": {
+                            "additionalProperties": true,
+                            "properties": {},
+                            "type": "object"
+                        },
+                        "url": {
+                            "additionalProperties": true,
+                            "properties": {},
+                            "type": "object"
+                        }
+                    },
                     "type": "object"
                 },
                 "experimental": {
@@ -669,8 +677,8 @@
             ],
             "type": "object"
         },
-        "ElicitRequestParams": {
-            "description": "Parameters for an `elicitation/create` request.",
+        "ElicitRequestFormParams": {
+            "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
@@ -684,7 +692,12 @@
                     "type": "object"
                 },
                 "message": {
-                    "description": "The message to present to the user.",
+                    "description": "The message to present to the user describing what information is being requested.",
+                    "type": "string"
+                },
+                "mode": {
+                    "const": "form",
+                    "description": "The elicitation mode.",
                     "type": "string"
                 },
                 "requestedSchema": {
@@ -716,7 +729,60 @@
             },
             "required": [
                 "message",
+                "mode",
                 "requestedSchema"
+            ],
+            "type": "object"
+        },
+        "ElicitRequestParams": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ElicitRequestURLParams"
+                },
+                {
+                    "$ref": "#/definitions/ElicitRequestFormParams"
+                }
+            ],
+            "description": "The parameters for a request to elicit additional information from the user via the client."
+        },
+        "ElicitRequestURLParams": {
+            "description": "The parameters for a request to elicit information from the user via a URL in the client.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/definitions/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "elicitationId": {
+                    "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "The message to present to the user explaining why the interaction is needed.",
+                    "type": "string"
+                },
+                "mode": {
+                    "const": "url",
+                    "description": "The elicitation mode.",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The URL that the user should navigate to.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "elicitationId",
+                "message",
+                "mode",
+                "url"
             ],
             "type": "object"
         },
@@ -739,18 +805,59 @@
                 },
                 "content": {
                     "additionalProperties": {
-                        "type": [
-                            "string",
-                            "integer",
-                            "boolean"
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": [
+                                    "string",
+                                    "integer",
+                                    "boolean"
+                                ]
+                            }
                         ]
                     },
-                    "description": "The submitted form data, only present when action is \"accept\".\nContains values matching the requested schema.",
+                    "description": "The submitted form data, only present when action is \"accept\" and mode was \"form\".\nContains values matching the requested schema.\nOmitted for out-of-band mode responses.",
                     "type": "object"
                 }
             },
             "required": [
                 "action"
+            ],
+            "type": "object"
+        },
+        "ElicitationCompleteNotification": {
+            "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/elicitation/complete",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "elicitationId": {
+                            "description": "The ID of the elicitation that completed.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "elicitationId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
             ],
             "type": "object"
         },
@@ -791,38 +898,23 @@
             "$ref": "#/definitions/Result"
         },
         "EnumSchema": {
-            "properties": {
-                "default": {
-                    "type": "string"
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/UntitledSingleSelectEnumSchema"
                 },
-                "description": {
-                    "type": "string"
+                {
+                    "$ref": "#/definitions/TitledSingleSelectEnumSchema"
                 },
-                "enum": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
+                {
+                    "$ref": "#/definitions/UntitledMultiSelectEnumSchema"
                 },
-                "enumNames": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
+                {
+                    "$ref": "#/definitions/TitledMultiSelectEnumSchema"
                 },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "const": "string",
-                    "type": "string"
+                {
+                    "$ref": "#/definitions/LegacyTitledEnumSchema"
                 }
-            },
-            "required": [
-                "enum",
-                "type"
-            ],
-            "type": "object"
+            ]
         },
         "Error": {
             "properties": {
@@ -1005,7 +1097,7 @@
             "type": "object"
         },
         "Implementation": {
-            "description": "Describes the MCP implementation",
+            "description": "Describes the MCP implementation.",
             "properties": {
                 "icons": {
                     "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
@@ -1248,6 +1340,42 @@
                 "id",
                 "jsonrpc",
                 "result"
+            ],
+            "type": "object"
+        },
+        "LegacyTitledEnumSchema": {
+            "description": "Use TitledSingleSelectEnumSchema instead.\nThis interface will be removed in a future version.",
+            "properties": {
+                "default": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enum": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "enumNames": {
+                    "description": "(Legacy) Display names for enum values.\nNon-standard according to JSON schema 2020-12.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "string",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "enum",
+                "type"
             ],
             "type": "object"
         },
@@ -1595,6 +1723,16 @@
             },
             "type": "object"
         },
+        "MultiSelectEnumSchema": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/UntitledMultiSelectEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/TitledMultiSelectEnumSchema"
+                }
+            ]
+        },
         "Notification": {
             "properties": {
                 "method": {
@@ -1745,10 +1883,22 @@
                     "$ref": "#/definitions/BooleanSchema"
                 },
                 {
-                    "$ref": "#/definitions/EnumSchema"
+                    "$ref": "#/definitions/UntitledSingleSelectEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/TitledSingleSelectEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/UntitledMultiSelectEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/TitledMultiSelectEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/LegacyTitledEnumSchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "/**\n Restricted schema definitions that only allow primitive types\n without nested objects or arrays."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -2506,6 +2656,9 @@
                 },
                 {
                     "$ref": "#/definitions/LoggingMessageNotification"
+                },
+                {
+                    "$ref": "#/definitions/ElicitationCompleteNotification"
                 }
             ]
         },
@@ -2608,6 +2761,16 @@
                 "level"
             ],
             "type": "object"
+        },
+        "SingleSelectEnumSchema": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/UntitledSingleSelectEnumSchema"
+                },
+                {
+                    "$ref": "#/definitions/TitledSingleSelectEnumSchema"
+                }
+            ]
         },
         "StringSchema": {
             "properties": {
@@ -2750,6 +2913,120 @@
             ],
             "type": "object"
         },
+        "TitledMultiSelectEnumSchema": {
+            "description": "Schema for multiple-selection enumeration with display titles for each option.",
+            "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "description": "Optional description for the enum field.",
+                    "type": "string"
+                },
+                "items": {
+                    "description": "Schema for array items with enum options and display labels.",
+                    "properties": {
+                        "anyOf": {
+                            "description": "Array of enum options with values and display labels.",
+                            "items": {
+                                "properties": {
+                                    "const": {
+                                        "description": "The constant enum value.",
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "description": "Display title for this option.",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "const",
+                                    "title"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "anyOf"
+                    ],
+                    "type": "object"
+                },
+                "maxItems": {
+                    "description": "Maximum number of items to select.",
+                    "type": "integer"
+                },
+                "minItems": {
+                    "description": "Minimum number of items to select.",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Optional title for the enum field.",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "array",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ],
+            "type": "object"
+        },
+        "TitledSingleSelectEnumSchema": {
+            "description": "Schema for single-selection enumeration with display titles for each option.",
+            "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Optional description for the enum field.",
+                    "type": "string"
+                },
+                "oneOf": {
+                    "description": "Array of enum options with values and display labels.",
+                    "items": {
+                        "properties": {
+                            "const": {
+                                "description": "The enum value.",
+                                "type": "string"
+                            },
+                            "title": {
+                                "description": "Display label for this option.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "const",
+                            "title"
+                        ],
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional title for the enum field.",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "string",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "oneOf",
+                "type"
+            ],
+            "type": "object"
+        },
         "Tool": {
             "description": "Definition for a tool the client can call.",
             "properties": {
@@ -2889,6 +3166,59 @@
             ],
             "type": "object"
         },
+        "URLElicitationRequiredError": {
+            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
+            "properties": {
+                "error": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/Error"
+                        },
+                        {
+                            "properties": {
+                                "code": {
+                                    "const": -32042,
+                                    "type": "integer"
+                                },
+                                "data": {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                        "elicitations": {
+                                            "items": {
+                                                "$ref": "#/definitions/ElicitRequestURLParams"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "required": [
+                                        "elicitations"
+                                    ],
+                                    "type": "object"
+                                }
+                            },
+                            "required": [
+                                "code",
+                                "data"
+                            ],
+                            "type": "object"
+                        }
+                    ]
+                },
+                "id": {
+                    "$ref": "#/definitions/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "error",
+                "id",
+                "jsonrpc"
+            ],
+            "type": "object"
+        },
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.",
             "properties": {
@@ -2937,6 +3267,97 @@
             },
             "required": [
                 "uri"
+            ],
+            "type": "object"
+        },
+        "UntitledMultiSelectEnumSchema": {
+            "description": "Schema for multiple-selection enumeration without display titles for options.",
+            "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "description": "Optional description for the enum field.",
+                    "type": "string"
+                },
+                "items": {
+                    "description": "Schema for the array items.",
+                    "properties": {
+                        "enum": {
+                            "description": "Array of enum values to choose from.",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "type": {
+                            "const": "string",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "enum",
+                        "type"
+                    ],
+                    "type": "object"
+                },
+                "maxItems": {
+                    "description": "Maximum number of items to select.",
+                    "type": "integer"
+                },
+                "minItems": {
+                    "description": "Minimum number of items to select.",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Optional title for the enum field.",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "array",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ],
+            "type": "object"
+        },
+        "UntitledSingleSelectEnumSchema": {
+            "description": "Schema for single-selection enumeration without display titles for options.",
+            "properties": {
+                "default": {
+                    "description": "Optional default value.",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Optional description for the enum field.",
+                    "type": "string"
+                },
+                "enum": {
+                    "description": "Array of enum values to choose from.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional title for the enum field.",
+                    "type": "string"
+                },
+                "type": {
+                    "const": "string",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "enum",
+                "type"
             ],
             "type": "object"
         }

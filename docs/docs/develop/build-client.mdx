@@ -178,7 +178,7 @@ async def process_query(self, query: str) -> str:
 
     # Initial Claude API call
     response = self.anthropic.messages.create(
-        model="claude-3-5-sonnet-20241022",
+        model="claude-sonnet-4-20250514",
         max_tokens=1000,
         messages=messages,
         tools=available_tools
@@ -218,7 +218,7 @@ async def process_query(self, query: str) -> str:
 
             # Get next response from Claude
             response = self.anthropic.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-20250514",
                 max_tokens=1000,
                 messages=messages,
                 tools=available_tools
@@ -647,7 +647,7 @@ async processQuery(query: string) {
   ];
 
   const response = await this.anthropic.messages.create({
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-sonnet-4-20250514",
     max_tokens: 1000,
     messages,
     tools: this.tools,
@@ -676,7 +676,7 @@ async processQuery(query: string) {
       });
 
       const response = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         messages,
       });
@@ -1230,7 +1230,7 @@ Now let's add the core functionality for processing queries and handling tool ca
 
 ```kotlin
 private val messageParamsBuilder: MessageCreateParams.Builder = MessageCreateParams.builder()
-    .model(Model.CLAUDE_3_5_SONNET_20241022)
+    .model(Model.CLAUDE_SONNET_4_20250514)
     .maxTokens(1024)
 
 suspend fun processQuery(query: String): String {
@@ -1565,7 +1565,7 @@ using var anthropicClient = new AnthropicClient(new APIAuthentication(builder.Co
 var options = new ChatOptions
 {
     MaxOutputTokens = 1000,
-    ModelId = "claude-3-5-sonnet-20241022",
+    ModelId = "claude-sonnet-4-20250514",
     Tools = [.. tools]
 };
 
