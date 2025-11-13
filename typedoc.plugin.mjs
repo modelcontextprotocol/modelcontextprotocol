@@ -1,30 +1,37 @@
 // @ts-check
+import { readFile } from "fs/promises";
 import * as typedoc from "typedoc";
 
 /** @param {typedoc.Application} app */
 export function load(app) {
-  app.outputs.addOutput("schema-reference", async (outputDir, project) => {
-    app.renderer.router = new SchemaReferenceRouter(app);
+  app.options.addDeclaration({
+    name: "schemaPageTemplate",
+    help: "Template file for schema reference page.",
+    type: typedoc.ParameterType.String,
+  });
+
+  app.outputs.addOutput("schema-page", async (outputDir, project) => {
+    const templatePath = /** @type {string} */ (app.options.getValue("schemaPageTemplate"));
+    const template = await readFile(templatePath, { encoding: "utf-8" });
+
+    app.renderer.router = new SchemaPageRouter(app);
     app.renderer.theme = new typedoc.DefaultTheme(app.renderer);
     app.renderer.trigger(typedoc.RendererEvent.BEGIN, new typedoc.RendererEvent(outputDir, project, []));
 
     const pageEvents = buildPageEvents(project, app.renderer.router);
-    const rendered = renderPageEvents(pageEvents, /** @type {typedoc.DefaultTheme} */ (app.renderer.theme));
 
-    process.stdout.write(`---\n`);
-    process.stdout.write(`title: Schema Reference\n`);
-    process.stdout.write(`---\n\n`);
-    process.stdout.write(`<div id="schema-reference" />\n\n`);
-    process.stdout.write(rendered);
+    process.stdout.write(
+      renderTemplate(template, pageEvents, /** @type {typedoc.DefaultTheme} */ (app.renderer.theme))
+    );
 
     // Wait for all output to be written before allowing the process to exit.
     await new Promise((resolve) => process.stdout.write("", () => resolve(undefined)));
   })
 
-  app.outputs.setDefaultOutputName("schema-reference")
+  app.outputs.setDefaultOutputName("schema-page")
 }
 
-class SchemaReferenceRouter extends typedoc.StructureRouter {
+class SchemaPageRouter extends typedoc.StructureRouter {
   /**
    * @param {typedoc.RouterTarget} target
    * @returns {string}
@@ -70,42 +77,52 @@ function buildPageEvents(project, router) {
   const events = [];
 
   for (const pageDefinition of router.buildPages(project)) {
-    const event = new typedoc.PageEvent(pageDefinition.model)
+    const event = new typedoc.PageEvent(pageDefinition.model);
     event.url = pageDefinition.url;
     event.filename = pageDefinition.url;
     event.pageKind = pageDefinition.kind;
     event.project = project;
-    events.push(event)
+    events.push(event);
   }
 
   return events;
 }
 
 /**
- * @param {typedoc.PageEvent[]} events
+ *
+ * @param {string} template
+ * @param {typedoc.PageEvent[]} pageEvents
  * @param {typedoc.DefaultTheme} theme
  * @returns {string}
  */
-function renderPageEvents(events, theme) {
-  const declarationEvents = events.
-    filter(isDeclarationReflectionEvent).
-    sort((event1, event2) => event1.model.name.localeCompare(event2.model.name));
+function renderTemplate(template, pageEvents, theme) {
+  const reflectionEvents = pageEvents.filter(isDeclarationReflectionEvent);
 
-  /** @type {Map<string, string[]>} */
-  const outputsByCategory = new Map();
+  /** @type {Set<string>} */
+  const renderedCategories = new Set();
 
-  for (const event of declarationEvents) {
-    const category = getReflectionCategory(event.model);
-    const rendered = renderReflection(event.model, theme.getRenderContext(event));
-
-    if (!outputsByCategory.has(category)) {
-      outputsByCategory.set(category, [renderCategory(category)]);
+  const rendered = template.replaceAll(
+    /^\{\/\* @category (.+) \*\/\}$/mg,
+    (match, category) => {
+      renderedCategories.add(category);
+      return renderCategory(category, reflectionEvents, theme);
     }
-    outputsByCategory.get(category)?.push(rendered);
+  );
+
+  const missingCategories = reflectionEvents.
+    map((event) => getReflectionCategory(event.model)).
+    filter((category) => category && !renderedCategories.has(category)).
+    filter((category, i, array) => array.indexOf(category) === i). // Remove duplicates.
+    sort();
+
+  if (missingCategories.length > 0) {
+    throw new Error(
+      "The following categories are missing from the schema page template:\n\n" +
+      missingCategories.map((category) => `- ${category}\n`).join("")
+    );
   }
 
-  return [...outputsByCategory.keys()].
-    sort().flatMap((category) => outputsByCategory.get(category)).join("\n");
+  return rendered;
 }
 
 /**
@@ -117,22 +134,61 @@ function isDeclarationReflectionEvent(event) {
 }
 
 /**
+ * @param {string} category
+ * @param {typedoc.DeclarationReflection} reflection1
+ * @param {typedoc.DeclarationReflection} reflection2
+ * @returns {number}
+ */
+function getReflectionOrder(category, reflection1, reflection2) {
+  let order = 0;
+
+  if (isRpcMethodCategory(category)) {
+    order ||= +reflection2.name.endsWith("Request") - +reflection1.name.endsWith("Request");
+    order ||= +reflection2.name.endsWith("RequestParams") - +reflection1.name.endsWith("RequestParams");
+    order ||= +reflection2.name.endsWith("Result") - +reflection1.name.endsWith("Result");
+    order ||= +reflection2.name.endsWith("Notification") - +reflection1.name.endsWith("Notification");
+    order ||= +reflection2.name.endsWith("NotificationParams") - +reflection1.name.endsWith("NotificationParams");
+  }
+
+  order ||= reflection1.name.localeCompare(reflection2.name);
+
+  return order;
+}
+
+/**
  * @param {typedoc.DeclarationReflection} reflection
- * @returns {string}
+ * @returns {string | undefined}
  */
 function getReflectionCategory(reflection) {
   const categoryTag = reflection.comment?.getTag("@category");
-  return categoryTag ? categoryTag.content.map((part) => part.text).join(" ") : "";
+  return categoryTag ? categoryTag.content.map((part) => part.text).join(" ") : undefined;
 }
 
 /**
  * @param {string} category
+ * @returns {boolean}
+ */
+function isRpcMethodCategory(category) {
+  return /^`[a-z]/.test(category);
+}
+
+/**
+ * @param {string} category
+ * @param {typedoc.PageEvent<typedoc.DeclarationReflection>[]} events
+ * @param {typedoc.DefaultTheme} theme
  * @returns {string}
  */
-function renderCategory(category) {
-  let heading = category || "Common Types";
-  if (heading.match(/^[a-z]/)) heading = "`" + heading + "`";
-  return `## ${heading}\n`;
+function renderCategory(category, events, theme) {
+  const categoryEvents = events.filter((event) => getReflectionCategory(event.model) === category);
+
+  if (categoryEvents.length === 0) {
+    throw new Error(`Invalid category: ${category}`);
+  }
+
+  return categoryEvents.
+    sort((event1, event2) => getReflectionOrder(category, event1.model, event2.model)).
+    map((event) => renderReflection(event.model, theme.getRenderContext(event))).
+    join("\n");
 }
 
 /**
