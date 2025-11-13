@@ -594,7 +594,7 @@ export interface ResourceRequestParams extends RequestParams {
  * @category `resources/read`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ReadResourceRequestParams extends ResourceRequestParams { }
+export interface ReadResourceRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -631,7 +631,7 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
  * @category `resources/subscribe`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface SubscribeRequestParams extends ResourceRequestParams { }
+export interface SubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
@@ -649,7 +649,7 @@ export interface SubscribeRequest extends JSONRPCRequest {
  * @category `resources/unsubscribe`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface UnsubscribeRequestParams extends ResourceRequestParams { }
+export interface UnsubscribeRequestParams extends ResourceRequestParams {}
 
 /**
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
@@ -1699,7 +1699,7 @@ export interface ElicitRequestParams extends RequestParams {
 }
 
 /**
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitRequestFormParams extends ElicitRequestParams {
   /**
@@ -1721,7 +1721,7 @@ export interface ElicitRequestFormParams extends ElicitRequestParams {
 }
 
 /**
- * @category elicitation/create
+ * @category `elicitation/create`
  */
 export interface ElicitRequestURLParams extends ElicitRequestParams {
   /**
@@ -2033,6 +2033,21 @@ export interface ElicitResult extends Result {
   content?: { [key: string]: string | number | boolean | string[] };
 }
 
+/**
+ * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
+ *
+ * @category `notifications/elicitation/complete`
+ */
+export interface ElicitationCompleteNotification extends JSONRPCNotification {
+  method: "notifications/elicitation/complete";
+  params: {
+    /**
+     * The ID of the elicitation that completed.
+     */
+    elicitationId: string;
+  };
+}
+
 /* Client messages */
 /** @internal */
 export type ClientRequest =
@@ -2082,21 +2097,6 @@ export type ServerNotification =
   | ToolListChangedNotification
   | PromptListChangedNotification
   | ElicitationCompleteNotification;
-
-/**
- * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
- *
- * @category notifications/elicitation/complete
- */
-export interface ElicitationCompleteNotification extends JSONRPCNotification {
-  method: "notifications/elicitation/complete";
-  params: {
-    /**
-     * The ID of the elicitation that completed.
-     */
-    elicitationId: string;
-  };
-}
 
 /** @internal */
 export type ServerResult =
