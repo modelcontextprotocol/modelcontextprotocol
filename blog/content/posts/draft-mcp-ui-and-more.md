@@ -1,57 +1,77 @@
 +++
 date = '2025-11-11T00:00:00Z'
-title = 'Extending MCP into the UI Layer'
+title = 'Understanding MCP Extensions'
 author = 'MCP Community Maintainers'
 tags = ['announcement', 'community']
 +++
 
-With the introduction of OpenAI’s [Apps SDK](https://platform.openai.com/docs/apps), the Model Context Protocol (MCP) has entered a new phase—one where developers can use the same open protocol that connects AI tools to now power user interfaces as well. Community projects like [mcp.shop](https://mcp.shop) demonstrate how MCP servers can drive interactive, AI-native experiences directly inside chat applications.
+As developers continue building on the Model Context Protocol (MCP), new patterns are emerging that build on top of existing protocol primitives. These patterns—referred to as *extensions*—provide a way to layer richer capabilities on MCP without modifying or expanding the core protocol itself.
 
-This post outlines how **MCP for UI** fits within the broader protocol ecosystem and clarifies what’s considered **MCP Core**, **MCP-Adjacent**, and **MCP Extensions**.
+This post outlines how extensions fit into the broader MCP ecosystem and highlights a few types of patterns the community is exploring. The goal is not to define extensions formally, but to give lightweight guidance on how MCP can be extended in practice.
 
 # Overview
 
-MCP’s evolution can be summarized in three layers:
+The MCP ecosystem can be understood across three complementary layers:
 
-- **MCP Core** defines the base protocol for connecting clients and servers.  
-- **MCP Adjacent** services, such as the MCP Registry, enhance discovery and governance.  
-- **MCP Extensions** build on that foundation to enable richer use cases—including interactive UI elements.
+- **MCP Core** — the protocol specification used by clients and servers to communicate.
+- **MCP Adjacent** — ecosystem infrastructure such as the Registry that improves discoverability and governance.
+- **MCP Extensions** — optional, informal patterns built on top of MCP primitives for specialized use cases.
 
-Together, these layers maintain a clear boundary between the stable protocol specification and community-driven innovation.
+This structure helps the ecosystem evolve while keeping the protocol stable and broadly interoperable.
 
 # MCP Core
 
-The **core** specification provides a common language for AI clients—like ChatGPT, Claude, and IDE extensions—to communicate with external tools and data sources.  
-It focuses on structured discovery, tool invocation, and context exchange, ensuring interoperability across platforms.
+MCP Core defines how clients and servers interact: tool discovery, tool invocation, resource access, and structured data exchange. The protocol is intentionally minimal so that any client can work with any compliant server.
 
-The core remains intentionally minimal, acting as a *universal connector for AI systems*. Developers can reference the latest protocol specification and roadmap at [modelcontextprotocol.io](https://modelcontextprotocol.io/development/roadmap).
+# MCP-Adjacent Projects
 
-# MCP-Adjacent projects
+MCP-Adjacent projects support the ecosystem without modifying the protocol. A key example is the MCP Registry, which provides a catalog of publicly available servers. Organizations may build private or public sub-registries on this foundation, while relying on shared schemas and open source specifications.
 
-**MCP-Adjacent** projects expand the ecosystem without changing the core protocol.  
-The best-known example is the [MCP Registry](https://registry.modelcontextprotocol.io), an open catalog and API for discoverable servers. It standardizes how servers are distributed and discovered, providing a reliable starting point for client integrations.  
-
-Other adjacent initiatives include SDK tooling, governance layers, and registry sub-projects operated by community maintainers. These efforts enhance usability while keeping the protocol itself lean and interoperable.
+These components improve usability and trust across MCP implementations while remaining separate from the core specification.
 
 # MCP Extensions
 
-**Extensions** introduce new conventions that extend MCP’s capabilities.  
-Recent examples include:
+Extensions are **patterns built on top of existing MCP mechanisms**. They do not alter the protocol and remain fully compatible with all clients and servers.
 
-- **MCP-UI** – an experimental convention for returning structured UI components (such as charts, tables, and forms) to AI clients.  
-- **OpenAI Apps SDK** – a framework that builds directly on MCP to add UI metadata, enabling ChatGPT to render interactive content inline.
+At a high level, extensions generally fall into two categories:
 
-Projects like [mcp.shop](https://mcp.shop) show how these extensions turn a standard MCP server into a fully interactive app experience—without altering the protocol’s foundations.  
-Extensions remain optional, but they illustrate MCP’s flexibility as a base for AI-native front-ends.
+1. **Using current MCP mechanisms to express additional behavior**, such as returning structured metadata or domain-specific information through normal MCP messages.
+2. **Community-encouraged extension patterns**, where clients may choose to implement optional conventions that improve interoperability for certain scenarios.
 
-# Why it matters
+Examples include:
 
-By keeping **MCP Core** stable while allowing **Adjacent** and **Extension** projects to evolve, the ecosystem encourages innovation without sacrificing compatibility.  
-This modular approach ensures that MCP continues to serve as a reliable backbone for developers building the next generation of AI-native software.
+- **UI-related conventions**, where servers return structured data that clients may optionally render.  
+- **Domain-specific extensions**, such as financial-services conventions being explored by community groups.  
+- **Auth or capability-related patterns**, where additional information is exchanged using existing negotiation mechanisms.
 
-# Acknowledgments
+Extensions like these enable richer use cases while keeping MCP stable.
 
-This post draws on discussions across the MCP community and the work of contributors experimenting with UI-enabled servers and new extensions.  
-We thank all developers advancing the open standard—from protocol maintainers to independent builders creating new MCP experiences.
+## Encouraged extensions
 
-For more information, visit the [MCP Blog](https://blog.modelcontextprotocol.io) or follow ongoing development at [modelcontextprotocol.io](https://modelcontextprotocol.io/development/roadmap).
+As discussed within the community, it is reasonable to encourage certain extensions—particularly those maintained within the **MCP GitHub organization**—because they support cross-client interoperability. For instance, the emerging mcp-ui pattern is one such extension that some clients are choosing to support.
+
+Other clients and working groups may define extensions for domain-specific needs, such as financial services or enterprise authorization profiles.
+
+These patterns remain optional, lightweight, and community-driven.
+
+## About proprietary UI systems
+
+Some client platforms provide their own UI systems or frameworks that operate alongside MCP and may use MCP as a transport. These systems are **not** MCP extensions and are unrelated to the protocol’s evolution. They can interoperate with MCP servers, but they do not define MCP behavior.
+
+# Why this structure matters
+
+Keeping the distinction between Core, Adjacent projects, and Extensions clear ensures that:
+
+- The protocol remains stable and interoperable.  
+- Community groups can experiment without requiring protocol changes.  
+- Extensions can evolve organically and informally.  
+- Clients can choose which extensions to adopt based on their needs.  
+- Encouraged extensions remain focused on patterns hosted within the MCP organization.
+
+This layered approach helps MCP support innovation while maintaining a dependable, consistent foundation for all implementers.
+
+# Thanks to the MCP community
+
+This post reflects ongoing conversations and collaborative exploration within the MCP community—from working groups to profile discussions to extension proposals. We appreciate everyone contributing ideas and helping shape the protocol’s evolution.
+
+More updates will continue to appear on the MCP blog and in the public repositories.
