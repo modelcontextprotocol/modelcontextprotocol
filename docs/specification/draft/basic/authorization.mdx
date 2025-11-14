@@ -276,7 +276,7 @@ sequenceDiagram
     Server->>Metadata: GET https://app.example.com/oauth/metadata.json
     Metadata-->>Server: JSON Metadata Document<br/>{client_id, client_name, redirect_uris, ...}
 
-    Note over Server: Validates:<br/>1. client_id matches URL<br/>2. redirect_uri in allowed list<br/>3. Document structure valid<br/>4. Domain allowed via trust policy
+    Note over Server: Validates:<br/>1. client_id matches URL<br/>2. redirect_uri in allowed list<br/>3. Document structure valid<br/>4. (Optional) Domain allowed via trust policy
 
     alt Validation Success
         Server->>User: Display consent page with client_name
