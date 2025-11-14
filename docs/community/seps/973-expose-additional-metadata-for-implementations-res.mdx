@@ -1,10 +1,28 @@
-# SEP-973: Expose additional metadata for Implementations, Resources, Tools and Prompts
+---
+title: "SEP-973: Expose additional metadata for Implementations, Resources, Tools and Prompts"
+sidebarTitle: "SEP-973"
+description: "Expose additional metadata for Implementations, Resources, Tools and Prompts"
+---
 
-- **Status**: Final
-- **Type**: Standards Track
-- **Created**: 2025-07-15
-- **Author(s)**: @jesselumarie
-- **Issue**: #973
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="green">Final</Badge>
+  <Badge color="gray">Standards Track</Badge>
+</div>
+
+| Field         | Value                                                                        |
+| ------------- | ---------------------------------------------------------------------------- |
+| **SEP**       | 973                                                                          |
+| **Title**     | Expose additional metadata for Implementations, Resources, Tools and Prompts |
+| **Status**    | Final                                                                        |
+| **Type**      | Standards Track                                                              |
+| **Created**   | 2025-07-15                                                                   |
+| **Author(s)** | [@jesselumarie](https://github.com/jesselumarie)                             |
+| **Sponsor**   | None                                                                         |
+| **PR**        | [#973](https://github.com/modelcontextprotocol/specification/pull/973)       |
+
+---
 
 ## Abstract
 
@@ -16,13 +34,23 @@ This SEP proposes adding two optional fields—`icons` and `websiteUrl`. The `ic
 
 Current implementations only expose namespaced metadata, forcing clients to display generic labels with no visual cues.
 
-<img width="606" height="242" alt="Image" src="https://github.com/user-attachments/assets/0708a467-ed16-4654-8017-47fc30df9b23" />
+<img
+  width="606"
+  height="242"
+  alt="Image"
+  src="https://github.com/user-attachments/assets/0708a467-ed16-4654-8017-47fc30df9b23"
+/>
 
 ### Proposed State
 
 The proposed implementation would allow us to add visual affordances and links to documentation, making it easier to visually identify which servers/clients are providing an implementation e.g. a tool in a slash command interface:
 
-<img width="1104" height="780" alt="Image" src="https://github.com/user-attachments/assets/2989b847-8a35-4c49-bb73-d27828df4df6" />
+<img
+  width="1104"
+  height="780"
+  alt="Image"
+  src="https://github.com/user-attachments/assets/2989b847-8a35-4c49-bb73-d27828df4df6"
+/>
 
 - **Visual Affordance:** Icons make it immediately clear to users which tool or resource source is in use.
 - **Discoverability:** A link to documentation (`websiteUrl`) allows clients to direct users to more information with a single click.

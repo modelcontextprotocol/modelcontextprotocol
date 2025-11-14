@@ -6,8 +6,8 @@
 - **Author(s)**: localden
 - **Issue**: #994
 
->[!NOTE]
->This is **draft placeholder** for the detailed SEP.
+> [!NOTE]
+> This is **draft placeholder** for the detailed SEP.
 
 Outline the shared practices and locations for MCP-related communication/community.
 
