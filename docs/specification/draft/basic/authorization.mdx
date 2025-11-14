@@ -625,7 +625,7 @@ Key considerations include:
 #### Authorization Server Abuse Protection
 
 The authorization server takes a URL as input from an unknown client and fetches that URL.
-A malicious client could use this to send non-metadata requests on behalf of the authorization server,
+A malicious client could use this to trigger the authorization server to make requests to arbitrary URLs,
 such as requests to private administration endpoints the authorization server has access to.
 
 Authorization servers fetching metadata documents **MUST** protect against
