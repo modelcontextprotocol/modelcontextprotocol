@@ -1,9 +1,9 @@
 # SEP-1036: URL Mode Elicitation for secure out-of-band interactions
 
 - **Status**: Accepted
-- **Type**: ** Standards Track
+- **Type**: \*\* Standards Track
 - **Created**: 2025-07-22
-- **Author(s)**: ** Nate Barbettini (@nbarbettini) and Wils Dawson (@wdawson)
+- **Author(s)**: \*\* Nate Barbettini (@nbarbettini) and Wils Dawson (@wdawson)
 - **Issue**: #1036
 
 ## Abstract

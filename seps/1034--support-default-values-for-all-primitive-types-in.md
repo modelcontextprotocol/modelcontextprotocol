@@ -3,7 +3,7 @@
 - **Status**: Accepted
 - **Type**: A separate request type for forms with defaults would fragment the API
 - **Created**: 2025-07-22
-- **Author(s)**: ** Tapan Chugh (chugh.tapan@gmail.com)
+- **Author(s)**: \*\* Tapan Chugh (chugh.tapan@gmail.com)
 - **Issue**: #1034
 
 ## Abstract
@@ -20,9 +20,9 @@ Consider implementing an email reply function. Without elicitation, the tool bec
 
 ```python
 def reply_to_email_thread(
-    thread_id: str, 
-    content: str, 
-    recipient_list: List[str] = [], 
+    thread_id: str,
+    content: str,
+    recipient_list: List[str] = [],
     cc_list: List[str] = []
 ) -> None:
     # Ambiguity: Does empty list mean "no recipients" or "use defaults"?
@@ -30,14 +30,16 @@ def reply_to_email_thread(
 ```
 
 With elicitation, the tool signature itself can be much simpler
+
 ```python
 def reply_to_email_thread(
-    thread_id: str, 
+    thread_id: str,
     content: Optional[str] = ""
 ) -> None:
-    # Code can lookup the participants from the original thread 
+    # Code can lookup the participants from the original thread
     # and prepare an elicitation request with the defaults setup
 ```
+
 ```typescript
 const response = await client.request("elicitation/create", {
   message: "Configure email reply",
@@ -64,9 +66,10 @@ const response = await client.request("elicitation/create", {
 });
 ```
 
-### Implementation 
+### Implementation
 
 A working implementation demonstrating clients require minimal changes to display defaults (~10 lines of code):
+
 - Implementation PR: https://github.com/chughtapan/fast-agent/pull/2
 - A demo with the above email reply workflow: https://asciinema.org/a/X7aQZjT2B5jVwn9dJ9sqQVkOM
 
@@ -84,7 +87,7 @@ export interface StringSchema {
   minLength?: number;
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
-  default?: string;  // NEW
+  default?: string; // NEW
 }
 
 export interface NumberSchema {
@@ -93,7 +96,7 @@ export interface NumberSchema {
   description?: string;
   minimum?: number;
   maximum?: number;
-  default?: number;  // NEW
+  default?: number; // NEW
 }
 
 export interface EnumSchema {
@@ -102,7 +105,7 @@ export interface EnumSchema {
   description?: string;
   enum: string[];
   enumNames?: string[];
-  default?: string;  // NEW - must be one of enum values
+  default?: string; // NEW - must be one of enum values
 }
 
 // BooleanSchema already has default?: boolean
@@ -117,9 +120,9 @@ export interface EnumSchema {
 
 ## Rationale
 
-1. The high-level rationale is to follow the precedent set by BooleanSchema rather than creating new mechanisms. 
-2. Making defaults optional ensures backward compatibility. 
-3. This maintains the high-level intuition of keeping the client implementation simple.     
+1. The high-level rationale is to follow the precedent set by BooleanSchema rather than creating new mechanisms.
+2. Making defaults optional ensures backward compatibility.
+3. This maintains the high-level intuition of keeping the client implementation simple.
 
 ### Alternatives Considered
 

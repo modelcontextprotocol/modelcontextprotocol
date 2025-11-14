@@ -51,12 +51,12 @@ Specification documentation will be used to keep a track of the status of specif
 The intention of allowing SDK releases to offer partial support for a specification version is that the SDK consumers will have the choice to opt in to the available partial features, even if they are still unstable. By default, the SDK should maintain stability guarantees for a specification version.
 <h4><b>Implementation Tracking Matrix</b></h4>
 
-Specification Version | Status | Python SDK | TypeScript SDK | Java SDK
--- | -- | -- | -- | --
-2024-11-05 | ✅ Stable | ✅ 2.0.5 - 2.1.4 | ✅ 1.0.3 - 1.5.0 | ✅ 0.0.3
-2025-03-26 | ✅ Stable | ✅ 2.2.0 | ✅ 1.1.4 - 2.1.0 | ✅ 0.11.0
-2025-06-18 | 🚧 In Progress | 🚧 2.3.0-beta.1 | ✅ 2.2.0 | 🚧 main
-2025-09-29 | 📋 Planned | ❌ Not Started | ❌ Not Started | ❌ Not Started
+| Specification Version | Status         | Python SDK       | TypeScript SDK   | Java SDK       |
+| --------------------- | -------------- | ---------------- | ---------------- | -------------- |
+| 2024-11-05            | ✅ Stable      | ✅ 2.0.5 - 2.1.4 | ✅ 1.0.3 - 1.5.0 | ✅ 0.0.3       |
+| 2025-03-26            | ✅ Stable      | ✅ 2.2.0         | ✅ 1.1.4 - 2.1.0 | ✅ 0.11.0      |
+| 2025-06-18            | 🚧 In Progress | 🚧 2.3.0-beta.1  | ✅ 2.2.0         | 🚧 main        |
+| 2025-09-29            | 📋 Planned     | ❌ Not Started   | ❌ Not Started   | ❌ Not Started |
 
 <h2>Rationale</h2>
 <h3><b>Independent SDK Versioning with Protocol Support Declaration</b></h3>

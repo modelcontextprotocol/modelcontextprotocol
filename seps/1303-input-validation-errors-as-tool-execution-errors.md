@@ -19,20 +19,21 @@ Language models can learn from tool input validation error messages and retry a 
 Consider a flight booking tool that validates departure dates using the following `zod` validation schema:
 
 ```typescript
-departureDate: z
-    .string()
-    .regex(/^\d{2}\/\d{2}\/\d{4}$/, "date must be in dd/mm/yyyy format")
-    .superRefine((dateStr, ctx) => {
-      const date = parseDateFr(dateStr);
-      if (date.getTime() < Date.now()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Dates must be in the future. Current date is " + formatDateFr(new Date()),
-        });
-      }
-      return true;
-    })
-    .describe("Departure date in dd/mm/yyyy format")
+departureDate: z.string()
+  .regex(/^\d{2}\/\d{2}\/\d{4}$/, "date must be in dd/mm/yyyy format")
+  .superRefine((dateStr, ctx) => {
+    const date = parseDateFr(dateStr);
+    if (date.getTime() < Date.now()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Dates must be in the future. Current date is " +
+          formatDateFr(new Date()),
+      });
+    }
+    return true;
+  })
+  .describe("Departure date in dd/mm/yyyy format");
 ```
 
 Tool expected input JSON schema can only describe the regex statement. The actual programmatic check that the date is in the past cannot be expressed here as JSON schema.
@@ -55,6 +56,7 @@ Even when a model provides a syntactically correct date that passes JSON schema 
 ### Current Behavior
 
 The [tool errors specification](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#error-handling) currently provides ambiguous guidance:
+
 - "Invalid arguments" should be treated as Protocol Error
 - "Invalid input data" should be treated as Tool Execution Error
 
@@ -64,7 +66,7 @@ This ambiguity leads to inconsistent implementations where valuable error feedba
 
 Clarify the specification with the following changes:
 
-1. Removes the "invalid argument" category from **Protocol Errors**. 
+1. Removes the "invalid argument" category from **Protocol Errors**.
 2. **Tool Execution Errors** should be used for all tool argument validation failures (merging `invalid argument` and `invalid input data` under a new `input validation errors` category)
 
 ### Specification Text Changes
@@ -161,6 +163,7 @@ request: {
 ## Backwards Compatibility
 
 This change is backwards compatible as it:
+
 - Does not alter the protocol structure
 - Only clarifies existing ambiguous behavior
 - Maintains all existing error types and formats

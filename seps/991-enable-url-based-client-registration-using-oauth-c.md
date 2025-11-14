@@ -8,7 +8,6 @@
 
 # SEP: OAuth Client ID Metadata Documents for MCP
 
-
 ## Abstract
 
 This SEP proposes adopting OAuth Client ID Metadata Documents as specified in [draft-parecki-oauth-client-id-metadata-document-03](https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/) as an additional client registration mechanism for the Model Context Protocol (MCP). This approach allows OAuth clients to use HTTPS URLs as client identifiers, where the URL points to a JSON document containing client metadata. This specifically addresses the common MCP scenario where servers and clients have no pre-existing relationship, enabling servers to trust clients without pre-coordination while maintaining full control over access policies.
@@ -29,6 +28,7 @@ Both approaches have significant limitations for MCP's use case where clients fr
 ### The Target Use Case: No Pre-existing Relationship
 
 This proposal specifically targets the common MCP scenario where:
+
 - A user wants to connect a client to a server they've discovered
 - The client developer has never heard of this server
 - The server operator has never heard of this client
@@ -36,7 +36,7 @@ This proposal specifically targets the common MCP scenario where:
 
 For scenarios with pre-existing relationships, pre-registration remains the optimal solution. However, MCP's value comes from its ability to connect arbitrary clients and servers, making the "no pre-existing relationship" case critical to address.
 
-Relatedly, there are many more MCP servers than there are clients (similar to how there are many more web browsers than API's).  A common scenario is an MCP server developer wanting to restrict usage to a set of clients they trust.
+Relatedly, there are many more MCP servers than there are clients (similar to how there are many more web browsers than API's). A common scenario is an MCP server developer wanting to restrict usage to a set of clients they trust.
 
 ### Key Innovation: Server-Controlled Trust Without Pre-Coordination
 
@@ -60,7 +60,7 @@ Client ID Metadata Documents enable a unique trust model where:
 
 The change to the specification will be adding Client ID Metadata documents as a SHOULD, and changing DCR to a MAY, as we think that Client ID Metadata documents are a better default option for this scenario.
 
-We will primarily rely on the text in the linked RFC, aiming not to repeat most of it.  Below is a short version of what we'll need to specify.
+We will primarily rely on the text in the linked RFC, aiming not to repeat most of it. Below is a short version of what we'll need to specify.
 
 ```mermaid
   sequenceDiagram
@@ -101,28 +101,31 @@ We will primarily rely on the text in the linked RFC, aiming not to repeat most 
 ```
 
 ### Client Requirements
+
 - Clients MUST host their metadata document at an HTTPS URL following RFC requirements
 - The client_id URL MUST use "https" scheme and contain a path component
 - Metadata documents MUST be valid JSON and include at minimum:
-   - `client_id`: matching the document URL exactly
-   - `client_name`: human-readable name for authorization prompts
-   - `redirect_uris`: array of allowed redirect URIs
-   - `token_endpoint_auth_method`: "none" for public clients
+  - `client_id`: matching the document URL exactly
+  - `client_name`: human-readable name for authorization prompts
+  - `redirect_uris`: array of allowed redirect URIs
+  - `token_endpoint_auth_method`: "none" for public clients
 
 Note a client can use `private_key_jwt` for a `token_endpoint_auth_method` given the client metadata can provide public key information.
 
 ### Server Requirements
+
 - Servers SHOULD fetch metadata documents when encountering URL-formatted client_ids
 - Servers MUST validate the fetched document contains matching client_id
 - Servers SHOULD cache metadata respecting HTTP headers (max 24 hours recommended)
 - Servers MUST validate redirect URIs match those in metadata document
 
 ### Discovery
+
 - Servers advertise support via OAuth metadata: `client_id_metadata_document_supported: true`
 - Clients detect support and can fallback to DCR or pre-registration if unavailable
 
-
 Example metadata document:
+
 ```json
 {
   "client_id": "https://app.example.com/oauth/client-metadata.json",
@@ -138,7 +141,6 @@ Example metadata document:
   "token_endpoint_auth_method": "none"
 }
 ```
-
 
 ### Integration with Existing MCP Auth
 
@@ -167,30 +169,29 @@ A key benefit of Client ID Metadata Documents is attestation of redirect URIs:
 2. **Servers can trust that redirect URIs in the metadata are controlled by the client** - not attacker-supplied
 3. **This prevents redirect URI manipulation attacks** common with self-asserted registration
 
-
 ### Risks of this approach
 
 #### Risk: Localhost URL Impersonation
 
 A limitation of Client ID Metadata Documents is that they cannot prevent localhost URL impersonation by itself. An attacker can claim to be any client by:
+
 1. Providing the legitimate client's metadata URL as their client_id
 2. Binding to the same localhost port the legitimate client uses
 3. Intercepting the authorization code when the user approves
 
 This attack is concerning because the server sees the correct metadata
 document and the user sees the correct client name, making detection
-difficult. 
+difficult.
 
-Platform-specific attestations (iOS DeviceCheck, Android 
+Platform-specific attestations (iOS DeviceCheck, Android
 Play Integrity) could address this, but they're not universally available. This
 would work by a developer running a backend service that consumes the DeviceCheck / Play Integrity
 signatures and returns a JWT usable as the `private_key_jwt` authentication for the `token_endpoint_auth_method`.
 
-
 A similar approach without requiring platform-specific attestations that still raises the cost of the attack
-is possible using JWKS and short-lived JWTs signed by a server-side component hosted by the client developer. This component could use attestation mechanisms other than platform-specific ones to attest to the clients identity, such as the client's standard login flow.  Using short lived JWTs reduces the risk of credential compromise and replay, but does not eliminate it
-entirely - an attacker could still proxy requests to the legitimate 
-client's signing endpoint. 
+is possible using JWKS and short-lived JWTs signed by a server-side component hosted by the client developer. This component could use attestation mechanisms other than platform-specific ones to attest to the clients identity, such as the client's standard login flow. Using short lived JWTs reduces the risk of credential compromise and replay, but does not eliminate it
+entirely - an attacker could still proxy requests to the legitimate
+client's signing endpoint.
 
 Fully mitigating this risk is outside the scope of this proposal. This
 proposal has the same risks as DCR does in a localhost redirect scenario.
@@ -203,19 +204,17 @@ The authorization server takes a URL as input from an unknown client, and then f
 
 This can be prevented by validating the URL's and the IP's those URL's resolve to prior to initiating a fetch request.
 
-
 #### Risk: Distributed Denial of Service (DDoS)
 
 Similarly, an attacker could try to leverage a pool of authorization servers to perform a denial of service attack on a non-MCP server.
 
 There is not any additional amplification for the fetch request (i.e. the bandwidth from the client to make the request roughly equals the bandwidth of the request sent to the target server), and each authorization server can aggressively cache the result of these metadata fetches, so it is unlikely to be an attractive DDoS vector.
 
-
 #### Risk: Maturity of referenced specification
 
 The RFC for Client ID Metadata documents is still a draft. It has been implemented by the platform Bluesky, but has not been ratified or very widely adopted outside of that, and may evolve over time. Our intention is to evolve and align with subsequent drafts and any final standard, while minimizing disruption and breakage with existing implementations.
 
-This approach has the risk that there are implementation challenges or flaws in the protocol that have not surfaced yet. However, even though DCR has been ratified, and it also has a number of implementation challenges that developers are facing when trying to use it in an open ecosystem context like MCP.  Those challenges are the motiviation behind this proposal.
+This approach has the risk that there are implementation challenges or flaws in the protocol that have not surfaced yet. However, even though DCR has been ratified, and it also has a number of implementation challenges that developers are facing when trying to use it in an open ecosystem context like MCP. Those challenges are the motiviation behind this proposal.
 
 #### Risk: Client implementation burden, espcially local clients
 
@@ -225,12 +224,11 @@ The burden of hosting this endpoint is expected to be low as hosting a static JS
 
 #### Risk: Fragmentation of authorization approaches
 
-Authorization for MCP is already challenging to fully implement for clients and servers. Questions about how to do it correctly and best practices are some of the most common in the community.  Adding another branch to the authorization flow means this could be even more complicated and fractured, meaning fewer developers succeed in following the specification, and the promise of compatibility and an open ecosystem suffers as a result.
+Authorization for MCP is already challenging to fully implement for clients and servers. Questions about how to do it correctly and best practices are some of the most common in the community. Adding another branch to the authorization flow means this could be even more complicated and fractured, meaning fewer developers succeed in following the specification, and the promise of compatibility and an open ecosystem suffers as a result.
 
-This proposal intends to simplify the story for authorization server and resource server developers by providing a clearer mechanism to trust redirect URIs and less operational overhead. This proposal depends on that simplicity being clearly the better option for most folks, which will drive more adoption and end up being the most supported option.  If we do not believe that it is clearly the better option, then we should not adopt this proposal.
+This proposal intends to simplify the story for authorization server and resource server developers by providing a clearer mechanism to trust redirect URIs and less operational overhead. This proposal depends on that simplicity being clearly the better option for most folks, which will drive more adoption and end up being the most supported option. If we do not believe that it is clearly the better option, then we should not adopt this proposal.
 
 This proposal also provides a unified mechanism for both open servers and servers that want to restrict which clients can be used. Alternatives to this proposal require that clients and servers implement different mechanisms for the open and protected use cases.
-
 
 ## Alternatives Considered
 
@@ -239,9 +237,7 @@ This proposal also provides a unified mechanism for both open servers and server
 3. **Mutual TLS**: Requires trusting a client certificate authority, impractical in an open ecosystem
 4. **Status Quo**: Continues current pain points for server implementers
 
-
 Client ID Metadata document is a strict improvement over DCR for the most common open-ecosystem use case. It can be further extended in the future to better support things like OS-level attestations and jwks_uri's.
-
 
 ## Backward Compatibility
 
@@ -272,7 +268,6 @@ A prototype implementation is available [here](https://github.com/modelcontextpr
 - Implement rate limiting on outbound metadata fetches
 - Consider additional warnings for new/unknown/localhost domains
 - Log metadata fetch failures for monitoring
-
 
 ## References
 

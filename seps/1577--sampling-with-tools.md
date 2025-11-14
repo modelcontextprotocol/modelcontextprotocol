@@ -6,19 +6,20 @@
 - **Author(s)**: ochafik
 - **Issue**: #1577
 
-| SEP Number | #1577 |
-|------------|----------------|
-| **Title** | Sampling With Tools |
-| **Author** | Olivier Chafik |
-| **Sponsor** | @bhosmer-ant  |
-| **Status** | Draft |
-| **Created** | 2025-09-29 |
-| **Specification** | MCP 2025-06-18 |
-| **Prototype** | https://github.com/modelcontextprotocol/typescript-sdk/pull/991 |
-| **PR** | https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1796 |
-| **SDKs** | https://github.com/modelcontextprotocol/python-sdk/pull/1594 https://github.com/modelcontextprotocol/typescript-sdk/pull/1101 |
+| SEP Number        | #1577                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Title**         | Sampling With Tools                                                                                                           |
+| **Author**        | Olivier Chafik                                                                                                                |
+| **Sponsor**       | @bhosmer-ant                                                                                                                  |
+| **Status**        | Draft                                                                                                                         |
+| **Created**       | 2025-09-29                                                                                                                    |
+| **Specification** | MCP 2025-06-18                                                                                                                |
+| **Prototype**     | https://github.com/modelcontextprotocol/typescript-sdk/pull/991                                                               |
+| **PR**            | https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1796                                                        |
+| **SDKs**          | https://github.com/modelcontextprotocol/python-sdk/pull/1594 https://github.com/modelcontextprotocol/typescript-sdk/pull/1101 |
 
 **Updates**:
+
 - _Oct 1_: renamed `tool_choice` -> `toolChoice` (+ `"none"` value); removed exotic `stopReason`s `"refusal" & "other"`; allowed `{CreateMessageResult,SamplingMessage}.content` to be single contents or arrays of contents;
 - _Oct 6_: aligned `ToolResultContent` on `CallToolResult` (support image / audio); added "Possible Follow Ups" section.
 - _Oct 10_: updated reference impl example w/ simple tool registry (unify mcp tools w/ tool loop tools, see [comment below](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1577#issuecomment-3389273471)) and a "choose your own adventure" game that uses sampling w/ tools + elicitation.
@@ -27,7 +28,7 @@
   - kept `stopReason` as open string but w/ redundant explicit enums for visibility
   - removed requirement to throw when `includeContext` not matching advertised `ClientCapabilities.sampling.context`
   - mitigates backwards compatibility issue of `CreateMessageResult.content` being an array of contents OR a single content by saying sampling _MUST NOT_ return an array in earlier spec versions (+ ackowledging SDK updates of code w/ sampling will need small code changes)
-- _Nov 7_: renamed type `ToolCallContent` to `ToolUseContent` (to match its `tool_use` type & the `toolUse` `stopReason`). SEP was approved! 
+- _Nov 7_: renamed type `ToolCallContent` to `ToolUseContent` (to match its `tool_use` type & the `toolUse` `stopReason`). SEP was approved!
 - _Nov 10_: removing `disable_parallel_tool_use` / keeping for a later update as the Gemini API has no way to implement this for now.
 - _Nov 11_: added extra notes about Gemini API's function calling modes & roles; requiring SamplingMessage w/ tool result contents not be mixed w/ other content types
 
@@ -37,18 +38,18 @@ This SEP introduces `tools` & `toolChoice` params to `sampling/createMessage` an
 
 ## Motivation
 
-* [Sampling](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling) doesn't support tool calling, although it's a cornerstone of modern agentic behaviour. Without explicit support for it, MCP servers that use Sampling can either try and emulate tool calling w/ complex prompting / custom parsing of the outputs, or are limited to simpler, non-agentic requests. Adding support for tool calling could unlock many novel use cases in the MCP ecosystem.
+- [Sampling](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling) doesn't support tool calling, although it's a cornerstone of modern agentic behaviour. Without explicit support for it, MCP servers that use Sampling can either try and emulate tool calling w/ complex prompting / custom parsing of the outputs, or are limited to simpler, non-agentic requests. Adding support for tool calling could unlock many novel use cases in the MCP ecosystem.
 
-* Context inclusion is ambiguously defined (see [this doc](https://docs.google.com/document/d/1KUsloHpsjR4fdXdJuofb9jUuK0XWi88clbRm9sWE510/edit?tab=t.0#heading=h.edw7oyac2e87)): it makes it particularly tricky to fully implement sampling, which along with other precautions needed for sampling (unaffected by this SEP) may have contributed to [low adoption of the feature in clients](https://modelcontextprotocol.io/clients#feature-support-matrix) (feature was introduced in the MCP Nov 2024 spec).
+- Context inclusion is ambiguously defined (see [this doc](https://docs.google.com/document/d/1KUsloHpsjR4fdXdJuofb9jUuK0XWi88clbRm9sWE510/edit?tab=t.0#heading=h.edw7oyac2e87)): it makes it particularly tricky to fully implement sampling, which along with other precautions needed for sampling (unaffected by this SEP) may have contributed to [low adoption of the feature in clients](https://modelcontextprotocol.io/clients#feature-support-matrix) (feature was introduced in the MCP Nov 2024 spec).
 
 Please note some related work:
 
-* [MCP Sampling](https://docs.google.com/document/d/1KUsloHpsjR4fdXdJuofb9jUuK0XWi88clbRm9sWE510/edit?tab=t.0#heading=h.5diekssgi3pq) (@jerome3o-anthropic): extremely similar proposal:
-    * Add same tools semantics,
-    * Deprecate `includeContext` (doc explains why its semantics are ambiguous)
-    * (goes further to suggest explicit context sharing, which is out of scope from this proposal)
-* [Allow Prompt/Sampling Messages to contain multiple content blocks. #198](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/198)
-  * In this PR we've made `{CreateMessageResult,SamplingMessage}.content` to accept a single content or an array of contents. The `result.content` change is backwards incompatible but is required to support parallel tool calls. The `SamplingMessage.content` change then makes it much more natural to write a tool loop (see example in reference implementation: [toolLoopSampling.ts](https://github.com/modelcontextprotocol/typescript-sdk/blob/ochafik/sep1577/src/examples/server/toolLoopSampling.ts))
+- [MCP Sampling](https://docs.google.com/document/d/1KUsloHpsjR4fdXdJuofb9jUuK0XWi88clbRm9sWE510/edit?tab=t.0#heading=h.5diekssgi3pq) (@jerome3o-anthropic): extremely similar proposal:
+  - Add same tools semantics,
+  - Deprecate `includeContext` (doc explains why its semantics are ambiguous)
+  - (goes further to suggest explicit context sharing, which is out of scope from this proposal)
+- [Allow Prompt/Sampling Messages to contain multiple content blocks. #198](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/198)
+  - In this PR we've made `{CreateMessageResult,SamplingMessage}.content` to accept a single content or an array of contents. The `result.content` change is backwards incompatible but is required to support parallel tool calls. The `SamplingMessage.content` change then makes it much more natural to write a tool loop (see example in reference implementation: [toolLoopSampling.ts](https://github.com/modelcontextprotocol/typescript-sdk/blob/ochafik/sep1577/src/examples/server/toolLoopSampling.ts))
 
 In the "Possible Follow ups" Section below, we give examples of features that were kept out of scope from this SEP but which we took care to make this SEP reasonably compatible with.
 
@@ -56,27 +57,27 @@ In the "Possible Follow ups" Section below, we give examples of features that we
 
 ### Overview
 
-* Add traditional tool call support in [CreateMessageRequest](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) w/  `tools` (w/ JSON schemas) & `toolChoice` params, requiring a server-side tool loop
-  * Sampling may now yield ToolCallBlock responses
-  * Server needs to call tools by itself
-  * Server calls sampling again with ToolResultParamBlock to inject tool results
-  * `toolChoice.mode` can be `“auto" | "required" | "none"` to allow common structured outputs use case (see below for possible follow up improvements)
-  * Fenced by new capability (`sampling { tools {} }`)
-* Fix/update underspecified strings in [CreateMessageResult](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessageresult):
-  * `stopReason: “endTurn" | "stopSequence" | “toolUse" | “maxToken" | string` (explicit enums + open string for compat)
-  * `role: “assistant”`
-* Soft-deprecate [CreateMessageRequest.params.includeContext](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) != ‘none’ (now fenced by capability)
-  * Incentivize context-free sampling implementation
+- Add traditional tool call support in [CreateMessageRequest](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) w/ `tools` (w/ JSON schemas) & `toolChoice` params, requiring a server-side tool loop
+  - Sampling may now yield ToolCallBlock responses
+  - Server needs to call tools by itself
+  - Server calls sampling again with ToolResultParamBlock to inject tool results
+  - `toolChoice.mode` can be `“auto" | "required" | "none"` to allow common structured outputs use case (see below for possible follow up improvements)
+  - Fenced by new capability (`sampling { tools {} }`)
+- Fix/update underspecified strings in [CreateMessageResult](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessageresult):
+  - `stopReason: “endTurn" | "stopSequence" | “toolUse" | “maxToken" | string` (explicit enums + open string for compat)
+  - `role: “assistant”`
+- Soft-deprecate [CreateMessageRequest.params.includeContext](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) != ‘none’ (now fenced by capability)
+  - Incentivize context-free sampling implementation
 
 ### Protocol changes
 
-* `sampling/createMessage`
-  * ~~MUST throw an error when `includeContext is “thisServer” | “allServers”` but `clientCapabilities.sampling.context` is missing~~
-  * MUST throw an error when `tool` or `toolChoice` are defined but `clientCapabilities.sampling.tools` is missing
-  * Servers SHOULD avoid `[includeContext](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest)` != ‘none’` as values `“thisServer”` and `“allServers”` may be removed in future spec releases.
-  * `CreateMessageRequest.messages` MUST balance any “assistant” message w/ a `ToolUseContent` (and `id: $id1`) w/ a “user” message w/ a ToolResultContent (and `tool_result_id: $id1`)
-    * Note: this is a requirement for Claude API implementation (parallel tool call must all be responded to in one go)
-  * SamplingMessage with tool result content blocks MUST NOT contain other content types.
+- `sampling/createMessage`
+  - ~~MUST throw an error when `includeContext is “thisServer” | “allServers”` but `clientCapabilities.sampling.context` is missing~~
+  - MUST throw an error when `tool` or `toolChoice` are defined but `clientCapabilities.sampling.tools` is missing
+  - Servers SHOULD avoid `[includeContext](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest)` != ‘none’`as values`“thisServer”`and`“allServers”` may be removed in future spec releases.
+  - `CreateMessageRequest.messages` MUST balance any “assistant” message w/ a `ToolUseContent` (and `id: $id1`) w/ a “user” message w/ a ToolResultContent (and `tool_result_id: $id1`)
+    - Note: this is a requirement for Claude API implementation (parallel tool call must all be responded to in one go)
+  - SamplingMessage with tool result content blocks MUST NOT contain other content types.
 
 ### Schema changes
 
@@ -91,7 +92,7 @@ In the "Possible Follow ups" Section below, we give examples of features that we
     };
   }
   ```
-  
+
 - [CreateMessageRequest](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) (use existing [Tool](https://modelcontextprotocol.io/specification/2025-06-18/schema#tool))
 
   ```typescript
@@ -102,11 +103,11 @@ In the "Possible Follow ups" Section below, we give examples of features that we
       messages: SamplingMessage[]; // Note: type updated, see below
       
       tools?: Tool[] // NEW (existing type)
-      
+
       toolChoice?: ToolChoice // NEW
     };
   }
-  
+
   interface ToolChoice { // NEW
     mode?: “auto” | "required" | "none";
     // disable_parallel_tool_use?: boolean; // Update (Nov 10): removed, see below
@@ -114,17 +115,17 @@ In the "Possible Follow ups" Section below, we give examples of features that we
   ```
 
   - Notes:
-    * OpenAI vs. Anthropic API idioms to avoid parallel tool calls:
-      * OpenAI: `parallel_tool_calls: false` (top-level param)
-      * Anthropic: `tool_choice.disable_parallel_tool_use: true`
-        * Preferred here as default value if unset is false (e.g. parallel tool calls allowed)
-    * OpenAI vs. Anthropic API re/ `tool_choice` `"none"` vs. `tools`:
-      * OpenAI: `tools: [$Foo], tool_choice: "none"` forbids any tool call
-        * Preferred behaviour here
-      * Anthropic: `tools: [$Foo], tool_choice: {mode: "none"}` may still call tool `Foo`
-    * Gemini vs. OAI / Anthropic re/ `disable_parallel_tool_use`:
-      * Gemini API has no way to disable parallel tool calls atm (unlike OAI / Anthropic APIs). Removing this flag for now, to be reintroduced when Gemini has any way of supporting it. Otherwise clients would get unexpected multiple tool calls (or alternatively if implemented that way, unexpected failures / costly retry until a single tool call is emitted)
-      * Gemini API's [Function calling modes](https://ai.google.dev/gemini-api/docs/function-calling?example=meeting#function_calling_modes) have an `ANY` value that should match the proposed `required`
+    - OpenAI vs. Anthropic API idioms to avoid parallel tool calls:
+      - OpenAI: `parallel_tool_calls: false` (top-level param)
+      - Anthropic: `tool_choice.disable_parallel_tool_use: true`
+        - Preferred here as default value if unset is false (e.g. parallel tool calls allowed)
+    - OpenAI vs. Anthropic API re/ `tool_choice` `"none"` vs. `tools`:
+      - OpenAI: `tools: [$Foo], tool_choice: "none"` forbids any tool call
+        - Preferred behaviour here
+      - Anthropic: `tools: [$Foo], tool_choice: {mode: "none"}` may still call tool `Foo`
+    - Gemini vs. OAI / Anthropic re/ `disable_parallel_tool_use`:
+      - Gemini API has no way to disable parallel tool calls atm (unlike OAI / Anthropic APIs). Removing this flag for now, to be reintroduced when Gemini has any way of supporting it. Otherwise clients would get unexpected multiple tool calls (or alternatively if implemented that way, unexpected failures / costly retry until a single tool call is emitted)
+      - Gemini API's [Function calling modes](https://ai.google.dev/gemini-api/docs/function-calling?example=meeting#function_calling_modes) have an `ANY` value that should match the proposed `required`
 
 - [SamplingMessage](https://modelcontextprotocol.io/specification/2025-06-18/schema#samplingmessage):
 
@@ -137,66 +138,79 @@ In the "Possible Follow ups" Section below, we give examples of features that we
       role: Role;
     }
   */
-  
-  type SamplingMessage = UserMessage | AssistantMessage // NEW
-  
-  type AssistantMessageContent = TextContent | ImageContent | AudioContent | ToolUseContent;
-  type UserMessageContent =      TextContent | ImageContent | AudioContent | ToolResultContent
-  interface AssistantMessage { // NEW
+
+  type SamplingMessage = UserMessage | AssistantMessage; // NEW
+
+  type AssistantMessageContent =
+    | TextContent
+    | ImageContent
+    | AudioContent
+    | ToolUseContent;
+  type UserMessageContent =
+    | TextContent
+    | ImageContent
+    | AudioContent
+    | ToolResultContent;
+  interface AssistantMessage {
+    // NEW
     role: "assistant";
-    content: AssistantMessageContent | AssistantMessageContent[]
+    content: AssistantMessageContent | AssistantMessageContent[];
   }
-  
-  interface ToolUseContent { // NEW
+
+  interface ToolUseContent {
+    // NEW
     type: "tool_use";
     name: string;
     id: string;
     input: object;
   }
-  
-  interface UserMessage { // NEW
+
+  interface UserMessage {
+    // NEW
     role: "user";
-    content: UserMessageContent | UserMessageContent[]
+    content: UserMessageContent | UserMessageContent[];
   }
-  
-  interface ToolResultContent { // NEW
+
+  interface ToolResultContent {
+    // NEW
     _meta?: { [key: string]: unknown };
     type: "tool_result";
     toolUseId: string;
-    content: ContentBlock[],
+    content: ContentBlock[];
     structuredContent: object;
     isError?: boolean;
   }
   ```
 
 - Notes:
-
-  * Differences of role vs. content type when it comes to tool calling between APIs:
-    * OpenAI: `role: “system" | “user" | “assistant" | “tool"` (where tool is for tool results), while tool calls are nested in assistant messages, content is then typically null but some “OpenAI compatible” APIs accept non-null values
-      * ```typescript
+  - Differences of role vs. content type when it comes to tool calling between APIs:
+    - OpenAI: `role: “system" | “user" | “assistant" | “tool"` (where tool is for tool results), while tool calls are nested in assistant messages, content is then typically null but some “OpenAI compatible” APIs accept non-null values
+      - ```typescript
         [
-          {"role": "user", "content": "what is the temperature in london?"},
+          { role: "user", content: "what is the temperature in london?" },
           {
-            "role": "assistant",
-            "content": "Let me use a tool...",
-            "tool_calls": [{
-              "id": "call_1",
-              "type": "function",
-              "function": {
-                "name": "get_weather",
-                "arguments": "{\"location\": \"London\"}"
-              }
-            }]
+            role: "assistant",
+            content: "Let me use a tool...",
+            tool_calls: [
+              {
+                id: "call_1",
+                type: "function",
+                function: {
+                  name: "get_weather",
+                  arguments: '{"location": "London"}',
+                },
+              },
+            ],
           },
           {
-            "role": "tool",
-            "content": "{\"temperature\": 20, \"condition\": \"sunny\"}",
-            "tool_call_id": "call_1"
-          }
-        ]
+            role: "tool",
+            content: '{"temperature": 20, "condition": "sunny"}',
+            tool_call_id: "call_1",
+          },
+        ];
         ```
-    * Claude API: `role: “user" | “assistant"`, tool use and result are passed through specially-typed message content parts:
-      * ```typescript
+    - Claude API: `role: “user" | “assistant"`, tool use and result are passed through specially-typed message content parts:
+      - ```typescript
         [
           {
             "role": "user",
@@ -233,16 +247,16 @@ In the "Possible Follow ups" Section below, we give examples of features that we
           }
         ]
         ```
-    * Gemini API:
-      * `function` role (similar to OAI's `tool` role)
-      * No tool call id concept ([function calling](https://ai.google.dev/gemini-api/docs/function-calling?example=meeting#parallel_function_calling): Gemini requires tool results to be provided in the exact same order as the tool use parts. An implementation could generate the tool call ids and use them to reorder the tool results if needed.
+    - Gemini API:
+      - `function` role (similar to OAI's `tool` role)
+      - No tool call id concept ([function calling](https://ai.google.dev/gemini-api/docs/function-calling?example=meeting#parallel_function_calling): Gemini requires tool results to be provided in the exact same order as the tool use parts. An implementation could generate the tool call ids and use them to reorder the tool results if needed.
 
 - [CreateMessageResult](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessageresult)
 
   ```typescript
   /*
     BEFORE:
-    
+
     interface CreateMessageResult {
       _meta?: { [key: string]: unknown };
       content: TextContent | ImageContent | AudioContent;
@@ -253,30 +267,29 @@ In the "Possible Follow ups" Section below, we give examples of features that we
   */
   interface CreateMessageResult {
     _meta?: { [key: string]: unknown };
-    
+
     content: AssistantMessageContent | AssistantMessageContent[] // UPDATED
-    
+
     role: "assistant"; // UPDATED
-    
+
     stopReason?: “endTurn" | "stopSequence" | “toolUse" | “maxToken" | string // UPDATED
-    
+
     [key: string]: unknown;
   }
   ```
 
   - Notes:
-  
-    * Backwards compatibility issue: returning CreateMessageResult.content as an array of contents OR a single content is problematic, so we propose:
-      * `sampling/createMessage` MUST NOT return an array in `CreateMessageResult.content` before spec version Nov 2025.
-        * This guarantees wire-level backwards-compatibility
-      *  Existing code that uses sampling may break w/ new SDK releases as it will need to test content to know if it's an array or a single block, and act accordingly.
-        * This seems reasonable(?)
-    * `CreateMessageResult.stopReason` field is currently defined as an open `string`, and the spec only mentions the `endTurn` as example value.
-    * OpenAI vs. Anthropic API idioms
-      * Finish/stop reason
-        * OpenAI’s [ChatCompletion](https://platform.openai.com/docs/api-reference/chat/object): `finish_reason: “stop” | “length” | “tool_use”` (…?)
-        * [Anthropic](https://docs.claude.com/en/api/handling-stop-reasons): `stop_reason: “end_turn” | “max_tokens” | “stop_sequence” | “tool_use” | “pause_turn” | “refusal”`
-  
+    - Backwards compatibility issue: returning CreateMessageResult.content as an array of contents OR a single content is problematic, so we propose:
+      - `sampling/createMessage` MUST NOT return an array in `CreateMessageResult.content` before spec version Nov 2025.
+        - This guarantees wire-level backwards-compatibility
+      - Existing code that uses sampling may break w/ new SDK releases as it will need to test content to know if it's an array or a single block, and act accordingly.
+      - This seems reasonable(?)
+    - `CreateMessageResult.stopReason` field is currently defined as an open `string`, and the spec only mentions the `endTurn` as example value.
+    - OpenAI vs. Anthropic API idioms
+      - Finish/stop reason
+        - OpenAI’s [ChatCompletion](https://platform.openai.com/docs/api-reference/chat/object): `finish_reason: “stop” | “length” | “tool_use”` (…?)
+        - [Anthropic](https://docs.claude.com/en/api/handling-stop-reasons): `stop_reason: “end_turn” | “max_tokens” | “stop_sequence” | “tool_use” | “pause_turn” | “refusal”`
+
 ## Possible Follow ups
 
 Theses are out of scope for this SEP, but care was taken not to preclude them, so where appropriate we give examples of how they could be implemented on top of / after this SEP.
@@ -293,18 +306,18 @@ A possible way to implement this would be to use notifications w/ payload, and p
 
 Two bits needed here:
 
-* Introduce cache awareness
-  * Implicit caching guidelines phrased as SHOULDs
-  * Explicit cache points and TTL semantics [as in the Claude API](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)? (incl. beta behaviour for longer caching)
-    * Pros: easy to implement *for at least 1 implementor (Anthropic)*
-    * Cons: if hard to implement for others, unlikely to get approval.
-  * “Whole prompt” / prompt-prefix cache w/ an explicit key [as in the OpenAI API](https://platform.openai.com/docs/api-reference/responses/create#responses-create-prompt_cache_key)?
-    * Pros:
-      * simpler for users (no need to think about where the shared prefix stops)
-      * implicitly supports updating the cache (maybe even as subtree)
-    * Cons: possibly harder to implement / more storage inefficient
-* Introduce allowed_tools feature to enable / disable tools w/o breaking context caching
-  * Relevant to this SEP as we may want to merge this feature [under the tool_choice field, similar to what OpenAI did](https://platform.openai.com/docs/guides/function-calling).
+- Introduce cache awareness
+  - Implicit caching guidelines phrased as SHOULDs
+  - Explicit cache points and TTL semantics [as in the Claude API](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)? (incl. beta behaviour for longer caching)
+    - Pros: easy to implement _for at least 1 implementor (Anthropic)_
+    - Cons: if hard to implement for others, unlikely to get approval.
+  - “Whole prompt” / prompt-prefix cache w/ an explicit key [as in the OpenAI API](https://platform.openai.com/docs/api-reference/responses/create#responses-create-prompt_cache_key)?
+    - Pros:
+      - simpler for users (no need to think about where the shared prefix stops)
+      - implicitly supports updating the cache (maybe even as subtree)
+    - Cons: possibly harder to implement / more storage inefficient
+- Introduce allowed_tools feature to enable / disable tools w/o breaking context caching
+  - Relevant to this SEP as we may want to merge this feature [under the tool_choice field, similar to what OpenAI did](https://platform.openai.com/docs/guides/function-calling).
 
     ```typescript
     interface ToolChoice { // NEW
@@ -328,8 +341,8 @@ The MCP server would just allowlist its own tools in the sampling request, w/t a
 
 Pros:
 
-* Safe, limited to that server’s tools.
-* If we propagate the mcp-session-id, can leverage keep any server-side session context / caching
+- Safe, limited to that server’s tools.
+- If we propagate the mcp-session-id, can leverage keep any server-side session context / caching
 
 ### Allow client to call any other MCP servers’ tools by itself in an agentic loop
 
@@ -339,25 +352,25 @@ The end user would allowlist tools from any other MCP server for use in a sampli
 
 Pros:
 
-* Technically no spec change needed (if anything, mention this as a freedom clients have)
-* Possibly similar to what [CreateMessageRequest.params.includeContext](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) = thisServer / allServers intended semantics may have meant
-  * `CreateMessageRequest.params.allowImplicitToolCalls = “none” | “thisServer” | “allServers”`
+- Technically no spec change needed (if anything, mention this as a freedom clients have)
+- Possibly similar to what [CreateMessageRequest.params.includeContext](https://modelcontextprotocol.io/specification/2025-06-18/schema#createmessagerequest) = thisServer / allServers intended semantics may have meant
+  - `CreateMessageRequest.params.allowImplicitToolCalls = “none” | “thisServer” | “allServers”`
     (assuming we wanted to give the server any control over this)
 
 Cons:
 
-* Classifier might be needed to avoid High potential for privacy leaks / abuse
-  * If user approves Gmail MCP tool usage / delegation by mistake, server gets access to their private emails through sampling
+- Classifier might be needed to avoid High potential for privacy leaks / abuse
+  - If user approves Gmail MCP tool usage / delegation by mistake, server gets access to their private emails through sampling
 
 ### Allow server to list & call clients’ tools (client/server → p2p)
 
 If we say the client can now expose tools that the server can call, it opens a set of possibilities:
 
-* The client can “forward” other servers’ tools (maybe w/ some namespacing for seamless aggregation)
-  * The server can then call these tools as part of its tool loop.
-* Client & Server semantics start to lose weight, we enter a more peer-to-peer, symmetrical relationship
-  * Client could also ask a server for sampling, while we’re at it
-  * Symmetry at the protocol layer, but still directionality at the transport layer (e.g. for HTTP transport, direction of POST requests still matters)
+- The client can “forward” other servers’ tools (maybe w/ some namespacing for seamless aggregation)
+  - The server can then call these tools as part of its tool loop.
+- Client & Server semantics start to lose weight, we enter a more peer-to-peer, symmetrical relationship
+  - Client could also ask a server for sampling, while we’re at it
+  - Symmetry at the protocol layer, but still directionality at the transport layer (e.g. for HTTP transport, direction of POST requests still matters)
 
 ### Simplify structured outputs use case
 

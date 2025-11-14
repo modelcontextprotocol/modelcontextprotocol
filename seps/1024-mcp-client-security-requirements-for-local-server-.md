@@ -1,9 +1,9 @@
 # SEP-1024: MCP Client Security Requirements for Local Server Installation
 
 - **Status**: Accepted
-- **Type**: ** Standards Track
+- **Type**: \*\* Standards Track
 - **Created**: 2025-07-22
-- **Author(s)**: ** Den Delimarsky
+- **Author(s)**: \*\* Den Delimarsky
 - **Issue**: #1024
 
 ## Abstract
@@ -40,9 +40,8 @@ Before executing any command to install or configure a local MCP server, the MCP
 
 1. Display a clear consent dialog that shows:
    - The exact command that will be executed, without truncation
-   - All arguments and parameters 
+   - All arguments and parameters
    - A clear warning that this operation may be potentially dangerous
-   
 2. Require explicit user approval through an affirmative action (button click, checkbox, etc.)
 
 3. Provide an option for users to cancel the installation
@@ -57,16 +56,18 @@ Before executing any command to install or configure a local MCP server, the MCP
 
 ## Backward Compatibility
 
-This SEP introduces new **requirements** for MCP client implementations but does not change the core MCP protocol or wire format. 
+This SEP introduces new **requirements** for MCP client implementations but does not change the core MCP protocol or wire format.
 
 **Impact Assessment:**
+
 - **Low Impact**: Existing MCP servers and the core protocol remain unchanged
 - **Client Implementation Required**: MCP clients must update their local server installation flows to comply with new security requirements
 - **User Experience Changes**: Users will see consent dialogs where none existed before
 
 **Migration Path:**
+
 1. MCP clients can implement these changes in new versions without breaking existing functionality
-2. Existing installed MCP servers continue to work normally  
+2. Existing installed MCP servers continue to work normally
 3. Only new installation flows require the consent mechanisms
 
 No protocol-level backward compatibility issues exist, as this SEP addresses client behavior rather than the MCP wire protocol.
@@ -89,6 +90,7 @@ This SEP directly addresses:
 ### Residual Risks
 
 Even with these controls, risks remain:
+
 - **User Override**: Users may approve malicious commands despite warnings
 - **Sophisticated Obfuscation**: Advanced attackers may craft commands that appear legitimate
 - **Implementation Gaps**: Clients may implement controls incorrectly

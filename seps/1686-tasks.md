@@ -1,9 +1,9 @@
 # SEP-1686: Tasks
 
 - **Status**: Accepted
-- **Type**: ** Standards Track
+- **Type**: \*\* Standards Track
 - **Created**: 2025-10-20
-- **Author(s)**: ** Surbhi Bansal, Luca Chang
+- **Author(s)**: \*\* Surbhi Bansal, Luca Chang
 - **Issue**: #1686
 
 ## Abstract

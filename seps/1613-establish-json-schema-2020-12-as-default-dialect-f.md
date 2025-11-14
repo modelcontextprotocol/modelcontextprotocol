@@ -1,9 +1,9 @@
 # SEP-1613: Establish JSON Schema 2020-12 as Default Dialect for MCP
 
 - **Status**: Accepted
-- **Type**: ** Standards Track
+- **Type**: \*\* Standards Track
 - **Created**: 2025-10-06
-- **Author(s)**: ** Ola Hungerford
+- **Author(s)**: \*\* Ola Hungerford
 - **Issue**: #1613
 
 ## Abstract
@@ -53,6 +53,7 @@ Schemas **MAY** include an explicit `$schema` field to declare a different diale
 - `{ "type": "object", "additionalProperties": false }` - accepts only empty objects `{}`
 
 **Example** for a tool with no parameters:
+
 ```json
 {
   "name": "get_current_time",
@@ -125,15 +126,18 @@ This is technically a **clarification**, and not a breaking change:
 ### SDK Implementations
 
 **Python SDK** - Already compatible:
+
 - Uses Pydantic for schema generation
 - Pydantic defaults to 2020-12 via `.model_json_schema()`
 
 **Go SDK** - Implemented 2020-12:
+
 - Explicit 2020-12 implementation completed
 - Confirmed by @samthanawalla in PR #655 discussion
 
 **Other SDKs:**
-- May require updates but based on other examples, there should be straightforward or out-of-the-box options to support this.  I can add more examples here or we can create issues to follow up on these after acceptance.
+
+- May require updates but based on other examples, there should be straightforward or out-of-the-box options to support this. I can add more examples here or we can create issues to follow up on these after acceptance.
 
 ## Security Implications
 
@@ -160,8 +164,8 @@ The schema for the spec itself references `draft-07` and the `typescript-json-sc
 
 Options:
 
- 1. Update schema generation script to patch to 2020-12 after generation (this is what I did in the current PR)
- 2. Switch to a different schema generator that supports 2020-12
- 3. Leave as-is since it doesn't actually conflict with the spec?
+1.  Update schema generation script to patch to 2020-12 after generation (this is what I did in the current PR)
+2.  Switch to a different schema generator that supports 2020-12
+3.  Leave as-is since it doesn't actually conflict with the spec?
 
 Personally I'd prefer (1) in the short term and then (2) as a follow-up.
