@@ -269,6 +269,8 @@ sequenceDiagram
     User->>Client: Initiates connection to MCP Server
     Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://localhost:3000/callback
 
+    Server->>User: Authentication prompt
+    User->>Server: Provides credentials
     Note over Server: Authenticates user
 
     Note over Server: Detects URL-formatted client_id
@@ -320,7 +322,7 @@ MCP clients **SHOULD** support an option for static client credentials such as t
 
 MCP clients and authorization servers **MAY** support the
 OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)
-to allow MCP clients to obtain OAuth client IDs without user interaction. This provides a
+to allow MCP clients to obtain OAuth client IDs without user interaction.
 This option is included for backwards compatibility with earlier versions of the MCP authorization spec.
 
 ## Scope Selection Strategy
