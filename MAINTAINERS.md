@@ -95,6 +95,12 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
 
+### MCPB (Model Context Protocol Bundle)
+
+- [Alexander Sklar](https://github.com/asklar)
+- [Adam Jones](https://github.com/domdomegg)
+- [Joan Xie](https://github.com/joan-anthropic)
+
 ### Reference Servers
 
 - [Ola Hungerford](https://github.com/olaservo)
