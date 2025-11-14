@@ -37,21 +37,9 @@ Applications **SHOULD**:
 
 ## Tools in Sampling
 
-Servers can request that the client's LLM use tools during sampling by providing a `tools` array and optional `toolChoice` configuration in their sampling requests. This enables servers to implement agentic behaviors where the LLM can call tools, receive results, and continue the conversation&mdash;all within a single sampling request flow.
+Servers can request that the client's LLM use tools during sampling by providing a `tools` array and optional `toolChoice` configuration in their sampling requests. This enables servers to implement agentic behaviors where the LLM can call tools, receive results, and continue the conversation - all within a single sampling request flow.
 
-**Key capabilities:**
-
-- Servers define tools with JSON schemas for inputs and outputs
-- The LLM decides when and how to use tools (subject to `toolChoice` constraints)
-- Multiple tools can be used in parallel
-- Tool results are provided back to the LLM to inform subsequent responses
-
-Clients **MUST** declare support for tool use via the `sampling.tools` capability to receive tool-enabled sampling requests. Servers **SHOULD NOT** send tool-enabled sampling requests to Clients that have not declared support for tool use via the `sampling.tools` capability.
-
-<Info>
-  Tool use in sampling uses the same `Tool` type as regular MCP tool calls,
-  ensuring consistency across the protocol.
-</Info>
+Clients **MUST** declare support for tool use via the `sampling.tools` capability to receive tool-enabled sampling requests. Servers **MUST NOT** send tool-enabled sampling requests to Clients that have not declared support for tool use via the `sampling.tools` capability.
 
 ## Capabilities
 
@@ -441,7 +429,7 @@ This constraint ensures compatibility with provider APIs that use dedicated role
 
 ### Tool Use and Result Balance
 
-When using tool use in sampling, messages **MUST** be properly balanced: every assistant message containing `ToolUseContent` blocks must be followed by a user message that consists entirely of `ToolResultContent` blocks, with each tool use (e.g. with `id: $id`) matched by a corresponding tool result (with `toolUseId: $id`), before any other message.
+When using tool use in sampling, every assistant message containing `ToolUseContent` blocks **MUST** be followed by a user message that consists entirely of `ToolResultContent` blocks, with each tool use (e.g. with `id: $id`) matched by a corresponding tool result (with `toolUseId: $id`), before any other message.
 
 This requirement ensures:
 
