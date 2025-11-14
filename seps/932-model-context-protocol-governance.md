@@ -21,6 +21,7 @@ As the Model Context Protocol grows in adoption and complexity, the need for for
 4. **Scalability**: Ad-hoc processes cannot scale with growing community and technical complexity
 
 Without formal governance, the project risks:
+
 - Fragmentation of the ecosystem
 - Unclear or inconsistent technical decisions
 - Reduced community trust and participation
@@ -31,17 +32,21 @@ Without formal governance, the project risks:
 The proposed governance model draws inspiration from successful open source projects like Python, PyTorch, and Rust. Key design decisions include:
 
 ### Hierarchical Structure
+
 We chose a hierarchical model (Contributors → Maintainers → Core Maintainers → Lead Maintainers) that is effectively how the project decisions are made today. From there we will continue to evolve governance in the best interest of the project.
 
 ### Individual vs Corporate Membership
+
 Membership is explicitly tied to individuals rather than companies to:
+
 - Ensure decisions prioritize protocol integrity over corporate interests
 - Prevent capture by any single organization
 - Maintain continuity when individuals change employers
 
-
 ### SEP Process
+
 The Specification Enhancement Proposal process ensures:
+
 - All protocol changes undergo thorough review
 - Community input is systematically collected
 - Design decisions are documented for posterity
@@ -52,23 +57,27 @@ The Specification Enhancement Proposal process ensures:
 ### Governance Structure
 
 #### Contributors
+
 - Any individual who files issues, submits pull requests, or participates in discussions
 - No formal membership or approval required
 
 #### Maintainers
+
 - Responsible for specific components (SDKs, documentation, etc.)
 - Appointed by Core Maintainers
 - Have write/admin access to their repositories
 - May establish component-specific processes
 
 #### Core Maintainers
+
 - Deep understanding of MCP specification required
 - Responsible for protocol evolution and project direction
 - Meet bi-weekly for decisions
 - Can veto maintainer decisions by majority vote
 - Current members listed in governance documentation
 
-#### Lead Maintainers 
+#### Lead Maintainers
+
 - Justin Spahr-Summers and David Soria Parra
 - Can veto any decision
 - Appoint/remove Core Maintainers
@@ -80,12 +89,11 @@ N/A
 
 ## Reference Implementation
 
-See #931 
+See #931
 
 1. **Documentation Files**:
    - `/docs/community/governance.mdx` - Full governance documentation
    - `/docs/community/sep-guidelines.mdx` - SEP process guidelines
-
 
 ## Security Implications
 

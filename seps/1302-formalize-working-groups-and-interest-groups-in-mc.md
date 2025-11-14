@@ -10,72 +10,72 @@ PR: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1350
 
 ## Abstract
 
-*A short (\~200 word) description of the technical issue being addressed.*
+_A short (\~200 word) description of the technical issue being addressed._
 
 In [SEP-994](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1002), we introduced a notion of “Working Groups” and “Interest Groups” that facilitate MCP sub-communities for discussion and collaboration. This SEP aims to formally define those two terms: what they are meant to achieve, how groups can be created, how they are governed, and how they can be retired.
 
-Interest Groups work to define *problems* that MCP should solve by facilitating *discussions*, while Working Groups push forward specific *solutions* by collaboratively producing *deliverables* (in the form of SEPs or community-owned implementations of the specification). Interest Group input is a welcome (but not required) justification for creation of a Working Group. Interest Group or Working Group input is collectively a welcome (but not required) input into a SEP.
+Interest Groups work to define _problems_ that MCP should solve by facilitating _discussions_, while Working Groups push forward specific _solutions_ by collaboratively producing _deliverables_ (in the form of SEPs or community-owned implementations of the specification). Interest Group input is a welcome (but not required) justification for creation of a Working Group. Interest Group or Working Group input is collectively a welcome (but not required) input into a SEP.
 
 ## Motivation
 
-*The motivation should clearly explain why the existing protocol specification is inadequate to address the problem that the SEP solves.*
+_The motivation should clearly explain why the existing protocol specification is inadequate to address the problem that the SEP solves._
 
 The community has already been self-organizing into several disparate systems for these collaborative groups:
 
-* The Steering group has had a long-standing practice of managing a handful of collaborative groups through Discord channels (e.g. security, auth, agents). See [bottom of MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md).  
-* The “CWG Discord” has had a [semi-formal process](https://github.com/modelcontextprotocol-community/working-groups) for pushing equivalent grassroots initiatives, mostly in pursuit of creating artifacts for SEP consideration (e.g. hosting, UI, tool-interfaces, search-tools)
+- The Steering group has had a long-standing practice of managing a handful of collaborative groups through Discord channels (e.g. security, auth, agents). See [bottom of MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md).
+- The “CWG Discord” has had a [semi-formal process](https://github.com/modelcontextprotocol-community/working-groups) for pushing equivalent grassroots initiatives, mostly in pursuit of creating artifacts for SEP consideration (e.g. hosting, UI, tool-interfaces, search-tools)
 
 With SEP-994 resulting in the merging of the Discord communities, we have a need to:
 
-* Merge the existing initiatives into one unified approach, so when we reference “working group” or “interest group”, everyone knows what that means and what kind of weight the reference might carry  
-* Standardize a process around the creation (and eventual retirement) of such groups  
-* Properly distinguish between “working” and “interest” groups; the CWG experience has shown two very different motivations for starting a group worth treating with different expectations and lifecycle. Put succinctly, “interest” groups are about brainstorming possible *problems*, and “working” groups are about pushing forward specific *solutions*. 
+- Merge the existing initiatives into one unified approach, so when we reference “working group” or “interest group”, everyone knows what that means and what kind of weight the reference might carry
+- Standardize a process around the creation (and eventual retirement) of such groups
+- Properly distinguish between “working” and “interest” groups; the CWG experience has shown two very different motivations for starting a group worth treating with different expectations and lifecycle. Put succinctly, “interest” groups are about brainstorming possible _problems_, and “working” groups are about pushing forward specific _solutions_.
 
 These groups exist to:
 
-* **Facilitate high signal spaces for discussion** such that those opting into notifications and meetings feel most content is relevant to them and they can meaningfully contribute their experience and learn from others  
-* **Create norms, expectations, and single points of involved leadership** around making collaborative progress towards concrete deliverables that help evolve MCP
+- **Facilitate high signal spaces for discussion** such that those opting into notifications and meetings feel most content is relevant to them and they can meaningfully contribute their experience and learn from others
+- **Create norms, expectations, and single points of involved leadership** around making collaborative progress towards concrete deliverables that help evolve MCP
 
 It will also form the foundation for cross-group initiatives, such as maintaining a calendar of live meetings.
 
 ## Specification
 
-*The technical specification should describe the syntax and semantics of any new protocol feature. The specification should be detailed enough to allow competing, interoperable implementations. A PR with the changes to the specification should be provided.*
+_The technical specification should describe the syntax and semantics of any new protocol feature. The specification should be detailed enough to allow competing, interoperable implementations. A PR with the changes to the specification should be provided._
 
 ### Interest Groups (IG) \[Problems\]
 
-**Goal**: facilitate discussion and knowledge-sharing among MCP community members with similar interests surrounding some MCP sub-topic or context. The focus is on collecting *problems* that may or may not be worth solving with SEPs or other community artifacts.
+**Goal**: facilitate discussion and knowledge-sharing among MCP community members with similar interests surrounding some MCP sub-topic or context. The focus is on collecting _problems_ that may or may not be worth solving with SEPs or other community artifacts.
 
 **Expectations**:
 
-* At least one substantive thread / conversation per month  
-* AND/OR a live meeting attended by 3+ unaffiliated individuals
+- At least one substantive thread / conversation per month
+- AND/OR a live meeting attended by 3+ unaffiliated individuals
 
 **Examples**:
 
-* Security in MCP (currently: \#security)  
-* Auth in MCP (currently: \#auth)  
-* Using MCP in an internal enterprise setting (currently: \#enterprise-wg)  
-* Tooling and practices surrounding hosting MCP servers (currently: \#hosting-wg)  
-* Tooling and practices surrounding implementing MCP clients (currently: \#client-implementors)
+- Security in MCP (currently: \#security)
+- Auth in MCP (currently: \#auth)
+- Using MCP in an internal enterprise setting (currently: \#enterprise-wg)
+- Tooling and practices surrounding hosting MCP servers (currently: \#hosting-wg)
+- Tooling and practices surrounding implementing MCP clients (currently: \#client-implementors)
 
 **Lifecycle**:
 
-* Creation begins by filling out a template in \#wg-ig-group-creation Discord channel  
-* A community moderator will review and call for a vote in the (private) \#community-moderators Discord channel. Majority positive vote by members over a 72h period approves creation of the group. Can be reversed at any time (e.g. after more input comes in). Core and lead maintainers can veto.  
-* Facilitator(s) and Maintainer(s) responsible for organizing IG into meeting expectations  
-  * Facilitator is an informal role responsible for shepherding or speaking for a group
-  * Maintainer is an official representative from the MCP steering group (not required for every group to have this)
-* IG is retired only when community moderators or core+ maintainers decide it is not meeting expectations  
-  * This means successful IG’s will live on in perpetuity
+- Creation begins by filling out a template in \#wg-ig-group-creation Discord channel
+- A community moderator will review and call for a vote in the (private) \#community-moderators Discord channel. Majority positive vote by members over a 72h period approves creation of the group. Can be reversed at any time (e.g. after more input comes in). Core and lead maintainers can veto.
+- Facilitator(s) and Maintainer(s) responsible for organizing IG into meeting expectations
+  - Facilitator is an informal role responsible for shepherding or speaking for a group
+  - Maintainer is an official representative from the MCP steering group (not required for every group to have this)
+- IG is retired only when community moderators or core+ maintainers decide it is not meeting expectations
+  - This means successful IG’s will live on in perpetuity
 
 **Creation Template**:
 
-* Facilitator(s)  
-* Maintainer(s) (optional)
-* Flag potential overlap with other IG’s  
-* How this IG differentiates itself from the related IG’s  
-* First topic you want to discuss
+- Facilitator(s)
+- Maintainer(s) (optional)
+- Flag potential overlap with other IG’s
+- How this IG differentiates itself from the related IG’s
+- First topic you want to discuss
 
 There is no requirement to be part of an IG to start a WG, or even to start a SEP. However, forming consensus in IG’s to support justifying the creation of a WG is often a good idea. Similarly, citing IG or WG support of a SEP helps the SEP as well.
 
@@ -85,37 +85,37 @@ There is no requirement to be part of an IG to start a WG, or even to start a SE
 
 **Expectations**:
 
-* Minimum monthly progress towards at least one SEP or spec-related implementation OR holds maintenance responsibilities for a Project
-* Facilitator(s) is/are responsible for fielding status update requests by community moderators or maintainers
+- Minimum monthly progress towards at least one SEP or spec-related implementation OR holds maintenance responsibilities for a Project
+- Facilitator(s) is/are responsible for fielding status update requests by community moderators or maintainers
 
 **Examples**:
 
-* Registry
-* Inspector
-* Tool Filtering  
-* Server Identity
+- Registry
+- Inspector
+- Tool Filtering
+- Server Identity
 
 **Lifecycle**:
 
-* Creation begins by filling out a template in \#wg-ig-group-creation Discord channel  
-* A community moderator will review and call for a vote in the (private) \#community-moderators Discord channel. Majority positive vote by members over a 72h period approves creation of the group. Can be reversed at any time (e.g. after more input comes in). Core and lead maintainers can veto.  
-* Facilitator(s) and Maintainer(s) responsible for organizing WG into meeting expectations  
-  * Facilitator is an informal role responsible for shepherding or speaking for a group
-  * Maintainer is an official representative from the MCP steering group (not required for every group to have this)
-* WG is retired when either:  
-  * Community moderators or core+ maintainers decide it is not meeting expectations  
-  * The WG does not have a WIP Issue/PR for at least a month, or has completed all Issues/PRs it intends to pursue.
+- Creation begins by filling out a template in \#wg-ig-group-creation Discord channel
+- A community moderator will review and call for a vote in the (private) \#community-moderators Discord channel. Majority positive vote by members over a 72h period approves creation of the group. Can be reversed at any time (e.g. after more input comes in). Core and lead maintainers can veto.
+- Facilitator(s) and Maintainer(s) responsible for organizing WG into meeting expectations
+  - Facilitator is an informal role responsible for shepherding or speaking for a group
+  - Maintainer is an official representative from the MCP steering group (not required for every group to have this)
+- WG is retired when either:
+  - Community moderators or core+ maintainers decide it is not meeting expectations
+  - The WG does not have a WIP Issue/PR for at least a month, or has completed all Issues/PRs it intends to pursue.
 
 **Creation Template**:
 
-* Facilitator(s)  
-* Maintainer(s) (optional)
-* Explanation of interest/use cases (ideally from an IG but can come from anywhere)  
-* First Issue/PR/SEP you intend to procure
+- Facilitator(s)
+- Maintainer(s) (optional)
+- Explanation of interest/use cases (ideally from an IG but can come from anywhere)
+- First Issue/PR/SEP you intend to procure
 
 ### WG/IG Facilitators
 
-A “Facilitator” role in a WG or IG does *not* result in a [maintainership role](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) across the MCP organization. It is an informal role into which anyone can self-nominate, responsible for helping shepherd discussions and collaboration within the group.
+A “Facilitator” role in a WG or IG does _not_ result in a [maintainership role](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) across the MCP organization. It is an informal role into which anyone can self-nominate, responsible for helping shepherd discussions and collaboration within the group.
 
 Core Maintainers reserve the right to modify the list of Facilitators and Maintainers for any WG/IG at any time.
 
@@ -123,7 +123,7 @@ PR for the changes to our documentation we'd want to enact this SEP: https://git
 
 ## Rationale
 
-*The rationale explains why particular design decisions were made. It should describe alternate designs that were considered and related work. The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion.*
+_The rationale explains why particular design decisions were made. It should describe alternate designs that were considered and related work. The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion._
 
 The design above comes from experience in facilitating the creation of \+ observing the behavior of informal “Community Working Groups” in the CWG Discord, and leading one of / participating in / observing the “Steering Committee Working Groups”. While the Steering WG’s were usually informally created by Lead Maintainers, the CWG Discord had a lightweight WG-creation process that involved similar steps to the proposal above (community members would propose WG’s in \#working-group-ideation, and moderators would create channels from that collaboration).
 
@@ -138,10 +138,11 @@ In proposing the WG/IG design, we took the following into consideration:
 A very common question for folks looking to invest in the MCP ecosystem is, "how do I get involved?"
 
 These IG and WG abstractions help provide an elegant on-ramp:
-1) Join the Discord, follow the conversation in IGs relevant to you. Attend live calls. Participate.
-2) Offer to facilitate calls. Contribute your use cases in SEP proposals and other work.
-3) When you're comfortable contributing to deliverables, jump in to contribute to WG work.
-4) Do this for a period of time, get noticed by WG maintainers to get nominated as a new maintainer.
+
+1. Join the Discord, follow the conversation in IGs relevant to you. Attend live calls. Participate.
+2. Offer to facilitate calls. Contribute your use cases in SEP proposals and other work.
+3. When you're comfortable contributing to deliverables, jump in to contribute to WG work.
+4. Do this for a period of time, get noticed by WG maintainers to get nominated as a new maintainer.
 
 #### Minimal changes to existing governance structure
 
@@ -179,7 +180,7 @@ While very community-driven, the concern of group overlap would quickly fragment
 
 ## Backward Compatibility
 
-*All SEPs that introduce backward incompatibilities must include a section describing these incompatibilities and their severity. The SEP must explain how the author proposes to deal with these incompatibilities.*
+_All SEPs that introduce backward incompatibilities must include a section describing these incompatibilities and their severity. The SEP must explain how the author proposes to deal with these incompatibilities._
 
 There is no major change suggested in the day to day of existing groups - the expectations laid out of IGs and WGs are easily met by existing active groups as long as they keep doing as they are doing.
 
@@ -187,7 +188,7 @@ A migration path for all groups is laid out below.
 
 ## Reference Implementation
 
-*The reference implementation must be completed before any SEP is given status “Final”, but it need not be completed before the SEP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of “rough consensus and running code” is still useful when it comes to resolving many discussions of protocol details.*
+_The reference implementation must be completed before any SEP is given status “Final”, but it need not be completed before the SEP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of “rough consensus and running code” is still useful when it comes to resolving many discussions of protocol details._
 
 The below is the suggested migration path for each group. "Migration" just involves acknowledgement of this SEP and the expectations of each group, plus methodology for possible eventual retirement (or immediate retirement, in some cases).
 
@@ -221,5 +222,5 @@ After this SEP is approved, we can ping each of the groups to confirm they are o
 - security --> merge with Steering equivalent
 - server-identity --> merge with Steering equivalent
 - tool-interfaces --> Retire
-- ui --> Interest Group 
+- ui --> Interest Group
 - schema-validation --> Retire (same as Steering equivalent)

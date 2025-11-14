@@ -11,8 +11,8 @@
 
 This extension is designed to facilitate secure and interoperable authorization of MCP clients within corporate environments, leveraging existing enterprise identity infrastructure.
 
-* For end users, this removes the need to manually connect and authorize the MCP Client to individual services within the organization.
-* For enterprise admins, this enables visibility and control over which MCP Servers are able to be used within the organization.
+- For end users, this removes the need to manually connect and authorize the MCP Client to individual services within the organization.
+- For enterprise admins, this enables visibility and control over which MCP Servers are able to be used within the organization.
 
 ## How Has This Been Tested?
 
@@ -65,6 +65,5 @@ sequenceDiagram
     end
 ```
 
-
->[!IMPORTANT]
->**State:** Ready to Review
+> [!IMPORTANT]
+> **State:** Ready to Review
