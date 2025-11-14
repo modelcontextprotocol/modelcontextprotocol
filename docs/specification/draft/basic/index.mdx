@@ -139,9 +139,10 @@ may reserve particular names for purpose-specific metadata, as declared in those
 
 - If specified, MUST be a series of labels separated by dots (`.`), followed by a slash (`/`).
   - Labels MUST start with a letter and end with a letter or digit; interior characters can be letters, digits, or hyphens (`-`).
-- Any prefix beginning with zero or more valid labels, followed by `modelcontextprotocol` or `mcp`, followed by any valid label,
-  is **reserved** for MCP use.
-  - For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.
+  - Implementations SHOULD use reverse DNS notation (e.g., `com.example/` rather than `example.com/`).
+- Any prefix where the second label is `modelcontextprotocol` or `mcp` is **reserved** for MCP use.
+  - For example: `io.modelcontextprotocol/`, `dev.mcp/`, `org.modelcontextprotocol.api/`, and `com.mcp.tools/` are all reserved.
+  - However, `com.example.mcp/` is NOT reserved, as the second label is `example`.
 
 **Name:**
 
