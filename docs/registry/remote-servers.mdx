@@ -1,0 +1,146 @@
+---
+title: Publishing Remote Servers
+sidebarTitle: Remote Servers
+---
+
+The MCP Registry supports remote MCP servers via the `remotes` property in `server.json`:
+
+```json server.json highlight={7-12}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "com.example/acme-analytics",
+  "title": "ACME Analytics",
+  "description": "Real-time business intelligence and reporting platform",
+  "version": "2.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://analytics.example.com/mcp"
+    }
+  ]
+}
+```
+
+A remote server **MUST** be publicly accessible at its specified URL.
+
+## Transport Type
+
+Remote servers can use the Streamable HTTP transport (recommended) or the SSE transport. Remote servers can also support both transports simultaneously at different URLs.
+
+Specify the transport by setting the `type` property of the `remotes` entry to either `"streamable-http"` or `"sse"`:
+
+```json server.json highlight={9,13}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "com.example/acme-analytics",
+  "title": "ACME Analytics",
+  "description": "Real-time business intelligence and reporting platform",
+  "version": "2.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://analytics.example.com/mcp"
+    },
+    {
+      "type": "sse",
+      "url": "https://analytics.example.com/sse"
+    }
+  ]
+}
+```
+
+## URL Restrictions
+
+For servers with a `com.example/*` name, the `url` property of the `remotes` entry must be on the `example.com` domain or one of its subdomains.
+
+```json server.json highlight={3,10}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "com.example/acme-analytics",
+  "title": "ACME Analytics",
+  "description": "Real-time business intelligence and reporting platform",
+  "version": "2.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://analytics.example.com/mcp"
+    }
+  ]
+}
+```
+
+For servers with a `io.github.username/*` name, there are no URL restrictions.
+
+```json server.json highlight={3,10}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.username/email-integration-mcp",
+  "title": "Email Integration",
+  "description": "Send emails and manage email accounts",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://email.example.com/mcp"
+    }
+  ]
+}
+```
+
+## HTTP Headers
+
+MCP clients can be instructed to send specific HTTP headers by adding the `headers` property to the `remotes` entry:
+
+```json server.json highlight={11-18}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "com.example/acme-analytics",
+  "title": "ACME Analytics",
+  "description": "Real-time business intelligence and reporting platform",
+  "version": "2.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://analytics.example.com/mcp",
+      "headers": [
+        {
+          "name": "X-API-Key",
+          "description": "API key for authentication",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Supporting Remote and Non-remote Installation
+
+The `remotes` property can coexist with the `packages` property in `server.json` in order to allow MCP host applications to choose the preferred method of installation.
+
+```json server.json highlight={7-22}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.username/email-integration-mcp",
+  "title": "Email Integration",
+  "description": "Send emails and manage email accounts",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://email.example.com/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@username/email-integration-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
+```
