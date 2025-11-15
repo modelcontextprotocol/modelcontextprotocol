@@ -390,7 +390,7 @@ export interface ServerCapabilities {
    */
   completions?: object;
   /**
-   * Present if the server offers any prompt templates.
+   * Present if the server offers any prompts or prompt templates.
    */
   prompts?: {
     /**
