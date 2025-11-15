@@ -1,3 +1,3 @@
 +++
-title = 'blog'
+title = 'Model Context Protocol Blog'
 +++
