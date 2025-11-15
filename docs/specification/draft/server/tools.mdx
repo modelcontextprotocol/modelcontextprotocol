@@ -194,14 +194,20 @@ A tool definition includes:
 - `title`: Optional human-readable name of the tool for display purposes.
 - `description`: Human-readable description of functionality
 - `inputSchema`: JSON Schema defining expected parameters
+  - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
+  - Defaults to 2020-12 if no `$schema` field is present
+  - **MUST** be a valid JSON Schema object (not `null`)
+  - For tools with no parameters, use one of these valid approaches:
+    - `{ "type": "object", "additionalProperties": false }` - **Recommended**: explicitly accepts only empty objects
+    - `{ "type": "object" }` - accepts any object (including with properties)
 - `outputSchema`: Optional JSON Schema defining expected output structure
+  - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
+  - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: optional properties describing tool behavior
 
 <Warning>
-
-For trust & safety and security, clients **MUST** consider
-tool annotations to be untrusted unless they come from trusted servers.
-
+  For trust & safety and security, clients **MUST** consider tool annotations to
+  be untrusted unless they come from trusted servers.
 </Warning>
 
 #### Tool Names
@@ -389,6 +395,56 @@ Providing an output schema helps clients and LLMs understand and properly handle
 - Providing type information for better integration with programming languages
 - Guiding clients and LLMs to properly parse and utilize the returned data
 - Supporting better documentation and developer experience
+
+### Schema Examples
+
+#### Tool with default 2020-12 schema:
+
+```json
+{
+  "name": "calculate_sum",
+  "description": "Add two numbers",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "a": { "type": "number" },
+      "b": { "type": "number" }
+    },
+    "required": ["a", "b"]
+  }
+}
+```
+
+#### Tool with explicit draft-07 schema:
+
+```json
+{
+  "name": "calculate_sum",
+  "description": "Add two numbers",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "a": { "type": "number" },
+      "b": { "type": "number" }
+    },
+    "required": ["a", "b"]
+  }
+}
+```
+
+#### Tool with no parameters:
+
+```json
+{
+  "name": "get_current_time",
+  "description": "Returns the current server time",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}
+```
 
 ## Error Handling
 

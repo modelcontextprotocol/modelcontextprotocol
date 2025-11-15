@@ -231,7 +231,8 @@
                     "pages": [
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/ping",
-                      "specification/draft/basic/utilities/progress"
+                      "specification/draft/basic/utilities/progress",
+                      "specification/draft/basic/utilities/tasks"
                     ]
                   }
                 ]
