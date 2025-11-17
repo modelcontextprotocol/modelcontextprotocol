@@ -66,7 +66,7 @@ Keeping the distinction between Core, Adjacent projects, and Extensions clear en
 - Community groups can experiment without requiring protocol changes.  
 - Extensions can evolve organically.  
 - Clients can choose which extensions to adopt based on their needs.  
-- Encouraged extensions remain focused on patterns hosted within the MCP organization.
+- Recommended and official extensions encourage uptake across the MCP ecosystem.
 
 This layered approach helps MCP support innovation while maintaining a dependable, consistent foundation for all implementers.
 
