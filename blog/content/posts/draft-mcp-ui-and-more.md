@@ -23,7 +23,7 @@ This structure helps the ecosystem evolve while keeping the protocol stable and 
 
 MCP Core defines how clients and servers interact: tool discovery, tool invocation, resource access, and structured data exchange. The protocol is intentionally minimal so that any client can work with any compliant server.
 
-# MCP-Adjacent Projects
+## MCP-Adjacent Projects
 
 MCP-Adjacent projects support the ecosystem without modifying the protocol. A key example is the MCP Registry, which provides a catalog of publicly available servers. Organizations may build private or public sub-registries on this foundation, while relying on shared schemas and open source specifications.
 
