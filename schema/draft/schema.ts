@@ -306,6 +306,10 @@ export interface ClientCapabilities {
    */
   experimental?: { [key: string]: object };
   /**
+   * Present if the client supports dynamic tool discovery with query and metadata filtering in tools/list requests.
+   */
+  dynamic?: object;
+  /**
    * Present if the client supports listing roots.
    */
   roots?: {
@@ -1072,12 +1076,31 @@ export interface PromptListChangedNotification extends JSONRPCNotification {
 
 /* Tools */
 /**
+ * Parameters for a tools/list request.
+ *
+ * @category `tools/list`
+ */
+export interface ListToolsRequestParams extends PaginatedRequestParams {
+  /**
+   * Optional search/filter string. The server determines how to interpret this (e.g., substring match, semantic search, regex).
+   * Used to request a filtered subset of tools instead of the complete list.
+   */
+  query?: string;
+  /**
+   * Optional filter criteria as key-value pairs. The server determines the supported keys and their semantics.
+   * Enables context-aware or category-based filtering.
+   */
+  metadata?: object;
+}
+
+/**
  * Sent from the client to request a list of tools the server has.
  *
  * @category `tools/list`
  */
-export interface ListToolsRequest extends PaginatedRequest {
+export interface ListToolsRequest extends JSONRPCRequest {
   method: "tools/list";
+  params?: ListToolsRequestParams;
 }
 
 /**
