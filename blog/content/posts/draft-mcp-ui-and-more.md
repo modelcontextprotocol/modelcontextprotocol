@@ -70,7 +70,7 @@ Keeping the distinction between Core, Adjacent projects, and Extensions clear en
 
 This layered approach helps MCP support innovation while maintaining a dependable, consistent foundation for all implementers.
 
-# Thanks to the MCP community
+## Thanks to the MCP community
 
 This post reflects ongoing conversations and collaborative exploration within the MCP community—from working groups to profile discussions to extension proposals. We appreciate everyone contributing ideas and helping shape the protocol’s evolution.
 
