@@ -104,7 +104,7 @@ and instead retrieve credentials from the environment.
 Additionally, clients and servers **MAY** negotiate their own custom authentication and
 authorization strategies.
 
-For further discussions and contributions to the evolution of MCP’s auth mechanisms, join
+For further discussions and contributions to the evolution of MCP's auth mechanisms, join
 us in
 [GitHub Discussions](https://github.com/modelcontextprotocol/specification/discussions)
 to help shape the future of the protocol!
@@ -120,9 +120,61 @@ There is also a
 which is automatically generated from the TypeScript source of truth, for use with
 various automated tooling.
 
-### General fields
+## JSON Schema Usage
 
-#### `_meta`
+The Model Context Protocol uses JSON Schema for validation throughout the protocol. This section clarifies how JSON Schema should be used within MCP messages.
+
+### Schema Dialect
+
+MCP supports JSON Schema with the following rules:
+
+1. **Default dialect**: When a schema does not include a `$schema` field, it defaults to JSON Schema 2020-12 (`https://json-schema.org/draft/2020-12/schema`)
+1. **Explicit dialect**: Schemas MAY include a `$schema` field to specify a different dialect
+1. **Supported dialects**: Implementations MUST support at least 2020-12 and SHOULD document which additional dialects they support
+1. **Recommendation**: Implementors are RECOMMENDED to use JSON Schema 2020-12.
+
+### Example Usage
+
+#### Default dialect (2020-12):
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name"]
+}
+```
+
+#### Explicit dialect (draft-07):
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name"]
+}
+```
+
+### Implementation Requirements
+
+- Clients and servers **MUST** support JSON Schema 2020-12 for schemas without an explicit `$schema` field
+- Clients and servers **MUST** validate schemas according to their declared or default dialect. They **MUST** handle unsupported dialects gracefully by returning an appropriate error indicating the dialect is not supported.
+- Clients and servers **SHOULD** document which schema dialects they support
+
+### Schema Validation
+
+- Schemas **MUST** be valid according to their declared or default dialect
+
+## General fields
+
+### `_meta`
 
 The `_meta` property/parameter is reserved by MCP to allow clients and servers
 to attach additional metadata to their interactions.
