@@ -19,7 +19,7 @@ The MCP ecosystem can be understood across three complementary layers:
 
 This structure helps the ecosystem evolve while keeping the protocol stable and broadly interoperable.
 
-# MCP Core
+## MCP Core
 
 MCP Core defines how clients and servers interact: tool discovery, tool invocation, resource access, and structured data exchange. The protocol is intentionally minimal so that any client can work with any compliant server.
 
