@@ -9,7 +9,7 @@ As developers continue building on the Model Context Protocol (MCP), new pattern
 
 This post outlines how extensions fit into the broader MCP ecosystem and highlights a few types of patterns the community is exploring. The goal is not to define extensions formally, but to give lightweight guidance on how MCP can be extended in practice.
 
-# Overview
+## Overview
 
 The MCP ecosystem can be understood across three complementary layers:
 
