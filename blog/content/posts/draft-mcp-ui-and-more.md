@@ -5,7 +5,7 @@ author = 'MCP Community Maintainers'
 tags = ['announcement', 'community']
 +++
 
-As developers continue building on the Model Context Protocol (MCP), new patterns are emerging that build on top of existing protocol primitives. These patterns—referred to as *extensions*—provide a way to layer richer capabilities on MCP without modifying or expanding the core protocol itself.
+As developers continue building on the Model Context Protocol (MCP), new patterns are emerging that build on top of existing protocol primitives. These patterns—referred to as *extensions*—provide a way to layer richer capabilities on MCP without modifying the core protocol itself.
 
 This post outlines how extensions fit into the broader MCP ecosystem and highlights a few types of patterns the community is exploring. The goal is not to define extensions formally, but to give lightweight guidance on how MCP can be extended in practice.
 
