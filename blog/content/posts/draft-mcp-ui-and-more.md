@@ -54,7 +54,7 @@ Other clients and working groups may define extensions for domain-specific needs
 
 These patterns remain optional, lightweight, and community-driven.
 
-## About proprietary UI systems
+### Proprietary Integrations
 
 Some client platforms provide their own UI systems or frameworks that operate alongside MCP and may use MCP as a transport. These systems are **not** MCP extensions and are unrelated to the protocol’s evolution. They can interoperate with MCP servers, but they do not define MCP behavior.
 
