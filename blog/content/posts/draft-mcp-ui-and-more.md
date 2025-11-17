@@ -58,7 +58,7 @@ These patterns remain optional, lightweight, and community-driven.
 
 Some client platforms provide their own UI systems or frameworks that operate alongside MCP and may use MCP as a transport. These systems are **not** MCP extensions and are unrelated to the protocol’s evolution. They can interoperate with MCP servers, but they do not define MCP behavior.
 
-# Why this structure matters
+## Why This Structure Matters
 
 Keeping the distinction between Core, Adjacent projects, and Extensions clear ensures that:
 
