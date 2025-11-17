@@ -64,7 +64,7 @@ Keeping the distinction between Core, Adjacent projects, and Extensions clear en
 
 - The protocol remains stable and interoperable.  
 - Community groups can experiment without requiring protocol changes.  
-- Extensions can evolve organically and informally.  
+- Extensions can evolve organically.  
 - Clients can choose which extensions to adopt based on their needs.  
 - Encouraged extensions remain focused on patterns hosted within the MCP organization.
 
