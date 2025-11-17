@@ -29,7 +29,7 @@ MCP-Adjacent projects support the ecosystem without modifying the protocol. A ke
 
 These components improve usability and trust across MCP implementations while remaining separate from the core specification.
 
-# MCP Extensions
+## MCP Extensions
 
 Extensions are **patterns built on top of existing MCP mechanisms**. They do not alter the protocol and remain fully compatible with all clients and servers.
 
