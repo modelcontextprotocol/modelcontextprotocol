@@ -50,7 +50,7 @@ Extensions like these enable richer use cases while keeping MCP stable.
 
 Extensions are primarily community-driven, and all extensions are optional.
 
-Clients and servers are encouraged to implement recommended and official extensions in order to enhance interoperability. Official extensions are those maintained within the [MCP GitHub organization](https://github.com/modelcontextprotocol).
+Clients and servers are encouraged to implement recommended and official extensions in order to enhance interoperability. Official extensions are those maintained within the [Model Context Protocol open source project](https://github.com/modelcontextprotocol).
 
 Additionally, community members and working groups may define extensions for domain-specific needs, such as extensions for financial services or enterprise authorization profiles.
 
