@@ -56,7 +56,7 @@ These patterns remain optional, lightweight, and community-driven.
 
 ### Proprietary Integrations
 
-Some client platforms provide their own UI systems or frameworks that operate alongside MCP and may use MCP as a transport. These systems are **not** MCP extensions and are unrelated to the protocol’s evolution. They can interoperate with MCP servers, but they do not define MCP behavior.
+Some MCP clients provide their own proprietary integrations that use MCP, such as UI systems on top of MCP. These integrations are **not** MCP extensions. Though they integrate with MCP servers, they do not define MCP behavior.
 
 ## Why This Structure Matters
 
