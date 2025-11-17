@@ -48,11 +48,11 @@ Extensions like these enable richer use cases while keeping MCP stable.
 
 ### Extensions Governance
 
-As discussed within the community, it is reasonable to encourage certain extensions—particularly those maintained within the **MCP GitHub organization**—because they support cross-client interoperability. For instance, the emerging mcp-ui pattern is one such extension that some clients are choosing to support.
+Extensions are primarily community-driven, and all extensions are optional.
 
-Other clients and working groups may define extensions for domain-specific needs, such as financial services or enterprise authorization profiles.
+Clients and servers are encouraged to implement recommended and official extensions in order to enhance interoperability. Official extensions are those maintained within the [MCP GitHub organization](https://github.com/modelcontextprotocol).
 
-These patterns remain optional, lightweight, and community-driven.
+Additionally, community members and working groups may define extensions for domain-specific needs, such as extensions for financial services or enterprise authorization profiles.
 
 ### Proprietary Integrations
 
