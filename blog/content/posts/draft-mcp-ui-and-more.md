@@ -46,7 +46,7 @@ Examples include:
 
 Extensions like these enable richer use cases while keeping MCP stable.
 
-## Encouraged extensions
+### Extensions Governance
 
 As discussed within the community, it is reasonable to encourage certain extensions—particularly those maintained within the **MCP GitHub organization**—because they support cross-client interoperability. For instance, the emerging mcp-ui pattern is one such extension that some clients are choosing to support.
 
