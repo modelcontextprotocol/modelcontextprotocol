@@ -124,10 +124,19 @@ This is to be interpreted as a fine-grained layer in addition to capabilities, f
 
 Task-augmented requests follow a two-phase response pattern that differs from normal requests:
 
-- **Normal requests**: The server processes the request and returns the actual operation result directly.
-- **Task-augmented requests**: The server accepts the request and immediately returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
+- **Normal requests**: The receiver processes the request and returns the actual operation result directly.
+- **Task-augmented requests**: The receiver accepts the request and if the receiver can immediately return the result,
+  it _MAY_ returns the result directly(eg. been cached); otherwise it returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
 
 To create a task, requestors send a request with the `task` field included in the request params. Requestors **MAY** include a `ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
+
+<Note>
+
+If the requester does not support `polymorphic`, then the requester is indicating that it expects the response to always be a `CreateTaskResult`,
+and not a direct result. This can be useful for requesters that want to ensure consistent handling of task-augmented requests, regardless of whether the receiver can immediately return the result.
+For a receiver that supports `polymorphic`, it can choose to return either the direct result or a `CreateTaskResult` based on its ability to fulfill the request immediately, which will save the requester from having to make an additional `tasks/result` call in such cases.
+
+</Note>
 
 **Request:**
 
@@ -142,13 +151,34 @@ To create a task, requestors send a request with the `task` field included in th
       "city": "New York"
     },
     "task": {
-      "ttl": 60000
+      "ttl": 60000,
+      "polymorphic": true
     }
   }
 }
 ```
 
 **Response:**
+
+- can immediately return the result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Current weather in New York:\nTemperature: 72°F\nConditions: Partly cloudy"
+      }
+    ],
+    "isError": false
+  }
+}
+```
+
+- cannot immediately return the result:
 
 ```json
 {
@@ -455,7 +485,9 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 
 ### Result Retrieval
 
-1. Receivers that accept a task-augmented request **MUST** return a `CreateTaskResult` as the response. This result **SHOULD** be returned as soon as possible after accepting the task.
+1. Receivers that accept a task-augmented request **CAN** return a `CallToolResult` as the response if and only if it can respond immediately and `polymorphic:true`.
+1. Receivers that accept a task-augmented request **MUST NOT** return a `CallToolResult` if `polymorphic:false` or not present even if it can respond immediately.
+1. Receivers that accept a task-augmented request **MUST** return a `CreateTaskResult` as the response if it can't respond immediately. This result **SHOULD** be returned as soon as possible after accepting the task.
 1. When a receiver receives a `tasks/result` request for a task in a terminal status (`completed`, `failed`, or `cancelled`), it **MUST** return the final result of the underlying request, whether that is a successful result or a JSON-RPC error.
 1. When a receiver receives a `tasks/result` request for a task in any other non-terminal status (`working` or `input_required`), it **MUST** block the response until the task reaches a terminal status.
 1. For tasks in a terminal status, receivers **MUST** return from `tasks/result` exactly what the underlying request would have returned, whether that is a successful result or a JSON-RPC error.
