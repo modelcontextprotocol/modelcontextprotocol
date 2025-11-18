@@ -33,16 +33,12 @@ These components improve usability and trust across MCP implementations while re
 
 Extensions are **patterns built on top of existing MCP mechanisms**. They do not alter the protocol and remain fully compatible with all clients and servers.
 
-At a high level, extensions generally fall into two categories:
-
-1. **Using current MCP mechanisms to express additional behavior**, such as returning structured metadata or domain-specific information through normal MCP messages.
-2. **Community-encouraged extension patterns**, where clients may choose to implement optional conventions that improve interoperability for certain scenarios.
 
 Examples include:
 
-- **UI-related conventions**, where servers return structured data that clients may optionally render.
+- **UI extensions**, where servers return structured data along with presentation templates that clients may optionally render.
+- **Security extensions**, where additional security context is established using new or existing  mechanisms.
 - **Domain-specific extensions**, such as financial-services conventions being explored by community groups.
-- **Auth or capability-related patterns**, where additional information is exchanged using existing negotiation mechanisms.
 
 Extensions like these enable richer use cases while keeping MCP stable.
 
