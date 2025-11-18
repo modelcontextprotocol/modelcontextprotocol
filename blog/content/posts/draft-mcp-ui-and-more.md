@@ -33,11 +33,10 @@ These components improve usability and trust across MCP implementations while re
 
 Extensions are **patterns built on top of existing MCP mechanisms**. They do not alter the protocol and remain fully compatible with all clients and servers.
 
-
 Examples include:
 
 - **UI extensions**, where servers return structured data along with presentation templates that clients may optionally render.
-- **Security extensions**, where additional security context is established using new or existing  mechanisms.
+- **Security extensions**, where additional security context is established using new or existing mechanisms.
 - **Domain-specific extensions**, such as financial-services conventions being explored by community groups.
 
 Extensions like these enable richer use cases while keeping MCP stable.
