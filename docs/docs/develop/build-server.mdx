@@ -167,7 +167,10 @@ async def make_nws_request(url: str) -> dict[str, Any] | None:
         "User-Agent": USER_AGENT,
         "Accept": "application/geo+json"
     }
-    async with httpx.AsyncClient() as client:
+-    async with httpx.AsyncClient() as client:
++    # NWS API may return 301 redirects for canonicalized coordinates,
++    # so we enable follow_redirects to ensure the client follows them.
++    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.get(url, headers=headers, timeout=30.0)
             response.raise_for_status()
