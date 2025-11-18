@@ -5,7 +5,7 @@ author = 'MCP Community Maintainers'
 tags = ['announcement', 'community']
 +++
 
-As developers continue building on the Model Context Protocol (MCP), new patterns are emerging that build on top of existing protocol primitives. These patterns—referred to as *extensions*—provide a way to layer richer capabilities on MCP without modifying the core protocol itself.
+As developers continue building on the Model Context Protocol (MCP), new patterns are emerging that build on top of existing protocol primitives. These patterns—referred to as _extensions_—provide a way to layer richer capabilities on MCP without modifying the core protocol itself.
 
 This post outlines how extensions fit into the broader MCP ecosystem and highlights a few types of patterns the community is exploring. The goal is not to define extensions formally, but to give lightweight guidance on how MCP can be extended in practice.
 
@@ -40,8 +40,8 @@ At a high level, extensions generally fall into two categories:
 
 Examples include:
 
-- **UI-related conventions**, where servers return structured data that clients may optionally render.  
-- **Domain-specific extensions**, such as financial-services conventions being explored by community groups.  
+- **UI-related conventions**, where servers return structured data that clients may optionally render.
+- **Domain-specific extensions**, such as financial-services conventions being explored by community groups.
 - **Auth or capability-related patterns**, where additional information is exchanged using existing negotiation mechanisms.
 
 Extensions like these enable richer use cases while keeping MCP stable.
@@ -62,10 +62,10 @@ Some MCP clients provide their own proprietary integrations that use MCP, such a
 
 Keeping the distinction between Core, Adjacent projects, and Extensions clear ensures that:
 
-- The protocol remains stable and interoperable.  
-- Community groups can experiment without requiring protocol changes.  
-- Extensions can evolve organically.  
-- Clients can choose which extensions to adopt based on their needs.  
+- The protocol remains stable and interoperable.
+- Community groups can experiment without requiring protocol changes.
+- Extensions can evolve organically.
+- Clients can choose which extensions to adopt based on their needs.
 - Recommended and official extensions encourage uptake across the MCP ecosystem.
 
 This layered approach helps MCP support innovation while maintaining a dependable, consistent foundation for all implementers.
