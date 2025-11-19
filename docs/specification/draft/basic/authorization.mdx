@@ -203,6 +203,13 @@ MCP supports three client registration mechanisms. Choose based on your scenario
 - **Pre-registration**: When client and server have an existing relationship
 - **Dynamic Client Registration**: For backwards compatibility or specific requirements
 
+Clients supporting all options **SHOULD** follow the following priority order:
+
+1. Use pre-registered client information for the server if the client has it available
+2. Use Client ID Metadata Documents if the Authorization Server indicates if the server supports it (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
+3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
+4. Prompt the user if no other option is available
+
 ### Client ID Metadata Documents
 
 MCP clients and authorization servers **SHOULD** support OAuth Client ID Metadata Documents as specified in
