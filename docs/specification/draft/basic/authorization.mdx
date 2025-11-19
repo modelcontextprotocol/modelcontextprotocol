@@ -630,21 +630,8 @@ The authorization server takes a URL as input from an unknown client and fetches
 A malicious client could use this to trigger the authorization server to make requests to arbitrary URLs,
 such as requests to private administration endpoints the authorization server has access to.
 
-Authorization servers fetching metadata documents **MUST** protect against
-[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) attacks,
-as well as against being used as Denial of Service (DoS) amplifiers:
-
-- Validate URLs and resolved IP addresses before fetching
-- Limit response size (recommended 5 kilobytes)
-- Implement request timeouts
-- Implement aggressive caching of metadata documents (respecting HTTP cache headers)
-- Never cache error responses or invalid documents
-- Rate limit metadata fetch requests per client
-- Monitor and alert on unusual metadata fetch patterns
-- Only fetch client metadata after authenticating the user
-
-While there is no amplification in the fetch request bandwidth, aggressive caching minimizes
-the risk of authorization servers being used in distributed denial of service attacks.
+Authorization servers fetching metadata documents **SHOULD** consider
+[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-server-side-request-forgery).
 
 #### Localhost Redirect URI Risks
 
