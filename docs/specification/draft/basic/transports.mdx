@@ -291,8 +291,8 @@ protocol version 2024-11-05) as follows:
    defined above:
    - If it succeeds, the client can assume this is a server supporting the new Streamable
      HTTP transport.
-   - If it fails with an HTTP 4xx status code (e.g., 405 Method Not Allowed or 404 Not
-     Found):
+   - If it fails with the following HTTP status codes "400 Bad Request", "404 Not
+     Found" or "405 Method Not Allowed":
      - Issue a GET request to the server URL, expecting that this will open an SSE stream
        and return an `endpoint` event as the first event.
      - When the `endpoint` event arrives, the client can assume this is a server running
