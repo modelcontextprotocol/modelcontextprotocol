@@ -306,10 +306,6 @@ export interface ClientCapabilities {
    */
   experimental?: { [key: string]: object };
   /**
-   * Present if the client supports dynamic tool discovery with query and metadata filtering in tools/list requests.
-   */
-  dynamic?: object;
-  /**
    * Present if the client supports listing roots.
    */
   roots?: {
@@ -423,6 +419,10 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the tool list.
      */
     listChanged?: boolean;
+    /**
+     * Whether this server supports filtering tools via the query parameter in tools/list requests.
+     */
+    filtering?: boolean;
   };
   /**
    * Present if the server supports task-augmented requests.
@@ -1082,15 +1082,11 @@ export interface PromptListChangedNotification extends JSONRPCNotification {
  */
 export interface ListToolsRequestParams extends PaginatedRequestParams {
   /**
-   * Optional search/filter string. The server determines how to interpret this (e.g., substring match, semantic search, regex).
-   * Used to request a filtered subset of tools instead of the complete list.
+   * Optional search string for filtering tools. Should be a simple text query (category, tag, or semantic description).
+   * Servers should support LLM-friendly queries like single words ("database", "filesystem") or short phrases ("read files", "http requests").
+   * NOT for complex JSON or structured query languages. Server documents expected format in the instructions field.
    */
   query?: string;
-  /**
-   * Optional filter criteria as key-value pairs. The server determines the supported keys and their semantics.
-   * Enables context-aware or category-based filtering.
-   */
-  metadata?: object;
 }
 
 /**
