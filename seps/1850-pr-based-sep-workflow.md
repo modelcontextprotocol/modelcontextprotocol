@@ -21,6 +21,7 @@ The issue-based SEP process introduced several challenges:
 - **Unclear status management**: The process lacked clear mechanisms for tracking status transitions and ensuring consistency between different sources of truth.
 
 A file-based workflow addresses these issues by:
+
 - Keeping every SEP in version control alongside the specification itself
 - Providing Git's built-in review tooling, history, and searchability
 - Linking SEP numbers to pull requests to eliminate manual bookkeeping
@@ -89,17 +90,24 @@ Each SEP must include:
 - **PR**: #{NUMBER}
 
 ## Abstract
+
 ## Motivation
+
 ## Specification
+
 ## Rationale
+
 ## Backward Compatibility
+
 ## Security Implications
+
 ## Reference Implementation
 ```
 
 ### 7. Status Management via PR Labels
 
 To improve discoverability and filtering:
+
 - Sponsors must apply PR labels that match the SEP status (`draft`, `in-review`, `accepted`, `final`, etc.)
 - Both the markdown `Status` field and PR labels should be kept in sync
 - The markdown file serves as the canonical record (versioned with the proposal)
@@ -117,6 +125,7 @@ To improve discoverability and filtering:
 ### Why File-Based?
 
 Storing SEPs as files keeps authoritative specs versioned with the code, mirroring successful processes used by PEPs (Python Enhancement Proposals) and other standards bodies. This approach:
+
 - Provides built-in version control via Git
 - Enables standard code review workflows
 - Maintains clear history of all changes
@@ -126,6 +135,7 @@ Storing SEPs as files keeps authoritative specs versioned with the code, mirrori
 ### Why PR Numbers?
 
 Using pull request numbers:
+
 - Eliminates race conditions around manual numbering
 - Creates natural traceability between proposal and discussion
 - Prevents number conflicts
@@ -135,6 +145,7 @@ Using pull request numbers:
 ### Why PR Labels?
 
 Adding PR labels alongside the file status:
+
 - Enables quick filtering of SEPs by status without opening files
 - Provides immediate visibility of SEP states in PR lists
 - Supports GitHub's search and filter capabilities
@@ -144,6 +155,7 @@ Adding PR labels alongside the file status:
 ### Making This the Primary Process
 
 Maintaining two overlapping canonical processes risked divergence and created confusion for contributors. Establishing the file-based approach as the primary method:
+
 - Reduces cognitive overhead for new contributors
 - Ensures consistency in the SEP corpus
 - Simplifies maintenance for sponsors
