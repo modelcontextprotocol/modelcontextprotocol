@@ -105,10 +105,13 @@ Draft → In-Review → Accepted → Final
 Status transitions are managed by the **Sponsor** of the SEP. The Sponsor is responsible for:
 
 1. Updating the `Status` field in the SEP markdown file
-2. Ensuring the status accurately reflects the current state of the proposal
-3. Communicating status changes to the author and community via the PR
+2. Applying matching labels to the pull request (e.g., `draft`, `in-review`, `accepted`)
+3. Ensuring the status accurately reflects the current state of the proposal
+4. Communicating status changes to the author and community via the PR
 
-Only Sponsors (Core Maintainers or Maintainers) should modify the status field. Authors should request status changes through their Sponsor.
+Both the markdown status field and PR labels should be kept in sync. PR labels make it easier to filter and search for SEPs by status.
+
+Only Sponsors (Core Maintainers or Maintainers) should modify the status field and labels. Authors should request status changes through their Sponsor.
 
 ## The Sponsor Role
 
