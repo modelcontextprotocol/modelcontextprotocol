@@ -5,7 +5,7 @@
 - **Created**: 2025-11-20
 - **Author(s)**: Nick Cooper (@nickcoai), David Soria Parra (@davidsp)
 - **Sponsor**: David Soria Parra (@davidsp)
-- **PR**: #1850
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/1850
 
 ## Abstract
 
@@ -51,7 +51,7 @@ A Sponsor is a Core Maintainer or Maintainer who champions the SEP through the r
 - **Reviewing the proposal** and providing constructive feedback
 - **Requesting changes** based on community input
 - **Managing status transitions** by:
-  - Updating the `Status` field directly in the SEP markdown file
+  - Ensuring that the `Status` field in the SEP markdown file is accurate
   - Applying matching PR labels to keep them in sync with the file status
   - Communicating status changes via PR comments
 - **Initiating formal review** when the SEP is ready (moving from `Draft` to `In-Review`)
@@ -87,7 +87,7 @@ Each SEP must include:
 - **Created**: YYYY-MM-DD
 - **Author(s)**: Name <email> (@github-username)
 - **Sponsor**: @github-username (or "None" if seeking sponsor)
-- **PR**: #{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
 
 ## Abstract
 

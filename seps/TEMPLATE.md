@@ -7,7 +7,7 @@
 - **Created**: YYYY-MM-DD
 - **Author(s)**: Name <email> (@github-username)
 - **Sponsor**: @github-username (or "None" if seeking sponsor)
-- **PR**: #{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
 
 ## Abstract
 

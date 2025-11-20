@@ -38,44 +38,12 @@ Examples:
 
 ## SEP File Structure
 
-```markdown
-# SEP-{NUMBER}: {Title}
+Use [TEMPLATE.md](TEMPLATE.md) as your starting point. Each SEP must include:
 
-- **Status**: Draft | In-Review | Accepted | Rejected | Withdrawn | Final | Superseded
-- **Type**: Standards Track | Informational | Process
-- **Created**: YYYY-MM-DD
-- **Author(s)**: Name <email> (@github-username)
-- **Sponsor**: @github-username (or "None" if seeking sponsor)
-- **PR**: #{NUMBER}
+- **Header fields**: Status, Type, Created date, Author(s), Sponsor, and PR link
+- **Required sections**: Abstract, Motivation, Specification, Rationale, Backward Compatibility, Security Implications, Reference Implementation
 
-## Abstract
-
-Brief (~200 word) technical summary of the proposal.
-
-## Motivation
-
-Why is this change needed? Why is the current protocol inadequate?
-
-## Specification
-
-Detailed technical specification of the proposed changes.
-
-## Rationale
-
-Design decisions made and alternatives that were considered.
-
-## Backward Compatibility
-
-How does this affect existing implementations? (Required for incompatible changes)
-
-## Security Implications
-
-Any security concerns related to this proposal.
-
-## Reference Implementation
-
-Link to or description of a reference implementation (required before Final status).
-```
+See the template for detailed guidance on each section.
 
 ## SEP Types
 
@@ -104,14 +72,13 @@ Draft → In-Review → Accepted → Final
 
 Status transitions are managed by the **Sponsor** of the SEP. The Sponsor is responsible for:
 
-1. Updating the `Status` field in the SEP markdown file
+1. Ensuring that the `Status` field in the SEP markdown file is accurate
 2. Applying matching labels to the pull request (e.g., `draft`, `in-review`, `accepted`)
-3. Ensuring the status accurately reflects the current state of the proposal
-4. Communicating status changes to the author and community via the PR
+3. Communicating status changes to the author and community via the PR
 
 Both the markdown status field and PR labels should be kept in sync. PR labels make it easier to filter and search for SEPs by status.
 
-Only Sponsors (Core Maintainers or Maintainers) should modify the status field and labels. Authors should request status changes through their Sponsor.
+Authors should coordinate status changes with their Sponsor. The Sponsor determines when status transitions are appropriate and ensures they are reflected in both the markdown file and PR labels.
 
 ## The Sponsor Role
 
