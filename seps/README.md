@@ -1,10 +1,14 @@
 # Specification Enhancement Proposals (SEPs)
 
-> **Experimental**: This is an experimental alternative method for creating SEPs. The default method remains using GitHub issues as described at https://modelcontextprotocol.io/community/sep-guidelines.
-
 ## Overview
 
-This directory contains SEPs in markdown file format, similar to Python's PEP system. Each SEP is a standalone markdown document that describes a proposed enhancement to the MCP specification.
+This directory contains SEPs in markdown file format, inspired by Python's PEP system. Each SEP is a standalone markdown document that describes a proposed enhancement to the MCP specification.
+
+SEPs are submitted as pull requests to this directory. Using PRs ensures:
+
+- Proper versioning history for all changes to a proposal
+- A single place for discussion (the PR itself)
+- Clear traceability between the proposal and its review process
 
 ## File Naming Convention
 
@@ -22,26 +26,26 @@ Examples:
 
 ## Creating a New SEP
 
-1. **Draft your SEP** as a markdown file with a temporary name (e.g., `DRAFT-your-feature.md`)
+1. **Draft your SEP** as a markdown file with a temporary name (e.g., `0000-your-feature.md`) using `0000` as a placeholder number
 
 2. **Create a pull request** adding your SEP file to the `seps/` directory
 
-3. **Rename your file** to use the PR number as the SEP number (e.g., PR #1850 → `1850-your-feature.md`)
+3. **Amend your commit** to rename the file using the PR number as the SEP number (e.g., PR #1850 becomes `1850-your-feature.md`) and update the SEP header to reference the correct number
 
-4. **Update the SEP header** to reference the correct number
+4. **Find a Sponsor** - A Core Maintainer or Maintainer who will shepherd your proposal through review. Tag potential sponsors from [the maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) in your PR
 
-5. **Find a Sponsor** - A Core Maintainer or Maintainer who will shepherd your proposal through review
+5. **Iterate on feedback** - Address comments and suggestions from the community and your sponsor
 
 ## SEP File Structure
 
 ```markdown
 # SEP-{NUMBER}: {Title}
 
-- **Status**: Draft | In-Review | Accepted | Rejected | Withdrawn | Final
+- **Status**: Draft | In-Review | Accepted | Rejected | Withdrawn | Final | Superseded
 - **Type**: Standards Track | Informational | Process
 - **Created**: YYYY-MM-DD
 - **Author(s)**: Name <email> (@github-username)
-- **Sponsor**: @github-username
+- **Sponsor**: @github-username (or "None" if seeking sponsor)
 - **PR**: #{NUMBER}
 
 ## Abstract
@@ -81,44 +85,79 @@ Link to or description of a reference implementation (required before Final stat
 
 ## Status Workflow
 
-`Draft` → `In-Review` → `Accepted` → `Final`
+```
+Draft → In-Review → Accepted → Final
+                 ↘ Rejected
+                 ↘ Withdrawn
+                 ↘ Superseded
+```
 
-Alternative outcomes: `Rejected`, `Withdrawn`, or `Superseded`
-
-- **Draft**: Initial proposal, sponsor assigned, informal review
+- **Draft**: Initial proposal, seeking or assigned sponsor, informal review
 - **In-Review**: Open for formal community and maintainer review
-- **Accepted**: Approved, pending reference implementation
-- **Final**: Implemented and merged into the specification
+- **Accepted**: Approved by Core Maintainers, pending reference implementation
+- **Final**: Reference implementation complete and merged into the specification
 - **Rejected**: Not accepted after review
 - **Withdrawn**: Author withdrew the proposal
 - **Superseded**: Replaced by a newer SEP
+
+### Status Transitions
+
+Status transitions are managed by the **Sponsor** of the SEP. The Sponsor is responsible for:
+
+1. Updating the `Status` field in the SEP markdown file
+2. Ensuring the status accurately reflects the current state of the proposal
+3. Communicating status changes to the author and community via the PR
+
+Only Sponsors (Core Maintainers or Maintainers) should modify the status field. Authors should request status changes through their Sponsor.
 
 ## The Sponsor Role
 
 A Sponsor is a Core Maintainer or Maintainer who:
 
-- Reviews the proposal and provides feedback
+- Champions the proposal through the review process
+- Reviews the proposal and provides constructive feedback
 - Requests changes based on community input
+- Updates the SEP status as the proposal progresses
 - Initiates formal review when the SEP is ready
-- Shepherds the proposal through the acceptance process
+- Presents the proposal at Core Maintainer meetings when needed
 
-You can find potential sponsors in the maintainers list. Tag them in your PR to request sponsorship.
+You can find potential sponsors in [the maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md). Tag them in your PR to request sponsorship.
+
+### Finding a Sponsor
+
+Proposals that do not find a sponsor within six months may be closed as `dormant`. To increase your chances of finding a sponsor:
+
+- Ensure your proposal is well-written and follows the SEP format
+- Provide clear motivation for why the change is needed
+- Include a prototype or reference implementation when possible
+- Engage with the community on Discord to build support
 
 ## Why PR Numbers?
 
 Using the PR number as the SEP number:
 
-- Eliminates need for maintainer number assignment
+- Eliminates need for manual number assignment by maintainers
 - Creates natural traceability between proposal and discussion
 - Prevents number conflicts
 - Simplifies the contribution process
+- Maintains full version history of the proposal
 
 ## Acceptance Criteria
 
-- Prototype/reference implementation
+For a SEP to be accepted, it must meet certain minimum criteria:
+
+- Prototype or reference implementation demonstrating the proposal
 - Clear benefit to the MCP ecosystem
-- Community consensus
+- Community support and consensus
 
-## Relationship to Issue-Based SEPs
+## Updating a SEP
 
-This file-based approach complements the existing issue-based SEP process. Contributors may choose either method based on preference. The canonical SEP guidelines remain at https://modelcontextprotocol.io/community/sep-guidelines
+To update a SEP that has already been merged:
+
+1. Create a new PR with your changes to the existing SEP file
+2. Reference the original SEP number in your PR description
+3. The Sponsor will review and merge updates as appropriate
+
+## Copyright
+
+SEPs are placed in the public domain or under the CC0-1.0-Universal license, whichever is more permissive.
