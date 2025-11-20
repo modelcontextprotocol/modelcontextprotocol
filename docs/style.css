@@ -168,7 +168,7 @@ body:has(#schema-reference) {
       font-family: var(--font-mono);
       font-weight: 700;
 
-      scroll-margin-top: 5rem;
+      scroll-margin-top: 8rem;
     }
 
     & > .tsd-comment,
@@ -225,8 +225,7 @@ body:has(#schema-reference) {
     margin-top: 4rem;
   }
 
-  background: #ffffff;
-  color: #111827;
+  color: light-dark(#111827, #e5e7eb);
   --highlight-color: #6366f1;
 }
 
@@ -356,7 +355,7 @@ body:has(#schema-reference) {
   font-weight: 700;
   margin-bottom: 1.5rem;
   text-align: center;
-  color: #111827;
+  color: light-dark(#111827, #e5e7eb);
 }
 
 /* Intro video section */
@@ -377,7 +376,7 @@ body:has(#schema-reference) {
       font-size: 2.5rem;
       font-weight: 700;
       line-height: 1.2;
-      color: #111827;
+      color: light-dark(#111827, #e5e7eb);
     }
 
     .intro-description {
@@ -579,7 +578,7 @@ body:has(#schema-reference) {
     border-radius: 9999px;
 
     border: 6px solid var(--highlight-color);
-    background: #111827;
+    background: #0e0e10;
     color: white;
 
     font-size: 1.5rem;
@@ -591,6 +590,10 @@ body:has(#schema-reference) {
       background: var(--highlight-color);
     }
   }
+}
+
+.dark .intro-logo img {
+  filter: invert(1);
 }
 
 @media (max-width: 768px) {

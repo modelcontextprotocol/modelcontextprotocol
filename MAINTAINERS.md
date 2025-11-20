@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** August 17, 2025
+**Last updated:** October 15, 2025
 
 ## Lead Maintainers
 
@@ -41,6 +41,8 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Go SDK
 
 - [Rob Findley](https://github.com/findleyr)
+- [Jonathan Amsterdam](https://github.com/jba)
+- [Sam Thanawalla](https://github.com/samthanawalla)
 
 ### C# SDK
 
@@ -56,8 +58,8 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Inna Harper](https://github.com/ihrpr)
 - [Jerome Swannack](https://github.com/jerome3o)
-- [Samuel Colvin](https://github.com/samuelcolvin)
 - [Marcelo Trylesinski](https://github.com/Kludex)
+- [Max Isbey](https://github.com/maxisbey)
 
 ### TypeScript SDK
 
@@ -69,6 +71,11 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Alex Hancock](https://github.com/alexhancock)
 
+### PHP SDK
+
+- [Kyrian Obikwelu](https://github.com/CodeWithKyrian)
+- [Christopher Hertel](https://github.com/chr-hertel)
+
 ## Project Maintainers
 
 ### use-mcp
@@ -77,14 +84,22 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Inspector
 
-- [Ola Hungerford](https://github.com/olaservo)
 - [Cliff Hall](https://github.com/cliffhall)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Ola Hungerford](https://github.com/olaservo)
 
 ### Registry
 
 - [Toby Padilla](https://github.com/toby)
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Adam Jones](https://github.com/domdomegg)
+- [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
+
+### MCPB (Model Context Protocol Bundle)
+
+- [Alexander Sklar](https://github.com/asklar)
+- [Adam Jones](https://github.com/domdomegg)
+- [Joan Xie](https://github.com/joan-anthropic)
 
 ### Reference Servers
 
@@ -120,9 +135,19 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Client Implementor Interest Group
 
-- [Michael Feldstein](https://github.com/msfeldstein)
-- [Harald Kirschner](https://github.com/digitarald)
-- [Connor Peet](https://github.com/connor4312)
+**Note:** These individuals serve as MCP protocol representatives for their respective clients. For client-specific issues, use the official support channels provided by each product.
+
+- [Alex Hancock](https://github.com/alexhancock) - Goose
+- [Ben Brandt](https://github.com/benbrandt) - Zed
+- [Connor Peet](https://github.com/connor4312) - VS Code
+- [Gabriel Peal](https://github.com/gpeal) - Codex
+- [Jun Han](https://github.com/formulahendry) - GitHub Copilot for JetBrains
+- [Tyler Leonhardt](https://github.com/TylerLeonhardt) - VS Code
+- [Michael Feldstein](https://github.com/msfeldstein) - Cursor
+
+### Financial Services Interest Group
+
+- [Sambhav Kothari](https://github.com/sambhav)
 
 ### Transports Interest Group
 
@@ -135,8 +160,10 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Nick Cooper](https://github.com/nicknotfun)
 
-### Long-Running / Async Tool Calls Working Group
+### Agents Working Group
 
+- [Peter Alexander](https://github.com/pja-ant)
+- [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
 
 ## About This Document

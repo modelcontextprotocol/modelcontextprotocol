@@ -45,7 +45,13 @@
               "docs/develop/connect-remote-servers",
               "docs/develop/build-server",
               "docs/develop/build-client",
-              "docs/sdk"
+              "docs/sdk",
+              {
+                "group": "Security",
+                "pages": [
+                  "docs/tutorials/security/authorization"
+                ]
+              }
             ]
           },
           {
@@ -225,7 +231,8 @@
                     "pages": [
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/ping",
-                      "specification/draft/basic/utilities/progress"
+                      "specification/draft/basic/utilities/progress",
+                      "specification/draft/basic/utilities/tasks"
                     ]
                   }
                 ]
@@ -264,12 +271,28 @@
         "tab": "Community",
         "pages": [
           "community/communication",
-          "community/governance",
-          "community/sep-guidelines",
-          "community/working-interest-groups",
-          "development/roadmap",
-          "clients",
-          "examples"
+          {
+            "group": "Governance",
+            "pages": [
+              "community/governance",
+              "community/sep-guidelines",
+              "community/working-interest-groups",
+              "community/antitrust"
+            ]
+          },
+          {
+            "group": "Roadmap",
+            "pages": [
+              "development/roadmap"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
+            ]
+          }
         ]
       },
       {
@@ -354,10 +377,6 @@
     {
       "source": "/docs/concepts",
       "destination": "/docs/learn/architecture"
-    },
-    {
-      "source": "/docs/tools",
-      "destination": "/legacy/tools/inspector"
     },
     {
       "source": "/docs/tutorials/use-remote-mcp-server",

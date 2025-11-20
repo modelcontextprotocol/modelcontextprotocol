@@ -8,6 +8,7 @@ const config = {
     "@format",
     "@maximum",
     "@minimum",
+    "@TJS-type",
   ],
   disableSources: true,
   logLevel: "Error",
