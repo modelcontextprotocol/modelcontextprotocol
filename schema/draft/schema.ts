@@ -1369,6 +1369,11 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
+
+  /**
+   * ISO 8601 timestamp of the last status been updated or queried
+   * */
+  timestamp: string;
 }
 
 /**

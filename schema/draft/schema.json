@@ -3333,6 +3333,10 @@
                     "description": "The task identifier.",
                     "type": "string"
                 },
+                "timestamp": {
+                    "description": "ISO 8601 timestamp of the last status been updated or queried",
+                    "type": "string"
+                },
                 "ttl": {
                     "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
                     "type": "integer"
@@ -3342,6 +3346,7 @@
                 "createdAt",
                 "status",
                 "taskId",
+                "timestamp",
                 "ttl"
             ],
             "type": "object"

@@ -191,7 +191,8 @@ For a receiver that supports `polymorphic`, it can choose to return either the d
       "statusMessage": "The operation is now in progress.",
       "createdAt": "2025-11-25T10:30:00Z",
       "ttl": 60000,
-      "pollInterval": 5000
+      "pollInterval": 5000,
+      "timestamp": "2025-11-25T10:35:00Z"
     }
   }
 }
@@ -224,6 +225,9 @@ Requestors poll for task completion by sending [`tasks/get`](/specification/draf
 Requestors **SHOULD** respect the `pollInterval` provided in responses when determining polling frequency.
 
 Requestors **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`), or until encountering the [`input_required`](#input-required-status) status. Note that invoking `tasks/result` does not imply that the requestor needs to stop polling - requestors **SHOULD** continue polling the task status via `tasks/get` if they are not actively waiting for `tasks/result` to complete.
+Requestors **MUST NOT** issue concurrent `tasks/get` requests for the same task; they **MUST** wait for the response of a previous `tasks/get` request before issuing another.
+Requestors **MUST** use the most recent task status from `tasks/get`, `tasks/list` or `notifications/tasks/status` when deciding how to proceed with the task, the most recent status takes precedence over any previously cached status,
+and use `timestamp` fields if available to determine recency.
 
 **Request:**
 
@@ -250,7 +254,8 @@ Requestors **SHOULD** continue polling until the task reaches a terminal status 
     "statusMessage": "The operation is now in progress.",
     "createdAt": "2025-11-25T10:30:00Z",
     "ttl": 30000,
-    "pollInterval": 5000
+    "pollInterval": 5000,
+    "timestamp": "2025-11-25T10:35:00Z"
   }
 }
 ```
@@ -322,7 +327,8 @@ When a task status changes, receivers **MAY** send a [`notifications/tasks/statu
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "ttl": 60000,
-    "pollInterval": 5000
+    "pollInterval": 5000,
+    "timestamp": "2025-11-25T10:35:00Z"
   }
 }
 ```
@@ -361,7 +367,8 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
         "status": "working",
         "createdAt": "2025-11-25T10:30:00Z",
         "ttl": 30000,
-        "pollInterval": 5000
+        "pollInterval": 5000,
+        "timestamp": "2025-11-25T10:35:00Z"
       },
       {
         "taskId": "abc123-def456-ghi789",
@@ -404,7 +411,8 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
     "statusMessage": "The task was cancelled by request.",
     "createdAt": "2025-11-25T10:30:00Z",
     "ttl": 30000,
-    "pollInterval": 5000
+    "pollInterval": 5000,
+    "timestamp": "2025-11-25T10:35:00Z"
   }
 }
 ```
@@ -736,6 +744,7 @@ A task represents the execution state of a request. The task state includes:
 - `createdAt`: ISO 8601 timestamp when the task was created
 - `ttl`: Time in milliseconds from creation before task may be deleted
 - `pollInterval`: Suggested time in milliseconds between status checks
+- `timestamp`: ISO 8601 timestamp of the last status been updated or queried
 
 ### Task Status
 
@@ -875,7 +884,8 @@ When the underlying request does not complete successfully, the task moves to th
     "status": "failed",
     "createdAt": "2025-11-25T10:30:00Z",
     "ttl": 30000,
-    "statusMessage": "Tool execution failed: API rate limit exceeded"
+    "statusMessage": "Tool execution failed: API rate limit exceeded",
+    "timestamp": "2025-11-25T10:40:00Z"
   }
 }
 ```
