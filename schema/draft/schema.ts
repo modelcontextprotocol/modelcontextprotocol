@@ -2144,7 +2144,7 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
   /**
    * The elicitation mode.
    */
-  mode: "form";
+  mode?: "form" | undefined;
 
   /**
    * The message to present to the user describing what information is being requested.
