@@ -450,7 +450,7 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 1. Receivers **MUST** include a `createdAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was created.
 1. Receivers **MAY** override the requested `ttl` duration.
 1. Receivers **MUST** include the actual `ttl` duration (or `null` for unlimited) in `tasks/get` responses.
-1. After a task's `ttl` lifetime has elapsed, receivers **MAY** delete the task and its results, regardless of the task status.
+1. After a task's `ttl` lifetime has elapsed, receivers **MUST** first return a `failed` result to the related polling `tasks/result` call, after that, receiver **MAY** delete the task and its results, regardless of the task status,
 1. Receivers **MAY** include a `pollInterval` value (in milliseconds) in `tasks/get` responses to suggest polling intervals. Requestors **SHOULD** respect this value when provided.
 
 ### Result Retrieval
@@ -488,6 +488,7 @@ Task-augmented requests support progress notifications as defined in the [progre
 
 1. Receivers **MUST** reject cancellation requests for tasks already in a terminal status (`completed`, `failed`, or `cancelled`) with error code `-32602` (Invalid params).
 1. Upon receiving a valid cancellation request, receivers **SHOULD** attempt to stop the task execution and **MUST** transition the task to `cancelled` status before sending the response.
+1. Once a task is cancelled, it **MUST** first respond all pending related `tasks/result` requests with a `failed` result indicating the task was cancelled.
 1. Once a task is cancelled, it **MUST** remain in `cancelled` status even if execution continues to completion or fails.
 1. The `tasks/cancel` operation does not define deletion behavior. However, receivers **MAY** delete cancelled tasks at their discretion at any time, including immediately after cancellation or after the task `ttl` expires.
 1. Requestors **SHOULD NOT** rely on cancelled tasks being retained for any specific duration and should retrieve any needed information before cancelling.
