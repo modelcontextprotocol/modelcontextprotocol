@@ -1,18 +1,19 @@
 # SEP: Dynamic Tool Annotations
 
-| Status        | Draft                                                                                          |
-|:--------------|:-----------------------------------------------------------------------------------------------|
-| Type          | Standards Track                                                                                |
-| Created       | 2025-01-15                                                                                     |
-| Authors       | @sammorrowdrums                                                                                |
-| Sponsor       | TBD                                                                                            |
-| PR            | TBD                                                                                            |
+| Status  | Draft                                                                           |
+| :------ | :------------------------------------------------------------------------------ |
+| Type    | Standards Track                                                                 |
+| Created | 2025-01-15                                                                      |
+| Authors | @sammorrowdrums                                                                 |
+| Sponsor | TBD                                                                             |
+| PR      | [#1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) |
 
 ## Abstract
 
 This SEP proposes a mechanism for servers to provide **argument-specific tool annotations** through a new `tools/annotations` request. Currently, tool annotations (such as `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint`) are declared statically during `tools/list`. This limits their accuracy when a tool's behavior depends on its input arguments.
 
 The proposal introduces:
+
 1. A `dynamicAnnotations` field in the `Tool` definition indicating the tool supports runtime annotation queries
 2. A new `tools/annotations` request that accepts tool name and arguments, returning refined annotations
 
@@ -23,6 +24,7 @@ This enables clients to make more informed decisions about tool invocations by q
 ### The Problem with Static Annotations
 
 Tool annotations provide hints about a tool's behavior:
+
 - `readOnlyHint`: Whether the tool modifies its environment
 - `destructiveHint`: Whether modifications are destructive vs. additive
 - `idempotentHint`: Whether repeated calls have no additional effect
@@ -31,7 +33,9 @@ Tool annotations provide hints about a tool's behavior:
 However, many tools have behavior that **depends on their arguments**. Consider these examples:
 
 #### Example 1: File Management Tool
+
 A `manage_files` tool with different actions:
+
 - `read` action → read-only, safe
 - `append` action → write, but additive only
 - `replace` action → destructive (overwrites existing content)
@@ -40,14 +44,18 @@ A `manage_files` tool with different actions:
 With static annotations, the server must declare the worst-case scenario (`destructiveHint: true`), causing clients to present unnecessary confirmation dialogs for safe read operations.
 
 #### Example 2: File System Tool
+
 A `filesystem` tool with operation types:
+
 - `read` operation → `readOnlyHint: true`
 - `append` operation → `destructiveHint: false`
 - `overwrite` operation → `destructiveHint: true`
 - `delete` operation → `destructiveHint: true`
 
 #### Example 3: API Client Tool
+
 A `github_api` tool making REST calls:
+
 - `GET /repos/:owner/:repo` → read-only
 - `POST /repos/:owner/:repo/issues` → creates (additive)
 - `DELETE /repos/:owner/:repo` → destructive
@@ -55,6 +63,7 @@ A `github_api` tool making REST calls:
 ### Consequences of Static Over-Annotation
 
 When tools must declare their worst-case behavior:
+
 1. **Over-prompting**: Users see confirmation dialogs for safe operations
 2. **Reduced trust**: LLMs may avoid tools marked as destructive even for safe uses
 3. **Poor UX**: Every invocation of a versatile tool triggers warnings
@@ -94,15 +103,17 @@ Tools that support dynamic annotation queries **MUST** include the `dynamicAnnot
 interface Tool extends BaseMetadata {
   name: string;
   description?: string;
-  inputSchema: { /* ... */ };
+  inputSchema: {
+    /* ... */
+  };
   annotations?: ToolAnnotations;
-  
+
   /**
    * If true, this tool supports the `tools/annotations` request to provide
    * argument-specific annotations. Clients SHOULD query annotations with
    * specific arguments before invoking such tools when annotation accuracy
    * matters for user experience or safety decisions.
-   * 
+   *
    * Default: false
    */
   dynamicAnnotations?: boolean;
@@ -136,10 +147,10 @@ Clients send this request to obtain refined annotations for specific arguments:
 
 **Parameters:**
 
-| Field      | Type               | Required | Description                                   |
-|:-----------|:-------------------|:---------|:----------------------------------------------|
-| name       | string             | Yes      | The name of the tool                          |
-| arguments  | object             | Yes      | The arguments that will be passed to the tool |
+| Field     | Type   | Required | Description                                   |
+| :-------- | :----- | :------- | :-------------------------------------------- |
+| name      | string | Yes      | The name of the tool                          |
+| arguments | object | Yes      | The arguments that will be passed to the tool |
 
 #### Response: `tools/annotations`
 
@@ -162,9 +173,9 @@ Clients send this request to obtain refined annotations for specific arguments:
 
 **Result:**
 
-| Field       | Type             | Required | Description                                          |
-|:------------|:-----------------|:---------|:-----------------------------------------------------|
-| annotations | ToolAnnotations  | Yes      | The refined annotations for the given arguments      |
+| Field       | Type            | Required | Description                                     |
+| :---------- | :-------------- | :------- | :---------------------------------------------- |
+| annotations | ToolAnnotations | Yes      | The refined annotations for the given arguments |
 
 ### Schema Definitions
 
@@ -173,7 +184,7 @@ Clients send this request to obtain refined annotations for specific arguments:
 ```typescript
 /**
  * Request to get refined annotations for a tool with specific arguments.
- * 
+ *
  * @category `tools/annotations`
  */
 export interface GetToolAnnotationsRequest extends JSONRPCRequest {
@@ -183,7 +194,7 @@ export interface GetToolAnnotationsRequest extends JSONRPCRequest {
      * The name of the tool to get annotations for.
      */
     name: string;
-    
+
     /**
      * The arguments that will be passed to the tool. These arguments
      * allow the server to provide more precise annotation hints based
@@ -199,7 +210,7 @@ export interface GetToolAnnotationsRequest extends JSONRPCRequest {
 ```typescript
 /**
  * Result of a tools/annotations request.
- * 
+ *
  * @category `tools/annotations`
  */
 export interface GetToolAnnotationsResult extends Result {
@@ -282,10 +293,10 @@ Add to `schema.json`:
 
 Servers **SHOULD** return standard JSON-RPC errors:
 
-| Code   | Message               | When                                           |
-|:-------|:----------------------|:-----------------------------------------------|
-| -32602 | Invalid params        | Unknown tool name or invalid arguments         |
-| -32603 | Internal error        | Server failed to evaluate annotations          |
+| Code   | Message        | When                                   |
+| :----- | :------------- | :------------------------------------- |
+| -32602 | Invalid params | Unknown tool name or invalid arguments |
+| -32603 | Internal error | Server failed to evaluate annotations  |
 
 ### Message Flow
 
@@ -301,11 +312,11 @@ sequenceDiagram
 
     Note over LLM,Client: Tool Selection
     LLM->>Client: Propose tool call with arguments
-    
+
     Note over Client,Server: Preflight (for dynamicAnnotations tools)
     Client->>Server: tools/annotations (name, arguments)
     Server-->>Client: Refined annotations
-    
+
     Note over Client: Decision
     Client->>Client: Evaluate annotations
     alt Read-only or safe
@@ -332,6 +343,7 @@ sequenceDiagram
 #### Why "Preflight" Semantics?
 
 The `tools/annotations` request mirrors CORS preflight requests:
+
 - Both check permissions before performing an operation
 - Both are lightweight compared to the actual operation
 - Both allow the client to make informed decisions
@@ -341,10 +353,12 @@ The `tools/annotations` request mirrors CORS preflight requests:
 An alternative design could stream updated annotations during `tools/call`:
 
 **Advantages of streaming:**
+
 - Single request for annotation + execution
 - Annotations could evolve during execution
 
 **Disadvantages of streaming (why we chose preflight):**
+
 - More complex protocol
 - Cannot cancel based on annotations without already starting execution
 - Mixes concerns of evaluation and execution
@@ -357,6 +371,7 @@ A boolean keeps the API simple. Servers always return the full `ToolAnnotations`
 #### Why Require Determinism?
 
 Determinism (same arguments → same annotations) ensures:
+
 - A call to determine annotations should then be true when calling the tool
 - Potential for safe response caching within a session
 - Testable server implementations
@@ -368,10 +383,12 @@ Determinism (same arguments → same annotations) ensures:
 A more generic name like `tools/preflight` was considered:
 
 **Pros:**
+
 - Familiar concept from web development
 - Could be extended for other preflight needs
 
 **Cons:**
+
 - Less descriptive of the specific purpose
 - `tools/annotations` directly maps to the returned type
 
@@ -396,10 +413,12 @@ Instead of runtime queries, annotate which arguments affect which hints:
 ```
 
 **Pros:**
+
 - Static analysis possible
 - No additional requests
 
 **Cons:**
+
 - Cannot express complex logic (semantic analysis, state-dependent behavior)
 - Verbose for many cases
 - Pattern matching is limited
@@ -409,16 +428,19 @@ Instead of runtime queries, annotate which arguments affect which hints:
 This proposal is **fully backward compatible**:
 
 ### For Existing Servers
+
 - No changes required
 - Servers without `dynamicAnnotations` capability continue working
 - Static `annotations` field remains authoritative
 
 ### For Existing Clients
+
 - No changes required
 - Clients can ignore `dynamicAnnotations: true` and use static annotations
 - Tools remain fully functional without preflight queries
 
 ### Graceful Degradation
+
 - Clients fall back to static annotations if `tools/annotations` fails
 - Static annotations represent worst-case behavior, ensuring safety
 
@@ -447,6 +469,7 @@ This trust model extends to dynamic annotations:
 ### Argument Validation
 
 Servers **SHOULD** validate arguments in `tools/annotations` against the tool's `inputSchema`:
+
 - Invalid arguments should return an error
 - This provides consistent behavior between annotation queries and tool calls
 
@@ -457,60 +480,68 @@ Servers **SHOULD** validate arguments in `tools/annotations` against the tool's 
 ```typescript
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
-const server = new Server({
-  name: "file-server",
-  version: "1.0.0",
-}, {
-  capabilities: {
-    tools: {
-      listChanged: false,
-      dynamicAnnotations: true,
+const server = new Server(
+  {
+    name: "file-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {
+        listChanged: false,
+        dynamicAnnotations: true,
+      },
     },
   },
-});
+);
 
 // Tool definition
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
-    tools: [{
-      name: "manage_files",
-      description: "Read, append, replace, or delete file contents",
-      inputSchema: {
-        type: "object",
-        properties: {
-          path: { type: "string", description: "File path to operate on" },
-          action: { 
-            type: "string", 
-            enum: ["read", "append", "replace", "delete"],
-            description: "Operation to perform" 
+    tools: [
+      {
+        name: "manage_files",
+        description: "Read, append, replace, or delete file contents",
+        inputSchema: {
+          type: "object",
+          properties: {
+            path: { type: "string", description: "File path to operate on" },
+            action: {
+              type: "string",
+              enum: ["read", "append", "replace", "delete"],
+              description: "Operation to perform",
+            },
+            content: {
+              type: "string",
+              description: "Content for append/replace operations",
+            },
           },
-          content: { type: "string", description: "Content for append/replace operations" }
+          required: ["path", "action"],
         },
-        required: ["path", "action"]
+        // Conservative default annotations
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
+        // Indicates support for tools/annotations
+        dynamicAnnotations: true,
       },
-      // Conservative default annotations
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: true,
-        idempotentHint: false,
-        openWorldHint: false
-      },
-      // Indicates support for tools/annotations
-      dynamicAnnotations: true
-    }]
+    ],
   };
 });
 
 // Dynamic annotations handler
 server.setRequestHandler(GetToolAnnotationsRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-  
+
   if (name !== "manage_files") {
     throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`);
   }
-  
+
   const action = args.action as string;
-  
+
   switch (action) {
     case "read":
       return {
@@ -518,40 +549,40 @@ server.setRequestHandler(GetToolAnnotationsRequestSchema, async (request) => {
           readOnlyHint: true,
           destructiveHint: false,
           idempotentHint: true,
-          openWorldHint: false
-        }
+          openWorldHint: false,
+        },
       };
-    
+
     case "append":
       return {
         annotations: {
           readOnlyHint: false,
-          destructiveHint: false,  // Additive only
+          destructiveHint: false, // Additive only
           idempotentHint: false,
-          openWorldHint: false
-        }
+          openWorldHint: false,
+        },
       };
-    
+
     case "replace":
       return {
         annotations: {
           readOnlyHint: false,
           destructiveHint: true,
-          idempotentHint: true,  // Same content = same result
-          openWorldHint: false
-        }
+          idempotentHint: true, // Same content = same result
+          openWorldHint: false,
+        },
       };
-    
+
     case "delete":
       return {
         annotations: {
           readOnlyHint: false,
           destructiveHint: true,
-          idempotentHint: true,  // Deleting twice = same result
-          openWorldHint: false
-        }
+          idempotentHint: true, // Deleting twice = same result
+          openWorldHint: false,
+        },
       };
-    
+
     default:
       // Default to conservative for unknown actions
       return {
@@ -559,8 +590,8 @@ server.setRequestHandler(GetToolAnnotationsRequestSchema, async (request) => {
           readOnlyHint: false,
           destructiveHint: true,
           idempotentHint: false,
-          openWorldHint: false
-        }
+          openWorldHint: false,
+        },
       };
   }
 });
@@ -574,24 +605,24 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 async function invokeToolSafely(
   client: Client,
   toolName: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
 ): Promise<CallToolResult> {
   // Get tool definition
   const { tools } = await client.listTools();
-  const tool = tools.find(t => t.name === toolName);
-  
+  const tool = tools.find((t) => t.name === toolName);
+
   if (!tool) {
     throw new Error(`Unknown tool: ${toolName}`);
   }
-  
+
   // Get annotations (dynamic if supported, static otherwise)
   let annotations = tool.annotations ?? {};
-  
+
   if (tool.dynamicAnnotations) {
     try {
       const result = await client.request({
         method: "tools/annotations",
-        params: { name: toolName, arguments: args }
+        params: { name: toolName, arguments: args },
       });
       annotations = result.annotations;
     } catch (error) {
@@ -599,17 +630,17 @@ async function invokeToolSafely(
       console.warn("Failed to get dynamic annotations, using static:", error);
     }
   }
-  
+
   // Make safety decisions based on annotations
   if (annotations.destructiveHint) {
     const confirmed = await requestUserConfirmation(
-      `This operation may be destructive. Proceed?`
+      `This operation may be destructive. Proceed?`,
     );
     if (!confirmed) {
       throw new Error("User cancelled destructive operation");
     }
   }
-  
+
   // Invoke the tool
   return client.callTool({ name: toolName, arguments: args });
 }
