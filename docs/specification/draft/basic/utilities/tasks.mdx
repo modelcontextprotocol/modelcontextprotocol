@@ -225,7 +225,7 @@ Requestors poll for task completion by sending [`tasks/get`](/specification/draf
 Requestors **SHOULD** respect the `pollInterval` provided in responses when determining polling frequency.
 
 Requestors **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`), or until encountering the [`input_required`](#input-required-status) status. Note that invoking `tasks/result` does not imply that the requestor needs to stop polling - requestors **SHOULD** continue polling the task status via `tasks/get` if they are not actively waiting for `tasks/result` to complete.
-Requestors **MUST NOT** issue concurrent `tasks/get` requests for the same task; they **MUST** wait for the response of a previous `tasks/get` request before issuing another.
+Requestors **MUST NOT** issue concurrent `tasks/get` requests for the same task; they **MAY** wait for the response of a previous `tasks/get` request before issuing another or cancel the previous request if supported by the transport and then can start a new one.
 Requestors **MUST** use the most recent task status from `tasks/get`, `tasks/list` or `notifications/tasks/status` when deciding how to proceed with the task, the most recent status takes precedence over any previously cached status,
 and use `timestamp` fields if available to determine recency.
 
