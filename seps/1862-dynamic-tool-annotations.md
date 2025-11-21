@@ -1,12 +1,12 @@
 # SEP: Dynamic Tool Annotations
 
-| Status  | Draft           |
-| :------ | :-------------- |
-| Type    | Standards Track |
-| Created | 2025-01-15      |
-| Authors | @sammorrowdrums |
-| Sponsor | TBD             |
-| PR      | TBD             |
+| Status  | Draft                                                                           |
+| :------ | :------------------------------------------------------------------------------ |
+| Type    | Standards Track                                                                 |
+| Created | 2025-01-15                                                                      |
+| Authors | @sammorrowdrums                                                                 |
+| Sponsor | TBD                                                                             |
+| PR      | [#1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) |
 
 ## Abstract
 
