@@ -104,16 +104,26 @@ MCP endpoint.
    `Content-Type: application/json`, to return one JSON object. The client **MUST**
    support both these cases.
 6. If the server initiates an SSE stream:
-   - The SSE stream **SHOULD** eventually include JSON-RPC _response_ for the
+   - The server **SHOULD** immediately send an SSE event consisting of an event
+     ID and an empty `data` field in order to prime the client to reconnect
+     (using that event ID as `Last-Event-ID`).
+   - After the server has sent an SSE event with an event ID to the client, the
+     server **MAY** close the _connection_ (without terminating the _SSE stream_)
+     at any time in order to avoid holding a long-lived connection. The client
+     **SHOULD** then "poll" the SSE stream by attempting to reconnect.
+   - If the server does close the _connection_ prior to terminating the _SSE stream_,
+     it **SHOULD** send an SSE event with a standard [`retry`](https://html.spec.whatwg.org/multipage/server-sent-events.html#:~:text=field%20name%20is%20%22retry%22) field before
+     closing the connection. The client **MUST** respect the `retry` field,
+     waiting the given number of milliseconds before attempting to reconnect.
+   - The SSE stream **SHOULD** eventually include a JSON-RPC _response_ for the
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
      JSON-RPC _response_. These messages **SHOULD** relate to the originating client
      _request_.
-   - The server **SHOULD NOT** close the SSE stream before sending the JSON-RPC _response_
-     for the received JSON-RPC _request_, unless the [session](#session-management)
+   - The server **MAY** terminate the SSE stream if the [session](#session-management)
      expires.
-   - After the JSON-RPC _response_ has been sent, the server **SHOULD** close the SSE
-     stream.
+   - After the JSON-RPC _response_ has been sent, the server **SHOULD** terminate the
+     SSE stream.
    - Disconnection **MAY** occur at any time (e.g., due to network conditions).
      Therefore:
      - Disconnection **SHOULD NOT** be interpreted as the client cancelling its request.
@@ -139,6 +149,9 @@ MCP endpoint.
      [resuming](#resumability-and-redelivery) a stream associated with a previous client
      request.
    - The server **MAY** close the SSE stream at any time.
+   - If the server closes the _connection_ without terminating the _stream_, it
+     **SHOULD** follow the same polling behavior as described for POST requests:
+     sending a `retry` field and allowing the client to reconnect.
    - The client **MAY** close the SSE stream at any time.
 
 ### Multiple Connections
@@ -159,8 +172,11 @@ lost:
    - If present, the ID **MUST** be globally unique across all streams within that
      [session](#session-management)—or all streams with that specific client, if session
      management is not in use.
-2. If the client wishes to resume after a broken connection, it **SHOULD** issue an HTTP
-   GET to the MCP endpoint, and include the
+   - Event IDs **SHOULD** encode sufficient information to identify the originating
+     stream, enabling the server to correlate a `Last-Event-ID` to the correct stream.
+2. If the client wishes to resume after a disconnection (whether due to network failure
+   or server-initiated closure), it **SHOULD** issue an HTTP GET to the MCP endpoint,
+   and include the
    [`Last-Event-ID`](https://html.spec.whatwg.org/multipage/server-sent-events.html#the-last-event-id-header)
    header to indicate the last event ID it received.
    - The server **MAY** use this header to replay messages that would have been sent
@@ -168,6 +184,8 @@ lost:
      stream from that point.
    - The server **MUST NOT** replay messages that would have been delivered on a
      different stream.
+   - This mechanism applies regardless of how the original stream was initiated (via
+     POST or GET). Resumption is always via HTTP GET with `Last-Event-ID`.
 
 In other words, these event IDs should be assigned by servers on a _per-stream_ basis, to
 act as a cursor within that particular stream.
@@ -282,8 +300,8 @@ protocol version 2024-11-05) as follows:
    defined above:
    - If it succeeds, the client can assume this is a server supporting the new Streamable
      HTTP transport.
-   - If it fails with an HTTP 4xx status code (e.g., 405 Method Not Allowed or 404 Not
-     Found):
+   - If it fails with the following HTTP status codes "400 Bad Request", "404 Not
+     Found" or "405 Method Not Allowed":
      - Issue a GET request to the server URL, expecting that this will open an SSE stream
        and return an `endpoint` event as the first event.
      - When the `endpoint` event arrives, the client can assume this is a server running

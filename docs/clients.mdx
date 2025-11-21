@@ -11,6 +11,7 @@ This page provides an overview of applications that support the Model Context Pr
 
 {/* prettier-ignore-start */}
 
+
 | Client                                           | [Resources] | [Prompts] | [Tools] | [Discovery] | [Sampling] | [Roots] | [Elicitation] | [Instructions] |
 | ------------------------------------------------ | ----------- | --------- | ------- | ---------------------- | ---------- | ----- | ------------ | -------------- |
 | [5ire][5ire]                                     | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
@@ -48,9 +49,9 @@ This page provides an overview of applications that support the Model Context Pr
 | [Genkit][Genkit]                                 | ⚠️          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [Glama][Glama]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [Gemini CLI][Gemini CLI]                         | ❌          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
-| [GenAIScript][GenAIScript]                       | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
+| [GenAIScript][GenAIScript]                       | ✅          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [GitHub Copilot coding agent][GitHubCopilotCodingAgent]                       | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❌            | ❓             |
-| [Goose][Goose]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | ✅             |
+| [goose][goose]                                   | ✅          | ✅        | ✅      | ❌                     | ✅         | ❌    | ❌            | ✅             |
 | [gptme][gptme]                                   | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [HyperAgent][HyperAgent]                         | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [Jenova][Jenova]                                 | ❌          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | ❓             |
@@ -156,7 +157,7 @@ This page provides an overview of applications that support the Model Context Pr
 [Genkit]: https://github.com/firebase/genkit
 [GenAIScript]: https://microsoft.github.io/genaiscript/reference/scripts/mcp-tools/
 [GitHubCopilotCodingAgent]: https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/about-copilot-coding-agent
-[Goose]: https://block.github.io/goose/docs/goose-architecture/#interoperability-with-extensions
+[goose]: https://block.github.io/goose/docs/goose-architecture/#interoperability-with-extensions
 [Jenova]: https://www.jenova.ai
 [JetBrains AI Assistant]: https://plugins.jetbrains.com/plugin/22282-jetbrains-ai-assistant
 [JetBrains Junie]: https://www.jetbrains.com/junie
@@ -632,16 +633,16 @@ Programmatically assemble prompts for LLMs using [GenAIScript](https://microsoft
 - Abstraction to make it easy and productive
 - Seamless Visual Studio Code integration
 
-### Goose
+### goose
 
-[Goose](https://github.com/block/goose) is an open source AI agent that supercharges your software development by automating coding tasks.
+[goose](https://github.com/block/goose) is an open source AI agent that supercharges your software development by automating coding tasks.
 
 **Key features:**
 
-- Expose MCP functionality to Goose through tools.
+- Expose MCP functionality to goose through tools.
 - MCPs can be installed directly via the [extensions directory](https://block.github.io/goose/v1/extensions/), CLI, or UI.
-- Goose allows you to extend its functionality by [building your own MCP servers](https://block.github.io/goose/docs/tutorials/custom-extensions).
-- Includes built-in tools for development, web scraping, automation, memory, and integrations with JetBrains and Google Drive.
+- goose allows you to extend its functionality by [building your own MCP servers](https://block.github.io/goose/docs/tutorials/custom-extensions).
+- Includes built-in extensions for development, memory, computer control, and auto-visualization.
 
 ### GitHub Copilot coding agent
 
