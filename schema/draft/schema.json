@@ -916,7 +916,6 @@
             },
             "required": [
                 "message",
-                "mode",
                 "requestedSchema"
             ],
             "type": "object"
