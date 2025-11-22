@@ -1,0 +1,19 @@
+/* Override list page background to white in light mode */
+.list {
+    background: var(--theme);
+}
+
+/* Dark mode remains unchanged */
+.dark.list {
+    background: var(--theme);
+}
+
+/* Mermaid diagram styling for dark mode */
+.dark .mermaid {
+    filter: invert(0.85) hue-rotate(180deg);
+}
+
+/* Prevent awkward wrapping in post metadata. See https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
+.post-meta {
+    display: block !important;
+}

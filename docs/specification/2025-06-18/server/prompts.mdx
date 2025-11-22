@@ -186,6 +186,12 @@ Messages in a prompt can contain:
 - `role`: Either "user" or "assistant" to indicate the speaker
 - `content`: One of the following content types:
 
+<Note>
+  All content types in prompt messages support optional
+  [annotations](/specification/2025-06-18/server/resources#annotations) for
+  metadata about audience, priority, and modification times.
+</Note>
+
 #### Text Content
 
 Text content represents plain text messages:
@@ -238,8 +244,6 @@ Embedded resources allow referencing server-side resources directly in messages:
   "type": "resource",
   "resource": {
     "uri": "resource://example",
-    "name": "example",
-    "title": "My Example Resource",
     "mimeType": "text/plain",
     "text": "Resource content"
   }

@@ -29,7 +29,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -78,7 +78,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "blob": {
@@ -157,7 +157,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "content": {
@@ -393,7 +393,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "completion": {
@@ -464,7 +464,7 @@
                             "type": "string"
                         },
                         "maxTokens": {
-                            "description": "The maximum number of tokens to sample, as requested by the server. The client MAY choose to sample fewer tokens than requested.",
+                            "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
                             "type": "integer"
                         },
                         "messages": {
@@ -515,7 +515,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "content": {
@@ -612,7 +612,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "action": {
@@ -646,7 +646,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -746,7 +746,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "description": {
@@ -770,7 +770,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -858,7 +858,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "capabilities": {
@@ -895,7 +895,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -977,7 +977,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1008,7 +1008,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1076,7 +1076,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1122,7 +1122,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1168,7 +1168,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1199,7 +1199,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1222,7 +1222,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "roots": {
@@ -1264,7 +1264,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1382,7 +1382,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1445,7 +1445,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "nextCursor": {
@@ -1467,7 +1467,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1553,7 +1553,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "arguments": {
@@ -1618,7 +1618,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1700,7 +1700,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "contents": {
@@ -1732,7 +1732,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "properties": {
                                 "progressToken": {
                                     "$ref": "#/definitions/ProgressToken",
@@ -1762,7 +1762,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -1806,7 +1806,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "mimeType": {
@@ -1829,7 +1829,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -1885,7 +1885,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -1902,7 +1902,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -1988,7 +1988,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 }
             },
@@ -2007,7 +2007,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "name": {
@@ -2037,7 +2037,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
@@ -2302,7 +2302,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -2328,7 +2328,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "mimeType": {
@@ -2356,7 +2356,7 @@
             "properties": {
                 "_meta": {
                     "additionalProperties": {},
-                    "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                    "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
                 },
                 "annotations": {
@@ -2474,7 +2474,7 @@
                     "properties": {
                         "_meta": {
                             "additionalProperties": {},
-                            "description": "See [specification/2025-06-18/basic/index#general-fields] for notes on _meta usage.",
+                            "description": "See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.",
                             "type": "object"
                         }
                     },
