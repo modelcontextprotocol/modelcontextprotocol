@@ -636,15 +636,16 @@ and would therefore be unable to leverage them.
 
 ### Result Fields
 
-Sampling results are [message](#messages) objects, and will contain the following fields:
+Sampling results will contain the following fields:
 
 - `role`: The message role; see [Messages](#messages).
-- `content`: The message content; see [Messages](#messages).
+- `content`: The message content, which can be a single content block or an array of content blocks; see [Messages](#messages). When tools are used, this will be an array of content blocks (see [Sampling with Tools](#sampling-with-tools)).
 - `model`: The name of the model that generated the message.
 - `stopReason`: The reason why sampling stopped, if known. The specification defines the following (non-exhaustive) stop reasons, although implementations **MAY** provide their own arbitrary values:
   - `"endTurn"`: The participant is yielding the conversation to the other party.
   - `"stopSequence"`: Message generation encountered one of the requested `stopSequences`.
   - `"maxTokens"`: The token limit was reached.
+  - `"toolUse"`: The model wants to use one or more tools.
 
 ## Error Handling
 
