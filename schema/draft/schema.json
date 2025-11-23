@@ -1858,6 +1858,62 @@
             ],
             "type": "object"
         },
+        "ListTasksFilter": {
+            "description": "A filter to apply when listing tasks.",
+            "properties": {
+                "createdAfter": {
+                    "description": "ISO 8601 timestamp when the task was created after, includes.",
+                    "type": "string"
+                },
+                "lastUpdatedAfter": {
+                    "description": "ISO 8601 timestamp when the task was last updated after, includes.",
+                    "type": "string"
+                },
+                "order": {
+                    "description": "The order direction. Default is desc.",
+                    "enum": [
+                        "asc",
+                        "desc"
+                    ],
+                    "type": "string"
+                },
+                "orderBy": {
+                    "description": "The field to order results by. Default is createdAt.",
+                    "enum": [
+                        "createdAt",
+                        "lastUpdatedAt"
+                    ],
+                    "type": "string"
+                },
+                "requestTypes": {
+                    "description": "The underlying request types to filter by, if provided only tasks for these request types will be returned.\nOtherwise, all request types are selected.",
+                    "items": {
+                        "enum": [
+                            "elicitation/create",
+                            "sampling/createMessage",
+                            "tools/call"
+                        ],
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "status": {
+                    "description": "List of task statuses to filter by, if provided only tasks with these statuses will be returned.\nOtherwise, all statuses are selected.",
+                    "items": {
+                        "$ref": "#/$defs/TaskStatus"
+                    },
+                    "type": "array"
+                },
+                "taskIds": {
+                    "description": "List of task IDs to filter by, if provided only tasks with these IDs will be returned.\nOtherwise, all taskId are selected.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
         "ListTasksRequest": {
             "description": "A request to retrieve a list of tasks.",
             "properties": {
@@ -1873,7 +1929,14 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/$defs/PaginatedRequestParams"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/PaginatedRequestParams"
+                        },
+                        {
+                            "$ref": "#/$defs/ListTasksFilter"
+                        }
+                    ]
                 }
             },
             "required": [

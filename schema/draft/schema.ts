@@ -1462,6 +1462,55 @@ export type CancelTaskResult = Result & Task;
  */
 export interface ListTasksRequest extends PaginatedRequest {
   method: "tasks/list";
+  params?: PaginatedRequestParams & ListTasksFilter;
+}
+
+/**
+ * A filter to apply when listing tasks.
+ *
+ * @category `tasks/list`
+ */
+export interface ListTasksFilter {
+  /**
+   * The underlying request types to filter by, if provided only tasks for these request types will be returned.
+   * Otherwise, all request types are selected.
+   */
+  requestTypes?: (
+    | "sampling/createMessage"
+    | "elicitation/create"
+    | "tools/call"
+  )[];
+
+  /**
+   * List of task IDs to filter by, if provided only tasks with these IDs will be returned.
+   * Otherwise, all taskId are selected.
+   */
+  taskIds?: string[];
+
+  /**
+   * List of task statuses to filter by, if provided only tasks with these statuses will be returned.
+   * Otherwise, all statuses are selected.
+   */
+  status?: TaskStatus[];
+  /**
+   * ISO 8601 timestamp when the task was created after, includes.
+   */
+  createdAfter?: string;
+
+  /**
+   * ISO 8601 timestamp when the task was last updated after, includes.
+   */
+  lastUpdatedAfter?: string;
+
+  /**
+   * The field to order results by. Default is createdAt.
+   */
+  orderBy?: "createdAt" | "lastUpdatedAt";
+
+  /**
+   * The order direction. Default is desc.
+   */
+  order?: "asc" | "desc";
 }
 
 /**

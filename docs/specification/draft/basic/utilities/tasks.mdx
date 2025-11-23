@@ -306,7 +306,21 @@ Requestors **MUST NOT** rely on receiving this notifications, as it is optional.
 
 ### Listing Tasks
 
-To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification/draft/schema#tasks%2Flist) request. This operation supports pagination.
+To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification/draft/schema#tasks%2Flist) request. This operation supports pagination and filtering.
+
+The filtering option allows requestors to narrow down the list of tasks based on specific criteria, such as task status, updated time ranges, or other relevant attributes defined by the receiver.
+
+The current supported filter fields are, and may be extended in future protocol versions:
+
+- `requestTypes` (array of strings, optional): Filter tasks by the types of the underlying request (e.g., `tools/call`, `sampling/createMessage`).
+- `taskIds` (array of strings, optional): Filter tasks by a list of specific task IDs.
+- `status` (array of strings, optional): Filter tasks by a list of specified current status (e.g., `working`, `completed`, `failed`, `cancelled`, `input_required`).
+- `createdAfter` (string, optional): An ISO 8601 timestamp to filter tasks created after the specified time.
+- `lastUpdatedAfter` (string, optional): An ISO 8601 timestamp to filter tasks updated after the specified time.
+- `orderBy` (string, optional): Specifies the field by which to order the returned tasks. Possible values are `createdAt` and `lastUpdatedAt`. Default is `createdAt`.
+- `order` (string, optional): Specifies the order of the returned tasks. Possible values are `asc` for ascending and `desc` for descending. Default is `desc`.
+
+When the filter is omitted, all tasks belongs to that session are returned.
 
 **Request:**
 
@@ -316,7 +330,11 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
   "id": 5,
   "method": "tasks/list",
   "params": {
-    "cursor": "optional-cursor-value"
+    "cursor": "optional-cursor-value",
+    "filter": {
+      "status": ["working", "completed"],
+      "order": "desc"
+    }
   }
 }
 ```
