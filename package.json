@@ -32,7 +32,7 @@
     "generate:schema": "npm run generate:schema:json && npm run generate:schema:md",
     "generate:schema:json": "tsx scripts/generate-schemas.ts",
     "generate:schema:md": "for f in schema/*/schema.mdx; do typedoc --entryPoints \"${f%.mdx}.ts\" --schemaPageTemplate \"$f\" > docs/specification/$(basename -- $(dirname -- \"$f\"))/schema.mdx; done",
-    "format": "prettier --write \"**/*.{md,mdx}\" --ignore \"docs/specification/*/schema.mdx\" ",
+    "format": "prettier --write \"**/*.{md,mdx,ts}\" --ignore \"docs/specification/*/schema.mdx\" ",
     "serve:docs": "cd docs && npx mint dev",
     "serve:blog": "cd blog && hugo serve"
   },
