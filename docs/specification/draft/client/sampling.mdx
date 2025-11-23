@@ -639,7 +639,12 @@ and would therefore be unable to leverage them.
 Sampling results will contain the following fields:
 
 - `role`: The message role; see [Messages](#messages).
-- `content`: The message content, which can be a single content block or an array of content blocks; see [Messages](#messages). When tools are used, this will be an array of content blocks (see [Sampling with Tools](#sampling-with-tools)).
+- `content`: The message content. This can be either:
+  - A single content block when the response contains only one content block, such as a single text response.
+  - An array of content blocks when the response contains one or more content blocks, such as multiple tool uses or mixed content.
+
+  See [Messages](#messages) for content block types.
+
 - `model`: The name of the model that generated the message.
 - `stopReason`: The reason why sampling stopped, if known. The specification defines the following (non-exhaustive) stop reasons, although implementations **MAY** provide their own arbitrary values:
   - `"endTurn"`: The participant is yielding the conversation to the other party.
