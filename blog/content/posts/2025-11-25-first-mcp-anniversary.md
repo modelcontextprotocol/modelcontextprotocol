@@ -44,7 +44,7 @@ We also nurtured large contributor communities on [Discord](https://modelcontext
 
 ![Audience at MCP Night in San Francisco](/posts/images/first-mcp-anniversary/mcp-night.webp)
 
-Really, the success of MCP in the past year is entirely thanks to the broad community that grew around the project - from transports, to security, SDKs, documentation, samples, and developer tooling, it was all significantly evolved by and for the community.
+Really, the success of MCP in the past year is entirely thanks to the broad community that grew around the project - from transports, to security, SDKs, documentation, samples, extensions, and developer tooling, it was all significantly evolved by and for the community.
 
 ![Kent C. Dodds talking about his vision for MCP at MCP Dev Summit](/posts/images/first-mcp-anniversary/kent-jarvis-mcp.webp)
 
