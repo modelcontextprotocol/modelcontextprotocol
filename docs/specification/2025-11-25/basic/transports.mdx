@@ -192,7 +192,7 @@ act as a cursor within that particular stream.
 ### Session Management
 
 An MCP "session" consists of logically related interactions between a client and a
-server, beginning with the [initialization phase](/specification/draft/basic/lifecycle). To support
+server, beginning with the [initialization phase](/specification/2025-11-25/basic/lifecycle). To support
 servers which want to establish stateful sessions:
 
 1. A server using the Streamable HTTP transport **MAY** assign a session ID at
@@ -268,7 +268,7 @@ server, allowing the MCP server to respond based on the MCP protocol version.
 For example: `MCP-Protocol-Version: 2025-06-18`
 
 The protocol version sent by the client **SHOULD** be the one [negotiated during
-initialization](/specification/draft/basic/lifecycle#version-negotiation).
+initialization](/specification/2025-11-25/basic/lifecycle#version-negotiation).
 
 For backwards compatibility, if the server does _not_ receive an `MCP-Protocol-Version`
 header, and has no other way to identify the version - for example, by relying on the

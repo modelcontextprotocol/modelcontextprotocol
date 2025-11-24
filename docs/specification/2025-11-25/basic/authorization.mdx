@@ -345,7 +345,7 @@ This approach accommodates the general-purpose nature of MCP clients, which typi
 
 This approach minimizes user friction while following the principle of least privilege.
 The `scopes_supported` field is intended to represent the minimal set of scopes necessary
-for basic functionality (see [Scope Minimization](/specification/draft/basic/security_best_practices#scope-minimization)),
+for basic functionality (see [Scope Minimization](/specification/2025-11-25/basic/security_best_practices#scope-minimization)),
 with additional scopes requested incrementally through the step-up authorization flow steps
 described in the [Scope Challenge Handling](#scope-challenge-handling) section.
 
@@ -569,7 +569,7 @@ audiences **when the Authorization Server supports the capability**. To enable c
 - MCP clients **MUST** include the `resource` parameter in authorization and token requests as specified in the [Resource Parameter Implementation](#resource-parameter-implementation) section
 - MCP servers **MUST** validate that tokens presented to them were specifically issued for their use
 
-The [Security Best Practices document](/specification/draft/basic/security_best_practices#token-passthrough)
+The [Security Best Practices document](/specification/2025-11-25/basic/security_best_practices#token-passthrough)
 outlines why token audience validation is crucial and why token passthrough is explicitly forbidden.
 
 ### Token Theft
@@ -670,7 +670,7 @@ Servers maintain full control over their access policies.
 
 ### Confused Deputy Problem
 
-Attackers can exploit MCP servers acting as intermediaries to third-party APIs, leading to [confused deputy vulnerabilities](/specification/draft/basic/security_best_practices#confused-deputy-problem).
+Attackers can exploit MCP servers acting as intermediaries to third-party APIs, leading to [confused deputy vulnerabilities](/specification/2025-11-25/basic/security_best_practices#confused-deputy-problem).
 By using stolen authorization codes, they can obtain access tokens without user consent.
 
 MCP proxy servers using static client IDs **MUST** obtain user consent for each dynamically
@@ -683,13 +683,13 @@ An attacker can gain unauthorized access or otherwise compromise an MCP server i
 This vulnerability has two critical dimensions:
 
 1. **Audience validation failures.** When an MCP server doesn't verify that tokens were specifically intended for it (for example, via the audience claim, as mentioned in [RFC9068](https://www.rfc-editor.org/rfc/rfc9068.html)), it may accept tokens originally issued for other services. This breaks a fundamental OAuth security boundary, allowing attackers to reuse legitimate tokens across different services than intended.
-2. **Token passthrough.** If the MCP server not only accepts tokens with incorrect audiences but also forwards these unmodified tokens to downstream services, it can potentially cause the ["confused deputy" problem](#confused-deputy-problem), where the downstream API may incorrectly trust the token as if it came from the MCP server or assume the token was validated by the upstream API. See the [Token Passthrough section](/specification/draft/basic/security_best_practices#token-passthrough) of the Security Best Practices guide for additional details.
+2. **Token passthrough.** If the MCP server not only accepts tokens with incorrect audiences but also forwards these unmodified tokens to downstream services, it can potentially cause the ["confused deputy" problem](#confused-deputy-problem), where the downstream API may incorrectly trust the token as if it came from the MCP server or assume the token was validated by the upstream API. See the [Token Passthrough section](/specification/2025-11-25/basic/security_best_practices#token-passthrough) of the Security Best Practices guide for additional details.
 
 MCP servers **MUST** validate access tokens before processing the request, ensuring the access token is issued specifically for the MCP server, and take all necessary steps to ensure no data is returned to unauthorized parties.
 
 A MCP server **MUST** follow the guidelines in [OAuth 2.1 - Section 5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#section-5.2) to validate inbound tokens.
 
-MCP servers **MUST** only accept tokens specifically intended for themselves and **MUST** reject tokens that do not include them in the audience claim or otherwise verify that they are the intended recipient of the token. See the [Security Best Practices Token Passthrough section](/specification/draft/basic/security_best_practices#token-passthrough) for details.
+MCP servers **MUST** only accept tokens specifically intended for themselves and **MUST** reject tokens that do not include them in the audience claim or otherwise verify that they are the intended recipient of the token. See the [Security Best Practices Token Passthrough section](/specification/2025-11-25/basic/security_best_practices#token-passthrough) for details.
 
 If the MCP server makes requests to upstream APIs, it may act as an OAuth client to them. The access token used at the upstream API is a separate token, issued by the upstream authorization server. The MCP server **MUST NOT** pass through the token it received from the MCP client.
 

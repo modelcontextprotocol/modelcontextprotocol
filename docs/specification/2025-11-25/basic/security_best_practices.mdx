@@ -116,7 +116,7 @@ authorization server, the following attack becomes possible:
 3. An attacker later sends the user a malicious link containing a crafted authorization request which contains a malicious redirect URI along with a new dynamically registered client ID
 4. When the user clicks the link, their browser still has the consent cookie from the previous legitimate request
 5. The third-party authorization server detects the cookie and skips the consent screen
-6. The MCP authorization code is redirected to the attacker's server (specified in the malicious `redirect_uri` parameter during [dynamic client registration](/specification/draft/basic/authorization#dynamic-client-registration))
+6. The MCP authorization code is redirected to the attacker's server (specified in the malicious `redirect_uri` parameter during [dynamic client registration](/specification/2025-11-25/basic/authorization#dynamic-client-registration))
 7. The attacker exchanges the stolen authorization code for access tokens for the MCP server without the user's explicit approval
 8. The attacker now has access to the third-party API as the compromised user
 
@@ -224,7 +224,7 @@ The consent cookie or session containing the `state` value **MUST NOT** be set u
 
 #### Risks
 
-Token passthrough is explicitly forbidden in the [authorization specification](/specification/draft/basic/authorization) as it introduces a number of security risks, that include:
+Token passthrough is explicitly forbidden in the [authorization specification](/specification/2025-11-25/basic/authorization) as it introduces a number of security risks, that include:
 
 - **Security Control Circumvention**
   - The MCP Server or downstream APIs might implement important security controls like rate limiting, request validation, or traffic monitoring, that depend on the token audience or other credential constraints. If clients can obtain and use tokens directly with the downstream APIs without the MCP server validating them properly or ensuring that the tokens are issued for the right service, they bypass these controls.
@@ -299,7 +299,7 @@ When you have multiple stateful HTTP servers that handle MCP requests, the follo
 
 1. The client connects to **Server A** and receives a session ID.
 1. The attacker obtains an existing session ID and sends a malicious event to **Server B** with said session ID.
-   - When a server supports [redelivery/resumable streams](/specification/draft/basic/transports#resumability-and-redelivery), deliberately terminating the request before receiving the response could lead to it being resumed by the original client via the GET request for server sent events.
+   - When a server supports [redelivery/resumable streams](/specification/2025-11-25/basic/transports#resumability-and-redelivery), deliberately terminating the request before receiving the response could lead to it being resumed by the original client via the GET request for server sent events.
    - If a particular server initiates server sent events as a consequence of a tool call such as a `notifications/tools/list_changed`, where it is possible to affect the tools that are offered by the server, a client could end up with tools that they were not aware were enabled.
 
 1. **Server B** enqueues the event (associated with session ID) into a shared queue.

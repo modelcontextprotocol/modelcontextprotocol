@@ -23,7 +23,7 @@ For example, applications could:
 - Allow the user to search through and filter available resources
 - Implement automatic context inclusion, based on heuristics or the AI model's selection
 
-![Example of resource context picker](/specification/draft/server/resource-picker.png)
+![Example of resource context picker](/specification/2025-11-25/server/resource-picker.png)
 
 However, implementations are free to expose resources through any interface pattern that
 suits their needs&mdash;the protocol itself does not mandate any specific user
@@ -87,7 +87,7 @@ either, or both:
 ### Listing Resources
 
 To discover available resources, clients send a `resources/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination).
+supports [pagination](/specification/2025-11-25/server/utilities/pagination).
 
 **Request:**
 
@@ -169,7 +169,7 @@ To retrieve resource contents, clients send a `resources/read` request:
 
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
-auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+auto-completed through [the completion API](/specification/2025-11-25/server/utilities/completion).
 
 **Request:**
 

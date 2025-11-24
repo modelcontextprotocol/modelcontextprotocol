@@ -21,7 +21,7 @@ interface, which allows users to naturally discover and invoke available prompts
 
 For example, as slash commands:
 
-![Example of prompt exposed as slash command](/specification/draft/server/slash-command.png)
+![Example of prompt exposed as slash command](/specification/2025-11-25/server/slash-command.png)
 
 However, implementors are free to expose prompts through any interface pattern that suits
 their needs&mdash;the protocol itself does not mandate any specific user interaction
@@ -30,7 +30,7 @@ model.
 ## Capabilities
 
 Servers that support prompts **MUST** declare the `prompts` capability during
-[initialization](/specification/draft/basic/lifecycle#initialization):
+[initialization](/specification/2025-11-25/basic/lifecycle#initialization):
 
 ```json
 {
@@ -50,7 +50,7 @@ available prompts changes.
 ### Listing Prompts
 
 To retrieve available prompts, clients send a `prompts/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination).
+supports [pagination](/specification/2025-11-25/server/utilities/pagination).
 
 **Request:**
 
@@ -101,7 +101,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
 ### Getting a Prompt
 
 To retrieve a specific prompt, clients send a `prompts/get` request. Arguments may be
-auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+auto-completed through [the completion API](/specification/2025-11-25/server/utilities/completion).
 
 **Request:**
 
