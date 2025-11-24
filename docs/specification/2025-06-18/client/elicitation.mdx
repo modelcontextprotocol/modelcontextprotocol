@@ -37,7 +37,7 @@ Applications **SHOULD**:
 
 - Provide UI that makes it clear which server is requesting information
 - Allow users to review and modify their responses before sending
-- Respect user privacy and provide clear reject and cancel options
+- Respect user privacy and provide clear decline and cancel options
 
 </Warning>
 
@@ -158,7 +158,7 @@ To request information from a user, servers send an `elicitation/create` request
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "action": "reject"
+    "action": "decline"
   }
 }
 ```
@@ -289,7 +289,7 @@ Elicitation responses use a three-action model to clearly distinguish between di
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "action": "accept", // or "reject" or "cancel"
+    "action": "accept", // or "decline" or "cancel"
     "content": {
       "propertyName": "value",
       "anotherProperty": 42
@@ -301,12 +301,10 @@ Elicitation responses use a three-action model to clearly distinguish between di
 The three response actions are:
 
 1. **Accept** (`action: "accept"`): User explicitly approved and submitted with data
-
    - The `content` field contains the submitted data matching the requested schema
    - Example: User clicked "Submit", "OK", "Confirm", etc.
 
-2. **Reject** (`action: "reject"`): User explicitly rejected the request
-
+2. **Decline** (`action: "decline"`): User explicitly declined the request
    - The `content` field is typically omitted
    - Example: User clicked "Reject", "Decline", "No", etc.
 
@@ -317,7 +315,7 @@ The three response actions are:
 Servers should handle each state appropriately:
 
 - **Accept**: Process the submitted data
-- **Reject**: Handle explicit rejection (e.g., offer alternatives)
+- **Decline**: Handle explicit decline (e.g., offer alternatives)
 - **Cancel**: Handle dismissal (e.g., prompt again later)
 
 ## Security Considerations
@@ -326,6 +324,6 @@ Servers should handle each state appropriately:
 2. Clients **SHOULD** implement user approval controls
 3. Both parties **SHOULD** validate elicitation content against the provided schema
 4. Clients **SHOULD** provide clear indication of which server is requesting information
-5. Clients **SHOULD** allow users to reject elicitation requests at any time
+5. Clients **SHOULD** allow users to decline elicitation requests at any time
 6. Clients **SHOULD** implement rate limiting
 7. Clients **SHOULD** present elicitation requests in a way that makes it clear what information is being requested and why
