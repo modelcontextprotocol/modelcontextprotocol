@@ -1658,10 +1658,10 @@ namespace QuickstartWeatherServer.Tools;
 [McpServerToolType]
 public static class WeatherTools
 {
-    [McpServerTool, Description("Get weather alerts for a US state.")]
+    [McpServerTool, Description("Get weather alerts for a US state code.")]
     public static async Task<string> GetAlerts(
         HttpClient client,
-        [Description("The US state to get alerts for.")] string state)
+        [Description("The US state code to get alerts for.")] string state)
     {
         using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state}");
         var jsonElement = jsonDocument.RootElement;
