@@ -1,5 +1,6 @@
 ---
-title: Architecture Overview
+title: Architecture overview
+sidebarTitle: Architecture
 type: docs
 ---
 
@@ -54,13 +55,6 @@ graph TB
     Client1 ---|"One-to-one<br/>connection"| Server1
     Client2 ---|"One-to-one<br/>connection"| Server2
     Client3 ---|"One-to-one<br/>connection"| Server3
-
-    style Client1 fill:#e1f5fe
-    style Client2 fill:#e1f5fe
-    style Client3 fill:#e1f5fe
-    style Server1 fill:#f3e5f5
-    style Server2 fill:#f3e5f5
-    style Server3 fill:#f3e5f5
 ```
 
 Note that **MCP server** refers to the program that serves context data, regardless of
@@ -137,6 +131,10 @@ MCP also defines primitives that _clients_ can expose. These primitives allow MC
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
 
 For more details about client primitives see [client concepts](./client-concepts).
+
+Besides server and client primitives, the protocol offers cross-cutting utility primitives that augment how requests are executed:
+
+- **Tasks (Experimental)**: Durable execution wrappers that enable deferred result retrieval and status tracking for MCP requests (e.g., expensive computations, workflow automation, batch processing, multi-step operations)
 
 #### Notifications
 
