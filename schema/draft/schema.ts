@@ -1361,6 +1361,11 @@ export interface Task {
   createdAt: string;
 
   /**
+   * ISO 8601 timestamp when the task was last updated.
+   */
+  lastUpdatedAt: string;
+
+  /**
    * Actual retention duration from creation in milliseconds, null for unlimited.
    */
   ttl: number | null;
