@@ -58,8 +58,8 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Inna Harper](https://github.com/ihrpr)
 - [Jerome Swannack](https://github.com/jerome3o)
-- [Samuel Colvin](https://github.com/samuelcolvin)
 - [Marcelo Trylesinski](https://github.com/Kludex)
+- [Max Isbey](https://github.com/maxisbey)
 
 ### TypeScript SDK
 
@@ -84,8 +84,9 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Inspector
 
-- [Ola Hungerford](https://github.com/olaservo)
 - [Cliff Hall](https://github.com/cliffhall)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Ola Hungerford](https://github.com/olaservo)
 
 ### Registry
 
@@ -93,6 +94,12 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
+
+### MCPB (Model Context Protocol Bundle)
+
+- [Alexander Sklar](https://github.com/asklar)
+- [Adam Jones](https://github.com/domdomegg)
+- [Joan Xie](https://github.com/joan-anthropic)
 
 ### Reference Servers
 
