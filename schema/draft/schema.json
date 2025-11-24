@@ -3317,6 +3317,10 @@
                     "description": "ISO 8601 timestamp when the task was created.",
                     "type": "string"
                 },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
@@ -3340,6 +3344,7 @@
             },
             "required": [
                 "createdAt",
+                "lastUpdatedAt",
                 "status",
                 "taskId",
                 "ttl"

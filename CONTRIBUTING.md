@@ -70,6 +70,10 @@ npm run check:docs
 npm run format
 ```
 
+> [!NOTE]
+> You can run all schema/documentation
+> changes at once with `npm run prep:changes`.
+
 ## Blog changes
 
 The blog is built using [Hugo](https://gohugo.io/installation/) and located in the [`blog`](./blog) directory.
@@ -80,7 +84,7 @@ To preview blog changes locally:
 npm run serve:blog
 ```
 
-## Documentation Guidelines
+### Documentation Guidelines
 
 When contributing to the documentation:
 
