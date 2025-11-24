@@ -48,6 +48,7 @@ including that cursor:
 ```json
 {
   "jsonrpc": "2.0",
+  "id": "124",
   "method": "resources/list",
   "params": {
     "cursor": "eyJwYWdlIjogMn0="
@@ -81,12 +82,10 @@ The following MCP operations support pagination:
 ## Implementation Guidelines
 
 1. Servers **SHOULD**:
-
    - Provide stable cursors
    - Handle invalid cursors gracefully
 
 2. Clients **SHOULD**:
-
    - Treat a missing `nextCursor` as the end of results
    - Support both paginated and non-paginated flows
 

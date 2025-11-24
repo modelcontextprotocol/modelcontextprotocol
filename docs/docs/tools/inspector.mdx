@@ -1,5 +1,5 @@
 ---
-title: Inspector
+title: MCP Inspector
 description: In-depth guide to using the MCP Inspector for testing and debugging Model Context Protocol servers
 ---
 
@@ -19,13 +19,13 @@ npx @modelcontextprotocol/inspector <command>
 npx @modelcontextprotocol/inspector <command> <arg1> <arg2>
 ```
 
-#### Inspecting servers from NPM or PyPi
+#### Inspecting servers from npm or PyPI
 
-A common way to start server packages from [NPM](https://npmjs.com) or [PyPi](https://pypi.org).
+A common way to start server packages from [npm](https://npmjs.com) or [PyPI](https://pypi.org).
 
 <Tabs>
 
-  <Tab title="NPM package">
+  <Tab title="npm package">
 
 ```bash
 npx -y @modelcontextprotocol/inspector npx <package-name> <args>
@@ -35,7 +35,7 @@ npx -y @modelcontextprotocol/inspector npx @modelcontextprotocol/server-filesyst
 
   </Tab>
 
-  <Tab title="PyPi package">
+  <Tab title="PyPI package">
 
 ```bash
 npx @modelcontextprotocol/inspector uvx <package-name> <args>
@@ -119,13 +119,11 @@ The Inspector provides several features for interacting with your MCP server:
 ### Development workflow
 
 1. Start Development
-
    - Launch Inspector with your server
    - Verify basic connectivity
    - Check capability negotiation
 
 2. Iterative testing
-
    - Make server changes
    - Rebuild the server
    - Reconnect the Inspector
