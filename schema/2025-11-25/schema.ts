@@ -75,7 +75,7 @@ export interface Request {
 /** @internal */
 export interface NotificationParams {
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -93,7 +93,7 @@ export interface Notification {
  */
 export interface Result {
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
   [key: string]: unknown;
@@ -826,7 +826,7 @@ export interface Resource extends BaseMetadata, Icons {
   size?: number;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -862,7 +862,7 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
   annotations?: Annotations;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -885,7 +885,7 @@ export interface ResourceContents {
   mimeType?: string;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -987,7 +987,7 @@ export interface Prompt extends BaseMetadata, Icons {
   arguments?: PromptArgument[];
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1057,7 +1057,7 @@ export interface EmbeddedResource {
   annotations?: Annotations;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1285,7 +1285,7 @@ export interface Tool extends BaseMetadata, Icons {
   annotations?: ToolAnnotations;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1675,7 +1675,7 @@ export interface SamplingMessage {
   role: Role;
   content: SamplingMessageContentBlock | SamplingMessageContentBlock[];
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1752,7 +1752,7 @@ export interface TextContent {
   annotations?: Annotations;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1783,7 +1783,7 @@ export interface ImageContent {
   annotations?: Annotations;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1814,7 +1814,7 @@ export interface AudioContent {
   annotations?: Annotations;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1848,7 +1848,7 @@ export interface ToolUseContent {
    * Optional metadata about the tool use. Clients SHOULD preserve this field when
    * including tool uses in subsequent sampling requests to enable caching optimizations.
    *
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -1895,7 +1895,7 @@ export interface ToolResultContent {
    * Optional metadata about the tool result. Clients SHOULD preserve this field when
    * including tool results in subsequent sampling requests to enable caching optimizations.
    *
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
@@ -2123,7 +2123,7 @@ export interface Root {
   name?: string;
 
   /**
-   * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
+   * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
 }
