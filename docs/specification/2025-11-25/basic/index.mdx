@@ -96,7 +96,7 @@ The receiver **MUST NOT** send a response.
 
 ## Auth
 
-MCP provides an [Authorization](/specification/draft/basic/authorization) framework for use with HTTP.
+MCP provides an [Authorization](/specification/2025-11-25/basic/authorization) framework for use with HTTP.
 Implementations using an HTTP-based transport **SHOULD** conform to this specification,
 whereas implementations using STDIO transport **SHOULD NOT** follow this specification,
 and instead retrieve credentials from the environment.
@@ -112,11 +112,11 @@ to help shape the future of the protocol!
 ## Schema
 
 The full specification of the protocol is defined as a
-[TypeScript schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.ts).
+[TypeScript schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-11-25/schema.ts).
 This is the source of truth for all protocol messages and structures.
 
 There is also a
-[JSON Schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.json),
+[JSON Schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-11-25/schema.json),
 which is automatically generated from the TypeScript source of truth, for use with
 various automated tooling.
 
@@ -128,7 +128,7 @@ The Model Context Protocol uses JSON Schema for validation throughout the protoc
 
 MCP supports JSON Schema with the following rules:
 
-1. **Default dialect**: When a schema does not include a `$schema` field, it defaults to JSON Schema 2020-12 (`https://json-schema.org/draft/2020-12/schema`)
+1. **Default dialect**: When a schema does not include a `$schema` field, it defaults to JSON Schema 2020-12 (`https://json-schema.org/2025-11-25/2020-12/schema`)
 1. **Explicit dialect**: Schemas MAY include a `$schema` field to specify a different dialect
 1. **Supported dialects**: Implementations MUST support at least 2020-12 and SHOULD document which additional dialects they support
 1. **Recommendation**: Implementors are RECOMMENDED to use JSON Schema 2020-12.
@@ -182,7 +182,7 @@ to attach additional metadata to their interactions.
 Certain key names are reserved by MCP for protocol-level metadata, as specified below;
 implementations MUST NOT make assumptions about values at these keys.
 
-Additionally, definitions in the [schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.ts)
+Additionally, definitions in the [schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-11-25/schema.ts)
 may reserve particular names for purpose-specific metadata, as declared in those definitions.
 
 **Key name format:** valid `_meta` key names have two segments: an optional **prefix**, and a **name**.
