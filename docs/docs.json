@@ -82,7 +82,8 @@
                     "pages": [
                       "specification/2025-11-25/basic/utilities/cancellation",
                       "specification/2025-11-25/basic/utilities/ping",
-                      "specification/2025-11-25/basic/utilities/progress"
+                      "specification/2025-11-25/basic/utilities/progress",
+                      "specification/2025-11-25/basic/utilities/tasks"
                     ]
                   }
                 ]
