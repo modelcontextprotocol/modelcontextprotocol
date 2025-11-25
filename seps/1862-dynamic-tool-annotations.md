@@ -48,6 +48,9 @@ Static definitions cannot express:
 
 - **Scope requirements**: OAuth scopes needed for specific operations (see [scope challenges](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps))
 - **Cost estimates**: Token/credit costs that vary by arguments
+- **Rate limit impact**: Different operations may have different rate limits
+- **Authorization requirements**: Permissions needed for specific actions, or delegation context for upstream agent/auth boundary crossings
+- **Execution characteristics**: Whether specific arguments result in a long-running task (see [SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686) for task primitives)
 
 **3. Multiple Preflight Checks**
 
@@ -420,6 +423,55 @@ This could enable [scope challenges](https://docs.github.com/en/apps/oauth-apps/
 }
 ```
 
+#### Rate Limit Information (Future)
+
+```json
+{
+  "tool": {
+    "name": "api_call",
+    "rateLimit": { "remaining": 42, "resetAt": "2025-01-15T12:00:00Z" }
+  }
+}
+```
+
+#### Authorization Delegation Context (Future)
+
+For tools that cross auth boundaries or invoke upstream agents, resolution could indicate delegation requirements:
+
+```json
+{
+  "tool": {
+    "name": "cross_service_query",
+    "annotations": { "openWorldHint": true },
+    "delegation": {
+      "required": true,
+      "targetService": "analytics-api",
+      "mechanism": "token-exchange"
+    }
+  }
+}
+```
+
+This could enable [on-behalf-of token exchange](https://datatracker.ietf.org/doc/html/rfc8693) flows where the client needs to obtain delegated credentials before invoking tools that access upstream services.
+
+#### Execution Characteristics (Future)
+
+Resolution could indicate whether specific arguments result in long-running operations, complementing [SEP-1686 (Tasks)](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686) by providing upfront hints before task creation:
+
+```json
+{
+  "tool": {
+    "name": "data_export",
+    "execution": {
+      "longRunning": true,
+      "estimatedDuration": "PT5M"
+    }
+  }
+}
+```
+
+This would enable clients to set appropriate expectations (e.g., progress indicators) before invoking tools that may become tasks.
+
 These extensions would be specified in future SEPs but can leverage the same `tools/resolve` mechanism.
 
 ## Rationale
@@ -748,6 +800,9 @@ async function invokeToolSafely(
 - **SEP-1076 (Dependency Annotations)**: Proposes additional annotations for network, filesystem, environment dependencies. Tool resolution can provide argument-specific refinement of any annotation field.
 - **SEP-1300 (Tool Filtering)**: Addresses context window pressure through tool grouping. Tool resolution provides finer-grained information without requiring tool explosion.
 - **SEP-1699 (Error Forwarding)**: Discusses challenges with forwarding HTTP errors (like 403) during tool calls, which motivates preflight checks for scope requirements.
+- **SEP-1385 (Tool Execution Requirements)**: Proposes a `requires` field for expressing tool-level permission and capability requirements—complementary to resolution for argument-specific refinement.
+- **SEP-214 (On-Behalf-Of Token Exchange)**: Discusses RFC 8693 token exchange for agent-to-agent communications, relevant to authorization delegation context that could be surfaced through tool resolution.
+- **SEP-1686 (Tasks)**: Introduces task primitives for long-running tool operations, including `taskHint` annotations and polling mechanisms—complementary to resolution for providing upfront execution characteristics.
 - **OAuth Scope Challenges**: GitHub's [scope challenge pattern](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) allows servers to indicate additional permissions needed—a potential future use case for tool resolution.
 
 ## Open Questions
