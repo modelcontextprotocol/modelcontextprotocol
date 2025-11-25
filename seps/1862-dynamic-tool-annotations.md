@@ -1,66 +1,106 @@
-# SEP: Dynamic Tool Annotations
+# SEP: Tool Resolution
 
 | Status  | Draft                                                                           |
 | :------ | :------------------------------------------------------------------------------ |
 | Type    | Standards Track                                                                 |
-| Created | 2025-01-15                                                                      |
+| Created | 2025-11-21                                                                      |
 | Authors | @sammorrowdrums                                                                 |
 | Sponsor | TBD                                                                             |
 | PR      | [#1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) |
 
 ## Abstract
 
-This SEP proposes a mechanism for servers to provide **argument-specific tool annotations** through a new `tools/annotations` request. Currently, tool annotations (such as `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint`) are declared statically during `tools/list`. This limits their accuracy when a tool's behavior depends on its input arguments.
+This SEP proposes a **tool resolution** mechanism that takes inspiration from LSP's resolve pattern while adapting it for MCP's unique requirements. When a server declares a tool during `tools/list`, it provides a definition with conservative (worst-case) annotations. Before invocation, clients can request the server to **resolve** the tool with specific arguments, receiving a tool definition with refined annotations tailored to the actual operation.
 
 The proposal introduces:
 
-1. A `dynamicAnnotations` field in the `Tool` definition indicating the tool supports runtime annotation queries
-2. A new `tools/annotations` request that accepts tool name and arguments, returning refined annotations
+1. A `resolve` field in the `Tool` definition indicating the tool supports resolution
+2. A new `tools/resolve` request that accepts tool name and arguments, returning refined metadata
 
-This enables clients to make more informed decisions about tool invocations by querying annotations with specific arguments, similar to how CORS preflight requests determine permissions before cross-origin operations.
+This pattern:
+
+- Enables **argument-specific annotations** (e.g., a file tool's `read` action is read-only while `delete` is destructive)
+- Consolidates multiple preflight concerns into a **single exchange**
+- Provides an **extensible foundation** for future metadata (scope requirements, cost estimates, etc.)
+
+> **Note**: While this design draws inspiration from LSP's resolve pattern, it is adapted specifically for MCP's tool invocation model. Unlike LSP where stubs are incomplete objects filled in later, MCP tools are fully functional from `tools/list`—resolution refines metadata based on intended arguments.
 
 ## Motivation
 
-### The Problem with Static Annotations
+### The Problem with Static Tool Definitions
 
-Tool annotations provide hints about a tool's behavior:
+Tool definitions provided during `tools/list` are static. This creates several challenges:
+
+**1. Annotation Accuracy**
+
+Tool annotations provide hints about behavior:
 
 - `readOnlyHint`: Whether the tool modifies its environment
 - `destructiveHint`: Whether modifications are destructive vs. additive
 - `idempotentHint`: Whether repeated calls have no additional effect
 - `openWorldHint`: Whether the tool interacts with external systems
 
-However, many tools have behavior that **depends on their arguments**. Consider these examples:
+However, many tools have behavior that **depends on their arguments**. A `manage_files` tool must declare `destructiveHint: true` even though `read` operations are safe, causing unnecessary confirmation dialogs.
 
-#### Example 1: File Management Tool
+**2. Future Metadata Requirements**
 
-A `manage_files` tool with different actions:
+Static definitions cannot express:
 
-- `read` action → read-only, safe
-- `append` action → write, but additive only
-- `replace` action → destructive (overwrites existing content)
-- `delete` action → destructive, dangerous
+- **Scope requirements**: OAuth scopes needed for specific operations (see [scope challenges](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps))
+- **Cost estimates**: Token/credit costs that vary by arguments
+- **Rate limit impact**: Different operations may have different rate limits
+- **Authorization requirements**: Permissions needed for specific actions
+
+**3. Multiple Preflight Checks**
+
+Without a unified resolution mechanism, we risk a future where multiple separate preflight requests are needed for different metadata types—annotations, scopes, costs, etc.
+
+### Inspiration from LSP
+
+The Language Server Protocol solves a similar problem with its "resolve" pattern. For example, [`codeAction/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#codeAction_resolve) allows servers to return lightweight stubs during listing, then fill in expensive details on demand.
+
+Key lessons from LSP:
+
+- **Single resolve request**: One method handles all deferred metadata
+- **Returns complete objects**: The resolved item replaces the stub entirely
+- **Extensible**: New fields can be added without new methods
+
+### Adapting for MCP
+
+MCP's tool model differs from LSP in important ways:
+
+| Aspect          | LSP                      | MCP Tool Resolution                                |
+| :-------------- | :----------------------- | :------------------------------------------------- |
+| Initial state   | Incomplete stubs         | Fully functional tools with worst-case annotations |
+| Resolve trigger | Client needs full object | Client needs argument-specific metadata            |
+| Input           | The stub object itself   | Tool name + intended arguments                     |
+| Purpose         | Complete missing data    | Refine metadata for specific operation             |
+
+Our approach adapts the useful parts of LSP's pattern:
+
+1. **`tools/list`**: Returns complete, usable tool definitions with conservative annotations
+2. **`tools/resolve`**: Client provides tool name + arguments, receives refined metadata
+
+This gives us:
+
+- **Single method** for all preflight metadata needs
+- **Extensibility** for future metadata without protocol changes
+- **Familiarity** for developers who know LSP, while fitting MCP's model
+
+### Example: Multi-Action Tool
+
+Consider a `manage_files` tool that supports multiple operations:
+
+| Action    | Annotation Impact                                          |
+| :-------- | :--------------------------------------------------------- |
+| `read`    | `readOnlyHint: true`, `destructiveHint: false`             |
+| `append`  | `readOnlyHint: false`, `destructiveHint: false` (additive) |
+| `replace` | `readOnlyHint: false`, `destructiveHint: true`             |
+| `delete`  | `readOnlyHint: false`, `destructiveHint: true`             |
 
 With static annotations, the server must declare the worst-case scenario (`destructiveHint: true`), causing clients to present unnecessary confirmation dialogs for safe read operations.
 
-#### Example 2: File System Tool
-
-A `filesystem` tool with operation types:
-
-- `read` operation → `readOnlyHint: true`
-- `append` operation → `destructiveHint: false`
-- `overwrite` operation → `destructiveHint: true`
-- `delete` operation → `destructiveHint: true`
-
-#### Example 3: API Client Tool
-
-A `github_api` tool making REST calls:
-
-- `GET /repos/:owner/:repo` → read-only
-- `POST /repos/:owner/:repo/issues` → creates (additive)
-- `DELETE /repos/:owner/:repo` → destructive
-
-### Consequences of Static Over-Annotation
+### Consequences of Static Definitions
 
 When tools must declare their worst-case behavior:
 
@@ -68,10 +108,11 @@ When tools must declare their worst-case behavior:
 2. **Reduced trust**: LLMs may avoid tools marked as destructive even for safe uses
 3. **Poor UX**: Every invocation of a versatile tool triggers warnings
 4. **Loss of precision**: Clients cannot make nuanced decisions based on actual intent
+5. **Scope over-requesting**: OAuth flows must request all possible scopes upfront
 
 ### Why Not Separate Tools?
 
-One workaround is to split tools by behavior (e.g., `database_read`, `database_write_additive`, `database_write_destructive`). This approach has significant drawbacks:
+One workaround is to split tools by behavior (e.g., `file_read`, `file_write`, `file_delete`). This approach has significant drawbacks:
 
 1. **Tool explosion**: Complex tools fragment into many variants
 2. **Context pollution**: LLM context windows fill with near-duplicate tool definitions
@@ -82,14 +123,14 @@ One workaround is to split tools by behavior (e.g., `database_read`, `database_w
 
 ### Capability Declaration
 
-Servers that support dynamic annotations **MUST** declare the capability:
+Servers that support tool resolution **MUST** declare the capability:
 
 ```json
 {
   "capabilities": {
     "tools": {
       "listChanged": true,
-      "dynamicAnnotations": true
+      "resolve": true
     }
   }
 }
@@ -97,7 +138,7 @@ Servers that support dynamic annotations **MUST** declare the capability:
 
 ### Tool Definition Extension
 
-Tools that support dynamic annotation queries **MUST** include the `dynamicAnnotations` field:
+Tools that support resolution **MUST** include the `resolve` field:
 
 ```typescript
 interface Tool extends BaseMetadata {
@@ -109,24 +150,24 @@ interface Tool extends BaseMetadata {
   annotations?: ToolAnnotations;
 
   /**
-   * If true, this tool supports the `tools/annotations` request to provide
-   * argument-specific annotations. Clients SHOULD query annotations with
-   * specific arguments before invoking such tools when annotation accuracy
-   * matters for user experience or safety decisions.
+   * If true, this tool supports the `tools/resolve` request to provide
+   * argument-specific metadata. Clients SHOULD resolve tools with specific
+   * arguments before invoking them when metadata accuracy matters for
+   * user experience or safety decisions.
    *
    * Default: false
    */
-  dynamicAnnotations?: boolean;
+  resolve?: boolean;
 }
 ```
 
-When `dynamicAnnotations: true`, the `annotations` field **SHOULD** represent the worst-case (most conservative) behavior across all possible arguments, providing a safe default when dynamic queries are not supported or desired by the client.
+When `resolve: true`, the `annotations` field **SHOULD** represent the worst-case (most conservative) behavior across all possible arguments, providing a safe default when resolution is not supported or desired by the client.
 
 ### Protocol Messages
 
-#### Request: `tools/annotations`
+#### Request: `tools/resolve`
 
-Clients send this request to obtain refined annotations for specific arguments:
+Clients send this request to resolve a tool with specific arguments:
 
 **Request:**
 
@@ -134,7 +175,7 @@ Clients send this request to obtain refined annotations for specific arguments:
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "method": "tools/annotations",
+  "method": "tools/resolve",
   "params": {
     "name": "manage_files",
     "arguments": {
@@ -152,7 +193,9 @@ Clients send this request to obtain refined annotations for specific arguments:
 | name      | string | Yes      | The name of the tool                          |
 | arguments | object | Yes      | The arguments that will be passed to the tool |
 
-#### Response: `tools/annotations`
+#### Response: `tools/resolve`
+
+The server returns a **complete tool definition** with resolved metadata:
 
 **Response:**
 
@@ -161,11 +204,27 @@ Clients send this request to obtain refined annotations for specific arguments:
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "annotations": {
-      "readOnlyHint": true,
-      "destructiveHint": false,
-      "idempotentHint": true,
-      "openWorldHint": false
+    "tool": {
+      "name": "manage_files",
+      "description": "Read, append, replace, or delete file contents",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "action": {
+            "type": "string",
+            "enum": ["read", "append", "replace", "delete"]
+          }
+        },
+        "required": ["path", "action"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "resolve": true
     }
   }
 }
@@ -173,51 +232,53 @@ Clients send this request to obtain refined annotations for specific arguments:
 
 **Result:**
 
-| Field       | Type            | Required | Description                                     |
-| :---------- | :-------------- | :------- | :---------------------------------------------- |
-| annotations | ToolAnnotations | Yes      | The refined annotations for the given arguments |
+| Field | Type | Required | Description                                           |
+| :---- | :--- | :------- | :---------------------------------------------------- |
+| tool  | Tool | Yes      | The resolved tool definition with refined annotations |
 
 ### Schema Definitions
 
-#### GetToolAnnotationsRequest
+#### ResolveToolRequest
 
 ```typescript
 /**
- * Request to get refined annotations for a tool with specific arguments.
+ * Request to resolve a tool with specific arguments, returning
+ * refined metadata based on the intended operation.
  *
- * @category `tools/annotations`
+ * @category `tools/resolve`
  */
-export interface GetToolAnnotationsRequest extends JSONRPCRequest {
-  method: "tools/annotations";
+export interface ResolveToolRequest extends JSONRPCRequest {
+  method: "tools/resolve";
   params: {
     /**
-     * The name of the tool to get annotations for.
+     * The name of the tool to resolve.
      */
     name: string;
 
     /**
      * The arguments that will be passed to the tool. These arguments
-     * allow the server to provide more precise annotation hints based
-     * on the specific operation being performed.
+     * allow the server to provide more precise metadata based on the
+     * specific operation being performed.
      */
     arguments: { [key: string]: unknown };
   };
 }
 ```
 
-#### GetToolAnnotationsResult
+#### ResolveToolResult
 
 ```typescript
 /**
- * Result of a tools/annotations request.
+ * Result of a tools/resolve request.
  *
- * @category `tools/annotations`
+ * @category `tools/resolve`
  */
-export interface GetToolAnnotationsResult extends Result {
+export interface ResolveToolResult extends Result {
   /**
-   * The refined tool annotations based on the provided arguments.
+   * The resolved tool definition with refined metadata for the
+   * provided arguments.
    */
-  annotations: ToolAnnotations;
+  tool: Tool;
 }
 ```
 
@@ -227,17 +288,17 @@ Add to `schema.json`:
 
 ```json
 {
-  "GetToolAnnotationsRequest": {
-    "description": "Request to get refined annotations for a tool with specific arguments.",
+  "ResolveToolRequest": {
+    "description": "Request to resolve a tool with specific arguments, returning refined metadata.",
     "properties": {
       "method": {
-        "const": "tools/annotations",
+        "const": "tools/resolve",
         "type": "string"
       },
       "params": {
         "properties": {
           "name": {
-            "description": "The name of the tool to get annotations for.",
+            "description": "The name of the tool to resolve.",
             "type": "string"
           },
           "arguments": {
@@ -253,14 +314,14 @@ Add to `schema.json`:
     "required": ["method", "params"],
     "type": "object"
   },
-  "GetToolAnnotationsResult": {
-    "description": "Result of a tools/annotations request.",
+  "ResolveToolResult": {
+    "description": "Result of a tools/resolve request.",
     "properties": {
-      "annotations": {
-        "$ref": "#/definitions/ToolAnnotations"
+      "tool": {
+        "$ref": "#/definitions/Tool"
       }
     },
-    "required": ["annotations"],
+    "required": ["tool"],
     "type": "object"
   }
 }
@@ -270,24 +331,24 @@ Add to `schema.json`:
 
 #### Server Requirements
 
-1. Servers **MUST** return annotations that accurately reflect the behavior for the given arguments
-2. Servers **MUST** return the same annotations for identical (name, arguments) pairs within a session (determinism)
-3. Servers **SHOULD** implement efficient annotation evaluation (avoid expensive computation)
-4. Servers **MAY** return a subset of annotation fields; omitted fields retain their default values
-5. Servers **MAY** provide worst-case annotations in the static `annotations` field as a fallback for error cases
+1. Servers **MUST** return a tool definition that accurately reflects behavior for the given arguments
+2. Servers **MUST** return the same resolved tool for identical (name, arguments) pairs within a session (determinism)
+3. Servers **SHOULD** implement efficient resolution (avoid expensive computation)
+4. Servers **MAY** return a resolved tool with only annotation fields changed; other fields may match the original
+5. Servers **MAY** provide worst-case annotations in `tools/list` as a fallback for error cases
 
 #### Client Requirements
 
-1. Clients **SHOULD** query `tools/annotations` before invoking tools with `dynamicAnnotations: true` when:
+1. Clients **SHOULD** call `tools/resolve` before invoking tools with `resolve: true` when:
    - Making user-facing decisions (e.g., showing confirmation dialogs)
    - Providing context to LLMs about tool safety
-2. Clients **SHOULD NOT** cache `tools/annotations` results across different argument values
-3. Clients **MAY** skip the preflight for tools where static annotations are acceptable
-4. If the server returns an error for `tools/annotations`:
-   - Clients **MUST** fall back to static `annotations` if provided by the tool
-   - If no static annotations are provided, clients **MUST** surface the error to the user
-   - Clients **SHOULD** prefer retrying the `tools/annotations` request
-   - Clients **MAY** proceed with the tool call without provided annotations due to error
+2. Clients **SHOULD NOT** cache `tools/resolve` results across different argument values
+3. Clients **MAY** skip resolution for tools where static metadata is acceptable
+4. If the server returns an error for `tools/resolve`:
+   - Clients **MUST** fall back to the tool definition from `tools/list`
+   - If the original tool has no `annotations`, clients **MUST** surface the error to the user
+   - Clients **SHOULD** prefer retrying the `tools/resolve` request
+   - Clients **MAY** proceed with the tool call using static metadata
 
 #### Error Handling
 
@@ -296,7 +357,7 @@ Servers **SHOULD** return standard JSON-RPC errors:
 | Code   | Message        | When                                   |
 | :----- | :------------- | :------------------------------------- |
 | -32602 | Invalid params | Unknown tool name or invalid arguments |
-| -32603 | Internal error | Server failed to evaluate annotations  |
+| -32603 | Internal error | Server failed to resolve tool          |
 
 ### Message Flow
 
@@ -308,17 +369,17 @@ sequenceDiagram
 
     Note over Client,Server: Discovery
     Client->>Server: tools/list
-    Server-->>Client: Tools (with dynamicAnnotations flags)
+    Server-->>Client: Tools (with resolve flags)
 
     Note over LLM,Client: Tool Selection
     LLM->>Client: Propose tool call with arguments
 
-    Note over Client,Server: Preflight (for dynamicAnnotations tools)
-    Client->>Server: tools/annotations (name, arguments)
-    Server-->>Client: Refined annotations
+    Note over Client,Server: Resolution (for resolvable tools)
+    Client->>Server: tools/resolve (name, arguments)
+    Server-->>Client: Resolved tool definition
 
     Note over Client: Decision
-    Client->>Client: Evaluate annotations
+    Client->>Client: Evaluate resolved annotations
     alt Read-only or safe
         Client->>Server: tools/call
     else Destructive
@@ -329,74 +390,133 @@ sequenceDiagram
     Server-->>Client: Tool result
 ```
 
+### Future Extensibility
+
+The `tools/resolve` pattern is designed to support future metadata beyond annotations. Potential extensions include:
+
+#### Scope Requirements (Future)
+
+```json
+{
+  "tool": {
+    "name": "github_api",
+    "annotations": { "destructiveHint": true },
+    "requiredScopes": ["delete_repo"]
+  }
+}
+```
+
+This could enable [scope challenges](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) where a server indicates additional OAuth scopes are needed for a specific operation.
+
+> **Note**: Scope requirements are mentioned as a motivating use case but are **out of scope** for this SEP. They would require separate consideration of authorization flows, particularly given challenges with forwarding 403 errors during tool calls (see [SEP-1699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699)).
+
+#### Cost Estimates (Future)
+
+```json
+{
+  "tool": {
+    "name": "llm_query",
+    "annotations": { "openWorldHint": true },
+    "estimatedCost": { "tokens": 1500, "currency": "USD", "amount": 0.003 }
+  }
+}
+```
+
+#### Rate Limit Information (Future)
+
+```json
+{
+  "tool": {
+    "name": "api_call",
+    "rateLimit": { "remaining": 42, "resetAt": "2025-01-15T12:00:00Z" }
+  }
+}
+```
+
+These extensions would be specified in future SEPs but can leverage the same `tools/resolve` mechanism.
+
 ## Rationale
 
 ### Design Decisions
 
-#### Why a Separate Request (Not Extension of tools/call)?
+#### Why Draw from LSP's Resolve Pattern?
 
-1. **Non-blocking queries**: Clients can query annotations without committing to invocation
-2. **Separation of concerns**: Annotation evaluation is distinct from tool execution
-3. **Performance**: Servers can optimize annotation evaluation separately from execution
-4. **Consistency with existing patterns**: Similar to CORS preflight in HTTP
+LSP's resolve pattern provides useful precedent, though we adapt it for MCP:
 
-#### Why "Preflight" Semantics?
+1. **Proven concept**: LSP demonstrates that lazy resolution works at scale
+2. **Single exchange**: One request for all metadata needs
+3. **Extensible**: New fields can be added to the response without new methods
 
-The `tools/annotations` request mirrors CORS preflight requests:
+However, we intentionally diverge where MCP's model differs:
 
-- Both check permissions before performing an operation
-- Both are lightweight compared to the actual operation
-- Both allow the client to make informed decisions
+- **MCP tools are complete from `tools/list`**—they're not stubs that need filling
+- **Resolution is argument-driven**—we refine based on what the client intends to do
+- **The primary purpose is metadata refinement**, not completing missing data
 
-#### Why Not Stream Annotations During Execution?
+#### Why Return the Full Tool (Not Just Annotations)?
 
-An alternative design could stream updated annotations during `tools/call`:
+@findleyr [raised this point](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862#issuecomment-3573029197):
 
-**Advantages of streaming:**
+> "we probably want to avoid a future where there are a bunch of separate preflight checks for a single tool call--it would be better to consolidate them into a single exchange"
 
-- Single request for annotation + execution
-- Annotations could evolve during execution
+Returning the complete `Tool` object:
 
-**Disadvantages of streaming (why we chose preflight):**
+1. **Prevents proliferation** of preflight methods (`tools/annotations`, `tools/scopes`, `tools/costs`)
+2. **Enables future extensions** without protocol changes
+3. **Provides consistency** with `tools/list` response structure
 
-- More complex protocol
-- Cannot cancel based on annotations without already starting execution
-- Mixes concerns of evaluation and execution
-- Most tools know their annotations before execution begins
+#### Why "resolve" vs. "preflight" or "annotations"?
 
-#### Why Boolean `dynamicAnnotations` vs. Explicit List?
+| Term        | Pros                                  | Cons                                       |
+| :---------- | :------------------------------------ | :----------------------------------------- |
+| resolve     | Implies refinement, familiar from LSP | May suggest incompleteness                 |
+| preflight   | CORS precedent, web-familiar          | Implies permission check, not data filling |
+| annotations | Direct mapping to primary use case    | Limits future extensions                   |
 
-A boolean keeps the API simple. Servers always return the full `ToolAnnotations` object from `tools/annotations`, allowing them to refine any annotation field. Future annotation additions automatically work without schema changes.
+We chose `resolve` for its implication of refinement and extensibility, while being clear in documentation that MCP tools are always complete and functional.
+
+#### Why Not Stream During Execution?
+
+An alternative could stream updated metadata during `tools/call`:
+
+**Why preflight resolution is better:**
+
+- Cannot cancel based on metadata without starting execution
+- Keeps concerns separated (metadata vs. execution)
+- Most tools know their metadata before execution begins
+- Simpler protocol
 
 #### Why Require Determinism?
 
-Determinism (same arguments → same annotations) ensures:
+Determinism (same arguments → same resolved tool) ensures:
 
-- A call to determine annotations should then be true when calling the tool
+- Resolution results are valid when the tool is subsequently called
 - Potential for safe response caching within a session
 - Testable server implementations
 
 ### Alternatives Considered
 
-#### Alternative 1: `tools/preflight` Method Name
+#### Alternative 1: Annotations-Only Response
 
-A more generic name like `tools/preflight` was considered:
+Return only `ToolAnnotations` instead of the full `Tool`:
 
-**Pros:**
+```json
+{
+  "annotations": {
+    "readOnlyHint": true
+  }
+}
+```
 
-- Familiar concept from web development
-- Could be extended for other preflight needs
+**Why rejected:**
 
-**Cons:**
-
-- Less descriptive of the specific purpose
-- `tools/annotations` directly maps to the returned type
-
-We chose `tools/annotations` for clarity and consistency with the return type.
+- Requires new methods for each future metadata type (scopes, costs, etc.)
+- Less extensible for future needs
+- Misses the opportunity to consolidate all preflight concerns
 
 #### Alternative 2: Per-Argument Annotation Schema
 
-Instead of runtime queries, annotate which arguments affect which hints:
+Annotate which arguments affect which hints in the tool definition:
 
 ```json
 {
@@ -412,16 +532,12 @@ Instead of runtime queries, annotate which arguments affect which hints:
 }
 ```
 
-**Pros:**
-
-- Static analysis possible
-- No additional requests
-
-**Cons:**
+**Why rejected:**
 
 - Cannot express complex logic (semantic analysis, state-dependent behavior)
 - Verbose for many cases
 - Pattern matching is limited
+- Cannot support future metadata like scopes that may require server-side evaluation
 
 ## Backward Compatibility
 
@@ -430,18 +546,18 @@ This proposal is **fully backward compatible**:
 ### For Existing Servers
 
 - No changes required
-- Servers without `dynamicAnnotations` capability continue working
+- Servers without `resolve` capability continue working
 - Static `annotations` field remains authoritative
 
 ### For Existing Clients
 
 - No changes required
-- Clients can ignore `dynamicAnnotations: true` and use static annotations
-- Tools remain fully functional without preflight queries
+- Clients can ignore `resolve: true` and use static tool definitions
+- Tools remain fully functional without resolution
 
 ### Graceful Degradation
 
-- Clients fall back to static annotations if `tools/annotations` fails
+- Clients fall back to `tools/list` definitions if `tools/resolve` fails
 - Static annotations represent worst-case behavior, ensuring safety
 
 ## Security Implications
@@ -452,26 +568,26 @@ Tool annotations are already marked as **untrusted** in the specification:
 
 > For trust & safety and security, clients **MUST** consider tool annotations to be untrusted unless they come from trusted servers.
 
-This trust model extends to dynamic annotations:
+This trust model extends to resolved tool metadata:
 
-1. **Malicious servers** could return misleading annotations
+1. **Malicious servers** could return misleading metadata
    - Marking destructive operations as read-only
    - Marking data-exfiltrating tools as closed-world
 
-2. **Mitigation**: Clients must apply the same trust evaluation to dynamic annotations as static ones
+2. **Mitigation**: Clients must apply the same trust evaluation to resolved tools as static ones
 
 ### Determinism and Side Effects
 
-1. Servers **MUST NOT** perform side effects during `tools/annotations`
-2. The request is for evaluation only, not execution
+1. Servers **MUST NOT** perform side effects during `tools/resolve`
+2. The request is for metadata evaluation only, not execution
 3. Implementations should be computationally efficient to prevent DoS
 
 ### Argument Validation
 
-Servers **SHOULD** validate arguments in `tools/annotations` against the tool's `inputSchema`:
+Servers **SHOULD** validate arguments in `tools/resolve` against the tool's `inputSchema`:
 
 - Invalid arguments should return an error
-- This provides consistent behavior between annotation queries and tool calls
+- This provides consistent behavior between resolution and tool calls
 
 ## Reference Implementation
 
@@ -489,51 +605,49 @@ const server = new Server(
     capabilities: {
       tools: {
         listChanged: false,
-        dynamicAnnotations: true,
+        resolve: true,
       },
     },
   },
 );
 
-// Tool definition
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "manage_files",
-        description: "Read, append, replace, or delete file contents",
-        inputSchema: {
-          type: "object",
-          properties: {
-            path: { type: "string", description: "File path to operate on" },
-            action: {
-              type: "string",
-              enum: ["read", "append", "replace", "delete"],
-              description: "Operation to perform",
-            },
-            content: {
-              type: "string",
-              description: "Content for append/replace operations",
-            },
-          },
-          required: ["path", "action"],
-        },
-        // Conservative default annotations
-        annotations: {
-          readOnlyHint: false,
-          destructiveHint: true,
-          idempotentHint: false,
-          openWorldHint: false,
-        },
-        // Indicates support for tools/annotations
-        dynamicAnnotations: true,
+// Base tool definition (used in both list and resolve)
+const manageFilesTool = {
+  name: "manage_files",
+  description: "Read, append, replace, or delete file contents",
+  inputSchema: {
+    type: "object",
+    properties: {
+      path: { type: "string", description: "File path to operate on" },
+      action: {
+        type: "string",
+        enum: ["read", "append", "replace", "delete"],
+        description: "Operation to perform",
       },
-    ],
-  };
+      content: {
+        type: "string",
+        description: "Content for append/replace operations",
+      },
+    },
+    required: ["path", "action"],
+  },
+  // Conservative default annotations (worst-case)
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
+  resolve: true,
+};
+
+// Tool listing
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return { tools: [manageFilesTool] };
 });
 
-// Dynamic annotations handler
-server.setRequestHandler(GetToolAnnotationsRequestSchema, async (request) => {
+// Tool resolution handler
+server.setRequestHandler(ResolveToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   if (name !== "manage_files") {
@@ -542,59 +656,54 @@ server.setRequestHandler(GetToolAnnotationsRequestSchema, async (request) => {
 
   const action = args.action as string;
 
+  // Return full tool with refined annotations
+  const resolvedTool = {
+    ...manageFilesTool,
+    annotations: getAnnotationsForAction(action),
+  };
+
+  return { tool: resolvedTool };
+});
+
+function getAnnotationsForAction(action: string) {
   switch (action) {
     case "read":
       return {
-        annotations: {
-          readOnlyHint: true,
-          destructiveHint: false,
-          idempotentHint: true,
-          openWorldHint: false,
-        },
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
       };
 
     case "append":
       return {
-        annotations: {
-          readOnlyHint: false,
-          destructiveHint: false, // Additive only
-          idempotentHint: false,
-          openWorldHint: false,
-        },
+        readOnlyHint: false,
+        destructiveHint: false, // Additive only
+        idempotentHint: false,
+        openWorldHint: false,
       };
 
     case "replace":
       return {
-        annotations: {
-          readOnlyHint: false,
-          destructiveHint: true,
-          idempotentHint: true, // Same content = same result
-          openWorldHint: false,
-        },
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true, // Same content = same result
+        openWorldHint: false,
       };
 
     case "delete":
       return {
-        annotations: {
-          readOnlyHint: false,
-          destructiveHint: true,
-          idempotentHint: true, // Deleting twice = same result
-          openWorldHint: false,
-        },
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true, // Deleting twice = same result
+        openWorldHint: false,
       };
 
     default:
       // Default to conservative for unknown actions
-      return {
-        annotations: {
-          readOnlyHint: false,
-          destructiveHint: true,
-          idempotentHint: false,
-          openWorldHint: false,
-        },
-      };
+      return manageFilesTool.annotations;
   }
-});
+}
 ```
 
 ### Client Implementation (TypeScript)
@@ -607,31 +716,31 @@ async function invokeToolSafely(
   toolName: string,
   args: Record<string, unknown>,
 ): Promise<CallToolResult> {
-  // Get tool definition
+  // Get tool definition from list
   const { tools } = await client.listTools();
-  const tool = tools.find((t) => t.name === toolName);
+  let tool = tools.find((t) => t.name === toolName);
 
   if (!tool) {
     throw new Error(`Unknown tool: ${toolName}`);
   }
 
-  // Get annotations (dynamic if supported, static otherwise)
-  let annotations = tool.annotations ?? {};
-
-  if (tool.dynamicAnnotations) {
+  // Resolve tool if supported
+  if (tool.resolve) {
     try {
       const result = await client.request({
-        method: "tools/annotations",
+        method: "tools/resolve",
         params: { name: toolName, arguments: args },
       });
-      annotations = result.annotations;
+      tool = result.tool;
     } catch (error) {
-      // Fall back to static annotations
-      console.warn("Failed to get dynamic annotations, using static:", error);
+      // Fall back to static tool definition
+      console.warn("Failed to resolve tool, using static definition:", error);
     }
   }
 
-  // Make safety decisions based on annotations
+  // Make safety decisions based on resolved annotations
+  const annotations = tool.annotations ?? {};
+
   if (annotations.destructiveHint) {
     const confirmed = await requestUserConfirmation(
       `This operation may be destructive. Proceed?`,
@@ -648,14 +757,20 @@ async function invokeToolSafely(
 
 ## Related Work
 
-- **SEP-1076 (Dependency Annotations)**: Proposes additional annotations for network, filesystem, environment dependencies. Dynamic annotations complement this by allowing argument-specific refinement of any annotation field.
-- **SEP-1300 (Tool Filtering)**: Addresses context window pressure through tool grouping. Dynamic annotations provide finer-grained information without requiring tool explosion.
-- **CORS Preflight**: The `tools/annotations` pattern is directly inspired by HTTP CORS preflight requests, which check permissions before cross-origin operations.
+- **LSP Resolve Pattern**: This design takes inspiration from LSP's resolve methods ([`codeAction/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#codeAction_resolve), [`completionItem/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem_resolve)), adapting the concept of lazy metadata resolution for MCP's argument-driven tool model.
+- **SEP-1076 (Dependency Annotations)**: Proposes additional annotations for network, filesystem, environment dependencies. Tool resolution can provide argument-specific refinement of any annotation field.
+- **SEP-1300 (Tool Filtering)**: Addresses context window pressure through tool grouping. Tool resolution provides finer-grained information without requiring tool explosion.
+- **SEP-1699 (Error Forwarding)**: Discusses challenges with forwarding HTTP errors (like 403) during tool calls, which motivates preflight checks for scope requirements.
+- **OAuth Scope Challenges**: GitHub's [scope challenge pattern](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) allows servers to indicate additional permissions needed—a potential future use case for tool resolution.
 
 ## Open Questions
 
-1. **Caching semantics**: Should clients be allowed to cache results for identical (name, arguments) pairs? The current proposal says no, but this could reduce latency for repeated operations.
+1. **Partial arguments**: Should `tools/resolve` accept partial arguments and return metadata for a partially-specified operation? This could enable progressive disclosure of tool behavior.
 
-2. **Partial arguments**: Should `tools/annotations` accept partial arguments and return annotations for the partially-specified operation? This could be useful for progressive disclosure.
+2. **Caching semantics**: Should clients be allowed to cache results for identical (name, arguments) pairs within a session? The current proposal emphasizes determinism but doesn't mandate caching.
 
-3. **Annotation confidence**: Should servers be able to express confidence in their annotation evaluation (e.g., heuristic vs. certain)?
+3. **Metadata confidence**: Should servers express confidence in their metadata evaluation (e.g., heuristic vs. certain)?
+
+4. **Scope challenge integration**: How should `tools/resolve` integrate with authorization flows? Should scope requirements trigger re-authentication, or simply inform the user? This is explicitly out of scope for this SEP but should be considered for future work.
+
+5. **Resolve timing**: Should clients always resolve before calling, or only when they need metadata for decisions? The current proposal says "SHOULD" for safety-relevant decisions.
