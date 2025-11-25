@@ -8,7 +8,7 @@ import { join } from 'path';
 const LEGACY_SCHEMAS = ['2024-11-05', '2025-03-26', '2025-06-18'];
 
 // All schema versions to generate
-const ALL_SCHEMAS = [...LEGACY_SCHEMAS, 'draft'];
+const ALL_SCHEMAS = [...LEGACY_SCHEMAS, '2025-11-25', 'draft'];
 
 // Check if we're in check mode (validate existing schemas match generated ones)
 const CHECK_MODE = process.argv.includes('--check');
