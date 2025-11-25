@@ -1828,7 +1828,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/$defs/RequestParams"
+                    "$ref": "#/$defs/PaginatedRequestParams"
                 }
             },
             "required": [
@@ -1845,6 +1845,10 @@
                     "additionalProperties": {},
                     "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
                     "type": "object"
+                },
+                "nextCursor": {
+                    "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "type": "string"
                 },
                 "roots": {
                     "items": {
