@@ -77,16 +77,7 @@ MCP's tool model differs from LSP in important ways:
 | Input           | The stub object itself   | Tool name + intended arguments                     |
 | Purpose         | Complete missing data    | Refine metadata for specific operation             |
 
-Our approach adapts the useful parts of LSP's pattern:
-
-1. **`tools/list`**: Returns complete, usable tool definitions with conservative annotations
-2. **`tools/resolve`**: Client provides tool name + arguments, receives refined metadata
-
-This gives us:
-
-- **Single method** for all preflight metadata needs
-- **Extensibility** for future metadata without protocol changes
-- **Familiarity** for developers who know LSP, while fitting MCP's model
+This adaptation preserves LSP's benefits—a single extensible method for all preflight needs—while fitting MCP's model where tools are always complete and functional.
 
 ### Example: Multi-Action Tool
 
@@ -99,7 +90,7 @@ Consider a `manage_files` tool that supports multiple operations:
 | `replace` | `readOnlyHint: false`, `destructiveHint: true`             |
 | `delete`  | `readOnlyHint: false`, `destructiveHint: true`             |
 
-With static annotations, the server must declare the worst-case scenario (`destructiveHint: true`), causing clients to present unnecessary confirmation dialogs for safe read operations.
+With static annotations, the server must declare conservative defaults (`destructiveHint: true`), causing clients to present unnecessary confirmation dialogs for safe read operations.
 
 ### Consequences of Static Definitions
 
@@ -407,7 +398,7 @@ The `tools/resolve` pattern is designed to support future metadata beyond annota
 }
 ```
 
-This could enable [scope challenges](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) where a server indicates additional OAuth scopes are needed for a specific operation.
+This could enable scope challenges where a server indicates additional OAuth scopes are needed for a specific operation.
 
 > **Note**: Scope requirements are mentioned as a motivating use case but are **out of scope** for this SEP. They would require separate consideration of authorization flows, particularly given challenges with forwarding 403 errors during tool calls (see [SEP-1699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699)).
 
@@ -488,7 +479,7 @@ LSP's resolve pattern provides useful precedent, though we adapt it for MCP:
 
 However, we intentionally diverge where MCP's model differs:
 
-- **MCP tools are complete from `tools/list`**—they're not stubs that need filling
+- **MCP tools are complete from `tools/list`**—they work without resolution
 - **Resolution is argument-driven**—we refine based on what the client intends to do
 - **The primary purpose is metadata refinement**, not completing missing data
 
@@ -514,16 +505,16 @@ Returning the complete `Tool` object:
 
 We chose `resolve` for its implication of refinement and extensibility, while being clear in documentation that MCP tools are always complete and functional.
 
-#### Why Not Stream During Execution?
+#### Why Not Stream Metadata During Execution?
 
-An alternative could stream updated metadata during `tools/call`:
+An alternative would stream updated metadata as part of `tools/call` responses:
 
 **Why preflight resolution is better:**
 
-- Cannot cancel based on metadata without starting execution
-- Keeps concerns separated (metadata vs. execution)
-- Most tools know their metadata before execution begins
-- Simpler protocol
+- Clients cannot cancel based on metadata without starting execution
+- Keeps concerns separated (metadata discovery vs. execution)
+- Most tools can determine metadata before execution begins
+- Simpler protocol with clearer phases
 
 #### Why Require Determinism?
 
@@ -797,12 +788,12 @@ async function invokeToolSafely(
 ## Related Work
 
 - **LSP Resolve Pattern**: This design takes inspiration from LSP's resolve methods ([`codeAction/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#codeAction_resolve), [`completionItem/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem_resolve)), adapting the concept of lazy metadata resolution for MCP's argument-driven tool model.
-- **SEP-1076 (Dependency Annotations)**: Proposes additional annotations for network, filesystem, environment dependencies. Tool resolution can provide argument-specific refinement of any annotation field.
-- **SEP-1300 (Tool Filtering)**: Addresses context window pressure through tool grouping. Tool resolution provides finer-grained information without requiring tool explosion.
-- **SEP-1699 (Error Forwarding)**: Discusses challenges with forwarding HTTP errors (like 403) during tool calls, which motivates preflight checks for scope requirements.
-- **SEP-1385 (Tool Execution Requirements)**: Proposes a `requires` field for expressing tool-level permission and capability requirements—complementary to resolution for argument-specific refinement.
-- **SEP-214 (On-Behalf-Of Token Exchange)**: Discusses RFC 8693 token exchange for agent-to-agent communications, relevant to authorization delegation context that could be surfaced through tool resolution.
-- **SEP-1686 (Tasks)**: Introduces task primitives for long-running tool operations, including `taskHint` annotations and polling mechanisms—complementary to resolution for providing upfront execution characteristics.
+- **[SEP-1076](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1076) (Dependency Annotations)**: Proposes additional annotations for network, filesystem, environment dependencies. Tool resolution can provide argument-specific refinement of any annotation field.
+- **[SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) (Tool Filtering)**: Addresses context window pressure through tool grouping. Tool resolution provides finer-grained information without requiring tool explosion.
+- **[SEP-1699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699) (Error Forwarding)**: Discusses challenges with forwarding HTTP errors (like 403) during tool calls, which motivates preflight checks for scope requirements.
+- **[SEP-1385](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1385) (Tool Execution Requirements)**: Proposes a `requires` field for expressing tool-level permission and capability requirements—complementary to resolution for argument-specific refinement.
+- **[SEP-214](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/214) (On-Behalf-Of Token Exchange)**: Discusses RFC 8693 token exchange for agent-to-agent communications, relevant to authorization delegation context that could be surfaced through tool resolution.
+- **[SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686) (Tasks)**: Introduces task primitives for long-running tool operations, including `taskHint` annotations and polling mechanisms—complementary to resolution for providing upfront execution characteristics.
 - **OAuth Scope Challenges**: GitHub's [scope challenge pattern](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) allows servers to indicate additional permissions needed—a potential future use case for tool resolution.
 
 ## Open Questions
@@ -813,6 +804,6 @@ async function invokeToolSafely(
 
 3. **Metadata confidence**: Should servers express confidence in their metadata evaluation (e.g., heuristic vs. certain)?
 
-4. **Scope challenge integration**: How should `tools/resolve` integrate with authorization flows? Should scope requirements trigger re-authentication, or simply inform the user? This is explicitly out of scope for this SEP but should be considered for future work.
+4. **Scope challenge integration**: How should `tools/resolve` integrate with authorization flows? Should scope requirements trigger re-authentication, or simply inform the user? This is explicitly out of scope for this SEP but should be considered in future work.
 
 5. **Resolve timing**: Should clients always resolve before calling, or only when they need metadata for decisions? The current proposal says "SHOULD" for safety-relevant decisions.
