@@ -1529,10 +1529,10 @@
             "description": "A response to a request that indicates an error occurred.",
             "properties": {
                 "error": {
-                    "$ref": "#/definitions/Error"
+                    "$ref": "#/$defs/Error"
                 },
                 "id": {
-                    "$ref": "#/definitions/RequestId"
+                    "$ref": "#/$defs/RequestId"
                 },
                 "jsonrpc": {
                     "const": "2.0",
@@ -1611,10 +1611,10 @@
         "JSONRPCResponse": {
             "anyOf": [
                 {
-                    "$ref": "#/definitions/JSONRPCResultResponse"
+                    "$ref": "#/$defs/JSONRPCResultResponse"
                 },
                 {
-                    "$ref": "#/definitions/JSONRPCErrorResponse"
+                    "$ref": "#/$defs/JSONRPCErrorResponse"
                 }
             ],
             "description": "A response to a request, containing either the result or error."
@@ -3904,7 +3904,6 @@
             },
             "required": [
                 "error",
-                "id",
                 "jsonrpc"
             ],
             "type": "object"
