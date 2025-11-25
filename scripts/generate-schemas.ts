@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 // Legacy schema versions that should remain as JSON Schema draft-07
-const LEGACY_SCHEMAS = ['2024-11-05', '2025-03-26', '2025-06-18', '2025-11-25'];
+const LEGACY_SCHEMAS = ['2024-11-05', '2025-03-26', '2025-06-18'];
 
 // All schema versions to generate
 const ALL_SCHEMAS = [...LEGACY_SCHEMAS, 'draft'];
