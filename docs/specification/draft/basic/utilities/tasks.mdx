@@ -108,15 +108,15 @@ The set of capabilities in `capabilities.tasks.requests` is exhaustive. If a req
 
 ### Tool-Level Negotiation
 
-Tool calls are given special consideration for the purpose of task augmentation. In the result of `tools/list`, tools declare support for tasks via `annotations.taskHint`, which if present can have a value of `"always"`, `"optional"`, or `"never"`.
+Tool calls are given special consideration for the purpose of task augmentation. In the result of `tools/list`, tools declare support for tasks via `execution.taskSupport`, which if present can have a value of `"required"`, `"optional"`, or `"forbidden"`.
 
 This is to be interpreted as a fine-grained layer in addition to capabilities, following these rules:
 
-1. If a server's capabilities include `tasks.requests.tools.call: false`, then clients **MUST NOT** attempt to use task augmentation on that server's tools, regardless of the `taskHint` value.
-1. If a server's capabilities include `tasks.requests.tools.call: true`, then clients consider the value of `taskHint`, and handle it accordingly:
-   1. If `taskHint` is not present or `"never"`, clients **MUST NOT** attempt to invoke the tool as a task. Servers **SHOULD** return a `-32601` (Method not found) error if a client attempts to do so. This is the default behavior.
-   1. If `taskHint` is `"optional"`, clients **MAY** invoke the tool as a task or as a normal request.
-   1. If `taskHint` is `"always"`, clients **SHOULD** invoke the tool as a task. Servers **MAY** return a `-32601` (Method not found) error if a client does not attempt to do so.
+1. If a server's capabilities do not include `tasks.requests.tools.call`, then clients **MUST NOT** attempt to use task augmentation on that server's tools, regardless of the `execution.taskSupport` value.
+1. If a server's capabilities include `tasks.requests.tools.call`, then clients consider the value of `execution.taskSupport`, and handle it accordingly:
+   1. If `execution.taskSupport` is not present or `"forbidden"`, clients **MUST NOT** attempt to invoke the tool as a task. Servers **SHOULD** return a `-32601` (Method not found) error if a client attempts to do so. This is the default behavior.
+   1. If `execution.taskSupport` is `"optional"`, clients **MAY** invoke the tool as a task or as a normal request.
+   1. If `execution.taskSupport` is `"required"`, clients **MUST** invoke the tool as a task. Servers **MUST** return a `-32601` (Method not found) error if a client does not attempt to do so.
 
 ## Protocol Messages
 
@@ -160,6 +160,7 @@ To create a task, requestors send a request with the `task` field included in th
       "status": "working",
       "statusMessage": "The operation is now in progress.",
       "createdAt": "2025-11-25T10:30:00Z",
+      "lastUpdatedAt": "2025-11-25T10:40:00Z",
       "ttl": 60000,
       "pollInterval": 5000
     }
@@ -182,10 +183,18 @@ This guidance is non-binding and is provisional logic intended to account for th
 
 ### Getting Tasks
 
+<Note>
+
+In the Streamable HTTP (SSE) transport, clients **MAY** disconnect from an SSE stream opened by the server in response to a `tasks/get` request at any time.
+
+While this note is not prescriptive regarding the specific usage of SSE streams, all implementations **MUST** continue to comply with the existing [Streamable HTTP transport specification](../transports#sending-messages-to-the-server).
+
+</Note>
+
 Requestors poll for task completion by sending [`tasks/get`](/specification/draft/schema#tasks%2Fget) requests.
 Requestors **SHOULD** respect the `pollInterval` provided in responses when determining polling frequency.
 
-Requestors **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`), or until encountering the [`input_required`](#input-required-status) status.
+Requestors **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`), or until encountering the [`input_required`](#input-required-status) status. Note that invoking `tasks/result` does not imply that the requestor needs to stop polling - requestors **SHOULD** continue polling the task status via `tasks/get` if they are not actively waiting for `tasks/result` to complete.
 
 **Request:**
 
@@ -211,6 +220,7 @@ Requestors **SHOULD** continue polling until the task reaches a terminal status 
     "status": "working",
     "statusMessage": "The operation is now in progress.",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
     "pollInterval": 5000
   }
@@ -219,9 +229,19 @@ Requestors **SHOULD** continue polling until the task reaches a terminal status 
 
 ### Retrieving Task Results
 
+<Note>
+
+In the Streamable HTTP (SSE) transport, clients **MAY** disconnect from an SSE stream opened by the server in response to a `tasks/result` request at any time.
+
+While this note is not prescriptive regarding the specific usage of SSE streams, all implementations **MUST** continue to comply with the existing [Streamable HTTP transport specification](../transports#sending-messages-to-the-server).
+
+</Note>
+
 After a task completes the operation result is retrieved via [`tasks/result`](/specification/draft/schema#tasks%2Fresult). This is distinct from the initial `CreateTaskResult` response, which contains only task data. The result structure matches the original request type (e.g., `CallToolResult` for `tools/call`).
 
 To retrieve the result of a completed task, requestors can send a `tasks/result` request:
+
+While `tasks/result` blocks until the task reaches a terminal status, requestors can continue polling via `tasks/get` in parallel if they are not actively blocked waiting for the result, such as if their previous `tasks/result` request failed or was cancelled. This allows requestors to monitor status changes or display progress updates while the task executes, even after invoking `tasks/result`.
 
 **Request:**
 
@@ -273,6 +293,7 @@ When a task status changes, receivers **MAY** send a [`notifications/tasks/statu
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
     "ttl": 60000,
     "pollInterval": 5000
   }
@@ -312,6 +333,7 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
         "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
         "status": "working",
         "createdAt": "2025-11-25T10:30:00Z",
+        "lastUpdatedAt": "2025-11-25T10:40:00Z",
         "ttl": 30000,
         "pollInterval": 5000
       },
@@ -319,6 +341,7 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
         "taskId": "abc123-def456-ghi789",
         "status": "completed",
         "createdAt": "2025-11-25T09:15:00Z",
+        "lastUpdatedAt": "2025-11-25T10:40:00Z",
         "ttl": 60000
       }
     ],
@@ -355,6 +378,7 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
     "status": "cancelled",
     "statusMessage": "The task was cancelled by request.",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
     "pollInterval": 5000
   }
@@ -412,7 +436,9 @@ stateDiagram-v2
 
 With the Streamable HTTP (SSE) transport, servers often close SSE streams after delivering a response message, which can lead to ambiguity regarding the stream used for subsequent task messages.
 
-Implementations have flexibility in how they manage SSE streams during task polling and result retrieval.
+Servers can handle this by enqueueing messages to the client to side-channel task-related messages alongside other responses.
+
+Servers have flexibility in how they manage SSE streams during task polling and result retrieval, and clients **SHOULD** expect messages to be delivered on any SSE stream, including the HTTP GET stream.
 One possible approach is maintaining an SSE stream on `tasks/result` (see notes on the `input_required` status).
 Where possible, servers **SHOULD NOT** upgrade to an SSE stream in response to a `tasks/get` request, as the client has indicated it wishes to poll for a result.
 
@@ -428,6 +454,7 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 ### TTL and Resource Management
 
 1. Receivers **MUST** include a `createdAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was created.
+1. Receivers **MUST** include a `lastUpdatedAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was last updated.
 1. Receivers **MAY** override the requested `ttl` duration.
 1. Receivers **MUST** include the actual `ttl` duration (or `null` for unlimited) in `tasks/get` responses.
 1. After a task's `ttl` lifetime has elapsed, receivers **MAY** delete the task and its results, regardless of the task status.
@@ -482,19 +509,29 @@ sequenceDiagram
     participant S as Server (Receiver)
     Note over C,S: 1. Task Creation
     C->>S: Request with task field (ttl)
+    activate S
     S->>C: CreateTaskResult (taskId, status: working, ttl, pollInterval)
+    deactivate S
     Note over C,S: 2. Task Polling
     C->>S: tasks/get (taskId)
+    activate S
     S->>C: working
+    deactivate S
     Note over S: Task processing continues...
     C->>S: tasks/get (taskId)
+    activate S
     S->>C: working
+    deactivate S
     Note over S: Task completes
     C->>S: tasks/get (taskId)
+    activate S
     S->>C: completed
+    deactivate S
     Note over C,S: 3. Result Retrieval
     C->>S: tasks/result (taskId)
+    activate S
     S->>C: Result content
+    deactivate S
     Note over C,S: 4. Cleanup
     Note over S: After ttl period from creation, task is cleaned up
 ```
@@ -513,7 +550,9 @@ sequenceDiagram
 
     Note over C,S: Client augments with task
     C->>S: tools/call (ttl: 3600000)
+    activate S
     S->>C: CreateTaskResult (task-123, status: working)
+    deactivate S
 
     Note over LLM,C: Client continues processing other requests<br/>while task executes in background
     LLM->>C: Request other operation
@@ -521,36 +560,51 @@ sequenceDiagram
 
     Note over C,S: Client polls for status
     C->>S: tasks/get (task-123)
+    activate S
     S->>C: working
+    deactivate S
 
     Note over S: Server needs information from client<br/>Task moves to input_required
 
     Note over C,S: Client polls and discovers input_required
     C->>S: tasks/get (task-123)
+    activate S
     S->>C: input_required
+    deactivate S
 
-    Note over C,S: Client receives input requests
+    Note over C,S: Client opens result stream
     C->>S: tasks/result (task-123)
-    S->>C: elicitation/create (task-123)
+    activate S
+    S->>C: elicitation/create (related-task: task-123)
+    activate C
     C->>U: Prompt user for input
     U->>C: Provide information
-    C->>S: elicitation response (task-123)
+    C->>S: elicitation response (related-task: task-123)
+    deactivate C
+    deactivate S
+
+    Note over C,S: Client closes result stream and resumes polling
 
     Note over S: Task continues processing...<br/>Task moves back to working
 
-    Note over C,S: Client polls again
     C->>S: tasks/get (task-123)
+    activate S
     S->>C: working
+    deactivate S
 
     Note over S: Task completes
 
     Note over C,S: Client polls and discovers completion
     C->>S: tasks/get (task-123)
+    activate S
     S->>C: completed
+    deactivate S
 
     Note over C,S: Client retrieves final results
     C->>S: tasks/result (task-123)
+    activate S
     S->>C: Result content
+    deactivate S
     C->>LLM: Process result
 
     Note over S: Results retained for ttl period from creation
@@ -569,13 +623,17 @@ sequenceDiagram
 
     Note over S,C: Server requests client operation (task-augmented)
     S->>C: sampling/createMessage (ttl: 3600000)
+    activate C
     C->>S: CreateTaskResult (request-789, status: working)
+    deactivate C
 
     Note over S: Server continues processing<br/>while waiting for result
 
     Note over S,C: Server polls for result
     S->>C: tasks/get (request-789)
+    activate C
     C->>S: working
+    deactivate C
 
     Note over C,U: Client may present request to user
     C->>U: Review request
@@ -591,11 +649,15 @@ sequenceDiagram
 
     Note over S,C: Server polls and discovers completion
     S->>C: tasks/get (request-789)
+    activate C
     C->>S: completed
+    deactivate C
 
     Note over S,C: Server retrieves result
     S->>C: tasks/result (request-789)
+    activate C
     C->>S: Result content
+    deactivate C
 
     Note over S: Server continues processing
 
@@ -611,20 +673,26 @@ sequenceDiagram
 
     Note over C,S: 1. Task Creation
     C->>S: tools/call (request ID: 42, ttl: 60000)
+    activate S
     S->>C: CreateTaskResult (task-123, status: working)
+    deactivate S
 
     Note over C,S: 2. Task Processing
     C->>S: tasks/get (task-123)
+    activate S
     S->>C: working
+    deactivate S
 
     Note over C,S: 3. Client Cancellation
     Note over C: User requests cancellation
     C->>S: tasks/cancel (taskId: task-123)
+    activate S
 
     Note over S: Server stops execution (best effort)
     Note over S: Task moves to cancelled status
 
     S->>C: Task (status: cancelled)
+    deactivate S
 
     Note over C: Client receives confirmation
 
@@ -643,6 +711,7 @@ A task represents the execution state of a request. The task state includes:
 - `createdAt`: ISO 8601 timestamp when the task was created
 - `ttl`: Time in milliseconds from creation before task may be deleted
 - `pollInterval`: Suggested time in milliseconds between status checks
+- `lastUpdatedAt`: ISO 8601 timestamp when the task status was last updated
 
 ### Task Status
 
@@ -781,6 +850,7 @@ When the underlying request does not complete successfully, the task moves to th
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
     "status": "failed",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
     "statusMessage": "Tool execution failed: API rate limit exceeded"
   }

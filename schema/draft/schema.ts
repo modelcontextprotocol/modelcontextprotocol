@@ -8,8 +8,7 @@
 export type JSONRPCMessage =
   | JSONRPCRequest
   | JSONRPCNotification
-  | JSONRPCResponse
-  | JSONRPCError;
+  | JSONRPCResponse;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "DRAFT-2025-v3";
@@ -31,11 +30,11 @@ export type ProgressToken = string | number;
 export type Cursor = string;
 
 /**
- * Common params for any request.
+ * Common params for any task-augmented request.
  *
  * @internal
  */
-export interface RequestParams {
+export interface TaskAugmentedRequestParams extends RequestParams {
   /**
    * If specified, the caller is requesting task-augmented execution for this request.
    * The request will return a CreateTaskResult immediately, and the actual result can be
@@ -45,7 +44,13 @@ export interface RequestParams {
    * for task augmentation of specific request types in their capabilities.
    */
   task?: TaskMetadata;
-
+}
+/**
+ * Common params for any request.
+ *
+ * @internal
+ */
+export interface RequestParams {
   /**
    * See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.
    */
@@ -142,11 +147,27 @@ export interface JSONRPCNotification extends Notification {
  *
  * @category JSON-RPC
  */
-export interface JSONRPCResponse {
+export interface JSONRPCResultResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
 }
+
+/**
+ * A response to a request that indicates an error occurred.
+ *
+ * @category JSON-RPC
+ */
+export interface JSONRPCErrorResponse {
+  jsonrpc: typeof JSONRPC_VERSION;
+  id?: RequestId;
+  error: Error;
+}
+
+/**
+ * A response to a request, containing either the result or error.
+ */
+export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
 // Standard JSON-RPC error codes
 export const PARSE_ERROR = -32700;
@@ -160,23 +181,12 @@ export const INTERNAL_ERROR = -32603;
 export const URL_ELICITATION_REQUIRED = -32042;
 
 /**
- * A response to a request that indicates an error occurred.
- *
- * @category JSON-RPC
- */
-export interface JSONRPCError {
-  jsonrpc: typeof JSONRPC_VERSION;
-  id: RequestId;
-  error: Error;
-}
-
-/**
  * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
  *
  * @internal
  */
 export interface URLElicitationRequiredError
-  extends Omit<JSONRPCError, "error"> {
+  extends Omit<JSONRPCErrorResponse, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -209,11 +219,6 @@ export interface CancelledNotificationParams extends NotificationParams {
    * This MUST NOT be used for cancelling tasks (use the `tasks/cancel` request instead).
    */
   requestId?: RequestId;
-
-  /**
-   * Deprecated: Use the `tasks/cancel` request instead of this notification for task cancellation.
-   */
-  taskId?: string;
 
   /**
    * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
@@ -1127,7 +1132,7 @@ export interface CallToolResult extends Result {
  *
  * @category `tools/call`
  */
-export interface CallToolRequestParams extends RequestParams {
+export interface CallToolRequestParams extends TaskAugmentedRequestParams {
   /**
    * The name of the tool.
    */
@@ -1212,19 +1217,26 @@ export interface ToolAnnotations {
    * Default: true
    */
   openWorldHint?: boolean;
+}
 
+/**
+ * Execution-related properties for a tool.
+ *
+ * @category `tools/list`
+ */
+export interface ToolExecution {
   /**
    * Indicates whether this tool supports task-augmented execution.
    * This allows clients to handle long-running operations through polling
    * the task system.
    *
-   * - "never": Tool does not support task-augmented execution (default when absent)
+   * - "forbidden": Tool does not support task-augmented execution (default when absent)
    * - "optional": Tool may support task-augmented execution
-   * - "always": Tool requires task-augmented execution
+   * - "required": Tool requires task-augmented execution
    *
-   * Default: "never"
+   * Default: "forbidden"
    */
-  taskHint?: "never" | "optional" | "always";
+  taskSupport?: "forbidden" | "optional" | "required";
 }
 
 /**
@@ -1249,6 +1261,11 @@ export interface Tool extends BaseMetadata, Icons {
     properties?: { [key: string]: object };
     required?: string[];
   };
+
+  /**
+   * Execution-related properties for this tool.
+   */
+  execution?: ToolExecution;
 
   /**
    * An optional JSON Schema object defining the structure of the tool's output returned in
@@ -1346,6 +1363,11 @@ export interface Task {
    * ISO 8601 timestamp when the task was created.
    */
   createdAt: string;
+
+  /**
+   * ISO 8601 timestamp when the task was last updated.
+   */
+  lastUpdatedAt: string;
 
   /**
    * Actual retention duration from creation in milliseconds, null for unlimited.
@@ -1550,7 +1572,7 @@ export type LoggingLevel =
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageRequestParams extends RequestParams {
+export interface CreateMessageRequestParams extends TaskAugmentedRequestParams {
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -1675,7 +1697,7 @@ export type SamplingMessageContentBlock =
  */
 export interface Annotations {
   /**
-   * Describes who the intended customer of this object or data is.
+   * Describes who the intended audience of this object or data is.
    *
    * It can include multiple entries to indicate content useful for multiple audiences (e.g., `["user", "assistant"]`).
    */
@@ -1824,7 +1846,7 @@ export interface ToolUseContent {
   /**
    * The arguments to pass to the tool, conforming to the tool's input schema.
    */
-  input: object;
+  input: { [key: string]: unknown };
 
   /**
    * Optional metadata about the tool use. Clients SHOULD preserve this field when
@@ -1863,7 +1885,7 @@ export interface ToolResultContent {
    *
    * If the tool defined an outputSchema, this SHOULD conform to that schema.
    */
-  structuredContent?: object;
+  structuredContent?: { [key: string]: unknown };
 
   /**
    * Whether the tool use resulted in an error.
@@ -2127,11 +2149,11 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestFormParams extends RequestParams {
+export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
   /**
    * The elicitation mode.
    */
-  mode: "form";
+  mode?: "form";
 
   /**
    * The message to present to the user describing what information is being requested.
@@ -2157,7 +2179,7 @@ export interface ElicitRequestFormParams extends RequestParams {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestURLParams extends RequestParams {
+export interface ElicitRequestURLParams extends TaskAugmentedRequestParams {
   /**
    * The elicitation mode.
    */

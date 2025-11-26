@@ -1,6 +1,6 @@
 # Model Context Protocol (MCP)
 
-_Just heard of MCP and not sure where to start? See [the documentation website instead](https://modelcontextprotocol.io)._
+_Just heard of MCP and not sure where to start? Check out our [documentation website](https://modelcontextprotocol.io)._
 
 This repo contains the:
 

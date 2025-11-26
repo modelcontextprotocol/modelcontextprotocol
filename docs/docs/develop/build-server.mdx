@@ -167,7 +167,7 @@ async def make_nws_request(url: str) -> dict[str, Any] | None:
         "User-Agent": USER_AGENT,
         "Accept": "application/geo+json"
     }
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.get(url, headers=headers, timeout=30.0)
             response.raise_for_status()
@@ -216,8 +216,8 @@ async def get_forecast(latitude: float, longitude: float) -> str:
     """Get weather forecast for a location.
 
     Args:
-        latitude: Latitude of the location
-        longitude: Longitude of the location
+    	latitude: Latitude of the location (recommended: up to 4 decimal places)
+    	longitude: Longitude of the location (recommended: up to 4 decimal places)
     """
     # First get the forecast grid endpoint
     points_url = f"{NWS_API_BASE}/points/{latitude},{longitude}"
@@ -353,7 +353,7 @@ Save the file, and restart **Claude for Desktop**.
 
 </Tab>
 
-<Tab title='Node'>
+<Tab title='TypeScript'>
 
 Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-typescript)
 
@@ -505,10 +505,6 @@ const USER_AGENT = "weather-app/1.0";
 const server = new McpServer({
   name: "weather",
   version: "1.0.0",
-  capabilities: {
-    resources: {},
-    tools: {},
-  },
 });
 ```
 
@@ -988,7 +984,7 @@ Finally, let's build the server:
 ./mvnw clean install
 ```
 
-This will generate a `mcp-weather-stdio-server-0.0.1-SNAPSHOT.jar` file within the `target` folder.
+This will generate an `mcp-weather-stdio-server-0.0.1-SNAPSHOT.jar` file within the `target` folder.
 
 Let's now test your server from an existing MCP host, Claude for Desktop.
 
@@ -1658,10 +1654,10 @@ namespace QuickstartWeatherServer.Tools;
 [McpServerToolType]
 public static class WeatherTools
 {
-    [McpServerTool, Description("Get weather alerts for a US state.")]
+    [McpServerTool, Description("Get weather alerts for a US state code.")]
     public static async Task<string> GetAlerts(
         HttpClient client,
-        [Description("The US state to get alerts for.")] string state)
+        [Description("The US state code to get alerts for.")] string state)
     {
         using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state}");
         var jsonElement = jsonDocument.RootElement;
