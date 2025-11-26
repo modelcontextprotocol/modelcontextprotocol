@@ -6,7 +6,7 @@
 **Author(s)**: He-Pin <hepin.p@alibaba-inc.com> (@He-Pin)
 
 **Sponsor**: TBD
-**PR**: TBD
+**PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1905
 
 ## Abstract
 
