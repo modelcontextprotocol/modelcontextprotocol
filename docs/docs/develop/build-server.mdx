@@ -353,7 +353,7 @@ Save the file, and restart **Claude for Desktop**.
 
 </Tab>
 
-<Tab title='Node'>
+<Tab title='TypeScript'>
 
 Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-typescript)
 
@@ -505,10 +505,6 @@ const USER_AGENT = "weather-app/1.0";
 const server = new McpServer({
   name: "weather",
   version: "1.0.0",
-  capabilities: {
-    resources: {},
-    tools: {},
-  },
 });
 ```
 
@@ -1658,10 +1654,10 @@ namespace QuickstartWeatherServer.Tools;
 [McpServerToolType]
 public static class WeatherTools
 {
-    [McpServerTool, Description("Get weather alerts for a US state.")]
+    [McpServerTool, Description("Get weather alerts for a US state code.")]
     public static async Task<string> GetAlerts(
         HttpClient client,
-        [Description("The US state to get alerts for.")] string state)
+        [Description("The US state code to get alerts for.")] string state)
     {
         using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state}");
         var jsonElement = jsonDocument.RootElement;

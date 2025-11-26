@@ -1525,7 +1525,7 @@
             ],
             "type": "object"
         },
-        "JSONRPCError": {
+        "JSONRPCErrorResponse": {
             "description": "A response to a request that indicates an error occurred.",
             "properties": {
                 "error": {
@@ -1541,7 +1541,6 @@
             },
             "required": [
                 "error",
-                "id",
                 "jsonrpc"
             ],
             "type": "object"
@@ -1555,10 +1554,10 @@
                     "$ref": "#/$defs/JSONRPCNotification"
                 },
                 {
-                    "$ref": "#/$defs/JSONRPCResponse"
+                    "$ref": "#/$defs/JSONRPCResultResponse"
                 },
                 {
-                    "$ref": "#/$defs/JSONRPCError"
+                    "$ref": "#/$defs/JSONRPCErrorResponse"
                 }
             ],
             "description": "Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent."
@@ -1610,6 +1609,17 @@
             "type": "object"
         },
         "JSONRPCResponse": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/JSONRPCResultResponse"
+                },
+                {
+                    "$ref": "#/$defs/JSONRPCErrorResponse"
+                }
+            ],
+            "description": "A response to a request, containing either the result or error."
+        },
+        "JSONRPCResultResponse": {
             "description": "A successful (non-error) response to a request.",
             "properties": {
                 "id": {
@@ -3894,7 +3904,6 @@
             },
             "required": [
                 "error",
-                "id",
                 "jsonrpc"
             ],
             "type": "object"
