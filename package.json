@@ -43,7 +43,7 @@
     "ajv-formats": "^3.0.1",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.1.8",
-    "glob": "^11.0.0",
+    "glob": "^11.1.0",
     "prettier": "^3.6.2",
     "tsx": "^4.19.1",
     "typedoc": "^0.28.14",

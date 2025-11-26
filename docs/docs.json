@@ -371,17 +371,22 @@
   },
   "redirects": [
     {
+      "source": "/specification/latest",
+      "destination": "/specification/2025-11-25",
+      "permanent": false
+    },
+    {
+      "source": "/specification/latest/:slug*",
+      "destination": "/specification/2025-11-25/:slug*",
+      "permanent": false
+    },
+    {
       "source": "/tutorials/building-a-client",
       "destination": "/docs/develop/build-client"
     },
     {
       "source": "/quickstart",
       "destination": "/docs/develop/build-server"
-    },
-    {
-      "source": "/specification/latest",
-      "destination": "/specification/2025-06-18",
-      "permanent": false
     },
     {
       "source": "/docs/concepts/architecture",
