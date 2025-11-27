@@ -49,7 +49,16 @@ Static definitions cannot express:
 - **Scope requirements**: OAuth scopes needed for specific operations (see [scope challenges](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps))
 - **Cost estimates**: Token/credit costs that vary by arguments
 
-**3. Multiple Preflight Checks**
+**3. Scope Over-Requesting**
+
+[SEP-1488](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1488) proposes `securitySchemes` per tool, but static declarations lead to over-scoping. Consider a GitHub tool that accesses repositories:
+
+- **Static declaration** requires `repo` scope (access to all public and private repos)
+- **Reality**: Accessing a public repo needs no authentication at all
+
+Users are prompted for unnecessary permissions, violating the principle of least privilege. With argument-specific resolution, the server can indicate that a specific operation needs no auth or reduced scopes.
+
+**4. Multiple Preflight Checks**
 
 Without a unified resolution mechanism, we risk a future where multiple separate preflight requests are needed for different metadata types—annotations, scopes, costs, etc.
 
@@ -392,21 +401,57 @@ sequenceDiagram
 
 The `tools/resolve` pattern is designed to support future metadata beyond annotations. Potential extensions include:
 
-#### Scope Requirements (Future)
+#### Dynamic Security Schemes (Future)
+
+[SEP-1488](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1488) proposes static `securitySchemes` per tool. Tool resolution can enhance this with **argument-specific scope requirements**, solving the over-scoping problem inherent in static declarations.
+
+**Example: GitHub Repository Access**
+
+Consider a `get_repo_contents` tool. With static `securitySchemes`:
 
 ```json
 {
+  "name": "get_repo_contents",
+  "securitySchemes": [
+    { "type": "oauth2", "scopes": ["repo"] }
+  ]
+}
+```
+
+This requires the `repo` scope for **all** calls, even when accessing public repositories that need no authentication. The user is prompted for unnecessary permissions.
+
+With tool resolution, the server can return argument-specific requirements:
+
+```json
+// tools/resolve for public repo
+{
   "tool": {
-    "name": "github_api",
-    "annotations": { "destructiveHint": true },
-    "requiredScopes": ["delete_repo"]
+    "name": "get_repo_contents",
+    "securitySchemes": [
+      { "type": "noauth" }
+    ],
+    "annotations": { "openWorldHint": true }
+  }
+}
+
+// tools/resolve for private repo
+{
+  "tool": {
+    "name": "get_repo_contents",
+    "securitySchemes": [
+      { "type": "oauth2", "scopes": ["repo"] }
+    ],
+    "annotations": { "privateHint": true }
   }
 }
 ```
 
-This could enable [scope challenges](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps) where a server indicates additional OAuth scopes are needed for a specific operation.
+This enables:
+- **Minimal privilege**: Users only authenticate when accessing private resources
+- **Better UX**: No unnecessary OAuth prompts for public data
+- **Accurate metadata**: `privateHint` and `openWorldHint` reflect the actual data being accessed
 
-> **Note**: Scope requirements are mentioned as a motivating use case but are **out of scope** for this SEP. They would require separate consideration of authorization flows, particularly given challenges with forwarding 403 errors during tool calls (see [SEP-1699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699)).
+> **Note**: Dynamic security schemes are mentioned as a motivating use case but the full integration is **out of scope** for this SEP. They would require separate consideration of authorization flows, particularly given challenges with forwarding 403 errors during tool calls (see [SEP-1699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699)).
 
 #### Cost Estimates (Future)
 
@@ -421,6 +466,27 @@ This could enable [scope challenges](https://docs.github.com/en/apps/oauth-apps/
 ```
 
 These extensions would be specified in future SEPs but can leverage the same `tools/resolve` mechanism.
+
+#### Trust Annotations (Future)
+
+Integration with [SEP Trust Annotations](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/711) would allow servers to return argument-specific sensitivity metadata:
+
+```json
+{
+  "tool": {
+    "name": "read_file",
+    "_meta": {
+      "annotations": {
+        "sensitiveHint": "high",
+        "privateHint": true,
+        "attribution": ["mcp://file-server.acme.local/hr/salaries.xlsx"]
+      }
+    }
+  }
+}
+```
+
+This enables pre-execution policy decisions based on the sensitivity of the data that would be returned.
 
 ## Rationale
 
@@ -745,6 +811,8 @@ async function invokeToolSafely(
 ## Related Work
 
 - **LSP Resolve Pattern**: This design takes inspiration from LSP's resolve methods ([`codeAction/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#codeAction_resolve), [`completionItem/resolve`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem_resolve)), adapting the concept of lazy metadata resolution for MCP's argument-driven tool model.
+- **[SEP-1488 (securitySchemes)](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1488)**: OpenAI's proposal for per-tool OAuth scope declarations. Tool resolution can enhance this with argument-specific scope requirements, solving the over-scoping problem where static declarations require maximum permissions even for operations that need less (e.g., accessing public vs. private repositories).
+- **[SEP-711 (Trust Annotations)](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/711)**: Proposes sensitivity and provenance annotations for data flowing through MCP. Tool resolution can return argument-specific trust metadata before execution.
 - **SEP-1076 (Dependency Annotations)**: Proposes additional annotations for network, filesystem, environment dependencies. Tool resolution can provide argument-specific refinement of any annotation field.
 - **SEP-1300 (Tool Filtering)**: Addresses context window pressure through tool grouping. Tool resolution provides finer-grained information without requiring tool explosion.
 - **SEP-1699 (Error Forwarding)**: Discusses challenges with forwarding HTTP errors (like 403) during tool calls, which motivates preflight checks for scope requirements.
