@@ -151,9 +151,7 @@ Tools that support resolution **MUST** include the `resolve` field:
 interface Tool extends BaseMetadata {
   name: string;
   description?: string;
-  inputSchema: {
-    /* ... */
-  };
+  inputSchema: { /* ... */ };
   annotations?: ToolAnnotations;
 
   /**
@@ -412,9 +410,7 @@ Consider a `get_repo_contents` tool. With static `securitySchemes`:
 ```json
 {
   "name": "get_repo_contents",
-  "securitySchemes": [
-    { "type": "oauth2", "scopes": ["repo"] }
-  ]
+  "securitySchemes": [{ "type": "oauth2", "scopes": ["repo"] }]
 }
 ```
 
@@ -447,6 +443,7 @@ With tool resolution, the server can return argument-specific requirements:
 ```
 
 This enables:
+
 - **Minimal privilege**: Users only authenticate when accessing private resources
 - **Better UX**: No unnecessary OAuth prompts for public data
 - **Accurate metadata**: `privateHint` and `openWorldHint` reflect the actual data being accessed
