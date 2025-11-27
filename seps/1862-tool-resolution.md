@@ -151,7 +151,9 @@ Tools that support resolution **MUST** include the `resolve` field:
 interface Tool extends BaseMetadata {
   name: string;
   description?: string;
-  inputSchema: { /* ... */ };
+  inputSchema: {
+    /* ... */
+  };
   annotations?: ToolAnnotations;
 
   /**
