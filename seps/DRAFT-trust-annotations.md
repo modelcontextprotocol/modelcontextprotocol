@@ -10,14 +10,15 @@
 
 ## Abstract
 
-This SEP proposes trust and sensitivity annotations for MCP requests and responses, enabling clients and servers to track, propagate, and enforce trust boundaries on data as it flows through tool invocations. The proposal introduces annotations for marking data sensitivity, provenance, and potential malicious activity—creating primitives that hosts and registries can use to implement security policies.
+This SEP proposes trust and sensitivity annotations for MCP, enabling clients and servers to track, propagate, and enforce trust boundaries on data as it flows through tool invocations. The proposal extends the existing `ToolAnnotations` interface with fields for marking data sensitivity, provenance, and potential malicious activity—creating primitives that hosts and registries can use to implement security policies.
 
 The proposal introduces:
 
-1. **Result annotations** for marking data characteristics in tool responses
-2. **Request annotations** for propagating trust context to servers
-3. **Propagation rules** ensuring sensitivity markers persist across session boundaries
-4. **Malicious activity signaling** for security alerting and compliance
+1. **Extended tool annotations** for pre-execution metadata via Tool Resolution
+2. **Result annotations** for marking data characteristics in tool responses
+3. **Request annotations** for propagating trust context to servers
+4. **Propagation rules** ensuring sensitivity markers persist across session boundaries
+5. **Malicious activity signaling** for security alerting and compliance
 
 This pattern enables:
 
@@ -106,12 +107,30 @@ This is distinct from **MCP session**, which refers to the protocol-level connec
 
 ### Annotation Types
 
-#### Result Annotations
+#### Extended Tool Annotations
 
-Tools **MAY** include these annotations in their results to describe data characteristics:
+This SEP extends the existing `ToolAnnotations` interface with trust-related fields. This unified approach means:
+
+- **Static declarations**: Tools declare worst-case annotations in `tools/list`
+- **Resolved declarations**: `tools/resolve` refines annotations for specific arguments
+- **Response declarations**: `CallToolResult` includes annotations describing actual returned data
 
 ```typescript
-interface TrustAnnotations {
+/**
+ * Extended ToolAnnotations with trust and sensitivity fields.
+ * These fields follow the same worst-case → actual-case pattern as
+ * existing hints (readOnlyHint, destructiveHint, etc.).
+ */
+interface ToolAnnotations {
+  // Existing hints (unchanged)
+  title?: string;
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+
+  // NEW: Trust and sensitivity extensions
+
   /**
    * Indicates data is internal/private to an organization.
    * Not necessarily highly sensitive, but not for public release.
@@ -126,27 +145,6 @@ interface TrustAnnotations {
    * - high: Highly sensitive, regulated, or secret (credentials, PII)
    */
   sensitiveHint?: "low" | "medium" | "high";
-
-  /**
-   * Indicates data originates from or may be exposed to untrusted sources.
-   * Key distinction from Tool's openWorldHint: this is about data origin,
-   * not tool capabilities. A trusted server can return untrusted data.
-   *
-   * Examples of untrusted sources requiring openWorldHint: true:
-   * - Web page content (potential invisible prompt injection)
-   * - Email bodies (user-controlled content)
-   * - GitHub issues, PR descriptions, comments (attacker-controlled)
-   * - User-generated content from any platform
-   * - Files uploaded by external users
-   * - Search results from Bing, Google, or other web searches
-   * - Cloud storage content (e.g., query_from_storage_account)
-   * - Database query results with user-supplied data
-   *
-   * Note: Even Microsoft's Azure MCP server cannot guarantee outputs from
-   * tools like query_using_bing are safe—the server code is trusted but
-   * the data it returns may not be.
-   */
-  openWorldHint?: boolean;
 
   /**
    * Indicates detected or suspected malicious activity in the request
@@ -172,7 +170,24 @@ interface TrustAnnotations {
 }
 ```
 
-#### Request Annotations
+**Note on `openWorldHint`**: This existing field gains additional meaning in the trust context:
+
+- **Tool-level (static)**: "This tool may access external systems"
+- **Resolved (via `tools/resolve`)**: "This specific operation will access external/untrusted sources"
+- **Response-level**: "This response contains data from untrusted sources"
+
+Examples of untrusted sources requiring `openWorldHint: true`:
+
+- Web page content (potential invisible prompt injection)
+- Email bodies (user-controlled content)
+- GitHub issues, PR descriptions, comments (attacker-controlled)
+- User-generated content from any platform
+- Search results from Bing, Google, or other web searches
+- Database query results with user-supplied data
+
+#### Result Annotations
+
+Tools **MAY** include annotations in their results to describe data characteristics:
 
 Clients **MAY** include annotations in requests to communicate trust context:
 
@@ -256,63 +271,32 @@ The `CallToolResult` **MAY** include trust annotations at the response level:
 }
 ```
 
-#### Per-Item Annotations for Mixed Results
+#### Response Annotations Scope
 
-For tools returning multiple items with different sensitivity levels (e.g., search results), servers **MAY** include annotations per content item:
+Response annotations describe the **entire response** as a unit. Servers **MUST** aggregate annotations to reflect the worst-case across all content:
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "Public document...",
-        "_meta": {
-          "annotations": {
-            "openWorldHint": true,
-            "attribution": ["https://public.example.com/doc"]
-          }
-        }
-      },
-      {
-        "type": "text",
-        "text": "Internal memo...",
-        "_meta": {
-          "annotations": {
-            "sensitiveHint": "medium",
-            "privateHint": true,
-            "attribution": ["file:///internal/memo.txt"]
-          }
-        }
-      }
-    ],
-    "_meta": {
-      "annotations": {
-        "sensitiveHint": "medium",
-        "privateHint": true,
-        "openWorldHint": true
-      }
-    }
-  }
-}
-```
+- **sensitiveHint**: Use the highest level present in any returned data
+- **Boolean hints**: If any content has `privateHint: true` or `openWorldHint: true`, the response has that hint
+- **attribution**: Union of all sources contributing to the response
 
-**Aggregation rule**: Response-level annotations **SHOULD** reflect the union/maximum of all item-level annotations (highest `sensitiveHint`, any `true` boolean propagates).
+> **Note**: Per-item annotations (marking individual content items differently) are explicitly **out of scope** for this SEP. This simplifies implementation and avoids complexity around item-level tracking. If needed, per-item annotations can be proposed in a future SEP.
 
 ### Schema Definitions
 
-#### TrustAnnotations
+#### ToolAnnotations Extension
+
+The following fields are added to the existing `ToolAnnotations` interface:
 
 ```typescript
 /**
- * Trust and sensitivity annotations for MCP data.
+ * Extended ToolAnnotations with trust and sensitivity fields.
  */
-export interface TrustAnnotations {
+export interface ToolAnnotations {
+  // ... existing fields ...
+
+  // Trust extensions
   privateHint?: boolean;
   sensitiveHint?: "low" | "medium" | "high";
-  openWorldHint?: boolean;
   maliciousActivityHint?: boolean;
   attribution?: string[];
 }
@@ -320,13 +304,11 @@ export interface TrustAnnotations {
 
 #### JSON Schema Additions
 
-Add to `schema.json`:
+Add to the existing `ToolAnnotations` definition in `schema.json`:
 
 ```json
 {
-  "TrustAnnotations": {
-    "description": "Trust and sensitivity annotations for data provenance and classification.",
-    "type": "object",
+  "ToolAnnotations": {
     "properties": {
       "privateHint": {
         "description": "Indicates data is internal/private to an organization.",
@@ -336,10 +318,6 @@ Add to `schema.json`:
         "description": "Indicates presence of sensitive data with granularity.",
         "type": "string",
         "enum": ["low", "medium", "high"]
-      },
-      "openWorldHint": {
-        "description": "Indicates data originates from or may be exposed to untrusted sources.",
-        "type": "boolean"
       },
       "maliciousActivityHint": {
         "description": "Indicates detected or suspected malicious activity.",
@@ -361,7 +339,7 @@ When used with the Tool Resolution mechanism ([SEP #1862](https://github.com/mod
 
 #### Pre-execution Annotation Refinement
 
-Servers supporting `tools/resolve` **MAY** return trust annotations in the resolved tool metadata based on the provided arguments:
+Servers supporting `tools/resolve` **MAY** return trust annotations in the resolved tool's `annotations` field. This follows the same pattern as other tool annotations: the tool declares worst-case in `tools/list`, and `tools/resolve` refines to the actual case for the given arguments.
 
 ```json
 // Request: What annotations will apply if I read this file?
@@ -378,14 +356,11 @@ Servers supporting `tools/resolve` **MAY** return trust annotations in the resol
   "tool": {
     "name": "read_file",
     "annotations": {
-      "readOnlyHint": true
-    },
-    "_meta": {
-      "annotations": {
-        "sensitiveHint": "high",
-        "privateHint": true,
-        "attribution": ["mcp://file-server.acme.local/hr/salaries.xlsx"]
-      }
+      "readOnlyHint": true,
+      "openWorldHint": false,
+      "sensitiveHint": "high",
+      "privateHint": true,
+      "attribution": ["mcp://file-server.acme.local/hr/salaries.xlsx"]
     }
   }
 }
@@ -421,14 +396,14 @@ In these cases, servers **SHOULD** return conservative annotations at resolve ti
 2. Servers **MUST** respect trust annotations in requests when making policy decisions
 3. Servers **MAY** refuse operations when trust annotations indicate policy violations
 4. Servers **SHOULD** include `maliciousActivityHint` when detecting suspicious patterns
+5. Servers **SHOULD** return early or invoke [elicitation](https://modelcontextprotocol.io/specification/draft/client/elicitation) if potentially malicious activity is detected mid-way through exection of a task.
 
 #### Client Responsibilities
 
 1. Clients **MUST** propagate annotations according to propagation rules
 2. Clients **MAY** enforce basic policies (block, escalate, require confirmation)
 3. Clients **SHOULD** surface `maliciousActivityHint` to users
-4. Clients **MAY** invoke [elicitation](https://modelcontextprotocol.io/specification/draft/client/elicitation) when trust annotations warrant user review
-5. Clients **MAY** present attribution data as part of confirmation dialogs
+4. Clients **MAY** present attribution data as part of confirmation dialogs
 
 ### Enforcement Examples
 
@@ -577,7 +552,19 @@ Without this, security signals are lost between tool boundaries. Servers impleme
 
 ### Alternatives Considered
 
-#### Alternative 1: Full IFC System
+#### Alternative 1: Separate TrustAnnotations Type
+
+Define a separate `TrustAnnotations` interface distinct from `ToolAnnotations`, placed in `_meta.annotations` on tools and responses.
+
+**Why rejected:**
+
+- Creates unnecessary nesting (`tool._meta.annotations` vs `tool.annotations`)
+- The paradigm already fits: existing `ToolAnnotations` use the worst-case → actual-case pattern
+- `openWorldHint` already exists in `ToolAnnotations` and naturally extends to trust context
+- Tool Resolution ([SEP #1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862)) refines annotations based on arguments—trust fields benefit from this same pattern
+- Simpler implementation: one annotations field to check, not two
+
+#### Alternative 2: Full IFC System
 
 Implement complete Information Flow Control with declassifiers, label lattices, and taint tracking.
 
@@ -588,7 +575,7 @@ Implement complete Information Flow Control with declassifiers, label lattices, 
 - May require certification for declassifiers
 - Can be added in future SEP if simpler approach proves insufficient
 
-#### Alternative 2: Organization-Specific Schemas
+#### Alternative 3: Organization-Specific Schemas
 
 Let each organization define their own annotation vocabularies (HIPAA, PCI, etc.).
 
@@ -598,7 +585,7 @@ Let each organization define their own annotation vocabularies (HIPAA, PCI, etc.
 - Each MCP server must understand multiple schemas
 - Can be added as extension mechanism in future
 
-#### Alternative 3: No Specification
+#### Alternative 4: No Specification
 
 Leave trust handling to individual implementations.
 
@@ -873,7 +860,7 @@ Several SEPs propose **tool-level** annotations that complement this SEP's **dat
 
 6. **Confidence levels**: Should servers express confidence in their classifications?
 
-7. **Granularity**: ~~Should annotations apply per-result-item rather than per-response?~~ _Resolved_: This SEP supports both response-level and per-item annotations.
+7. **Granularity**: ~~Should annotations apply per-result-item rather than per-response?~~ _Resolved_: Response annotations reflect the entire response (worst-case aggregation). Per-item annotations are out of scope for this SEP.
 
 8. **Tool Resolution integration**: Should `tools/resolve` be required to return conservative annotations for tools with dynamic content, or is this just guidance?
 
