@@ -1,11 +1,11 @@
 # SEP: Trust and Sensitivity Annotations
 
-| Status  | Draft                                                                         |
-| :------ | :---------------------------------------------------------------------------- |
-| Type    | Standards Track                                                               |
-| Created | 2025-06-11                                                                    |
-| Authors | @SamMorrowDrums                                                               |
-| Sponsor | @dend                                                                         |
+| Status  | Draft                                                                           |
+| :------ | :------------------------------------------------------------------------------ |
+| Type    | Standards Track                                                                 |
+| Created | 2025-06-11                                                                      |
+| Authors | @SamMorrowDrums                                                                 |
+| Sponsor | @dend                                                                           |
 | Issue   | [#711](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/711) |
 
 ## Abstract
@@ -59,13 +59,13 @@ Regulated industries (healthcare, finance) need audit trails and sensitivity cla
 
 Recent research proposes several design patterns for secure LLM agents. Trust annotations provide the **primitives** these patterns need at protocol boundaries:
 
-| Pattern | Trust Annotation Role |
-| :------ | :-------------------- |
-| **Plan-Then-Execute** | Planning phase uses `sensitiveHint`/`openWorldHint` to determine allowed tool sequences |
-| **Map-Reduce** | Isolated agents return results with annotations; aggregation enforces sensitivity policies |
-| **Dual LLM** | Privileged LLM receives annotations on quarantined results to make display decisions |
-| **ShardGuard** | Coordination service uses annotations to select sanitization functions and opaque value policies |
-| **FIDES (IFC)** | Annotations serve as data labels for deterministic information flow control |
+| Pattern               | Trust Annotation Role                                                                            |
+| :-------------------- | :----------------------------------------------------------------------------------------------- |
+| **Plan-Then-Execute** | Planning phase uses `sensitiveHint`/`openWorldHint` to determine allowed tool sequences          |
+| **Map-Reduce**        | Isolated agents return results with annotations; aggregation enforces sensitivity policies       |
+| **Dual LLM**          | Privileged LLM receives annotations on quarantined results to make display decisions             |
+| **ShardGuard**        | Coordination service uses annotations to select sanitization functions and opaque value policies |
+| **FIDES (IFC)**       | Annotations serve as data labels for deterministic information flow control                      |
 
 Without protocol-level annotations, each security architecture must reinvent data classification.
 
@@ -102,7 +102,7 @@ Without trust annotations: The email goes through with no checks.
 
 **Agent session** (or simply "session" in this SEP): A client-side concept representing a sequence of user interactions where subsequent requests share the same agent context window. This is the conversation or task boundary as perceived by the user—for example, a chat thread in an AI assistant or a task execution in an agentic workflow.
 
-This is distinct from **MCP session**, which refers to the protocol-level connection between a client and server (as defined in the MCP specification). Trust annotations propagate across an *agent session*, which may span multiple MCP sessions or interact with multiple MCP servers.
+This is distinct from **MCP session**, which refers to the protocol-level connection between a client and server (as defined in the MCP specification). Trust annotations propagate across an _agent session_, which may span multiple MCP sessions or interact with multiple MCP servers.
 
 ### Annotation Types
 
@@ -131,7 +131,7 @@ interface TrustAnnotations {
    * Indicates data originates from or may be exposed to untrusted sources.
    * Key distinction from Tool's openWorldHint: this is about data origin,
    * not tool capabilities. A trusted server can return untrusted data.
-   * 
+   *
    * Examples of untrusted sources requiring openWorldHint: true:
    * - Web page content (potential invisible prompt injection)
    * - Email bodies (user-controlled content)
@@ -141,7 +141,7 @@ interface TrustAnnotations {
    * - Search results from Bing, Google, or other web searches
    * - Cloud storage content (e.g., query_from_storage_account)
    * - Database query results with user-supplied data
-   * 
+   *
    * Note: Even Microsoft's Azure MCP server cannot guarantee outputs from
    * tools like query_using_bing are safe—the server code is trusted but
    * the data it returns may not be.
@@ -158,14 +158,14 @@ interface TrustAnnotations {
   /**
    * Attribution for data provenance. Lists sources contributing to
    * this response for audit and compliance purposes.
-   * 
+   *
    * Attribution strings SHOULD use URIs that meaningfully identify the source:
    * - MCP server origins: "mcp://server-name.domain/path/to/resource"
    * - HTTPS sources: "https://api.example.com/endpoint"
    * - Known local files with domain context: "local://WORKSTATION.corp.acme.com/path/file"
    * - Anonymous local files (unknown origin): "local:anonymous/path/file"
    * - Organization resources: "urn:org:acme:hr:salaries"
-   * 
+   *
    * Avoid opaque file:// URIs that don't convey meaningful provenance.
    */
   attribution?: string[];
@@ -392,6 +392,7 @@ Servers supporting `tools/resolve` **MAY** return trust annotations in the resol
 ```
 
 This allows clients to:
+
 1. **Apply policies before execution** (block, escalate, require confirmation)
 2. **Avoid unnecessary tool calls** when policy would reject the result anyway
 3. **Inform users upfront** about sensitivity implications
@@ -443,10 +444,10 @@ sequenceDiagram
     User->>Client: "Email the salary report to accountant@external.com"
     Client->>File MCP: tools/call (read salary.xlsx)
     File MCP-->>Client: Result (sensitiveHint: high, attribution: [salary.xlsx])
-    
+
     Note over Client: Propagate annotations
     Client->>Email MCP: tools/call (send email)<br/>annotations: {sensitiveHint: high}
-    
+
     alt Policy: Block external + sensitive
         Email MCP-->>Client: Error: Cannot send sensitive data externally
     else Policy: Escalate
@@ -468,10 +469,10 @@ sequenceDiagram
 
     User->>Client: "Summarize this webpage"
     Client->>Web MCP: tools/call (fetch URL)
-    
+
     Note over Web MCP: Detects prompt injection<br/>in page content
     Web MCP-->>Client: Result (maliciousActivityHint: true,<br/>openWorldHint: true)
-    
+
     Client->>User: ⚠️ Warning: Potential malicious content detected
     Client->>Client: Apply additional filtering
     Client->>LLM: Context with warnings attached
@@ -491,19 +492,19 @@ const examplePolicies = {
       conditions: {
         and: [
           { fact: "request.annotations.sensitiveHint", in: ["medium", "high"] },
-          { fact: "destination.openWorldHint", equals: true }
-        ]
-      }
+          { fact: "destination.openWorldHint", equals: true },
+        ],
+      },
     },
     {
       name: "escalate-malicious",
       effect: "escalate",
       conditions: {
         fact: "response.annotations.maliciousActivityHint",
-        equals: true
-      }
-    }
-  ]
+        equals: true,
+      },
+    },
+  ],
 };
 ```
 
@@ -521,9 +522,7 @@ Trust annotations implement **defense-in-depth**, not binary security:
 2. **MCP clients provide additional context** — they know which servers are trusted, which outputs came from open-world tools, and can apply incremental validation
 3. **Layered validation is more accurate** — because the client has full context (session history, user permissions, organizational policies), it can make more precise decisions than the LLM alone
 
-As Microsoft's Azure MCP team noted when implementing their servers:
-
-> "We can ensure our code is secure and non-malicious, but outputs from tools such as `query_using_bing` or `query_from_storage_account` may be unpredictable. This hint enables the server to provide information about 'signed' or 'unsigned' outputs."
+Even trusted MCP servers can return unpredictable data. Outputs from tools like web search or cloud storage queries may contain content the server cannot fully vet. Annotations enable servers to signal when results come from "signed" (known-safe) versus "unsigned" (untrusted) sources.
 
 The point isn't to guarantee safety—it's to provide the primitives for layered defense.
 
@@ -549,14 +548,14 @@ This maps to common organizational classification schemes.
 
 @JustinCappos [suggested](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/711#issuecomment-2967516811) IFC-style categorical labels instead of linear sensitivity. This is a valid approach with tradeoffs:
 
-| Approach | Pros | Cons |
-| :------- | :--- | :--- |
-| Linear (low/medium/high) | Simple, familiar, easy to implement | Less expressive for complex flows |
+| Approach                 | Pros                                   | Cons                                |
+| :----------------------- | :------------------------------------- | :---------------------------------- |
+| Linear (low/medium/high) | Simple, familiar, easy to implement    | Less expressive for complex flows   |
 | Categorical (IFC labels) | More precise data compartmentalization | Requires label namespace management |
 
 Microsoft's FIDES system demonstrates enterprise IFC for LLM workflows—Mark Russinovich noted that "the goal is to get data labels added to those protocols." Meanwhile, research into architectural approaches like ShardGuard suggests that compartmentalization (planning LLM + isolated execution) can achieve IFC-like properties without explicit labeling.
 
-**Key insight:** These approaches are complementary, not competing. Architectural patterns (compartmentalization, isolation) work *within* a system, while protocol annotations enable security *across* system boundaries. A ShardGuard coordination service benefits from knowing incoming data has `sensitiveHint: high`; a FIDES policy engine needs standardized labels to evaluate.
+**Key insight:** These approaches are complementary, not competing. Architectural patterns (compartmentalization, isolation) work _within_ a system, while protocol annotations enable security _across_ system boundaries. A ShardGuard coordination service benefits from knowing incoming data has `sensitiveHint: high`; a FIDES policy engine needs standardized labels to evaluate.
 
 This SEP starts with the simpler linear approach. Future SEPs could add categorical labels as an extension, potentially using reverse-DNS notation for organization-specific labels (e.g., `com.mycorp.project.classified`).
 
@@ -583,6 +582,7 @@ Without this, security signals are lost between tool boundaries. Servers impleme
 Implement complete Information Flow Control with declassifiers, label lattices, and taint tracking.
 
 **Why rejected (for now):**
+
 - Significantly more complex to implement
 - Requires solving namespace management
 - May require certification for declassifiers
@@ -593,6 +593,7 @@ Implement complete Information Flow Control with declassifiers, label lattices, 
 Let each organization define their own annotation vocabularies (HIPAA, PCI, etc.).
 
 **Why rejected (for now):**
+
 - No interoperability between organizations
 - Each MCP server must understand multiple schemas
 - Can be added as extension mechanism in future
@@ -602,6 +603,7 @@ Let each organization define their own annotation vocabularies (HIPAA, PCI, etc.
 Leave trust handling to individual implementations.
 
 **Why rejected:**
+
 - Security signals lost at tool boundaries
 - No common language for policy enforcement
 - Every implementation reinvents the wheel
@@ -680,51 +682,51 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
 const server = new Server(
   { name: "file-server", version: "1.0.0" },
-  { capabilities: { tools: {} } }
+  { capabilities: { tools: {} } },
 );
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args, _meta } = request.params;
-  
+
   // Check incoming annotations for policy decisions
   const incomingAnnotations = _meta?.annotations ?? {};
-  
+
   if (name === "write_file") {
     const targetPath = args.path as string;
-    
+
     // Example policy: Don't write sensitive data to public locations
     if (incomingAnnotations.sensitiveHint && isPublicPath(targetPath)) {
       throw new McpError(
         ErrorCode.InvalidRequest,
-        "Cannot write sensitive data to public location"
+        "Cannot write sensitive data to public location",
       );
     }
   }
-  
+
   if (name === "read_file") {
     const filePath = args.path as string;
     const content = await readFile(filePath);
-    
+
     // Classify the file and return with annotations
     const annotations = classifyFile(filePath, content);
-    
+
     return {
       content: [{ type: "text", text: content }],
-      _meta: { annotations }
+      _meta: { annotations },
     };
   }
 });
 
 function classifyFile(path: string, content: string): TrustAnnotations {
   const annotations: TrustAnnotations = {
-    attribution: [`file://${path}`]
+    attribution: [`file://${path}`],
   };
-  
+
   // Example classification logic
   if (path.includes("/internal/") || path.includes("/private/")) {
     annotations.privateHint = true;
   }
-  
+
   if (containsSecrets(content)) {
     annotations.sensitiveHint = "high";
     annotations.maliciousActivityHint = true; // Secret in unexpected place
@@ -733,7 +735,7 @@ function classifyFile(path: string, content: string): TrustAnnotations {
   } else if (path.includes("/confidential/")) {
     annotations.sensitiveHint = "low";
   }
-  
+
   return annotations;
 }
 ```
@@ -745,46 +747,46 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
 class TrustTrackingClient {
   private sessionAnnotations: TrustAnnotations = {};
-  
+
   async callTool(
     client: Client,
     name: string,
-    args: Record<string, unknown>
+    args: Record<string, unknown>,
   ): Promise<CallToolResult> {
     // Include accumulated session annotations in request
     const result = await client.callTool({
       name,
       arguments: args,
-      _meta: { annotations: this.sessionAnnotations }
+      _meta: { annotations: this.sessionAnnotations },
     });
-    
+
     // Propagate annotations from result
     const resultAnnotations = result._meta?.annotations ?? {};
     this.propagateAnnotations(resultAnnotations);
-    
+
     // Handle malicious activity detection
     if (resultAnnotations.maliciousActivityHint) {
       await this.alertUser(
         "⚠️ Potential malicious content detected",
-        resultAnnotations
+        resultAnnotations,
       );
     }
-    
+
     return result;
   }
-  
+
   private propagateAnnotations(newAnnotations: TrustAnnotations): void {
     // Sensitivity escalation (keep highest level)
     if (newAnnotations.sensitiveHint) {
       const levels = { low: 1, medium: 2, high: 3 };
       const current = this.sessionAnnotations.sensitiveHint;
       const incoming = newAnnotations.sensitiveHint;
-      
+
       if (!current || levels[incoming] > levels[current]) {
         this.sessionAnnotations.sensitiveHint = incoming;
       }
     }
-    
+
     // Boolean union for hints
     if (newAnnotations.privateHint) {
       this.sessionAnnotations.privateHint = true;
@@ -792,21 +794,21 @@ class TrustTrackingClient {
     if (newAnnotations.openWorldHint) {
       this.sessionAnnotations.openWorldHint = true;
     }
-    
+
     // Merge attribution
     if (newAnnotations.attribution) {
       this.sessionAnnotations.attribution = [
         ...new Set([
           ...(this.sessionAnnotations.attribution ?? []),
-          ...newAnnotations.attribution
-        ])
+          ...newAnnotations.attribution,
+        ]),
       ];
     }
   }
-  
+
   private async alertUser(
     message: string,
-    annotations: TrustAnnotations
+    annotations: TrustAnnotations,
   ): Promise<void> {
     // Implementation depends on host UI
     console.warn(message, annotations);
@@ -821,20 +823,21 @@ class TrustTrackingClient {
 #### Complementary SEPs
 
 - **SEP Tool Resolution** ([#1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862)): Provides argument-specific metadata refinement. Trust annotations can be returned via `tools/resolve` to enable pre-execution policy decisions (see "Integration with Tool Resolution" section).
-- **SEP Tool Requirements** ([#1385](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1385)): Proposes a `requires` field for pre-execution capability/permission validation. Trust annotations complement this by describing what the result *contains*, while `requires` describes what's *needed to call* the tool.
+- **SEP Tool Requirements** ([#1385](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1385)): Proposes a `requires` field for pre-execution capability/permission validation. Trust annotations complement this by describing what the result _contains_, while `requires` describes what's _needed to call_ the tool.
 - **SEP Security Schemes** ([#1488](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1488)): OpenAI's proposal for per-tool OAuth scope declarations. Operates at the authentication layer; trust annotations operate at the data layer.
 
 #### Related Tool Annotation Proposals
 
 Several SEPs propose **tool-level** annotations that complement this SEP's **data-level** annotations:
 
-| SEP | Scope | Description | Relationship |
-|:----|:------|:------------|:-------------|
-| [#1487](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1487) `trustedHint` | Tool-level | Marks whether a tool itself is trusted | A trusted tool can still return untrusted data |
-| [#1560](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1560) `secretHint` | Tool-level | Marks tools whose outputs may contain sensitive data | Static declaration; this SEP provides dynamic per-response granularity |
-| [#1561](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1561) `unsafeOutputHint` | Tool-level | Marks tool outputs potentially unsafe for prompt injection | Similar to `openWorldHint` but at tool vs. data level |
+| SEP                                                                                                  | Scope      | Description                                                | Relationship                                                           |
+| :--------------------------------------------------------------------------------------------------- | :--------- | :--------------------------------------------------------- | :--------------------------------------------------------------------- |
+| [#1487](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1487) `trustedHint`      | Tool-level | Marks whether a tool itself is trusted                     | A trusted tool can still return untrusted data                         |
+| [#1560](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1560) `secretHint`       | Tool-level | Marks tools whose outputs may contain sensitive data       | Static declaration; this SEP provides dynamic per-response granularity |
+| [#1561](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1561) `unsafeOutputHint` | Tool-level | Marks tool outputs potentially unsafe for prompt injection | Similar to `openWorldHint` but at tool vs. data level                  |
 
-**Key distinction**: Tool-level hints say "this tool *may* return sensitive data" while data-level annotations say "*this specific response* contains sensitive data." Both are needed:
+**Key distinction**: Tool-level hints say "this tool _may_ return sensitive data" while data-level annotations say "_this specific response_ contains sensitive data." Both are needed:
+
 - Tool hints enable conservative static policy decisions
 - Data annotations enable precise dynamic enforcement
 - A single tool (e.g., `read_file`) can return both sensitive and non-sensitive results depending on which file is read
@@ -870,7 +873,7 @@ Several SEPs propose **tool-level** annotations that complement this SEP's **dat
 
 6. **Confidence levels**: Should servers express confidence in their classifications?
 
-7. **Granularity**: ~~Should annotations apply per-result-item rather than per-response?~~ *Resolved*: This SEP supports both response-level and per-item annotations.
+7. **Granularity**: ~~Should annotations apply per-result-item rather than per-response?~~ _Resolved_: This SEP supports both response-level and per-item annotations.
 
 8. **Tool Resolution integration**: Should `tools/resolve` be required to return conservative annotations for tools with dynamic content, or is this just guidance?
 
