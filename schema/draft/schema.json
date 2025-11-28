@@ -1932,7 +1932,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/$defs/PaginatedRequestParams"
+                    "$ref": "#/$defs/ListToolsRequestParams"
                 }
             },
             "required": [
@@ -1940,6 +1940,35 @@
                 "jsonrpc",
                 "method"
             ],
+            "type": "object"
+        },
+        "ListToolsRequestParams": {
+            "description": "Parameters for a tools/list request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/$defs/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                },
+                "cursor": {
+                    "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
+                    "type": "string"
+                },
+                "query": {
+                    "description": "Optional search string for filtering tools. Should be a simple text query (category, tag, or semantic description).\nServers should support LLM-friendly queries like single words (\"database\", \"filesystem\") or short phrases (\"read files\", \"http requests\").\nNOT for complex JSON or structured query languages. Server documents expected format in the instructions field.",
+                    "type": "string"
+                },
+                "task": {
+                    "$ref": "#/$defs/TaskMetadata",
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a CreateTaskResult immediately, and the actual result can be\nretrieved later via tasks/result.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                }
+            },
             "type": "object"
         },
         "ListToolsResult": {
@@ -3055,6 +3084,10 @@
                 "tools": {
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
+                        "filtering": {
+                            "description": "Whether this server supports filtering tools via the query parameter in tools/list requests.",
+                            "type": "boolean"
+                        },
                         "listChanged": {
                             "description": "Whether this server supports notifications for changes to the tool list.",
                             "type": "boolean"
