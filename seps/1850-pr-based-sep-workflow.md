@@ -180,4 +180,5 @@ No new security considerations beyond the standard code review process for pull 
 - This SEP document itself serves as an example of the new format
 
 # Vote
+
 This SEP was accepted unanimously by the MCP Core Maintainers with a vote of 8 yes's, 0 no's and 0 absent votes on Friday December 28th, 2025 in a Discord poll.

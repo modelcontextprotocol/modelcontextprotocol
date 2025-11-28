@@ -44,6 +44,7 @@ Status transitions work the same as before: `Draft` to `In-Review` to `Accepted`
 Ready to propose a change to MCP? Here's what you need to know:
 
 **For new SEPs:**
+
 - Read the latest [SEP Guidelines](https://modelcontextprotocol.io/community/sep-guidelines)
 - Use the [SEP template](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/README.md#sep-file-structure) to create your proposal
 - Browse existing SEPs in the [`seps/` directory](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/seps) for examples
@@ -53,7 +54,7 @@ Ready to propose a change to MCP? Here's what you need to know:
 If you have a SEP submitted as a GitHub issue, you can continue with your current workflow. We strongly encourage migrating to the new process for better version control and centralized discussion. To migrate:
 
 1. Create a markdown file using the SEP template, starting with `0000-your-feature.md`
-2. Copy and adapt your proposal content to fit the template structure  
+2. Copy and adapt your proposal content to fit the template structure
 3. Submit a pull request to the `seps/` directory
 4. Rename the file using your new PR number (e.g., PR #1900 becomes `1900-your-feature.md`)
 5. Close the original issue with a link to the new PR
