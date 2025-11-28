@@ -1,6 +1,6 @@
 # Model Context Protocol (MCP)
 
-_Just heard of MCP and not sure where to start? See [the documentation website instead](https://modelcontextprotocol.io)._
+_Just heard of MCP and not sure where to start? Check out our [documentation website](https://modelcontextprotocol.io)._
 
 This repo contains the:
 
@@ -14,6 +14,10 @@ compatibility.
 
 The official MCP documentation is built using Mintlify and available at
 [modelcontextprotocol.io](https://modelcontextprotocol.io).
+
+## Authors
+
+The Model Context Protocol was created by David Soria Parra ([@dsp](https://github.com/dsp)) and Justin Spahr-Summers ([@jspahrsummers](https://github.com/jspahrsummers)).
 
 ## Contributing
 
