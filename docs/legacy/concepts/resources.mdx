@@ -134,6 +134,8 @@ Servers may return multiple resources in response to one `resources/read` reques
 
 </Tip>
 
+Alternatively, if the scheme of the resource's URI is `https://`, clients may fetch the resource directly from the web — they do not need to read the resource via the MCP server. Fetching the resource directly can reduce MCP server load and avoid the overhead of Base64-encoding binary content.
+
 ## Resource updates
 
 MCP supports real-time updates for resources through two mechanisms:
