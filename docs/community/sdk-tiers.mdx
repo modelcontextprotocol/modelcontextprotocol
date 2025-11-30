@@ -1,0 +1,91 @@
+---
+title: SDK Tiering System
+description: Feature completeness, protocol support, and maintenance commitment levels for Model Context Protocol SDKs
+---
+
+The MCP SDK Tiering System establishes clear expectations for feature completeness, protocol support, and maintenance commitment across official and community SDKs. This helps developers choose the right SDK for their needs and provides SDK maintainers with a clear path for improvement.
+
+<Note>
+  The tiering system will be officially launched in 2026. This document provides
+  guidance for SDK maintainers to prepare by working with the conformance
+  testing working group and setting up GitHub issue tracking with standardized
+  labels.
+</Note>
+
+## Overview
+
+SDKs are classified into three tiers based on feature completeness, maintenance commitment, and documentation quality:
+
+- **Tier 1**: Fully supported SDKs with complete protocol implementation
+- **Tier 2**: Actively-maintained SDKs working toward full protocol specification support
+- **Tier 3**: Experimental or specialized SDKs
+
+## Tier Requirements
+
+| Requirement                 | Tier 1: Fully Supported                                                          | Tier 2: Commitment to Full Support                               | Tier 3: Experimental   |
+| --------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------- |
+| **Conformance Tests**       | 100% pass rate                                                                   | 80% pass rate                                                    | No minimum             |
+| **New Protocol Features**   | Within 2 weeks of Release Candidate release, before the new spec version release | Within 6 months                                                  | No timeline commitment |
+| **Issue Triage**            | Within 2 business days                                                           | Within a month                                                   | No requirement         |
+| **Critical Bug Resolution** | Within 7 days                                                                    | Withing two weeks                                                | No requirement         |
+| **Stable Release**          | Required with clear versioning                                                   | At least one stable release                                      | Not required           |
+| **Documentation**           | Comprehensive with examples for all features                                     | Basic documentation covering core features                       | No minimum             |
+| **Dependency Policy**       | Published update policy                                                          | Published update policy                                          | Not required           |
+| **Roadmap**                 | Published roadmap                                                                | Published plan toward Tier 1 or explanation for remaining Tier 2 | Not required           |
+
+## Conformance Testing
+
+All SDKs are evaluated using [automated conformance tests](https://github.com/modelcontextprotocol/conformance) that validate protocol compliance. SDKs receive a compliance score based on test results:
+
+- **Tier 1**: 100% compliance required
+- **Tier 2**: 80% compliance required
+- **Tier 3**: No minimum requirement
+
+Conformance testing validates that SDKs correctly implement the protocol by running standardized test scenarios and checking protocol message exchanges.
+
+## Tier Advancement
+
+SDK maintainers can request tier advancement by:
+
+1. Self-assessing against tier requirements
+2. Submitting advancement request with supporting evidence
+3. Passing automated conformance testing
+4. Receiving approval from MCP maintainers
+
+## Tier Relegation
+
+SDKs may be moved to a lower tier if:
+
+- **Tier 1**: Conformance tests fail continuously for 4 weeks
+- **Tier 2**: More than 20% of conformance tests fail continuously for 4 weeks
+- **Any Tier**: Critical issues remain unaddressed for 2 months
+
+## Issue Triage Labels
+
+Consistent labeling enables automated reporting on issue handling metrics, which contributes to tier calculations. Use these standardized labels across all SDK repositories.
+
+### Type (pick one)
+
+| Label         | Description                   |
+| ------------- | ----------------------------- |
+| `bug`         | Something isn't working       |
+| `enhancement` | Request for new feature       |
+| `question`    | Further information requested |
+
+### Status (pick one)
+
+| Label                | Description                           |
+| -------------------- | ------------------------------------- |
+| `needs confirmation` | Unclear if still relevant             |
+| `needs repro`        | Insufficient information to reproduce |
+| `ready for work`     | Has enough information to start       |
+| `good first issue`   | Good for community contribution       |
+
+### Priority (only if actionable)
+
+| Label | Description                                |
+| ----- | ------------------------------------------ |
+| `P0`  | Broken core functionality, security issues |
+| `P1`  | Significant bug affecting many users       |
+| `P2`  | Moderate issues, valuable feature requests |
+| `P3`  | Nice to haves, rare edge cases             |
