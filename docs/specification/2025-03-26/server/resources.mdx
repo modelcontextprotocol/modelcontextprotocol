@@ -243,6 +243,10 @@ sequenceDiagram
     Client->>Server: resources/list
     Server-->>Client: List of resources
 
+    Note over Client,Server: Resource Template Discovery
+    Client->>Server: resources/templates/list
+    Server-->>Client: List of resource templates
+
     Note over Client,Server: Resource Access
     Client->>Server: resources/read
     Server-->>Client: Resource contents
