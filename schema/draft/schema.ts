@@ -11,7 +11,7 @@ export type JSONRPCMessage =
   | JSONRPCResponse;
 
 /** @internal */
-export const LATEST_PROTOCOL_VERSION = "DRAFT-2025-v3";
+export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
 
