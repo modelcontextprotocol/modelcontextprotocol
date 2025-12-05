@@ -29,15 +29,17 @@ This extension is particularly valuable for:
 - Compliance requirements mandating proof-of-possession
 
 ## Specification
+
 The DPoP Profile for MCP strengthens OAuth 2.0 sender-constrained tokens in the Model Context Protocol by addressing a security gap created by MCP’s single-endpoint architecture. Standard DPoP binds proofs to the HTTP method and URL, but in MCP all requests share the same method (POST) and endpoint, and the actual operation is encoded entirely in the JSON-RPC body. This makes traditional DPoP vulnerable to replay attacks where an intercepted proof could be reused with a different request payload.
 
 To solve this, the profile adds one key requirement: DPoP proofs must include a cryptographic digest of the JSON-RPC request body (`content_digest`). This binds each proof to a specific request payload, preventing attackers from replaying valid proofs with altered bodies.
 
 The design emphasizes:
-* **Payload binding** — eliminating replay attacks without requiring server-side state.
-* **Statelessness** — servers do not need to track jti values.
-* **Compatibility** — minimal, targeted changes that keep DPoP and OAuth flows standard.
-* **Scalability** — suitable for distributed MCP servers.
+
+- **Payload binding** — eliminating replay attacks without requiring server-side state.
+- **Statelessness** — servers do not need to track jti values.
+- **Compatibility** — minimal, targeted changes that keep DPoP and OAuth flows standard.
+- **Scalability** — suitable for distributed MCP servers.
 
 This proposal extends DPoP so MCP can safely use sender-constrained tokens by cryptographically tying each request to the proof that authorizes it. A detailed proposal is described at https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-dpop-extension/specification/draft/dpop-extension.mdx
 
@@ -49,8 +51,8 @@ The purpose of this extension is to adapt OAuth 2.0 DPoP to the architectural re
 
 In typical RESTful APIs, DPoP proofs are inherently bound to the specific method and path of each request, limiting their replay value. MCP’s design, however, uses:
 
-- A single HTTP endpoint, and  
-- A single HTTP method (`POST`),  
+- A single HTTP endpoint, and
+- A single HTTP method (`POST`),
 - With all semantic variation encoded in the JSON-RPC message body.
 
 This means the `htu` and `htm` claims in a standard DPoP proof carry little entropy—they do not meaningfully differentiate purposes or operations. As a result, an attacker who obtains a proof (and valid token) during the proof validity window could replay it with a different JSON-RPC payload, gaining unauthorized access to operations the original client never invoked.
@@ -59,21 +61,21 @@ This is a threat unique to protocols like MCP that multiplex operations within a
 
 ### 2. Binding the Proof to the Request Payload Closes This Gap
 
-The introduction of a `content_digest` claim binds the DPoP proof to a cryptraphic digest of the JSON-RPC request body. This elevates the binding from *endpoint only* to *endpoint + payload*, eliminating the value of reusing proofs with modified JSON-RPC messages.
+The introduction of a `content_digest` claim binds the DPoP proof to a cryptraphic digest of the JSON-RPC request body. This elevates the binding from _endpoint only_ to _endpoint + payload_, eliminating the value of reusing proofs with modified JSON-RPC messages.
 
 This approach was chosen because:
 
-- It leverages existing IETF work (RFC 9530) rather than inventing a new digest syntax,  
-- It adds no state requirements for servers,  
-- It maintains compatibility with existing DPoP libraries and flows,  
+- It leverages existing IETF work (RFC 9530) rather than inventing a new digest syntax,
+- It adds no state requirements for servers,
+- It maintains compatibility with existing DPoP libraries and flows,
 - It is transport-agnostic and does not require TLS extensions or multi-endpoint APIs.
 
 ### 3. Stateless Replay Protection Is Critical for MCP Deployability
 
 MCP servers are expected to run in scalable, distributed environments. Stateful replay detection (e.g., global `jti` tracking) would impose:
 
-- Infrastructure overhead (centralized storage or synchronization),  
-- Latency penalties,  
+- Infrastructure overhead (centralized storage or synchronization),
+- Latency penalties,
 - Operational coupling between nodes.
 
 Because MCP already has a single-endpoint active attack surface, requiring `content_digest` provides strong, per-request replay defense **without** requiring server-side state. Servers may still track `jti` values for high-assurance use cases, but the protocol does not depend on it.
