@@ -1,4 +1,4 @@
-# SEP-0000: Workload Identity Federation
+# SEP-1933: Workload Identity Federation
 
 - **Status**: Draft
 - **Type**: Standards Track
