@@ -117,10 +117,13 @@ To request a language model generation, servers send a `sampling/createMessage` 
           "name": "claude-3-sonnet"
         }
       ],
+      "costPriority": 0.3,
       "intelligencePriority": 0.8,
       "speedPriority": 0.5
     },
+    "temperature": 0.1,
     "systemPrompt": "You are a helpful assistant.",
+    "includeContext": "thisServer",
     "maxTokens": 100
   }
 }
@@ -513,7 +516,13 @@ sequenceDiagram
 
 ### Messages
 
-Sampling messages can contain:
+Sampling messages **MUST** contain a `role` field of `"user"` or `"assistant"`; and
+a `content` field representing the message data.
+
+The list of messages in a sampling request **SHOULD NOT** be retained between
+separate requests.
+
+The `content` field can contain:
 
 #### Text Content
 
@@ -590,6 +599,58 @@ For example:
 The client processes these preferences to select an appropriate model from its available
 options. For instance, if the client doesn't have access to Claude models but has Gemini,
 it might map the sonnet hint to `gemini-1.5-pro` based on similar capabilities.
+
+### System Prompt
+
+The optional `systemPrompt` field allows servers to request a specific system prompt.
+The client **MAY** modify or ignore this field without communicating this to the server.
+
+### Context Inclusion
+
+The `includeContext` parameter specifies what context information the client is expected
+to include in its response:
+
+- `"none"`: No additional context.
+- `"thisServer"`: Include context from the requesting server.
+- `"allServers"`: Include context from all connected MCP servers.
+
+The client **MAY** modify or ignore this field without communicating this to the server.
+For example, a client could determine that respecting this field in a particular request
+would require sharing sensitive information with a server, and constrain its response
+accordingly.
+
+### Sampling Parameters
+
+LLM sampling can be fine-tuned with the following parameters:
+
+- `temperature`: Controls randomness in model responses. Higher values produce higher randomness, and lower values produce more stable output. Valid range depends upon the model provider.
+- `maxTokens`: Maximum tokens to generate; required.
+- `stopSequences`: Array of sequences that stop generation.
+- `metadata`: Additional provider-specific parameters.
+
+The client **MUST** respect the `maxTokens` parameter.
+
+The client **MAY** modify or ignore `temperature`, `stopSequences` and `metadata`. For
+example, a client could use a model that does not support one or more of these parameters,
+and would therefore be unable to leverage them.
+
+### Result Fields
+
+Sampling results will contain the following fields:
+
+- `role`: The message role; see [Messages](#messages).
+- `content`: The message content. This can be either:
+  - A single content block when the response contains only one content block, such as a single text response.
+  - An array of content blocks when the response contains one or more content blocks, such as multiple tool uses or mixed content.
+
+  See [Messages](#messages) for content block types.
+
+- `model`: The name of the model that generated the message.
+- `stopReason`: The reason why sampling stopped, if known. The specification defines the following (non-exhaustive) stop reasons, although implementations **MAY** provide their own arbitrary values:
+  - `"endTurn"`: The participant is yielding the conversation to the other party.
+  - `"stopSequence"`: Message generation encountered one of the requested `stopSequences`.
+  - `"maxTokens"`: The token limit was reached.
+  - `"toolUse"`: The model wants to use one or more tools.
 
 ## Error Handling
 
