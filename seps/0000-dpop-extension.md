@@ -1,4 +1,4 @@
-# SEP-XXX: DPoP Profile for MCP
+# SEP-1932: DPoP Profile for MCP
 
 > **Note**: This SEP defines an optional security extension for MCP that enables sender-constrained access tokens through DPoP (Demonstrating Proof-of-Possession).
 
