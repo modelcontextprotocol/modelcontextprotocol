@@ -64,7 +64,60 @@
         "tab": "Specification",
         "versions": [
           {
-            "version": "Version 2025-06-18 (latest)",
+            "version": "Version 2025-11-25 (latest)",
+            "pages": [
+              "specification/2025-11-25/index",
+              "specification/2025-11-25/changelog",
+              "specification/2025-11-25/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/2025-11-25/basic/index",
+                  "specification/2025-11-25/basic/lifecycle",
+                  "specification/2025-11-25/basic/transports",
+                  "specification/2025-11-25/basic/authorization",
+                  "specification/2025-11-25/basic/security_best_practices",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-11-25/basic/utilities/cancellation",
+                      "specification/2025-11-25/basic/utilities/ping",
+                      "specification/2025-11-25/basic/utilities/progress",
+                      "specification/2025-11-25/basic/utilities/tasks"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/2025-11-25/client/roots",
+                  "specification/2025-11-25/client/sampling",
+                  "specification/2025-11-25/client/elicitation"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/2025-11-25/server/index",
+                  "specification/2025-11-25/server/prompts",
+                  "specification/2025-11-25/server/resources",
+                  "specification/2025-11-25/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2025-11-25/server/utilities/completion",
+                      "specification/2025-11-25/server/utilities/logging",
+                      "specification/2025-11-25/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              },
+              "specification/2025-11-25/schema"
+            ]
+          },
+          {
+            "version": "Version 2025-06-18",
             "pages": [
               "specification/2025-06-18/index",
               "specification/2025-06-18/changelog",
@@ -318,17 +371,22 @@
   },
   "redirects": [
     {
+      "source": "/specification/latest",
+      "destination": "/specification/2025-11-25",
+      "permanent": false
+    },
+    {
+      "source": "/specification/latest/:slug*",
+      "destination": "/specification/2025-11-25/:slug*",
+      "permanent": false
+    },
+    {
       "source": "/tutorials/building-a-client",
       "destination": "/docs/develop/build-client"
     },
     {
       "source": "/quickstart",
       "destination": "/docs/develop/build-server"
-    },
-    {
-      "source": "/specification/latest",
-      "destination": "/specification/2025-06-18",
-      "permanent": false
     },
     {
       "source": "/docs/concepts/architecture",
