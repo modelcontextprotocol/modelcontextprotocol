@@ -1,0 +1,161 @@
+# Enterprise Automation: Concurrent Dependency Approval
+
+## The Use Case
+
+Enterprise code generation platforms often require governance controls around dependencies. Before an LLM can use a third-party library, it must pass through approval workflows:
+
+- Automated security scanning
+- License compliance checks
+- Policy validation
+- Optional human review
+
+These workflows take seconds to minutes. During this time, the LLM should continue generating code rather than waiting idle.
+
+## Mapping to Tasks
+
+### Request Phase
+
+When the LLM identifies needed dependencies, the client creates task-augmented tool calls. The server immediately returns task IDs without waiting for approval workflows to complete. The LLM continues generating code that doesn't depend on these libraries yet.
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant LLM
+    participant Client
+    participant Server
+    participant Approval as Approval System
+
+    Note over LLM,Approval: LLM begins code generation and identifies dependency needs
+
+    activate LLM
+    %% First dependency task
+    LLM->>Client: Generate code (needs dependency: Axios)
+    deactivate LLM
+    Client->>Server: tools/call "ImportDependency"<br/>name: "Axios"<br/>task: { ttl: 300000 }
+    Server->>Client: CreateTaskResult<br/>{ taskId: "dep-001",<br/>status: "working" }
+    Client->>LLM: Task created for Axios<br/>(taskId: dep-001)
+    activate LLM
+
+    %% Second dependency task
+    LLM->>Client: Generate code (needs dependency: Lodash)
+    deactivate LLM
+    Client->>Server: tools/call "ImportDependency"<br/>name: "Lodash"<br/>task: { ttl: 300000 }
+    Server->>Client: CreateTaskResult<br/>{ taskId: "dep-002",<br/>status: "working" }
+    Client->>LLM: Task created for Lodash<br/>(taskId: dep-002)
+    activate LLM
+
+    Note over LLM: LLM continues generating code<br/>(avoiding dependency-specific code)
+
+    LLM->>Client: Generate utility functions<br/>(no dependencies needed)
+    deactivate LLM
+    Client->>LLM: Files updated
+    activate LLM
+
+    Note over Server,Approval: Background: Approval workflows begin
+
+    Server->>Approval: Request approval: Axios
+    activate Approval
+    Server->>Approval: Request approval: Lodash
+    activate Approval
+
+    Note over Client: Client begins polling task statuses
+
+    %% Client polls while work is in progress
+    Client->>Server: tasks/get<br/>taskId: "dep-001"
+    Server->>Client: status: "working"<br/>(approval pending)
+
+    Client->>Server: tasks/get<br/>taskId: "dep-002"
+    Server->>Client: status: "working"<br/>(approval pending)
+
+    Note over LLM: LLM continues generating more code
+
+    Note over Approval,Server: Lodash approval completes
+    Approval-->>Server: Approved ✓
+    deactivate Approval
+    Note right of Server: Task dep-002<br/>status → "completed"
+
+    %% Client polls again and finds Lodash completion
+    Client->>Server: tasks/get<br/>taskId: "dep-001"
+    Server->>Client: status: "working"<br/>(approval still pending)
+
+    Client->>Server: tasks/get<br/>taskId: "dep-002"
+    Server->>Client: status: "completed"
+
+    Client->>Server: tasks/result<br/>taskId: "dep-002"
+    Server->>Client: Result:<br/>{ approved: true,<br/>dependency: "Lodash" }
+
+    Client->>LLM: [System Message]<br/>Dependency approved: Lodash<br/>You may now use it
+
+    Note over LLM: LLM can now generate code<br/>using Lodash
+
+    LLM->>Client: Generate code using Lodash
+    deactivate LLM
+    Client->>LLM: Files updated
+    activate LLM
+
+    Note over Approval,Server: Axios approval completes
+    Approval-->>Server: Rejected ✗
+    deactivate Approval
+    Note right of Server: Task dep-001<br/>status → "completed"
+
+    %% Check second task
+    Client->>Server: tasks/get<br/>taskId: "dep-001"
+    Server->>Client: status: "completed"
+
+    Client->>Server: tasks/result<br/>taskId: "dep-001"
+    Server->>Client: Result:<br/>{ approved: false,<br/>dependency: "Axios",<br/>reason: "Security policy violation" }
+
+    Client->>LLM: [System Message]<br/>Dependency rejected: Axios<br/>Reason: Security policy violation<br/>Find alternative solution
+
+    Note over LLM: LLM must find alternative<br/>to Axios (or give up)
+
+    LLM->>Client: Generate code using fetch API<br/>(built-in alternative to Axios)
+    deactivate LLM
+    Client->>LLM: Files updated
+    activate LLM
+```
+
+### Concurrent Execution
+
+Both approval workflows run in parallel on the backend. The client polls both tasks, not knowing which will complete first. In this example, Lodash (requested second) completes before Axios (requested first).
+
+### Result Delivery
+
+When Lodash approval completes, the client:
+
+1. Calls `tasks/result dep-002` to fetch the approval decision
+2. Delivers the approval as a system message to the LLM
+3. The LLM can now generate code using Lodash
+
+When Axios approval completes with a rejection:
+
+1. Client fetches the rejection reason via `tasks/result dep-001`
+2. Delivers the rejection as a system message to the LLM
+3. The LLM adapts by using the built-in `fetch` API instead
+
+## Why This Maps Well to Tasks
+
+**Concurrent workflows**: The approval system naturally processes multiple requests in parallel. Tasks expose this concurrency so that inference can continue.
+
+**Unpredictable timing**: Approval workflows vary widely in duration. Some complete in seconds; others require human review. Tasks accommodate this variability—the client polls until completion, regardless of how long it takes.
+
+**Partial success**: Not all dependencies may be approved. Tasks let the LLM receive results independently and adapt to each decision. Work isn't all-or-nothing.
+
+## Key Takeaway
+
+Tasks enable concurrent execution for operations that naturally take time. The dependency approval scenario demonstrates the pattern: request what you need, continue working, receive results asynchronously as they complete.
+
+This same pattern applies across multiple domains:
+
+**Data analysis**: Submit computational jobs (e.g., molecular analysis, drug interaction modeling) that process for hours while the LLM continues other work.
+
+**Code operations**: Trigger migrations or transformations across repositories that run for minutes to hours, checking results when ready.
+
+**Test execution**: Launch comprehensive test suites that run in the background, checking results when ready rather than blocking until all tests complete.
+
+**Research workflows**: Dispatch multiple research agents that gather and synthesize information over extended periods.
+
+**Multi-agent systems**: Allow agents to delegate time-intensive reasoning or analysis tasks to peer agents without blocking their own execution.
+
+In each case, the core benefit is the same: multiple requests processed in parallel, with varying completion times and outcomes, while the LLM remains productive.
