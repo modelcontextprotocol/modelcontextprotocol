@@ -59,7 +59,7 @@ Writing to stdout will corrupt the JSON-RPC messages and break your server.
 ### Best Practices
 
 1. Use a logging library that writes to stderr or files.
-1. Tool names should follow the format specified [here](/specification/draft/server/tools#tool-names).
+1. For Python, be especially careful - `print()` writes to stdout by default.
 
 ### Quick Examples
 
