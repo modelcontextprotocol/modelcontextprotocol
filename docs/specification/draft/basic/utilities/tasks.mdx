@@ -127,7 +127,12 @@ Task-augmented requests follow a two-phase response pattern that differs from no
 - **Normal requests**: The server processes the request and returns the actual operation result directly.
 - **Task-augmented requests**: The server accepts the request and immediately returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
 
-To create a task, requestors send a request with the `task` field included in the request params. Requestors **MAY** include a `ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
+To create a task, requestors send a request with the `task` field included in the request params. Requestors **MAY** include some additional information:
+
+- `ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation
+- `extensions` object providing arbitrary extension metadata for the task, used to control how task will be handled.
+- `context` object providing context metadata for the task, such as identity information.
+- `bizContext` object providing business context metadata for the task, if the server received this, it should respond the same `bizContext` in the task-related responses and notifications.
 
 **Request:**
 
@@ -142,7 +147,18 @@ To create a task, requestors send a request with the `task` field included in th
       "city": "New York"
     },
     "task": {
-      "ttl": 60000
+      "ttl": 60000,
+      "extensions": {
+        "priority": "high"
+      },
+      "context": {
+        "identity": {
+          "userNick": "huming"
+        }
+      },
+      "bizContext": {
+        "customerId": "12345"
+      }
     }
   }
 }
@@ -162,7 +178,18 @@ To create a task, requestors send a request with the `task` field included in th
       "createdAt": "2025-11-25T10:30:00Z",
       "lastUpdatedAt": "2025-11-25T10:40:00Z",
       "ttl": 60000,
-      "pollInterval": 5000
+      "pollInterval": 5000,
+      "extensions": {
+        "priority": "high"
+      },
+      "context": {
+        "identity": {
+          "userNick": "huming"
+        }
+      },
+      "bizContext": {
+        "customerId": "12345"
+      }
     }
   }
 }
