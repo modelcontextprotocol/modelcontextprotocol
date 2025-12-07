@@ -1,13 +1,13 @@
-# SEP 0000: Add `agencyHint` tool annotation  
+# SEP 1938: Add `agencyHint` tool annotation  
 
 ## Preamble  
 
-- **SEP Number**: 0000  
+- **SEP Number**: 1938
 - **Title**: Add `agencyHint` tool annotation  
 - **Authors**: Rajesh Kamisetty  
 - **Type**: Standards Track  
 - **Status**: draft  
-- **PR**: TBA  
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1938
 - **Discussion**: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1792  
 
 ## Abstract  
