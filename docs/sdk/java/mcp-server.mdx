@@ -134,7 +134,7 @@ The SDK includes several built-in transport provider implementations:
   </Tab>
   <Tab title="WebFlux">
     <p>WebFlux-based SSE and Streamable-HTTP server transport. [Requires the `mcp-spring-webflux` dependency](/sdk/java/mcp-overview#dependencies).</p>
-    <Tabs>    
+    <Tabs>
       <Tab title="Streamable-HTTP (WebFlux)">
           ```java
           @Configuration
@@ -361,8 +361,8 @@ The SDK includes several built-in transport provider implementations:
   </Tab>
   <Tab title="Servlet">
     <p>
-      Creates a Servlet-based `SSE`, `Streamable-HTTP`, and `Stateless` server transport. 
-      It can be used with any Servlet container.      
+      Creates a Servlet-based `SSE`, `Streamable-HTTP`, and `Stateless` server transport.
+      It can be used with any Servlet container.
     </p>
 
     <Tabs>
@@ -648,7 +648,7 @@ The resource specification comprised of resource definitions and resource read h
 The resource definition including `name`, `description`, and `MIME type`.
 The first argument of the function that handles resource read requests is an `McpAsyncServerExchange` upon which the server can
 interact with the connected client.
-The second arguments is a `McpSchema.ReadResourceRequest`.
+The second arguments is an `McpSchema.ReadResourceRequest`.
 
 ### Prompt Specification
 

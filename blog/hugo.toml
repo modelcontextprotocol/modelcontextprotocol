@@ -1,6 +1,7 @@
 baseURL = 'https://blog.modelcontextprotocol.io/'
 languageCode = 'en-us'
-title = 'mcp blog'
+title = 'Model Context Protocol Blog'
+copyright = 'Copyright © 2025 Model Context Protocol Project. All rights reserved.'
 theme = 'github.com/adityatelange/hugo-PaperMod'
 [pagination]
   pagerSize = 5
@@ -8,6 +9,9 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
 [params]
   author = "The MCP project"
   description = "Updates from the Model Context Protocol project"
+
+  [params.homeInfoParams]
+    Content = "Get the latest updates from protocol maintainers and contributors about new developments, upcoming features, and real-world MCP implementations."
 
   # PaperMod specific settings
   # defaultTheme = "dark" # MCP uses a dark theme
@@ -25,11 +29,7 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   comments = false
   hidemeta = false
   hideSummary = false
-  showtoc = false
   ShowFullTextinRSS = true
-
-  # Custom copyright
-  copyright = '© 2025 Model Context Protocol Project'
 
   [params.assets]
     favicon = "favicon.svg"
@@ -37,6 +37,10 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   [[params.socialIcons]]
     name = "github"
     url = "https://github.com/modelcontextprotocol"
+
+  [[params.socialIcons]]
+    name = "linkedin"
+    url = "https://linkedin.com/company/modelcontextprotocol"
 
 # Menu configuration
 [[menu.main]]

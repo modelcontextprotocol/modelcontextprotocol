@@ -203,6 +203,13 @@ MCP supports three client registration mechanisms. Choose based on your scenario
 - **Pre-registration**: When client and server have an existing relationship
 - **Dynamic Client Registration**: For backwards compatibility or specific requirements
 
+Clients supporting all options **SHOULD** follow the following priority order:
+
+1. Use pre-registered client information for the server if the client has it available
+2. Use Client ID Metadata Documents if the Authorization Server indicates if the server supports it (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
+3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
+4. Prompt the user to enter the client information if no other option is available
+
 ### Client ID Metadata Documents
 
 MCP clients and authorization servers **SHOULD** support OAuth Client ID Metadata Documents as specified in
@@ -230,7 +237,7 @@ Key requirements include:
 - **SHOULD** fetch metadata documents when encountering URL-formatted client_ids
 - **MUST** validate that the fetched document's `client_id` matches the URL exactly
 - **SHOULD** cache metadata respecting HTTP cache headers
-- **MUST** validate redirect URIs against those in the metadata document
+- **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
 - **MUST** validate the document structure is valid JSON and contains required fields
 - **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6)
 
@@ -472,7 +479,7 @@ response.
 
 MCP clients **MUST NOT** send tokens to the MCP server other than ones issued by the MCP server's authorization server.
 
-Authorization servers **MUST** only accept tokens that are valid for use with their
+MCP servers **MUST** only accept tokens that are valid for use with their
 own resources.
 
 MCP servers **MUST NOT** accept or transit any other tokens.
@@ -630,21 +637,8 @@ The authorization server takes a URL as input from an unknown client and fetches
 A malicious client could use this to trigger the authorization server to make requests to arbitrary URLs,
 such as requests to private administration endpoints the authorization server has access to.
 
-Authorization servers fetching metadata documents **MUST** protect against
-[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) attacks,
-as well as against being used as Denial of Service (DoS) amplifiers:
-
-- Validate URLs and resolved IP addresses before fetching
-- Limit response size (recommended 5 kilobytes)
-- Implement request timeouts
-- Implement aggressive caching of metadata documents (respecting HTTP cache headers)
-- Never cache error responses or invalid documents
-- Rate limit metadata fetch requests per client
-- Monitor and alert on unusual metadata fetch patterns
-- Only fetch client metadata after authenticating the user
-
-While there is no amplification in the fetch request bandwidth, aggressive caching minimizes
-the risk of authorization servers being used in distributed denial of service attacks.
+Authorization servers fetching metadata documents **SHOULD** consider
+[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-server-side-request-forgery).
 
 #### Localhost Redirect URI Risks
 

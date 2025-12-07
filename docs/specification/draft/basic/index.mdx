@@ -32,7 +32,7 @@ these types of messages:
 
 ### Requests
 
-Requests are sent from the client to the server or vice versa, to initiate an operation.
+[Requests](/specification/draft/schema#jsonrpcrequest) are sent from the client to the server or vice versa, to initiate an operation.
 
 ```typescript
 {
@@ -52,16 +52,35 @@ Requests are sent from the client to the server or vice versa, to initiate an op
 
 ### Responses
 
-Responses are sent in reply to requests, containing the result or error of the operation.
+Responses are sent in reply to requests, containing either the result or error of the operation.
+
+#### Result Responses
+
+[Result responses](/specification/draft/schema#jsonrpcresultresponse) are sent when the operation completes successfully.
 
 ```typescript
 {
   jsonrpc: "2.0";
   id: string | number;
-  result?: {
+  result: {
     [key: string]: unknown;
   }
-  error?: {
+}
+```
+
+- Result responses **MUST** include the same ID as the request they correspond to.
+- Result responses **MUST** include a `result` field.
+- The `result` **MAY** follow any JSON object structure.
+
+#### Error Responses
+
+[Error responses](/specification/draft/schema#jsonrpcerrorresponse) are sent when the operation fails or encounters an error.
+
+```typescript
+{
+  jsonrpc: "2.0";
+  id?: string | number;
+  error: {
     code: number;
     message: string;
     data?: unknown;
@@ -69,17 +88,13 @@ Responses are sent in reply to requests, containing the result or error of the o
 }
 ```
 
-- Responses **MUST** include the same ID as the request they correspond to.
-- **Responses** are further sub-categorized as either **successful results** or
-  **errors**. Either a `result` or an `error` **MUST** be set. A response **MUST NOT**
-  set both.
-- Results **MAY** follow any JSON object structure, while errors **MUST** include an
-  error code and message at minimum.
+- Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
+- Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
 
 ### Notifications
 
-Notifications are sent from the client to the server or vice versa, as a one-way message.
+[Notifications](/specification/draft/schema#jsonrpcnotification) are sent from the client to the server or vice versa, as a one-way message.
 The receiver **MUST NOT** send a response.
 
 ```typescript
@@ -191,16 +206,17 @@ may reserve particular names for purpose-specific metadata, as declared in those
 
 - If specified, MUST be a series of labels separated by dots (`.`), followed by a slash (`/`).
   - Labels MUST start with a letter and end with a letter or digit; interior characters can be letters, digits, or hyphens (`-`).
-- Any prefix beginning with zero or more valid labels, followed by `modelcontextprotocol` or `mcp`, followed by any valid label,
-  is **reserved** for MCP use.
-  - For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.
+  - Implementations SHOULD use reverse DNS notation (e.g., `com.example/` rather than `example.com/`).
+- Any prefix where the second label is `modelcontextprotocol` or `mcp` is **reserved** for MCP use.
+  - For example: `io.modelcontextprotocol/`, `dev.mcp/`, `org.modelcontextprotocol.api/`, and `com.mcp.tools/` are all reserved.
+  - However, `com.example.mcp/` is NOT reserved, as the second label is `example`.
 
 **Name:**
 
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
 
-#### `icons`
+### `icons`
 
 The `icons` property provides a standardized way for servers to expose visual identifiers for their resources, tools, prompts, and implementations. Icons enhance user interfaces by providing visual context and improving the discoverability of available functionality.
 
