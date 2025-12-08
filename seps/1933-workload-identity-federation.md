@@ -4,8 +4,8 @@
 - **Type**: Standards Track
 - **Created**: 2025-12-05
 - **Author(s)**: Pieter Kasselman
-- **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
+- **Sponsor**: Darin McAdams
+- **PR**: https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx
 
 ## Abstract
 
