@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP defines Workload Identity Federation for the Model Context Protocol, enabling autonomous MCP clients to access MCP servers using existing workload identity credentials without requiring separate client registration or long-lived credentials. The proposal leverages the OAuth 2.0 JWT Bearer grant type (RFC 7523) combined with OpenID Connect Discovery to allow MCP clients operating as workloads—such as those deployed in Kubernetes or cloud environments—to present platform-issued JWT credentials directly to authorization servers. This eliminates the need for client secrets, client identifiers, or separate credential management while maintaining security through issuer trust relationships and claim-based authorization.
+This SEP defines Workload Identity Federation for the Model Context Protocol, enabling autonomous MCP clients to access MCP servers using existing workload identity credentials without requiring separate client registration or long-lived credentials. The proposal leverages the OAuth 2.0 JWT Bearer grant type (RFC 7523) combined with OpenID Connect Discovery to allow MCP clients operating as workloads, such as those deployed in Kubernetes or cloud environments, to present platform-issued JWT credentials directly to authorization servers. This eliminates the need for client secrets, client identifiers, or separate credential management while maintaining security through issuer trust relationships and claim-based authorization.
 
 ## Motivation
 
