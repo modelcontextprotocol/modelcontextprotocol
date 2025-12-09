@@ -30,7 +30,7 @@ This extension is particularly valuable for:
 
 ## Specification
 
-The DPoP Profile for MCP strengthens OAuth 2.0 sender-constrained tokens in the Model Context Protocol by addressing a security gap created by MCP’s single-endpoint architecture. Standard DPoP binds proofs to the HTTP method and URL, but in MCP all requests share the same method (POST) and endpoint, and the actual operation is encoded entirely in the JSON-RPC body. This makes traditional DPoP vulnerable to replay attacks where an intercepted proof could be reused with a different request payload.
+The DPoP Profile for MCP adapts OAuth 2.0 sender-constrained tokens for use in the Model Context Protocol’s single-endpoint architecture. Standard DPoP binds proofs to the HTTP method and URL, but in MCP all requests use the same method (POST) and endpoint, with the specific operation conveyed in the JSON-RPC body. As a result, traditional DPoP does not distinguish between different MCP operations, since the request semantics are not reflected in the elements covered by the proof. The profile refines the content of the DPoP proof to better account for this characteristic of MCP.
 
 To solve this, the profile adds one key requirement: DPoP proofs must include a cryptographic digest of the JSON-RPC request body (`content_digest`). This binds each proof to a specific request payload, preventing attackers from replaying valid proofs with altered bodies.
 
