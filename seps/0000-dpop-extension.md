@@ -1,6 +1,6 @@
 # SEP-1932: DPoP Profile for MCP
 
-> **Note**: This SEP defines an optional security extension for MCP that enables sender-constrained access tokens through DPoP (Demonstrating Proof-of-Possession).
+> **Note**: This SEP defines an optional security extension for MCP that enables sender-constrained access tokens through DPoP (RFC 9449: Demonstrating Proof of Possession).
 
 - **Status**: Draft
 - **Type**: Standards Track
