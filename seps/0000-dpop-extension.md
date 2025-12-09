@@ -26,7 +26,7 @@ This extension is particularly valuable for:
 - High-security environments handling sensitive data
 - Long-lived access tokens
 - Deployments where token theft risk is elevated
-- Compliance requirements mandating proof-of-possession
+- Compliance requirements mandating proof of possession
 
 ## Specification
 
