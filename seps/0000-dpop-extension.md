@@ -19,7 +19,7 @@ MCP’s current authorization model uses bearer tokens, which can be reused by a
 
 DPoP addresses this by making tokens "sender-constrained": even if an attacker intercepts an access token, they cannot use it without also possessing the client's private key. This significantly raises the bar for attackers.
 
-MCP's architecture presents a unique security challenge: all JSON-RPC requests use the same HTTP endpoint and method (POST). Standard DPoP binds proofs to the endpoint and HTTP method but not to the request payload, meaning an intercepted proofs can replayed with a different message body within the validity window. This SEP addresses this by including a content digest in DPoP proofs, binding each proof cryptographically to a specific request body.
+MCP's architecture presents a unique security challenge: all JSON-RPC requests use the same HTTP endpoint and method (POST). Standard DPoP binds proofs to the endpoint and HTTP method but not to the request payload, meaning intercepted proofs can be replayed with a different message body within the validity window. This SEP addresses this by including a content digest in DPoP proofs, binding each proof cryptographically to a specific request body.
 
 This extension is particularly valuable for:
 
