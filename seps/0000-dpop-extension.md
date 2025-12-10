@@ -45,7 +45,7 @@ This proposal adapts DPoP for more tailored use with MCP, enabling each request 
 
 ## Rationale
 
-The purpose of this extension is to adapt OAuth 2.0 DPoP to the architectural realities of the Model Context Protocol (MCP), ensuring sender-constrained access tokens can be used safely in an environment where traditional DPoP protections are insufficient on their own. While RFC 9449 defines a general-purpose proof-of-possession mechanism, MCP’s single-endpoint, request-tunneled design introduces replay risks that the standard DPoP mechanism does not fully mitigate. This profile specifies targeted, minimal additions—most notably, mandatory request-payload binding—to close those gaps without introducing significant complexity or statefulness.
+The purpose of this extension is to adapt OAuth 2.0 DPoP to the architectural characteristics of the Model Context Protocol (MCP), enabling sender-constrained access tokens to be used effectively in an environment where the standard DPoP mechanism provides limited request differentiation. Although RFC 9449 defines a general-purpose proof-of-possession framework, MCP’s single-endpoint, request-tunneled design means that additional context is needed to distinguish individual operations. This profile introduces a small set of focused enhancements—most notably, mandatory binding to the request payload—to provide that clarity without adding significant complexity or statefulness.
 
 ### 1. Single-Endpoint Architecture Increases Replay Risk
 
