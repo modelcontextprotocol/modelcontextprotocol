@@ -17,7 +17,7 @@ This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension 
 
 MCP’s current authorization model uses bearer tokens, which can be reused by an unauthorized party if the token is leaked or intercepted. If an access token is intercepted—through network eavesdropping, compromised logs, or other means—an attacker can use it to access protected MCP resources until the token expires.
 
-DPoP addresses this vulnerability by making tokens "sender-constrained": even if an attacker intercepts both the access token and a DPoP proof, they cannot use them without also possessing the client's private key. This significantly raises the bar for attackers.
+DPoP addresses this by making tokens "sender-constrained": even if an attacker intercepts an access token, they cannot use it without also possessing the client's private key. This significantly raises the bar for attackers.
 
 MCP's architecture presents a unique security challenge: all JSON-RPC requests use the same HTTP endpoint and method (POST). Standard DPoP binds proofs to the endpoint and HTTP method but not to the request payload, allowing intercepted proofs to be replayed with different message bodies within the validity window. This SEP addresses this by requiring a content digest in DPoP proofs, binding each proof cryptographically to a specific request body.
 
