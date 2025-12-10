@@ -49,7 +49,6 @@ The purpose of this extension is to adapt OAuth 2.0 DPoP to the architectural ch
 
 ### 1. Single-Endpoint Architecture Increases Replay Risk
 
-
 DPoP proofs are tied to the HTTP method and path of each request, which naturally limits how broadly a proof could be reused in typical RESTful APIs. MCP’s design, however, uses:
 
 - A single HTTP endpoint, and
