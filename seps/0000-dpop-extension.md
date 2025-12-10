@@ -151,7 +151,7 @@ Making `jti` tracking mandatory would provide stronger replay protection but at 
 
 ### Nonce-based Approach
 
-Server-provided nonces (per RFC 9449 Section 9) could replace time-based validation but require additional round-trips and server state. This specification makes nonces optional, allowing implementations to choose based on their security requirements.
+Server-provided nonces (per RFC 9449 Section 9) could replace time-based validation but require additional round-trips and potentially server state. This specification makes nonces optional, allowing implementations to choose based on their security requirements.
 
 ## Open Questions
 
