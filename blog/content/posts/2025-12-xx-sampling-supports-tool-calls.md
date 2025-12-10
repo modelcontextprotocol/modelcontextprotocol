@@ -6,21 +6,21 @@ author = "Jonathan Hefner"
 tags = ["sampling", "tools", "agentic"]
 +++
 
-Tool use transformed LLMs from sophisticated text generators into agents capable of taking action in the world. Before tool use, you could ask an LLM about the weather and get a plausible-sounding guess. With tool use, it can actually check.
+Tool use transformed Large Language Models (LLMs) from text generators into agents that can take real-world actions. Before tools, asking an LLM about the weather would yield a plausible-sounding guess. With tools, it can actually look it up.
 
-MCP extended that power to the ecosystem level, becoming the standard way for agents to discover and invoke tools across any number of servers. But there was an asymmetry hiding in the architecture. While LLMs could be agentic, the tools they called could not. Even tools that used MCP's [sampling feature](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling) — which lets servers request completions from the host application's LLM — were limited to simple, one-shot text generation.
+MCP extended that power across the entire ecosystem, becoming the standard way for AI agents to discover and use tools from any server. But there was an asymmetry in the architecture: while LLMs could act as agents, the tools they called couldn't. Even tools that used MCP's [sampling feature](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling), which allows servers to request text completions from the host application's LLM, were limited to simple, one-shot text generation.
 
-[SEP-1577](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1577), now part of the MCP specification, has changed that. Sampling supports tool calling, which means tools themselves can drive agentic workflows.
+[Version `2025-11-25` of the MCP specification](https://modelcontextprotocol.io/specification/2025-11-25) has changed that thanks to [SEP-1577](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1577). Sampling now supports tool calling, which means tools themselves can now drive agentic workflows.
 
 ## The asymmetry in the architecture
 
-Today's tool calls follow a simple pattern: an LLM reasons, invokes a tool, gets a result, and continues reasoning. This works well when tools are simple functions. But what if a tool needs to be smart enough to reason, make decisions, or coordinate multiple steps?
+Today's tool calls follow a simple pattern: an LLM reasons, invokes a tool, gets a result, and continues. This works well when tools are simple functions. But what if the tool _also_ needs to reason, in order to make decisions or coordinate steps?
 
-MCP's sampling feature was designed for exactly this: letting tools request LLM completions. But sampling only supported simple text generation. A server could make multiple sampling calls and chain them together with code, but that code couldn't reason. It could follow predetermined logic paths, but it couldn't adapt on the fly. The server could ask the LLM questions, but the LLM couldn't drive the investigation. This effectively capped sampling's power at pre-tool-calling levels — tools could get answers from an LLM, but they couldn't delegate agentic behavior to one.
+MCP's sampling feature was designed for exactly this scenario: letting tools request LLM completions. But until now, sampling only supported simple text generation. A server could make multiple sampling calls and chain them together with code, but that code couldn't reason - it could only follow predetermined logic. The server could ask the LLM questions, but the LLM couldn't agentically investigate. This limited sampling to pre-tool-calling capabilities.
 
 ## What SEP-1577 adds
 
-SEP-1577 introduces two new parameters to the `sampling/createMessage` request: `tools` and `toolChoice`. These let a server provide tool definitions when requesting a completion, and the LLM can call those tools as part of its response.
+SEP-1577 introduces two new parameters to the `sampling/createMessage` request: `tools` and `toolChoice`. These allow a server to provide tool definitions when requesting a completion, and the LLM can then call those tools as part of its response.
 
 ```typescript
 const result = await mcpServer.server.createMessage({
@@ -51,24 +51,22 @@ const result = await mcpServer.server.createMessage({
 });
 ```
 
-When the LLM decides to use a tool, the response comes back with `stopReason: "toolUse"` and includes `tool_use` content blocks describing what the LLM wants to invoke. The server then executes those tools, sends the results back in a follow-up sampling request, and the LLM continues, potentially calling more tools until it's ready to produce a final response.
+When the LLM decides to use a tool, it sends back a sampling response that has `stopReason: "toolUse"` and `tool_use` content blocks. The server then executes tools per the `tool_use` content blocks, and sends the results back in another sampling request. The LLM continues, potentially calling more tools, until it has everything it needs to give a final answer.
 
-This is the standard agentic loop, but now it can happen _inside_ a tool implementation.
+This is known as the **standard agentic loop**, but now it can happen _inside_ a tool implementation.
 
 ## How the loop works
 
 Here's the complete flow:
 
-1. A host application's LLM calls a tool on your server.
-2. Your tool implementation needs LLM capabilities to do its job.
-3. Your server calls `sampling/createMessage` with the `tools` parameter.
-4. The LLM reasons and decides to call one of your tools.
-5. The response comes back with `stopReason: "toolUse"`.
-6. Your server executes the tool and gets a result.
-7. Your server calls `sampling/createMessage` again, including the tool result.
-8. Steps 4-7 repeat until the LLM returns `stopReason: "endTurn"`.
-9. Your tool returns its result to the original LLM.
-10. That LLM can now call more tools, each potentially agentic themselves.
+1. A host application's LLM (the "outer" LLM) calls a tool on your server.
+2. Your tool needs LLM capabilities to do its job, so it calls `sampling/createMessage` with the `tools` parameter.
+3. The host application passes the sampling prompt and sampling tools list to a fresh instance of the LLM (the "inner" LLM).
+4. The inner LLM reasons and decides to use one of the listed tools, so it returns `stopReason: "toolUse"`.
+5. Your server executes the chosen tool, and calls `sampling/createMessage` again with the tool result.
+6. Steps 4-5 repeat until the inner LLM returns `stopReason: "endTurn"`.
+7. Your tool returns its result to the outer LLM.
+8. The outer LLM can continue calling other tools, and each of those tools can potentially be agentic itself.
 
 ```mermaid
 sequenceDiagram
@@ -96,9 +94,9 @@ sequenceDiagram
     deactivate Server
 ```
 
-The key insight is that the server drives the tool loop. The host application's job is to provide LLM access and maintain human oversight. The server decides what tools to expose, executes them when called, and determines when the loop is complete.
+The key point is: the server drives the tool loop instead of the host application. The server decides which tools to offer, how to execute tool calls, and when the process is complete.
 
-Here's a generic implementation of this pattern that you can adapt for your own tools:
+Here's a generic implementation of this pattern that you can adapt for your own tools using the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk):
 
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -166,11 +164,11 @@ async function executeTool(
 
 ## What this enables
 
-With agentic sampling, tools can be as sophisticated as the agents that call them. A few examples:
+Using sampling with tool calls, a tool can be as sophisticated as the agent that calls it. A few examples:
 
-**Research tools** can search multiple sources, cross-reference findings, and synthesize coherent summaries rather than returning raw search results for the outer agent to process.
+**Research tools** can search multiple sources, cross-reference what they find, and compile coherent summaries instead of just dumping raw search results for the outer agent to process.
 
-**Code generation tools** can write code, run tests, observe failures, and iterate until the tests pass, returning working code instead of a first draft.
+**Code generation tools** can write code, run tests, observe failures, and iterate until the tests pass, returning verified working code instead of code that might not even run.
 
 **Data analysis tools** can explore datasets, form hypotheses, run queries to test them, and produce insights, not just execute predetermined queries.
 
@@ -182,11 +180,11 @@ The pattern extends naturally. Any tool that would benefit from reasoning, itera
 
 Not all clients will support tool use in sampling immediately. SEP-1577 adds a [`sampling.tools`](https://modelcontextprotocol.io/specification/2025-11-25/schema#clientcapabilities-sampling) capability flag so servers can detect support.
 
-Servers should check for this capability flag at connection time. For tools that require agentic sampling to function, the simplest approach is to omit the tool from `tools/list` when the capability is absent. For tools that can function with degraded capability, consider implementing a graceful fallback, perhaps noting the limitation in the tool's output so the outer LLM has context.
+Servers should check for this capability flag when the client connects. If a tool requires sampling with tool calls, the simplest approach is to leave the tool out of `tools/list` when the capability isn't available. For tools that can still work with reduced functionality, consider implementing a fallback and mentioning the limitation in the tool's output so the outer LLM knows what's going on.
 
 ## A note on `includeContext`
 
-SEP-1577 also soft-deprecates the `"thisServer"` and `"allServers"` values of the `includeContext` parameter. These values — which allowed servers to request that the client include conversation context from the current or all connected servers — had ambiguous semantics that made it difficult for clients to implement consistently. This ambiguity contributed to low adoption of sampling overall.
+SEP-1577 also soft-deprecates the `"thisServer"` and `"allServers"` values of the `includeContext` parameter. These values allowed servers to request conversation context from the current server or all connected servers, but their meaning was ambiguous and made it hard for clients to implement them consistently. This ambiguity contributed to low adoption of sampling overall.
 
 ## Getting started
 
