@@ -7,7 +7,7 @@
 - **Created**: 2025-12-05
 - **Author(s)**: Pieter Kasselman
 - **Sponsor**: Darin McAdams
-- **PR**: https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-dpop-extension/specification/draft/dpop-extension.mdx
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932
 
 ## Abstract
 
