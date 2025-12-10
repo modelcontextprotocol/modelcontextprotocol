@@ -15,7 +15,7 @@ This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension 
 
 ## Motivation
 
-MCP's current authorization model uses bearer tokens, which are vulnerable to token theft and replay attacks. If an access token is intercepted—through network eavesdropping, compromised logs, or other means—an attacker can use it to access protected MCP resources until the token expires.
+MCP’s current authorization model uses bearer tokens, which can be reused by an unauthorized party if the token is leaked or intercepted. If an access token is intercepted—through network eavesdropping, compromised logs, or other means—an attacker can use it to access protected MCP resources until the token expires.
 
 DPoP addresses this vulnerability by making tokens "sender-constrained": even if an attacker intercepts both the access token and a DPoP proof, they cannot use them without also possessing the client's private key. This significantly raises the bar for attackers.
 
