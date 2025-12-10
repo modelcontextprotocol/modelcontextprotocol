@@ -57,7 +57,7 @@ In typical RESTful APIs, DPoP proofs are inherently bound to the specific method
 
 This means that, for MCP, the `htu` and `htm` claims in a standard DPoP proof they do not meaningfully differentiate purposes or operations. As a result, an attacker who obtains a proof (and valid token) during the proof validity window could replay it with a different JSON-RPC payload, gaining unauthorized access to operations the original client never invoked.
 
-This is a threat unique to protocols like MCP that multiplex operations within a uniform transport envelope.
+This is unique to protocols like MCP that multiplex operations within a uniform transport envelope.
 
 ### 2. Binding the Proof to the Request Payload Closes This Gap
 
