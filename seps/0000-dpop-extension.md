@@ -41,7 +41,7 @@ The design emphasizes:
 - **Compatibility** — minimal, targeted changes that keep DPoP and OAuth flows standard.
 - **Scalability** — suitable for distributed MCP servers.
 
-This proposal extends DPoP so MCP can safely use sender-constrained tokens by cryptographically tying each request to the proof that authorizes it. A detailed proposal is described at https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-dpop-extension/specification/draft/dpop-extension.mdx
+This proposal adapts DPoP for more tailored use with MCP, enabling each request to be cryptographically linked to its corresponding DPoP proof. A detailed proposal is described at https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-dpop-extension/specification/draft/dpop-extension.mdx
 
 ## Rationale
 
