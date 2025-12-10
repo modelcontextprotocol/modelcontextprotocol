@@ -11,7 +11,7 @@
 
 ## Abstract
 
-This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension for the Model Context Protocol that enables sender-constrained access tokens to prevent token replay attacks. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to prove possession of the private key with each request. A key enhancement specific to MCP's architecture is the required inclusion of a content digest in DPoP proofs, which cryptographically binds each proof to the specific JSON-RPC request body, addressing security challenges posed by MCP's single-endpoint architecture.
+This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. To align DPoP with MCP’s single-endpoint architecture, the extension incorporates a content digest into the DPoP proof, allowing the proof to be tied to the specific JSON-RPC request body and ensuring tighter request-level binding.
 
 ## Motivation
 
