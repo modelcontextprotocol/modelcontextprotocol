@@ -174,7 +174,7 @@ This SEP builds on established security models from OAuth 2.0, OIDC Discovery, a
 
 Implementers MUST review these documents when deploying Workload Identity Federation.
 
-The detailed proposal contains a complete list of security consideraitons (see https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx)
+The detailed proposal contains a complete list of security considerations (see https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx)
 
 ## Reference Implementation
 
