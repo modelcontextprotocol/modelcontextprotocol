@@ -55,7 +55,7 @@ In typical RESTful APIs, DPoP proofs are inherently bound to the specific method
 - A single HTTP method (`POST`),
 - With all semantic variation encoded in the JSON-RPC message body.
 
-This means the `htu` and `htm` claims in a standard DPoP proof carry little entropy—they do not meaningfully differentiate purposes or operations. As a result, an attacker who obtains a proof (and valid token) during the proof validity window could replay it with a different JSON-RPC payload, gaining unauthorized access to operations the original client never invoked.
+This means that, for MCP, the `htu` and `htm` claims in a standard DPoP proof they do not meaningfully differentiate purposes or operations. As a result, an attacker who obtains a proof (and valid token) during the proof validity window could replay it with a different JSON-RPC payload, gaining unauthorized access to operations the original client never invoked.
 
 This is a threat unique to protocols like MCP that multiplex operations within a uniform transport envelope.
 
