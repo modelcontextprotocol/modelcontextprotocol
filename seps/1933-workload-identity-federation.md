@@ -5,7 +5,7 @@
 - **Created**: 2025-12-05
 - **Author(s)**: Pieter Kasselman
 - **Sponsor**: Darin McAdams
-- **PR**: https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1933
 
 ## Abstract
 
