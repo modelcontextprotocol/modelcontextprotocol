@@ -18,7 +18,7 @@ The goal of `agencyHint` is to tell clients that a tool represents an _agentic_ 
 
 ## Motivation
 
-MCP already defines several tool annotations—such as `destructiveHint`, `idempotentHint`, `openWorldHint`, `readOnlyHint`, and `taskHint`—that communicate key behavioral and UX-related characteristics of tools. None of these, however, express whether a tool itself is _agentic_.
+MCP already defines several tool annotations—such as `destructiveHint`, `idempotentHint`, `openWorldHint`, and `readOnlyHint`—that communicate key behavioral and UX-related characteristics of tools. None of these, however, express whether a tool itself is _agentic_.
 
 As agentic tools become more common, clients increasingly need to treat them differently from simple “call-and-return” tools:
 
@@ -40,7 +40,6 @@ interface ToolAnnotations {
   idempotentHint?: boolean;
   openWorldHint?: boolean;
   readOnlyHint?: boolean;
-  taskHint?: "never" | "optional" | "always";
   agencyHint?: boolean; // NEW: Indicates whether the tool exhibits agentic behavior
   title?: string;
 }
@@ -99,14 +98,14 @@ An explicit `agencyHint` provides a simple, composable signal:
   This is brittle, client-specific, and hard to standardize. A simple boolean annotation is easier to reason about and more robust across implementations.
 - **Introducing a richer “tool type” enum**  
   While an enum could encode more nuance (e.g., `tool`, `agent`, `workflow`), it increases complexity and raises migration questions. A single boolean hint is a minimal, incremental step which does not preclude future evolution if the ecosystem needs more granularity.
-- **Encoding agentic behavior via `taskHint`**  
-  `taskHint` controls how often a tool should be used in task-oriented flows, not whether the tool itself _is_ an agent. Keeping these concerns separate leads to clearer semantics.
+- **Encoding agentic behavior via `execution.taskSupport`**  
+  `execution.taskSupport` controls how often a tool should be used in task-oriented flows, not whether the tool itself _is_ an agent. Keeping these concerns separate leads to clearer semantics.
 
 ### Interoperability and ecosystem impact
 
 - The hint is optional and advisory, so existing servers and clients remain valid.
 - Clients that do not understand `agencyHint` can ignore it.
-- Clients that _do_ understand `agencyHint` gain a portable, standardized way to treat agentic tools differently, which should improve user trust and safety.
+- Clients that _do_ understand `agencyHint` gain a portable, standardized way to treat agentic tools differently, which creates opportunities for improving user trust and safety.
 
 ## Backward Compatibility
 
