@@ -60,14 +60,12 @@ This hint is purely advisory: it does not alter protocol-level behavior, message
 
 Tool authors _should_ set `agencyHint: true` when:
 
-- The tool internally coordinates multiple sub-steps or API calls as part of a single invocation.
 - The tool encapsulates an internal “agent loop” (e.g., plan–act–observe cycles, tool-chaining, or autonomous retries).
 - The tool can take non-trivial action on behalf of the user (even if it is not destructive) without the user necessarily seeing each sub-step.
 
 Tool authors _may_ leave `agencyHint` unset (or `false`) when:
 
-- The tool is a straightforward, single API call or single transformation.
-- The tool’s behavior is entirely captured by other hints (`destructiveHint`, `readOnlyHint`, etc.) and does not involve agent-like orchestration.
+- The tool’s behavior does not involve agent-like orchestration.
 
 ### Guidance for clients
 
