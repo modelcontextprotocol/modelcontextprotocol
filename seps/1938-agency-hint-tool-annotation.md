@@ -61,7 +61,6 @@ This hint is purely advisory: it does not alter protocol-level behavior, message
 Tool authors _should_ set `agencyHint: true` when:
 
 - The tool encapsulates an internal “agent loop” (e.g., plan–act–observe cycles, tool-chaining, or autonomous retries).
-- The tool can take non-trivial action on behalf of the user (even if it is not destructive) without the user necessarily seeing each sub-step.
 
 Tool authors _may_ leave `agencyHint` unset (or `false`) when:
 
