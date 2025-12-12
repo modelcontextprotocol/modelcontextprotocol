@@ -117,26 +117,7 @@ No migration steps are required for existing tools; authors can adopt the hint i
 
 ## Reference Implementation
 
-A reference implementation for `agencyHint` should include:
-
-1. **Specification updates**
-   - Extend the ToolAnnotations definition in the MCP specification to include `agencyHint`.
-   - Add narrative text describing intended semantics, guidance for tool authors, and guidance for clients.
-
-2. **SDK updates**
-   - Update at least one official MCP SDK (e.g., TypeScript and/or Python) to:
-     - Expose `agencyHint` on tool-definition types.
-     - Propagate the field into any generated schema or metadata.
-   - Add tests confirming that tools with `agencyHint` serialize and deserialize correctly.
-
-3. **Example servers and clients**
-   - Update example MCP servers to demonstrate tools with `agencyHint: true` and `false`.
-   - Update example clients to show how `agencyHint` might influence:
-     - Tool catalog UI (grouping/labeling “agents”),
-     - Invocation confirmation flows,
-     - Monitoring or progress displays for agentic tools.
-
-Completion of these steps, and adoption in at least one client and one server, should be considered sufficient for marking the SEP’s reference implementation as complete.
+https://github.com/modelcontextprotocol/python-sdk/pull/1781
 
 ## Security Implications
 
