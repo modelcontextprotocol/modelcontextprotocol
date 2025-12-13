@@ -23,6 +23,7 @@ But MCP doesn't let me do this.
 Right now, my server only knows something happened when the assistant explicitly calls a tool. If the assistant forgets to call `recall()`, or decides it doesn't need to - my memory system is blind. The user gets no context from previous sessions.
 
 I've tried workarounds:
+
 - **Strong tool descriptions** ("REQUIRED: call this on every message") - LLMs don't always follow instructions
 - **Piggyback on other tools** - only works when tools are called, misses pure conversation
 - **Client-side hooks** - requires users to set up scripts, too much friction
@@ -30,6 +31,7 @@ I've tried workarounds:
 None of these are real solutions. They're hacks around a protocol limitation.
 
 This isn't just about memory. Other use cases blocked by this limitation:
+
 - **Knowledge bases** that surface relevant docs based on the question
 - **Project context** that reminds the assistant about codebase conventions
 - **User preferences** that personalize responses automatically
@@ -105,6 +107,7 @@ Clients MUST enforce a timeout (recommended: 500ms) for server responses. Slow o
 ### Error Handling
 
 If a server returns an error or times out:
+
 - Client logs the error
 - Conversation proceeds without that server's context
 - Client MAY retry on subsequent messages
@@ -126,6 +129,7 @@ Resources are pull-based (client requests them). This use case requires push-bas
 ## Backward Compatibility
 
 This is purely additive:
+
 - Servers that don't declare `conversationEvents` work exactly as before
 - Clients that don't support this capability ignore the server's declaration
 - No existing messages or capabilities are modified
@@ -133,21 +137,25 @@ This is purely additive:
 ## Security Implications
 
 **Privacy**: Servers with `onUserMessage` capability see the full conversation. Clients should:
+
 - Require explicit user consent before enabling this capability
 - Display which servers have conversation access
 - Allow users to revoke access per-server
 
 **Denial of Service**: A malicious server could slow down conversations. Mitigated by:
+
 - Strict timeouts (500ms recommended)
 - Clients may disable servers that repeatedly timeout
 
 **Content Injection**: Servers can inject arbitrary context. Clients should:
+
 - Clearly mark injected context as coming from external servers
 - Consider sandboxing or filtering injected content
 
 ## Reference Implementation
 
 [shodh-memory](https://github.com/varun29ankuS/shodh-memory) will implement this capability once accepted. The implementation would:
+
 1. Subscribe to `onUserMessage` events
 2. Extract entities and embeddings from user message
 3. Query memory store for relevant context
