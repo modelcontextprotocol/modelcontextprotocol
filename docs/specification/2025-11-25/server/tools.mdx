@@ -100,7 +100,10 @@ To discover available tools, clients send a `tools/list` request. This operation
             "mimeType": "image/png",
             "sizes": ["48x48"]
           }
-        ]
+        ],
+        "execution": {
+          "taskSupport": "optional"
+        }
       }
     ],
     "nextCursor": "next-page-cursor"
@@ -205,6 +208,8 @@ A tool definition includes:
   - Follows the [JSON Schema usage guidelines](/specification/2025-11-25/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: Optional properties describing tool behavior
+- `execution`: Optional object describing execution-related properties
+  - `taskSupport`: Indicates whether this tool supports [task-augmented execution](/specification/2025-11-25/basic/utilities/tasks#tool-level-negotiation). Values: `"forbidden"` (default), `"optional"`, or `"required"`
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to
