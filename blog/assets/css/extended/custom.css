@@ -17,3 +17,10 @@
 .post-meta {
     display: block !important;
 }
+
+/* Style post descriptions as abstracts with larger text */
+.post-description {
+    margin-bottom: var(--content-gap);
+    font-size: 1.2em;
+    font-style: italic;
+}
