@@ -70,6 +70,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Rust SDK
 
 - [Alex Hancock](https://github.com/alexhancock)
+- [Michael Bolin](https://github.com/bolinfest)
 
 ### PHP SDK
 
@@ -148,6 +149,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Financial Services Interest Group
 
 - [Sambhav Kothari](https://github.com/sambhav)
+- [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
 ### Transports Interest Group
 

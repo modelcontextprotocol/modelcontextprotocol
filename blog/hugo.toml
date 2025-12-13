@@ -9,6 +9,7 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
 [params]
   author = "The MCP project"
   description = "Updates from the Model Context Protocol project"
+  images = ["og-image.png"]
 
   [params.homeInfoParams]
     Content = "Get the latest updates from protocol maintainers and contributors about new developments, upcoming features, and real-world MCP implementations."
