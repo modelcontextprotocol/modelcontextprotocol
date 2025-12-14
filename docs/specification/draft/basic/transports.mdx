@@ -23,8 +23,7 @@ It is also possible for clients and servers to implement
 
 In the **stdio** transport:
 
-- The client launches the MCP server as a subprocess, creating a dedicated stdio channel
-  and ensuring a strict one-to-one relationship between each client and its server instance.
+- The client launches the MCP server as a subprocess.
 - The server reads JSON-RPC messages from its standard input (`stdin`) and sends messages
   to its standard output (`stdout`).
 - Messages are individual JSON-RPC requests, notifications, or responses.
