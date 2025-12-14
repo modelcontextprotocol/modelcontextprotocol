@@ -58,8 +58,8 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Inna Harper](https://github.com/ihrpr)
 - [Jerome Swannack](https://github.com/jerome3o)
-- [Samuel Colvin](https://github.com/samuelcolvin)
 - [Marcelo Trylesinski](https://github.com/Kludex)
+- [Max Isbey](https://github.com/maxisbey)
 
 ### TypeScript SDK
 
@@ -70,6 +70,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Rust SDK
 
 - [Alex Hancock](https://github.com/alexhancock)
+- [Michael Bolin](https://github.com/bolinfest)
 
 ### PHP SDK
 
@@ -84,8 +85,9 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Inspector
 
-- [Ola Hungerford](https://github.com/olaservo)
 - [Cliff Hall](https://github.com/cliffhall)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Ola Hungerford](https://github.com/olaservo)
 
 ### Registry
 
@@ -93,6 +95,12 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
+
+### MCPB (Model Context Protocol Bundle)
+
+- [Alexander Sklar](https://github.com/asklar)
+- [Adam Jones](https://github.com/domdomegg)
+- [Joan Xie](https://github.com/joan-anthropic)
 
 ### Reference Servers
 
@@ -141,6 +149,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Financial Services Interest Group
 
 - [Sambhav Kothari](https://github.com/sambhav)
+- [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
 ### Transports Interest Group
 
@@ -158,6 +167,11 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Peter Alexander](https://github.com/pja-ant)
 - [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
+
+### MCP Apps Working Group
+
+- [Liad Yosef](https://github.com/liady)
+- [Ido Salomon](https://github.com/idosal)
 
 ## About This Document
 

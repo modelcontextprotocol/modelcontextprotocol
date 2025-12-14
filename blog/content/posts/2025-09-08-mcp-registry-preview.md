@@ -9,8 +9,8 @@ Today, we're launching the Model Context Protocol (MCP) Registry—an open catal
 
 The MCP Registry is now available in preview. To get started:
 
-- **Add your server** by following our guide on [Adding Servers to the MCP Registry](https://github.com/modelcontextprotocol/registry/blob/main/docs/guides/publishing/publish-server.md) (for server maintainers)
-- **Access server data** by following our guide on [Accessing MCP Registry Data](https://github.com/modelcontextprotocol/registry/blob/main/docs/guides/consuming/use-rest-api.md) (for client maintainers)
+- **Add your server** by following our guide on [Adding Servers to the MCP Registry](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/quickstart.mdx) (for server maintainers)
+- **Access server data** by following our guide on [Accessing MCP Registry Data](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/registry-aggregators.mdx) (for client maintainers)
 
 # Single source of truth for MCP servers
 
@@ -20,7 +20,7 @@ Our goal is to standardize how servers are distributed and discovered, providing
 
 ## Public and private sub-registries
 
-In building a central registry, it was important to us not to take away from existing registries that the community and companies have built. The MCP Registry serves as a primary source of truth for publicly available MCP servers, and organizations can choose to [create sub-registries](https://github.com/modelcontextprotocol/registry/blob/main/docs/guides/consuming/use-rest-api.md#building-a-subregistry) based on custom criteria. For example:
+In building a central registry, it was important to us not to take away from existing registries that the community and companies have built. The MCP Registry serves as a primary source of truth for publicly available MCP servers, and organizations can choose to [create sub-registries](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/registry-aggregators.mdx) based on custom criteria. For example:
 
 **Public subregistries** like opinionated “MCP marketplaces” associated with each MCP client are free to augment and enhance data they ingest from the upstream MCP Registry. Every MCP end-user persona will have different needs, and it is up to the MCP client marketplaces to properly serve their end-users in opinionated ways.
 
@@ -30,14 +30,14 @@ In both cases, the MCP Registry is the starting point – it’s the centralized
 
 ## Community-driven mechanism for moderation
 
-The MCP Registry is an official MCP project maintained by the registry working group and permissively licensed. Community members can submit issues to flag servers that violate the MCP [moderation guidelines](https://github.com/modelcontextprotocol/registry/blob/main/docs/guides/administration/moderation-guidelines.md)—such as those containing spam, malicious code, or impersonating legitimate services. Registry maintainers can then denylist these entries and retroactively remove them from public access.
+The MCP Registry is an official MCP project maintained by the registry working group and permissively licensed. Community members can submit issues to flag servers that violate the MCP [moderation guidelines](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/moderation-policy.mdx)—such as those containing spam, malicious code, or impersonating legitimate services. Registry maintainers can then denylist these entries and retroactively remove them from public access.
 
 # Getting started
 
 To get started:
 
-- **Add your server** by following our guide on [Adding Servers to the MCP Registry](https://github.com/modelcontextprotocol/registry/blob/main/docs/guides/publishing/publish-server.md) (for server maintainers)
-- **Access server data** by following our guide on [Accessing MCP Registry Data](https://github.com/modelcontextprotocol/registry/blob/main/docs/guides/consuming/use-rest-api.md) (for client maintainers)
+- **Add your server** by following our guide on [Adding Servers to the MCP Registry](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/quickstart.mdx) (for server maintainers)
+- **Access server data** by following our guide on [Accessing MCP Registry Data](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/registry-aggregators.mdx) (for client maintainers)
 
 This preview of the MCP Registry is meant to help us improve the user experience before general availability and does not provide data durability guarantees or other warranties. We advise MCP adopters to watch development closely as breaking changes may occur before the registry is made generally available.
 
