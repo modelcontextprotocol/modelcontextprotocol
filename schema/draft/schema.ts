@@ -2239,6 +2239,8 @@ export interface SamplingMessage {
 }
 
 /**
+ * Content block types that can appear in sampling messages.
+ *
  * @category `sampling/createMessage`
  */
 export type SamplingMessageContentBlock =
