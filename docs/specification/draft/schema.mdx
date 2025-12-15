@@ -48,6 +48,10 @@ title: Schema Reference
 
 <div class="type">
 
+### `JSONRPCResponse`
+
+<div class="tsd-signature"><span class="tsd-kind-type-alias">JSONRPCResponse</span><span class="tsd-signature-symbol">:</span> <a href="#jsonrpcresultresponse" class="tsd-signature-type tsd-kind-interface">JSONRPCResultResponse</a> <span class="tsd-signature-symbol">|</span> <a href="#jsonrpcerrorresponse" class="tsd-signature-type tsd-kind-interface">JSONRPCErrorResponse</a></div><div class="tsd-comment tsd-typography"><p>A response to a request, containing either the result or error.</p> </div>
+
 ### `JSONRPCResultResponse`
 
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">JSONRPCResultResponse</span> <span class="tsd-signature-symbol">&#x7B;</span><br/>&nbsp;&nbsp;<a class="tsd-kind-property" href="#jsonrpcresultresponse-jsonrpc">jsonrpc</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;2.0&quot;</span><span class="tsd-signature-symbol">;</span><br/>&nbsp;&nbsp;<a class="tsd-kind-property" href="#jsonrpcresultresponse-id">id</a><span class="tsd-signature-symbol">:</span> <a href="#requestid" class="tsd-signature-type tsd-kind-type-alias">RequestId</a><span class="tsd-signature-symbol">;</span><br/>&nbsp;&nbsp;<a class="tsd-kind-property" href="#jsonrpcresultresponse-result">result</a><span class="tsd-signature-symbol">:</span> <a href="#result" class="tsd-signature-type tsd-kind-interface">Result</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><div class="tsd-comment tsd-typography"><p>A successful (non-error) response to a request.</p> </div><section class="tsd-panel tsd-member"><div class="tsd-anchor-link" id="jsonrpcresultresponse-jsonrpc" data-typedoc-h="3"><span>jsonrpc: &quot;2.0&quot;</span><a href="#jsonrpcresultresponse-jsonrpc" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"/></svg></a></div></section><section class="tsd-panel tsd-member"><div class="tsd-anchor-link" id="jsonrpcresultresponse-id" data-typedoc-h="3"><span>id: RequestId</span><a href="#jsonrpcresultresponse-id" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"/></svg></a></div></section><section class="tsd-panel tsd-member"><div class="tsd-anchor-link" id="jsonrpcresultresponse-result" data-typedoc-h="3"><span>result: Result</span><a href="#jsonrpcresultresponse-result" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"/></svg></a></div></section>
@@ -1359,6 +1363,10 @@ means intelligence is the most important factor.</p> </div></section>
 
 
 <div class="type">
+
+### `SamplingMessageContentBlock`
+
+<div class="tsd-signature"><span class="tsd-kind-type-alias">SamplingMessageContentBlock</span><span class="tsd-signature-symbol">:</span><br/>&nbsp;&nbsp;<span class="tsd-signature-symbol">|</span> <a href="#textcontent" class="tsd-signature-type tsd-kind-interface">TextContent</a><br/>&nbsp;&nbsp;<span class="tsd-signature-symbol">|</span> <a href="#imagecontent" class="tsd-signature-type tsd-kind-interface">ImageContent</a><br/>&nbsp;&nbsp;<span class="tsd-signature-symbol">|</span> <a href="#audiocontent" class="tsd-signature-type tsd-kind-interface">AudioContent</a><br/>&nbsp;&nbsp;<span class="tsd-signature-symbol">|</span> <a href="#toolusecontent" class="tsd-signature-type tsd-kind-interface">ToolUseContent</a><br/>&nbsp;&nbsp;<span class="tsd-signature-symbol">|</span> <a href="#toolresultcontent" class="tsd-signature-type tsd-kind-interface">ToolResultContent</a></div><div class="tsd-comment tsd-typography"><p>Content block types that can appear in sampling messages.</p> </div>
 
 ### `ToolChoice`
 
