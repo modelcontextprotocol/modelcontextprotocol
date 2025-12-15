@@ -8,7 +8,7 @@ title: Security Best Practices
 
 ### Purpose and Scope
 
-This document provides security considerations for the Model Context Protocol (MCP), complementing the MCP Authorization specification. This document identifies security risks, attack vectors, and best practices specific to MCP implementations.
+This document provides security considerations for the Model Context Protocol (MCP), complementing the [MCP Authorization](../basic/authorization.mdx) specification. This document identifies security risks, attack vectors, and best practices specific to MCP implementations.
 
 The primary audience for this document includes developers implementing MCP authorization flows, MCP server operators, and security professionals evaluating MCP-based systems. This document should be read alongside the MCP Authorization specification and [OAuth 2.0 security best practices](https://datatracker.ietf.org/doc/html/rfc9700).
 
@@ -26,7 +26,7 @@ Attackers can exploit MCP servers proxying other resource servers, creating "[co
 : An MCP server that connects MCP clients to third-party APIs, offering MCP features while delegating operations and acting as a single OAuth client to the third-party API server.
 
 **Third-Party Authorization Server**
-: Authorization server that protects the third-party API. It may lack dynamic client registration support, requiring MCP proxy to use a static client ID for all requests.
+: Authorization server that protects the third-party API. It may lack dynamic client registration support, requiring the MCP proxy to use a static client ID for all requests.
 
 **Third-Party API**
 : The protected resource server that provides the actual API functionality. Access to this
@@ -108,9 +108,9 @@ attack becomes possible:
 3. An attacker later sends the user a malicious link containing a crafted authorization request which contains a malicious redirect URI along with a new dynamically registered client ID
 4. When the user clicks the link, their browser still has the consent cookie from the previous legitimate request
 5. The third-party authorization server detects the cookie and skips the consent screen
-6. The MCP authorization code is redirected to the attacker's server (specified in the crafted redirect_uri during dynamic client registration)
+6. The MCP authorization code is redirected to the attacker's server (specified in the malicious `redirect_uri` parameter during [dynamic client registration](/specification/draft/basic/authorization#dynamic-client-registration))
 7. The attacker exchanges the stolen authorization code for access tokens for the MCP server without the user's explicit approval
-8. Attacker now has access to the third-party API as the compromised user
+8. The attacker now has access to the third-party API as the compromised user
 
 #### Mitigation
 
@@ -119,7 +119,7 @@ registered client before forwarding to third-party authorization servers (which 
 
 ### Token Passthrough
 
-"Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and "passing them through" to the downstream API.
+"Token passthrough" is an anti-pattern where an MCP server accepts tokens from an MCP client without validating that the tokens were properly issued _to the MCP server_ and passes them through to the downstream API.
 
 #### Risks
 
