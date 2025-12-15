@@ -47,7 +47,7 @@ git checkout -b feature/your-feature-name
 
 ```bash
 npm run check:schema:ts
-npm run generate:json
+npm run generate:schema
 ```
 
 4. Validate documentation changes and apply formatting:

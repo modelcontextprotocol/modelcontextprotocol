@@ -151,88 +151,86 @@ Clients can subscribe to updates for specific resources:
 
 Here's a simple example of implementing resource support in an MCP server:
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    const server = new Server({
-      name: "example-server",
-      version: "1.0.0"
-    }, {
-      capabilities: {
-        resources: {}
-      }
-    });
+```typescript TypeScript
+const server = new Server(
+  {
+    name: "example-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      resources: {},
+    },
+  },
+);
 
-    // List available resources
-    server.setRequestHandler(ListResourcesRequestSchema, async () => {
-      return {
-        resources: [
-          {
-            uri: "file:///logs/app.log",
-            name: "Application Logs",
-            mimeType: "text/plain"
-          }
-        ]
-      };
-    });
+// List available resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "file:///logs/app.log",
+        name: "Application Logs",
+        mimeType: "text/plain",
+      },
+    ],
+  };
+});
 
-    // Read resource contents
-    server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-      const uri = request.params.uri;
+// Read resource contents
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const uri = request.params.uri;
 
-      if (uri === "file:///logs/app.log") {
-        const logContents = await readLogFile();
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: "text/plain",
-              text: logContents
-            }
-          ]
-        };
-      }
+  if (uri === "file:///logs/app.log") {
+    const logContents = await readLogFile();
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: "text/plain",
+          text: logContents,
+        },
+      ],
+    };
+  }
 
-      throw new Error("Resource not found");
-    });
-    ```
+  throw new Error("Resource not found");
+});
+```
 
-  </Tab>
-  <Tab title="Python">
+```python Python
+app = Server("example-server")
 
-    ```python
-    app = Server("example-server")
-
-    @app.list_resources()
-    async def list_resources() -> list[types.Resource]:
-        return [
-            types.Resource(
-                uri="file:///logs/app.log",
-                name="Application Logs",
-                mimeType="text/plain"
-            )
-        ]
-
-    @app.read_resource()
-    async def read_resource(uri: AnyUrl) -> str:
-        if str(uri) == "file:///logs/app.log":
-            log_contents = await read_log_file()
-            return log_contents
-
-        raise ValueError("Resource not found")
-
-    # Start server
-    async with stdio_server() as streams:
-        await app.run(
-            streams[0],
-            streams[1],
-            app.create_initialization_options()
+@app.list_resources()
+async def list_resources() -> list[types.Resource]:
+    return [
+        types.Resource(
+            uri="file:///logs/app.log",
+            name="Application Logs",
+            mimeType="text/plain"
         )
-    ```
+    ]
 
-  </Tab>
-</Tabs>
+@app.read_resource()
+async def read_resource(uri: AnyUrl) -> str:
+    if str(uri) == "file:///logs/app.log":
+        log_contents = await read_log_file()
+        return log_contents
+
+    raise ValueError("Resource not found")
+
+# Start server
+async with stdio_server() as streams:
+    await app.run(
+        streams[0],
+        streams[1],
+        app.create_initialization_options()
+    )
+```
+
+</CodeGroup>
 
 ## Best practices
 

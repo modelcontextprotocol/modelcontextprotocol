@@ -36,62 +36,63 @@ flowchart LR
 
 The protocol layer handles message framing, request/response linking, and high-level communication patterns.
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    class Protocol<Request, Notification, Result> {
-        // Handle incoming requests
-        setRequestHandler<T>(schema: T, handler: (request: T, extra: RequestHandlerExtra) => Promise<Result>): void
+```typescript TypeScript
+class Protocol<Request, Notification, Result> {
+  // Handle incoming requests
+  setRequestHandler<T>(
+    schema: T,
+    handler: (request: T, extra: RequestHandlerExtra) => Promise<Result>,
+  ): void;
 
-        // Handle incoming notifications
-        setNotificationHandler<T>(schema: T, handler: (notification: T) => Promise<void>): void
+  // Handle incoming notifications
+  setNotificationHandler<T>(
+    schema: T,
+    handler: (notification: T) => Promise<void>,
+  ): void;
 
-        // Send requests and await responses
-        request<T>(request: Request, schema: T, options?: RequestOptions): Promise<T>
+  // Send requests and await responses
+  request<T>(request: Request, schema: T, options?: RequestOptions): Promise<T>;
 
-        // Send one-way notifications
-        notification(notification: Notification): Promise<void>
-    }
-    ```
+  // Send one-way notifications
+  notification(notification: Notification): Promise<void>;
+}
+```
 
-  </Tab>
-  <Tab title="Python">
+```python Python
+class Session(BaseSession[RequestT, NotificationT, ResultT]):
+    async def send_request(
+        self,
+        request: RequestT,
+        result_type: type[Result]
+    ) -> Result:
+        """Send request and wait for response. Raises McpError if response contains error."""
+        # Request handling implementation
 
-    ```python
-    class Session(BaseSession[RequestT, NotificationT, ResultT]):
-        async def send_request(
-            self,
-            request: RequestT,
-            result_type: type[Result]
-        ) -> Result:
-            """Send request and wait for response. Raises McpError if response contains error."""
-            # Request handling implementation
+    async def send_notification(
+        self,
+        notification: NotificationT
+    ) -> None:
+        """Send one-way notification that doesn't expect response."""
+        # Notification handling implementation
 
-        async def send_notification(
-            self,
-            notification: NotificationT
-        ) -> None:
-            """Send one-way notification that doesn't expect response."""
-            # Notification handling implementation
+    async def _received_request(
+        self,
+        responder: RequestResponder[ReceiveRequestT, ResultT]
+    ) -> None:
+        """Handle incoming request from other side."""
+        # Request handling implementation
 
-        async def _received_request(
-            self,
-            responder: RequestResponder[ReceiveRequestT, ResultT]
-        ) -> None:
-            """Handle incoming request from other side."""
-            # Request handling implementation
+    async def _received_notification(
+        self,
+        notification: ReceiveNotificationT
+    ) -> None:
+        """Handle incoming notification from other side."""
+        # Notification handling implementation
+```
 
-        async def _received_notification(
-            self,
-            notification: ReceiveNotificationT
-        ) -> None:
-            """Handle incoming notification from other side."""
-            # Notification handling implementation
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 Key classes include:
 
@@ -216,73 +217,71 @@ Errors are propagated through:
 
 Here's a basic example of implementing an MCP server:
 
-<Tabs>
-  <Tab title="TypeScript">
+<CodeGroup>
 
-    ```typescript
-    import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-    import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+```typescript TypeScript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-    const server = new Server({
-      name: "example-server",
-      version: "1.0.0"
-    }, {
-      capabilities: {
-        resources: {}
-      }
-    });
+const server = new Server(
+  {
+    name: "example-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      resources: {},
+    },
+  },
+);
 
-    // Handle requests
-    server.setRequestHandler(ListResourcesRequestSchema, async () => {
-      return {
-        resources: [
-          {
-            uri: "example://resource",
-            name: "Example Resource"
-          }
-        ]
-      };
-    });
+// Handle requests
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "example://resource",
+        name: "Example Resource",
+      },
+    ],
+  };
+});
 
-    // Connect transport
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    ```
+// Connect transport
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
 
-  </Tab>
-  <Tab title="Python">
+```python Python
+import asyncio
+import mcp.types as types
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
 
-    ```python
-    import asyncio
-    import mcp.types as types
-    from mcp.server import Server
-    from mcp.server.stdio import stdio_server
+app = Server("example-server")
 
-    app = Server("example-server")
+@app.list_resources()
+async def list_resources() -> list[types.Resource]:
+    return [
+        types.Resource(
+            uri="example://resource",
+            name="Example Resource"
+        )
+    ]
 
-    @app.list_resources()
-    async def list_resources() -> list[types.Resource]:
-        return [
-            types.Resource(
-                uri="example://resource",
-                name="Example Resource"
-            )
-        ]
+async def main():
+    async with stdio_server() as streams:
+        await app.run(
+            streams[0],
+            streams[1],
+            app.create_initialization_options()
+        )
 
-    async def main():
-        async with stdio_server() as streams:
-            await app.run(
-                streams[0],
-                streams[1],
-                app.create_initialization_options()
-            )
+if __name__ == "__main__":
+    asyncio.run(main())
+```
 
-    if __name__ == "__main__":
-        asyncio.run(main())
-    ```
-
-  </Tab>
-</Tabs>
+</CodeGroup>
 
 ## Best practices
 
