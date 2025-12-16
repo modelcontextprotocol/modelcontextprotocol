@@ -111,14 +111,9 @@ If an `eventSchema` was provided in the resource definition, the server SHOULD c
 
 ### Out-of-Band Subscribe / Unsubscribe (Experimental Tool)
 
-Out-of-band registration is exposed as method `resources/subscriptions/register`.
+Out-of-band registration is exposed as method `resources/subscriptions/register`. The client is expected to provide a target URI, but the server is responsible for generating and transmitting the webhook secret.
 
 ```ts
-type WebhookSecret =
-  | { type: "raw"; value: string } // simple shared secret
-  | { type: "standard"; key: string } // Standard Webhooks key
-  | { type: "none" };
-
 interface RegisterSubscriptionRequest {
   method: "resources/subscriptions/register";
   params: {
@@ -129,6 +124,11 @@ interface RegisterSubscriptionRequest {
     targetUri: string;
   };
 }
+
+type WebhookSecret =
+  | { type: "raw"; value: string } // simple shared secret
+  | { type: "standard"; key: string } // Standard Webhooks key
+  | { type: "none" };
 
 interface RegisterSubscriptionResult {
   _meta?: Record<string, unknown>;
