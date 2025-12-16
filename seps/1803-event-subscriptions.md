@@ -117,8 +117,8 @@ Out-of-band registration is exposed as method `resources/subscriptions/register`
 interface RegisterSubscriptionRequest {
   method: "resources/subscriptions/register";
   params: {
-    /** The URI of the resource to subscribe to. */
-    uri: `event://${string}`;
+    /** The URIs of the resources to subscribe to. */
+    uris: `event://${string}`[];
 
     /** The target URI the MCP server should call. */
     targetUri: string;
@@ -137,7 +137,7 @@ interface RegisterSubscriptionResult {
     uri: string;
 
     /** The URI the subscription listens to. */
-    eventUri: string;
+    eventUris: string[];
 
     /** The URI the subscription calls. */
     targetUri: string;
@@ -152,13 +152,13 @@ There is currently one supported out-of-band protocol, webhooks. To simplify cli
 
 Deregistration occurs using `resources/subscriptions/deregister` with the provided subscription URI:
 
-```
+```typescript
 interface DeregisterSubscriptionRequest {
   method: "resources/subscriptions/deregister";
   params: {
-	  /** The URI of the subscription to deregister. */
-	  uri: string;
-	};
+    /** The URI of the subscription to deregister. */
+    uri: string;
+  };
 }
 ```
 
