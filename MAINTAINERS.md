@@ -70,6 +70,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Rust SDK
 
 - [Alex Hancock](https://github.com/alexhancock)
+- [Michael Bolin](https://github.com/bolinfest)
 
 ### PHP SDK
 
