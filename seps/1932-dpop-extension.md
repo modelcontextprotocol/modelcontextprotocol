@@ -11,7 +11,7 @@
 
 ## Abstract
 
-This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. The proposal is an extension of OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)). To align DPoP with MCP’s single-endpoint architecture, the extension incorporates a content digest into the DPoP proof, allowing the proof to be tied to the specific JSON-RPC request body and ensuring tighter request-level binding.
+This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. The proposal adapts OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) to align with MCP’s single-endpoint architecture. The proposal incorporates a content digest into the DPoP proof, allowing the proof to be tied to the specific JSON-RPC request body and ensuring tighter request-level binding.
 
 ## Motivation
 
@@ -30,7 +30,7 @@ This extension is particularly valuable for:
 
 ## Specification
 
-The DPoP Profile for MCP adapts OAuth 2.0 sender-constrained tokens for use in the Model Context Protocol’s single-endpoint architecture. Standard DPoP binds proofs to the HTTP method and URL, but in MCP all requests use the same method (POST) and endpoint, with the specific operation conveyed in the JSON-RPC body. As a result, traditional DPoP does not distinguish between different MCP operations, since the request semantics are not reflected in the elements covered by the proof. The profile refines the content of the DPoP proof to better account for this characteristic of MCP.
+The DPoP Profile for MCP adapts OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) for use in the Model Context Protocol’s single-endpoint architecture. Standard DPoP binds proofs to the HTTP method and URL, but in MCP all requests use the same method (POST) and endpoint, with the specific operation conveyed in the JSON-RPC body. As a result, traditional DPoP does not distinguish between different MCP operations, since the request semantics are not reflected in the elements covered by the proof. The profile refines the content of the DPoP proof to better account for this characteristic of MCP.
 
 To solve this, the profile adds one key requirement: DPoP proofs must include a cryptographic digest of the JSON-RPC request body (`content_digest`). This binds each proof to a specific request payload, preventing attackers from replaying valid proofs with altered bodies.
 
