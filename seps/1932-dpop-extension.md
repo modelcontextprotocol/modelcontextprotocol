@@ -37,7 +37,7 @@ To solve this, the profile adds one key requirement: DPoP proofs must include a 
 The design emphasizes:
 
 - **Payload binding** — eliminating replay attacks without requiring server-side state.
-- **Statelessness** — servers do not need to track jti values.
+- **Statelessness** — servers do not need to track jti values (see Section 4.2 of [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax)).
 - **Compatibility** — minimal, targeted changes that keep DPoP and OAuth flows standard.
 - **Scalability** — suitable for distributed MCP servers.
 
