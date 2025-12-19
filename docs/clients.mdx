@@ -73,6 +73,7 @@ This page provides an overview of applications that support the Model Context Pr
 | [MCPHub][MCPHub]                                 | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [MCPOmni-Connect][MCPOmni-Connect]               | ✅          | ✅        | ✅      | ❓                     | ✅         | ❌    | ❓            | ❓             |
 | [Memex][Memex]                                   | ✅          | ✅        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
+| [Memgraph Lab][Memgraph Lab]                     | ❌          | ❌        | ✅      | ❌                     | ✅         | ❌    | ✅            | ✅             |
 | [Microsoft Copilot Studio]                       | ✅          | ❌        | ✅      | ✅                     | ❌         | ❌    | ❓            | ❓             |
 | [MindPal][MindPal]                               | ❌          | ❌        | ✅      | ❓                     | ❌         | ❌    | ❓            | ❓             |
 | [Mistral AI: Le Chat][Mistral AI: Le Chat]       | ❌          | ❌        | ✅      | ❌                     | ❌         | ❌    | ❓            | ❓             |
@@ -179,6 +180,7 @@ This page provides an overview of applications that support the Model Context Pr
 [MCPHub]: https://github.com/ravitemer/mcphub.nvim
 [MCPOmni-Connect]: https://github.com/Abiorh001/mcp_omni_connect
 [Memex]: https://memex.tech/
+[Memgraph Lab]: https://memgraph.com/docs/memgraph-lab/features/graphchat
 [Microsoft Copilot Studio]: https://learn.microsoft.com/en-us/microsoft-copilot-studio/agent-extend-action-mcp
 [MindPal]: https://mindpal.io
 [Mistral AI: Le Chat]: https://chat.mistral.ai
@@ -941,6 +943,23 @@ Langflow is an open-source visual builder that lets developers rapidly prototype
 **Learn more:**
 
 - [Memex Launch 2: MCP Teams and Agent API](https://memex.tech/blog/memex-launch-2-mcp-teams-and-agent-api-private-preview-125f)
+
+### Memgraph Lab
+
+[Memgraph Lab](https://memgraph.com/lab) is a visualization and management tool for Memgraph graph databases. Its [GraphChat](https://memgraph.com/docs/memgraph-lab/features/graphchat) feature lets you query graph data using natural language, with MCP server integrations to extend your AI workflows.
+
+**Key features:**
+
+- Build GraphRAG workflows powered by knowledge graphs as the data backbone
+- Connect remote MCP servers via `SSE` or `Streamable HTTP`
+- Support for MCP tools, sampling, elicitation, and instructions
+- Create multiple agents with different configurations for easy comparison and debugging
+- Works with various LLM providers (OpenAI, Azure OpenAI, Anthropic, Gemini, Ollama, DeepSeek)
+- Available as a Desktop app or Docker container
+
+**Learn more:**
+
+- [Memgraph Lab: MCP integration](https://memgraph.com/docs/memgraph-lab/features/graphchat#mcp-servers)
 
 ### Microsoft Copilot Studio
 
