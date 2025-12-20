@@ -22,7 +22,7 @@ MCP already defines several tool annotations—such as `destructiveHint`, `idemp
 
 As agentic tools become more common, clients increasingly need to treat them differently from simple “call-and-return” tools:
 
-- A tool that orchestrates a long-running workflow with multiple sub-operations may warrant additional confirmation, monitoring, or logging compared to a single API call.
+- A tool that orchestrates an autonomous workflow with multiple sub-operations may warrant additional confirmation, monitoring, or logging compared to a single API call.
 - Agent-like tools may take initiative, explore options, or perform multiple actions under a single invocation, which can surprise users if surfaced with the same UX as a simple read-only tool.
 - Some clients may wish to group, highlight, or gate agentic tools in their UI (e.g., prompting users before enabling them, or applying stricter human-in-the-loop policies).
 
@@ -50,9 +50,8 @@ interface ToolAnnotations {
 - `agencyHint?: boolean`
   - When present and set to `true`, this signals that the tool may perform:
     - Multi-step reasoning or planning,
-    - Multi-step or long-running operations,
     - Goal-directed behavior that may result in multiple underlying actions.
-  - When omitted or set to `false`, clients should assume the tool is _not_ agentic and behaves as a simple, single-step operation (subject to other hints like `destructiveHint` and `openWorldHint`).
+  - When omitted or set to `false`, clients should assume the tool is _not_ agentic and behaves as a simple, deterministic workflow or operations (subject to other hints like `destructiveHint` and `openWorldHint`).
 
 This hint is purely advisory: it does not alter protocol-level behavior, message formats, or error semantics. It is intended for clients and maintainers to inform UX, risk posture, and orchestration strategies.
 
@@ -71,11 +70,11 @@ Tool authors _may_ leave `agencyHint` unset (or `false`) when:
 Clients _may_ use `agencyHint` to:
 
 - Apply stronger confirmation or review flows before invoking agentic tools.
-- Provide richer UX (progress UI, streaming logs, or “activity feeds”) for long-running, multi-step operations.
+- Provide richer UX (progress UI, streaming logs, or “activity feeds”) for autonoums, multi-step operations.
 - Group or label agentic tools distinctly (e.g., “agents” vs “utilities”) in tool pickers or configuration panels.
 - Combine `agencyHint` with other hints to calibrate risk:
   - `agencyHint: true` + `destructiveHint: true` → candidate for stricter human-in-the-loop controls.
-  - `agencyHint: true` + `readOnlyHint: true` → lower risk, but potentially still long-running.
+  - `agencyHint: true` + `readOnlyHint: true` → lower risk, but potentially still autonoums workflow.
 
 Clients _must not_ assume that a missing `agencyHint` implies anything other than “no explicit claim” of agentic behavior. In the absence of this hint, clients should fall back to their default behaviors.
 
