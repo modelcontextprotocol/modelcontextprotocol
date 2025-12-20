@@ -14,15 +14,15 @@
 
 This SEP proposes a new optional boolean tool annotation, `agencyHint`, on the `ToolAnnotations` interface in the Model Context Protocol (MCP) specification.
 
-The goal of `agencyHint` is to tell clients that a tool represents an _agentic_ capability: it may perform multi-step reasoning, planning, or autonomous decision-making toward a goal, rather than a single atomic operation. This hint lets clients differentiate agent-like tools from simple procedural ones, enabling better UX patterns (e.g., confirmation flows, progress UI, or monitoring) without changing the underlying protocol semantics.
+The goal of `agencyHint` is to tell clients that a tool represents an _agentic_ capability: it may perform multi-step reasoning, planning, or autonomous decision-making, using AI, toward a goal, rather than a single atomic operation. This hint lets clients differentiate agent-like tools from simple procedural ones, enabling better UX patterns (e.g., confirmation flows, progress UI, or monitoring) without changing the underlying protocol semantics.
 
 ## Motivation
 
 MCP already defines several tool annotations—such as `destructiveHint`, `idempotentHint`, `openWorldHint`, and `readOnlyHint`—that communicate key behavioral and UX-related characteristics of tools. None of these, however, express whether a tool itself is _agentic_.
 
-As agentic tools become more common, clients increasingly need to treat them differently from simple “call-and-return” tools:
+As AI Agentic tools become more common, clients increasingly need to treat them differently from simple “call-and-return” tools:
 
-- A tool that orchestrates an autonomous workflow with multiple sub-operations may warrant additional confirmation, monitoring, or logging compared to a single API call.
+- AI Agentic tool that orchestrates an autonomous workflow with multiple sub-operations may warrant additional confirmation, monitoring, or logging compared to a single API call.
 - Agent-like tools may take initiative, explore options, or perform multiple actions under a single invocation, which can surprise users if surfaced with the same UX as a simple read-only tool.
 - Some clients may wish to group, highlight, or gate agentic tools in their UI (e.g., prompting users before enabling them, or applying stricter human-in-the-loop policies).
 
