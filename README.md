@@ -1,6 +1,6 @@
 # Model Context Protocol (MCP)
 
-_Just heard of MCP and not sure where to start? See [the documentation website instead](https://modelcontextprotocol.io)._
+_Just heard of MCP and not sure where to start? Check out our [documentation website](https://modelcontextprotocol.io)._
 
 This repo contains the:
 
@@ -8,8 +8,8 @@ This repo contains the:
 - MCP protocol schema
 - Official MCP documentation
 
-The schema is [defined in TypeScript](schema/2025-06-18/schema.ts) first, but
-[made available as JSON Schema](schema/2025-06-18/schema.json) as well, for wider
+The schema is [defined in TypeScript](schema/2025-11-25/schema.ts) first, but
+[made available as JSON Schema](schema/2025-11-25/schema.json) as well, for wider
 compatibility.
 
 The official MCP documentation is built using Mintlify and available at

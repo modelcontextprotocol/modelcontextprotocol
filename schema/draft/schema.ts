@@ -8,11 +8,10 @@
 export type JSONRPCMessage =
   | JSONRPCRequest
   | JSONRPCNotification
-  | JSONRPCResponse
-  | JSONRPCError;
+  | JSONRPCResponse;
 
 /** @internal */
-export const LATEST_PROTOCOL_VERSION = "DRAFT-2025-v3";
+export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
 
@@ -148,11 +147,27 @@ export interface JSONRPCNotification extends Notification {
  *
  * @category JSON-RPC
  */
-export interface JSONRPCResponse {
+export interface JSONRPCResultResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
 }
+
+/**
+ * A response to a request that indicates an error occurred.
+ *
+ * @category JSON-RPC
+ */
+export interface JSONRPCErrorResponse {
+  jsonrpc: typeof JSONRPC_VERSION;
+  id?: RequestId;
+  error: Error;
+}
+
+/**
+ * A response to a request, containing either the result or error.
+ */
+export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
 // Standard JSON-RPC error codes
 export const PARSE_ERROR = -32700;
@@ -166,23 +181,12 @@ export const INTERNAL_ERROR = -32603;
 export const URL_ELICITATION_REQUIRED = -32042;
 
 /**
- * A response to a request that indicates an error occurred.
- *
- * @category JSON-RPC
- */
-export interface JSONRPCError {
-  jsonrpc: typeof JSONRPC_VERSION;
-  id: RequestId;
-  error: Error;
-}
-
-/**
  * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
  *
  * @internal
  */
 export interface URLElicitationRequiredError
-  extends Omit<JSONRPCError, "error"> {
+  extends Omit<JSONRPCErrorResponse, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
