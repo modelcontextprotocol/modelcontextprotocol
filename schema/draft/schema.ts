@@ -2089,9 +2089,8 @@ export interface PromptReference extends BaseMetadata {
  *
  * @category `roots/list`
  */
-export interface ListRootsRequest extends JSONRPCRequest {
+export interface ListRootsRequest extends PaginatedRequest {
   method: "roots/list";
-  params?: RequestParams;
 }
 
 /**
@@ -2101,7 +2100,7 @@ export interface ListRootsRequest extends JSONRPCRequest {
  *
  * @category `roots/list`
  */
-export interface ListRootsResult extends Result {
+export interface ListRootsResult extends PaginatedResult {
   roots: Root[];
 }
 
