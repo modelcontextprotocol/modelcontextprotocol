@@ -725,8 +725,7 @@ var mcpServer = McpServer.sync(mcpServerTransportProvider)
       // ...
     .build())
   // ...
-  .completions(new McpServerFeatures.SyncCompletionSpecification( // register completion specification
-      new McpSchema.PromptReference("code_review"), syncCompletionSpecification))
+  .completions(syncCompletionSpecification) // register completion specification
   .build();
 
 ```
@@ -758,8 +757,7 @@ var mcpServer = McpServer.async(mcpServerTransportProvider)
       // ...
     .build())
   // ...
-  .completions(new McpServerFeatures.AsyncCompletionSpecification( // register completion specification
-      new McpSchema.PromptReference("code_review"), asyncCompletionSpecification))
+  .completions(asyncCompletionSpecification) // register completion specification
   .build();
 
 ```

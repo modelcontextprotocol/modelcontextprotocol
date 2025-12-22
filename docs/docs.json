@@ -347,10 +347,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "About MCP",
-        "pages": ["about/index"]
       }
     ]
   },
