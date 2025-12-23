@@ -299,6 +299,8 @@ export interface InternalError extends Error {
 // Implementation-specific JSON-RPC error codes [-32000, -32099]
 /** @internal */
 export const URL_ELICITATION_REQUIRED = -32042;
+/** @internal */
+export const PAYMENT_REQUIRED = -32402;
 
 /**
  * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
@@ -308,10 +310,8 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError extends Omit<
-  JSONRPCErrorResponse,
-  "error"
-> {
+export interface URLElicitationRequiredError
+  extends Omit<JSONRPCErrorResponse, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -319,6 +319,79 @@ export interface URLElicitationRequiredError extends Omit<
       [key: string]: unknown;
     };
   };
+}
+
+/* Payment types */
+
+/**
+ * Payment data included in tool calls and responses.
+ *
+ * For requests: Contains `paymentRequest` with protocol-specific payment authorization.
+ * For responses: Contains `paymentResponse` with protocol-specific settlement data.
+ *
+ * @category Payment
+ */
+export interface Payment {
+  /**
+   * The payment protocol used (e.g., "x402", "future_protocol").
+   */
+  protocol: string;
+
+  /**
+   * Protocol-specific payment request data (used in tool call requests).
+   * The structure of this field depends on the payment protocol:
+   * - For X402: Contains an `authorization` field with the PaymentPayload structure
+   * - For other protocols: Contains protocol-specific payment request fields
+   *
+   * This is effectively a union type discriminated by the `protocol` field.
+   */
+  paymentRequest?: { [key: string]: unknown };
+
+  /**
+   * Protocol-specific payment response data (used in tool call responses).
+   * The structure of this field depends on the payment protocol:
+   * - For X402: Contains a `settlement` field with the SettlementResponse structure
+   * - For other protocols: Contains protocol-specific payment response fields
+   *
+   * This is effectively a union type discriminated by the `protocol` field.
+   */
+  paymentResponse?: { [key: string]: unknown };
+}
+
+/**
+ * Settlement response data included in successful tool results after payment.
+ *
+ * @category Payment
+ */
+export interface PaymentResponse {
+  /**
+   * The payment protocol used (e.g., "x402", "future_protocol").
+   */
+  protocol: string;
+
+  /**
+   * Protocol-specific settlement data.
+   */
+  settlement: { [key: string]: unknown };
+}
+
+/**
+ * Payment option for a specific protocol that a tool accepts.
+ *
+ * @category Payment
+ */
+export interface PaymentOption {
+  /**
+   * The payment protocol identifier (e.g., "x402", "future_protocol").
+   */
+  protocol: string;
+
+  /**
+   * Protocol-specific payment requirement.
+   * For X402, this would include the PaymentRequired structure.
+   * Other protocols define their own requirement format.
+   */
+  paymentRequirement: { [key: string]: unknown };
 }
 
 /* Empty result */
@@ -673,6 +746,27 @@ export interface ServerCapabilities {
     };
   };
   /**
+   * Optional capability declaration for payment protocol support.
+   *
+   * Servers MAY declare this capability to provide upfront knowledge of payment
+   * support and available protocols. However, payment support can also be discovered
+   * by examining the `payment` field in tool definitions from `tools/list`.
+   *
+   * Servers MUST include payment information in tool definitions regardless of
+   * whether they declare this capability.
+   *
+   * @example Payment — protocol support
+   * {@includeCode ./examples/ServerCapabilities/payment-support.json}
+   */
+  payment?: {
+    /**
+     * List of payment protocols supported by this server.
+     * Each protocol identifier corresponds to a specific payment protocol
+     * (e.g., "x402" for X402 Protocol v2).
+     */
+    protocols?: string[];
+  };
+  /**
    * Optional MCP extensions that the server supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/apps"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
@@ -969,7 +1063,8 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
+export interface ListResourceTemplatesResultResponse
+  extends JSONRPCResultResponse {
   result: ListResourceTemplatesResult;
 }
 
@@ -1546,6 +1641,11 @@ export interface CallToolResult extends Result {
    * should be reported as an MCP error response.
    */
   isError?: boolean;
+
+  /**
+   * Optional payment settlement response when payment was processed for this tool call.
+   */
+  paymentResponse?: PaymentResponse;
 }
 
 /**
@@ -1580,6 +1680,11 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
    * Arguments to use for the tool call.
    */
   arguments?: { [key: string]: unknown };
+
+  /**
+   * Payment data when payment is required for the tool.
+   */
+  payment?: Payment;
 }
 
 /**
@@ -1737,6 +1842,16 @@ export interface Tool extends BaseMetadata, Icons {
     properties?: { [key: string]: object };
     required?: string[];
   };
+
+  /**
+   * Optional payment options for this tool.
+   * If present, this tool requires payment to invoke.
+   * Multiple payment options allow the tool to accept different protocols or amounts.
+   *
+   * @example Tool with X402 payment option
+   * {@includeCode ./examples/Tool/tool-with-payment.json}
+   */
+  payment?: PaymentOption[];
 
   /**
    * Optional additional tool information.

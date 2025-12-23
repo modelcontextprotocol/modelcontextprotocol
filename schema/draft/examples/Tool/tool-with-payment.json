@@ -1,0 +1,36 @@
+{
+  "name": "get_premium_weather",
+  "description": "Get detailed weather analysis with forecasts",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "location": {
+        "type": "string",
+        "description": "City name or coordinates"
+      }
+    },
+    "required": ["location"]
+  },
+  "payment": [
+    {
+      "protocol": "x402",
+      "paymentRequirement": {
+        "x402Version": 2,
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "amount": "10000",
+            "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "payTo": "0x83240485b70e5c820e5f180533fc6156470cfd0e",
+            "maxTimeoutSeconds": 300,
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
