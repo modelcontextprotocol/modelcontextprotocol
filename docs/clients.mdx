@@ -5,105 +5,6 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const CAPABILITIES = ['Resources', 'Prompts', 'Tools', 'Discovery', 'Sampling', 'Roots', 'Elicitation', 'Instructions'];
-
-export const filterStore = {
-  state: { selectedCapabilities: [], searchText: '', visibleCount: 0, totalCount: 0 },
-  listeners: new Set(),
-  setState(updater) {
-    if (typeof updater === 'function') {
-      this.state = { ...this.state, ...updater(this.state) };
-    } else {
-      this.state = { ...this.state, ...updater };
-    }
-    this.listeners.forEach(fn => fn(this.state));
-  },
-  subscribe(fn) {
-    this.listeners.add(fn);
-    return () => this.listeners.delete(fn);
-  }
-};
-
-export const useFilterStore = () => {
-  const [state, setState] = useState(filterStore.state);
-  useEffect(() => filterStore.subscribe(setState), []);
-  return state;
-};
-
-export const ClientFilter = () => {
-  const { selectedCapabilities, searchText, visibleCount, totalCount } = useFilterStore();
-
-  const toggleCapability = (cap) => {
-    const newCaps = selectedCapabilities.includes(cap)
-      ? selectedCapabilities.filter(c => c !== cap)
-      : [...selectedCapabilities, cap];
-    filterStore.setState({ selectedCapabilities: newCaps });
-  };
-
-  const clearFilters = () => {
-    filterStore.setState({ selectedCapabilities: [], searchText: '' });
-  };
-
-  const hasFilters = selectedCapabilities.length > 0 || searchText.length > 0;
-
-  return (
-    <div className="mb-8 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-      <div className="mb-3">
-        <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filter by capabilities:</div>
-        <div className="flex flex-wrap gap-2">
-          {CAPABILITIES.map(cap => (
-            <button
-              key={cap}
-              onClick={() => toggleCapability(cap)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors cursor-pointer ${
-                selectedCapabilities.includes(cap)
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-            >
-              {cap}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="mb-3">
-        <input
-          type="text"
-          placeholder="Search clients by name..."
-          value={searchText}
-          onChange={(e) => filterStore.setState({ searchText: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        />
-      </div>
-      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-        <span>Showing {visibleCount} of {totalCount} clients</span>
-        {hasFilters && (
-          <button
-            onClick={clearFilters}
-            className="text-primary hover:underline cursor-pointer"
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export const ClientsSection = ({ children }) => {
-  useEffect(() => {
-    // Only reset filters, not counts (counts are managed by McpClient components)
-    filterStore.setState({ selectedCapabilities: [], searchText: '' });
-  }, []);
-
-  return (
-    <>
-      <ClientFilter />
-      {children}
-    </>
-  );
-};
-
 export const McpClient = ({ name, homepage, supports, sourceCode, instructions, children }) => {
   const slug = name
     .toLowerCase()
@@ -129,29 +30,6 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
   const [expanded, setExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
   const contentRef = useRef(null);
-  const { selectedCapabilities, searchText } = useFilterStore();
-
-  // Parse client capabilities (strip "(partial)" suffix)
-  const clientCapabilities = (supports || '').split(',').map(s => s.trim().replace(/\s*\(partial\)/, ''));
-
-  // Check if client matches filters
-  const matchesCapabilities = selectedCapabilities.length === 0 ||
-    selectedCapabilities.every(cap => clientCapabilities.includes(cap));
-  const matchesSearch = !searchText || name.toLowerCase().includes(searchText.toLowerCase());
-  const isVisible = matchesCapabilities && matchesSearch;
-
-  // Track visible/total counts
-  useEffect(() => {
-    filterStore.setState(s => ({ totalCount: s.totalCount + 1 }));
-    return () => filterStore.setState(s => ({ totalCount: s.totalCount - 1 }));
-  }, []);
-
-  useEffect(() => {
-    if (isVisible) {
-      filterStore.setState(s => ({ visibleCount: s.visibleCount + 1 }));
-      return () => filterStore.setState(s => ({ visibleCount: s.visibleCount - 1 }));
-    }
-  }, [isVisible]);
 
   useEffect(() => {
     const el = contentRef.current;
@@ -159,8 +37,6 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
       setHasOverflow(el.scrollHeight > el.clientHeight);
     }
   }, []);
-
-  if (!isVisible) return null;
 
   return (
     <div id={slug} className="group mt-8 scroll-mt-32">
@@ -250,8 +126,6 @@ This list is maintained by the community. If you notice any inaccuracies or woul
 </Note>
 
 ## Client details
-
-<ClientsSection>
 
 <McpClient
   name="5ire"
@@ -2066,8 +1940,6 @@ Zencoder is a coding agent that's available as an extension for VS Code and JetB
 - [Zencoder Documentation](https://docs.zencoder.ai)
 
 </McpClient>
-
-</ClientsSection>
 
 ## Adding MCP support to your application
 
