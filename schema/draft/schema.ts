@@ -166,6 +166,8 @@ export interface JSONRPCErrorResponse {
 
 /**
  * A response to a request, containing either the result or error.
+ *
+ * @category JSON-RPC
  */
 export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
@@ -1683,6 +1685,12 @@ export interface SamplingMessage {
    */
   _meta?: { [key: string]: unknown };
 }
+
+/**
+ * Content block types that can appear in sampling messages.
+ *
+ * @category `sampling/createMessage`
+ */
 export type SamplingMessageContentBlock =
   | TextContent
   | ImageContent
