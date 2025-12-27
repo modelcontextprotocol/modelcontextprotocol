@@ -22,7 +22,8 @@
   },
   "scripts": {
     "check": "npm run check:schema && npm run check:docs",
-    "check:docs": "npm run check:docs:format && npm run check:docs:links",
+    "check:docs": "npm run check:docs:format && npm run check:docs:links && npm run check:docs:js-comments",
+    "check:docs:js-comments": "node scripts/check-mdx-comments.js",
     "check:docs:format": "prettier --check \"**/*.{md,mdx}\"",
     "check:docs:links": "cd docs && npx mint broken-links",
     "check:schema": "npm run check:schema:ts && npm run check:schema:json && npm run check:schema:md",
