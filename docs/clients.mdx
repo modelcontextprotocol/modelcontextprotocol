@@ -14,7 +14,7 @@ export const filterStore = {
     visibleCount: 0,
     totalCount: 0
   },
-  listeners: [],
+  listeners: new Set(),
   setState(updater) {
     if (typeof updater === "function") {
       this.state = { ...this.state, ...updater(this.state) };
@@ -24,8 +24,8 @@ export const filterStore = {
     this.listeners.forEach(fn => fn(this.state));
   },
   subscribe(fn) {
-    this.listeners.push(fn);
-    return () => { this.listeners = this.listeners.filter(f => f !== fn); };
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
   }
 };
 
@@ -38,7 +38,6 @@ export const useFilterStore = () => {
 export const useFilter = ({ name, supports }) => {
   const { selectedCapabilities, searchText } = useFilterStore();
 
-  // Check if client matches filters
   const isVisible = (
     name.toLowerCase().includes(searchText.toLowerCase()) &&
     selectedCapabilities.every(cap => supports?.includes(cap))
