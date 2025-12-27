@@ -263,6 +263,10 @@ To request LLM generation with tool use capabilities, servers include `tools` an
 }
 ```
 
+<Note>
+  The tools specified in the sampling request don't necessarily need to be registered on the MCP server.
+</Note>
+
 ### Multi-turn Tool Loop
 
 After receiving tool use requests from the LLM, the server typically:
