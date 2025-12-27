@@ -38,13 +38,11 @@ export const useFilterStore = () => {
 export const useFilter = ({ name, supports }) => {
   const { selectedCapabilities, searchText } = useFilterStore();
 
-  // Check if client matches filters
   const isVisible = (
     name.toLowerCase().includes(searchText.toLowerCase()) &&
     selectedCapabilities.every(cap => supports?.includes(cap))
   );
 
-  // Track total/visible counts
   useEffect(() => {
     filterStore.setState(s => ({ totalCount: s.totalCount + 1 }));
     return () => filterStore.setState(s => ({ totalCount: s.totalCount - 1 }));
