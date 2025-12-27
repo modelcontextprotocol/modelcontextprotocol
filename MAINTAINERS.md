@@ -32,6 +32,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Topher Bullock](https://github.com/topherbullock)
 - [Koichi Ito](https://github.com/koic)
 - [Ateş Göral](https://github.com/atesgoral)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
 
 ### Swift SDK
 
