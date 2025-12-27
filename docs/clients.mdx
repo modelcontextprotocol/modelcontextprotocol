@@ -5,11 +5,139 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
+export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions"];
+
+export const filterStore = {
+  state: {
+    selectedCapabilities: [],
+    searchText: "",
+    visibleCount: 0,
+    totalCount: 0
+  },
+  listeners: new Set(),
+  setState(updater) {
+    if (typeof updater === "function") {
+      this.state = { ...this.state, ...updater(this.state) };
+    } else {
+      this.state = { ...this.state, ...updater };
+    }
+    this.listeners.forEach(fn => fn(this.state));
+  },
+  subscribe(fn) {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+};
+
+export const useFilterStore = () => {
+  const [state, setState] = useState(filterStore.state);
+  useEffect(() => filterStore.subscribe(setState), []);
+  return state;
+};
+
+export const useFilter = ({ name, supports }) => {
+  const { selectedCapabilities, searchText } = useFilterStore();
+
+  const isVisible = (
+    name.toLowerCase().includes(searchText.toLowerCase()) &&
+    selectedCapabilities.every(cap => supports?.includes(cap))
+  );
+
+  useEffect(() => {
+    filterStore.setState(s => ({ totalCount: s.totalCount + 1 }));
+    return () => filterStore.setState(s => ({ totalCount: s.totalCount - 1 }));
+  }, []);
+
+  useEffect(() => {
+    if (isVisible) {
+      filterStore.setState(s => ({ visibleCount: s.visibleCount + 1 }));
+      return () => filterStore.setState(s => ({ visibleCount: s.visibleCount - 1 }));
+    }
+  }, [isVisible]);
+
+  return isVisible;
+};
+
+
+export const ClientFilter = () => {
+  const { selectedCapabilities, searchText, visibleCount, totalCount } = useFilterStore();
+
+  useEffect(() => {
+    filterStore.setState({ selectedCapabilities: [], searchText: "" });
+  }, []);
+
+  const toggleCapability = (cap) => {
+    const newCaps = selectedCapabilities.includes(cap)
+      ? selectedCapabilities.filter(c => c !== cap)
+      : [...selectedCapabilities, cap];
+    filterStore.setState({ selectedCapabilities: newCaps });
+  };
+
+  const clearFilters = () => {
+    filterStore.setState({ selectedCapabilities: [], searchText: "" });
+  };
+
+  const hasFilters = selectedCapabilities.length > 0 || searchText.length > 0;
+
+  return (
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+      <div className="flex items-center justify-between">
+        <span className="font-bold text-gray-700 dark:text-gray-300">
+          Showing {visibleCount} of {totalCount} clients
+        </span>
+        {hasFilters && (
+          <button
+            onClick={clearFilters}
+            className="text-sm cursor-pointer px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          >
+            <Icon icon="xmark" iconType="solid" size={16} /> Clear filters
+          </button>
+        )}
+      </div>
+      <div className="mt-3">
+        <input
+          type="text"
+          placeholder="Search clients by name..."
+          value={searchText}
+          onChange={(e) => filterStore.setState({ searchText: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        />
+      </div>
+      <div className="mt-4">
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Filter by capabilities:
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {CAPABILITIES.map(cap => (
+            <button
+              key={cap}
+              onClick={() => toggleCapability(cap)}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors cursor-pointer ${
+                selectedCapabilities.includes(cap)
+                  ? 'bg-primary/10 text-primary dark:bg-gray-700 dark:text-gray-100'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Icon
+                icon={selectedCapabilities.includes(cap) ? "square-check" : "square"}
+                iconType={selectedCapabilities.includes(cap) ? "solid" : "regular"}
+                size={16}
+              />
+              {cap}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export const McpClient = ({ name, homepage, supports, sourceCode, instructions, children }) => {
   const slug = name
     .toLowerCase()
-    .replace(/[().\s-]+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[().\s-]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   if (homepage?.match(/^https:\/\/github\.com\/[^/]+\/[^/]+/)) {
     sourceCode ??= homepage;
@@ -30,6 +158,7 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
   const [expanded, setExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
   const contentRef = useRef(null);
+  const isVisible = useFilter({ name, supports });
 
   useEffect(() => {
     const el = contentRef.current;
@@ -37,6 +166,8 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
       setHasOverflow(el.scrollHeight > el.clientHeight);
     }
   }, []);
+
+  if (!isVisible) return null;
 
   return (
     <div id={slug} className="group mt-8 scroll-mt-32">
@@ -93,7 +224,7 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
         <div className="relative">
           <div
             ref={contentRef}
-            className={`px-4 py-4 prose ${!expanded ? 'max-h-[7rem] overflow-hidden' : 'pb-8'}`}
+            className={`px-4 py-4 prose ${!expanded ? "max-h-[7rem] overflow-hidden" : "pb-8"}`}
           >
             {children}
           </div>
@@ -101,10 +232,10 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
             <button
               onClick={() => setExpanded(!expanded)}
               className={`absolute bottom-0 left-0 right-0 flex justify-center items-end pb-1 cursor-pointer text-gray-400 hover:text-gray-600 ${
-                !expanded ? 'h-16 bg-gradient-to-t from-white dark:from-gray-900 to-transparent' : 'h-8'
+                !expanded ? "h-16 bg-gradient-to-t from-white dark:from-gray-900 to-transparent" : "h-8"
               }`}
             >
-              <span className={`${expanded ? 'rotate-180' : ''} bg-white/60 dark:bg-gray-900/60 rounded-full`}>
+              <span className={`${expanded ? "rotate-180" : ""} bg-white/60 dark:bg-gray-900/60 rounded-full`}>
                 <Icon icon="chevron-down" iconType="solid" size={18} />
               </span>
             </button>
@@ -126,6 +257,8 @@ This list is maintained by the community. If you notice any inaccuracies or woul
 </Note>
 
 ## Client details
+
+<ClientFilter />
 
 <McpClient
   name="5ire"
