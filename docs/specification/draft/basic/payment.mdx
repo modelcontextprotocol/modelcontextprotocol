@@ -1,0 +1,816 @@
+---
+title: Payment
+---
+
+<div id="enable-section-numbers" />
+
+<Info>**Protocol Revision**: draft</Info>
+
+## Introduction
+
+### Purpose and Scope
+
+The Model Context Protocol provides payment capabilities to enable MCP servers to request payment for premium features, usage-based billing, or access to restricted resources. This specification defines how MCP servers should handle payment requests for tool invocations using various payment protocols.
+
+### Protocol Requirements
+
+Payment handling is **OPTIONAL** for MCP implementations.
+
+### Standards Compliance
+
+This payment mechanism is based on the following specifications:
+
+- HTTP/1.1 Status Code 402 Payment Required ([RFC 9110 Section 15.5.3](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.3))
+
+### Supported Payment Protocols
+
+This specification currently defines support for:
+
+- **X402 Protocol v2**: Cryptocurrency and blockchain-based payments ([X402 Specification v2](https://github.com/coinbase/x402/blob/main/specs/x402-specification-v2.md)) - **Recommended**
+
+Additional payment protocols may be added in future versions of this specification.
+
+## Overview
+
+The MCP payment specification extends the core protocol to support:
+
+1. **Payment Discovery**: MCP servers can advertise supported payment protocols and their capabilities
+2. **Payment Challenges**: Servers can request payment using error responses for tool invocations
+3. **Payment Processing**: Integration with protocol-specific payment facilitators for settlement
+4. **Tool Invocation with Payment**: Clients include payment information in tool calls using the `paymentProof` field
+
+## Payment Discovery
+
+### Payment Metadata Method
+
+MCP servers that support payments **SHOULD** provide payment metadata through a JSON-RPC method. This metadata includes:
+
+- Supported payment protocols and their versions
+- Protocol-specific payment schemes and their parameters
+- Optional terms of service and privacy policy links
+
+### Payment Metadata Request
+
+Clients **MAY** request payment metadata using the `payments/list` method:
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "payments/list",
+  "params": {}
+}
+```
+
+**Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocols": {
+      "x402": {
+        "version": "2.0",
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "amount": "10000",
+            "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "payTo": "0x83240485b70e5c820e5f180533fc6156470cfd0e",
+            "maxTimeoutSeconds": 300,
+            "extra": {
+              "name": "USD Coin",
+              "version": "2"
+            }
+          }
+        ]
+      }
+    },
+    "terms_of_service": "https://example.com/terms",
+    "privacy_policy": "https://example.com/privacy"
+  }
+}
+```
+
+Each payment protocol defines its own section structure within the `protocols` object. The X402 section is compatible with X402 bazaar and registries. Future protocols can be added as additional sections with their own configuration requirements.
+
+## Message Flow
+
+### Payment Discovery Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Client->>Server: payments/list
+    Server->>Client: Payment protocols & schemes
+    Note over Client,Server: Optional: Client discovers payment capabilities
+```
+
+### Payment Challenge and Settlement Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Facilitator
+
+    Client->>Server: tools/call (get_weather)
+    Server->>Client: Error -32803 (Payment Required)
+    Note over Client: Process payment via protocol
+    Client->>Facilitator: Submit payment
+    Facilitator->>Client: Payment proof
+    Client->>Server: tools/call (with paymentProof)
+    Server->>Facilitator: Verify payment
+    Facilitator->>Server: Payment confirmed
+    Server->>Client: Tool result
+```
+
+### Combined Authorization and Payment Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant AuthProvider
+    participant Facilitator
+
+    Client->>AuthProvider: Authenticate
+    AuthProvider->>Client: Access token
+    Client->>Server: tools/call (with auth header)
+    Server->>Client: Error -32803 (Payment Required)
+    Note over Client: Process payment via protocol
+    Client->>Facilitator: Submit payment
+    Facilitator->>Client: Payment proof
+    Client->>Server: tools/call (with auth + paymentProof)
+    Server->>Facilitator: Verify payment
+    Facilitator->>Server: Payment confirmed
+    Server->>Client: Tool result
+```
+
+## Payment Challenge Flow
+
+### Payment Required Error Response
+
+When an MCP server requires payment for a tool invocation, it **MUST** return a unique error code indicating payment is required, along with details about which payment protocol to use.
+
+#### Tool Invocation Payment Challenge
+
+When a client calls a tool that requires payment:
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    }
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32803,
+    "message": "Payment Required",
+    "data": {
+      "protocol": "x402",
+      "resource": {
+        "url": "mcp://tool/get_weather",
+        "description": "Premium weather data tool",
+        "mimeType": "application/json"
+      },
+      "paymentInfo": {
+        "x402Version": 2,
+        "error": "Payment required for premium API access",
+        "resource": {
+          "url": "mcp://tool/get_weather",
+          "description": "Premium weather data tool",
+          "mimeType": "application/json"
+        },
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "amount": "10000",
+            "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "payTo": "0xYourReceivingWalletAddressOnBase",
+            "maxTimeoutSeconds": 60,
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          },
+          {
+            "scheme": "exact",
+            "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+            "amount": "1000000",
+            "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "payTo": "YourReceivingWalletAddressOnSolana",
+            "maxTimeoutSeconds": 60,
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          }
+        ],
+        "extensions": {}
+      }
+    }
+  }
+}
+```
+
+The error response includes:
+
+- **code**: `-32803` (unique error code for payment required)
+- **protocol**: Indicates which payment protocol to use (e.g., "x402", "future_protocol")
+- **paymentInfo**: Protocol-specific payment information
+
+## Payment Protocols
+
+### X402 Protocol
+
+The X402 protocol v2 is the first payment protocol supported by this specification and is the **recommended** payment protocol for MCP implementations. MCP servers implementing X402 **MUST** follow the X402 protocol specification for payment scheme definitions.
+
+**X402 v2 Compliance**: This specification aligns with the official X402 Protocol Specification v2, including:
+
+- CAIP-2 network identifiers (e.g., `eip155:8453` for Base mainnet)
+- Structured PaymentRequired and PaymentPayload schemas
+- ResourceInfo separation for clear resource identification
+- Extensions framework for protocol extensibility
+- Facilitator interface compatibility
+
+#### X402 Payment Structure
+
+The X402 protocol uses a PaymentRequired structure for payment challenges and a PaymentPayload structure for payment proofs:
+
+**PaymentRequired Structure** (in error responses):
+
+- **x402Version**: Protocol version (currently 2)
+- **error**: Human-readable error message explaining why payment is required
+- **resource**: ResourceInfo object describing the protected resource
+- **accepts**: Array of supported payment schemes with their parameters
+- **extensions**: Protocol extensions data
+
+**PaymentPayload Structure** (in payment proofs):
+
+- **x402Version**: Protocol version (currently 2)
+- **resource**: ResourceInfo object describing the resource being accessed
+- **accepted**: PaymentRequirements object indicating the payment method chosen
+- **payload**: Scheme-specific payment data
+- **extensions**: Protocol extensions data
+
+#### X402 Exact Scheme
+
+The `exact` scheme transfers a specific amount of funds from a client to a resource server. This is the primary X402 scheme for tool-based payments.
+
+```json
+{
+  "scheme": "exact",
+  "network": "eip155:8453",
+  "amount": "10000",
+  "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "payTo": "0xYourReceivingWalletAddress",
+  "maxTimeoutSeconds": 60,
+  "extra": {
+    "name": "USDC",
+    "version": "2"
+  }
+}
+```
+
+**Field Descriptions**:
+
+- **scheme**: Payment scheme identifier ("exact")
+- **network**: Blockchain network in CAIP-2 format (e.g., "eip155:8453" for Base mainnet)
+- **amount**: Required payment amount in atomic token units
+- **asset**: Token contract address
+- **payTo**: Recipient wallet address
+- **maxTimeoutSeconds**: Maximum time allowed for payment completion
+- **extra**: Additional scheme-specific information
+
+For detailed information on the `exact` scheme, see the [X402 Exact Scheme Specification](https://github.com/coinbase/x402/blob/main/specs/schemes/exact/scheme_exact.md).
+
+#### Network Identifiers
+
+X402 v2 uses CAIP-2 (Chain Agnostic Improvement Proposal) format for network identifiers:
+
+**Format**: `{namespace}:{reference}` (e.g., `eip155:8453` for Base mainnet)
+
+**Supported Networks**:
+
+- **`eip155:8453`**: Base mainnet
+- **`eip155:84532`**: Base Sepolia testnet
+- **`eip155:1`**: Ethereum mainnet
+- **`eip155:11155111`**: Ethereum Sepolia testnet
+- **`solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`**: Solana mainnet
+- **`solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1`**: Solana devnet
+
+Network support varies by facilitator service capabilities and specific implementations.
+
+### Future Payment Protocols
+
+Additional payment protocols **MAY** be supported in future versions of this specification. This could include:
+
+- Traditional payment processors
+- Other blockchain-based payment protocols
+- Digital wallet systems
+- Subscription-based payment models
+
+Each protocol will define its own structure for the `paymentInfo` field and payment proof format.
+
+## Client Payment Handling
+
+### Payment Flow Steps
+
+When an MCP client receives a payment required error for a tool invocation, it **SHOULD** follow these steps:
+
+1. **Parse Payment Information**: Extract payment details from the error response, including the protocol type
+2. **Process Payment**: Handle the selected payment method according to the specified protocol
+3. **Retry Tool Invocation**: Include payment proof in the `paymentProof` field when retrying
+
+### Payment Processing
+
+Payment processing varies by protocol. Clients **MUST** implement protocol-specific handling based on the `protocol` field in the payment required error.
+
+#### X402 Payment Processing
+
+For X402 payments, clients **SHOULD**:
+
+1. Display the payment information (address, amount, network) to the user
+2. Provide QR codes for easy mobile wallet scanning
+3. Handle payment according to the specific X402 scheme
+4. Obtain payment proof (signature and authorization data for the exact scheme)
+
+#### Other Payment Protocols
+
+Future payment protocols will define their own processing requirements and user interaction patterns.
+
+### Tool Invocation with Payment
+
+After payment completion, clients **MUST** include payment information in the `paymentProof` field when retrying the tool invocation. This approach is transport-agnostic and works with HTTP, STDIO, and other transports.
+
+#### Payment Proof Field
+
+For all payment protocols, include the payment proof in the tool call parameters:
+
+**Request with Payment:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "paymentProof": {
+      "protocol": "x402",
+      "proof": {
+        "x402Version": 2,
+        "scheme": "exact",
+        "network": "base-sepolia",
+        "payload": {
+          "signature": "0x21a17fba349406ccfab200d45d0bf0861d380b5d56d17ac2df78b56367669018792dc8c56bb68da876158600e787f36561db543b9113105724ea28610d66b8c31b",
+          "authorization": {
+            "from": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+            "to": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+            "value": "1000",
+            "validAfter": "1766095470",
+            "validBefore": "1766096130",
+            "nonce": "0xeba19931184d6455732604dedbeb52e0c43dcc655e4e55e550543ecb0d050557"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Successful Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "The current weather in New York is 72°F with clear skies."
+      }
+    ],
+    "isError": false,
+    "paymentResponse": {
+      "protocol": "x402",
+      "settlement": {
+        "success": true,
+        "transactionId": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "network": "eip155:84532",
+        "payer": "0x14cE5605DD37502755D6308Bfef5B99363327D4b"
+      }
+    }
+  }
+}
+```
+
+## Server Payment Implementation
+
+### Payment Facilitator Integration
+
+MCP servers **MUST** integrate with protocol-specific payment facilitators for settlement verification. The integration approach depends on the chosen payment protocol.
+
+#### X402 Facilitator Integration
+
+For X402 payments, servers **MUST** integrate with X402-compliant payment facilitators:
+
+1. **Facilitator Registration**: Register with an X402-compliant payment facilitator
+2. **Payment Challenge Generation**: Create payment challenges using facilitator APIs
+3. **Settlement Verification**: Use facilitator to verify payment completion
+4. **Tool Access Control**: Grant tool access based on facilitator confirmation
+
+#### Other Payment Protocol Integration
+
+Future payment protocols will define their own facilitator integration requirements.
+
+### Payment Verification Flow
+
+When a client includes payment information in the `paymentProof` field:
+
+1. **Parse Payment Proof**: Extract payment details from the `paymentProof` field according to the protocol specification
+2. **Protocol Identification**: Determine which payment protocol was used from the `protocol` field
+3. **Facilitator Verification**: Query the appropriate facilitator to verify payment settlement
+4. **Access Decision**: Grant or deny tool access based on facilitator response
+5. **Tool Execution**: Execute the requested tool if payment is verified
+
+### Payment Proof Processing
+
+Servers **MUST** parse the `paymentProof` field according to the specific protocol used. Each protocol defines its own proof structure and processing requirements.
+
+#### X402 Payment Proof Processing
+
+For X402 payments, servers process the `paymentProof` field containing the payment proof data:
+
+```json
+{
+  "paymentProof": {
+    "protocol": "x402",
+    "proof": {
+      "x402Version": 2,
+      "scheme": "exact",
+      "network": "base-sepolia",
+      "payload": {
+        "signature": "0x21a17fba349406ccfab200d45d0bf0861d380b5d56d17ac2df78b56367669018792dc8c56bb68da876158600e787f36561db543b9113105724ea28610d66b8c31b",
+        "authorization": {
+          "from": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+          "to": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+          "value": "1000",
+          "validAfter": "1766095470",
+          "validBefore": "1766096130",
+          "nonce": "0xeba19931184d6455732604dedbeb52e0c43dcc655e4e55e550543ecb0d050557"
+        }
+      }
+    }
+  }
+}
+```
+
+X402 processing steps:
+
+- Extract the payment proof from the `paymentProof.proof` field
+- Verify the protocol matches "x402" in the `paymentProof.protocol` field
+- Extract the scheme to determine the payment method (exact, etc.)
+- Verify the `payload` contains valid payment proof (signature, authorization, etc.)
+- Use the X402 facilitator to verify payment settlement according to the specific scheme
+- Confirm payment amount and recipient match the original payment requirements
+
+#### Other Protocol Payment Proof Processing
+
+Future payment protocols will define their own proof structures and processing requirements.
+
+## Error Handling
+
+### Payment Error Classification
+
+MCP payment implementations **MUST** handle various error scenarios with appropriate JSON-RPC error responses:
+
+| Scenario                  | JSON-RPC Code | Description                          | Example                                   |
+| ------------------------- | ------------- | ------------------------------------ | ----------------------------------------- |
+| Payment Required          | -32803        | Tool requires payment                | Initial payment challenge                 |
+| Payment Settlement Failed | -32803        | Payment processing failed            | Insufficient funds, network error         |
+| Invalid Payment Proof     | -32602        | Malformed payment data               | Invalid signature, missing fields         |
+| Payment Timeout           | -32603        | Payment verification timeout         | Facilitator unavailable                   |
+| Unsupported Protocol      | -32601        | Payment protocol not supported       | Server doesn't support specified protocol |
+| Internal Payment Error    | -32603        | Server-side payment processing error | Database error, facilitator API error     |
+
+### Payment-Required Errors (-32803)
+
+Payment-required scenarios use error code -32803 with structured payment information:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32803,
+    "message": "Payment required",
+    "data": {
+      "protocol": "x402",
+      "resource": {
+        "url": "mcp://tool/premium_weather",
+        "description": "Premium weather analysis tool",
+        "mimeType": "application/json"
+      },
+      "paymentInfo": {
+        // Protocol-specific payment requirements
+      }
+    }
+  }
+}
+```
+
+### Technical Payment Errors
+
+Technical errors use standard JSON-RPC error codes:
+
+**Invalid Payment Proof (-32602):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Invalid payment proof: missing signature field"
+  }
+}
+```
+
+**Internal Payment Error (-32603):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32603,
+    "message": "Payment facilitator unavailable"
+  }
+}
+```
+
+### Resource Identification
+
+Payment-related resources **SHOULD** use MCP-specific URI schemes for clear identification:
+
+- **Tools**: `mcp://tool/{tool_name}`
+- **Resources**: `mcp://resource/{resource_name}`
+- **Prompts**: `mcp://prompt/{prompt_name}`
+
+This provides consistent resource identification across payment contexts and enables clear audit trails.
+
+## Security Considerations
+
+### Payment Security
+
+MCP implementations **MUST** follow protocol-specific security best practices:
+
+1. **Secure Communication**: All payment communications **MUST** use HTTPS
+2. **Facilitator Trust**: Only integrate with trusted, protocol-compliant facilitators
+3. **Payment Validation**: Verify all payment proofs through the designated facilitator
+4. **Audit Logging**: Maintain comprehensive logs of all payment activities
+
+### Protocol-Specific Security Models
+
+#### X402 Security Model
+
+The X402 protocol provides security through:
+
+1. **Cryptographic Proofs**: Payment schemes use cryptographic verification
+2. **Facilitator Mediation**: Trusted facilitators handle settlement verification
+3. **Time-Limited Challenges**: Payment challenges include expiration times
+4. **Scheme-Specific Security**: Each X402 scheme implements appropriate security measures
+
+#### Other Protocol Security
+
+Future payment protocols will define their own security models and requirements.
+
+### Privacy Protection
+
+Implementations **MUST** protect user privacy:
+
+1. **Data Minimization**: Collect only necessary payment information as defined by the protocol
+2. **Facilitator Privacy**: Rely on facilitator privacy policies for payment data
+3. **Local Data Handling**: Minimize local storage of payment-related information
+4. **Compliance**: Follow applicable privacy regulations
+
+## Integration with Authorization
+
+### Combined Authorization and Payment
+
+MCP servers **MAY** combine authorization and payment requirements. In such cases:
+
+1. **Authentication First**: Verify user identity before requesting payment
+2. **Tool-Based Pricing**: Different tools may have different payment requirements
+3. **Payment Per Invocation**: Each tool call may require separate payment verification
+4. **Unified Error Handling**: Provide clear error messages for both auth and payment failures
+
+### Authorization with Payment Proof
+
+When combining OAuth with payments, clients **MUST** include both authorization headers and the `paymentProof` field in the tool call:
+
+**Request with Authorization and Payment:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "paymentProof": {
+      "protocol": "x402",
+      "proof": {
+        "x402Version": 2,
+        "scheme": "exact",
+        "network": "base-sepolia",
+        "payload": {
+          "signature": "0x21a17fba349406ccfab200d45d0bf0861d380b5d56d17ac2df78b56367669018792dc8c56bb68da876158600e787f36561db543b9113105724ea28610d66b8c31b",
+          "authorization": {
+            "from": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+            "to": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+            "value": "1000",
+            "validAfter": "1766095470",
+            "validBefore": "1766096130",
+            "nonce": "0xeba19931184d6455732604dedbeb52e0c43dcc655e4e55e550543ecb0d050557"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+For HTTP transport, the Authorization header would be included alongside the JSON-RPC request:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+This approach ensures payment proof works across all transport mechanisms while maintaining compatibility with existing authorization patterns.
+
+## Settlement Response
+
+### Payment Settlement Communication
+
+After processing a payment and executing the requested tool, servers **SHOULD** include settlement information in the response to provide confirmation and audit trail details.
+
+### Settlement Response Format
+
+For successful tool executions with payment, servers **MAY** include a `paymentResponse` field in the result with protocol-specific settlement data:
+
+#### X402 Settlement Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Tool execution result..."
+      }
+    ],
+    "paymentResponse": {
+      "protocol": "x402",
+      "settlement": {
+        "success": true,
+        "transactionId": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "network": "eip155:84532",
+        "payer": "0x14cE5605DD37502755D6308Bfef5B99363327D4b",
+        "amount": "10000",
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+      }
+    }
+  }
+}
+```
+
+#### Future Protocol Settlement Responses
+
+Other payment protocols will define their own settlement response structures within the `paymentResponse.settlement` field.
+
+### Settlement Failure Response
+
+If payment settlement fails during tool execution, servers **MUST** return an error response with protocol-specific settlement details:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32803,
+    "message": "Payment settlement failed",
+    "data": {
+      "protocol": "x402",
+      "resource": {
+        "url": "mcp://tool/get_weather",
+        "description": "Premium weather data tool",
+        "mimeType": "application/json"
+      },
+      "paymentInfo": {
+        // Original payment requirements
+      },
+      "paymentResponse": {
+        "protocol": "x402",
+        "settlement": {
+          "success": false,
+          "errorReason": "insufficient_funds",
+          "transactionId": "",
+          "network": "eip155:84532",
+          "payer": "0x14cE5605DD37502755D6308Bfef5B99363327D4b"
+        }
+      }
+    }
+  }
+}
+```
+
+### Settlement Response Structure
+
+The `paymentResponse` field **MUST** include:
+
+- **protocol**: Payment protocol identifier (e.g., "x402", "future_protocol")
+- **settlement**: Protocol-specific settlement data
+
+#### X402 Settlement Fields
+
+For X402 protocol, the `settlement` object includes:
+
+- **success**: Boolean indicating payment settlement success
+- **transactionId**: Blockchain transaction hash
+- **network**: Network identifier where payment was processed
+- **payer**: Address of the payment sender
+- **amount**: Amount that was paid (optional)
+- **asset**: Asset contract address that was used for payment (optional)
+- **errorReason**: Reason for settlement failure (required when success is false)
+
+#### Future Protocol Settlement Fields
+
+Future payment protocols will define their own settlement field requirements within the `settlement` object.
+
+## Compliance and Legal Considerations
+
+### Protocol Compliance
+
+MCP implementations **MUST** comply with the requirements of their chosen payment protocols:
+
+#### X402 Protocol Compliance
+
+For X402 implementations:
+
+1. **Scheme Compliance**: Follow X402 specifications for supported payment schemes
+2. **Facilitator Integration**: Use only X402-compliant facilitators
+3. **Protocol Versioning**: Clearly specify supported X402 protocol versions
+4. **Interoperability**: Ensure compatibility with other X402 implementations
+
+#### Other Protocol Compliance
+
+Future payment protocols will define their own compliance requirements.
+
+### Terms of Service
+
+Servers offering paid tools **SHOULD** provide clear terms of service including:
+
+1. **Pricing Information**: Clear, upfront pricing for tool access
+2. **Payment Terms**: Conditions for tool access and payment requirements
+3. **Service Availability**: Uptime guarantees for paid tools
+4. **Protocol Compliance**: Reference to supported payment protocol compliance
+
+## References
+
+- [HTTP/1.1 Status Code 402](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.3)
+- [X402 Protocol Specification v2](https://github.com/coinbase/x402/blob/main/specs/x402-specification-v2.md)
+- [X402 Exact Scheme Specification](https://github.com/coinbase/x402/blob/main/specs/schemes/exact/scheme_exact.md)
