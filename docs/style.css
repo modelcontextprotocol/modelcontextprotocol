@@ -10,24 +10,6 @@
   }
 }
 
-#feature-support-matrix-wrapper table {
-  width: 100%;
-  table-layout: fixed;
-  font-size: 0.75rem;
-}
-
-#feature-support-matrix-wrapper td,
-#feature-support-matrix-wrapper th {
-  padding: 0.25rem;
-  text-align: center;
-}
-
-/* Left align Client column */
-#feature-support-matrix-wrapper td:first-child,
-#feature-support-matrix-wrapper th:first-child {
-  text-align: left;
-}
-
 
 
 /*** Add automatic section numbers to headings and table of contents items ***/

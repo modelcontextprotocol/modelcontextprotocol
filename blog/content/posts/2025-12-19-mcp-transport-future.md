@@ -51,7 +51,7 @@ This direction mirrors standard HTTP, where the protocol itself is stateless whi
 
 ### Elicitations and Sampling
 
-Two MCP features are central to a few of the modern AI workflows: [Elicitations](https://spec.modelcontextprotocol.io/specification/2025-11-25/client/elicitation), which request human input, and [Sampling](https://spec.modelcontextprotocol.io/specification/2025-11-25/client/sampling), which enable agentic LLM interactions.
+Two MCP features are central to a few of the modern AI workflows: [Elicitations](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation), which request human input, and [Sampling](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling), which enable agentic LLM interactions.
 
 Supporting these features at scale requires rethinking the bidirectional communication pattern they rely on. Currently, when a server needs more information to complete a tool call, it suspends execution and waits for a client response, requiring it to track all outstanding requests.
 
