@@ -619,7 +619,14 @@
                         "values": {
                             "description": "An array of completion values. Must not exceed 100 items.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/CompletionValue"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
                             },
                             "type": "array"
                         }
@@ -632,6 +639,25 @@
             },
             "required": [
                 "completion"
+            ],
+            "type": "object"
+        },
+        "CompletionValue": {
+            "description": "A completion value with optional metadata",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "title",
+                "value"
             ],
             "type": "object"
         },
