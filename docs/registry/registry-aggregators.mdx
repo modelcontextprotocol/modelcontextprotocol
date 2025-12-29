@@ -1,0 +1,106 @@
+---
+title: MCP Registry Aggregators
+sidebarTitle: Registry Aggregators
+---
+
+Aggregators are downstream consumers of the MCP Registry that provide additional value. For example, a server marketplace that provides user ratings and security scanning.
+
+The MCP Registry provides an unauthenticated read-only REST API that aggregators can use to populate their data stores. Aggregators are expected to scrape data on a regular but infrequent basis (e.g., once per hour), and persist the data in their own data store. The MCP Registry **does not provide uptime or data durability guarantees**.
+
+## Consuming the MCP Registry REST API
+
+The base URL for the MCP Registry REST API is `https://registry.modelcontextprotocol.io`. It supports the following endpoints:
+
+- [`GET /v0.1/servers`](https://registry.modelcontextprotocol.io/docs#/operations/list-servers-v0.1) — List all servers.
+- [`GET /v0.1/servers/{serverName}/versions`](https://registry.modelcontextprotocol.io/docs#/operations/get-server-versions-v0.1) — List all versions of a server.
+- [`GET /v0.1/servers/{serverName}/versions/{version}`](https://registry.modelcontextprotocol.io/docs#/operations/get-server-version-v0.1) — Get a specific version of a server. Use the special version `latest` to get the latest version of the server.
+
+<Warning>
+
+URL path parameters such as `serverName` and `version` **must** be URL-encoded. For example, `io.modelcontextprotocol/everything` must be encoded as `io.modelcontextprotocol%2Feverything`.
+
+</Warning>
+
+Aggregators will most likely scrape the `GET /v0.1/servers` endpoint.
+
+### Pagination
+
+The `GET /v0.1/servers` endpoint supports cursor-based pagination.
+
+For example, the first page can be fetched using a `limit` query parameter:
+
+```bash
+curl "https://registry.modelcontextprotocol.io/v0/servers?limit=100"
+```
+
+```jsonc Output highlight={5}
+{
+  "servers": [
+    /* ... */
+  ],
+  "metadata": {
+    "count": 100,
+    "nextCursor": "com.example/my-server:1.0.0",
+  },
+}
+```
+
+Then subsequent pages can be fetched by passing the `nextCursor` value as the `cursor` query parameter:
+
+```bash
+curl "https://registry.modelcontextprotocol.io/v0/servers?limit=100&cursor=com.example/my-server:1.0.0"
+```
+
+### Filtering Since
+
+The `GET /v0.1/servers` endpoint supports filtering servers that have been updated since a given timestamp.
+
+For example, servers that have been updated since 2025-10-23 can be fetched using an `updated_since` query parameter in [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339) date-time format:
+
+```bash
+curl "https://registry.modelcontextprotocol.io/v0.1/servers?updated_since=2025-10-23T00:00:00.000Z"
+```
+
+## Server Status
+
+Server metadata is generally immutable, except for the `status` field which may be updated to, e.g., `"deprecated"` or `"deleted"`. We recommend that aggregators keep their copy of each server's `status` up to date.
+
+The `"deleted"` status typically indicates that a server has violated our permissive [moderation policy](./moderation-policy.mdx), suggesting the server might be spam, malware, or illegal. Aggregators may prefer to remove these servers from their index.
+
+## Acting as a Subregistry
+
+A subregistry is an aggregator that also implements the [OpenAPI spec](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/api/openapi.yaml) defined by the MCP Registry. This allows clients, such as MCP host applications, to consume server metadata via a standardized interface.
+
+The subregistry OpenAPI spec allows subregistries to inject custom metadata via the `_meta` field. For example, a subregistry could inject user ratings, download counts, and security scan results:
+
+```json server.json highlight={17-26}
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.username/email-integration-mcp",
+  "title": "Email Integration",
+  "description": "Send emails and manage email accounts",
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@username/email-integration-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "_meta": {
+    "com.example.subregistry/custom": {
+      "user_rating": 4.5,
+      "download_count": 12345,
+      "security_scan": {
+        "last_scanned": "2025-10-23T12:00:00Z",
+        "vulnerabilities_found": 0
+      }
+    }
+  }
+}
+```
+
+We recommend that custom metadata be put under a key that reflects the subregistry (e.g., `"com.example.subregistry/custom"` in the above example).
