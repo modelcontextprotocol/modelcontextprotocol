@@ -1,4 +1,4 @@
-# SEP-0000: Automatic _meta to HTTP Header Forwarding for Distributed Tracing
+# SEP-0000: Automatic \_meta to HTTP Header Forwarding for Distributed Tracing
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -52,7 +52,7 @@ This was verified by intercepting HTTP traffic from an unmodified MCP server (`@
 ### Prior Work
 
 - **Issue #246**: Established the `_meta` convention for client-to-server metadata propagation. Marked as "completed" because the protocol layer works.
-- **PR #666 (typescript-sdk)**: Proposed automatic HTTP header forwarding with `X-MCP-*` prefix. **Rejected** with rationale: *"This PR introduces transport-specific concerns (HTTP headers) into the MCP SDK without protocol-level support."*
+- **PR #666 (typescript-sdk)**: Proposed automatic HTTP header forwarding with `X-MCP-*` prefix. **Rejected** with rationale: _"This PR introduces transport-specific concerns (HTTP headers) into the MCP SDK without protocol-level support."_
 - **Discussion #801**: Ongoing discussion about client-level request identifiers.
 
 The rejection of PR #666 explicitly called for protocol-level support before SDK implementation. This SEP provides that protocol-level foundation.
@@ -113,7 +113,7 @@ This behavior:
 
 // To disable (opt-out):
 const server = new Server({
-  forwardTraceContext: false  // Disable automatic W3C header forwarding
+  forwardTraceContext: false, // Disable automatic W3C header forwarding
 });
 ```
 
@@ -123,9 +123,9 @@ For custom `_meta` fields, SDKs SHOULD provide explicit opt-in configuration:
 
 ```typescript
 const server = new Server({
-  forwardCustomMeta: true,  // Enable custom field forwarding
-  customMetaFields: ['correlation_id', 'tenant_id'],  // Whitelist specific fields
-  customMetaPrefix: 'X-MCP-'  // Prefix for custom headers
+  forwardCustomMeta: true, // Enable custom field forwarding
+  customMetaFields: ["correlation_id", "tenant_id"], // Whitelist specific fields
+  customMetaPrefix: "X-MCP-", // Prefix for custom headers
 });
 ```
 
@@ -145,11 +145,11 @@ server.tool("get_weather", async (params, context) => {
 SDKs SHOULD provide a utility for manual header extraction when needed:
 
 ```typescript
-import { extractHttpHeaders } from '@modelcontextprotocol/sdk/utils';
+import { extractHttpHeaders } from "@modelcontextprotocol/sdk/utils";
 
 const headers = extractHttpHeaders(context.meta, {
-  includeCustom: true,  // Include custom fields
-  customFields: ['correlation_id']  // Whitelist
+  includeCustom: true, // Include custom fields
+  customFields: ["correlation_id"], // Whitelist
 });
 ```
 
@@ -167,12 +167,12 @@ Invalid fields MUST be silently dropped (not cause errors).
 
 ### 4. Configuration Options
 
-| Option                | Type     | Default    | Description                            |
-| --------------------- | -------- | ---------- | -------------------------------------- |
-| `forwardTraceContext` | boolean  | `true`     | Forward W3C Trace Context headers      |
-| `forwardCustomMeta`   | boolean  | `false`    | Forward custom `_meta` fields          |
-| `customMetaFields`    | string[] | `[]`       | Whitelist of custom fields to forward  |
-| `customMetaPrefix`    | string   | `"X-MCP-"` | Prefix for custom field headers        |
+| Option                | Type     | Default    | Description                           |
+| --------------------- | -------- | ---------- | ------------------------------------- |
+| `forwardTraceContext` | boolean  | `true`     | Forward W3C Trace Context headers     |
+| `forwardCustomMeta`   | boolean  | `false`    | Forward custom `_meta` fields         |
+| `customMetaFields`    | string[] | `[]`       | Whitelist of custom fields to forward |
+| `customMetaPrefix`    | string   | `"X-MCP-"` | Prefix for custom field headers       |
 
 ### 5. Transport Considerations
 
