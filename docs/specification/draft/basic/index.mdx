@@ -12,6 +12,7 @@ The Model Context Protocol consists of several key components that work together
 - **Lifecycle Management**: Connection initialization, capability negotiation, and
   session control
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
+- **Payment**: Payment handling for premium features using X402 protocol
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Sampling and root directory lists provided by clients
 - **Utilities**: Cross-cutting concerns like logging and argument completion
@@ -123,6 +124,12 @@ For further discussions and contributions to the evolution of MCP's auth mechani
 us in
 [GitHub Discussions](https://github.com/modelcontextprotocol/specification/discussions)
 to help shape the future of the protocol!
+
+## Payment
+
+MCP provides a [Payment](/specification/draft/basic/payment) framework for premium features and usage-based billing using various payment protocols, with X402 Protocol v2 as the recommended first protocol.
+
+The payment specification enables servers to request payment for specific tools or resources while maintaining security through protocol-specific facilitators. Payment handling works across all MCP transports including HTTP, STDIO, and WebSocket.
 
 ## Schema
 
