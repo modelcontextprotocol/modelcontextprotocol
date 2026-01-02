@@ -412,7 +412,7 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 **Key features:**
 
 - Connects to any MCP server via SSE.
-- Works with the [Apify MCP Server](https://apify.com/apify/actors-mcp-server) to interact with one or more Apify [Actors](https://apify.com/store).
+- Works with the [Apify MCP Server](https://mcp.apify.com) to interact with one or more Apify [Actors](https://apify.com/store).
 - Dynamically utilizes tools based on context and user queries (if supported by the server).
 
 </McpClient>
@@ -1310,6 +1310,25 @@ mcp-use is an open source python library to very easily connect any LLM to any M
 - Supports connection to multiple MCP servers simultaneously.
 - Supports all langchain supported models, also locally.
 - Offers efficient tool orchestration and search functionalities.
+
+</McpClient>
+
+
+<McpClient
+  name="mcpc"
+  homepage="https://github.com/apify/mcpc"
+  supports="Resources, Prompts, Tools, Discovery, Instructions"
+>
+
+`mcpc` is a universal CLI client for MCP that maps MCP operations to intuitive commands for interactive shell use, scripts, and AI coding agents.
+
+**Key features:**
+
+- Swiss knife for MCP: supports stdio and streamable HTTP, server config files and zero config, OAuth 2.1, HTTP headers, and main MCP features.
+- Persistent sessions for interaction with multiple servers simultaneously.
+- Structured text output enables AI agents to explore and interact with MCP servers.
+- JSON output and schema validation allow stable integration with other CLI tools, scripting, and MCP **code mode** in shell.
+- Proxy MCP server to provide AI code sandboxes with secure access to authenticated MCP sessions.
 
 </McpClient>
 
