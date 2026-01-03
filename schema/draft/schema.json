@@ -3154,6 +3154,9 @@
                     "$ref": "#/$defs/CallToolResult"
                 },
                 {
+                    "$ref": "#/$defs/CreateTaskResult"
+                },
+                {
                     "$ref": "#/$defs/GetTaskResult",
                     "description": "The response to a tasks/get request."
                 },
