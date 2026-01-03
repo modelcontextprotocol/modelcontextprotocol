@@ -424,6 +424,10 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the tool list.
      */
     listChanged?: boolean;
+    /**
+     * Whether this server supports filtering tools via the query parameter in tools/list requests.
+     */
+    filtering?: boolean;
   };
   /**
    * Present if the server supports task-augmented requests.
@@ -1077,12 +1081,27 @@ export interface PromptListChangedNotification extends JSONRPCNotification {
 
 /* Tools */
 /**
+ * Parameters for a tools/list request.
+ *
+ * @category `tools/list`
+ */
+export interface ListToolsRequestParams extends PaginatedRequestParams {
+  /**
+   * Optional search string for filtering tools. Should be a simple text query (category, tag, or semantic description).
+   * Servers should support LLM-friendly queries like single words ("database", "filesystem") or short phrases ("read files", "http requests").
+   * NOT for complex JSON or structured query languages. Server documents expected format in the instructions field.
+   */
+  query?: string;
+}
+
+/**
  * Sent from the client to request a list of tools the server has.
  *
  * @category `tools/list`
  */
-export interface ListToolsRequest extends PaginatedRequest {
+export interface ListToolsRequest extends JSONRPCRequest {
   method: "tools/list";
+  params?: ListToolsRequestParams;
 }
 
 /**
