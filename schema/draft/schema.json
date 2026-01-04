@@ -172,6 +172,10 @@
                     "description": "The name of the tool.",
                     "type": "string"
                 },
+                "paymentProof": {
+                    "$ref": "#/$defs/PaymentProof",
+                    "description": "Payment proof data when payment is required for the tool."
+                },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a CreateTaskResult immediately, and the actual result can be\nretrieved later via tasks/result.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
@@ -200,6 +204,10 @@
                 "isError": {
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
+                },
+                "paymentResponse": {
+                    "$ref": "#/$defs/PaymentResponse",
+                    "description": "Optional payment settlement response when payment was processed for this tool call."
                 },
                 "structuredContent": {
                     "additionalProperties": {},
@@ -428,6 +436,9 @@
         "ClientRequest": {
             "anyOf": [
                 {
+                    "$ref": "#/$defs/ListPaymentsRequest"
+                },
+                {
                     "$ref": "#/$defs/InitializeRequest"
                 },
                 {
@@ -484,6 +495,9 @@
             "anyOf": [
                 {
                     "$ref": "#/$defs/Result"
+                },
+                {
+                    "$ref": "#/$defs/ListPaymentsResult"
                 },
                 {
                     "$ref": "#/$defs/GetTaskResult",
@@ -1676,6 +1690,80 @@
             ],
             "type": "object"
         },
+        "ListPaymentsRequest": {
+            "description": "Sent from the client to request payment metadata from the server.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "payments/list",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/ListPaymentsRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method"
+            ],
+            "type": "object"
+        },
+        "ListPaymentsRequestParams": {
+            "description": "Parameters for a `payments/list` request.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "properties": {
+                        "progressToken": {
+                            "$ref": "#/$defs/ProgressToken",
+                            "description": "If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications."
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "ListPaymentsResult": {
+            "description": "The server's response to a payments/list request from the client.",
+            "properties": {
+                "_meta": {
+                    "additionalProperties": {},
+                    "description": "See [General fields: `_meta`](/specification/draft/basic/index#meta) for notes on `_meta` usage.",
+                    "type": "object"
+                },
+                "privacy_policy": {
+                    "description": "Optional privacy policy URL.",
+                    "format": "uri",
+                    "type": "string"
+                },
+                "protocols": {
+                    "additionalProperties": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "description": "Supported payment protocols and their configurations.",
+                    "type": "object"
+                },
+                "terms_of_service": {
+                    "description": "Optional terms of service URL.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "protocols"
+            ],
+            "type": "object"
+        },
         "ListPromptsRequest": {
             "description": "Sent from the client to request a list of prompts and prompt templates the server has.",
             "properties": {
@@ -2190,6 +2278,44 @@
                     "type": "string"
                 }
             },
+            "type": "object"
+        },
+        "PaymentProof": {
+            "description": "Payment proof data included in tool calls when payment is required.",
+            "properties": {
+                "proof": {
+                    "additionalProperties": {},
+                    "description": "Protocol-specific payment proof data.",
+                    "type": "object"
+                },
+                "protocol": {
+                    "description": "The payment protocol used (e.g., \"x402\", \"future_protocol\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "proof",
+                "protocol"
+            ],
+            "type": "object"
+        },
+        "PaymentResponse": {
+            "description": "Settlement response data included in successful tool results after payment.",
+            "properties": {
+                "protocol": {
+                    "description": "The payment protocol used (e.g., \"x402\", \"future_protocol\").",
+                    "type": "string"
+                },
+                "settlement": {
+                    "additionalProperties": {},
+                    "description": "Protocol-specific settlement data.",
+                    "type": "object"
+                }
+            },
+            "required": [
+                "protocol",
+                "settlement"
+            ],
             "type": "object"
         },
         "PingRequest": {

@@ -278,6 +278,7 @@
                   "specification/draft/basic/lifecycle",
                   "specification/draft/basic/transports",
                   "specification/draft/basic/authorization",
+                  "specification/draft/basic/payment",
                   "specification/draft/basic/security_best_practices",
                   {
                     "group": "Utilities",

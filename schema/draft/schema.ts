@@ -179,6 +179,8 @@ export const INTERNAL_ERROR = -32603;
 // Implementation-specific JSON-RPC error codes [-32000, -32099]
 /** @internal */
 export const URL_ELICITATION_REQUIRED = -32042;
+/** @internal */
+export const PAYMENT_REQUIRED = -32803;
 
 /**
  * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
@@ -194,6 +196,86 @@ export interface URLElicitationRequiredError
       [key: string]: unknown;
     };
   };
+}
+
+/* Payment types */
+
+/**
+ * Payment proof data included in tool calls when payment is required.
+ *
+ * @category Payment
+ */
+export interface PaymentProof {
+  /**
+   * The payment protocol used (e.g., "x402", "future_protocol").
+   */
+  protocol: string;
+
+  /**
+   * Protocol-specific payment proof data.
+   */
+  proof: { [key: string]: unknown };
+}
+
+/**
+ * Settlement response data included in successful tool results after payment.
+ *
+ * @category Payment
+ */
+export interface PaymentResponse {
+  /**
+   * The payment protocol used (e.g., "x402", "future_protocol").
+   */
+  protocol: string;
+
+  /**
+   * Protocol-specific settlement data.
+   */
+  settlement: { [key: string]: unknown };
+}
+
+/**
+ * Parameters for a `payments/list` request.
+ *
+ * @category `payments/list`
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ListPaymentsRequestParams extends RequestParams {}
+
+/**
+ * Sent from the client to request payment metadata from the server.
+ *
+ * @category `payments/list`
+ */
+export interface ListPaymentsRequest extends JSONRPCRequest {
+  method: "payments/list";
+  params?: ListPaymentsRequestParams;
+}
+
+/**
+ * The server's response to a payments/list request from the client.
+ *
+ * @category `payments/list`
+ */
+export interface ListPaymentsResult extends Result {
+  /**
+   * Supported payment protocols and their configurations.
+   */
+  protocols: { [protocolName: string]: { [key: string]: unknown } };
+
+  /**
+   * Optional terms of service URL.
+   *
+   * @format uri
+   */
+  terms_of_service?: string;
+
+  /**
+   * Optional privacy policy URL.
+   *
+   * @format uri
+   */
+  privacy_policy?: string;
 }
 
 /* Empty result */
@@ -1125,6 +1207,11 @@ export interface CallToolResult extends Result {
    * should be reported as an MCP error response.
    */
   isError?: boolean;
+
+  /**
+   * Optional payment settlement response when payment was processed for this tool call.
+   */
+  paymentResponse?: PaymentResponse;
 }
 
 /**
@@ -1141,6 +1228,11 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
    * Arguments to use for the tool call.
    */
   arguments?: { [key: string]: unknown };
+
+  /**
+   * Payment proof data when payment is required for the tool.
+   */
+  paymentProof?: PaymentProof;
 }
 
 /**
@@ -2512,6 +2604,7 @@ export type ClientRequest =
   | UnsubscribeRequest
   | CallToolRequest
   | ListToolsRequest
+  | ListPaymentsRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -2531,6 +2624,7 @@ export type ClientResult =
   | CreateMessageResult
   | ListRootsResult
   | ElicitResult
+  | ListPaymentsResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
