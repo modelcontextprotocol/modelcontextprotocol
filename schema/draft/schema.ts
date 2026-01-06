@@ -193,6 +193,8 @@ export interface JSONRPCErrorResponse {
 
 /**
  * A response to a request, containing either the result or error.
+ *
+ * @category JSON-RPC
  */
 export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
