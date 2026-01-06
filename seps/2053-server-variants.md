@@ -1,7 +1,7 @@
 # SEP-2053: Server Variants
 
 - **Status**: Draft
-- **Type**: Standards Track
+- **Type**: Extensions Track
 - **Created**: 2026-01-05
 - **Author(s)**: Sambhav Kothari (@sambhav)
 - **Sponsor**: None
