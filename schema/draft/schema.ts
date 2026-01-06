@@ -2213,6 +2213,10 @@ export interface SamplingMessage {
   content: SamplingMessageContentBlock | SamplingMessageContentBlock[];
   _meta?: MetaObject;
 }
+
+/**
+ * @category `sampling/createMessage`
+ */
 export type SamplingMessageContentBlock =
   | TextContent
   | ImageContent

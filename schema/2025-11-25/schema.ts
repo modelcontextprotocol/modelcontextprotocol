@@ -1683,6 +1683,10 @@ export interface SamplingMessage {
    */
   _meta?: { [key: string]: unknown };
 }
+
+/**
+ * @category `sampling/createMessage`
+ */
 export type SamplingMessageContentBlock =
   | TextContent
   | ImageContent
