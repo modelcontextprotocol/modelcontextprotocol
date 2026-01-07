@@ -1,6 +1,8 @@
-# SEP-XXXX: Action Security Metadata for MCP Tools
+# SEP-1850: Action Security Metadata for MCP Tools
 **Authors:** Robert Reichel (@rreichel3)
 **Status:** Draft
+**Type:** Standards Track
+**PR:** 1850
 
 ---
 
