@@ -1,4 +1,4 @@
-# SEP-0000: OAuth Device Flow for stdio MCP Servers
+# SEP-2059: OAuth Device Flow for stdio MCP Servers
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -23,7 +23,13 @@ The current MCP authorization specification explicitly states that stdio transpo
 {
   "github": {
     "command": "docker",
-    "args": ["run", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
+    "args": [
+      "run",
+      "--rm",
+      "-e",
+      "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "ghcr.io/github/github-mcp-server"
+    ],
     "env": {
       "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxx"
     }
@@ -33,14 +39,14 @@ The current MCP authorization specification explicitly states that stdio transpo
 
 This pattern creates several problems:
 
-| Problem | Impact |
-|---------|--------|
-| **Long-lived tokens** | PATs often have indefinite expiration, increasing exposure window |
-| **Over-scoped access** | Users grant more permissions than needed "just in case" |
-| **Plaintext storage** | Tokens in config files are vulnerable to theft |
-| **Manual lifecycle** | Token rotation, revocation, and scope changes require user action |
-| **Context sharing** | Same token used across multiple agents and contexts |
-| **Scope rigidity** | No mechanism for progressive authorization or step-up auth |
+| Problem                | Impact                                                            |
+| ---------------------- | ----------------------------------------------------------------- |
+| **Long-lived tokens**  | PATs often have indefinite expiration, increasing exposure window |
+| **Over-scoped access** | Users grant more permissions than needed "just in case"           |
+| **Plaintext storage**  | Tokens in config files are vulnerable to theft                    |
+| **Manual lifecycle**   | Token rotation, revocation, and scope changes require user action |
+| **Context sharing**    | Same token used across multiple agents and contexts               |
+| **Scope rigidity**     | No mechanism for progressive authorization or step-up auth        |
 
 ### Why Device Flow?
 
@@ -73,10 +79,10 @@ const server = new McpServer({
   name: "my-mcp-server",
   oauth: {
     enabled: true,
-    clientId: "Ov23ctTMsnT9LTRdBYYM",  // Default app
+    clientId: "Ov23ctTMsnT9LTRdBYYM", // Default app
     authorizationServer: "https://github.com",
-    scopes: ["repo", "read:user"]
-  }
+    scopes: ["repo", "read:user"],
+  },
 });
 ```
 
@@ -106,6 +112,7 @@ server := mcp.NewServer(
 ```
 
 The SDK handles all complexity:
+
 - Detecting unauthenticated state on startup
 - Registering/managing the `auth_login` tool
 - Executing device flow and polling
@@ -135,26 +142,26 @@ sequenceDiagram
     User->>Host: "Do something with GitHub"
     Host->>Server: Launch subprocess
     Server-->>Host: tools/list → [auth_login]
-    
+
     Host->>Server: tools/call auth_login
     Server->>AS: POST /login/device/code
     AS-->>Server: device_code, user_code, verification_uri
-    
+
     Server-->>Host: URL elicitation: "Visit {uri}, enter {code}"
     Host-->>User: Display verification URL and code
-    
+
     loop Polling
         Server->>AS: POST /login/oauth/access_token
         AS-->>Server: pending / access_token
     end
-    
+
     User->>AS: Opens browser, enters code, authorizes
     AS-->>Server: access_token
-    
+
     Server-->>Host: notifications/tools/list_changed
     Host->>Server: tools/list
     Server-->>Host: [all authenticated tools]
-    
+
     Host->>Server: tools/call (original request)
     Server-->>Host: Result
     Host-->>User: "Done!"
@@ -234,6 +241,7 @@ The `auth_login` tool **MUST** be defined as follows:
 When `auth_login` is called, the server **MUST**:
 
 1. **Initiate Device Authorization Request** (RFC 8628 §3.1):
+
    ```http
    POST /login/device/code HTTP/1.1
    Host: authorization-server.example.com
@@ -243,6 +251,7 @@ When `auth_login` is called, the server **MUST**:
    ```
 
 2. **Elicit URL from User** using MCP URL elicitation (if supported by host):
+
    ```json
    {
      "jsonrpc": "2.0",
@@ -266,6 +275,7 @@ When `auth_login` is called, the server **MUST**:
    ```
 
 3. **Poll for Token** (RFC 8628 §3.4) with progress notifications:
+
    ```json
    {
      "jsonrpc": "2.0",
@@ -308,12 +318,12 @@ When `auth_login` is called, the server **MUST**:
 
 #### 3.4 Error Responses
 
-| Error | Description |
-|-------|-------------|
+| Error                   | Description                                                                |
+| ----------------------- | -------------------------------------------------------------------------- |
 | `authorization_pending` | User hasn't completed authorization yet (internal, not returned to client) |
-| `slow_down` | Polling too fast (internal, server adjusts) |
-| `access_denied` | User denied the authorization request |
-| `expired_token` | Device code expired before user completed authorization |
+| `slow_down`             | Polling too fast (internal, server adjusts)                                |
+| `access_denied`         | User denied the authorization request                                      |
+| `expired_token`         | Device code expired before user completed authorization                    |
 
 ### 4. Dynamic Tool Registration via `tools/list_changed`
 
@@ -339,12 +349,12 @@ As an alternative to the `tools/list_changed` approach, implementations **MAY** 
 
 This approach has several advantages:
 
-| Benefit | Description |
-|---------|-------------|
+| Benefit                       | Description                                          |
+| ----------------------------- | ---------------------------------------------------- |
 | **Simpler host requirements** | No need to handle `tools/list_changed` notifications |
-| **Better discoverability** | Users/agents see all available tools upfront |
-| **Seamless UX** | Auth happens transparently when needed |
-| **Reduced round-trips** | No need to re-fetch tool list after auth |
+| **Better discoverability**    | Users/agents see all available tools upfront         |
+| **Seamless UX**               | Auth happens transparently when needed               |
+| **Reduced round-trips**       | No need to re-fetch tool list after auth             |
 
 #### 4.1.1 Lazy Auth Flow
 
@@ -358,21 +368,21 @@ sequenceDiagram
     User->>Host: "Search for issues"
     Host->>Server: tools/list
     Server-->>Host: [search_issues, create_issue, ...] (all tools)
-    
+
     Host->>Server: tools/call search_issues
     Note over Server: Not authenticated, trigger auth
-    
+
     Server-->>Host: elicitation/create (auth URL + code)
     Host-->>User: "Please authenticate: visit URL, enter code"
-    
+
     loop Polling (during elicitation)
         Server->>AS: POST /login/oauth/access_token
         AS-->>Server: pending / access_token
     end
-    
+
     User->>AS: Completes browser auth
     AS-->>Server: access_token
-    
+
     Note over Server: Auth complete, execute original tool call
     Server-->>Host: tools/call result (search results)
     Host-->>User: "Found 42 issues..."
@@ -384,14 +394,16 @@ The SDK tracks authentication state and wraps tool handlers:
 
 ```typescript
 // SDK internal pseudo-code
-async function handleToolCall(request: ToolCallRequest): Promise<ToolCallResult> {
+async function handleToolCall(
+  request: ToolCallRequest,
+): Promise<ToolCallResult> {
   const tool = this.tools.get(request.name);
-  
+
   if (tool.requiresAuth && !this.authManager.isAuthenticated()) {
     // Trigger device flow via elicitation
     await this.authManager.authenticateViaElicitation();
   }
-  
+
   // Now execute the actual tool
   return tool.handler(request, this.authManager.getClient());
 }
@@ -399,10 +411,10 @@ async function handleToolCall(request: ToolCallRequest): Promise<ToolCallResult>
 
 #### 4.1.3 When to Use Each Approach
 
-| Approach | Best For |
-|----------|----------|
+| Approach                 | Best For                                                            |
+| ------------------------ | ------------------------------------------------------------------- |
 | **`tools/list_changed`** | Hosts that want explicit auth state, strict tool visibility control |
-| **Lazy Auth** | Simpler hosts, better UX, reduced complexity |
+| **Lazy Auth**            | Simpler hosts, better UX, reduced complexity                        |
 
 Implementations **SHOULD** support lazy auth as the default when the SDK handles OAuth, falling back to explicit `tools/list_changed` for custom implementations or when hosts explicitly request it.
 
@@ -418,12 +430,12 @@ Tokens obtained via device flow **SHOULD** be:
 
 This provides security benefits:
 
-| Benefit | Description |
-|---------|-------------|
-| **No persistence risk** | No token files to steal or leak |
-| **Session-scoped** | Each container/process run requires fresh auth |
-| **Clean revocation** | Stopping the server = revoking access |
-| **Reduced exposure** | Short-lived sessions limit breach impact |
+| Benefit                 | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| **No persistence risk** | No token files to steal or leak                |
+| **Session-scoped**      | Each container/process run requires fresh auth |
+| **Clean revocation**    | Stopping the server = revoking access          |
+| **Reduced exposure**    | Short-lived sessions limit breach impact       |
 
 #### 5.2 Token Refresh
 
@@ -569,6 +581,7 @@ With OAuth tokens (vs static PATs), servers can implement scope challenges per t
 When an operation fails due to insufficient permissions, the server **SHOULD**:
 
 1. Return an error with scope hint:
+
    ```json
    {
      "jsonrpc": "2.0",
@@ -613,6 +626,7 @@ This tool initiates a new device flow with the expanded scope set.
 #### 9.1 Device Code Security
 
 Per RFC 8628:
+
 - Device codes **MUST** be cryptographically random
 - Device codes **MUST** have limited lifetime (typically 15 minutes)
 - User codes **SHOULD** be short and human-readable (e.g., "ABCD-1234")
@@ -624,6 +638,7 @@ Servers **MUST** respect the `interval` parameter from the device authorization 
 #### 9.3 CIMD Validation
 
 When using CIMD passthrough:
+
 - Servers **SHOULD NOT** fetch CIMD documents themselves (that's the AS's job)
 - Servers **MUST** validate that provided `client_id` is a valid HTTPS URL
 - Servers **MAY** reject `client_id` values that don't match expected patterns
@@ -631,6 +646,7 @@ When using CIMD passthrough:
 #### 9.4 Ephemeral Token Benefits
 
 Ephemeral tokens provide defense-in-depth:
+
 - No token storage = no token theft from disk
 - Process exit = automatic token invalidation
 - Container `--rm` = guaranteed cleanup
@@ -639,6 +655,7 @@ Ephemeral tokens provide defense-in-depth:
 #### 9.5 Host Trust
 
 Servers **SHOULD** be cautious about CIMD values passed from hosts:
+
 - Consider allowlisting known CIMD URLs for sensitive servers
 - Log CIMD values used for audit purposes
 - Display the authenticating identity to users during consent
@@ -647,37 +664,37 @@ Servers **SHOULD** be cautious about CIMD values passed from hosts:
 
 #### 10.1 Server Requirements
 
-| Requirement | Level |
-|-------------|-------|
-| Support unauthenticated startup mode | MUST |
-| Implement `auth_login` tool OR lazy auth | MUST |
-| Send `tools/list_changed` after auth (if using explicit auth tool) | MUST |
-| Support lazy auth pattern | SHOULD |
-| Store tokens in memory only (by default) | SHOULD |
-| Support CIMD passthrough | SHOULD |
-| Support scope challenges | MAY |
-| Support redirect flow | MAY |
+| Requirement                                                        | Level  |
+| ------------------------------------------------------------------ | ------ |
+| Support unauthenticated startup mode                               | MUST   |
+| Implement `auth_login` tool OR lazy auth                           | MUST   |
+| Send `tools/list_changed` after auth (if using explicit auth tool) | MUST   |
+| Support lazy auth pattern                                          | SHOULD |
+| Store tokens in memory only (by default)                           | SHOULD |
+| Support CIMD passthrough                                           | SHOULD |
+| Support scope challenges                                           | MAY    |
+| Support redirect flow                                              | MAY    |
 
 #### 10.2 SDK Requirements
 
-| Requirement | Level |
-|-------------|-------|
-| Provide opt-in OAuth configuration | MUST |
-| Handle device flow state machine internally | MUST |
-| Support both explicit and lazy auth patterns | SHOULD |
+| Requirement                                       | Level  |
+| ------------------------------------------------- | ------ |
+| Provide opt-in OAuth configuration                | MUST   |
+| Handle device flow state machine internally       | MUST   |
+| Support both explicit and lazy auth patterns      | SHOULD |
 | Provide default OAuth app configuration mechanism | SHOULD |
-| Support CIMD passthrough from host | SHOULD |
-| Abstract token lifecycle from server authors | SHOULD |
+| Support CIMD passthrough from host                | SHOULD |
+| Abstract token lifecycle from server authors      | SHOULD |
 
 #### 10.3 Host Requirements
 
-| Requirement | Level |
-|-------------|-------|
-| Handle `tools/list_changed` notifications | SHOULD (MUST if not supporting elicitation during tool calls) |
-| Support URL elicitation | SHOULD |
-| Support elicitation during tool call execution | SHOULD (enables lazy auth) |
-| Pass CIMD configuration to servers | MAY |
-| Support redirect flow callbacks | MAY |
+| Requirement                                    | Level                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------- |
+| Handle `tools/list_changed` notifications      | SHOULD (MUST if not supporting elicitation during tool calls) |
+| Support URL elicitation                        | SHOULD                                                        |
+| Support elicitation during tool call execution | SHOULD (enables lazy auth)                                    |
+| Pass CIMD configuration to servers             | MAY                                                           |
+| Support redirect flow callbacks                | MAY                                                           |
 
 ## Rationale
 
@@ -688,11 +705,13 @@ An alternative approach would be for the host application to handle OAuth entire
 **The host would need to know each server's authorization server.**
 
 Consider a host application like Claude Desktop or VS Code:
+
 - GitHub MCP Server needs tokens from `github.com`
-- Slack MCP Server needs tokens from `slack.com`  
+- Slack MCP Server needs tokens from `slack.com`
 - A company's internal MCP Server needs tokens from `corp.okta.com`
 
 For host-driven OAuth to work, the host would need:
+
 1. Pre-registered OAuth apps with every possible authorization server
 2. Knowledge of which authorization server each MCP server requires
 3. Logic to route tokens appropriately
@@ -701,25 +720,27 @@ This doesn't scale. The host can't anticipate every authorization server that fu
 
 **CIMD solves the identity problem, not the auth server problem.**
 
-CIMD (Client ID Metadata Document) allows the *server* to use the *host's* OAuth identity when authenticating. But crucially:
+CIMD (Client ID Metadata Document) allows the _server_ to use the _host's_ OAuth identity when authenticating. But crucially:
+
 - The **server** still knows its own authorization server (it's intrinsic to the server's purpose)
 - The **host** only provides its identity document URL
 - The **server** performs the OAuth flow with its known authorization server, using the host's identity
 
 This is why server-driven device flow + CIMD passthrough is the right architecture:
+
 - Servers know their auth servers (GitHub server → github.com)
 - Hosts provide their identity (Claude → claude.ai CIMD URL)
 - No coupling between hosts and authorization servers
 
 ### Why Device Flow Over Other Approaches?
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Device Flow** | No browser integration needed, standard OAuth, works everywhere | Requires user action in browser |
-| **Authorization Code** | Most common OAuth flow | Requires redirect handling, complex for stdio |
-| **Client Credentials** | Simple, no user interaction | No user context, not suitable for user-scoped access |
-| **PATs** | Simple to implement | Long-lived, over-scoped, stored in plaintext |
-| **Host-Driven OAuth** | Centralized token management | Host must know every auth server—doesn't scale |
+| Approach               | Pros                                                            | Cons                                                 |
+| ---------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| **Device Flow**        | No browser integration needed, standard OAuth, works everywhere | Requires user action in browser                      |
+| **Authorization Code** | Most common OAuth flow                                          | Requires redirect handling, complex for stdio        |
+| **Client Credentials** | Simple, no user interaction                                     | No user context, not suitable for user-scoped access |
+| **PATs**               | Simple to implement                                             | Long-lived, over-scoped, stored in plaintext         |
+| **Host-Driven OAuth**  | Centralized token management                                    | Host must know every auth server—doesn't scale       |
 
 Device flow provides the best balance for stdio processes: standard OAuth compliance, user-visible consent, and no need for complex browser integration.
 
@@ -755,19 +776,21 @@ Servers implementing this specification **SHOULD** continue supporting environme
 
 ## Security Implications
 
-| Consideration | Mitigation |
-|--------------|------------|
-| Device code interception | Short-lived codes, rate limiting, user verification in browser |
-| Token theft from memory | Defense-in-depth via short sessions, OS memory protections |
-| Malicious host CIMD injection | Server-side validation, optional allowlisting |
-| Phishing via fake verification URLs | Display full verification URL, use well-known paths |
+| Consideration                       | Mitigation                                                     |
+| ----------------------------------- | -------------------------------------------------------------- |
+| Device code interception            | Short-lived codes, rate limiting, user verification in browser |
+| Token theft from memory             | Defense-in-depth via short sessions, OS memory protections     |
+| Malicious host CIMD injection       | Server-side validation, optional allowlisting                  |
+| Phishing via fake verification URLs | Display full verification URL, use well-known paths            |
 
 ## Reference Implementation
 
 A reference implementation exists in the GitHub MCP Server:
+
 - [PR #1649: OAuth Device Flow Authentication](https://github.com/github/github-mcp-server/pull/1649)
 
 Key components:
+
 - `AuthManager`: State machine for device flow
 - `auth_login` tool: Tool definition and execution
 - `tools/list_changed`: Dynamic tool registration
@@ -798,10 +821,10 @@ Implementations should cover:
    // Server responds with elicitation request for auth before returning initialize result
    ```
 
-   | Approach | Pros | Cons |
-   |----------|------|------|
-   | **Auth during initialize** | Cleaner flow, auth state known upfront, no `tools/list_changed` needed | Less back-compatible, delays startup, may auth unnecessarily |
-   | **Auth via tools (current)** | Back-compatible, lazy evaluation, works with existing hosts | More complex, requires `tools/list_changed` or lazy auth pattern |
+   | Approach                     | Pros                                                                   | Cons                                                             |
+   | ---------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
+   | **Auth during initialize**   | Cleaner flow, auth state known upfront, no `tools/list_changed` needed | Less back-compatible, delays startup, may auth unnecessarily     |
+   | **Auth via tools (current)** | Back-compatible, lazy evaluation, works with existing hosts            | More complex, requires `tools/list_changed` or lazy auth pattern |
 
    **Important consideration**: Many host applications initialize servers at app startup, in background processes, or batch-initialize multiple servers at once. At these moments, the user may not be actively engaged with the application, making it a poor time to prompt for authentication. Tool-based auth (whether explicit `auth_login` or lazy auth) naturally triggers when the user is actively trying to do something, which is a better UX moment for auth prompts.
 
@@ -830,6 +853,7 @@ The current MCP Authorization specification ([docs](https://modelcontextprotocol
 This creates a gap: there is no standardized mechanism for stdio MCP servers to perform OAuth authentication. Server implementers are left to invent their own patterns (split into `create_job`/`get_job` tools, environment variables, etc.), leading to fragmented UX and security practices.
 
 No existing SEP addresses this gap:
+
 - **SEP-1036** (URL Mode Elicitation, [PR #887](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/887), merged) - Provides the elicitation primitive we leverage, but is focused on third-party downstream auth, not MCP server auth
 - **SEP-991** (CIMD, [PR #1296](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1296), merged) - Defines Client ID Metadata Documents for client identity, which we reference for host identity passthrough
 - **SEP-646** (Enterprise Managed Authorization, [PR #646](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/646), merged) - Focuses on enterprise IdP integration for HTTP servers
@@ -837,14 +861,14 @@ No existing SEP addresses this gap:
 
 ### Related Issues and PRs
 
-| Reference | Description | Status | Relevance |
-|-----------|-------------|--------|-----------|
-| [github/github-mcp-server#132](https://github.com/github/github-mcp-server/issues/132) | "Non PAT auth method" - 23 upvotes requesting device flow | Open | Demonstrates community demand |
-| [github/github-mcp-server#1649](https://github.com/github/github-mcp-server/pull/1649) | Reference implementation of device flow | Open | Proves feasibility |
-| [#205](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/205) | "Treat MCP server as OAuth resource server" - 147 reactions | Closed (completed) | Informed the RP-centric auth model |
-| [PR #284](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/284) | Major RFC updating Authorization spec | Merged | Foundation for current auth spec |
-| [PR #338](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/338) | MCP Servers as Resource Servers, Protected Resource Metadata | Merged | Established MCP auth architecture |
-| [#1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686) | SEP-1686: Tasks for long-running operations | Accepted | Could complement async auth flows |
+| Reference                                                                              | Description                                                  | Status             | Relevance                          |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------ | ---------------------------------- |
+| [github/github-mcp-server#132](https://github.com/github/github-mcp-server/issues/132) | "Non PAT auth method" - 23 upvotes requesting device flow    | Open               | Demonstrates community demand      |
+| [github/github-mcp-server#1649](https://github.com/github/github-mcp-server/pull/1649) | Reference implementation of device flow                      | Open               | Proves feasibility                 |
+| [#205](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/205)        | "Treat MCP server as OAuth resource server" - 147 reactions  | Closed (completed) | Informed the RP-centric auth model |
+| [PR #284](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/284)       | Major RFC updating Authorization spec                        | Merged             | Foundation for current auth spec   |
+| [PR #338](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/338)       | MCP Servers as Resource Servers, Protected Resource Metadata | Merged             | Established MCP auth architecture  |
+| [#1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686)      | SEP-1686: Tasks for long-running operations                  | Accepted           | Could complement async auth flows  |
 
 ### Key Distinctions
 
@@ -856,7 +880,7 @@ This SEP fills a specific gap not covered by existing work:
 4. **Ephemeral tokens**: Prioritizes runtime tokens over stored credentials
 5. **Lazy auth pattern**: Proposes elicitation-based auth during tool calls as an alternative to explicit auth tools
 
-The closest related work (SEP-1036 URL Mode Elicitation) explicitly focuses on *third-party downstream* authorization—when an MCP server needs to access external APIs on behalf of the user. This SEP addresses the *primary* authorization—authenticating the MCP server itself with its backing service.
+The closest related work (SEP-1036 URL Mode Elicitation) explicitly focuses on _third-party downstream_ authorization—when an MCP server needs to access external APIs on behalf of the user. This SEP addresses the _primary_ authorization—authenticating the MCP server itself with its backing service.
 
 ## Acknowledgments
 
@@ -872,4 +896,3 @@ The closest related work (SEP-1036 URL Mode Elicitation) explicitly focuses on *
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/draft/basic/authorization)
 - [GitHub MCP Server Device Flow PR](https://github.com/github/github-mcp-server/pull/1649)
 - [RFC 9728 - OAuth 2.0 Protected Resource Metadata](https://datatracker.ietf.org/doc/html/rfc9728)
-
