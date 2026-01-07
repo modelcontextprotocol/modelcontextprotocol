@@ -756,15 +756,35 @@ Implementations should cover:
 
 ## Open Questions
 
-1. **Lazy auth vs explicit auth default**: Should SDKs default to lazy auth (triggers on first tool call) or explicit auth (separate `auth_login` tool with `tools/list_changed`)? Lazy auth provides better UX but requires hosts to support elicitation during tool call execution.
+1. **Auth during initialize**: Should servers be able to trigger authentication during the `initialize` phase rather than waiting for tool calls? This would provide a cleaner flow where auth happens upfront:
 
-2. **Token persistence standardization**: Should we standardize how optional token persistence works across platforms?
+   ```json
+   {
+     "jsonrpc": "2.0",
+     "method": "initialize",
+     "id": 1
+   }
+   // Server responds with elicitation request for auth before returning initialize result
+   ```
 
-2. **Scope negotiation**: How should servers communicate available scopes to hosts for UI purposes?
+   | Approach | Pros | Cons |
+   |----------|------|------|
+   | **Auth during initialize** | Cleaner flow, auth state known upfront, no `tools/list_changed` needed | Less back-compatible, delays startup, may auth unnecessarily |
+   | **Auth via tools (current)** | Back-compatible, lazy evaluation, works with existing hosts | More complex, requires `tools/list_changed` or lazy auth pattern |
 
-3. **Multi-account support**: How should servers handle multiple authenticated accounts?
+   **Important consideration**: Many host applications initialize servers at app startup, in background processes, or batch-initialize multiple servers at once. At these moments, the user may not be actively engaged with the application, making it a poor time to prompt for authentication. Tool-based auth (whether explicit `auth_login` or lazy auth) naturally triggers when the user is actively trying to do something, which is a better UX moment for auth prompts.
 
-4. **Session resumption**: Should there be a standard for resuming sessions across server restarts?
+   This could still be a future extension where servers advertise `requiresAuth: true` in their capabilities, but the timing challenges suggest tool-based auth may be the better default.
+
+2. **Lazy auth vs explicit auth default**: Should SDKs default to lazy auth (triggers on first tool call) or explicit auth (separate `auth_login` tool with `tools/list_changed`)? Lazy auth provides better UX but requires hosts to support elicitation during tool call execution.
+
+3. **Token persistence standardization**: Should we standardize how optional token persistence works across platforms?
+
+4. **Scope negotiation**: How should servers communicate available scopes to hosts for UI purposes?
+
+5. **Multi-account support**: How should servers handle multiple authenticated accounts?
+
+6. **Session resumption**: Should there be a standard for resuming sessions across server restarts?
 
 ## Acknowledgments
 
