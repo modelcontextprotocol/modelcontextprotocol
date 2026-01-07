@@ -5,7 +5,7 @@
 - **Created**: 2026-01-07
 - **Author(s)**: Sam Morrow (@sammorrowdrums)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2059
 
 ## Abstract
 
