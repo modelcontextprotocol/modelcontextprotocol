@@ -1,4 +1,5 @@
 # SEP-2061: Action Security Metadata for MCP Tools
+
 **Authors:** Robert Reichel (@rreichel3)
 **Status:** Draft
 **Type:** Standards Track
@@ -40,7 +41,6 @@ This SEP defines a set of metadata fields that MCP tools may declare for both in
 
 Each tool MAY declare the following metadata for its inputs:
 
-
 ```ts
 InputMetadata {
   Destination: Ephemeral | System | User | Internal | Public
@@ -51,7 +51,6 @@ InputMetadata {
 
 > [!NOTE]
 > These are further defined in the appendix below
-
 
 ### Return Metadata
 
@@ -86,16 +85,18 @@ This SEP is backward compatible. Tools that do not declare Action Security Metad
 ---
 
 ## Reference Implementation
+
 Below are a few reference implementations that help to illustrate how this might be surfaced:
 
 ### Read Email Drafts Action
+
 ```jsonc
 {
   "name": "read_drafts",
   "description": "Read the user's email drafts.",
   "inputSchema": {
     "type": "object",
-    "additionalProperties": false
+    "additionalProperties": false,
   },
   "annotations": {
     "inputMetadata": {
@@ -106,33 +107,32 @@ Below are a few reference implementations that help to illustrate how this might
       "Sensitivity": "None",
 
       // Reading drafts does not change any user or system state
-      "Outcomes": "Benign"
+      "Outcomes": "Benign",
     },
     "returnMetadata": {
       // Drafts are user-owned data
       "Source": "User",
 
       // Drafts contain PII
-      "Sensitivity": "PII"
-    }
-  }
+      "Sensitivity": "PII",
+    },
+  },
 }
 ```
 
-
 ### List Email Inbox Action
-```jsonc
 
+```jsonc
 {
   "name": "list_inbox",
   "description": "List recent emails in the user's inbox.",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "limit": { "type": "number" }
+      "limit": { "type": "number" },
     },
     "required": [],
-    "additionalProperties": false
+    "additionalProperties": false,
   },
   "annotations": {
     "inputMetadata": {
@@ -143,20 +143,21 @@ Below are a few reference implementations that help to illustrate how this might
       "Sensitivity": "None",
 
       // Listing messages does not modify anything
-      "Outcomes": "Benign"
+      "Outcomes": "Benign",
     },
     "returnMetadata": {
       // Emails may include content from external senders
       "Source": "UntrustedPublic",
 
       // Emails contain PII (addresses, names, message bodies)
-      "Sensitivity": ["PII", "User"]
-    }
-  }
+      "Sensitivity": ["PII", "User"],
+    },
+  },
 }
 ```
 
 ### Send Email Action
+
 ```jsonc
 {
   "name": "send_email",
@@ -192,7 +193,6 @@ Below are a few reference implementations that help to illustrate how this might
   }
 }
 ```
-
 
 ###
 
