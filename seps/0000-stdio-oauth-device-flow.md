@@ -457,15 +457,11 @@ When a host application (e.g., Claude Desktop, VS Code) already has an OAuth ide
 Hosts **MAY** pass CIMD information to stdio servers via environment variables:
 
 ```bash
-# CIMD URL as client_id
+# CIMD URL as client_id (the host's OAuth identity)
 MCP_OAUTH_CLIENT_ID="https://claude.ai/oauth/client-metadata.json"
-
-# Optional: Pre-configured authorization server
-MCP_OAUTH_AUTHORIZATION_SERVER="https://github.com"
-
-# Optional: Hint that CIMD is supported
-MCP_OAUTH_CIMD_SUPPORTED="true"
 ```
+
+> **Note**: The authorization server is **not** passed by the host. The server itself knows which authorization server to use (e.g., the GitHub MCP server knows to use `github.com`). The host only provides its CIMD identity so the server can authenticate on behalf of the host application.
 
 Alternatively, hosts **MAY** pass this information via initialization parameters:
 
@@ -478,8 +474,7 @@ Alternatively, hosts **MAY** pass this information via initialization parameters
     "capabilities": {
       "auth": {
         "cimd": {
-          "clientId": "https://claude.ai/oauth/client-metadata.json",
-          "authorizationServer": "https://github.com"
+          "clientId": "https://claude.ai/oauth/client-metadata.json"
         }
       }
     },
@@ -509,13 +504,15 @@ Content-Type: application/x-www-form-urlencoded
 client_id=https://claude.ai/oauth/client-metadata.json&scope=repo
 ```
 
-#### 6.4 Authorization Server Discovery with CIMD
+#### 6.4 Authorization Server Knowledge
 
-When using CIMD passthrough, the server **SHOULD** discover the authorization server:
+The MCP server **already knows** its authorization server—this is intrinsic to the server's purpose:
 
-1. If `MCP_OAUTH_AUTHORIZATION_SERVER` is provided, use it directly
-2. Otherwise, attempt Protected Resource Metadata discovery (RFC 9728)
-3. Validate that the authorization server supports `client_id_metadata_document_supported`
+- GitHub MCP Server → `github.com`
+- Slack MCP Server → `slack.com`
+- Google MCP Server → `accounts.google.com`
+
+The host does not need to (and should not) configure the authorization server. The server validates that its authorization server supports CIMD by checking for `client_id_metadata_document_supported` in the AS metadata.
 
 ### 7. Redirect-Based Flow (Optional Extension)
 
