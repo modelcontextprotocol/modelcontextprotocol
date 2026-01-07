@@ -681,6 +681,36 @@ Servers **SHOULD** be cautious about CIMD values passed from hosts:
 
 ## Rationale
 
+### Why Not Host-Driven OAuth?
+
+An alternative approach would be for the host application to handle OAuth entirely—obtaining tokens and passing them to MCP servers. However, this creates a fundamental coupling problem:
+
+**The host would need to know each server's authorization server.**
+
+Consider a host application like Claude Desktop or VS Code:
+- GitHub MCP Server needs tokens from `github.com`
+- Slack MCP Server needs tokens from `slack.com`  
+- A company's internal MCP Server needs tokens from `corp.okta.com`
+
+For host-driven OAuth to work, the host would need:
+1. Pre-registered OAuth apps with every possible authorization server
+2. Knowledge of which authorization server each MCP server requires
+3. Logic to route tokens appropriately
+
+This doesn't scale. The host can't anticipate every authorization server that future MCP servers might need.
+
+**CIMD solves the identity problem, not the auth server problem.**
+
+CIMD (Client ID Metadata Document) allows the *server* to use the *host's* OAuth identity when authenticating. But crucially:
+- The **server** still knows its own authorization server (it's intrinsic to the server's purpose)
+- The **host** only provides its identity document URL
+- The **server** performs the OAuth flow with its known authorization server, using the host's identity
+
+This is why server-driven device flow + CIMD passthrough is the right architecture:
+- Servers know their auth servers (GitHub server → github.com)
+- Hosts provide their identity (Claude → claude.ai CIMD URL)
+- No coupling between hosts and authorization servers
+
 ### Why Device Flow Over Other Approaches?
 
 | Approach | Pros | Cons |
@@ -689,6 +719,7 @@ Servers **SHOULD** be cautious about CIMD values passed from hosts:
 | **Authorization Code** | Most common OAuth flow | Requires redirect handling, complex for stdio |
 | **Client Credentials** | Simple, no user interaction | No user context, not suitable for user-scoped access |
 | **PATs** | Simple to implement | Long-lived, over-scoped, stored in plaintext |
+| **Host-Driven OAuth** | Centralized token management | Host must know every auth server—doesn't scale |
 
 Device flow provides the best balance for stdio processes: standard OAuth compliance, user-visible consent, and no need for complex browser integration.
 
