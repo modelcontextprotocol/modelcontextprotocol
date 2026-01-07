@@ -351,7 +351,7 @@ This approach has several advantages:
 ```mermaid
 sequenceDiagram
     participant User
-    participant Host as MCP Host
+    participant Host as MCP HostOK n
     participant Server as MCP Server (stdio)
     participant AS as Authorization Server
 
@@ -786,11 +786,53 @@ Implementations should cover:
 
 6. **Session resumption**: Should there be a standard for resuming sessions across server restarts?
 
+## Prior Art and Related Work
+
+This SEP builds upon and relates to several existing efforts in the MCP ecosystem:
+
+### Why This Needs a SEP
+
+The current MCP Authorization specification ([docs](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)) explicitly states:
+
+> "For local transport implementations, such as stdio-based implementations, implementors **SHOULD NOT** follow this specification, and instead retrieve credentials from the environment."
+
+This creates a gap: there is no standardized mechanism for stdio MCP servers to perform OAuth authentication. Server implementers are left to invent their own patterns (split into `create_job`/`get_job` tools, environment variables, etc.), leading to fragmented UX and security practices.
+
+No existing SEP addresses this gap:
+- **SEP-1036** (URL Mode Elicitation, [PR #887](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/887), merged) - Provides the elicitation primitive we leverage, but is focused on third-party downstream auth, not MCP server auth
+- **SEP-991** (CIMD, [PR #1296](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1296), merged) - Defines Client ID Metadata Documents for client identity, which we reference for host identity passthrough
+- **SEP-646** (Enterprise Managed Authorization, [PR #646](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/646), merged) - Focuses on enterprise IdP integration for HTTP servers
+- **SEP-1933** (Workload Identity Federation, [PR #1933](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1933), draft) - Machine-to-machine auth, different use case
+
+### Related Issues and PRs
+
+| Reference | Description | Status | Relevance |
+|-----------|-------------|--------|-----------|
+| [github/github-mcp-server#132](https://github.com/github/github-mcp-server/issues/132) | "Non PAT auth method" - 23 upvotes requesting device flow | Open | Demonstrates community demand |
+| [github/github-mcp-server#1649](https://github.com/github/github-mcp-server/pull/1649) | Reference implementation of device flow | Open | Proves feasibility |
+| [#205](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/205) | "Treat MCP server as OAuth resource server" - 147 reactions | Closed (completed) | Informed the RP-centric auth model |
+| [PR #284](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/284) | Major RFC updating Authorization spec | Merged | Foundation for current auth spec |
+| [PR #338](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/338) | MCP Servers as Resource Servers, Protected Resource Metadata | Merged | Established MCP auth architecture |
+| [#1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686) | SEP-1686: Tasks for long-running operations | Accepted | Could complement async auth flows |
+
+### Key Distinctions
+
+This SEP fills a specific gap not covered by existing work:
+
+1. **Transport-specific**: Focuses specifically on stdio transport, which cannot use HTTP-based OAuth flows
+2. **Device flow**: Uses RFC 8628 Device Authorization Grant, not covered elsewhere in MCP
+3. **SDK-implementable**: Designed for SDK authors to provide "auth for free" to server implementers
+4. **Ephemeral tokens**: Prioritizes runtime tokens over stored credentials
+5. **Lazy auth pattern**: Proposes elicitation-based auth during tool calls as an alternative to explicit auth tools
+
+The closest related work (SEP-1036 URL Mode Elicitation) explicitly focuses on *third-party downstream* authorization—when an MCP server needs to access external APIs on behalf of the user. This SEP addresses the *primary* authorization—authenticating the MCP server itself with its backing service.
+
 ## Acknowledgments
 
 - GitHub MCP Server team for the reference implementation
 - MCP Core Maintainers for authorization spec guidance
 - IETF OAuth Working Group for RFC 8628 and CIMD specifications
+- ArcadeAI team for SEP-1036 URL Mode Elicitation work
 
 ## References
 
