@@ -11,91 +11,53 @@
 
 ## Abstract
 
-This SEP defines an optional DPoP (Demonstrating Proof of Possession) extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. The proposal adapts OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) to align with MCP’s single-endpoint architecture. The proposal incorporates a content digest into the DPoP proof, allowing the proof to be tied to the specific JSON-RPC request body and ensuring tighter request-level binding.
+This SEP defines DPoP (Demonstrating Proof of Possession) as an optional extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. The proposal uses OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
 
 ## Motivation
 
-MCP’s current authorization model uses bearer tokens, which can be reused by an unauthorized party if the token is leaked or intercepted. If an access token is intercepted—through network eavesdropping, compromised logs, or other means—an attacker can use it to access protected MCP resources until the token expires.
+MCP’s current authorization model uses bearer tokens, which can be reused by an unauthorized party if the token is leaked, intercepted or exfiltrated. If an access token is intercepted, through network eavesdropping, compromised logs, or other means, an attacker use the token from a MCP client under its control to access protected MCP resources until the token expires.
 
-DPoP addresses this by making tokens "sender-constrained": even if an attacker intercepts an access token, they cannot use it without also possessing the client's private key. This significantly raises the bar for attackers.
-
-MCP's architecture presents a unique security challenge: all JSON-RPC requests use the same HTTP endpoint and method (POST). Standard DPoP binds proofs to the endpoint and HTTP method but not to the request payload, meaning intercepted proofs can be replayed with a different message body within the validity window. This SEP addresses this by including a content digest in DPoP proofs, binding each proof cryptographically to a specific request body.
+DPoP addresses this by making tokens "sender-constrained" so that even if an attacker obtains an access token, they cannot use it without also possessing or controlling the correspondiong client's private key. This significantly raises the bar for attackers.
 
 This extension is particularly valuable for:
 
 - High-security environments handling sensitive data
 - Long-lived access tokens
 - Deployments where token theft risk is elevated
-- Compliance requirements mandating proof of possession
+- Compliance requirements mandating proof of possession or sender constrained tokens
 
 ## Specification
 
-The DPoP Profile for MCP adapts OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) for use in the Model Context Protocol’s single-endpoint architecture. Standard DPoP binds proofs to the HTTP method and URL, but in MCP all requests use the same method (POST) and endpoint, with the specific operation conveyed in the JSON-RPC body. As a result, traditional DPoP does not distinguish between different MCP operations, since the request semantics are not reflected in the elements covered by the proof. The profile refines the content of the DPoP proof to better account for this characteristic of MCP.
+This extension requries OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) for use in the Model Context Protocol. This proposal does not define extensions to ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) to maximise interoperability, simplify implementation and accelerate deployment while preserving the security properties to minimise the risks that arise from token exfiltration and replay required for MCP clients and servers. It does not preclude the use of the extension mechanisms defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449). 
 
-To solve this, the profile adds one key requirement: DPoP proofs must include a cryptographic digest of the JSON-RPC request body (`content_digest`). This binds each proof to a specific request payload, preventing attackers from replaying valid proofs with altered bodies.
+### Stateless DPoP Proof Replay Protection
 
-The design emphasizes:
+[RFC 9449 Section 11.1](https://www.rfc-editor.org/rfc/rfc9449.html#name-dpop-proof-replay) provides specific guidance on replay protection mechanisms that adress the risks of a DPoP Proofs being replayed. 
 
-- **Payload binding** — eliminating replay attacks without requiring server-side state.
-- **Statelessness** — servers do not need to track jti values (see Section 4.2 of [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax)).
-- **Compatibility** — minimal, targeted changes that keep DPoP and OAuth flows standard.
-- **Scalability** — suitable for distributed MCP servers.
-
-This proposal adapts DPoP for more tailored use with MCP, enabling each request to be cryptographically linked to its corresponding DPoP proof. A detailed proposal is described at https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-dpop-extension/specification/draft/dpop-extension.mdx
+MCP servers that is not capable of keeping state or perform global `jti` tracking provides DPoP proof replay protection by enforcing short `iat` acceptance windows of +/- 5 minutes and standard RFC 9449 claim validation. A stateless MCP server may provide additional replay protection by using a server supplied nonce as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) (e.g. by using an encrypted timestamp as the nonce value which can be decrypted, parsed and verified to be within an acceptable time window when returned in DPoP Proof).
 
 ## Rationale
 
-The purpose of this extension is to adapt OAuth 2.0 DPoP to the architectural characteristics of the Model Context Protocol (MCP), enabling sender-constrained access tokens to be used effectively in an environment where the standard DPoP mechanism provides limited request differentiation. Although RFC 9449 defines a general-purpose proof-of-possession framework, MCP’s single-endpoint, request-tunneled design means that additional context is needed to distinguish individual operations. This profile introduces a small set of focused enhancements—most notably, mandatory binding to the request payload—to provide that clarity without adding significant complexity or statefulness.
+The purpose of this extension is to define a mechanism to sender constrain OAuth Access Tokens in MCP deployments using OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)). 
 
-### 1. Single-Endpoint Architecture Increases Replay Risk
+This SEP intentionally adopts DPoP as defined in RFC 9449, without introducing MCP-specific claims, request body digests, or additional proof material. This design choice reflects a deliberate trade-off in favor of interoperability, deployability, and alignment with existing OAuth 2.0 security models.
 
-DPoP proofs are tied to the HTTP method and path of each request, which naturally limits how broadly a proof could be reused in typical RESTful APIs. MCP’s design, however, uses:
-
-- A single HTTP endpoint, and
-- A single HTTP method (`POST`),
-- With all semantic variation encoded in the JSON-RPC message body.
-
-This means that, for MCP, the `htu` and `htm` claims in a standard DPoP proof they do not meaningfully differentiate purposes or operations. As a result, an attacker who obtains a proof (and valid token) during the proof validity window could replay it with a different JSON-RPC payload, gaining unauthorized access to operations the original client never invoked.
-
-This is unique to protocols like MCP that multiplex operations within a uniform transport envelope.
-
-### 2. Binding the Proof to the Request Payload Closes This Gap
-
-The introduction of a `content_digest` claim binds the DPoP proof to a cryptraphic digest of the JSON-RPC request body. This elevates the binding from _endpoint only_ to _endpoint + payload_, eliminating the value of reusing proofs with modified JSON-RPC messages.
-
-This approach was chosen because:
-
-- It leverages existing IETF work (RFC 9530) rather than inventing a new digest syntax,
-- It adds no state requirements for servers,
-- It maintains compatibility with existing DPoP libraries and flows,
-- It is transport-agnostic and does not require TLS extensions or multi-endpoint APIs.
-
-### 3. Stateless Replay Protection Is Critical for MCP Deployability
-
-MCP servers are expected to run in scalable, distributed environments. Stateful replay detection (e.g., global `jti` tracking) would impose:
-
-- Infrastructure overhead (centralized storage or synchronization),
-- Latency penalties,
-- Operational coupling between nodes.
-
-Because MCP already has a single-endpoint active attack surface, requiring `content_digest` provides strong, per-request replay defense **without** requiring server-side state. Servers may still track `jti` values for high-assurance use cases, but the protocol does not depend on it.
+[RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) already provides the core security properties for sender constraining OAuth Access Tokens. When combined with TLS transport-layer security and appropriate token and proof lifetimes, these mechanisms are sufficient to significantly reduce the risks associated with token exfiltration and replay in MCP deployments, even if the MCP server is not capable of maintaining global state.
 
 ## Backward Compatibility
 
-This is an optional extension with no backward compatibility concerns. Existing MCP implementations continue to work unchanged. Implementations adopting DPoP can do so incrementally:
+This is an optional extension with no backward compatibility concerns. Existing MCP implementations continue to work unchanged. [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) is designed for graceful coexistence with existing bearer token deployments. Implementations adopting DPoP can do so incrementally:
 
 - Authorization servers can support both bearer and DPoP tokens simultaneously
 - Clients can be upgraded independently
 - MCP servers can accept both token types during migration
 
-The extension is designed for graceful coexistence with existing bearer token deployments.
-
 ## Security Implications
 
 This extension protects against:
 
-- **Token theft and replay**: Even if tokens are intercepted, attackers cannot use them without the private key
-- **Request tampering**: Content digests prevent modification of request bodies during replay
+- **Token theft and replay**: Even if tokens are intercepted, attackers cannot use them without access or control over the private key
+- **Proof theft and replay**: DPoP Proof replay mechanisms protect against proof replay. If an MCP server is unable to maintain state, short-lived DPoP proofs limits the exposure window while the server supplied nonce provides the MCP server to force the generation of a fresh DPoP proof to further limit the risk that a DPoP proof is being replayed.
 - **Network-based attacks**: DPoP significantly reduces value of network eavesdropping
 
 DPoP does not protect against:
@@ -119,12 +81,11 @@ Links will be added when implementations are available.
 DPoP introduces modest performance overhead:
 
 - **Client-side**: Additional cryptographic signing operation per request
-- **Server-side**: Additional signature verification and content digest validation per request
+- **Server-side**: Additional cryptographic signature verification per request
 - **Network**: Slightly larger HTTP headers due to DPoP proof JWT
+- **Latency**: An extra round-trip for the first MCP server supplied nonce.
 
 These costs are generally negligible compared to overall request processing time.
-
-The stateless design minimizes server-side overhead by avoiding the need to maintain proof tracking databases.
 
 ## Testing Plan
 
@@ -143,23 +104,18 @@ Test vectors will be provided in the reference implementation.
 
 ### HTTP Message Signatures
 
-We considered RFC 9421 (HTTP Message Signatures) as an alternative to content digests. However, this would add complexity without significant benefit for MCP's use case. Content digests provide the needed payload binding with simpler implementation requirements.
+We considered RFC 9421 (HTTP Message Signatures) as an alternative. However, the use of HTTP Message signatures for sender constraining tokens have not been standardised by the OAuth community.
 
-### Mandatory jti Tracking
+### Custom content signing extension
 
-Making `jti` tracking mandatory would provide stronger replay protection but at significant operational cost. The stateless design better fits MCP's scalability goals while still providing substantial security improvements through content digest validation.
-
-### Nonce-based Approach
-
-Server-provided nonces (per RFC 9449 Section 9) could replace time-based validation but require additional round-trips and potentially server state. This specification makes nonces optional, allowing implementations to choose based on their security requirements.
+An earlier draft of this SEP proposed a custom extension using the mechanisms defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) that cryptographically bound the request body to the DPoP proof. This approach was not selected because it significantly increased implementation and operational complexity without providing sufficient additional security benefit. The final design therefore adopts DPoP as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) to maximize interoperability, simplicity, and deployability.
 
 ## Open Questions
 
-1. **Server supplied nonces**: A server-supplied nonce mechanism is generally not recommended because it often requires servers to maintain state (e.g., tracking which nonces have been issued and used). An alternative is a stateless nonce design, where the server provides a nonce constructed from predictable values such as the current time prefixed to a salted hash of the current time and a `client_id`. This provides a freshness guarantee without requiring nonce storage. The server simply accepts any nonce within a defined time window. This could provide a significant improvement in replay protection because the nonce’s validity is tied to its short lifetime while potentially cryptographically bound to the client (or other information). This approach avoids the need for additional content-hashing requirements and would eliminate the need for MCP-specific modifications to DPoP implementations, at the cost of an extra round-trip at the start of an MCP client/server interaction. We invite discussion on whether this stateless-nonce approach could serve as a viable alternative to introducing content digests.
 2. **Algorithm recommendations**: Should future revisions mandate specific algorithms (e.g., ES256 minimum)?
 3. **Validity window tuning**: Should different validity windows be allowed for different security contexts?
 4. **Content digest extensions**: Should we support hash algorithms beyond SHA-256?
 
 ## Acknowledgments
 
-This specification builds upon the OAuth DPoP work done by the OAuth Working Group and adapts it for MCP's unique architectural requirements.
+This specification builds upon the OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) and was refined based on input from Brian Campbell, one of the authors of ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
