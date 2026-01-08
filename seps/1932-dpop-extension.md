@@ -34,7 +34,7 @@ This extension requries OAuth 2.0 Demonstrating Proof-of-Possession at the Appli
 
 [RFC 9449 Section 11.1](https://www.rfc-editor.org/rfc/rfc9449.html#name-dpop-proof-replay) provides specific guidance on replay protection mechanisms that adress the risks of a DPoP Proofs being replayed. 
 
-MCP servers that is not capable of keeping state or perform global `jti` tracking provides DPoP proof replay protection by enforcing short `iat` acceptance windows of +/- 5 minutes and standard RFC 9449 claim validation. A stateless MCP server may provide additional replay protection by using a server supplied nonce as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) (e.g. by using an encrypted timestamp as the nonce value which can be decrypted, parsed and verified to be within an acceptable time window when returned in DPoP Proof).
+MCP servers that is not capable of keeping state or perform global `jti` tracking provides DPoP proof replay protection by enforcing short `iat` acceptance windows of +/- 5 minutes and standard RFC 9449 claim validation. A stateless MCP server may provide additional replay protection by using a server supplied nonce as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) (e.g. by using an encrypted timestamp as the nonce value which can be decrypted, parsed and verified to be within an acceptable time window when returned in DPoP Proof) (e.g. by encrypting a timestamp using an Authenticated Encryption with Associated Data (AEAD) scheme which can be decrypted, parsed and verified to be within an acceptable time window when returned in DPoP Proof).
 
 ## Rationale
 
