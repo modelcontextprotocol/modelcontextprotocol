@@ -1,0 +1,13 @@
+# Extensions
+
+Extensions are optional, additive features that build on top of the core Model Context Protocol specification. They are defined and governed according to [SEP-1724: Extensions](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1724). Extensions allow the ecosystem to experiment and evolve without requiring every client and server to implement every feature.
+
+Official extensions live in repositories under the `modelcontextprotocol` GitHub organization with the `ext-` prefix (for example, `ext-auth`), and each extension has its own versioned specification document.
+
+## Official extensions
+
+### [MCP Apps](https://github.com/modelcontextprotocol/ext-apps): interactive user interfaces delivered as UI resources over MCP
+
+## Using extensions
+
+Clients and servers advertise support for extensions via the `extensions` field on their capabilities and in server cards, using the extension identifiers listed above. For details on negotiation and governance, see [SEP-1724: Extensions](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1724).
