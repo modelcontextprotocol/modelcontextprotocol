@@ -35,7 +35,7 @@ To address these issues, MCP needs a standardized way for tool authors to declar
 
 ## Specification
 
-This SEP defines a set of metadata fields that MCP tools may declare for both inputs and outputs. These fields form the tool’s **Action Security Contract** and are intended to be consumed by MCP runtimes, clients, and policy engines.
+This SEP defines a set of metadata fields that MCP tools may declare for both inputs and outputs. These fields form the tool's **Action Security Contract** and are intended to be consumed by MCP runtimes, clients, and policy engines.
 
 ### Tool Input Metadata
 
@@ -44,7 +44,7 @@ Each tool MAY declare the following metadata for its inputs:
 ```ts
 InputMetadata {
   Destination: Ephemeral | System | User | Internal | Public
-  Sensitivity: (None | User | PII | Financial | Credentials | Regulated)
+  Sensitivity: DataClass | DataClass[]
   Outcomes: Benign | Consequential | Irreversible
 }
 ```
@@ -59,12 +59,24 @@ Each tool MAY declare the following metadata for its outputs:
 ```ts
 ReturnMetadata {
   Source: UntrustedPublic | TrustedPublic | Internal | User | System
-  Sensitivity: (None | User | PII | Financial | Credentials | Regulated)
+  Sensitivity: DataClass | DataClass[]
 }
 ```
 
 > [!NOTE]
 > These are further defined in the appendix below
+
+The `DataClass` type keeps sensitivity simple for common cases while allowing regulated data to be scoped:
+
+```ts
+DataClass =
+  | None
+  | User
+  | PII
+  | Financial
+  | Credentials
+  | Regulated<{ Scopes: RegulatoryScope[] }>
+```
 
 ---
 
@@ -222,14 +234,38 @@ Specifies where input data may be stored or transmitted.
 
 ### Sensitivity
 
-Classifies the sensitivity of data accepted or returned. Can be a set of these.
+Classifies the sensitivity of data accepted or returned. The value may be a single `DataClass` or a set of `DataClass` values.
+
+#### DataClass
 
 - **None** — No sensitive information.
 - **User** — User-specific but not sensitive.
 - **PII** — Personally identifiable information.
 - **Financial** — Financial or transactional data.
 - **Credentials** — Secrets, API keys, passwords, or authentication material.
-- **Regulated** — Data governed by legal or regulatory requirements.
+- **Regulated\<RegulatoryScope[]>** — Data governed by one or more regulatory regimes.
+
+`Regulated` is represented as an object with explicit scopes:
+
+```jsonc
+{ "Regulated": { "Scopes": ["GDPR", "CCPA"] } }
+```
+
+`Regulated` declares applicable regimes; it does not assert compliance.
+
+#### RegulatoryScope
+
+`RegulatoryScope` values SHOULD come from a normative list to avoid ambiguity. Suggested baseline:
+
+- **GDPR**
+- **CCPA**
+- **HIPAA**
+- **GLBA**
+- **PCI-DSS**
+- **FERPA**
+- **COPPA**
+- **SOX**
+- **Other** (document the regime in tool documentation)
 
 ---
 
@@ -237,9 +273,11 @@ Classifies the sensitivity of data accepted or returned. Can be a set of these.
 
 Describes the real-world impact of invoking the tool.
 
-- **Benign** — No meaningful state change or only reversible drafts.
-- **Consequential** — Modifies user or system state in a meaningful way.
-- **Irreversible** — Cannot be undone (e.g., sending messages, deleting data, publishing content).
+A tool's private context refers to data retained only for the initiating user within the tool's own storage and not exposed to other users or external systems.
+
+- **Benign** — No persistent state change outside the tool's execution context, or changes limited to private drafts that are not transmitted or shared.
+- **Consequential** — Creates, updates, or deletes persistent state that is visible outside the tool's private context (e.g., user records, system settings, external services) and can be programmatically reversed.
+- **Irreversible** — Produces effects that cannot be undone through the same API or that trigger external side effects (e.g., sending messages, deleting data, publishing content).
 
 ---
 
