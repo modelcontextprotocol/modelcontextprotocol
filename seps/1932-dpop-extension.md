@@ -28,17 +28,17 @@ This extension is particularly valuable for:
 
 ## Specification
 
-This extension requries OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) for use in the Model Context Protocol. This proposal does not define extensions to ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) to maximise interoperability, simplify implementation and accelerate deployment while preserving the security properties to minimise the risks that arise from token exfiltration and replay required for MCP clients and servers. It does not preclude the use of the extension mechanisms defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449). 
+This extension requries OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) for use in the Model Context Protocol. This proposal does not define extensions to ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) to maximise interoperability, simplify implementation and accelerate deployment while preserving the security properties to minimise the risks that arise from token exfiltration and replay required for MCP clients and servers. It does not preclude the use of the extension mechanisms defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449).
 
 ### Stateless DPoP Proof Replay Protection
 
-[RFC 9449 Section 11.1](https://www.rfc-editor.org/rfc/rfc9449.html#name-dpop-proof-replay) provides specific guidance on replay protection mechanisms that adress the risks of a DPoP Proofs being replayed. 
+[RFC 9449 Section 11.1](https://www.rfc-editor.org/rfc/rfc9449.html#name-dpop-proof-replay) provides specific guidance on replay protection mechanisms that adress the risks of a DPoP Proofs being replayed.
 
 MCP servers that is not capable of keeping state or perform global `jti` tracking provides DPoP proof replay protection by enforcing short `iat` acceptance windows of +/- 5 minutes and standard RFC 9449 claim validation. A stateless MCP server may provide additional replay protection by using a server supplied nonce as defined in [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) (e.g. by using an encrypted timestamp as the nonce value which can be decrypted, parsed and verified to be within an acceptable time window when returned in DPoP Proof) (e.g. by encrypting a timestamp using an Authenticated Encryption with Associated Data (AEAD) scheme which can be decrypted, parsed and verified to be within an acceptable time window when returned in DPoP Proof).
 
 ## Rationale
 
-The purpose of this extension is to define a mechanism to sender constrain OAuth Access Tokens in MCP deployments using OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)). 
+The purpose of this extension is to define a mechanism to sender constrain OAuth Access Tokens in MCP deployments using OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
 
 This SEP intentionally adopts DPoP as defined in RFC 9449, without introducing MCP-specific claims, request body digests, or additional proof material. This design choice reflects a deliberate trade-off in favor of interoperability, deployability, and alignment with existing OAuth 2.0 security models.
 
@@ -58,7 +58,7 @@ This extension protects against:
 
 - **Token theft and replay**: Even if tokens are intercepted, attackers cannot use them without access or control over the private key
 - **Proof theft and replay**: DPoP Proof replay mechanisms protect against proof replay. If an MCP server is unable to maintain state, short-lived DPoP proofs limits the exposure window while the server supplied nonce provides the MCP server to force the generation of a fresh DPoP proof to further limit the risk that a DPoP proof is being replayed.
-- **Network-based attacks**: DPoP significantly reduces value of network eavesdropping
+- **Network-based attacks**: DPoP significantly reduces value of network eavesdropping.
 
 DPoP does not protect against:
 
@@ -91,12 +91,12 @@ These costs are generally negligible compared to overall request processing time
 
 Implementations should cover:
 
-1. **Proof generation**: Correct formatting of all required claims including content digest
-2. **Content digest calculation**: Accurate SHA-256 hashing and base64 encoding
-3. **Validation logic**: All validation steps per specification
-4. **Error handling**: Appropriate HTTP 401 responses with error details
-5. **Time window**: Correct handling of `iat` claims at boundaries
-6. **Algorithm support**: All declared algorithms work correctly
+1. **Proof generation**: Correct formatting of all required claims including content digest.
+2. **Content digest calculation**: Accurate SHA-256 hashing and base64 encoding.
+3. **Validation logic**: All validation steps per specification.
+4. **Error handling**: Appropriate HTTP 401 responses with error details.
+5. **Time window**: Correct handling of `iat` claims at boundaries.
+6. **Algorithm support**: All declared algorithms work correctly.
 
 Test vectors will be provided in the reference implementation.
 
@@ -112,9 +112,8 @@ An earlier draft of this SEP proposed a custom extension using the mechanisms de
 
 ## Open Questions
 
-2. **Algorithm recommendations**: Should future revisions mandate specific algorithms (e.g., ES256 minimum)?
-3. **Validity window tuning**: Should different validity windows be allowed for different security contexts?
-4. **Content digest extensions**: Should we support hash algorithms beyond SHA-256?
+1. **Algorithm recommendations**: Should future revisions mandate specific algorithms (e.g., ES256 minimum)?
+2. **Validity window tuning**: Should different validity windows be allowed for different security contexts?
 
 ## Acknowledgments
 
