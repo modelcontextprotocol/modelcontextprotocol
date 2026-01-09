@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP defines Workload Identity Federation for the Model Context Protocol, enabling autonomous MCP clients to access MCP servers using existing workload identity credentials without requiring separate client registration or long-lived credentials. The proposal leverages the OAuth 2.0 JWT Bearer grant type (RFC 7523) combined with OpenID Connect Discovery to allow MCP clients operating as workloads, such as those deployed in Kubernetes or cloud environments, to present platform-issued JWT credentials directly to authorization servers. This eliminates the need for client secrets, client identifiers, or separate credential management while maintaining security through issuer trust relationships and claim-based authorization.
+This SEP defines Workload Identity Federation as an optional extension for the Model Context Protocol, enabling autonomous MCP clients to access MCP servers using existing workload identity credentials without requiring separate client registration or long-lived credentials. The proposal combines the OAuth 2.0 JWT Bearer grant type ([RFC7523](https://datatracker.ietf.org/doc/html/rfc7523)) with [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html) to allow MCP clients operating as workloads, such as those deployed in Kubernetes or cloud environments, to present platform-issued JWT credentials directly to authorization servers. This eliminates the need for client secrets, client identifiers, or separate credential management while maintaining security through issuer trust relationships and claim-based authorization. This docuemnt formalize a pattern that is broadly adopted in industry to increase interoperability and allow for scaled deployments while improving the overall security profile of deployments.
 
 ## Motivation
 
@@ -24,11 +24,13 @@ Workloads in modern deployment environments already possess cryptographically ve
 
 ## Specification
 
-The message flow combines using a JWT as an authorization grant as defined in
+Workload Identity Federation combines using a JWT from a trusted issuer as an authorization grant as defined in
 [RFC7523](https://datatracker.ietf.org/doc/html/rfc7523) with automated issuer
 discovery as described in [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 to obtain the [RFC7517](https://datatracker.ietf.org/doc/html/rfc7517) JWK
-Key set which is used to validate the JWT authorization grant.
+Key set of the trusted issuer which is used to validate the JWT authorization grant before the authorization server issues an access token.
+
+As a prerequisite for this flow, the authorization server is configured with a set of issuers (defined by a URL), which are considered 'trusted issuers'. The nature of that trusted relationship and the mechanism by which the set is populated or maintained is out of scope of this document and left up to the implementer. JWTs not issued by these trusted issuers can be safely rejected by the authorization server.
 
 The complete Workload Identity Federation flow proceeds as follows:
 
@@ -69,7 +71,7 @@ sequenceDiagram
 2. **Construct OpenID Provider Discovery Endpoint URL**: The authorization server extracts the `iss` (issuer)
    claim from the JWT and determines if it is a trusted issuer. If the issuer is
    trusted, the authorization server constructs the OpenID Provider Discovery Endpoint URL from the issuer
-   claim as described in Section 4 of [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig).
+   claim as described in [OpenID Connect Discovery 1.0, Section 4](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig).
 
 3. **Request OpenID Provider Configuration Document**: The authorization server requests the OpenID Provider Configuration Document
    as described in Section 4.1 of [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest).
@@ -82,7 +84,7 @@ sequenceDiagram
 6. **Request JWK Set**: The authorization server retrieves the
    [RFC7517](https://datatracker.ietf.org/doc/html/rfc7517) JWK set
    containing the issuer's public keys from the TLS protected location specified by
-   `jwks_uri` configuration information.
+   `jwks_uri` configuration information (the jwks_uri MUST use the https scheme).
 
 7. **Return JWK Set**: The JWK set is returned from the TLS protected location.
 
@@ -100,18 +102,16 @@ sequenceDiagram
    [RFC 7523 Section 2.1](https://datatracker.ietf.org/doc/html/rfc7523#section-2.1).
 
 10. **MCP Server Access**: The MCP client makes a JSON-RPC request to the MCP
-    server, including the access token in the `Authorization` header using the
-    `Bearer` authentication scheme as specified in the baseline MCP Authorization
-    specification.
+    server, including the access token rerieved in Step 9. The accesstoken is included
+    in the `Authorization` header using the `Bearer` authentication scheme as specified
+    in the baseline [MCP Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization) specification.
 
-11. **Validate Access Token**: The MCP server validates the access token according to
-    the baseline MCP Authorization specification requirements, including
+12. **Validate Access Token**: The MCP server validates the access token according to
+    the baseline [MCP Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization) specification, including
     verifying the token was issued for the MCP server as the intended audience.
 
-12. **MCP Server Response**: If the token is valid and the MCP client is authorized, the
+13. **MCP Server Response**: If the token is valid and the MCP client is authorized, the
     MCP server processes the request and returns the JSON-RPC response.
-
-A detailed proposal is described at https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx
 
 ## Rationale
 
@@ -139,6 +139,11 @@ OpenID Connect Discovery provides a standardized mechanism for:
 
 This automation is critical for operational simplicity in dynamic workload environments where issuers may rotate keys frequently.
 
+OpenID Connect Discovery is chosen over OAuth 2.0 Authorization Metadata Discovery since it is already broadly supported by workload identity issuance infrastructurem, specifically Kubernetes and SPIFFE based systems (neither support OAuth 2.0 Authorization Metadata Discovery).
+
+**Additional Details**
+A detailed proposal is described at https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx
+
 ### Alternatives Considered
 
 **Client Credentials Flow with Dynamic Registration**
@@ -159,18 +164,17 @@ Workload Identity Federation relies on **platform-provisioned, short-lived workl
 
 When exchanging tokens, both MCP clients and authorization servers MUST ensure that workload JWTs are handled securely:
 
-- Workload JWTs MUST be transmitted only over authenticated, TLS-protected channels.
+- Workload JWTs MUST be transmitted only over authenticated, TLS protected channels (https) when presented to the authorization server.
 - Implementations SHOULD avoid logging, storing, or otherwise persisting either JWT assertions or exchanged access tokens.
-- Authorization servers SHOULD verify token freshness (`exp`, `iat`, `jti`) and enforce strict replay protection.
-- The mapping between workload identity and MCP access token forms a critical trust boundary; misconfiguration can result in privilege escalation.
+- The mapping between workload identity and MCP access token forms a critical trust boundary; misconfiguration can result in privilege escalation. It is the responsibility of the authorization server administrator to ensure the correct configuration of issuance policies and trusted issuers.
 - Administrators MUST configure issuer allowlists, claim-based authorization rules, and tenant isolation controls carefully.
 
 This SEP builds on established security models from OAuth 2.0, OIDC Discovery, and JWK-based key distribution. **Detailed and authoritative security guidance** is available in:
 
-- _RFC 7523_, Section 4 (Security Considerations for JWT Authorization Grants)
-- _RFC 7517_, Section 9 (Security Considerations for JWK)
-- _OpenID Connect Discovery 1.0_, Section 7 (Security Considerations)
-- The baseline MCP Authorization security requirements
+- [RFC 7523, Section 6](https://datatracker.ietf.org/doc/html/rfc7523#section-6) (Security Considerations for JWT Authorization Grants)
+- [RFC 7517, Section 9](https://datatracker.ietf.org/doc/html/rfc7517#section-9) (Security Considerations for JWK)
+- [OpenID Connect Discovery 1.0, Section 7](https://openid.net/specs/openid-connect-discovery-1_0.html#Security) (Security Considerations)
+- The baseline [MCP Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization) security requirements
 
 Implementers MUST review these documents when deploying Workload Identity Federation.
 
@@ -215,14 +219,20 @@ For high-throughput scenarios, authorization servers should implement:
 
 1. **Token Refresh**: Should workload clients be allowed to obtain refresh tokens, or should they always present fresh workload JWTs for new access tokens?
 
-2. **Issuer Metadata Caching**: Should the specification provide guidance on cache TTLs for issuer configurations and JWKs?
+2. **Issuer Metadata Caching**: Should the specification provide guidance on cache TTLs for issuer configurations and JWKs ([OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html) does not define caching limits)?
 
-3. **Error Response Detail**: How much detail should authorization servers provide in error responses when JWT validation fails (for security vs. debuggability tradeoffs)?
+3. **Error Response Detail**: How much detail should authorization servers provide in error responses when JWT validation fails (for security vs. debuggability tradeoffs)? Is there anything we should add beyond ([RFC7523](https://datatracker.ietf.org/doc/html/rfc7523))?
+
+4. **Additional freshness and replay requirements** Should authorization servers imposed additional token freshness (`exp`, `iat`, `jti`) and enforce strict replay protection for JWTs accepted as assertion grants? 
+
+5. **Guidance on Token Logging** Should this specification give guidance to avoid logging, storing, or otherwise persisting JWT assertions (acces token logging is discouraged in existing RFCs, but not JWT assertion logging)?
 
 ## Acknowledgments
 
 This proposal draws on established OAuth 2.0 and OpenID Connect standards and incorporates established patterns from:
 
-- **Kubernetes**: Service account token projection provides JWTs that can be used for workload identity federation to cloud providers
-- **SPIFFE**: The SPIFFE Verifiable Identity Document (SVID) format uses JWTs for workload identity in zero-trust environments
-- **Cloud Providers**: AWS, Azure, and GCP all support workload identity federation using JWT bearer grants
+- **Kubernetes**: Service account token projection provides JWTs that can be used for workload identity federation to cloud providers.
+- **SPIFFE**: The SPIFFE Verifiable Identity Document (SVID) format uses JWTs for workload identity in zero-trust environments.
+- **Cloud Providers**: AWS, Azure, and GCP all support workload identity federation using JWT bearer grants.
+
+The proposal has been refined based on input from Brian Campbell, Den Delimarsky, Wills Dawson and Darin McAdams.
