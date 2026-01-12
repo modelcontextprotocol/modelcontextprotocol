@@ -111,6 +111,68 @@ sequenceDiagram
 13. **MCP Server Response**: If the token is valid and the MCP client is authorized, the
     MCP server processes the request and returns the JSON-RPC response.
 
+### Trust Relationships
+
+For functional Workload Identity Federation, trust must be established at
+multiple levels:
+
+1. **Issuer Trust**: The authorization server MUST trust the JWT issuer
+2. **Workload Trust**: The authorization server MUST trust the specific workload
+   based on claims within the JWT
+
+These two trust relationships serve different purposes and SHOULD be managed
+independently.
+
+#### Issuer Trust Relationship
+
+Issuer trust represents the foundational level of trust and determines whether
+JWT bearer tokens from a particular issuer are accepted. This trust relationship
+is between the authorization server and the JWT issuer only.
+
+Issuer trust is typically established at a global or tenant-wide level and is
+subject to organizational policy and governance controls. Changes to issuer
+trust affect all workloads associated with that issuer simultaneously.
+
+The mechanism for establishing issuer trust is implementation-specific and
+outside the scope of this specification. Common approaches include:
+- Maintaining an allowlist of trusted issuer URLs
+- Configuring issuer metadata endpoints for automatic key discovery
+- Associating issuers with specific tenants or organizational units
+
+#### Workload Trust Relationship
+
+Workload trust builds upon issuer trust and focuses on the relationship between
+the authorization server and individual workloads. Once the JWT bearer token is
+validated (signature verified and issuer trusted), the authorization server
+must determine whether the specific workload identified in the JWT claims should
+receive an access token.
+
+Workload trust is typically established individually based on:
+- The `sub` (subject) claim identifying the workload
+- Additional claims such as namespace, tenant identifier, or service account
+- Combinations of multiple claims forming a compound identity
+
+This trust is subject to different policy and governance controls than issuer
+trust, often allowing more granular per-workload authorization decisions.
+
+### Multi-Tenancy Considerations
+
+When workload platforms or authorization servers support multiple tenants,
+additional care must be taken to prevent privilege escalation across tenant
+boundaries. 
+
+Authorization servers SHOULD:
+- Rely on JWT issuing keys bound to a single tenant of the workload platform,
+  rather than a single issuing key for all tenants in a platform.
+- Use specific JWT claims to prevent any JWT signed by the issuer from being
+  used to impersonate any principal.
+- NOT solely rely on JWT claims that can be controlled by any tenant.
+- MAY rely on a "tenant" claim if the claim value is issuer-controlled and
+  corresponds to a single tenant.
+
+See the Security Considerations section for additional details on privilege
+escalation prevention.
+
 ## Rationale
 
 The design leverages established OAuth and OpenID Connect standards (RFC 7523 JWT Bearer grants and OIDC Discovery) rather than creating MCP-specific mechanisms, ensuring broad interoperability with existing identity infrastructure and authorization servers. By using platform-issued JWTs directly, this approach leverages installed infrastrucutre and eliminates operational overhead while maintaining strong security through cryptographic verification, and the use of automated issuer discovery supports key rotation and reduces manual configuration burden in dynamic workload environments.
@@ -158,15 +220,6 @@ There are no backward compatibility concerns. This SEP introduces a new optional
 
 ## Security Implications
 
-Workload Identity Federation relies on **platform-provisioned, short-lived workload credentials** (such as Kubernetes service account tokens, SPIFFE SVID-JWTs, or cloud-issued workload tokens). These credentials typically have strong issuance guarantees and tight lifetimes, reducing the window in which a compromised token can be misused. Because these JWTs act as authorization grants, implementations MUST treat them as highly sensitive.
-
-When exchanging tokens, both MCP clients and authorization servers MUST ensure that workload JWTs are handled securely:
-
-- Workload JWTs MUST be transmitted only over authenticated, TLS protected channels (https) when presented to the authorization server.
-- Implementations SHOULD avoid logging, storing, or otherwise persisting either JWT assertions or exchanged access tokens.
-- The mapping between workload identity and MCP access token forms a critical trust boundary; misconfiguration can result in privilege escalation. It is the responsibility of the authorization server administrator to ensure the correct configuration of issuance policies and trusted issuers.
-- Administrators MUST configure issuer allowlists, claim-based authorization rules, and tenant isolation controls carefully.
-
 This SEP builds on established security models from OAuth 2.0, OIDC Discovery, and JWK-based key distribution. **Detailed and authoritative security guidance** is available in:
 
 - [RFC 7523, Section 6](https://datatracker.ietf.org/doc/html/rfc7523#section-6) (Security Considerations for JWT Authorization Grants).
@@ -176,7 +229,46 @@ This SEP builds on established security models from OAuth 2.0, OIDC Discovery, a
 
 Implementers MUST review these documents when deploying Workload Identity Federation.
 
-The detailed proposal contains a complete list of security considerations (see https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-wif-extension/specification/draft/workload-identity-federation.mdx).
+### JWT Validity and Lifetime
+
+Workload Identity Federation relies on **platform-provisioned, short-lived workload credentials** (such as Kubernetes service account tokens, SPIFFE SVID-JWTs, or cloud-issued workload tokens). These credentials typically have strong issuance guarantees and short lifetimes, reducing the window in which a compromised token can be misused. Because these JWTs act as authorization grants, implementations MUST treat them as highly sensitive.
+
+JWT validity SHOULD be set to the shortest possible duration allowable by
+overall system availability constraints. Short-lived JWTs (on the order of
+seconds to minutes) reduce the window of opportunity for stolen JWTs to be
+misused.
+
+A secure channel (e.g., TLS) MUST be used when providing a JWT for
+Workload Identity Federation. JWTs SHOULD be protected from unauthorized
+access using operating system or platform access controls.
+
+### Identity Translation and Privilege Escalation
+
+The translation of workload JWT claims to MCP server access tokens represents a
+critical trust boundary. Improper configuration of this translation can lead to
+privilege escalation attacks, particularly in multi-tenant environments. See
+the "Multi-Tenancy Considerations" section for specific guidance on multi-tenant
+deployments.
+
+The following recommendations apply to all deployments:
+- Configuration SHOULD NOT permit the transcription of JWT claims to access
+  token claims without additional validation
+- Authorization servers SHOULD implement explicit allowlists or policies
+  defining which workload identities can access which MCP servers
+- Authorization servers SHOULD log and audit all token issuance decisions for
+  security monitoring
+
+### Issuer Key Retrieval Security
+
+Authorization servers MUST validate issuer URLs and ensure they use HTTPS.
+Authorization servers SHOULD implement the following protections:
+
+- Maintain an allowlist of permitted issuer domains to prevent malicious issuer
+  discovery
+- Validate TLS certificates when retrieving issuer configuration and JWKs
+- Implement reasonable timeouts and rate limits on issuer discovery requests
+- Cache issuer configurations and JWKs appropriately to reduce attack surface
+- Monitor for issuer configuration changes that might indicate compromise
 
 ## Reference Implementation
 
