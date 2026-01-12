@@ -104,11 +104,11 @@ sequenceDiagram
     in the `Authorization` header using the `Bearer` authentication scheme as specified
     in the baseline [MCP Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization) specification.
 
-12. **Validate Access Token**: The MCP server validates the access token according to
+11. **Validate Access Token**: The MCP server validates the access token according to
     the baseline [MCP Authorization](https://modelcontextprotocol.io/specification/draft/basic/authorization) specification, including
     verifying the token was issued for the MCP server as the intended audience.
 
-13. **MCP Server Response**: If the token is valid and the MCP client is authorized, the
+12. **MCP Server Response**: If the token is valid and the MCP client is authorized, the
     MCP server processes the request and returns the JSON-RPC response.
 
 ### Trust Relationships
@@ -135,6 +135,7 @@ trust affect all workloads associated with that issuer simultaneously.
 
 The mechanism for establishing issuer trust is implementation-specific and
 outside the scope of this specification. Common approaches include:
+
 - Maintaining an allowlist of trusted issuer URLs
 - Configuring issuer metadata endpoints for automatic key discovery
 - Associating issuers with specific tenants or organizational units
@@ -148,6 +149,7 @@ must determine whether the specific workload identified in the JWT claims should
 receive an access token.
 
 Workload trust is typically established individually based on:
+
 - The `sub` (subject) claim identifying the workload
 - Additional claims such as namespace, tenant identifier, or service account
 - Combinations of multiple claims forming a compound identity
@@ -159,9 +161,10 @@ trust, often allowing more granular per-workload authorization decisions.
 
 When workload platforms or authorization servers support multiple tenants,
 additional care must be taken to prevent privilege escalation across tenant
-boundaries. 
+boundaries.
 
 Authorization servers SHOULD:
+
 - Rely on JWT issuing keys bound to a single tenant of the workload platform,
   rather than a single issuing key for all tenants in a platform.
 - Use specific JWT claims to prevent any JWT signed by the issuer from being
@@ -251,6 +254,7 @@ the "Multi-Tenancy Considerations" section for specific guidance on multi-tenant
 deployments.
 
 The following recommendations apply to all deployments:
+
 - Configuration SHOULD NOT permit the transcription of JWT claims to access
   token claims without additional validation
 - Authorization servers SHOULD implement explicit allowlists or policies
