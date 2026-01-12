@@ -184,13 +184,15 @@ This specification applies to MCP servers making **outbound HTTP/HTTPS requests*
 
 ### 6. Conflict Resolution
 
-When `_meta` contains trace context fields and the outbound HTTP request already has corresponding headers set (e.g., via auto-instrumentation):
+When `_meta` contains W3C Trace Context fields and the outbound HTTP request already has corresponding headers set (e.g., via auto-instrumentation):
 
-1. `_meta` values MUST take precedence and override existing headers
+1. If `traceparent` is present and valid in `_meta`, SDKs MUST use an **all-or-nothing** approach:
+   - Discard ALL existing W3C Trace Context headers (`traceparent`, `tracestate`, `baggage`) from the outbound request
+   - Forward ONLY the W3C fields present in `_meta`
 2. SDKs SHOULD log a debug-level message when overriding existing headers
 3. No error should be raised—this is expected behavior when integrating with existing observability infrastructure
 
-**Rationale**: The `_meta` context represents the current trace context as understood by the MCP client/host, which has visibility into the full distributed trace. If an MCP server's HTTP client library (or auto-instrumentation) has already set trace headers, those represent the server's local context, not the end-to-end trace the client is trying to propagate. Overriding ensures trace continuity across the MCP boundary.
+**Rationale**: W3C Trace Context fields are semantically linked—`tracestate` contains vendor-specific data keyed to the `traceparent`, and `baggage` may contain context relevant to that specific trace. Mixing fields from different sources would create inconsistent trace context. The all-or-nothing approach ensures trace coherence across the MCP boundary.
 
 ## Rationale
 
