@@ -182,6 +182,16 @@ This specification applies to MCP servers making **outbound HTTP/HTTPS requests*
 - **Message Queues**: Map to message headers/properties
 - **WebSocket**: Not applicable (no standard header mechanism)
 
+### 6. Conflict Resolution
+
+When `_meta` contains trace context fields and the outbound HTTP request already has corresponding headers set (e.g., via auto-instrumentation):
+
+1. `_meta` values MUST take precedence and override existing headers
+2. SDKs SHOULD log a debug-level message when overriding existing headers
+3. No error should be raised—this is expected behavior when integrating with existing observability infrastructure
+
+**Rationale**: The `_meta` context represents the current trace context as understood by the MCP client/host, which has visibility into the full distributed trace. If an MCP server's HTTP client library (or auto-instrumentation) has already set trace headers, those represent the server's local context, not the end-to-end trace the client is trying to propagate. Overriding ensures trace continuity across the MCP boundary.
+
 ## Rationale
 
 ### Why Default-On for W3C Trace Context?
