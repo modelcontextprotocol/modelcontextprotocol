@@ -120,4 +120,5 @@ An earlier draft of this SEP proposed a custom extension using the mechanisms de
 This specification builds upon the OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)) and was refined based on input from Brian Campbell, one of the authors of ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
 
 ## Additional details
+
 A more detailed proposal can be viewed here: https://github.com/modelcontextprotocol/ext-auth/blob/pieterkas-dpop-extension/specification/draft/dpop-extension.mdx
