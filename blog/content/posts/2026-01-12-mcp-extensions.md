@@ -5,7 +5,7 @@ author = 'MCP Community Maintainers'
 tags = ['announcement', 'community']
 +++
 
-You've built an MCP server that works quite well, but now you're wondering: *How do I add richer UI elements? Custom auth flows? What about domain-specific conventions, like those for finance or healthcare?*
+You've built an MCP server that works quite well, but now you're wondering: _How do I add richer UI elements? Custom auth flows? What about domain-specific conventions, like those for finance or healthcare?_
 
 This is where _extensions_ come in. They let developers layer new capabilities on top of the baseline MCP implementation without touching the core protocol. This allows us to keep things stable while also opening up room to experiment, learn, and build with the community's needs in mind.
 
@@ -29,7 +29,7 @@ In practice, we see a few patterns already emerge that help extend what MCP does
 - **Security extensions:** Need richer auth flows or a specific high-security authorization implementation? Extensions can layer additional security context on top of what MCP already provides. [Auth extensions](https://github.com/modelcontextprotocol/ext-auth) are designed for this.
 - **Domain-specific extensions:** Community groups are already exploring conventions for verticals like financial services, where developers might want standardized ways to handle compliance metadata.
 
-Another important side-effect to this approach is that MCP client and server developers get richer functionality without having to wait for protocol changes, which might need more extensive validation before being merged into the core. 
+Another important side-effect to this approach is that MCP client and server developers get richer functionality without having to wait for protocol changes, which might need more extensive validation before being merged into the core.
 
 Extensions are also _the way_ to validate future protocol changes - if a particular implementation gains traction, that signals that there is a growing community need in protocol functionality that could become a part of the specification.
 
