@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** October 15, 2025
+**Last updated:** January 13, 2026
 
 ## Lead Maintainers
 
@@ -38,6 +38,8 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Matt Zmuda](https://github.com/mattt)
 - [Carl Peaslee](https://github.com/carlpeaslee)
+- [Maksym Mova](https://github.com/movetz)
+- [Stephen Tallent](https://github.com/stallent)
 
 ### Go SDK
 
@@ -68,6 +70,8 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Inna Harper](https://github.com/ihrpr)
 - [Felix Weinberger](https://github.com/felixweinberger)
 - [Olivier Chafik](https://github.com/ochafik)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Matt Carey](https://github.com/mattzcarey)
 
 ### Rust SDK
 
