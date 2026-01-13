@@ -412,7 +412,7 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 **Key features:**
 
 - Connects to any MCP server via SSE.
-- Works with the [Apify MCP Server](https://apify.com/apify/actors-mcp-server) to interact with one or more Apify [Actors](https://apify.com/store).
+- Works with the [Apify MCP Server](https://mcp.apify.com) to interact with one or more Apify [Actors](https://apify.com/store).
 - Dynamically utilizes tools based on context and user queries (if supported by the server).
 
 </McpClient>
@@ -598,9 +598,9 @@ Chorus is a native Mac app for chatting with AIs. Chat with multiple models at o
 
 <McpClient
   name="Claude Code"
-  homepage="https://claude.ai/download/claude-code"
-  supports="Resources, Prompts, Tools, Roots, Instructions"
-  instructions="https://docs.anthropic.com/en/docs/claude-code/mcp"
+  homepage="https://claude.com/product/claude-code"
+  supports="Resources, Prompts, Tools, Roots, Instructions, Discovery"
+  instructions="https://code.claude.com/docs/en/mcp"
 >
 
 Claude Code is an interactive agentic coding tool from Anthropic that helps you code faster through natural language commands. It supports MCP integration for resources, prompts, tools, and roots, and also functions as an MCP server to integrate with other clients.
@@ -684,6 +684,25 @@ CodeGPT is a popular VS Code and Jetbrains extension that brings AI-powered codi
 **Learn more:**
 
 - [CodeGPT Documentation](https://docs.codegpt.co/)
+
+</McpClient>
+
+<McpClient
+  name="Codex"
+  homepage="https://github.com/openai/codex"
+  supports="Resources, Tools, Elicitation"
+  instructions="https://developers.openai.com/codex/mcp/"
+>
+
+Codex is a lightweight AI-powered coding agent from OpenAI that runs in your terminal.
+
+**Key features:**
+
+- Support for MCP tools (listing and invocation)
+- Support for MCP resources (list, read, and templates)
+- Elicitation support (routes requests to TUI for user input)
+- Supports STDIO and HTTP streaming transports with OAuth
+- Also available as VS Code extension
 
 </McpClient>
 
@@ -1243,6 +1262,24 @@ MCP Bundler is perfect local proxy for your MCP workflow. The app centralizes al
 </McpClient>
 
 <McpClient
+  name="MCPBundles"
+  homepage="https://www.mcpbundles.com/studio"
+  supports="Resources, Prompts, Tools, Discovery"
+>
+
+MCPBundles provides MCPBundle Studio, a browser-based MCP client for testing and executing MCP tools on remote MCP servers.
+
+**Key features:**
+
+- Discover and inspect available tools with parameter schemas and descriptions
+- Supports OAuth and API key authentication for secure provider connections
+- Execute MCP tools with form-based and chat based input
+- Implements MCP Apps for rendering interactive UI responses from tools
+- Streamable HTTP transport for remote MCP server connections
+
+</McpClient>
+
+<McpClient
   name="mcp-agent"
   homepage="https://github.com/lastmile-ai/mcp-agent"
   supports="Resources, Prompts, Tools, Sampling (partial), Roots, Elicitation"
@@ -1291,6 +1328,24 @@ mcp-use is an open source python library to very easily connect any LLM to any M
 - Supports connection to multiple MCP servers simultaneously.
 - Supports all langchain supported models, also locally.
 - Offers efficient tool orchestration and search functionalities.
+
+</McpClient>
+
+<McpClient
+  name="mcpc"
+  homepage="https://github.com/apify/mcpc"
+  supports="Resources, Prompts, Tools, Discovery, Instructions"
+>
+
+`mcpc` is a universal CLI client for MCP that maps MCP operations to intuitive commands for interactive shell use, scripts, and AI coding agents.
+
+**Key features:**
+
+- Swiss Army knife for MCP: supports stdio and streamable HTTP, server config files and zero config, OAuth 2.1, HTTP headers, and main MCP features.
+- Persistent sessions for interaction with multiple servers simultaneously.
+- Structured text output enables AI agents to explore and interact with MCP servers.
+- JSON output and schema validation allow stable integration with other CLI tools, scripting, and MCP **code mode** in a shell.
+- Proxy MCP server to provide AI code sandboxes with secure access to authenticated MCP sessions.
 
 </McpClient>
 
@@ -1555,6 +1610,24 @@ NVIDIA Agent Intelligence (AIQ) toolkit is a flexible, lightweight, and unifying
 </McpClient>
 
 <McpClient
+  name="opencode"
+  homepage="https://opencode.ai"
+  sourceCode="https://github.com/anomalyco/opencode"
+  supports="Resources, Prompts, Tools"
+  instructions="https://opencode.ai/docs/mcp-servers/"
+>
+
+OpenCode is an open source AI coding agent. It’s available as a terminal-based interface, desktop app, or IDE extension.
+
+**Key features:**
+
+- Support for MCP tools
+- Support for MCP resources in the cli using `@` prefix
+- Support for MCP prompts in the cli as slash commands using `/` prefix
+
+</McpClient>
+
+<McpClient
   name="OpenSumi"
   homepage="https://github.com/opensumi/core"
   supports="Tools"
@@ -1653,6 +1726,22 @@ Roo Code enables AI coding assistance via MCP.
 
 </McpClient>
 
+<McpClient
+  name="rtrvr.ai"
+  homepage="https://rtrvr.ai"
+  supports="Tools"
+  instructions="https://www.rtrvr.ai/docs/tool-calling"
+>
+[rtrvr.ai](https://rtrvr.ai) is AI Web Agent Chrome Extension that autonomously runs complex browser workflows, retrieves data to Sheets, and calls API's/MCP Servers – all with just prompting and within your own browser!
+
+**Key features:**
+
+- Easy MCP Integration within your browser: Just open the Chrome Extension, add the server URL, and prompt server calls with the web as context!
+- Remote control your browser by turning your browser into MCP Server: Just copy/paste MCP URL into any MCP Client (no npx needed), and trigger agentic browser workflows!
+- Prompt our agent to execute workflows combining web agentic actions with MCP tool calls; find someone's email on the web and then send them an email with Zapier MCP.
+- Reusable and Schedulable Automations: After running a workflow, easily rerun or put on a schedule to execute in the background while you do other tasks in your browser.
+
+</McpClient>
 <McpClient
   name="Shortwave"
   homepage="https://www.shortwave.com"
