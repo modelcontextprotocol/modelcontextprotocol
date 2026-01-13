@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "description": "Model Context Protocol specification and protocol schema",
-  "license": "MIT",
-  "author": "Anthropic, PBC (https://anthropic.com)",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Model Context Protocol a Series of LF Projects, LLC. (https://modelcontextprotocol.io)",
   "homepage": "https://modelcontextprotocol.io",
   "bugs": "https://github.com/modelcontextprotocol/specification/issues",
   "engines": {
@@ -22,12 +22,14 @@
   },
   "scripts": {
     "check": "npm run check:schema && npm run check:docs",
-    "check:docs": "npm run check:docs:format && npm run check:docs:links",
+    "check:docs": "npm run check:docs:format && npm run check:docs:js-comments && npm run check:docs:links",
     "check:docs:format": "prettier --check \"**/*.{md,mdx}\"",
+    "check:docs:js-comments": "tsx scripts/check-mdx-comments.ts",
     "check:docs:links": "cd docs && npx mint broken-links",
-    "check:schema": "npm run check:schema:ts && npm run check:schema:json && npm run check:schema:md",
+    "check:schema": "npm run check:schema:ts && npm run check:schema:json && npm run check:schema:examples && npm run check:schema:md",
     "check:schema:ts": "tsc --noEmit && eslint schema/ && prettier --check \"schema/**/*.ts\"",
     "check:schema:json": "tsx scripts/generate-schemas.ts --check",
+    "check:schema:examples": "tsx scripts/validate-examples.ts",
     "check:schema:md": "for f in schema/*/schema.mdx; do typedoc --entryPoints \"${f%.mdx}.ts\" --schemaPageTemplate \"$f\" | cmp docs/specification/$(basename -- $(dirname -- \"$f\"))/schema.mdx - || exit 1; done",
     "format": "prettier --write \"**/*.{md,mdx}\" --ignore \"docs/specification/*/schema.mdx\" ",
     "generate:schema": "npm run generate:schema:json & npm run generate:schema:md & wait",
@@ -41,15 +43,19 @@
     "@eslint/js": "^9.8.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "cheerio": "^1.1.2",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.1.8",
     "glob": "^11.1.0",
     "prettier": "^3.6.2",
+    "remark-mdx": "^3.1.1",
+    "remark-parse": "^11.0.0",
     "tsx": "^4.19.1",
     "typedoc": "^0.28.14",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.0.0",
-    "typescript-json-schema": "^0.65.1"
+    "typescript-json-schema": "^0.65.1",
+    "unified": "^11.0.5"
   },
   "resolutions": {
     "fast-json-patch": "^3.1.1"
