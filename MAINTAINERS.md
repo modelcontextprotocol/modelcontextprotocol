@@ -16,7 +16,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Paul Carleton](https://github.com/pcarleton)
 - [Nick Cooper](https://github.com/nicknotfun)
 - [Nick Aldridge](https://github.com/000-000-000-000-000)
-- Che Liu
+- [Che Liu](https://github.com/pwwpche)
 - [Den Delimarsky](https://github.com/localden)
 
 ## SDK Maintainers
@@ -32,6 +32,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Topher Bullock](https://github.com/topherbullock)
 - [Koichi Ito](https://github.com/koic)
 - [Ateş Göral](https://github.com/atesgoral)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
 
 ### Swift SDK
 
@@ -53,6 +54,7 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Leonid Stashevsky](https://github.com/e5l)
 - [Sergey Ignatov](https://github.com/ignatov)
+- [Konstantin Pavlov](https://github.com/kpavlov)
 
 ### Python SDK
 
@@ -70,6 +72,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Rust SDK
 
 - [Alex Hancock](https://github.com/alexhancock)
+- [Michael Bolin](https://github.com/bolinfest)
 
 ### PHP SDK
 
@@ -148,6 +151,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Financial Services Interest Group
 
 - [Sambhav Kothari](https://github.com/sambhav)
+- [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
 ### Transports Interest Group
 
@@ -158,6 +162,7 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Server Identity Working Group
 
+- [David Soria Parra](https://github.com/dsp-ant)
 - [Nick Cooper](https://github.com/nicknotfun)
 
 ### Agents Working Group
@@ -165,6 +170,11 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Peter Alexander](https://github.com/pja-ant)
 - [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
+
+### MCP Apps Working Group
+
+- [Liad Yosef](https://github.com/liady)
+- [Ido Salomon](https://github.com/idosal)
 
 ## About This Document
 
