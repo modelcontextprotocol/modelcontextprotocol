@@ -1,72 +1,58 @@
 +++
-date = '2025-11-11T00:00:00Z'
+date = '2026-01-12T00:00:00Z'
 title = 'Understanding MCP Extensions'
 author = 'MCP Community Maintainers'
 tags = ['announcement', 'community']
 +++
 
-As developers continue building on the Model Context Protocol (MCP), new patterns are emerging that build on top of existing protocol primitives. These patterns—referred to as _extensions_—provide a way to layer richer capabilities on MCP without modifying the core protocol itself.
+You've built an MCP server that works quite well, but now you're wondering: *How do I add richer UI elements? Custom auth flows? What about domain-specific conventions, like those for finance or healthcare?*
 
-This post outlines how extensions fit into the broader MCP ecosystem and highlights a few types of patterns the community is exploring. The goal is not to define extensions formally, but to give lightweight guidance on how MCP can be extended in practice.
+This is where _extensions_ come in. They let developers layer new capabilities on top of the baseline MCP implementation without touching the core protocol. This allows us to keep things stable while also opening up room to experiment, learn, and build with the community's needs in mind.
 
-## Overview
+In this post, we'll walk through how extensions fit into the MCP ecosystem and share some patterns the community is already exploring. Think of this less as a formal specification change and more as a short practical guide to extending MCP.
 
-The MCP ecosystem can be understood across three complementary layers:
+## How MCP is structured
 
-- **MCP Core** — the protocol specification used by clients and servers to communicate.
-- **MCP Adjacent** — ecosystem infrastructure such as the Registry that improves discoverability and governance.
-- **MCP Extensions** — optional, informal patterns built on top of MCP primitives for specialized use cases.
+It helps to think of MCP in three layers:
 
-This structure helps the ecosystem evolve while keeping the protocol stable and broadly interoperable.
+- **MCP core specification:** [The protocol itself](https://modelcontextprotocol.io/specification/2025-11-25). This is how clients and servers talk to each other. It also represents the absolute minimum bar for client and server interoperability.
+- **MCP projects:** Supporting infrastructure like the [Registry](https://registry.modelcontextprotocol.io/), that helps developers discover MCP servers, or [Inspector](https://modelcontextprotocol.io/docs/tools/inspector), that makes MCP server testing and debugging easier.
+- **MCP extensions:** Optional patterns that developers can adopt for specialized use cases, built on top of the MCP core specification.
 
-## MCP Core
+Extensions let the ecosystem grow and gives us an avenue to test changes and emerging spec components without destabilizing the core protocol that lots of production clients and servers already depend on.
 
-MCP Core defines how clients and servers interact: tool discovery, tool invocation, resource access, and structured data exchange. The protocol is intentionally minimal so that any client can work with any compliant server.
+Here's where it gets interesting. Extensions are **patterns built on existing MCP mechanisms** - they don't change the protocol, so they stay compatible with every client and server out there.
 
-## MCP-Adjacent Projects
+In practice, we see a few patterns already emerge that help extend what MCP does out-of-the-box:
 
-MCP-Adjacent projects support the ecosystem without modifying the protocol. A key example is the MCP Registry, which provides a catalog of publicly available servers. Organizations may build private or public sub-registries on this foundation, while relying on shared schemas and open source specifications.
+- **UI extensions:** Imagine a server that returns not just data, but also a template hint for how to display it. A weather tool might suggest rendering as a card with an icon. Clients can choose to honor that hint or ignore it. That's what [MCP Apps](https://blog.modelcontextprotocol.io/posts/2025-11-21-mcp-apps/) do.
+- **Security extensions:** Need richer auth flows or a specific high-security authorization implementation? Extensions can layer additional security context on top of what MCP already provides. [Auth extensions](https://github.com/modelcontextprotocol/ext-auth) are designed for this.
+- **Domain-specific extensions:** Community groups are already exploring conventions for verticals like financial services, where developers might want standardized ways to handle compliance metadata.
 
-These components improve usability and trust across MCP implementations while remaining separate from the core specification.
+Another important side-effect to this approach is that MCP client and server developers get richer functionality without having to wait for protocol changes, which might need more extensive validation before being merged into the core. 
 
-## MCP Extensions
+Extensions are also _the way_ to validate future protocol changes - if a particular implementation gains traction, that signals that there is a growing community need in protocol functionality that could become a part of the specification.
 
-Extensions are **patterns built on top of existing MCP mechanisms**. They do not alter the protocol and remain fully compatible with all clients and servers.
+### How extensions are governed
 
-Examples include:
+Extensions are community-driven, and **all of them are optional**. Developers adopt what makes sense for their use case.
 
-- **UI extensions**, where servers return structured data along with presentation templates that clients may optionally render.
-- **Security extensions**, where additional security context is established using new or existing mechanisms.
-- **Domain-specific extensions**, such as financial-services conventions being explored by community groups.
+At the same time, we encourage implementing official and recommended extensions when possible. It helps the whole ecosystem work better together. Official extensions typically start as conversations between MCP contributors, both on the core team and in the broader community, before graduating to the [Model Context Protocol GitHub organization](https://github.com/modelcontextprotocol) where they're maintained collaboratively.
 
-Extensions like these enable richer use cases while keeping MCP stable.
+Beyond officially-supported extensions, community members and working groups are also free to define their own extensions for any custom needs.
 
-### Extensions Governance
+### A note on proprietary integrations
 
-Extensions are primarily community-driven, and all extensions are optional.
+Some MCP clients ship their own proprietary features, like custom UI systems, that happen to use MCP under the hood. These are **not necessarily** considered MCP extensions. They integrate with MCP servers but they don't define how MCP itself behaves at the protocol level. We will work with client and server implementers to help them adopt extensions as the de-facto way to implement custom behaviors.
 
-Clients and servers are encouraged to implement recommended and official extensions in order to enhance interoperability. Official extensions are those maintained within the [Model Context Protocol open source project](https://github.com/modelcontextprotocol).
+## Conclusion
 
-Additionally, community members and working groups may define extensions for domain-specific needs, such as extensions for financial services or enterprise authorization profiles.
+Keeping the core specification, projects, and extensions separate gives us a stable foundation that developers can count on, while still leaving room for the community to experiment without requiring protocol changes. Implementers, for both client and server, get to pick the extensions that fit their needs, and those extensions can evolve based on real-world feedback rather than upfront committee design.
 
-### Proprietary Integrations
+## Thank you
 
-Some MCP clients provide their own proprietary integrations that use MCP, such as UI systems on top of MCP. These integrations are **not** MCP extensions. Though they integrate with MCP servers, they do not define MCP behavior.
+This post wouldn't exist without the [MCP community](https://modelcontextprotocol.io/community/communication). The ideas here grew out of countless conversations - working group calls, GitHub threads, extension proposals, and plenty of back-and-forth in [Discord](https://modelcontextprotocol.io/community/communication#discord).
 
-## Why This Structure Matters
+To everyone who's contributed ideas, challenged our initial assumptions, and helped shape where this is all going: thank you.
 
-Keeping the distinction between Core, Adjacent projects, and Extensions clear ensures that:
-
-- The protocol remains stable and interoperable.
-- Community groups can experiment without requiring protocol changes.
-- Extensions can evolve organically.
-- Clients can choose which extensions to adopt based on their needs.
-- Recommended and official extensions encourage uptake across the MCP ecosystem.
-
-This layered approach helps MCP support innovation while maintaining a dependable, consistent foundation for all implementers.
-
-## Thanks to the MCP community
-
-This post reflects ongoing conversations and collaborative exploration within the MCP community—from working groups to profile discussions to extension proposals. We appreciate everyone contributing ideas and helping shape the protocol’s evolution.
-
-More updates will continue to appear on the MCP blog and in the public repositories.
+We'll keep sharing updates here on the blog and in the [public repos](https://github.com/modelcontextprotocol). See you there.
