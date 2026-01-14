@@ -79,21 +79,23 @@ To request information from a user, servers send an `elicitation/create` request
 
 All elicitation requests **MUST** include the following parameters:
 
-| Name      | Type   | Options       | Description                                                        |
-| --------- | ------ | ------------- | ------------------------------------------------------------------ |
-| `mode`    | string | `form`, `url` | The mode of the elicitation.                                       |
-| `message` | string |               | A human-readable message explaining why the interaction is needed. |
+| Name      | Type   | Options       | Description                                                                            |
+| --------- | ------ | ------------- | -------------------------------------------------------------------------------------- |
+| `mode`    | string | `form`, `url` | The mode of the elicitation. Optional for form mode (defaults to `"form"` if omitted). |
+| `message` | string |               | A human-readable message explaining why the interaction is needed.                     |
 
 The `mode` parameter specifies the type of elicitation:
 
 - `"form"`: In-band structured data collection with optional schema validation. Data is exposed to the client.
 - `"url"`: Out-of-band interaction via URL navigation. Data (other than the URL itself) is **not** exposed to the client.
 
+For backwards compatibility, servers **MAY** omit the `mode` field for form mode elicitation requests. Clients **MUST** treat requests without a `mode` field as form mode.
+
 ### Form Mode Elicitation Requests
 
 Form mode elicitation allows servers to collect structured data directly through the MCP client.
 
-Form mode elicitation requests **MUST** specify `mode: "form"` and include these additional parameters:
+Form mode elicitation requests **MUST** either specify `mode: "form"` or omit the `mode` field, and include these additional parameters:
 
 | Name              | Type   | Description                                                    |
 | ----------------- | ------ | -------------------------------------------------------------- |
@@ -322,7 +324,22 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 ### URL Mode Elicitation Requests
 
+<Note>
+
+**New feature:** URL mode elicitation is introduced in the `2025-11-25` version of the MCP specification. Its design and implementation may change in future protocol revisions.
+
+</Note>
+
 URL mode elicitation enables servers to direct users to external URLs for out-of-band interactions that must not pass through the MCP client. This is essential for auth flows, payment processing, and other sensitive or secure operations.
+
+URL mode elicitation requests **MUST** specify `mode: "url"`, a `message`, and include these additional parameters:
+
+| Name            | Type   | Description                               |
+| --------------- | ------ | ----------------------------------------- |
+| `url`           | string | The URL that the user should navigate to. |
+| `elicitationId` | string | A unique identifier for the elicitation.  |
+
+The `url` parameter **MUST** contain a valid URL.
 
 <Note>
   **Important**: URL mode elicitation is *not* for authorizing the MCP client's
@@ -333,15 +350,6 @@ URL mode elicitation enables servers to direct users to external URLs for out-of
   client's only responsibility is to provide the user with context about the
   elicitation URL the server wants them to open.
 </Note>
-
-URL mode elicitation requests **MUST** specify `mode: "url"` and include these additional parameters:
-
-| Name            | Type   | Description                               |
-| --------------- | ------ | ----------------------------------------- |
-| `url`           | string | The URL that the user should navigate to. |
-| `elicitationId` | string | A unique identifier for the elicitation.  |
-
-The `url` parameter **MUST** contain a valid URL. The `message` parameter **MUST NOT** contain a URL.
 
 #### Example: Request Sensitive Data
 
@@ -382,18 +390,19 @@ of band and the client is not aware of the outcome until and unless the server s
 
 ### Completion Notifications for URL Mode Elicitation
 
-Servers **SHOULD** send a `notifications/elicitation/complete` notification when an
+Servers **MAY** send a `notifications/elicitation/complete` notification when an
 out-of-band interaction started by URL mode elicitation is completed. This allows clients to react programmatically if appropriate.
 
-- The notification **MUST** only be sent to the client that initiated the elicitation request.
-- The notification **MUST** include the `elicitationId` established in the original
-  `elicitation/create` request.
-- Clients **MUST** ignore notifications referencing unknown or already-completed IDs.
-- If a completion notification never arrives, clients **SHOULD** provide a manual
-  way for the user to continue the interaction.
+Servers sending notifications:
 
-Clients **MAY** use the notification to automatically retry requests that received a [URLElicitationRequiredError](#error-handling), update the user interface, or otherwise continue an interaction.
-However, because delivery of the notification is not guaranteed, clients must not wait indefinitely for a notification from the server.
+- **MUST** only send the notification to the client that initiated the elicitation request.
+- **MUST** include the `elicitationId` established in the original `elicitation/create` request.
+
+Clients:
+
+- **MUST** ignore notifications referencing unknown or already-completed IDs.
+- **MAY** wait for this notification to automatically retry requests that received a [URLElicitationRequiredError](#error-handling), update the user interface, or otherwise continue an interaction.
+- **SHOULD** still provide manual controls that let the user retry or cancel the original request (or otherwise resume interacting with the client) if the notification never arrives.
 
 #### Example
 
@@ -504,7 +513,6 @@ sequenceDiagram
     User-->>Client: Provide consent
 
     Client->>UserAgent: Open URL
-    Client->>Server: Accept response
 
     Note over User,UserAgent: User interaction
 

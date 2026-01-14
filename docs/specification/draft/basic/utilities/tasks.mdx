@@ -108,15 +108,15 @@ The set of capabilities in `capabilities.tasks.requests` is exhaustive. If a req
 
 ### Tool-Level Negotiation
 
-Tool calls are given special consideration for the purpose of task augmentation. In the result of `tools/list`, tools declare support for tasks via `execution.task`, which if present can have a value of `"always"`, `"optional"`, or `"never"`.
+Tool calls are given special consideration for the purpose of task augmentation. In the result of `tools/list`, tools declare support for tasks via `execution.taskSupport`, which if present can have a value of `"required"`, `"optional"`, or `"forbidden"`.
 
 This is to be interpreted as a fine-grained layer in addition to capabilities, following these rules:
 
-1. If a server's capabilities do not include `tasks.requests.tools.call`, then clients **MUST NOT** attempt to use task augmentation on that server's tools, regardless of the `execution.task` value.
-1. If a server's capabilities include `tasks.requests.tools.call`, then clients consider the value of `execution.task`, and handle it accordingly:
-   1. If `execution.task` is not present or `"never"`, clients **MUST NOT** attempt to invoke the tool as a task. Servers **SHOULD** return a `-32601` (Method not found) error if a client attempts to do so. This is the default behavior.
-   1. If `execution.task` is `"optional"`, clients **MAY** invoke the tool as a task or as a normal request.
-   1. If `execution.task` is `"always"`, clients **MUST** invoke the tool as a task. Servers **MUST** return a `-32601` (Method not found) error if a client does not attempt to do so.
+1. If a server's capabilities do not include `tasks.requests.tools.call`, then clients **MUST NOT** attempt to use task augmentation on that server's tools, regardless of the `execution.taskSupport` value.
+1. If a server's capabilities include `tasks.requests.tools.call`, then clients consider the value of `execution.taskSupport`, and handle it accordingly:
+   1. If `execution.taskSupport` is not present or `"forbidden"`, clients **MUST NOT** attempt to invoke the tool as a task. Servers **SHOULD** return a `-32601` (Method not found) error if a client attempts to do so. This is the default behavior.
+   1. If `execution.taskSupport` is `"optional"`, clients **MAY** invoke the tool as a task or as a normal request.
+   1. If `execution.taskSupport` is `"required"`, clients **MUST** invoke the tool as a task. Servers **MUST** return a `-32601` (Method not found) error if a client does not attempt to do so.
 
 ## Protocol Messages
 
@@ -160,6 +160,7 @@ To create a task, requestors send a request with the `task` field included in th
       "status": "working",
       "statusMessage": "The operation is now in progress.",
       "createdAt": "2025-11-25T10:30:00Z",
+      "lastUpdatedAt": "2025-11-25T10:40:00Z",
       "ttl": 60000,
       "pollInterval": 5000
     }
@@ -219,6 +220,7 @@ Requestors **SHOULD** continue polling until the task reaches a terminal status 
     "status": "working",
     "statusMessage": "The operation is now in progress.",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
     "pollInterval": 5000
   }
@@ -291,6 +293,7 @@ When a task status changes, receivers **MAY** send a [`notifications/tasks/statu
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
     "ttl": 60000,
     "pollInterval": 5000
   }
@@ -330,6 +333,7 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
         "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
         "status": "working",
         "createdAt": "2025-11-25T10:30:00Z",
+        "lastUpdatedAt": "2025-11-25T10:40:00Z",
         "ttl": 30000,
         "pollInterval": 5000
       },
@@ -337,6 +341,7 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
         "taskId": "abc123-def456-ghi789",
         "status": "completed",
         "createdAt": "2025-11-25T09:15:00Z",
+        "lastUpdatedAt": "2025-11-25T10:40:00Z",
         "ttl": 60000
       }
     ],
@@ -373,6 +378,7 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
     "status": "cancelled",
     "statusMessage": "The task was cancelled by request.",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
     "pollInterval": 5000
   }
@@ -450,6 +456,7 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 ### TTL and Resource Management
 
 1. Receivers **MUST** include a `createdAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was created.
+1. Receivers **MUST** include a `lastUpdatedAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was last updated.
 1. Receivers **MAY** override the requested `ttl` duration.
 1. Receivers **MUST** include the actual `ttl` duration (or `null` for unlimited) in `tasks/get` responses.
 1. After a task's `ttl` lifetime has elapsed, receivers **MAY** delete the task and its results, regardless of the task status.
@@ -706,6 +713,7 @@ A task represents the execution state of a request. The task state includes:
 - `createdAt`: ISO 8601 timestamp when the task was created
 - `ttl`: Time in milliseconds from creation before task may be deleted
 - `pollInterval`: Suggested time in milliseconds between status checks
+- `lastUpdatedAt`: ISO 8601 timestamp when the task status was last updated
 
 ### Task Status
 
@@ -845,6 +853,7 @@ When the underlying request does not complete successfully, the task moves to th
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
     "status": "failed",
     "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
     "statusMessage": "Tool execution failed: API rate limit exceeded"
   }

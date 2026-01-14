@@ -208,7 +208,7 @@ Clients supporting all options **SHOULD** follow the following priority order:
 1. Use pre-registered client information for the server if the client has it available
 2. Use Client ID Metadata Documents if the Authorization Server indicates if the server supports it (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
 3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
-4. Prompt the user if no other option is available
+4. Prompt the user to enter the client information if no other option is available
 
 ### Client ID Metadata Documents
 
@@ -237,7 +237,7 @@ Key requirements include:
 - **SHOULD** fetch metadata documents when encountering URL-formatted client_ids
 - **MUST** validate that the fetched document's `client_id` matches the URL exactly
 - **SHOULD** cache metadata respecting HTTP cache headers
-- **MUST** validate redirect URIs against those in the metadata document
+- **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
 - **MUST** validate the document structure is valid JSON and contains required fields
 - **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6)
 
@@ -479,7 +479,7 @@ response.
 
 MCP clients **MUST NOT** send tokens to the MCP server other than ones issued by the MCP server's authorization server.
 
-Authorization servers **MUST** only accept tokens that are valid for use with their
+MCP servers **MUST** only accept tokens that are valid for use with their
 own resources.
 
 MCP servers **MUST NOT** accept or transit any other tokens.

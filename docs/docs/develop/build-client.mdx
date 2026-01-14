@@ -440,7 +440,7 @@ If you see:
 
 </Tab>
 
-<Tab title="Node">
+<Tab title="TypeScript">
 
 [You can find the complete code for this tutorial here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/mcp-client-typescript)
 
@@ -1120,13 +1120,13 @@ Also, add the following plugins to your build script:
 
 ```kotlin build.gradle.kts
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.9"
 }
 ```
 
 ```groovy build.gradle
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.9'
 }
 ```
 
@@ -1530,7 +1530,7 @@ var clientTransport = new StdioClientTransport(new()
     Arguments = arguments,
 });
 
-await using var mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+await using var mcpClient = await McpClient.CreateAsync(clientTransport);
 
 var tools = await mcpClient.ListToolsAsync();
 foreach (var tool in tools)
@@ -1609,7 +1609,7 @@ static void PromptForInput()
 
 ### 1. Client Initialization
 
-- The client is initialized using `McpClientFactory.CreateAsync()`, which sets up the transport type and command to run the server.
+- The client is initialized using `McpClient.CreateAsync()`, which sets up the transport type and command to run the server.
 
 ### 2. Server Connection
 

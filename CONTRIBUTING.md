@@ -70,6 +70,10 @@ npm run check:docs
 npm run format
 ```
 
+> [!NOTE]
+> You can run all schema/documentation
+> changes at once with `npm run prep:changes`.
+
 ## Blog changes
 
 The blog is built using [Hugo](https://gohugo.io/installation/) and located in the [`blog`](./blog) directory.
@@ -80,7 +84,7 @@ To preview blog changes locally:
 npm run serve:blog
 ```
 
-## Documentation Guidelines
+### Documentation Guidelines
 
 When contributing to the documentation:
 
@@ -172,8 +176,10 @@ We reserve the right to close submissions that appear to not follow the disclosu
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT
-License.
+By contributing, you agree that your code or specification contributions will be
+licensed under the Apache License 2.0. Documentation contributions (excluding
+specifications) are licensed under CC-BY 4.0. See the [LICENSE](LICENSE) file for
+details.
 
 ## Security
 

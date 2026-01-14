@@ -59,7 +59,7 @@ Writing to stdout will corrupt the JSON-RPC messages and break your server.
 ### Best Practices
 
 1. Use a logging library that writes to stderr or files.
-1. Tool names should follow the format specified [here](/specification/draft/server/tools#tool-names).
+1. For Python, be especially careful - `print()` writes to stdout by default.
 
 ### Quick Examples
 
@@ -143,6 +143,7 @@ Add these to the top of your `weather.py`:
 
 ```python
 from typing import Any
+
 import httpx
 from mcp.server.fastmcp import FastMCP
 
@@ -163,10 +164,7 @@ Next, let's add our helper functions for querying and formatting the data from t
 ```python
 async def make_nws_request(url: str) -> dict[str, Any] | None:
     """Make a request to the NWS API with proper error handling."""
-    headers = {
-        "User-Agent": USER_AGENT,
-        "Accept": "application/geo+json"
-    }
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/geo+json"}
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(url, headers=headers, timeout=30.0)
@@ -175,15 +173,16 @@ async def make_nws_request(url: str) -> dict[str, Any] | None:
         except Exception:
             return None
 
+
 def format_alert(feature: dict) -> str:
     """Format an alert feature into a readable string."""
     props = feature["properties"]
     return f"""
-Event: {props.get('event', 'Unknown')}
-Area: {props.get('areaDesc', 'Unknown')}
-Severity: {props.get('severity', 'Unknown')}
-Description: {props.get('description', 'No description available')}
-Instructions: {props.get('instruction', 'No specific instructions provided')}
+Event: {props.get("event", "Unknown")}
+Area: {props.get("areaDesc", "Unknown")}
+Severity: {props.get("severity", "Unknown")}
+Description: {props.get("description", "No description available")}
+Instructions: {props.get("instruction", "No specific instructions provided")}
 """
 ```
 
@@ -210,6 +209,7 @@ async def get_alerts(state: str) -> str:
 
     alerts = [format_alert(feature) for feature in data["features"]]
     return "\n---\n".join(alerts)
+
 
 @mcp.tool()
 async def get_forecast(latitude: float, longitude: float) -> str:
@@ -238,10 +238,10 @@ async def get_forecast(latitude: float, longitude: float) -> str:
     forecasts = []
     for period in periods[:5]:  # Only show next 5 periods
         forecast = f"""
-{period['name']}:
-Temperature: {period['temperature']}°{period['temperatureUnit']}
-Wind: {period['windSpeed']} {period['windDirection']}
-Forecast: {period['detailedForecast']}
+{period["name"]}:
+Temperature: {period["temperature"]}°{period["temperatureUnit"]}
+Wind: {period["windSpeed"]} {period["windDirection"]}
+Forecast: {period["detailedForecast"]}
 """
         forecasts.append(forecast)
 
@@ -255,7 +255,8 @@ Finally, let's initialize and run the server:
 ```python
 def main():
     # Initialize and run the server
-    mcp.run(transport='stdio')
+    mcp.run(transport="stdio")
+
 
 if __name__ == "__main__":
     main()
@@ -353,7 +354,7 @@ Save the file, and restart **Claude for Desktop**.
 
 </Tab>
 
-<Tab title='Node'>
+<Tab title='TypeScript'>
 
 Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-typescript)
 
@@ -505,10 +506,6 @@ const USER_AGENT = "weather-app/1.0";
 const server = new McpServer({
   name: "weather",
   version: "1.0.0",
-  capabilities: {
-    resources: {},
-    tools: {},
-  },
 });
 ```
 
@@ -591,11 +588,17 @@ The tool execution handler is responsible for actually executing the logic of ea
 
 ```typescript
 // Register weather tools
-server.tool(
+
+server.registerTool(
   "get_alerts",
-  "Get weather alerts for a state",
   {
-    state: z.string().length(2).describe("Two-letter state code (e.g. CA, NY)"),
+    description: "Get weather alerts for a state",
+    inputSchema: {
+      state: z
+        .string()
+        .length(2)
+        .describe("Two-letter state code (e.g. CA, NY)"),
+    },
   },
   async ({ state }) => {
     const stateCode = state.toUpperCase();
@@ -639,16 +642,22 @@ server.tool(
   },
 );
 
-server.tool(
+server.registerTool(
   "get_forecast",
-  "Get weather forecast for a location",
   {
-    latitude: z.number().min(-90).max(90).describe("Latitude of the location"),
-    longitude: z
-      .number()
-      .min(-180)
-      .max(180)
-      .describe("Longitude of the location"),
+    description: "Get weather forecast for a location",
+    inputSchema: {
+      latitude: z
+        .number()
+        .min(-90)
+        .max(90)
+        .describe("Latitude of the location"),
+      longitude: z
+        .number()
+        .min(-180)
+        .max(180)
+        .describe("Longitude of the location"),
+    },
   },
   async ({ latitude, longitude }) => {
     // Get grid point data
@@ -1224,14 +1233,14 @@ Also, add the following plugins to your build script:
 ```kotlin build.gradle.kts
 plugins {
     kotlin("plugin.serialization") version "your_version_of_kotlin"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.9"
 }
 ```
 
 ```groovy build.gradle
 plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version 'your_version_of_kotlin'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.9'
 }
 ```
 
@@ -1658,10 +1667,10 @@ namespace QuickstartWeatherServer.Tools;
 [McpServerToolType]
 public static class WeatherTools
 {
-    [McpServerTool, Description("Get weather alerts for a US state.")]
+    [McpServerTool, Description("Get weather alerts for a US state code.")]
     public static async Task<string> GetAlerts(
         HttpClient client,
-        [Description("The US state to get alerts for.")] string state)
+        [Description("The US state code to get alerts for.")] string state)
     {
         using var jsonDocument = await client.ReadJsonDocumentAsync($"/alerts/active/area/{state}");
         var jsonElement = jsonDocument.RootElement;
@@ -1785,17 +1794,459 @@ This tells Claude for Desktop:
    Save the file, and restart **Claude for Desktop**.
 
 </Tab>
+
+<Tab title='Rust'>
+
+Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-rust)
+
+### Prerequisite knowledge
+
+This quickstart assumes you have familiarity with:
+
+- Rust programming language
+- Async/await in Rust
+- LLMs like Claude
+
+### Logging in MCP Servers
+
+When implementing MCP servers, be careful about how you handle logging:
+
+**For STDIO-based servers:** Never write to standard output (stdout). This includes:
+
+- `print()` statements in Python
+- `console.log()` in JavaScript
+- `println!()` in Rust
+- Similar stdout functions in other languages
+
+Writing to stdout will corrupt the JSON-RPC messages and break your server.
+
+**For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
+
+### Best Practices
+
+1. Use a logging library that writes to stderr or files, such as `tracing` or `log` in Rust.
+2. Configure your logging framework to avoid stdout output.
+
+### Quick Examples
+
+```rust
+// ❌ Bad (STDIO)
+println!("Processing request");
+
+// ✅ Good (STDIO)
+use tracing::info;
+info!("Processing request"); // writes to stderr
+```
+
+### System requirements
+
+- Rust 1.70 or higher installed.
+- Cargo (comes with Rust installation).
+
+### Set up your environment
+
+First, let's install Rust if you haven't already. You can install Rust from [rust-lang.org](https://www.rust-lang.org/tools/install):
+
+<CodeGroup>
+
+```bash macOS/Linux
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+```powershell Windows
+# Download and run rustup-init.exe from https://rustup.rs/
+```
+
+</CodeGroup>
+
+Verify your Rust installation:
+
+```bash
+rustc --version
+cargo --version
+```
+
+Now, let's create and set up our project:
+
+<CodeGroup>
+
+```bash macOS/Linux
+# Create a new Rust project
+cargo new weather
+cd weather
+```
+
+```powershell Windows
+# Create a new Rust project
+cargo new weather
+cd weather
+```
+
+</CodeGroup>
+
+Update your `Cargo.toml` to add the required dependencies:
+
+```toml Cargo.toml
+[package]
+name = "weather"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rmcp = { version = "0.3", features = ["server", "macros", "transport-io"] }
+tokio = { version = "1.46", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "std", "fmt"] }
+```
+
+Now let's dive into building your server.
+
+## Building your server
+
+### Importing packages and constants
+
+Open `src/main.rs` and add these imports and constants at the top:
+
+```rust
+use anyhow::Result;
+use rmcp::{
+    ServerHandler, ServiceExt,
+    handler::server::{router::tool::ToolRouter, tool::Parameters},
+    model::*,
+    schemars, tool, tool_handler, tool_router,
+};
+use serde::Deserialize;
+use serde::de::DeserializeOwned;
+
+const NWS_API_BASE: &str = "https://api.weather.gov";
+const USER_AGENT: &str = "weather-app/1.0";
+```
+
+The `rmcp` crate provides the Model Context Protocol SDK for Rust, with features for server implementation, procedural macros, and stdio transport.
+
+### Data structures
+
+Next, let's define the data structures for deserializing responses from the National Weather Service API:
+
+```rust
+#[derive(Debug, Deserialize)]
+struct AlertsResponse {
+    features: Vec<AlertFeature>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AlertFeature {
+    properties: AlertProperties,
+}
+
+#[derive(Debug, Deserialize)]
+struct AlertProperties {
+    event: Option<String>,
+    #[serde(rename = "areaDesc")]
+    area_desc: Option<String>,
+    severity: Option<String>,
+    description: Option<String>,
+    instruction: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PointsResponse {
+    properties: PointsProperties,
+}
+
+#[derive(Debug, Deserialize)]
+struct PointsProperties {
+    forecast: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ForecastResponse {
+    properties: ForecastProperties,
+}
+
+#[derive(Debug, Deserialize)]
+struct ForecastProperties {
+    periods: Vec<ForecastPeriod>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ForecastPeriod {
+    name: String,
+    temperature: i32,
+    #[serde(rename = "temperatureUnit")]
+    temperature_unit: String,
+    #[serde(rename = "windSpeed")]
+    wind_speed: String,
+    #[serde(rename = "windDirection")]
+    wind_direction: String,
+    #[serde(rename = "detailedForecast")]
+    detailed_forecast: String,
+}
+```
+
+Now define the request types that MCP clients will send:
+
+```rust
+#[derive(serde::Deserialize, schemars::JsonSchema)]
+pub struct MCPForecastRequest {
+    latitude: f32,
+    longitude: f32,
+}
+
+#[derive(serde::Deserialize, schemars::JsonSchema)]
+pub struct MCPAlertRequest {
+    state: String,
+}
+```
+
+### Helper functions
+
+Add helper functions for making API requests and formatting responses:
+
+```rust
+async fn make_nws_request<T: DeserializeOwned>(url: &str) -> Result<T> {
+    let client = reqwest::Client::new();
+    let rsp = client
+        .get(url)
+        .header(reqwest::header::USER_AGENT, USER_AGENT)
+        .header(reqwest::header::ACCEPT, "application/geo+json")
+        .send()
+        .await?
+        .error_for_status()?;
+    Ok(rsp.json::<T>().await?)
+}
+
+fn format_alert(feature: &AlertFeature) -> String {
+    let props = &feature.properties;
+    format!(
+        "Event: {}\nArea: {}\nSeverity: {}\nDescription: {}\nInstructions: {}",
+        props.event.as_deref().unwrap_or("Unknown"),
+        props.area_desc.as_deref().unwrap_or("Unknown"),
+        props.severity.as_deref().unwrap_or("Unknown"),
+        props
+            .description
+            .as_deref()
+            .unwrap_or("No description available"),
+        props
+            .instruction
+            .as_deref()
+            .unwrap_or("No specific instructions provided")
+    )
+}
+
+fn format_period(period: &ForecastPeriod) -> String {
+    format!(
+        "{}:\nTemperature: {}°{}\nWind: {} {}\nForecast: {}",
+        period.name,
+        period.temperature,
+        period.temperature_unit,
+        period.wind_speed,
+        period.wind_direction,
+        period.detailed_forecast
+    )
+}
+```
+
+### Implementing the Weather server and tools
+
+Now let's implement the main Weather server struct with the tool handlers:
+
+```rust
+pub struct Weather {
+    tool_router: ToolRouter<Weather>,
+}
+
+#[tool_router]
+impl Weather {
+    fn new() -> Self {
+        Self {
+            tool_router: Self::tool_router(),
+        }
+    }
+
+    #[tool(description = "Get weather alerts for a US state.")]
+    async fn get_alerts(
+        &self,
+        Parameters(MCPAlertRequest { state }): Parameters<MCPAlertRequest>,
+    ) -> String {
+        let url = format!(
+            "{}/alerts/active/area/{}",
+            NWS_API_BASE,
+            state.to_uppercase()
+        );
+
+        match make_nws_request::<AlertsResponse>(&url).await {
+            Ok(data) => {
+                if data.features.is_empty() {
+                    "No active alerts for this state.".to_string()
+                } else {
+                    data.features
+                        .iter()
+                        .map(format_alert)
+                        .collect::<Vec<_>>()
+                        .join("\n---\n")
+                }
+            }
+            Err(_) => "Unable to fetch alerts or no alerts found.".to_string(),
+        }
+    }
+
+    #[tool(description = "Get weather forecast for a location.")]
+    async fn get_forecast(
+        &self,
+        Parameters(MCPForecastRequest {
+            latitude,
+            longitude,
+        }): Parameters<MCPForecastRequest>,
+    ) -> String {
+        let points_url = format!("{NWS_API_BASE}/points/{latitude},{longitude}");
+        let Ok(points_data) = make_nws_request::<PointsResponse>(&points_url).await else {
+            return "Unable to fetch forecast data for this location.".to_string();
+        };
+
+        let forecast_url = points_data.properties.forecast;
+
+        let Ok(forecast_data) = make_nws_request::<ForecastResponse>(&forecast_url).await else {
+            return "Unable to fetch forecast data for this location.".to_string();
+        };
+
+        let periods = &forecast_data.properties.periods;
+        let forecast_summary: String = periods
+            .iter()
+            .take(5) // Next 5 periods only
+            .map(format_period)
+            .collect::<Vec<String>>()
+            .join("\n---\n");
+        forecast_summary
+    }
+}
+```
+
+The `#[tool_router]` macro automatically generates the routing logic, and the `#[tool]` attribute marks methods as MCP tools.
+
+### Implementing the ServerHandler
+
+Implement the `ServerHandler` trait to define server capabilities:
+
+```rust
+#[tool_handler]
+impl ServerHandler for Weather {
+    fn get_info(&self) -> ServerInfo {
+        ServerInfo {
+            capabilities: ServerCapabilities::builder().enable_tools().build(),
+            ..Default::default()
+        }
+    }
+}
+```
+
+### Running the server
+
+Finally, implement the main function to run the server with stdio transport:
+
+```rust
+#[tokio::main]
+async fn main() -> Result<()> {
+    let transport = (tokio::io::stdin(), tokio::io::stdout());
+    let service = Weather::new().serve(transport).await?;
+    service.waiting().await?;
+    Ok(())
+}
+```
+
+Build your server with:
+
+```bash
+cargo build --release
+```
+
+The compiled binary will be in `target/release/weather`.
+
+Let's now test your server from an existing MCP host, Claude for Desktop.
+
+## Testing your server with Claude for Desktop
+
+<Note>
+
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+
+</Note>
+
+First, make sure you have Claude for Desktop installed. [You can install the latest version here.](https://claude.ai/download) If you already have Claude for Desktop, **make sure it's updated to the latest version.**
+
+We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
+
+For example, if you have [VS Code](https://code.visualstudio.com/) installed:
+
+<CodeGroup>
+
+```bash macOS/Linux
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+```powershell Windows
+code $env:AppData\Claude\claude_desktop_config.json
+```
+
+</CodeGroup>
+
+You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
+
+In this case, we'll add our single weather server like so:
+
+<CodeGroup>
+
+```json macOS/Linux
+{
+  "mcpServers": {
+    "weather": {
+      "command": "/ABSOLUTE/PATH/TO/PARENT/FOLDER/weather/target/release/weather"
+    }
+  }
+}
+```
+
+```json Windows
+{
+  "mcpServers": {
+    "weather": {
+      "command": "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather\\target\\release\\weather.exe"
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+
+Make sure you pass in the absolute path to your compiled binary. You can get this by running `pwd` on macOS/Linux or `cd` on Windows Command Prompt from your project directory. On Windows, remember to use double backslashes (`\\`) or forward slashes (`/`) in the JSON path, and add the `.exe` extension.
+
+</Note>
+
+This tells Claude for Desktop:
+
+1. There's an MCP server named "weather"
+2. Launch it by running the compiled binary at the specified path
+
+Save the file, and restart **Claude for Desktop**.
+
+</Tab>
 </Tabs>
 
 ### Test with commands
 
-Let's make sure Claude for Desktop is picking up the two tools we've exposed in our `weather` server. You can do this by looking for the "Search and tools" <img src="/images/claude-desktop-mcp-slider.svg" style={{display: 'inline', margin: 0, height: '1.3em'}} /> icon:
+Let's make sure Claude for Desktop is picking up the two tools we've exposed in our `weather` server. You can do this by looking for the "Add files, connectors, and more /" <img src="/images/claude-add-files-connectors-and-more.png" style={{display: 'inline', margin: 0, height: '1.3em'}} /> icon:
 
 <Frame>
   <img src="/images/visual-indicator-mcp-tools.png" />
 </Frame>
 
-After clicking on the slider icon, you should see two tools listed:
+After clicking on the plus icon, hover over the "Connectors" menu, you should see the `weather`servers listed:
 
 <Frame>
   <img src="/images/available-mcp-tools.png" />
@@ -1803,7 +2254,7 @@ After clicking on the slider icon, you should see two tools listed:
 
 If your server isn't being picked up by Claude for Desktop, proceed to the [Troubleshooting](#troubleshooting) section for debugging tips.
 
-If the tool settings icon has shown up, you can now test your server by running the following commands in Claude for Desktop:
+If the server has shown up in the "Connectors" menu, you can now test your server by running the following commands in Claude for Desktop:
 
 - What's the weather in Sacramento?
 - What are the active weather alerts in Texas?
