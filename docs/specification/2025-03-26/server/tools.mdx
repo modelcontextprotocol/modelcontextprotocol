@@ -20,6 +20,7 @@ suits their needs&mdash;the protocol itself does not mandate any specific user
 interaction model.
 
 <Warning>
+
 For trust & safety and security, there **SHOULD** always
 be a human in the loop with the ability to deny tool invocations.
 
@@ -29,6 +30,7 @@ Applications **SHOULD**:
 - Insert clear visual indicators when tools are invoked
 - Present confirmation prompts to the user for operations, to ensure a human is in the
   loop
+
 </Warning>
 
 ## Capabilities
@@ -183,8 +185,12 @@ A tool definition includes:
 - `inputSchema`: JSON Schema defining expected parameters
 - `annotations`: optional properties describing tool behavior
 
-<Warning>For trust & safety and security, clients **MUST** consider
-tool annotations to be untrusted unless they come from trusted servers.</Warning>
+<Warning>
+
+For trust & safety and security, clients **MUST** consider
+tool annotations to be untrusted unless they come from trusted servers.
+
+</Warning>
 
 ### Tool Result
 
@@ -240,7 +246,6 @@ or data, behind a URI that can be subscribed to or fetched again by the client l
 Tools use two error reporting mechanisms:
 
 1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
-
    - Unknown tools
    - Invalid arguments
    - Server errors
@@ -284,7 +289,6 @@ Example tool execution error:
 ## Security Considerations
 
 1. Servers **MUST**:
-
    - Validate all tool inputs
    - Implement proper access controls
    - Rate limit tool invocations

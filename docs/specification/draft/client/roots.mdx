@@ -2,6 +2,8 @@
 title: Roots
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) provides a standardized way for clients to expose
@@ -163,7 +165,6 @@ Example error:
 ## Security Considerations
 
 1. Clients **MUST**:
-
    - Only expose roots with appropriate permissions
    - Validate all root URIs to prevent path traversal
    - Implement proper access controls
@@ -177,7 +178,6 @@ Example error:
 ## Implementation Guidelines
 
 1. Clients **SHOULD**:
-
    - Prompt users for consent before exposing roots to servers
    - Provide clear user interfaces for root management
    - Validate root accessibility before exposing

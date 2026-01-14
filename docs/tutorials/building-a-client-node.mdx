@@ -1,7 +1,9 @@
 <Tab title="Node">
+
 ## System Requirements
 
 Before starting, ensure your system meets these requirements:
+
 - Mac or Windows computer
 - Node.js version 16 or higher installed
 - npm (comes with Node.js)
@@ -67,11 +69,13 @@ Update your `tsconfig.json` with appropriate settings:
 You'll need an Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys).
 
 Create a `.env` file:
+
 ```bash
 ANTHROPIC_API_KEY=your_key_here
 ```
 
 Add `.env` to your `.gitignore`:
+
 ```bash
 echo ".env" >> .gitignore
 ```
@@ -188,7 +192,7 @@ Now add the core functionality for processing queries and handling tool calls:
 
     const finalText: string[] = [];
     let currentResponse = await this.anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1000,
       messages,
       tools: availableTools,
@@ -242,7 +246,7 @@ Now add the core functionality for processing queries and handling tool calls:
 
           // Get next response from Claude with tool results
           currentResponse = await this.anthropic.messages.create({
-            model: "claude-3-5-sonnet-20241022",
+            model: "claude-sonnet-4-20250514",
             max_tokens: 1000,
             messages,
             tools: availableTools,
@@ -356,6 +360,7 @@ node build/client.js path/to/server.js  # for Node.js servers
 ```
 
 The client will:
+
 1. Connect to the specified server
 2. List available tools
 3. Start an interactive chat session where you can:
@@ -366,29 +371,34 @@ The client will:
 ## Key Components Explained
 
 #### 1. Client Initialization
+
 - The `MCPClient` class initializes with session management and API clients
 - Sets up the MCP client with basic capabilities
 - Configures the Anthropic client for Claude interactions
 
 #### 2. Server Connection
+
 - Supports both Python and Node.js servers
 - Validates server script type
 - Sets up proper communication channels
 - Lists available tools on connection
 
 #### 3. Query Processing
+
 - Maintains conversation context
 - Handles Claude's responses and tool calls
 - Manages the message flow between Claude and tools
 - Combines results into a coherent response
 
 #### 4. Interactive Interface
+
 - Provides a simple command-line interface
 - Handles user input and displays responses
 - Includes basic error handling
 - Allows graceful exit
 
 #### 5. Resource Management
+
 - Proper cleanup of resources
 - Error handling for connection issues
 - Graceful shutdown procedures
@@ -430,12 +440,14 @@ The client will:
 ### Troubleshooting
 
 #### Server Path Issues
+
 - Double-check the path to your server script
 - Use absolute paths if relative paths aren't working
 - For Windows users, use forward slashes (/) or escaped backslashes (\\)
 - Verify the server file has the correct extension (.py or .js)
 
 Example of correct path usage:
+
 ```bash
 # Relative path
 node build/client.js ./server/weather.js
@@ -449,14 +461,17 @@ node build/client.js C:\\projects\\mcp-server\\weather.js
 ```
 
 #### Connection Issues
+
 - Verify the server script exists and has correct permissions
 - Check that the server script is executable
 - Ensure the server script's dependencies are installed
 - Try running the server script directly to check for errors
 
 #### Tool Execution Issues
+
 - Check server logs for error messages
 - Verify tool input arguments match the schema
 - Ensure tool dependencies are available
 - Add debug logging to track execution flow
+
 </Tab>

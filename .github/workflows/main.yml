@@ -18,8 +18,11 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run validate:schema
+      - name: Check TypeScript definitions
+        run: npm run check:schema:ts
 
-      - run: npm run generate:json
-      - name: Verify that `npm run generate:json` did not change outputs (if it did, please re-run it and re-commit!)
-        run: git diff --exit-code
+      - name: Check schema.json files are up to date
+        run: npm run check:schema:json
+
+      - name: Check schema.mdx files are up to date
+        run: npm run check:schema:md

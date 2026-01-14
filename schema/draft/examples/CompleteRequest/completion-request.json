@@ -1,0 +1,15 @@
+{
+  "jsonrpc": "2.0",
+  "id": "completion-example",
+  "method": "completion/complete",
+  "params": {
+    "ref": {
+      "type": "ref/prompt",
+      "name": "code_review"
+    },
+    "argument": {
+      "name": "language",
+      "value": "py"
+    }
+  }
+}

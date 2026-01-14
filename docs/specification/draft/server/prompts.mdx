@@ -2,6 +2,8 @@
 title: Prompts
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) provides a standardized way for servers to expose prompt
@@ -19,7 +21,7 @@ interface, which allows users to naturally discover and invoke available prompts
 
 For example, as slash commands:
 
-![Example of prompt exposed as slash command](slash-command.png)
+![Example of prompt exposed as slash command](/specification/draft/server/slash-command.png)
 
 However, implementors are free to expose prompts through any interface pattern that suits
 their needs&mdash;the protocol itself does not mandate any specific user interaction
@@ -73,12 +75,20 @@ supports [pagination](/specification/draft/server/utilities/pagination).
     "prompts": [
       {
         "name": "code_review",
+        "title": "Request Code Review",
         "description": "Asks the LLM to analyze code quality and suggest improvements",
         "arguments": [
           {
             "name": "code",
             "description": "The code to review",
             "required": true
+          }
+        ],
+        "icons": [
+          {
+            "src": "https://example.com/review-icon.svg",
+            "mimeType": "image/svg+xml",
+            "sizes": ["any"]
           }
         ]
       }
@@ -172,7 +182,9 @@ sequenceDiagram
 A prompt definition includes:
 
 - `name`: Unique identifier for the prompt
+- `title`: Optional human-readable name of the prompt for display purposes.
 - `description`: Optional human-readable description
+- `icons`: Optional array of icons for display in user interfaces
 - `arguments`: Optional list of arguments for customization
 
 ### PromptMessage
@@ -181,6 +193,12 @@ Messages in a prompt can contain:
 
 - `role`: Either "user" or "assistant" to indicate the speaker
 - `content`: One of the following content types:
+
+<Note>
+  All content types in prompt messages support optional
+  [annotations](/specification/2025-06-18/server/resources#annotations) for
+  metadata about audience, priority, and modification times.
+</Note>
 
 #### Text Content
 

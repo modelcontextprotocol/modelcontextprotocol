@@ -1,0 +1,12 @@
+{
+  "jsonrpc": "2.0",
+  "id": "list-roots-example",
+  "result": {
+    "roots": [
+      {
+        "uri": "file:///home/user/projects/myproject",
+        "name": "My Project"
+      }
+    ]
+  }
+}

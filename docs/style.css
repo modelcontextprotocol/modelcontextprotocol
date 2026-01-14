@@ -1,0 +1,385 @@
+#content-area {
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* via Mintlify theme */
+
+  h5 {
+    font-weight: 500;
+  }
+
+  h6 {
+    font-weight: 400;
+  }
+}
+
+
+
+/*** Add automatic section numbers to headings and table of contents items ***/
+
+#enable-section-numbers {
+  display: none;
+}
+
+body:has(#enable-section-numbers) {
+  #content-area,
+  #table-of-contents {
+    counter-reset: h2-counter h3-counter h4-counter h5-counter h6-counter;
+  }
+
+  #content-area h2[id],
+  #table-of-contents li[data-depth="0"] {
+    counter-set: h3-counter h4-counter h5-counter h6-counter;
+  }
+
+  #content-area h3[id],
+  #table-of-contents li[data-depth="1"] {
+    counter-set: h4-counter h5-counter h6-counter;
+  }
+
+  #content-area h4[id],
+  #table-of-contents li[data-depth="2"] {
+    counter-set: h5-counter h6-counter;
+  }
+
+  #content-area h5[id],
+  #content-area h5,
+  #table-of-contents li[data-depth="3"] {
+    counter-set: h6-counter;
+  }
+
+  #table-of-contents li a::before {
+    flex-shrink: 0;
+  }
+
+  #content-area h2[id]::before,
+  #table-of-contents li[data-depth="0"] a::before {
+    counter-increment: h2-counter;
+    content: counter(h2-counter) ". ";
+  }
+
+  #content-area h3[id]::before,
+  #table-of-contents li[data-depth="1"] a::before {
+    counter-increment: h3-counter;
+    content: counter(h2-counter) "." counter(h3-counter) " ";
+  }
+
+  #content-area h4[id]::before,
+  #table-of-contents li[data-depth="2"] a::before {
+    counter-increment: h4-counter;
+    content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
+      " ";
+  }
+
+  #content-area h5[id]::before,
+  #content-area h5::before,
+  #table-of-contents li[data-depth="3"] a::before {
+    counter-increment: h5-counter;
+    content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
+      "." counter(h5-counter) " ";
+  }
+
+  #content-area h6[id]::before,
+  #content-area h6::before,
+  #table-of-contents li[data-depth="4"] a::before {
+    counter-increment: h6-counter;
+    content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
+      "." counter(h5-counter) "." counter(h6-counter) " ";
+  }
+}
+
+
+
+/*** Page: schema reference ***/
+
+#schema-reference {
+  display: none;
+}
+
+/* Vertical margins */
+body:has(#schema-reference) {
+  * {
+    scroll-margin-top: 8rem;
+  }
+
+  --mt-sm: 0.25rem;
+  --mt-md: 0.5rem;
+  --mt-lg: 1rem;
+  --mt-xl: 1.5rem;
+
+  /* Headings */
+  h2, h3 {
+    margin: 0;
+  }
+  .type + h2, .type h3 {
+    margin-top: calc(5 * var(--mt-lg));
+  }
+  h2 + .type h3 {
+    margin-top: var(--mt-xl);
+  }
+
+  /* Type definition code */
+  .tsd-signature {
+    margin: var(--mt-lg) 0 0 0;
+  }
+
+  /* Prose */
+  .tsd-comment {
+    margin: var(--mt-lg) 0 0 0;
+
+    p, ul, ol, li {
+      margin: 0;
+    }
+
+    * + :is(p, ul, ol, pre) {
+      margin-top: var(--mt-lg);
+    }
+
+    * + li {
+      margin-top: var(--mt-sm);
+    }
+  }
+
+  /* Example block (`@example` tag) */
+  .tsd-tag-example {
+    margin: var(--mt-lg) 0 0 0;
+
+    summary + * {
+      margin: var(--mt-sm) 0 0 0;
+      scroll-margin-top: calc(8rem + 1.5rem + var(--mt-sm));
+    }
+  }
+
+  /* "See" links (`@see` tag) */
+  .tsd-tag-see {
+    & > :is(p, ul) {
+      margin-top: 0;
+    }
+  }
+
+  /* Type member */
+  .tsd-member {
+    margin: var(--mt-lg) 0 0 0;
+
+    /* Description */
+    .tsd-comment {
+      margin-top: var(--mt-sm);
+    }
+
+    /* Sub-members */
+    .tsd-type-declaration {
+      /* List */
+      [data-typedoc-h="4"] + .tsd-parameters {
+        margin: var(--mt-md) 0 0 0;
+      }
+    }
+
+    /* Example (`@example` tag) inside type member */
+    .tsd-tag-example {
+      margin: var(--mt-sm) 0 0 0;
+    }
+  }
+}
+
+body:has(#schema-reference) {
+  /* Prose */
+  .tsd-comment {
+    a.tsd-kind-type-alias,
+    a.tsd-kind-interface,
+    a.tsd-kind-property {
+      font-family: var(--font-mono);
+      font-size: 0.875em;
+    }
+  }
+
+  /* Code blocks */
+  .tsd-signature,
+  .tsd-tag-example pre:has(code) {
+    /* Based on code blocks rendered by Mintlify. */
+    border: 1px solid;
+    border-color: light-dark(rgb(var(--gray-950)/.1), rgba(255 255 255/0.1));
+    border-radius: 1rem;
+    padding: 1rem 0.875rem;
+
+    background-color: inherit;
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+
+  /* Type definition code */
+  .tsd-signature {
+    a {
+      font-weight: normal;
+      border-bottom: none;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration-thickness: 2px;
+      }
+    }
+
+    a[href="#"] {
+      pointer-events: none;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tsd-signature-keyword {
+      color: light-dark(rgb(207, 34, 46), #9CDCFE);
+    }
+
+    :is(.tsd-kind-interface, .tsd-kind-type-alias):not(.tsd-signature-type) {
+      color: light-dark(rgb(149, 56, 0), #4EC9B0);
+    }
+
+    .tsd-signature-type:not(.tsd-kind-interface, .tsd-kind-type-alias) {
+      color: light-dark(rgb(5, 80, 174), #DCDCAA);
+    }
+  }
+
+  /* Example block (`@example` tag) */
+  .tsd-tag-example {
+    /* Label */
+    summary {
+      font-weight: 600;
+      font-style: italic;
+    }
+
+    /* Code */
+    pre code.json {
+      .hl-1 {
+        color: light-dark(rgb(17, 99, 41), #9CDCFE);
+      }
+      .hl-2, .hl-3 {
+        color: light-dark(rgb(10, 48, 105), #CE9178);
+      }
+      .hl-5 {
+        color: light-dark(rgb(5, 80, 174), #569CD6);
+      }
+    }
+
+    /* Copy button */
+    pre button {
+      display: none;
+    }
+  }
+
+  /* "See" links (`@see` tag) */
+  .tsd-tag-see {
+    /* Add trailing ":" to heading */
+    [data-typedoc-h="4"]::after {
+      content: ": ";
+    }
+
+    /* Hide (defunct) anchor link */
+    .tsd-anchor-icon {
+      display: none;
+    }
+
+    /* Case: single link -- display inline with heading */
+    &:has(> p) {
+      [data-typedoc-h="4"], p {
+        display: inline;
+      }
+    }
+  }
+
+  /* Type member */
+  .tsd-member {
+    /* Hide members that don't have doc comments */
+    &:not(:has(.tsd-comment)) {
+      display: none;
+    }
+
+    /* When the type itself has a doc comment, add a subtle top border to the first visible member */
+    .tsd-comment ~ &:has(.tsd-comment):not(.tsd-member:has(.tsd-comment) ~ *) {
+      border-top: 2px solid light-dark(rgb(var(--gray-950)/.05), rgba(255 255 255/0.1));
+      padding-top: var(--mt-md);
+    }
+
+    /* Member name */
+    [data-typedoc-h="3"] {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    & > .tsd-comment,
+    & > .tsd-type-declaration {
+      margin-left: 1.25rem;
+    }
+
+    /* Sub-members */
+    .tsd-type-declaration {
+      /* Templated heading */
+      [data-typedoc-h="4"] {
+        display: none;
+      }
+
+      /* Name and type */
+      [data-typedoc-h="5"] {
+        font-family: var(--font-mono);
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        width: fit-content;
+        padding: 0.125em 0.5em;
+        background-color: light-dark(rgb(var(--gray-100)/.5), rgb(255 255 255/.05));
+
+        .tsd-tag {
+          display: none;
+        }
+      }
+    }
+
+    /* Example (`@example` tag) inside type member */
+    .tsd-tag-example {
+      padding-left: 0.5rem;
+    }
+
+    .tsd-sources {
+      display: none;
+    }
+  }
+
+  /* Anchor links for members and examples */
+  .tsd-anchor-icon {
+    border: 0;
+    padding: 0 0.5rem;
+    color: rgb(var(--gray-500)/.5);
+
+    &:hover {
+      color: rgb(var(--gray-500))
+    }
+
+    &::before {
+      content: "#";
+      color: inherit;
+    }
+
+    svg {
+      display: none;
+    }
+  }
+}
+
+
+
+/*** LF Projects copyright footer ***/
+
+#lf-copyright {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid light-dark(rgb(var(--gray-950)/.1), rgba(255 255 255/0.1));
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgb(var(--gray-500));
+  line-height: 1.5;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+
+    &:hover {
+      color: rgb(var(--gray-700));
+    }
+  }
+}

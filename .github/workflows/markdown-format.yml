@@ -4,23 +4,28 @@ on:
   push:
     paths:
       - '**/*.md'
+      - '**/*.mdx'
   pull_request:
     paths:
       - '**/*.md'
+      - '**/*.mdx'
 
 jobs:
   format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Check markdown formatting
-        run: npm run format:check
+        run: npm run check:docs:format
+
+      - name: Check markdown links
+        run: npm run check:docs:links

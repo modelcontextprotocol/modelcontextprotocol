@@ -2,12 +2,14 @@
 title: Completion
 ---
 
+<div id="enable-section-numbers" />
+
 <Info>**Protocol Revision**: draft</Info>
 
 The Model Context Protocol (MCP) provides a standardized way for servers to offer
-argument autocompletion suggestions for prompts and resource URIs. This enables rich,
-IDE-like experiences where users receive contextual suggestions while entering argument
-values.
+autocompletion suggestions for the arguments of prompts and resource templates. When
+users are filling in argument values for a specific prompt (identified by name) or
+resource template (identified by URI), servers can provide contextual suggestions.
 
 ## User Interaction Model
 
@@ -76,6 +78,49 @@ what is being completed through a reference type:
 }
 ```
 
+For prompts or URI templates with multiple arguments, clients should include previous completions in the `context.arguments` object to provide context for subsequent requests.
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "completion/complete",
+  "params": {
+    "ref": {
+      "type": "ref/prompt",
+      "name": "code_review"
+    },
+    "argument": {
+      "name": "framework",
+      "value": "fla"
+    },
+    "context": {
+      "arguments": {
+        "language": "python"
+      }
+    }
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
+      "values": ["flask"],
+      "total": 1,
+      "hasMore": false
+    }
+  }
+}
+```
+
 ### Reference Types
 
 The protocol supports two types of completion references:
@@ -117,6 +162,8 @@ sequenceDiagram
 - `argument`: Object containing:
   - `name`: Argument name
   - `value`: Current value
+- `context`: Object containing:
+  - `arguments`: A mapping of already-resolved argument names to their values.
 
 ### CompleteResult
 
@@ -137,7 +184,6 @@ Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 ## Implementation Considerations
 
 1. Servers **SHOULD**:
-
    - Return suggestions sorted by relevance
    - Implement fuzzy matching where appropriate
    - Rate limit completion requests
