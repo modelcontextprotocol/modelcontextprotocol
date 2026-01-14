@@ -3,7 +3,7 @@
 ## Preamble
 
 - **Title:** MCP Primitive Grouping Server Capability
-- **Author(s):** Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall) 
+- **Author(s):** Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall)
 - **Track:** Standards
 - **Status:** Draft
 - **Created:** 14 January 2026
@@ -19,13 +19,13 @@ This SEP proposes Groups, a new server capability, to organize tools, prompts, r
 Groups are named collections of MCP primitives: tools, prompts, resources, tasks, and other groups, organized by use cases, functionality, etc.
 
 - A productivity server could organize groups such as Email or Calendar, and present related tools, e.g. Email: ["Draft Email", "Spell Check", "Send Email"], Calendar: ["Add Participants", "Find Open Time", "Create Appointment"]
-- A server with many tools could separate them by functionality such as "Pull Requests",  "Issues",  "Actions".
-- A server with various reference programming resources could separate them by language, like  "Python",  "TypeScript, and "Kotlin". 
+- A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
+- A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
 
-**Note:** Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups. 
-
+**Note:** Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
 
 ### Why use Groups?
+
 Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings to be applied to multiple primitives concurrently:
 
 - **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
@@ -38,6 +38,7 @@ Organizing a server's primitives by functionality or use case enables richer cli
 **Recommendation:** Groups are implemented as new MCP primitive, alongside existing ones (i.e., tools, resources, prompts, tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, have a groups property added to their schema.
 
 ### Capability
+
 Servers that support groups MUST declare the capability during initialization, including whether list change notifications are supported. Group lists can change at runtime, and so support for listChanged notifications for each is included.
 
 ```json
@@ -45,7 +46,7 @@ Servers that support groups MUST declare the capability during initialization, i
   "capabilities": {
     "groups": {
       "listChanged": true
-    },
+    }
   }
 }
 ```
@@ -100,7 +101,7 @@ Servers that support groups MUST declare the capability during initialization, i
 
 ### Additional Schema Property for Other Primitives
 
-Grouping of all primitives is handled in the same way, including groups themselves. For tools, resources, prompts, and tasks, a new property would be added to the primitive definition. 
+Grouping of all primitives is handled in the same way, including groups themselves. For tools, resources, prompts, and tasks, a new property would be added to the primitive definition.
 
 ```json
    "groups": {
@@ -117,6 +118,7 @@ Grouping of all primitives is handled in the same way, including groups themselv
 ### Groups Discovery Method: groups/list
 
 Request:
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -126,6 +128,7 @@ Request:
 ```
 
 Response:
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -146,9 +149,10 @@ Response:
   }
 }
 ```
+
 ### Changes to Response Formats
 
-As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `prompts/list`, `tasks/list`. 
+As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `prompts/list`, `tasks/list`.
 Here is an example tool definition from `tools/list` response with new groups property:
 
 ```json
@@ -166,13 +170,14 @@ Here is an example tool definition from `tools/list` response with new groups pr
     },
     "required": ["expression"]
   },
-  "groups": ["arithmetic"]  // New property
+  "groups": ["arithmetic"] // New property
 }
 ```
 
 ### Notifications
 
 #### List Changed
+
 When the list of available groups changes, servers that declared the listChanged capability SHOULD send a notification:
 
 ```json
@@ -187,13 +192,14 @@ When the list of available groups changes, servers that declared the listChanged
 If a primitive is added (or removed) from a group, the server SHOULD send the `list_changed` notification appropriate for that primitive.
 
 ## Rationale
+
 This specification proposal was selected for its ease of understanding since it mirrors the other MCP primitives. Alternative proposals which can reduce spec changes and implementation effort significantly are presented below.
 
 ### Alternatives Considered
 
-- **`_meta` instead of a new groups property:** A reserved `_meta` key (e.g., “io.modelcontextprotocol/groups”) is used to declare the groups for a primitive. 
+- **`_meta` instead of a new groups property:** A reserved `_meta` key (e.g., “io.modelcontextprotocol/groups”) is used to declare the groups for a primitive.
 
-- **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. 
+- **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization.
 
 ## Security Implications
 
