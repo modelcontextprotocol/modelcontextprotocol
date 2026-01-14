@@ -101,7 +101,7 @@ Servers that support groups MUST declare the capability during initialization, i
 
 ### Reserved `_meta` Property for All Primitives
 
-Grouping of all primitives is handled in the same way, including groups themselves. 
+Grouping of all primitives is handled in the same way, including groups themselves.
 
 For groups, tools, resources, prompts, and tasks, an optional reserved `_meta` key is used to carry the list of group names to which the primitive instance belongs.
 
@@ -201,9 +201,9 @@ This specification proposal was selected for its ease of understanding since it 
 
 ### Alternatives Considered
 
-- **First class `groups` property:** The list of groups to which a primitive instance belongs would be the value of a `groups` property added to the top level of each primitive's schema. 
-This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error. 
-Since this proposal spans all primitives, such a compatibility failure would be catastrophic.
+- **First class `groups` property:** The list of groups to which a primitive instance belongs would be the value of a `groups` property added to the top level of each primitive's schema.
+  This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
+  Since this proposal spans all primitives, such a compatibility failure would be catastrophic.
 
 - **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization.
 
@@ -213,7 +213,7 @@ None identified
 
 ## Reference Implementation
 
-* WIP
+- WIP
 
 ## Acknowledgements
 
