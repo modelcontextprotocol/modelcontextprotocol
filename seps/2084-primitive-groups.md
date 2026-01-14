@@ -68,23 +68,23 @@ Servers that support groups MUST declare the capability during initialization, i
      "description": "A full, human-readable description of the group.",
      "type": "string"
    },
-   "groups": {
-     "description": "A list of group names containing this group.",
-     "items": {
-       "type": "string"
-     },
-     "type": "array"
-   },
    "_meta": {
      "additionalProperties": {},
      "description": "See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.",
-     "type": "object"
+     "io.modelcontextprotocol/groups": {
+        "description": "A list of group names containing this group.",
+        "items": {
+           "type": "string"
+        },
+        "type": "array"
+     },
+     "type": "object",
    },
    "annotations": {
      "$ref": "#/$defs/Annotation",
      "description": "Optional additional group information.\n\nDisplay name precedence order is: title, annotations.title, then name."
    },
-  "icons": {
+   "icons": {
      "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
      "items": {
        "$ref": "#/$defs/Icon"
@@ -99,12 +99,16 @@ Servers that support groups MUST declare the capability during initialization, i
 }
 ```
 
-### Additional Schema Property for Other Primitives
+### Reserved `_meta` Property for All Primitives
 
-Grouping of all primitives is handled in the same way, including groups themselves. For tools, resources, prompts, and tasks, a new property would be added to the primitive definition.
+Grouping of all primitives is handled in the same way, including groups themselves. 
+
+For groups, tools, resources, prompts, and tasks, an optional reserved `_meta` key is used to carry the list of group names to which the primitive instance belongs.
+
+By listing a primitive's groups in a reserved `_meta` property, we ensure backward compatibility.
 
 ```json
-   "groups": {
+   "io.modelcontextprotocol/groups": {
      "description": "A list of group names containing this [primitive name].",
      "items": {
        "type": "string"
@@ -197,13 +201,19 @@ This specification proposal was selected for its ease of understanding since it 
 
 ### Alternatives Considered
 
-- **`_meta` instead of a new groups property:** A reserved `_meta` key (e.g., “io.modelcontextprotocol/groups”) is used to declare the groups for a primitive.
+- **First class `groups` property:** The list of groups to which a primitive instance belongs would be the value of a `groups` property added to the top level of each primitive's schema. 
+This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error. 
+Since this proposal spans all primitives, such a compatibility failure would be catastrophic.
 
 - **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization.
 
 ## Security Implications
 
 None identified
+
+## Reference Implementation
+
+* WIP
 
 ## Acknowledgements
 
