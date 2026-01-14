@@ -195,6 +195,10 @@ This specification proposal was selected for its ease of understanding since it 
 
 - **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. 
 
+## Security Implications
+
+None identified
+
 ## Acknowledgements
 
 @cliffhall and @chughtapan thank Pat White for their earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300)
