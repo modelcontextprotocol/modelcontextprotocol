@@ -1,10 +1,12 @@
+# MCP Primitive Grouping Server Capability
+
 ## Preamble
 
-**Title:** MCP Primitive Grouping Server Capability
-**Author(s):** Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall) 
-**Track:** Standards
-**Status:** Draft
-**Created:** 14 January 2026
+- **Title:** MCP Primitive Grouping Server Capability
+- **Author(s):** Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall) 
+- **Track:** Standards
+- **Status:** Draft
+- **Created:** 14 January 2026
 
 ## Abstract
 
