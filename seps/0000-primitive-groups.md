@@ -2,13 +2,13 @@
 
 ## Abstract
 
-This SEP proposes Groups, a new server capability, to organize tools, prompts, resources, and other groups, into named collections.
+This SEP proposes Groups, a new server capability, to organize tools, prompts, resources, tasks, and other groups, into named collections.
 
 ## Motivation
 
 ### What are Groups?
 
-Groups are named collections of MCP primitives: tools, prompts, resources, and other groups, organized by use cases, functionality, etc.
+Groups are named collections of MCP primitives: tools, prompts, resources, tasks, and other groups, organized by use cases, functionality, etc.
 
 - A productivity server could organize groups such as Email or Calendar, and present related tools, e.g. Email: ["Draft Email", "Spell Check", "Send Email"], Calendar: ["Add Participants", "Find Open Time", "Create Appointment"]
 - A server with many tools could separate them by functionality such as "Pull Requests",  "Issues",  "Actions".
@@ -20,14 +20,14 @@ Groups are named collections of MCP primitives: tools, prompts, resources, and o
 ### Why use Groups?
 Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings to be applied to multiple primitives concurrently:
 
-- Client-side filtering: Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Tools, resources, and prompts from deselected groups would not be presented to the LLM.
-- Agentic control: In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
-- Simplify server instructions: When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
-- Access control: Access to primitives could be granted at the group level, creating a consistent abstraction from security design to RPC layer.
+- **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Tools, resources, and prompts from deselected groups would not be presented to the LLM.
+- **Agentic control:** In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
+- **Simplify server instructions:** When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
+- **Access control:** Access to primitives could be granted at the group level, creating a consistent abstraction from security design to RPC layer.
 
 ## Specification
 
-**Recommendation:** Groups are implemented as new MCP primitive, alongside existing ones (i.e., tools, resources, prompts). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, have a groups property added to their schema.
+**Recommendation:** Groups are implemented as new MCP primitive, alongside existing ones (i.e., tools, resources, prompts, tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, have a groups property added to their schema.
 
 ### Capability
 Servers that support groups MUST declare the capability during initialization, including whether list change notifications are supported. Group lists can change at runtime, and so support for listChanged notifications for each is included.
@@ -139,7 +139,7 @@ Response:
 ```
 ### Changes to Response Formats
 
-As mentioned above, all primitives have a new property that appears in their list result. This includes tools/list, resources/list, and prompts/list. 
+As mentioned above, all primitives have a new property that appears in their list result. This includes tools/list, resources/list, prompts/list, tasks/list. 
 Here is an example tool definition from tools/list response with new groups property:
 
 ```json
@@ -172,14 +172,18 @@ When the list of available groups changes, servers that declared the listChanged
   "method": "notifications/groups/list_changed"
 }
 ```
+
 #### Membership Changed
+
 If a primitive is added (or removed) from a group, the server SHOULD send the `list_changed` notification appropriate for that primitive.
+
 ## Rationale
 This specification proposal was selected for its ease of understanding since it mirrors the other MCP primitives. Alternative proposals which can reduce spec changes and implementation effort significantly are presented below.
+
 ### Alternatives Considered
 
-_meta instead of a new groups property: A reserved _meta key (e.g., “io.modelcontextprotocol/groups”) is used to declare the groups for a primitive. 
+- **`_meta` instead of a new groups property:** A reserved `_meta` key (e.g., “io.modelcontextprotocol/groups”) is used to declare the groups for a primitive. 
 
-Groups as MCP Resources instead of new primitive: The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., mcp://groups/{groupId}. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. 
+- **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. 
 
 
