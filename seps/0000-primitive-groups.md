@@ -1,5 +1,10 @@
 # SEP-0000: MCP Primitive Grouping Server Capability
 
+- **Title:** MCP Primitive Grouping Server Capability
+- **Authors:** Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall) 
+- **Status:** Draft
+- **Track:** Standards
+
 ## Abstract
 
 This SEP proposes Groups, a new server capability, to organize tools, prompts, resources, tasks, and other groups, into named collections.
@@ -20,7 +25,7 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 ### Why use Groups?
 Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings to be applied to multiple primitives concurrently:
 
-- **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Tools, resources, and prompts from deselected groups would not be presented to the LLM.
+- **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
 - **Agentic control:** In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
 - **Simplify server instructions:** When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
 - **Access control:** Access to primitives could be granted at the group level, creating a consistent abstraction from security design to RPC layer.
@@ -92,7 +97,7 @@ Servers that support groups MUST declare the capability during initialization, i
 
 ### Additional Schema Property for Other Primitives
 
-Grouping of all primitives is handled in the same way, including groups themselves. For tools, resources, and prompts, a new property would be added to the primitive definition. 
+Grouping of all primitives is handled in the same way, including groups themselves. For tools, resources, prompts, and tasks, a new property would be added to the primitive definition. 
 
 ```json
    "groups": {
@@ -104,8 +109,7 @@ Grouping of all primitives is handled in the same way, including groups themselv
    },
 ```
 
-**Note:** Since this leads to hierarchy within groups themselves, the groups property is an array of strings representing group names, not group references. Otherwise, there would be unnecessary duplication of group definitions on the wire. A client can look up a group by name in the result of a groups/list result.
-
+**Note:** The groups property is an array of strings representing group names, not group references. Since groups can be hierarchical, there would be unnecessary duplication of group definitions on the wire if passing references. Instead, a client can look up a group by name in the result of a `groups/list` result.
 
 ### Groups Discovery Method: groups/list
 
@@ -141,8 +145,8 @@ Response:
 ```
 ### Changes to Response Formats
 
-As mentioned above, all primitives have a new property that appears in their list result. This includes tools/list, resources/list, prompts/list, tasks/list. 
-Here is an example tool definition from tools/list response with new groups property:
+As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `prompts/list`, `tasks/list`. 
+Here is an example tool definition from `tools/list` response with new groups property:
 
 ```json
 {
@@ -188,4 +192,6 @@ This specification proposal was selected for its ease of understanding since it 
 
 - **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. 
 
+## Acknowledgements
 
+@cliffhall and @chughtapan thank Pat White for their earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300)
