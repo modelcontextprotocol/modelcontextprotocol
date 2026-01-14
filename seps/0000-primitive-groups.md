@@ -14,7 +14,7 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 - A server with many tools could separate them by functionality such as "Pull Requests",  "Issues",  "Actions".
 - A server with various reference programming resources could separate them by language, like  "Python",  "TypeScript, and "Kotlin". 
 
-**Note:** Primitives can belong to multiple groups; for instance, if tools are grouped by use case,a spell_check tool might appear in both compose_email and compose_document groups. 
+**Note:** Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups. 
 
 
 ### Why use Groups?
