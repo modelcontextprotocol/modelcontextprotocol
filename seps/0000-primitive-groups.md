@@ -94,6 +94,7 @@ Servers that support groups MUST declare the capability during initialization, i
 
 Grouping of all primitives is handled in the same way, including groups themselves. For tools, resources, and prompts, a new property would be added to the primitive definition. 
 
+```json
    "groups": {
      "description": "A list of group names containing this [primitive name].",
      "items": {
@@ -101,6 +102,7 @@ Grouping of all primitives is handled in the same way, including groups themselv
      },
      "type": "array"
    },
+```
 
 **Note:** Since this leads to hierarchy within groups themselves, the groups property is an array of strings representing group names, not group references. Otherwise, there would be unnecessary duplication of group definitions on the wire. A client can look up a group by name in the result of a groups/list result.
 
