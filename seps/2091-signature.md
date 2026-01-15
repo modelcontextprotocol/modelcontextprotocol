@@ -179,6 +179,24 @@ Permitting list responses to be subsets of the signature enables important use c
 | User-specific tools | Leaks inaccessible tools | Can hide appropriately |
 | list_changed support | Conflicts | Compatible |
 
+### Alternative: Client-Side Filtering with Annotations
+
+An alternative approach was considered where servers always expose all tools to all clients, and filtering happens entirely client-side based on:
+
+1. **Annotation-based filtering**: Clients could request "only read-only tools" by filtering on `readOnlyHint: true`
+2. **Token scope resolution**: OAuth scopes could determine what tools are permitted
+3. **Static server exposure**: Servers would declare everything; clients decide what to use
+
+This approach was not chosen because:
+
+1. **Less dynamic**: Servers cannot adapt tool availability based on user context, session state, or runtime conditions
+2. **Privacy concerns**: Exposing all tools reveals server capabilities that may be sensitive (e.g., admin tools visible to non-admins)
+3. **Annotation limitations**: Not all filtering criteria map cleanly to annotations (user permissions, licensing, feature flags)
+4. **Wasted context**: LLMs still see all tools even when most are irrelevant, consuming context budget
+5. **Error-prone**: Users may attempt to invoke tools they cannot access, leading to failures rather than graceful absence
+
+However, client-side filtering remains valuable as a *complementary* mechanism. Clients can filter the tools returned by `tools/list` based on annotations, while the signature establishes the trust boundary of what *could* be filtered from.
+
 ### Why Immutable Signatures?
 
 The signature is immutable after initial retrieval because:
