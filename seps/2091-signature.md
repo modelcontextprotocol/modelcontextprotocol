@@ -234,7 +234,7 @@ This pattern supports:
 - **Conditional access**: Tools based on OAuth scope acquisition, feature flags, or state transitions
 - **Context-sensitive filtering**: Hiding irrelevant tools without sacrificing trust transparency
 
-Servers MAY start with an empty `tools/list` and progressively reveal tools, provided all possible tools were declared in the signature.
+Initial `tools/list` responses MAY return any subset of the signature—including none at all. Tools may appear, disappear, and reappear throughout the session, provided they were declared in the signature.
 
 ### Dynamic Metadata Considerations
 
