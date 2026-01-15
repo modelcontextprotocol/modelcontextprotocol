@@ -1,11 +1,11 @@
-# SEP-0000: Server Capability Signature
+# SEP-2091: Server Capability Signature
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-01-15
 - **Author(s)**: Sam Morrow (@SamMorrowDrums)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2091
 
 ## Abstract
 
@@ -300,7 +300,7 @@ server.registerPossibleTool({
 
 ## Acknowledgments
 
-This proposal was inspired by discussions with Robert Reichel (OpenAI) and others in the MCP community around schema freezing approaches and their interaction with dynamic server capabilities.
+This proposal was inspired by discussions with Robert Reichel (OpenAI), John Baldo (Asana), Peder H P (Saxo Bank), and others in the MCP community around schema freezing approaches and their interaction with dynamic server capabilities.
 
 ---
 
