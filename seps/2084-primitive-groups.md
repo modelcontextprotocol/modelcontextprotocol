@@ -203,11 +203,11 @@ This specification proposal was selected for its ease of understanding since it 
 
 ### Alternatives Considered
 
-- **First class `groups` property:** The list of groups to which a primitive instance belongs would be the value of a `groups` property added to the top level of each primitive's schema.
+- **First class `groups` property:** A variation of the proposed specification, but the list of groups to which a primitive instance belongs would be presented by a `groups` property added to the top level of each primitive's schema.
   This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
   Since this proposal spans all primitives, such a compatibility failure would be catastrophic.
 
-- **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. This proposal could reduce spec changes and implementation effort significantly, but it was not considered as intuitive.
+- **Groups as MCP Resources instead of new primitive:** A completely separate proposal where the group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. This proposal could reduce spec changes and implementation effort significantly, but it was not considered as intuitive.
 
 ## Security Implications
 
