@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-01-15
-- **Author(s)**: Sam Sheridan (@SamMorrowDrums)
+- **Author(s)**: Sam Morrow (@SamMorrowDrums)
 - **Sponsor**: None (seeking sponsor)
 - **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
 
@@ -21,7 +21,7 @@ Several MCP client implementations have adopted "schema freezing" approaches, wh
 
 However, schema freezing as currently implemented creates friction with legitimate server capabilities:
 
-1. **User-Specific Capabilities**: Some users may not have access to certain tools (e.g., GitHub Copilot agent tools are hidden when users cannot access them). Freezing would still expose tools destined to fail.
+1. **User-Specific Capabilities**: Some users may not have access to certain tools (e.g., GitHub Copilot agent tools are hidden when users cannot access them). Freezing would still expose tools destined to fail or fail to provide them for everyone. Neither is a good option.
 
 2. **Contextual Availability**: Tools may become available or unavailable based on runtime context, state changes, or session progression. The `tools/list_changed` notification exists precisely for this purpose.
 
@@ -36,6 +36,7 @@ This SEP proposes that if clients want to constrain server behavior to a known s
 This proposal complements several related SEPs:
 
 - [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools *could* exist even when filtered.
+- [SEP-1913: Trust and Sensitivity Annotations](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1913) proposes trust and sensitivity annotations for tracking data provenance and enforcing trust boundaries. Combined with signatures, hosts can establish complete trust policies upfront.
 - [SEP-1862: Tool Resolution](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) proposes a `tools/resolve` method for argument-specific metadata. Combined with signatures, hosts can know all possible tool behaviors upfront (see "Signature and Tool Resolution" below).
 - [SEP-1821: Dynamic Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821) proposes search/filtering for tools. Signature provides the trust boundary within which such filtering operates.
 - [SEP-1442: Make MCP Stateless](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442) discusses stateless operation. Signature can be cached and revalidated across stateless requests.
