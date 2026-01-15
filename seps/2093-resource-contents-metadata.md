@@ -91,7 +91,6 @@ export interface BlobResourceContents extends Resource {
 }
 ```
 
-
 ### 2. New `resources/metadata` Method
 
 Introduce a new request/response pair for fetching metadata without content:
@@ -272,4 +271,3 @@ A reference implementation will be provided in the TypeScript SDK prior to final
 3. Implement `EmbeddedResource.annotations` compatibility shim in both SDKs
 4. Add example server demonstrating multi-format resources
 5. Add client examples using `resources/metadata`
-
