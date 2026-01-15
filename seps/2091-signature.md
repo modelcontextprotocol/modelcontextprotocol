@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes a new `signature` method that enables MCP servers to declare their complete set of possible capabilities upfront, including all tools, prompts, resources, and resource templates that the server *could* offer. This allows clients to establish trust boundaries based on the full scope of server behavior while preserving the flexibility for servers to dynamically adjust what is currently available via existing list endpoints.
+This SEP proposes a new `signature` method that enables MCP servers to declare their complete set of possible capabilities upfront, including all tools, prompts, resources, and resource templates that the server _could_ offer. This allows clients to establish trust boundaries based on the full scope of server behavior while preserving the flexibility for servers to dynamically adjust what is currently available via existing list endpoints.
 
 ## Motivation
 
@@ -29,13 +29,13 @@ However, schema freezing as currently implemented creates friction with legitima
 
 The fundamental issue is that schema freezing conflates security (constraining what is possible) with availability (what is currently offered). A client's security decision should be based on the universe of possible behaviors, not a snapshot of current visibility.
 
-This SEP proposes that if clients want to constrain server behavior to a known set, they should do so based on a complete declaration of *possibilities*, while still allowing servers to dynamically filter what is *currently available* within those bounds.
+This SEP proposes that if clients want to constrain server behavior to a known set, they should do so based on a complete declaration of _possibilities_, while still allowing servers to dynamically filter what is _currently available_ within those bounds.
 
 ### Relationship to Other SEPs
 
 This proposal complements several related SEPs:
 
-- [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools *could* exist even when filtered.
+- [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools _could_ exist even when filtered.
 - [SEP-1913: Trust and Sensitivity Annotations](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1913) proposes trust and sensitivity annotations for tracking data provenance and enforcing trust boundaries. Combined with signatures, hosts can establish complete trust policies upfront.
 - [SEP-1862: Tool Resolution](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) proposes a `tools/resolve` method for argument-specific metadata. Combined with signatures, hosts can know all possible tool behaviors upfront (see "Signature and Tool Resolution" below).
 - [SEP-1821: Dynamic Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821) proposes search/filtering for tools. Signature provides the trust boundary within which such filtering operates.
@@ -114,7 +114,7 @@ export interface ServerCapabilities {
 
 ### Behavioral Requirements
 
-1. **Completeness**: The signature MUST include every tool, prompt, resource, and resource template that the server could *possibly* return from the corresponding list endpoints during the session. Items not included in the signature MUST NOT appear in subsequent list responses.
+1. **Completeness**: The signature MUST include every tool, prompt, resource, and resource template that the server could _possibly_ return from the corresponding list endpoints during the session. Items not included in the signature MUST NOT appear in subsequent list responses.
 
 2. **Stability**: Once returned, the signature is immutable for the duration of the session. Servers MUST NOT add new items to subsequent list responses that were not declared in the initial signature.
 
@@ -170,14 +170,14 @@ Permitting list responses to be subsets of the signature enables important use c
 
 ### Comparison to Schema Freezing
 
-| Aspect | Schema Freezing | Signature Method |
-|--------|-----------------|------------------|
-| Security scope | Current snapshot | Complete possibilities |
-| Dynamic lists | Prohibited | Allowed (within signature) |
-| Hidden capabilities | Causes failures | Transparently absent |
-| Context efficiency | Poor | Good |
-| User-specific tools | Leaks inaccessible tools | Can hide appropriately |
-| list_changed support | Conflicts | Compatible |
+| Aspect               | Schema Freezing          | Signature Method           |
+| -------------------- | ------------------------ | -------------------------- |
+| Security scope       | Current snapshot         | Complete possibilities     |
+| Dynamic lists        | Prohibited               | Allowed (within signature) |
+| Hidden capabilities  | Causes failures          | Transparently absent       |
+| Context efficiency   | Poor                     | Good                       |
+| User-specific tools  | Leaks inaccessible tools | Can hide appropriately     |
+| list_changed support | Conflicts                | Compatible                 |
 
 ### Alternative: Client-Side Filtering with Annotations
 
@@ -193,7 +193,7 @@ This approach was not chosen because:
 2. **Annotation limitations**: Not all filtering criteria map cleanly to annotations (user permissions, licensing, feature flags)
 3. **Error-prone**: Users may attempt to invoke tools they cannot access, leading to failures rather than graceful absence
 
-However, client-side filtering remains valuable as a *complementary* mechanism. Clients can filter the tools returned by `tools/list` based on annotations, while the signature establishes the trust boundary of what *could* be filtered from.
+However, client-side filtering remains valuable as a _complementary_ mechanism. Clients can filter the tools returned by `tools/list` based on annotations, while the signature establishes the trust boundary of what _could_ be filtered from.
 
 ### Why Immutable Signatures?
 
@@ -292,13 +292,16 @@ Example server-side registration pattern:
 
 ```typescript
 // Register a tool in the signature even if not currently available
-server.registerPossibleTool({
-  name: "admin_dashboard",
-  description: "Access admin dashboard",
-  inputSchema: { type: "object" }
-}, {
-  availabilityCheck: (context) => context.user.isAdmin
-});
+server.registerPossibleTool(
+  {
+    name: "admin_dashboard",
+    description: "Access admin dashboard",
+    inputSchema: { type: "object" },
+  },
+  {
+    availabilityCheck: (context) => context.user.isAdmin,
+  },
+);
 
 // The signature includes admin_dashboard for all users
 // tools/list only returns it when availabilityCheck passes
@@ -320,4 +323,4 @@ This proposal was inspired by discussions with Robert Reichel (OpenAI), John Bal
 
 ---
 
-*This SEP was drafted with AI assistance (Claude) and reviewed by the author.*
+_This SEP was drafted with AI assistance (Claude) and reviewed by the author._
