@@ -26,16 +26,16 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 
 ### Why use Groups?
 
-Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings to be applied to multiple primitives concurrently:
+Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently:
 
-- **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
+- **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect specific groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
 - **Agentic control:** In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
 - **Simplify server instructions:** When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
 - **Access control:** Access to primitives could be granted at the group level, creating a consistent abstraction from security design to RPC layer.
 
 ## Specification
 
-**Recommendation:** Groups are implemented as new MCP primitive, alongside existing ones (i.e., tools, resources, prompts, tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, have a groups property added to their schema.
+**Recommendation:** Groups are implemented as new MCP primitive, alongside the existing ones (i.e., tools, resources, prompts, and tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, use a new reserved `_meta` key to list the groups to which they belong.
 
 ### Capability
 
@@ -103,7 +103,7 @@ Servers that support groups MUST declare the capability during initialization, i
 
 Grouping of all primitives is handled in the same way, including groups themselves.
 
-For groups, tools, resources, prompts, and tasks, an optional reserved `_meta` key is used to carry the list of group names to which the primitive instance belongs.
+For groups, tools, resources, prompts, and tasks, an optional reserved `_meta` key is used to present the list of group names to which the primitive instance belongs.
 
 By listing a primitive's groups in a reserved `_meta` property, we ensure backward compatibility.
 
@@ -174,7 +174,11 @@ Here is an example tool definition from `tools/list` response with new groups pr
     },
     "required": ["expression"]
   },
-  "groups": ["arithmetic"] // New property
+  "_meta": {
+    "io.modelcontextprotocol/groups": [ // New reserved meta key
+      "arithmetic"
+    ]
+  }
 }
 ```
 
