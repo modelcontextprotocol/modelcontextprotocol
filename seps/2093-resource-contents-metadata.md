@@ -132,12 +132,31 @@ Servers advertising the `resources` capability MUST support this method.
 
 The `contents` array in `ReadResourceResult` is defined with the following requirements:
 
-1. All elements MUST have the **same URI** (the one requested)
-2. Each element SHOULD have a **different mimeType** (this is the purpose of multiple elements)
-3. Metadata fields (name, title, description, annotations) SHOULD be consistent across all elements
-4. The `size` field, if present, SHOULD reflect the size of that specific representation
+1. The array MUST contain **at least one element**
+2. All elements MUST have the **same URI** (the one requested)
+3. Each element SHOULD have a **different mimeType** (this is the purpose of multiple elements)
+4. Metadata fields (name, title, description, annotations) SHOULD be consistent across all elements
+5. The `size` field, if present, SHOULD reflect the size of that specific representation
 
 Servers MAY return only a subset of available formats based on capability or client needs.
+
+If the requested resource does not exist, servers MUST return a JSON-RPC error with code `-32002` (resource not found) rather than an empty contents array:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "error": {
+    "code": -32002,
+    "message": "Resource not found",
+    "data": {
+      "uri": "file:///nonexistent.txt"
+    }
+  }
+}
+```
+
+Note: The `-32002` error code is already documented in the specification but is not currently defined in the schema. This SEP formalizes its usage and requires it to be added to the schema as `RESOURCE_NOT_FOUND`.
 
 Example response with multiple formats:
 
@@ -247,12 +266,17 @@ The removal of `EmbeddedResource.annotations` is a breaking change at the schema
 
 This allows existing code to continue working while the protocol itself has a single, unambiguous location for annotations.
 
+### Error Code Standardization
+
+The TypeScript SDK currently uses `-32602` (InvalidParams) and the Python SDK uses `0` for resource not found errors. Both should migrate to `-32002` (RESOURCE_NOT_FOUND). Clients SHOULD handle all three codes during the transition period.
+
 ### Migration Path
 
 1. Servers should start including metadata in `resources/read` responses
 2. Servers should implement `resources/metadata`
-3. Clients can gradually adopt the new fields and method
-4. SDKs should implement the compatibility shim for `EmbeddedResource.annotations`
+3. Servers should use error code `-32002` for resource not found
+4. Clients can gradually adopt the new fields and method
+5. SDKs should implement the compatibility shim for `EmbeddedResource.annotations`
 
 ## Security Implications
 
@@ -267,7 +291,9 @@ This proposal introduces no new security concerns:
 A reference implementation will be provided in the TypeScript SDK prior to finalization:
 
 1. Update schema.ts with new type definitions
-2. Update Python SDK with corresponding changes
-3. Implement `EmbeddedResource.annotations` compatibility shim in both SDKs
-4. Add example server demonstrating multi-format resources
-5. Add client examples using `resources/metadata`
+2. Add `RESOURCE_NOT_FOUND = -32002` error code to schema
+3. Update Python SDK with corresponding changes
+4. Implement `EmbeddedResource.annotations` compatibility shim in both SDKs
+5. Update both SDKs to use `-32002` for resource not found errors
+6. Add example server demonstrating multi-format resources
+7. Add client examples using `resources/metadata`
