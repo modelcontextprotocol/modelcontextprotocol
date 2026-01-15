@@ -233,8 +233,11 @@ This pattern supports:
 - **Progressive disclosure**: Tools appear as users unlock capabilities
 - **Conditional access**: Tools based on OAuth scope acquisition, feature flags, or state transitions
 - **Context-sensitive filtering**: Hiding irrelevant tools without sacrificing trust transparency
+- **Plugin registration**: Tools that could be enabled via plugin installation, configuration changes, or user opt-in during a session
 
 Initial `tools/list` responses MAY return any subset of the signature—including none at all. Tools may appear, disappear, and reappear throughout the session, provided they were declared in the signature.
+
+**Suggesting Possible Tools**: Servers MAY use the signature to advertise tools that are not yet active but could be enabled. Clients can present these to users as "available if enabled" or similar, allowing users to understand the full potential of a server before activating specific capabilities. This enables scenarios like marketplace integrations, optional features, or tiered service levels where users choose which tools to activate.
 
 ### Dynamic Metadata Considerations
 
