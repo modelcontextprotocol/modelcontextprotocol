@@ -31,6 +31,10 @@ The fundamental issue is that schema freezing conflates security (constraining w
 
 This SEP proposes that if clients want to constrain server behavior to a known set, they should do so based on a complete declaration of _possibilities_, while still allowing servers to dynamically filter what is _currently available_ within those bounds.
 
+### Lightweight Registration
+
+Importantly, registering capabilities in the signature is trivial for server developers. The signature only requires schema information (names, input schemas, descriptions) - it does not require implementing handlers. This means servers can declare their full universe of _potential_ capabilities with minimal effort, while actual implementation and availability remains under developer control via `tools/list` and related endpoints.
+
 ### Relationship to Other SEPs
 
 This proposal complements several related SEPs:
@@ -124,6 +128,28 @@ export interface ServerCapabilities {
 
 5. **Metadata Consistency**: Items returned in list endpoints SHOULD have consistent `name` values matching those in the signature. Other metadata (descriptions, schemas, annotations) MAY differ between signature and list responses.
 
+### Dynamic Metadata Considerations
+
+Certain metadata may legitimately vary between the signature and runtime behavior:
+
+1. **Server Instructions**: Instructions provided via `instructions` in `InitializeResult` may be configuration-dependent and could reference capabilities not present in a filtered `tools/list` response, or omit capabilities that are present.
+
+2. **Tool Descriptions**: Descriptions may be dynamically generated or context-specific. The signature provides a baseline, but runtime descriptions may vary.
+
+3. **Annotations**: Tool annotations may change based on argument patterns (see "Signature and Tool Resolution") or runtime context.
+
+Consumers of signatures should use discretion about enforcement strictness. Some hosts may require complete enforcement of signature immutability, while others may treat signatures as advisory for capability discovery.
+
+### Enforcement Modes
+
+Clients MAY implement different enforcement policies:
+
+1. **Strict**: Any tool not in signature causes session termination. Any deviation in tool schemas is rejected.
+2. **Permissive**: Signature is used for capability discovery and trust UI, but runtime deviations are logged rather than fatal.
+3. **Advisory**: Signature informs user-facing capability displays but does not constrain runtime behavior.
+
+Servers should document their expected enforcement mode. Clients requiring strict enforcement SHOULD clearly communicate this requirement.
+
 ### Client Behavior
 
 Clients that receive signature support SHOULD:
@@ -202,6 +228,22 @@ The signature is immutable after initial retrieval because:
 1. Trust decisions are made once; changing the trust boundary mid-session undermines the security model
 2. Clients can cache and reuse signature verification logic
 3. If capabilities truly change (e.g., plugin installed), reconnection establishes a new session with a new signature
+
+### Server Versioning and Remote Deployment
+
+This SEP does not address server versioning or deployment strategies for remote MCP servers. For related discussions on versioning, see [SEP-1915: Tool Versioning and Naming Patterns](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1915). In particular:
+
+1. **Atomic Cutover Problem**: If a remote server performs an atomic deployment (e.g., rolling update, blue-green deployment), connected clients may experience signature violations when the server's capabilities change mid-session.
+
+2. **Not Solved Here**: This SEP intentionally does not prescribe deployment strategies. The immutability guarantee is per-session; what constitutes a "session" for long-lived connections to remote servers is outside our scope.
+
+3. **Versioned URLs**: Remote servers wanting to participate in hosts that employ strict signature enforcement may need to version their endpoints (e.g., `/v1/mcp`, `/v2/mcp`) so that capability changes are surfaced as new endpoints rather than in-place mutations.
+
+4. **Graceful Upgrades**: Server operators should consider how clients can gracefully migrate to new server versions. Options include:
+   - Version-specific connection URLs
+   - Maintaining multiple server versions simultaneously during transition periods
+
+Hosts and registries that require strict signature enforcement should document their expectations for server versioning.
 
 ### Registry Fingerprinting
 
