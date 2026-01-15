@@ -218,6 +218,7 @@ Servers MAY provide signatures in both locations. When both are present, they MU
 A key use case is declaring tools that may not be immediately available at runtime:
 
 **Example Flow:**
+
 1. Server signature declares tools: `read_file`, `write_file`, `admin_delete`
 2. Initial `tools/list` returns only: `read_file`, `write_file` (user lacks admin permissions)
 3. User is granted admin permissions mid-session
@@ -225,11 +226,13 @@ A key use case is declaring tools that may not be immediately available at runti
 5. New `tools/list` response includes: `read_file`, `write_file`, `admin_delete`
 
 This is fully compliant because:
+
 - All three tools were declared in the signature upfront
 - The client established trust boundaries based on the complete signature
 - The actual availability changed, but within pre-approved bounds
 
 This pattern supports:
+
 - **Progressive disclosure**: Tools appear as users unlock capabilities
 - **Conditional access**: Tools based on OAuth scope acquisition, feature flags, or state transitions
 - **Context-sensitive filtering**: Hiding irrelevant tools without sacrificing trust transparency
