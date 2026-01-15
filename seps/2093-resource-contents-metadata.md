@@ -297,13 +297,3 @@ This proposal introduces no new security concerns:
 - The `resources/metadata` endpoint exposes no new information
 - Access controls should already be in place for resource access
 
-## Reference Implementation
-
-A reference implementation will be provided in the TypeScript SDK prior to finalization:
-
-1. Update schema.ts with new type definitions
-2. Update Python, C#, Rust, Java, and Go SDKs with corresponding changes
-3. Update Python, C#, Rust, Java, and Go SDKs to use `-32602` for resource not found errors
-4. Implement `EmbeddedResource.annotations` compatibility shim in SDKs
-5. Add example server demonstrating multi-format resources
-6. Add client examples using `resources/metadata`
