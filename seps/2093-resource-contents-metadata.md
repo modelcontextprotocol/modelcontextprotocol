@@ -1,11 +1,11 @@
-# SEP-0000: Resource Contents Metadata and Multi-Format Semantics
+# SEP-2093: Resource Contents Metadata and Multi-Format Semantics
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-01-15
 - **Author(s)**: Peter Alexander (@pja-ant)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2093
 
 ## Abstract
 
