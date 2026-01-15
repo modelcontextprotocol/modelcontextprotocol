@@ -36,6 +36,7 @@ This SEP proposes that if clients want to constrain server behavior to a known s
 This proposal complements several related SEPs:
 
 - [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools *could* exist even when filtered.
+- [SEP-1862: Tool Resolution](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) proposes a `tools/resolve` method for argument-specific metadata. Combined with signatures, hosts can know all possible tool behaviors upfront (see "Signature and Tool Resolution" below).
 - [SEP-1821: Dynamic Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821) proposes search/filtering for tools. Signature provides the trust boundary within which such filtering operates.
 - [SEP-1442: Make MCP Stateless](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442) discusses stateless operation. Signature can be cached and revalidated across stateless requests.
 
@@ -185,6 +186,57 @@ The signature is immutable after initial retrieval because:
 2. Clients can cache and reuse signature verification logic
 3. If capabilities truly change (e.g., plugin installed), reconnection establishes a new session with a new signature
 
+### Registry Fingerprinting
+
+Signatures enable registries and discovery services to fingerprint MCP servers:
+
+1. **Server Identification**: Registries can hash signatures to uniquely identify server capability sets
+2. **Change Detection**: By comparing signature hashes across versions, registries can track when servers add or remove capabilities
+3. **Compatibility Matching**: Clients can query registries for servers matching specific capability signatures
+4. **Audit Trails**: Organizations can maintain records of what capabilities servers declared at specific points in time
+
+This is particularly valuable for enterprise deployments where capability governance is required.
+
+### Signature and Tool Resolution
+
+When combined with [SEP-1862 (Tool Resolution)](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862), signatures can be extended to declare all possible tool behaviors upfront. A tool like `manage_files` might have different annotations depending on its arguments:
+
+```typescript
+interface ExtendedToolSignature extends Tool {
+  /**
+   * All possible resolved states this tool may return.
+   * Each entry represents a distinct behavior profile.
+   */
+  resolvedVariants?: ToolResolvedVariant[];
+}
+
+interface ToolResolvedVariant {
+  /**
+   * Conditions under which this variant applies.
+   */
+  when: {
+    argumentPatterns?: Record<string, unknown>;
+  };
+  /**
+   * The annotations that apply when conditions are met.
+   */
+  annotations?: ToolAnnotations;
+  /**
+   * OAuth scopes required for this variant.
+   */
+  requiredScopes?: string[];
+}
+```
+
+This enables hosts to:
+
+1. **Pre-compute permission sets**: Know all possible scope requirements before any tool invocation
+2. **Match predefined behaviors**: Map organizational policies to concrete tool actions based on arguments
+3. **Optimize authorization flows**: Request all potentially needed scopes upfront rather than incrementally
+4. **Provide accurate UI**: Show users exactly what permissions each action requires before they attempt it
+
+The signature declares the universe of possibilities; `tools/resolve` confirms which variant applies for a specific invocation. This keeps `tools/list` as the worst-case fallback while enabling sophisticated trust management for hosts that need it.
+
 ## Backward Compatibility
 
 This proposal is fully backward compatible:
@@ -237,11 +289,13 @@ server.registerPossibleTool({
 
 ## Open Questions
 
-1. **Should signatures support hashing/versioning?** Clients could efficiently check if a signature has changed across sessions without re-fetching the full content.
+1. **Should signatures support hashing/versioning?** Clients could efficiently check if a signature has changed across sessions without re-fetching the full content. This would be particularly valuable for registry fingerprinting.
 
 2. **Should there be a way to update signatures without reconnection?** For long-lived sessions, capability changes might be legitimate (e.g., plugin installation). A `signature/update` notification could address this, but adds complexity.
 
 3. **Should incomplete signatures be permitted with a flag?** Some servers might not be able to enumerate all possible resources. A `complete: false` indicator could signal this, though it weakens the security guarantees.
+
+4. **Should resolved variants be part of the core signature spec?** The `resolvedVariants` extension described in "Signature and Tool Resolution" could be standardized as part of this SEP or left as an optional extension pattern. Including it would provide a complete picture of tool behaviors but increases signature complexity.
 
 ## Acknowledgments
 
