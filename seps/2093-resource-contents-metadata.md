@@ -296,4 +296,3 @@ This proposal introduces no new security concerns:
 - All information exposed via `resources/read` metadata was already available via `resources/list`
 - The `resources/metadata` endpoint exposes no new information
 - Access controls should already be in place for resource access
-
