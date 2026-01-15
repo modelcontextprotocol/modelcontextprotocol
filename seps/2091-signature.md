@@ -1,4 +1,4 @@
-# SEP-2091: Server Capability Signature
+# SEP-2091: Server Capability Signatures
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -9,7 +9,9 @@
 
 ## Abstract
 
-This SEP proposes a new `signature` method that enables MCP servers to declare their complete set of possible capabilities upfront, including all tools, prompts, resources, and resource templates that the server _could_ offer. This allows clients to establish trust boundaries based on the full scope of server behavior while preserving the flexibility for servers to dynamically adjust what is currently available via existing list endpoints.
+This SEP proposes extending [SEP-1649 (Server Cards)](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649) and/or `InitializeResult` to support **capability signatures**: a complete declaration of everything a server _could_ offer, including all possible tools, prompts, resources, and their behavioral variants.
+
+Where Server Cards currently allow servers to list their primitives, this SEP formalizes the contract that this list represents the complete universe of possibilities. The key extension is simple: **where primitives accept single values for behavioral metadata (like `annotations`), signatures allow arrays of all possible values**. This enables clients to establish trust boundaries based on the full scope of server behavior while preserving flexibility for servers to dynamically filter what is currently available.
 
 ## Motivation
 
@@ -31,59 +33,78 @@ The fundamental issue is that schema freezing conflates security (constraining w
 
 This SEP proposes that if clients want to constrain server behavior to a known set, they should do so based on a complete declaration of _possibilities_, while still allowing servers to dynamically filter what is _currently available_ within those bounds.
 
-### Lightweight Registration
+### Beyond Simple Lists
 
-Importantly, registering capabilities in the signature is trivial for server developers. The signature only requires schema information (names, input schemas, descriptions) - it does not require implementing handlers. This means servers can declare their full universe of _potential_ capabilities with minimal effort, while actual implementation and availability remains under developer control via `tools/list` and related endpoints.
+SEP-1649 (Server Cards) already proposes that servers can declare their tools, prompts, and resources. However, for trust and security purposes, knowing the _names_ of possible tools is insufficient. Clients need to know:
+
+1. **All possible annotations**: A tool might have `destructiveHint: false` in some contexts but `destructiveHint: true` in others. The signature declares all possibilities as an array.
+
+2. **All possible behavioral states**: A `manage_files` tool might behave differently based on arguments (read vs. write operations). Each state may have different trust implications.
+
+3. **All possible OAuth scopes**: Different tool invocations may require different scopes. The complete set should be declared upfront.
+
+4. **All possible resources**: Including dynamically-generated resource URIs that follow declared templates.
+
+This SEP extends Server Cards to provide this complete picture using a simple pattern: arrays of possibilities where single values exist today. This is analogous to how [SEP-1862 (Tool Resolution)](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) provides runtime argument-specific metadata, but declared upfront for the entire possibility space.
 
 ### Relationship to Other SEPs
 
-This proposal complements several related SEPs:
+This proposal extends and complements Server Cards (SEP-1649), solving the same core problems while adding behavioral completeness:
 
-- [SEP-1649: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649) proposes HTTP server discovery via `.well-known/mcp.json`, including complete `tools`, `prompts`, and `resources` arrays. **This SEP substantially overlaps with Server Cards and may be better addressed as an extension of that work** (see "Alternative: Integration with Server Cards").
-- [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools _could_ exist even when filtered.
-- [SEP-1913: Trust and Sensitivity Annotations](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1913) proposes trust and sensitivity annotations for tracking data provenance and enforcing trust boundaries. Combined with signatures, hosts can establish complete trust policies upfront.
-- [SEP-1862: Tool Resolution](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) proposes a `tools/resolve` method for argument-specific metadata. Combined with signatures, hosts can know all possible tool behaviors upfront (see "Signature and Tool Resolution" below).
-- [SEP-1821: Dynamic Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821) proposes search/filtering for tools. Signature provides the trust boundary within which such filtering operates.
-- [SEP-1442: Make MCP Stateless](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442) discusses stateless operation. Signature can be cached and revalidated across stateless requests.
+- [SEP-1649: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649) proposes server discovery via `.well-known/mcp.json` or bundled metadata files. **This SEP extends Server Cards** with richer signature data. Server Cards answer "what does this server offer?" while signatures add "what could it ever offer, and in what behavioral states?"
+- [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. Signatures provide the mechanism for clients to know what tools _could_ exist even when filtered.
+- [SEP-1913: Trust and Sensitivity Annotations](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1913) proposes trust annotations for enforcing trust boundaries. Signatures declare all possible annotation values upfront.
+
+### Comparison to Schema Freezing
+
+| Aspect               | Schema Freezing          | Capability Signatures       |
+| -------------------- | ------------------------ | --------------------------- |
+| Security scope       | Current snapshot         | Complete possibilities      |
+| Dynamic lists        | Prohibited               | Allowed (within signature)  |
+| Hidden capabilities  | Causes failures          | Transparently absent        |
+| Context efficiency   | Poor                     | Good                        |
+| User-specific tools  | Leaks inaccessible tools | Can hide appropriately      |
+| list_changed support | Conflicts                | Compatible                  |
+| Annotation awareness | No                       | Yes (all possible values)   |
+| Schema complexity    | N/A                      | Minimal (arrays, not types) |
 
 ## Specification
 
-### New Method: `signature`
+### Design Principle: Arrays for Possibilities
 
-A new request method `signature` is introduced:
+Rather than introducing new types, this SEP proposes a simple extension pattern: **where a primitive currently accepts a single value for behavioral metadata (like `annotations`), signatures allow an array of all possible values**.
+
+This pattern is intentionally minimal and extensible. As MCP adds new primitives for describing server behavior, the same pattern applies: single values become arrays of possibilities in signature context.
+
+### Extending Server Cards
+
+This SEP proposes extending the Server Card schema from SEP-1649 to include a signature.
+
+**Caching (Optional Optimization)**: HTTP-served Server Cards (e.g., `.well-known/mcp.json`) SHOULD include standard HTTP caching headers (`ETag`, `Cache-Control`). Clients MAY use `If-None-Match` for efficient polling. This is an optimization, not a requirement.
 
 ```typescript
 /**
- * Sent from the client to request the complete signature of all
- * capabilities the server could possibly offer.
- *
- * @category `signature`
+ * Extended Server Card with capability signatures.
  */
-export interface SignatureRequest extends JSONRPCRequest {
-  method: "signature";
-  params?: RequestParams;
+export interface ServerCard {
+  // ... existing SEP-1649 fields ...
+
+  /**
+   * Complete signature of all possible capabilities.
+   * When present, this declares the universe of what the server MAY offer.
+   */
+  signature?: ServerSignature;
 }
-```
 
-### Signature Result
-
-The result contains the complete set of possible capabilities:
-
-```typescript
 /**
- * The result returned by the server for a signature request.
- *
- * All arrays represent the complete universe of items that MAY appear
- * in subsequent list responses. Actual list responses may return any
- * subset of these items.
- *
- * @category `signature`
+ * Complete declaration of all possible server capabilities and their variants.
  */
-export interface SignatureResult extends Result {
+export interface ServerSignature {
   /**
    * All tools that may be offered by this server.
+   * Uses existing Tool type, but annotations may be an array of possibilities.
    */
-  tools?: Tool[];
+  tools?: SignatureTool[];
 
   /**
    * All prompts that may be offered by this server.
@@ -92,42 +113,105 @@ export interface SignatureResult extends Result {
 
   /**
    * All resources that may be offered by this server.
+   * Note: Resources may not be fully enumerable statically.
+   * See "Future Extensions" for SignatureResource concept.
    */
   resources?: Resource[];
 
   /**
    * All resource templates that may be offered by this server.
+   * Templates can represent dynamic resource patterns.
    */
   resourceTemplates?: ResourceTemplate[];
 }
 ```
 
+### Tool Signatures with Annotation Arrays
+
+Tools in the signature use the existing `Tool` type, with one key difference: `annotations` may be an array representing all possible annotation combinations:
+
+```typescript
+/**
+ * A tool in a signature context.
+ * Identical to Tool, but annotations can be an array of possibilities.
+ */
+export interface SignatureTool extends Omit<Tool, "annotations"> {
+  /**
+   * All possible annotation combinations this tool may have.
+   * When an array, each entry represents a distinct behavioral profile.
+   * When a single object, the tool has one fixed behavior.
+   */
+  annotations?: ToolAnnotations | ToolAnnotations[];
+}
+```
+
+This approach:
+
+1. **Reuses existing types** - No new complex hierarchies
+2. **Is immediately understandable** - Single value = one behavior; array = multiple possibilities
+3. **Extends naturally** - As MCP adds new behavioral primitives, they follow the same pattern
+
+### Extending InitializeResult
+
+As an alternative to Server Cards, signatures can be included directly in `InitializeResult`. This is useful when:
+
+- The client doesn't have access to the Server Card before connection
+- The server wants to provide signatures in a single round-trip
+- The signature varies per-session (e.g., based on authenticated user)
+
+```typescript
+export interface InitializeResult extends Result {
+  protocolVersion: string;
+  capabilities: ServerCapabilities;
+  serverInfo: Implementation;
+  instructions?: string;
+
+  /**
+   * Complete signature of all possible capabilities.
+   * When present, this declares the universe of what the server MAY offer.
+   */
+  signature?: ServerSignature;
+}
+```
+
 ### Capability Declaration
 
-Servers advertise signature support in their capabilities:
+Servers advertise where signatures are available:
 
 ```typescript
 export interface ServerCapabilities {
   // ... existing capabilities ...
 
   /**
-   * Present if the server supports the signature method.
+   * Present if the server provides capability signatures.
    */
-  signature?: object;
+  signature?: {
+    /**
+     * Signature is provided in InitializeResult.
+     */
+    inInitialize?: boolean;
+
+    /**
+     * Signature is provided via Server Card.
+     */
+    inServerCard?: boolean;
+  };
 }
 ```
+
+Servers MAY provide signatures in both locations. When both are present, they MUST be identical.
 
 ### Behavioral Requirements
 
 1. **Completeness**: The signature MUST include every tool, prompt, resource, and resource template that the server could _possibly_ return from the corresponding list endpoints during the session. Items not included in the signature MUST NOT appear in subsequent list responses.
 
-2. **Stability**: Once returned, the signature is immutable for the duration of the session. Servers MUST NOT add new items to subsequent list responses that were not declared in the initial signature.
+2. **Annotation Completeness**: For each tool, the signature SHOULD declare all possible annotation values. When `annotations` is an array, it represents all possible combinations. Any annotation value returned at runtime MUST match one of the declared possibilities.
 
-3. **Subsets Permitted**: The actual `tools/list`, `prompts/list`, `resources/list`, and `resources/templates/list` responses may return any subset of the items declared in the signature, including an empty subset.
+3. **Stability**: Once returned, the signature is immutable for the duration of the session. Servers MUST NOT add new items or annotation combinations to subsequent responses that were not declared in the signature.
 
-4. **list_changed Compatibility**: Servers may still emit `notifications/tools/list_changed` and similar notifications. The updated list MUST remain a subset of the declared signature.
+4. **Subsets Permitted**: The actual `tools/list`, `prompts/list`, `resources/list`, and `resources/templates/list` responses may return any subset of the items declared in the signature, including an empty subset.
 
-5. **Metadata Consistency**: Items returned in list endpoints SHOULD have consistent `name` values matching those in the signature. Other metadata (descriptions, schemas, annotations) MAY differ between signature and list responses.
+5. **list_changed Compatibility**: Servers may still emit `notifications/tools/list_changed` and similar notifications. The updated list MUST remain a subset of the declared signature.
 
 ### Dynamic Metadata Considerations
 
@@ -137,15 +221,15 @@ Certain metadata may legitimately vary between the signature and runtime behavio
 
 2. **Tool Descriptions**: Descriptions may be dynamically generated or context-specific. The signature provides a baseline, but runtime descriptions may vary.
 
-3. **Annotations**: Tool annotations may change based on argument patterns (see "Signature and Tool Resolution") or runtime context.
+3. **Annotations Within Bounds**: Tool annotations may change at runtime, but MUST match one of the annotation objects declared in the signature's array.
 
-Consumers of signatures should use discretion about enforcement strictness. Some hosts may require complete enforcement of signature immutability, while others may treat signatures as advisory for capability discovery.
+Consumers of signatures should use discretion about enforcement strictness.
 
 ### Enforcement Modes
 
 Clients MAY implement different enforcement policies:
 
-1. **Strict**: Any tool not in signature causes session termination. Any deviation in tool schemas is rejected.
+1. **Strict**: Any tool not in signature causes session termination. Any annotation outside declared possibilities is rejected.
 2. **Permissive**: Signature is used for capability discovery and trust UI, but runtime deviations are logged rather than fatal.
 3. **Advisory**: Signature informs user-facing capability displays but does not constrain runtime behavior.
 
@@ -153,133 +237,31 @@ Servers should document their expected enforcement mode. Clients requiring stric
 
 ### Client Behavior
 
-Clients that receive signature support SHOULD:
+Clients that use signatures SHOULD:
 
-1. Call `signature` during initialization, after the `initialize` handshake completes
-2. Use the signature result for trust and policy decisions
+1. Retrieve the signature from Server Card (pre-connection) or `InitializeResult` (post-connection)
+2. Use the signature for trust and policy decisions
 3. Validate that subsequent list responses contain only items declared in the signature
-4. Accept that list responses may be subsets of the signature
+4. Validate that runtime annotations match one of the declared annotation objects
+5. Accept that list responses may be subsets of the signature
 
 ### Fallback Behavior
 
-When a server does not advertise the `signature` capability:
+When a server does not provide a signature:
 
 1. Clients MAY fall back to schema freezing using initial list results
-2. Clients MAY choose to reject servers that do not support signatures
+2. Clients MAY choose to reject servers that do not provide signatures
 3. Clients MAY proceed without schema constraints (existing behavior)
 
 ## Rationale
 
-### Why Not Extend Existing List Methods?
+### Why Extend Existing Mechanisms?
 
-Adding a "complete" flag to list methods was considered but rejected because:
+This SEP extends Server Cards and `InitializeResult` rather than introducing a new method because:
 
-1. It would change existing method semantics
-2. List methods are paginated; a "complete" mode would need different pagination handling
-3. Separation of concerns: signature is about trust boundaries; list is about current availability
-
-### Why Not Use Initialize Response?
-
-Embedding the signature in `InitializeResult` was considered but rejected because:
-
-1. It would significantly increase initialize payload size for servers with many capabilities
-2. Initialization should complete quickly; signature retrieval can be deferred
-3. Not all clients need signature information; making it opt-in reduces overhead
-
-### Why Allow Subset Behavior?
-
-Permitting list responses to be subsets of the signature enables important use cases:
-
-1. **User Permissions**: Hide tools a user cannot access without exposing errors
-2. **Progressive Disclosure**: Reveal advanced tools only when prerequisites are met
-3. **Context Optimization**: Return only relevant tools to reduce LLM context usage
-4. **A/B Testing**: Experiment with different capability sets for different sessions
-
-### Comparison to Schema Freezing
-
-| Aspect               | Schema Freezing          | Signature Method           |
-| -------------------- | ------------------------ | -------------------------- |
-| Security scope       | Current snapshot         | Complete possibilities     |
-| Dynamic lists        | Prohibited               | Allowed (within signature) |
-| Hidden capabilities  | Causes failures          | Transparently absent       |
-| Context efficiency   | Poor                     | Good                       |
-| User-specific tools  | Leaks inaccessible tools | Can hide appropriately     |
-| list_changed support | Conflicts                | Compatible                 |
-
-### Alternative: Integration with Server Cards and Initialization
-
-A significant alternative approach, suggested by Tadas Antanavicius (PulseMCP), is to avoid introducing a new `signature` method entirely and instead integrate this capability into existing mechanisms:
-
-#### Server Cards (SEP-1649)
-
-[SEP-1649: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649) already proposes a discovery mechanism that includes `tools`, `prompts`, and `resources` fields:
-
-```json
-{
-  "tools": ["dynamic"] | [/* full array of Tool definitions */],
-  "prompts": ["dynamic"] | [/* full array of Prompt definitions */],
-  "resources": ["dynamic"] | [/* full array of Resource definitions */]
-}
-```
-
-This is available:
-
-- **Pre-connection**: Via `/.well-known/mcp.json` for HTTP servers
-- **Post-connection**: Via the `mcp://server-card.json` resource
-
-#### Extending InitializeResult
-
-Alternatively, the signature data could be added to `InitializeResult`:
-
-```typescript
-export interface InitializeResult extends Result {
-  protocolVersion: string;
-  capabilities: ServerCapabilities;
-  serverInfo: Implementation;
-  instructions?: string;
-
-  // New optional fields for complete capability declaration
-  allTools?: Tool[];
-  allPrompts?: Prompt[];
-  allResources?: Resource[];
-  allResourceTemplates?: ResourceTemplate[];
-}
-```
-
-#### Evaluation
-
-| Approach               | Pros                                       | Cons                                                   |
-| ---------------------- | ------------------------------------------ | ------------------------------------------------------ |
-| Server Cards           | Pre-connection discovery; already proposed | HTTP-only for `.well-known`; requires SEP-1649 support |
-| InitializeResult       | Single round-trip; always available        | Increases init payload; not all clients need it        |
-| New `signature` method | Opt-in; deferred loading; clear separation | Additional method; more complexity                     |
-
-#### Recommendation
-
-Given that SEP-1649 already addresses pre-connection discovery with essentially the same data model, **this SEP should potentially be refocused** to:
-
-1. **Endorse Server Cards** as the primary mechanism for declaring complete capabilities
-2. **Define behavioral contracts** around how clients should interpret and enforce Server Card data
-3. **Optionally extend InitializeResult** for servers without HTTP transport
-4. **Deprecate the new method approach** in favor of existing mechanisms
-
-This remains an open question. The author seeks community feedback on whether a dedicated `signature` method provides sufficient value over integrating with Server Cards and/or InitializeResult.
-
-### Alternative: Client-Side Filtering with Annotations
-
-An alternative approach was considered where servers always expose all tools to all clients, and filtering happens entirely client-side based on:
-
-1. **Annotation-based filtering**: Clients could request "only read-only tools" by filtering on `readOnlyHint: true`
-2. **Token scope resolution**: OAuth scopes could determine what tools are permitted
-3. **Static server exposure**: Servers would declare everything; clients decide what to use
-
-This approach was not chosen because:
-
-1. **Less dynamic**: Servers cannot adapt tool availability based on user context, session state, or runtime conditions
-2. **Annotation limitations**: Not all filtering criteria map cleanly to annotations (user permissions, licensing, feature flags)
-3. **Error-prone**: Users may attempt to invoke tools they cannot access, leading to failures rather than graceful absence
-
-However, client-side filtering remains valuable as a _complementary_ mechanism. Clients can filter the tools returned by `tools/list` based on annotations, while the signature establishes the trust boundary of what _could_ be filtered from.
+1. **Server Cards already solve discovery** - Adding signatures to Server Cards enables pre-connection trust decisions
+2. **InitializeResult enables single round-trip** - No additional request needed for clients that connect first
+3. **Avoids protocol fragmentation** - Leverages ongoing work in SEP-1649
 
 ### Why Immutable Signatures?
 
@@ -289,141 +271,113 @@ The signature is immutable after initial retrieval because:
 2. Clients can cache and reuse signature verification logic
 3. If capabilities truly change (e.g., plugin installed), reconnection establishes a new session with a new signature
 
-### Server Versioning and Remote Deployment
+## Alternatives Considered
 
-This SEP does not address server versioning or deployment strategies for remote MCP servers. For related discussions on versioning, see [SEP-1915: Tool Versioning and Naming Patterns](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1915). In particular:
+### Dedicated `signature` Method
 
-1. **Atomic Cutover Problem**: If a remote server performs an atomic deployment (e.g., rolling update, blue-green deployment), connected clients may experience signature violations when the server's capabilities change mid-session.
+A dedicated RPC method was considered but rejected because Server Cards already provide the same data model, it adds an extra round-trip, and fragments capability discovery.
 
-2. **Not Solved Here**: This SEP intentionally does not prescribe deployment strategies. The immutability guarantee is per-session; what constitutes a "session" for long-lived connections to remote servers is outside our scope.
+### Client-Side Filtering Only
 
-3. **Versioned URLs**: Remote servers wanting to participate in hosts that employ strict signature enforcement may need to version their endpoints (e.g., `/v1/mcp`, `/v2/mcp`) so that capability changes are surfaced as new endpoints rather than in-place mutations.
-
-4. **Graceful Upgrades**: Server operators should consider how clients can gracefully migrate to new server versions. Options include:
-   - Version-specific connection URLs
-   - Maintaining multiple server versions simultaneously during transition periods
-
-Hosts and registries that require strict signature enforcement should document their expectations for server versioning.
-
-### Registry Fingerprinting
-
-Signatures enable registries and discovery services to fingerprint MCP servers:
-
-1. **Server Identification**: Registries can hash signatures to uniquely identify server capability sets
-2. **Change Detection**: By comparing signature hashes across versions, registries can track when servers add or remove capabilities
-3. **Compatibility Matching**: Clients can query registries for servers matching specific capability signatures
-4. **Audit Trails**: Organizations can maintain records of what capabilities servers declared at specific points in time
-
-This is particularly valuable for enterprise deployments where capability governance is required.
-
-### Signature and Tool Resolution
-
-When combined with [SEP-1862 (Tool Resolution)](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862), signatures can be extended to declare all possible tool behaviors upfront. A tool like `manage_files` might have different annotations depending on its arguments:
-
-```typescript
-interface ExtendedToolSignature extends Tool {
-  /**
-   * All possible resolved states this tool may return.
-   * Each entry represents a distinct behavior profile.
-   */
-  resolvedVariants?: ToolResolvedVariant[];
-}
-
-interface ToolResolvedVariant {
-  /**
-   * Conditions under which this variant applies.
-   */
-  when: {
-    argumentPatterns?: Record<string, unknown>;
-  };
-  /**
-   * The annotations that apply when conditions are met.
-   */
-  annotations?: ToolAnnotations;
-  /**
-   * OAuth scopes required for this variant.
-   */
-  requiredScopes?: string[];
-}
-```
-
-This enables hosts to:
-
-1. **Pre-compute permission sets**: Know all possible scope requirements before any tool invocation
-2. **Match predefined behaviors**: Map organizational policies to concrete tool actions based on arguments
-3. **Optimize authorization flows**: Request all potentially needed scopes upfront rather than incrementally
-4. **Provide accurate UI**: Show users exactly what permissions each action requires before they attempt it
-
-The signature declares the universe of possibilities; `tools/resolve` confirms which variant applies for a specific invocation. This keeps `tools/list` as the worst-case fallback while enabling sophisticated trust management for hosts that need it.
+An approach where servers expose all tools and clients filter based on annotations was considered. This was rejected because servers cannot adapt availability based on user context, and users may invoke tools they cannot access, leading to failures.
 
 ## Backward Compatibility
 
 This proposal is fully backward compatible:
 
-1. **New Capability**: The `signature` capability is opt-in; existing servers continue to work unchanged
-2. **Client Choice**: Clients can choose whether to use signature, freeze schemas, or neither
-3. **Graceful Degradation**: Clients can fall back to current behavior when signature is unavailable
-4. **List Methods Unchanged**: Existing list methods retain their semantics; responses are simply validated against the signature if present
+1. **Optional Extension**: Signatures are opt-in; existing servers and Server Cards continue to work unchanged
+2. **Client Choice**: Clients can choose whether to use signatures, freeze schemas, or neither
+3. **Graceful Degradation**: Clients can fall back to current behavior when signatures are unavailable
+4. **List Methods Unchanged**: Existing list methods retain their semantics
 
 ## Security Implications
 
 ### Security Benefits
 
-1. **Complete Trust Boundary**: Clients can make informed trust decisions based on complete capability declarations rather than potentially incomplete snapshots
+1. **Complete Trust Boundary**: Clients can make informed trust decisions based on complete capability declarations
 2. **Explicit Contract**: The signature creates an explicit contract that servers cannot exceed
-3. **Validation Possible**: Clients can detect and reject list responses that violate the signature contract
+3. **Annotation Awareness**: Clients know all possible annotation values (e.g., worst-case destructiveness)
+4. **Validation Possible**: Clients can detect and reject responses that violate the signature contract
 
 ### Security Considerations
 
-1. **Signature Accuracy**: Malicious servers could under-declare their signature, then attempt to surface additional capabilities. However, this is no worse than the current situation where initial list results can be manipulated.
+1. **Signature Accuracy**: Malicious servers could under-declare their signature. This is no worse than current list manipulation.
 
-2. **Signature Size**: Large signatures could be used for denial-of-service. Clients SHOULD implement reasonable limits on signature size.
+2. **Signature Size**: Large signatures could be used for denial-of-service. Clients SHOULD implement reasonable limits.
 
-3. **Trust Still Required**: The signature method does not eliminate the need for trust; it provides a mechanism for establishing clearer trust boundaries.
+3. **Trust Still Required**: Signatures do not eliminate the need for trust; they provide clearer trust boundaries.
 
 ## Reference Implementation
 
-A reference implementation will be provided in the TypeScript SDK demonstrating:
+A reference implementation will be provided demonstrating:
 
 1. Server-side signature generation from registered capabilities
 2. Server-side validation that list responses respect the signature
 3. Client-side signature caching and validation
-4. Integration with list_changed notifications
+4. Integration with Server Cards and InitializeResult
 
-Example server-side registration pattern:
+Example signature in a Server Card:
 
-```typescript
-// Register a tool in the signature even if not currently available
-server.registerPossibleTool(
-  {
-    name: "admin_dashboard",
-    description: "Access admin dashboard",
-    inputSchema: { type: "object" },
-  },
-  {
-    availabilityCheck: (context) => context.user.isAdmin,
-  },
-);
-
-// The signature includes admin_dashboard for all users
-// tools/list only returns it when availabilityCheck passes
+```json
+{
+  "name": "File Manager",
+  "description": "Manage files with read/write/delete operations",
+  "signature": {
+    "tools": [
+      {
+        "name": "manage_files",
+        "description": "Read or write files",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "operation": { "enum": ["read", "write", "delete"] },
+            "path": { "type": "string" }
+          }
+        },
+        "annotations": [
+          { "destructiveHint": false, "readOnlyHint": true },
+          { "destructiveHint": true, "readOnlyHint": false }
+        ]
+      }
+    ]
+  }
+}
 ```
+
+At runtime, `tools/list` returns the same tool with a single annotation object representing the **worst case** (most permissive) combination:
+
+```json
+{
+  "tools": [
+    {
+      "name": "manage_files",
+      "description": "Read or write files",
+      "inputSchema": { "...": "..." },
+      "annotations": { "destructiveHint": true, "readOnlyHint": false }
+    }
+  ]
+}
+```
+
+The worst-case reduction ensures backward-compatible clients see the most conservative trust profile.
+
+## Future Extensions
+
+This SEP focuses on the core pattern (arrays of possibilities) and defers several related concerns:
+
+### SignatureResource
+
+Resources present unique challenges: they may not be statically enumerable. A future `SignatureResource` type could unify `resources` and `resourceTemplates` with a `type` field indicating whether the entry is a `resource` (static, individually enumerable) or `template` (pattern-based). A template in the signature (e.g., `file:///{path}`) would expand to individual `Resource` items at runtime in `resources/list` (e.g., `file:///foo.txt`, `file:///bar.txt`). This clarifies how signature declarations map to runtime enumerations. Additional metadata fields could be added as needed for trust decisions.
+
+### Argument-Dependent Annotations
+
+An extension could allow annotations to reference input schema enums, mapping specific argument values to specific Annotations. This would formalize the relationship between arguments and behavior, where it can be statically declared.
 
 ## Open Questions
 
-1. **Should this be a new method, or integrated with existing mechanisms?** SEP-1649 (Server Cards) already proposes `tools`, `prompts`, and `resources` arrays for pre-connection discovery. The core capability declaration could be:
-   - Added to Server Cards only (requires HTTP transport for pre-connection access)
-   - Added to InitializeResult (available for all transports, increases init payload)
-   - A combination of both (Server Cards for discovery, InitializeResult for non-HTTP)
-   - A separate `signature` method (as currently proposed, but potentially redundant)
+1. **Mid-session updates**: Should there be a notification mechanism for legitimate capability changes during long-lived sessions?
 
-2. **Should signatures support hashing/versioning?** Clients could efficiently check if a signature has changed across sessions without re-fetching the full content. This would be particularly valuable for registry fingerprinting.
-
-3. **Should there be a way to update signatures without reconnection?** For long-lived sessions, capability changes might be legitimate (e.g., plugin installation). A `signature/update` notification could address this, but adds complexity.
-
-4. **Should incomplete signatures be permitted with a flag?** Some servers might not be able to enumerate all possible resources. A `complete: false` indicator could signal this, though it weakens the security guarantees.
-
-5. **Should resolved variants be part of the core signature spec?** The `resolvedVariants` extension described in "Signature and Tool Resolution" could be standardized as part of this SEP or left as an optional extension pattern. Including it would provide a complete picture of tool behaviors but increases signature complexity.
+2. **SignatureResource scope**: Should unified resource representation be part of this SEP or a follow-up?
 
 ## Acknowledgments
 
