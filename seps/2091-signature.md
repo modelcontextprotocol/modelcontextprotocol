@@ -39,6 +39,7 @@ Importantly, registering capabilities in the signature is trivial for server dev
 
 This proposal complements several related SEPs:
 
+- [SEP-1649: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649) proposes HTTP server discovery via `.well-known/mcp.json`, including complete `tools`, `prompts`, and `resources` arrays. **This SEP substantially overlaps with Server Cards and may be better addressed as an extension of that work** (see "Alternative: Integration with Server Cards").
 - [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools _could_ exist even when filtered.
 - [SEP-1913: Trust and Sensitivity Annotations](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1913) proposes trust and sensitivity annotations for tracking data provenance and enforcing trust boundaries. Combined with signatures, hosts can establish complete trust policies upfront.
 - [SEP-1862: Tool Resolution](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) proposes a `tools/resolve` method for argument-specific metadata. Combined with signatures, hosts can know all possible tool behaviors upfront (see "Signature and Tool Resolution" below).
@@ -205,6 +206,65 @@ Permitting list responses to be subsets of the signature enables important use c
 | User-specific tools  | Leaks inaccessible tools | Can hide appropriately     |
 | list_changed support | Conflicts                | Compatible                 |
 
+### Alternative: Integration with Server Cards and Initialization
+
+A significant alternative approach, suggested by Tadas Antanavicius (PulseMCP), is to avoid introducing a new `signature` method entirely and instead integrate this capability into existing mechanisms:
+
+#### Server Cards (SEP-1649)
+
+[SEP-1649: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649) already proposes a discovery mechanism that includes `tools`, `prompts`, and `resources` fields:
+
+```json
+{
+  "tools": ["dynamic"] | [/* full array of Tool definitions */],
+  "prompts": ["dynamic"] | [/* full array of Prompt definitions */],
+  "resources": ["dynamic"] | [/* full array of Resource definitions */]
+}
+```
+
+This is available:
+
+- **Pre-connection**: Via `/.well-known/mcp.json` for HTTP servers
+- **Post-connection**: Via the `mcp://server-card.json` resource
+
+#### Extending InitializeResult
+
+Alternatively, the signature data could be added to `InitializeResult`:
+
+```typescript
+export interface InitializeResult extends Result {
+  protocolVersion: string;
+  capabilities: ServerCapabilities;
+  serverInfo: Implementation;
+  instructions?: string;
+
+  // New optional fields for complete capability declaration
+  allTools?: Tool[];
+  allPrompts?: Prompt[];
+  allResources?: Resource[];
+  allResourceTemplates?: ResourceTemplate[];
+}
+```
+
+#### Evaluation
+
+| Approach               | Pros                                       | Cons                                                   |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| Server Cards           | Pre-connection discovery; already proposed | HTTP-only for `.well-known`; requires SEP-1649 support |
+| InitializeResult       | Single round-trip; always available        | Increases init payload; not all clients need it        |
+| New `signature` method | Opt-in; deferred loading; clear separation | Additional method; more complexity                     |
+
+#### Recommendation
+
+Given that SEP-1649 already addresses pre-connection discovery with essentially the same data model, **this SEP should potentially be refocused** to:
+
+1. **Endorse Server Cards** as the primary mechanism for declaring complete capabilities
+2. **Define behavioral contracts** around how clients should interpret and enforce Server Card data
+3. **Optionally extend InitializeResult** for servers without HTTP transport
+4. **Deprecate the new method approach** in favor of existing mechanisms
+
+This remains an open question. The author seeks community feedback on whether a dedicated `signature` method provides sufficient value over integrating with Server Cards and/or InitializeResult.
+
 ### Alternative: Client-Side Filtering with Annotations
 
 An alternative approach was considered where servers always expose all tools to all clients, and filtering happens entirely client-side based on:
@@ -351,17 +411,23 @@ server.registerPossibleTool(
 
 ## Open Questions
 
-1. **Should signatures support hashing/versioning?** Clients could efficiently check if a signature has changed across sessions without re-fetching the full content. This would be particularly valuable for registry fingerprinting.
+1. **Should this be a new method, or integrated with existing mechanisms?** SEP-1649 (Server Cards) already proposes `tools`, `prompts`, and `resources` arrays for pre-connection discovery. The core capability declaration could be:
+   - Added to Server Cards only (requires HTTP transport for pre-connection access)
+   - Added to InitializeResult (available for all transports, increases init payload)
+   - A combination of both (Server Cards for discovery, InitializeResult for non-HTTP)
+   - A separate `signature` method (as currently proposed, but potentially redundant)
 
-2. **Should there be a way to update signatures without reconnection?** For long-lived sessions, capability changes might be legitimate (e.g., plugin installation). A `signature/update` notification could address this, but adds complexity.
+2. **Should signatures support hashing/versioning?** Clients could efficiently check if a signature has changed across sessions without re-fetching the full content. This would be particularly valuable for registry fingerprinting.
 
-3. **Should incomplete signatures be permitted with a flag?** Some servers might not be able to enumerate all possible resources. A `complete: false` indicator could signal this, though it weakens the security guarantees.
+3. **Should there be a way to update signatures without reconnection?** For long-lived sessions, capability changes might be legitimate (e.g., plugin installation). A `signature/update` notification could address this, but adds complexity.
 
-4. **Should resolved variants be part of the core signature spec?** The `resolvedVariants` extension described in "Signature and Tool Resolution" could be standardized as part of this SEP or left as an optional extension pattern. Including it would provide a complete picture of tool behaviors but increases signature complexity.
+4. **Should incomplete signatures be permitted with a flag?** Some servers might not be able to enumerate all possible resources. A `complete: false` indicator could signal this, though it weakens the security guarantees.
+
+5. **Should resolved variants be part of the core signature spec?** The `resolvedVariants` extension described in "Signature and Tool Resolution" could be standardized as part of this SEP or left as an optional extension pattern. Including it would provide a complete picture of tool behaviors but increases signature complexity.
 
 ## Acknowledgments
 
-This proposal was inspired by discussions with Robert Reichel (OpenAI), John Baldo (Asana), Peder H P (Saxo Bank), and others in the MCP community around schema freezing approaches and their interaction with dynamic server capabilities.
+This proposal was inspired by discussions with Robert Reichel (OpenAI), John Baldo (Asana), Peder H P (Saxo Bank), Tadas Antanavicius (PulseMCP), and others in the MCP community around schema freezing approaches and their interaction with dynamic server capabilities.
 
 ---
 
