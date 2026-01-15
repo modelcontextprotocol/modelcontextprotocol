@@ -216,7 +216,7 @@ may reserve particular names for purpose-specific metadata, as declared in those
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
 
-#### `icons`
+### `icons`
 
 The `icons` property provides a standardized way for servers to expose visual identifiers for their resources, tools, prompts, and implementations. Icons enhance user interfaces by providing visual context and improving the discoverability of available functionality.
 
@@ -227,6 +227,7 @@ Icons are represented as an array of `Icon` objects, where each icon includes:
   - A data URI with base64-encoded image data
 - `mimeType`: Optional MIME type if the server's type is missing or generic
 - `sizes`: Optional array of size specifications (e.g., `["48x48"]`, `["any"]` for scalable formats like SVG, or `["48x48", "96x96"]` for multiple sizes)
+- `theme`: Optional theme preference (`light` or `dark`) for the icon background
 
 **Required MIME type support:**
 

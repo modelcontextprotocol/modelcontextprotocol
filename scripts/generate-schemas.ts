@@ -1,14 +1,20 @@
 #!/usr/bin/env tsx
 
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 // Legacy schema versions that should remain as JSON Schema draft-07
 const LEGACY_SCHEMAS = ['2024-11-05', '2025-03-26', '2025-06-18'];
 
+// Modern schema versions that use JSON Schema 2020-12
+const MODERN_SCHEMAS = ['2025-11-25', 'draft'];
+
 // All schema versions to generate
-const ALL_SCHEMAS = [...LEGACY_SCHEMAS, '2025-11-25', 'draft'];
+const ALL_SCHEMAS = [...LEGACY_SCHEMAS, ...MODERN_SCHEMAS];
 
 // Check if we're in check mode (validate existing schemas match generated ones)
 const CHECK_MODE = process.argv.includes('--check');
@@ -43,22 +49,19 @@ function applyJsonSchema202012Transformations(schemaPath: string): void {
 /**
  * Generate JSON schema for a specific version
  */
-function generateSchema(version: string, check: boolean = false): boolean {
+async function generateSchema(version: string, check: boolean = false): Promise<boolean> {
   const schemaDir = join('schema', version);
   const schemaTs = join(schemaDir, 'schema.ts');
   const schemaJson = join(schemaDir, 'schema.json');
 
   if (check) {
-    console.log(`Checking schema for ${version}...`);
-
     // Read existing schema
     const existingSchema = readFileSync(schemaJson, 'utf-8');
 
     // Generate schema to stdout and capture it
     try {
-      const generated = execSync(
-        `npx typescript-json-schema --defaultNumberType integer --required --skipLibCheck "${schemaTs}" "*"`,
-        { encoding: 'utf-8' }
+      const { stdout: generated } = await execAsync(
+        `npx typescript-json-schema --defaultNumberType integer --required --skipLibCheck "${schemaTs}" "*"`
       );
 
       let expectedSchema = generated;
@@ -86,13 +89,10 @@ function generateSchema(version: string, check: boolean = false): boolean {
       throw error;
     }
   } else {
-    console.log(`Generating schema for ${version}...`);
-
     // Run typescript-json-schema
     try {
-      execSync(
-        `npx typescript-json-schema --defaultNumberType integer --required --skipLibCheck "${schemaTs}" "*" -o "${schemaJson}"`,
-        { stdio: 'inherit' }
+      await execAsync(
+        `npx typescript-json-schema --defaultNumberType integer --required --skipLibCheck "${schemaTs}" "*" -o "${schemaJson}"`
       );
     } catch (error) {
       console.error(`Failed to generate schema for ${version}`);
@@ -101,10 +101,10 @@ function generateSchema(version: string, check: boolean = false): boolean {
 
     // Apply transformations for non-legacy schemas
     if (!LEGACY_SCHEMAS.includes(version)) {
-      console.log(`Applying JSON Schema 2020-12 transformations to ${version}...`);
       applyJsonSchema202012Transformations(schemaJson);
     }
 
+    console.log(`  ✓ Generated schema for ${version}`);
     return true;
   }
 }
@@ -112,17 +112,15 @@ function generateSchema(version: string, check: boolean = false): boolean {
 /**
  * Main function
  */
-function main(): void {
+async function main(): Promise<void> {
   if (CHECK_MODE) {
-    console.log('Checking JSON schemas...\n');
+    console.log('Checking JSON schemas in parallel...\n');
 
-    let allValid = true;
-    for (const version of ALL_SCHEMAS) {
-      const valid = generateSchema(version, true);
-      if (!valid) {
-        allValid = false;
-      }
-    }
+    const results = await Promise.all(
+      ALL_SCHEMAS.map(version => generateSchema(version, true))
+    );
+
+    const allValid = results.every(valid => valid);
 
     console.log();
     if (!allValid) {
@@ -132,16 +130,19 @@ function main(): void {
       console.log('All schemas are up to date!');
     }
   } else {
-    console.log('Generating JSON schemas...\n');
+    console.log('Generating JSON schemas in parallel...\n');
 
-    for (const version of ALL_SCHEMAS) {
-      generateSchema(version, false);
-    }
+    await Promise.all(
+      ALL_SCHEMAS.map(version => generateSchema(version, false))
+    );
 
     console.log('\nSchema generation complete!');
     console.log(`- (draft-07): ${LEGACY_SCHEMAS.join(', ')}`);
-    console.log(`- (2020-12): draft`);
+    console.log(`- (2020-12): ${MODERN_SCHEMAS.join(', ')}`);
   }
 }
 
-main();
+main().catch(error => {
+  console.error('Schema generation failed:', error);
+  process.exit(1);
+});
