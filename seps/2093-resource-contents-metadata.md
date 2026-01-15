@@ -268,7 +268,18 @@ This allows existing code to continue working while the protocol itself has a si
 
 ### Error Code Standardization
 
-The TypeScript SDK already uses `-32602` (InvalidParams) for resource not found errors. The Python SDK currently uses `0` and should migrate to `-32602`.
+Current SDK implementations vary in their error handling for resource not found:
+
+| SDK        | Current Error Code                   |
+| ---------- | ------------------------------------ |
+| TypeScript | `-32602` (InvalidParams)             |
+| Python     | `0` (generic)                        |
+| C#         | `-32002` (custom RESOURCE_NOT_FOUND) |
+| Rust       | `-32002` (custom RESOURCE_NOT_FOUND) |
+| Java       | `-32002` (custom RESOURCE_NOT_FOUND) |
+| Go         | `-32002` (custom RESOURCE_NOT_FOUND) |
+
+This SEP standardizes on `-32602` (InvalidParams) as it is the correct standard JSON-RPC error code for invalid parameters, and a non-existent URI is semantically an invalid parameter. While this is a breaking change for C#, Rust, Java, and Go SDKs, clients already need to handle multiple error codes due to the existing inconsistency between TypeScript (-32602), Python (0), and the others (-32002). Standardizing on the correct JSON-RPC code provides a clear path forward.
 
 ### Migration Path
 
@@ -291,8 +302,8 @@ This proposal introduces no new security concerns:
 A reference implementation will be provided in the TypeScript SDK prior to finalization:
 
 1. Update schema.ts with new type definitions
-2. Update Python SDK with corresponding changes
-3. Update Python SDK to use `-32602` for resource not found errors
-4. Implement `EmbeddedResource.annotations` compatibility shim in both SDKs
+2. Update Python, C#, Rust, Java, and Go SDKs with corresponding changes
+3. Update Python, C#, Rust, Java, and Go SDKs to use `-32602` for resource not found errors
+4. Implement `EmbeddedResource.annotations` compatibility shim in SDKs
 5. Add example server demonstrating multi-format resources
 6. Add client examples using `resources/metadata`
