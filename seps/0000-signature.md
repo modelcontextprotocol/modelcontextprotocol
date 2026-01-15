@@ -1,4 +1,4 @@
-# SEP-0000: Server Signature Method
+# SEP-0000: Server Capability Signature
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes a new `signature` method that enables MCP servers to declare their complete set of possible capabilities upfront, including all tools, prompts, resources, and resource templates that the server _could_ offer. This allows clients to establish trust boundaries based on the full scope of server behavior while preserving the flexibility for servers to dynamically adjust what is currently available via existing list endpoints.
+This SEP proposes a new `signature` method that enables MCP servers to declare their complete set of possible capabilities upfront, including all tools, prompts, resources, and resource templates that the server *could* offer. This allows clients to establish trust boundaries based on the full scope of server behavior while preserving the flexibility for servers to dynamically adjust what is currently available via existing list endpoints.
 
 ## Motivation
 
@@ -21,15 +21,23 @@ Several MCP client implementations have adopted "schema freezing" approaches, wh
 
 However, schema freezing as currently implemented creates friction with legitimate server capabilities:
 
-1. **User-Specific Capabilities**: Some users may not have access to certain tools (e.g., GitHub Copilot agent tools are hidden when a user cannot access them). Freezing would still expose tools destined to fail.
+1. **User-Specific Capabilities**: Some users may not have access to certain tools (e.g., GitHub Copilot agent tools are hidden when users cannot access them). Freezing would still expose tools destined to fail.
 
 2. **Contextual Availability**: Tools may become available or unavailable based on runtime context, state changes, or session progression. The `tools/list_changed` notification exists precisely for this purpose.
 
 3. **Context Efficiency**: Requiring servers to always advertise every possible tool wastes context window budget when many tools are irrelevant to the current user or situation.
 
-The fundamental issue is that **schema freezing conflates security (constraining what is possible) with availability (what is currently offered)**. A client's security decision should be based on the universe of possible behaviors, not a snapshot of current visibility.
+The fundamental issue is that schema freezing conflates security (constraining what is possible) with availability (what is currently offered). A client's security decision should be based on the universe of possible behaviors, not a snapshot of current visibility.
 
-This SEP proposes that if clients want to constrain server behavior to a known set, they should do so based on a complete declaration of _possibilities_, while still allowing servers to dynamically filter what is _currently available_ within those bounds.
+This SEP proposes that if clients want to constrain server behavior to a known set, they should do so based on a complete declaration of *possibilities*, while still allowing servers to dynamically filter what is *currently available* within those bounds.
+
+### Relationship to Other SEPs
+
+This proposal complements several related SEPs:
+
+- [SEP-1881: Scope-Filtered Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881) formalizes the pattern where servers return only tools authorized for the current user. This SEP provides the mechanism for clients to know what tools *could* exist even when filtered.
+- [SEP-1821: Dynamic Tool Discovery](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821) proposes search/filtering for tools. Signature provides the trust boundary within which such filtering operates.
+- [SEP-1442: Make MCP Stateless](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442) discusses stateless operation. Signature can be cached and revalidated across stateless requests.
 
 ## Specification
 
@@ -97,9 +105,6 @@ export interface ServerCapabilities {
 
   /**
    * Present if the server supports the signature method.
-   *
-   * @example Signature — minimum baseline support
-   * { "signature": {} }
    */
   signature?: object;
 }
@@ -107,7 +112,7 @@ export interface ServerCapabilities {
 
 ### Behavioral Requirements
 
-1. **Completeness**: The signature MUST include every tool, prompt, resource, and resource template that the server could _possibly_ return from the corresponding list endpoints during the session. Items not included in the signature MUST NOT appear in subsequent list responses.
+1. **Completeness**: The signature MUST include every tool, prompt, resource, and resource template that the server could *possibly* return from the corresponding list endpoints during the session. Items not included in the signature MUST NOT appear in subsequent list responses.
 
 2. **Stability**: Once returned, the signature is immutable for the duration of the session. Servers MUST NOT add new items to subsequent list responses that were not declared in the initial signature.
 
@@ -131,7 +136,7 @@ Clients that receive signature support SHOULD:
 When a server does not advertise the `signature` capability:
 
 1. Clients MAY fall back to schema freezing using initial list results
-2. Clients MAY choose to reject servers that don't support signatures
+2. Clients MAY choose to reject servers that do not support signatures
 3. Clients MAY proceed without schema constraints (existing behavior)
 
 ## Rationale
