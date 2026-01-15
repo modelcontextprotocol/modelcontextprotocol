@@ -190,10 +190,8 @@ An alternative approach was considered where servers always expose all tools to 
 This approach was not chosen because:
 
 1. **Less dynamic**: Servers cannot adapt tool availability based on user context, session state, or runtime conditions
-2. **Privacy concerns**: Exposing all tools reveals server capabilities that may be sensitive (e.g., admin tools visible to non-admins)
-3. **Annotation limitations**: Not all filtering criteria map cleanly to annotations (user permissions, licensing, feature flags)
-4. **Wasted context**: LLMs still see all tools even when most are irrelevant, consuming context budget
-5. **Error-prone**: Users may attempt to invoke tools they cannot access, leading to failures rather than graceful absence
+2. **Annotation limitations**: Not all filtering criteria map cleanly to annotations (user permissions, licensing, feature flags)
+3. **Error-prone**: Users may attempt to invoke tools they cannot access, leading to failures rather than graceful absence
 
 However, client-side filtering remains valuable as a *complementary* mechanism. Clients can filter the tools returned by `tools/list` based on annotations, while the signature establishes the trust boundary of what *could* be filtered from.
 
