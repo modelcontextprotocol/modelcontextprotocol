@@ -175,9 +175,7 @@ Here is an example tool definition from `tools/list` response with new groups pr
     "required": ["expression"]
   },
   "_meta": {
-    "io.modelcontextprotocol/groups": [
-      "arithmetic"
-    ]
+    "io.modelcontextprotocol/groups": ["arithmetic"]
   }
 }
 ```
@@ -201,7 +199,7 @@ If a primitive is added (or removed) from a group, the server SHOULD send the `l
 
 ## Rationale
 
-This specification proposal was selected for its ease of understanding since it mirrors the other MCP primitives. Alternative proposals which can reduce spec changes and implementation effort significantly are presented below.
+This specification proposal was selected for its ease of understanding since it mirrors the other MCP primitives.
 
 ### Alternatives Considered
 
@@ -209,7 +207,7 @@ This specification proposal was selected for its ease of understanding since it 
   This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
   Since this proposal spans all primitives, such a compatibility failure would be catastrophic.
 
-- **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization.
+- **Groups as MCP Resources instead of new primitive:** The group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. This proposal could reduce spec changes and implementation effort significantly, but it was not considered as intuitive.
 
 ## Security Implications
 
