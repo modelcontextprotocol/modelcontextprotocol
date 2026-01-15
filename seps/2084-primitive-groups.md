@@ -175,7 +175,7 @@ Here is an example tool definition from `tools/list` response with new groups pr
     "required": ["expression"]
   },
   "_meta": {
-    "io.modelcontextprotocol/groups": [ // New reserved meta key
+    "io.modelcontextprotocol/groups": [
       "arithmetic"
     ]
   }
