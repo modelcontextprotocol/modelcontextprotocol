@@ -14,6 +14,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { execSync } from "child_process";
 
 const SEPS_DIR = path.join(__dirname, "..", "seps");
 const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "community", "seps");
@@ -339,19 +340,43 @@ async function main() {
   expectedFiles.push({ path: DOCS_JSON_PATH, content: docsJsonContent });
 
   if (checkMode) {
-    // Check mode: verify all files match expected content
+    // Check mode: verify all files match expected content (after formatting)
+    // Write to temp files, format with Prettier, then compare
+    const tempDir = fs.mkdtempSync(path.join(require("os").tmpdir(), "seps-check-"));
     let hasChanges = false;
-    for (const { path: filePath, content } of expectedFiles) {
-      if (!fs.existsSync(filePath)) {
-        console.error(`Missing file: ${filePath}`);
-        hasChanges = true;
-        continue;
+
+    try {
+      // Write expected content to temp files
+      const tempFiles: { original: string; temp: string }[] = [];
+      for (const { path: filePath, content } of expectedFiles) {
+        const tempPath = path.join(tempDir, path.basename(filePath));
+        fs.writeFileSync(tempPath, content, "utf-8");
+        tempFiles.push({ original: filePath, temp: tempPath });
       }
-      const existing = fs.readFileSync(filePath, "utf-8");
-      if (existing !== content) {
-        console.error(`File out of date: ${filePath}`);
-        hasChanges = true;
+
+      // Format MDX files with Prettier
+      const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
+      if (mdxTempFiles.length > 0) {
+        execSync(`npx prettier --write ${mdxTempFiles.join(" ")}`, { stdio: "pipe" });
       }
+
+      // Compare formatted temp files with existing files
+      for (const { original, temp } of tempFiles) {
+        if (!fs.existsSync(original)) {
+          console.error(`Missing file: ${original}`);
+          hasChanges = true;
+          continue;
+        }
+        const existing = fs.readFileSync(original, "utf-8");
+        const formatted = fs.readFileSync(temp, "utf-8");
+        if (existing !== formatted) {
+          console.error(`File out of date: ${original}`);
+          hasChanges = true;
+        }
+      }
+    } finally {
+      // Clean up temp directory
+      fs.rmSync(tempDir, { recursive: true, force: true });
     }
 
     if (hasChanges) {
@@ -365,6 +390,16 @@ async function main() {
       fs.writeFileSync(filePath, content, "utf-8");
       console.log(`Generated: ${path.relative(process.cwd(), filePath)}`);
     }
+
+    // Format generated files with Prettier
+    const filesToFormat = expectedFiles
+      .filter(({ path: p }) => p.endsWith(".mdx"))
+      .map(({ path: p }) => path.relative(process.cwd(), p));
+    if (filesToFormat.length > 0) {
+      console.log("\nFormatting generated files with Prettier...");
+      execSync(`npx prettier --write ${filesToFormat.join(" ")}`, { stdio: "inherit" });
+    }
+
     console.log("\nSEP documentation generated successfully!");
   }
 }
