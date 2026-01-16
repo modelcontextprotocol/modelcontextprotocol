@@ -1,22 +1,49 @@
 export const Badge = ({ children, color = "gray" }) => {
-  const colors = {
-    green:
-      "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400",
-    blue: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400",
-    yellow:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400",
-    red: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400",
-    orange:
-      "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-400",
-    purple:
-      "bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-400",
-    gray: "bg-gray-100 text-gray-800 dark:bg-gray-500/20 dark:text-gray-400",
+  const styles = {
+    green: {
+      light: { bg: "#dcfce7", text: "#166534" },
+      dark: { bg: "#14532d", text: "#86efac" },
+    },
+    blue: {
+      light: { bg: "#dbeafe", text: "#1e40af" },
+      dark: { bg: "#1e3a5f", text: "#93c5fd" },
+    },
+    yellow: {
+      light: { bg: "#fef9c3", text: "#854d0e" },
+      dark: { bg: "#713f12", text: "#fde047" },
+    },
+    red: {
+      light: { bg: "#fee2e2", text: "#991b1b" },
+      dark: { bg: "#7f1d1d", text: "#fca5a5" },
+    },
+    orange: {
+      light: { bg: "#ffedd5", text: "#9a3412" },
+      dark: { bg: "#7c2d12", text: "#fdba74" },
+    },
+    purple: {
+      light: { bg: "#f3e8ff", text: "#6b21a8" },
+      dark: { bg: "#581c87", text: "#d8b4fe" },
+    },
+    gray: {
+      light: { bg: "#f3f4f6", text: "#1f2937" },
+      dark: { bg: "#374151", text: "#d1d5db" },
+    },
   };
+  const s = styles[color] || styles.gray;
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[color] || colors.gray}`}
-    >
-      {children}
-    </span>
+    <>
+      <style>{`
+        .badge-${color} { background-color: ${s.light.bg}; color: ${s.light.text}; }
+        .dark .badge-${color}, [data-theme="dark"] .badge-${color} { background-color: ${s.dark.bg}; color: ${s.dark.text}; }
+        @media (prefers-color-scheme: dark) {
+          .badge-${color}:not(.light *) { background-color: ${s.dark.bg}; color: ${s.dark.text}; }
+        }
+      `}</style>
+      <span
+        className={`badge-${color} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium`}
+      >
+        {children}
+      </span>
+    </>
   );
 };
