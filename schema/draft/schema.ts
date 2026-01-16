@@ -666,7 +666,7 @@ export interface Icon {
    * A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a
    * `data:` URI with Base64-encoded image data.
    *
-   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
+   * Consumers SHOULD take steps to ensure URLs serving icons are from the
    * same domain as the client/server or a trusted domain.
    *
    * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain

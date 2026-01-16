@@ -21,7 +21,7 @@ The Java SDK for the [Model Context Protocol](https://modelcontextprotocol.org/d
   - [Resource](/specification/2025-06-18/server/resources/) management with URI templates
   - [Prompt](/specification/2025-06-18/server/prompts/) handling and management
   - [Completion](/specification/2025-06-18/server/utilities/completion/) argument autocompletion suggestions for prompts and resource URIs
-  - [Progress](/specification/2025-06-18/basic/utilities/progress/) progress tracking for long-running operations
+  - [Progress](/specification/2025-06-18/basic/utilities/progress/) tracking for long-running operations
   - [Ping](/specification/2025-06-18/basic/utilities/ping/) lightweight health check mechanism
     - [Server Keepalive](/specification/2025-06-18/basic/utilities/ping#implementation-considerations/) to maintain active server connections
   - [Logging](/specification/2025-06-18/server/utilities/logging/) for sending structured log messages to clients
@@ -142,7 +142,7 @@ Add the following dependencies to your project:
 
 - `io.modelcontextprotocol.sdk:mcp-spring-webflux` - WebFlux-based Client and Server, `Streamable-HTTP` and `SSE` transport implementations.
   The WebFlux implementation can be used in reactive applications while the WebClient-based MCP Client can be used in both reactive and imperative applications.
-  It is a highly scalable option and suitable and recommended for high-throughput scenarios.
+  It is highly scalable and recommended for high-throughput scenarios.
 - `io.modelcontextprotocol.sdk:mcp-spring-webmvc` - WebMVC-based Server, `Streamable-HTTP` and `SSE` transport implementation for servlet-based applications.
 
 ### Bill of Materials (BOM)
