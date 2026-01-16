@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This SEP proposes Groups, a new server capability, to organize tools, prompts, resources, tasks, and other groups, into named collections.
+This SEP proposes Groups, a new server capability and primitive, to organize tools, prompts, resources, tasks, and groups themselves, into named collections.
 
 ## Motivation
 
@@ -215,8 +215,8 @@ None identified
 
 ## Reference Implementation
 
-- WIP
+- Fully implemented and tested in Typescript SDK. [Draft PR](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399)
 
 ## Acknowledgements
 
-@cliffhall and @chughtapan thank Pat White for their earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300)
+@cliffhall and @chughtapan thank @patwhite for their earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed.
