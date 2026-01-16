@@ -26,6 +26,14 @@ TypeScript files are the **source of truth** for the protocol schema:
 
 Always regenerate after editing schema files.
 
+## Schema Examples
+
+JSON examples live in `schema/[version]/examples/[TypeName]/`:
+
+- Directory name = schema type (e.g., `Tool/`, `Resource/`)
+- Files validate against their directory's type: `Tool/example-name.json` → Tool schema
+- Referenced in `schema.ts` via `@includeCode` JSDoc tags
+
 ## Useful Commands
 
 ```bash
