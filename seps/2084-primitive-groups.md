@@ -215,7 +215,9 @@ None identified
 
 ## Reference Implementation
 
-- Fully implemented and tested in Typescript SDK. [Draft PR](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399)
+- Fully implemented Typescript SDK changes with unit tests.
+- Includes documented client and server examples.
+- [Draft PR](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399)
 
 ## Acknowledgements
 
