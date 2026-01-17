@@ -3,6 +3,7 @@
  */
 
 import { Octokit } from '@octokit/rest';
+import { createAppAuth } from '@octokit/auth-app';
 import type { Config } from '../config.js';
 import type { GitHubIssue, GitHubComment, GitHubEvent, GitHubTeamMembership } from './types.js';
 import { isHttpError } from '../utils/index.js';
@@ -14,20 +15,71 @@ const SEARCH_QUERIES = {
 } as const;
 
 export class GitHubClient {
-  private readonly octokit: Octokit;
+  private octokit: Octokit;
   private readonly owner: string;
   private readonly repo: string;
+  private readonly config: Config;
+  private initialized = false;
 
   constructor(config: Config) {
-    this.octokit = new Octokit({ auth: config.githubToken });
+    this.config = config;
     this.owner = config.targetOwner;
     this.repo = config.targetRepo;
+
+    // Start with basic octokit - will be replaced if using App auth
+    if (config.githubToken) {
+      this.octokit = new Octokit({ auth: config.githubToken });
+      this.initialized = true;
+    } else {
+      // Placeholder - will be initialized in ensureInitialized()
+      this.octokit = new Octokit();
+    }
+  }
+
+  /**
+   * Ensure the client is initialized with proper auth.
+   * For GitHub App auth, this fetches the installation ID and creates an installation token.
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
+
+    if (this.config.appId && this.config.appPrivateKey) {
+      // Create app-level octokit to find installation
+      const appOctokit = new Octokit({
+        authStrategy: createAppAuth,
+        auth: {
+          appId: this.config.appId,
+          privateKey: this.config.appPrivateKey,
+        },
+      });
+
+      // Find the installation for this repo
+      const { data: installation } = await appOctokit.apps.getRepoInstallation({
+        owner: this.owner,
+        repo: this.repo,
+      });
+
+      // Create installation-authenticated octokit
+      this.octokit = new Octokit({
+        authStrategy: createAppAuth,
+        auth: {
+          appId: this.config.appId,
+          privateKey: this.config.appPrivateKey,
+          installationId: installation.id,
+        },
+      });
+
+      this.initialized = true;
+    } else {
+      throw new Error('No authentication configured');
+    }
   }
 
   /**
    * Search for issues/PRs matching a query with pagination support
    */
   async searchIssues(query: string): Promise<GitHubIssue[]> {
+    await this.ensureInitialized();
     const fullQuery = `repo:${this.owner}/${this.repo} ${query}`;
     const items = await this.octokit.paginate(
       this.octokit.search.issuesAndPullRequests,
@@ -46,6 +98,7 @@ export class GitHubClient {
    * Get all issues with a specific label with pagination support
    */
   async getIssuesWithLabel(label: string): Promise<GitHubIssue[]> {
+    await this.ensureInitialized();
     const items = await this.octokit.paginate(
       this.octokit.issues.listForRepo,
       {
@@ -63,6 +116,7 @@ export class GitHubClient {
    * Get comments on an issue/PR with pagination support
    */
   async getComments(issueNumber: number): Promise<GitHubComment[]> {
+    await this.ensureInitialized();
     const comments = await this.octokit.paginate(
       this.octokit.issues.listComments,
       {
@@ -79,6 +133,7 @@ export class GitHubClient {
    * Get timeline events for an issue/PR with pagination support
    */
   async getEvents(issueNumber: number): Promise<GitHubEvent[]> {
+    await this.ensureInitialized();
     const events = await this.octokit.paginate(
       this.octokit.issues.listEvents,
       {
@@ -95,6 +150,7 @@ export class GitHubClient {
    * Add a comment to an issue/PR
    */
   async addComment(issueNumber: number, body: string): Promise<{ url: string }> {
+    await this.ensureInitialized();
     const response = await this.octokit.issues.createComment({
       owner: this.owner,
       repo: this.repo,
@@ -108,6 +164,7 @@ export class GitHubClient {
    * Add labels to an issue/PR
    */
   async addLabels(issueNumber: number, labels: string[]): Promise<void> {
+    await this.ensureInitialized();
     await this.octokit.issues.addLabels({
       owner: this.owner,
       repo: this.repo,
@@ -120,6 +177,7 @@ export class GitHubClient {
    * Remove a label from an issue/PR
    */
   async removeLabel(issueNumber: number, label: string): Promise<void> {
+    await this.ensureInitialized();
     try {
       await this.octokit.issues.removeLabel({
         owner: this.owner,
@@ -140,6 +198,7 @@ export class GitHubClient {
    * Close an issue/PR
    */
   async closeIssue(issueNumber: number): Promise<void> {
+    await this.ensureInitialized();
     await this.octokit.issues.update({
       owner: this.owner,
       repo: this.repo,
@@ -152,6 +211,7 @@ export class GitHubClient {
    * Check if a user is a member of a team
    */
   async isTeamMember(org: string, teamSlug: string, username: string): Promise<boolean> {
+    await this.ensureInitialized();
     try {
       const response = await this.octokit.teams.getMembershipForUserInOrg({
         org,
@@ -170,9 +230,26 @@ export class GitHubClient {
   }
 
   /**
+   * Get all members of a team
+   */
+  async getTeamMembers(org: string, teamSlug: string): Promise<string[]> {
+    await this.ensureInitialized();
+    const members = await this.octokit.paginate(
+      this.octokit.teams.listMembersInOrg,
+      {
+        org,
+        team_slug: teamSlug,
+        per_page: 100,
+      }
+    );
+    return members.map(m => m.login);
+  }
+
+  /**
    * Get a single issue/PR by number
    */
   async getIssue(issueNumber: number): Promise<GitHubIssue> {
+    await this.ensureInitialized();
     const response = await this.octokit.issues.get({
       owner: this.owner,
       repo: this.repo,

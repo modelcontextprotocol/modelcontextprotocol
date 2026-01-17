@@ -11,16 +11,22 @@ import {
 } from './rules.js';
 
 export interface Config {
-  githubToken: string;
+  // Authentication - either token OR app credentials
+  githubToken: string | null;
+  appId: string | null;
+  appPrivateKey: string | null;
+  // Target repository
   targetOwner: string;
   targetRepo: string;
   maintainersTeam: string;
+  // Timing thresholds
   proposalPingDays: number;
   proposalDormantDays: number;
   draftPingDays: number;
   acceptedPingDays: number;
   maintainerInactivityDays: number;
   pingCooldownDays: number;
+  // Behavior
   dryRun: boolean;
   discordWebhookUrl: string | null;
 }
@@ -59,8 +65,21 @@ const draftRule = STALENESS_RULES.find(r => r.state === 'draft');
 const acceptedRule = STALENESS_RULES.find(r => r.state === 'accepted');
 
 export function loadConfig(): Config {
+  const githubToken = process.env['GITHUB_TOKEN'] ?? null;
+  const appId = process.env['APP_ID'] ?? null;
+  const appPrivateKey = process.env['APP_PRIVATE_KEY'] ?? null;
+
+  // Require either token or app credentials
+  if (!githubToken && (!appId || !appPrivateKey)) {
+    throw new Error(
+      'Authentication required: set GITHUB_TOKEN or both APP_ID and APP_PRIVATE_KEY'
+    );
+  }
+
   return {
-    githubToken: getEnvRequired('GITHUB_TOKEN'),
+    githubToken,
+    appId,
+    appPrivateKey,
     targetOwner: getEnvOrDefault('TARGET_OWNER', 'modelcontextprotocol'),
     targetRepo: getEnvOrDefault('TARGET_REPO', 'modelcontextprotocol'),
     maintainersTeam: getEnvOrDefault('MAINTAINERS_TEAM', 'core-maintainers'),

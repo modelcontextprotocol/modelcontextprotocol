@@ -136,12 +136,23 @@ export class SEPProcessor {
   }
 
   /**
-   * Check maintainer accountability and ping inactive maintainers
+   * Check maintainer accountability and ping inactive maintainers.
+   * Only pings assignees who are verified core maintainers.
    */
   private async checkMaintainerAccountability(sep: SEPItem): Promise<ActionResult[]> {
     const results: ActionResult[] = [];
 
     for (const assignee of sep.assignees) {
+      // Only ping core maintainers, not regular assignees
+      const isMaintainer = await this.maintainers.isCoreMaintainer(assignee);
+      if (!isMaintainer) {
+        this.logger.debug(
+          { number: sep.number, assignee },
+          'Skipping non-maintainer assignee for accountability check'
+        );
+        continue;
+      }
+
       const activity = await this.analyzer.checkMaintainerActivity(sep, assignee);
 
       if (activity.shouldPing) {

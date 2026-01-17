@@ -67,7 +67,7 @@ async function main(): Promise<void> {
 
   // Initialize components
   const github = new GitHubClient(config);
-  const maintainers = new MaintainerResolver(config, github);
+  const maintainers = new MaintainerResolver(config, github, logger);
   const detector = new SEPDetector(github);
   const analyzer = new SEPAnalyzer(config, github);
   const transitionHandler = new TransitionHandler(config, github, logger);

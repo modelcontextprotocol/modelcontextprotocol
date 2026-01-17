@@ -15,6 +15,7 @@
   "keywords": ["mcp", "sep", "automation"],
   "license": "MIT",
   "dependencies": {
+    "@octokit/auth-app": "^7.1.1",
     "@octokit/rest": "^22.0.0",
     "pino": "^9.0.0"
   },

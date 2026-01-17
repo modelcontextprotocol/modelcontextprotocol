@@ -14,9 +14,23 @@ describe('loadConfig', () => {
     process.env = originalEnv;
   });
 
-  it('should throw if GITHUB_TOKEN is not set', () => {
+  it('should throw if no auth is configured', () => {
     delete process.env['GITHUB_TOKEN'];
-    expect(() => loadConfig()).toThrow('Required environment variable GITHUB_TOKEN is not set');
+    delete process.env['APP_ID'];
+    delete process.env['APP_PRIVATE_KEY'];
+    expect(() => loadConfig()).toThrow('Authentication required');
+  });
+
+  it('should accept App auth without GITHUB_TOKEN', () => {
+    delete process.env['GITHUB_TOKEN'];
+    process.env['APP_ID'] = '12345';
+    process.env['APP_PRIVATE_KEY'] = 'test-key';
+
+    const config = loadConfig();
+
+    expect(config.githubToken).toBeNull();
+    expect(config.appId).toBe('12345');
+    expect(config.appPrivateKey).toBe('test-key');
   });
 
   it('should load config with defaults', () => {
