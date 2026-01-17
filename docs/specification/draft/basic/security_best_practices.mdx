@@ -322,7 +322,7 @@ MCP servers that implement authorization **MUST** verify all inbound requests.
 MCP Servers **MUST NOT** use sessions for authentication.
 
 MCP servers **MUST** use secure, non-deterministic session IDs.
-Generated session IDs (e.g., UUIDs) **SHOULD** use secure random number generators. Avoid predictable or sequential session identifiers that could be guessed by an attacker. Rotating or expiring session IDs can also reduce the risk.
+Generated session IDs (e.g., UUIDs) **SHOULD** use secure random number generators and UUIDv4 **SHOULD** be used. Avoid predictable or sequential session identifiers that could be guessed by an attacker. Rotating or expiring session IDs can also reduce the risk.
 
 MCP servers **SHOULD** bind session IDs to user-specific information.
 When storing or transmitting session-related data (e.g., in a queue), combine the session ID with information unique to the authorized user, such as their internal user ID. Use a key format like `<user_id>:<session_id>`. This ensures that even if an attacker guesses a session ID, they cannot impersonate another user as the user ID is derived from the user token and not provided by the client.
