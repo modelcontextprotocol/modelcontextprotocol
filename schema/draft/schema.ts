@@ -3214,6 +3214,7 @@ export type ServerResult =
   | ListResourcesResult
   | ReadResourceResult
   | CallToolResult
+  | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
   | GetTaskPayloadResult
