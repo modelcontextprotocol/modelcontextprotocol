@@ -383,6 +383,7 @@ The MCP client **SHOULD** implement additional checks and guardrails to mitigate
 - Launch MCP servers with restricted access to the file system, network, and other system resources
 - Provide mechanisms for users to explicitly grant additional privileges (e.g., specific directory access, network access) when needed
 - Use platform-appropriate sandboxing technologies (containers, chroot, application sandboxes, etc.)
+- Keep sandboxing solutions up-to-date to account for emerging vulnerabilities
 
 MCP servers intending for their servers to be run locally **SHOULD** implement measures to prevent unauthorized usage from malicious processes:
 
