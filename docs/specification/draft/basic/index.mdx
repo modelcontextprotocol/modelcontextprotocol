@@ -267,3 +267,42 @@ Icons can be attached to:
 - `Resource`: Visual indicator for different resource types
 
 Multiple icons can be provided to support different display contexts and resolutions. Clients should select the most appropriate icon based on their UI requirements.
+
+## User Agents
+
+Client implementations **SHOULD** use the following format by default for their
+`User-Agent` header when sending HTTP requests:
+
+```
+CLIENT_NAME[/CLIENT_VERSION] [os/PLATFORM[#PLATFORM_RELEASE]] [lang/LANG[#LANG_VERSION]] [md/KEY[#VALUE]]
+```
+
+The first component of the user agent contains any applicable client name and version.
+Client implementations **MAY** use a different product name if
+necessary, to be compliant with [RFC 9110](https://httpwg.org/specs/rfc9110.html#rfc.section.10.1.5).
+The optional `os` component contains the current platform and optional platform
+version. The optional `lang` component contains the client's programming language and optional
+language version. The user agent **MAY** contain one or more `md` components for
+additional metadata, containing a key and an optional value.
+
+For example, a version `v1.0.0` of `my-mcp-sdk` running on Windows, using Java `21.0.7`,
+might have the following user agent:
+
+```
+my-mcp-sdk/1.0.0 os/win32#10.0.22000 lang/java#21.0.7
+```
+
+As a more complex example, consider a version `v1.0.0` of `my-mcp-sdk` running on MacOS,
+using Node.js `v22.13.1`. In that scenario, the client might have the following user agent:
+
+```
+my-mcp-sdk/1.0.0 os/darwin#24.5.0 lang/js md/nodejs#22.13.1
+```
+
+Note that the language does not have a version component, as a version of JavaScript
+would be ambiguous; however, the runtime version is meaningful, and is included as
+an `md` component.
+
+Server implementations **MUST NOT** make any assumptions or alter protocol behavior
+based on the user agent, as client implementations may diverge from this format in
+certain cases, such as when supporting overriding user agents with arbitrary values.
