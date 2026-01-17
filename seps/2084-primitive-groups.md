@@ -217,7 +217,11 @@ None identified
 
 - Fully implemented Typescript SDK changes with unit tests.
 - Includes documented client and server examples.
-- [Draft PR](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399)
+- Check out the [Draft PR](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399) for details.
+
+The reference implementation's example client and server demonstrate how groups, tools, prompts, and resources can be grouped on the server, and the client can filter them by group. It manually demonstrates how an agent using the server could easily reduce the tokens placed into an LLM's context by only including the primitives in one or more groups rather than providing the full list.
+
+Note: Tasks are not included in the example as they are ephemeral, but the SDK changes do support grouping of tasks.
 
 ## Acknowledgements
 
