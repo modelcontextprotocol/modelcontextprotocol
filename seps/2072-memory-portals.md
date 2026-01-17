@@ -91,6 +91,7 @@ mem://{namespace}/{portal-id}[/{table}][?query]
 ```
 
 Examples:
+
 - `mem://conversation/default` - Root portal reference
 - `mem://conversation/default/messages` - Specific table
 - `mem://conversation/default/messages?since=2024-01-01` - Filtered query
@@ -396,14 +397,17 @@ To ensure maximum portability:
 Several embedded database options were considered:
 
 **SQLite**:
+
 - Pros: Ubiquitous, well-tested, simpler
 - Cons: Row-based storage inefficient for llms, lacks advanced types
 
 **DuckDB**:
+
 - Pros: Excellent analytics performance, Parquet support
 - Cons: Less mature ecosystem, larger binary size
 
 **chDB** (chosen):
+
 - Pros: Columnar storage for analytics, single-file portability, SQL interface, ClickHouse ecosystem
 - Cons: Larger binary, newer project
 
@@ -419,6 +423,7 @@ The `mem://` scheme was chosen to:
 4. **Enable query parameters**: For filtering and pagination
 
 Alternative schemes considered:
+
 - `mcp-memory://` - Too verbose
 - `db://` - Too generic, conflicts with database connection URIs
 - `context://` - Too vague, doesn't convey persistence
@@ -448,11 +453,13 @@ Memory Portals is an **optional extension**. Existing MCP implementations contin
 ### For MCP Hosts
 
 Hosts that don't implement Memory Portals:
+
 - Ignore `mem://` resources during resource listing
 - Cannot read or write to memory portals
 - Fall back to server-provided text responses for memory tools
 
 Hosts can adopt Memory Portals incrementally:
+
 1. Basic support: Read-only access to view portal contents
 2. Full support: Complete CRUD operations
 3. UI support: Interactive viewers via MCP Apps integration
@@ -460,10 +467,12 @@ Hosts can adopt Memory Portals incrementally:
 ### For MCP Servers
 
 Servers that don't implement Memory Portals:
+
 - Continue functioning normally
 - Can adopt memory portals for specific use cases without changing existing functionality
 
 Servers implementing Memory Portals should:
+
 - Provide text fallbacks for memory-related tools when UI is unavailable
 - Clearly document which features require memory portal support
 - Degrade gracefully when hosts don't support the extension
@@ -483,6 +492,7 @@ A reference implementation is planned with the following components:
 ### Server SDK (`@mcp/memory-portals`)
 
 TypeScript SDK providing:
+
 - `MemoryPortal` class for creating and managing portals
 - `chDBAdapter` for database operations
 - Built-in schema versioning and migrations
@@ -492,6 +502,7 @@ TypeScript SDK providing:
 ### Example Server
 
 A demonstration server showcasing:
+
 - Conversation history storage
 - Tool output archiving
 - Cross-session context retrieval
@@ -511,6 +522,7 @@ A demonstration server showcasing:
 Keep storage implementation-specific, no protocol standardization.
 
 **Rejected because**:
+
 - Fragments ecosystem
 - Limits portability
 - No user control guarantees
@@ -520,6 +532,7 @@ Keep storage implementation-specific, no protocol standardization.
 Use `file://` URIs to reference database files directly.
 
 **Rejected because**:
+
 - Doesn't convey structured nature
 - No standard query interface
 - Security concerns with direct file access
@@ -529,6 +542,7 @@ Use `file://` URIs to reference database files directly.
 Add HTTP endpoints for database operations.
 
 **Rejected because**:
+
 - Requires servers to implement HTTP
 - Doesn't fit MCP's JSON-RPC model
 - Adds complexity
@@ -538,6 +552,7 @@ Add HTTP endpoints for database operations.
 Use vector stores (Pinecone, Weaviate) instead of SQL.
 
 **Rejected because**:
+
 - Too specialized for embeddings
 - Doesn't support general-purpose queries
 - Less portable
@@ -547,6 +562,7 @@ Use vector stores (Pinecone, Weaviate) instead of SQL.
 Keep data in memory, provide snapshot export.
 
 **Rejected because**:
+
 - Loses data on crashes
 - No incremental persistence
 - Can't handle large datasets
