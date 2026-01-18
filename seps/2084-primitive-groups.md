@@ -201,15 +201,13 @@ This specification proposal was selected for its ease of understanding since it 
 
 ### Alternatives Considered
 
+- **Groups as MCP Resources instead of new primitive:** A completely separate proposal where the group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. This proposal could reduce spec changes and implementation effort significantly, but it was not considered as intuitive.
+
 - **Primitive's group list passed in a first class `groups` property:** A variation of the proposed specification, but the list of groups to which a primitive instance belongs would be presented by a `groups` property added to the top level of each primitive's schema.
   This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
   Since this proposal spans all primitives, such a compatibility failure would be unacceptable. Consequently, we settled on using a reserved metadata key to pass the primitive's group list.
 
-
 - **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, beacuse groups can be hierarchical, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
-
-
-- **Groups as MCP Resources instead of new primitive:** A completely separate proposal where the group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. This proposal could reduce spec changes and implementation effort significantly, but it was not considered as intuitive.
 
 ## Security Implications
 
@@ -217,9 +215,8 @@ None identified
 
 ## Reference Implementation
 
-- Fully implemented Typescript SDK changes with unit tests.
-- Includes documented client and server examples.
-- Check out the [Draft PR](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399) for details.
+- **Schema Changes:** [PR #2110](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2110)
+- **TypeScript SDK:** [PR #1399](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399) - Fully implemented with unit tests and documented client/server examples.
 
 The reference implementation's example client and server demonstrate how groups, tools, prompts, and resources can be grouped on the server, and the client can filter them by group. It manually demonstrates how an agent using the server could easily reduce the tokens placed into an LLM's context by only including the primitives in one or more groups rather than providing the full list.
 
