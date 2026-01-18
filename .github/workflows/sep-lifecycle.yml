@@ -1,0 +1,111 @@
+name: SEP Lifecycle Automation
+
+on:
+  # Event-driven: react to SEP changes immediately
+  issues:
+    types: [labeled, unlabeled, assigned, unassigned, opened, reopened]
+  pull_request_target:
+    types: [labeled, unlabeled, assigned, unassigned, opened, reopened]
+
+  # Scheduled: weekly full sweep + Discord summary
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9 AM UTC
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  check-sep:
+    # For issue/PR events, only run if it looks like a SEP
+    if: |
+      github.event_name == 'schedule' ||
+      contains(github.event.issue.labels.*.name, 'SEP') ||
+      contains(github.event.issue.labels.*.name, 'proposal') ||
+      contains(github.event.issue.labels.*.name, 'draft') ||
+      contains(github.event.issue.labels.*.name, 'in-review') ||
+      contains(github.event.issue.labels.*.name, 'accepted') ||
+      contains(github.event.pull_request.labels.*.name, 'SEP') ||
+      contains(github.event.pull_request.labels.*.name, 'proposal') ||
+      contains(github.event.pull_request.labels.*.name, 'draft') ||
+      contains(github.event.pull_request.labels.*.name, 'in-review') ||
+      contains(github.event.pull_request.labels.*.name, 'accepted') ||
+      contains(github.event.issue.title, 'SEP') ||
+      contains(github.event.pull_request.title, 'SEP')
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      issue_number: ${{ steps.check.outputs.issue_number }}
+      is_single: ${{ steps.check.outputs.is_single }}
+    steps:
+      - name: Determine run mode
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "issue_number=" >> $GITHUB_OUTPUT
+            echo "is_single=false" >> $GITHUB_OUTPUT
+          else
+            # Issue or PR event
+            ISSUE_NUMBER="${{ github.event.issue.number || github.event.pull_request.number }}"
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+            echo "is_single=true" >> $GITHUB_OUTPUT
+          fi
+
+  run-automation:
+    needs: check-sep
+    if: needs.check-sep.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tools/sep-automation/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tools/sep-automation
+        run: npm ci
+
+      - name: Build
+        working-directory: tools/sep-automation
+        run: npm run build
+
+      - name: Run SEP Lifecycle Automation
+        id: automation
+        working-directory: tools/sep-automation
+        run: |
+          if [[ "${{ needs.check-sep.outputs.is_single }}" == "true" ]]; then
+            echo "Processing single issue #${{ needs.check-sep.outputs.issue_number }}"
+            npm start -- --issue ${{ needs.check-sep.outputs.issue_number }} 2>&1 | tee automation.log
+          else
+            echo "Running full sweep"
+            npm start 2>&1 | tee automation.log
+          fi
+        env:
+          # Use GitHub App for auth (has read:org for team membership checks)
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          # Fallback to GITHUB_TOKEN if App not configured
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAINTAINERS_TEAM: core-maintainers
+          DRY_RUN: 'false'
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          LOG_LEVEL: info
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: automation-logs-${{ github.run_id }}
+          path: tools/sep-automation/automation.log
+          retention-days: 30
