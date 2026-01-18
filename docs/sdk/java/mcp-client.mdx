@@ -207,7 +207,7 @@ The transport layer handles the communication between MCP clients and servers, p
             .build();
         ```
 
-        To dynamically modify HTTP request before they are issued, implement either `McpSyncHttpClientRequestCustomizer` or `McpAsyncHttpClientRequestCustomizer`.
+        To dynamically modify HTTP requests before they are issued, implement either `McpSyncHttpClientRequestCustomizer` or `McpAsyncHttpClientRequestCustomizer`.
         Choose the request customizer matching the MCP Client type, sync or async.
         Note that thread-locals may not be available in the customizers, context-related information
         must be accessed through `McpTransportContext` (see [adding context information](#adding-context-information)).
@@ -296,7 +296,7 @@ The transport layer handles the communication between MCP clients and servers, p
                                     .build();
         ```
 
-        To dynamically modify HTTP request, the builder has a dedicated API, `ExchangeFilterFunction`.
+        To dynamically modify HTTP requests, the builder has a dedicated API, `ExchangeFilterFunction`.
         In that function, the new request can be computed at run time, and additional information can
         be obtained from the [Reactor context](https://projectreactor.io/docs/core/release/reference/advancedFeatures/context.html).
         It is common to store context information in an `McpTransportContext` within the Reactor context,
@@ -421,7 +421,7 @@ mcpClient.initialize();
 
 mcpClient.setLoggingLevel(McpSchema.LoggingLevel.INFO);
 
-// Call the tool that can sends logging notifications
+// Call the tool that can send logging notifications
 CallToolResult result = mcpClient.callTool(new McpSchema.CallToolRequest("logging-test", Map.of()));
 ```
 
@@ -441,7 +441,7 @@ var mcpClient = McpClient.sync(transport)
 
 mcpClient.initialize();
 
-// Call the tool that can sends progress notifications
+// Call the tool that can send progress notifications
 CallToolResult result = mcpClient.callTool(new McpSchema.CallToolRequest("progress-test", Map.of()));
 ```
 
