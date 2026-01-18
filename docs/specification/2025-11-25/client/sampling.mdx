@@ -439,16 +439,16 @@ This requirement ensures:
 
 **Example valid sequence:**
 
-1. User message: "What's the weather like in Paris and London?"
+1. Server message: "What's the weather like in Paris and London?"
 2. Assistant message: `ToolUseContent` (`id: "call_abc123", name: "get_weather", input: {city: "Paris"}`) + `ToolUseContent` (`id: "call_def456", name: "get_weather", input: {city: "London"}`)
-3. User message: `ToolResultContent` (`toolUseId: "call_abc123", content: "18°C, partly cloudy"`) + `ToolResultContent` (`toolUseId: "call_def456", content: "15°C, rainy"`)
+3. Server message: `ToolResultContent` (`toolUseId: "call_abc123", content: "18°C, partly cloudy"`) + `ToolResultContent` (`toolUseId: "call_def456", content: "15°C, rainy"`)
 4. Assistant message: Text response comparing the weather in both cities
 
 **Invalid sequence - missing tool result:**
 
-1. User message: "What's the weather like in Paris and London?"
+1. Server message: "What's the weather like in Paris and London?"
 2. Assistant message: `ToolUseContent` (`id: "call_abc123", name: "get_weather", input: {city: "Paris"}`) + `ToolUseContent` (`id: "call_def456", name: "get_weather", input: {city: "London"}`)
-3. User message: `ToolResultContent` (`toolUseId: "call_abc123", content: "18°C, partly cloudy"`) ← Missing result for call_def456
+3. Server message: `ToolResultContent` (`toolUseId: "call_abc123", content: "18°C, partly cloudy"`) ← Missing result for call_def456
 4. Assistant message: Text response (invalid - not all tool uses were resolved)
 
 ## Cross-API Compatibility
