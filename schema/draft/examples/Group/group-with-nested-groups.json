@@ -1,0 +1,15 @@
+{
+  "name": "email",
+  "title": "Email Tools",
+  "description": "Tools for composing and sending emails.",
+  "icons": [
+    {
+      "src": "https://example.com/email-icon.png",
+      "mimeType": "image/png",
+      "sizes": ["48x48"]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol/groups": ["productivity"]
+  }
+}

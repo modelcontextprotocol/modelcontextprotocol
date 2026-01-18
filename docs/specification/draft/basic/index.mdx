@@ -216,6 +216,25 @@ may reserve particular names for purpose-specific metadata, as declared in those
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
 
+#### Reserved `_meta` Keys
+
+MCP reserves certain `_meta` keys for protocol-level functionality.
+
+##### `io.modelcontextprotocol/groups`
+
+Indicates group membership for any primitive (Tool, Resource, Prompt, Task, Group).
+The value is an array of group names:
+
+```json
+{
+  "_meta": {
+    "io.modelcontextprotocol/groups": ["group-name-1", "group-name-2"]
+  }
+}
+```
+
+See [Groups](/specification/draft/server/groups) for details.
+
 ### `icons`
 
 The `icons` property provides a standardized way for servers to expose visual identifiers for their resources, tools, prompts, and implementations. Icons enhance user interfaces by providing visual context and improving the discoverability of available functionality.

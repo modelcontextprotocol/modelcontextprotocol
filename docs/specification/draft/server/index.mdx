@@ -13,6 +13,7 @@ models:
 - **Resources**: Structured data or content that provides additional context to the model
 - **Tools**: Executable functions that allow models to perform actions or retrieve
   information
+- **Groups**: Named collections for organizing primitives
 
 Each primitive can be summarized in the following control hierarchy:
 
@@ -21,10 +22,11 @@ Each primitive can be summarized in the following control hierarchy:
 | Prompts   | User-controlled        | Interactive templates invoked by user choice       | Slash commands, menu options    |
 | Resources | Application-controlled | Contextual data attached and managed by the client | File contents, git history      |
 | Tools     | Model-controlled       | Functions exposed to the LLM to take actions       | API POST requests, file writing |
+| Groups    | Application-controlled | Named collections for organizing primitives        | Functional areas, use cases     |
 
 Explore these key primitives in more detail below:
 
-<CardGroup cols={3}>
+<CardGroup cols={4}>
   <Card
     title="Prompts"
     icon="message"
@@ -36,4 +38,9 @@ Explore these key primitives in more detail below:
     href="/specification/draft/server/resources"
   />
   <Card title="Tools" icon="wrench" href="/specification/draft/server/tools" />
+  <Card
+    title="Groups"
+    icon="folder"
+    href="/specification/draft/server/groups"
+  />
 </CardGroup>

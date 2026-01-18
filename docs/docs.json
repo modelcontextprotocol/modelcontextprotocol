@@ -305,6 +305,7 @@
                   "specification/draft/server/prompts",
                   "specification/draft/server/resources",
                   "specification/draft/server/tools",
+                  "specification/draft/server/groups",
                   {
                     "group": "Utilities",
                     "pages": [

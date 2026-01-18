@@ -628,6 +628,21 @@ export interface ServerCapabilities {
     listChanged?: boolean;
   };
   /**
+   * Present if the server offers any groups to organize primitives.
+   *
+   * @example Groups — minimum baseline support
+   * {@includeCode ./examples/ServerCapabilities/groups-minimum-baseline-support.json}
+   *
+   * @example Groups — list changed notifications
+   * {@includeCode ./examples/ServerCapabilities/groups-list-changed-notifications.json}
+   */
+  groups?: {
+    /**
+     * Whether this server supports notifications for changes to the group list.
+     */
+    listChanged?: boolean;
+  };
+  /**
    * Present if the server supports task-augmented requests.
    */
   tasks?: {
@@ -1964,6 +1979,85 @@ export interface TaskStatusNotification extends JSONRPCNotification {
   params: TaskStatusNotificationParams;
 }
 
+/* Groups */
+
+/**
+ * Sent from the client to request a list of groups the server has.
+ *
+ * @example List groups request
+ * {@includeCode ./examples/ListGroupsRequest/list-groups-request.json}
+ *
+ * @category `groups/list`
+ */
+export interface ListGroupsRequest extends PaginatedRequest {
+  method: "groups/list";
+}
+
+/**
+ * The result returned by the server for a {@link ListGroupsRequest | groups/list} request.
+ *
+ * @example Groups list with cursor
+ * {@includeCode ./examples/ListGroupsResult/groups-list-with-cursor.json}
+ *
+ * @category `groups/list`
+ */
+export interface ListGroupsResult extends PaginatedResult {
+  groups: Group[];
+}
+
+/**
+ * A successful response from the server for a {@link ListGroupsRequest | groups/list} request.
+ *
+ * @example List groups result response
+ * {@includeCode ./examples/ListGroupsResultResponse/list-groups-result-response.json}
+ *
+ * @category `groups/list`
+ */
+export interface ListGroupsResultResponse extends JSONRPCResultResponse {
+  result: ListGroupsResult;
+}
+
+/**
+ * An optional notification from the server to the client, informing it that the list
+ * of groups it offers has changed.
+ *
+ * @example Groups list changed
+ * {@includeCode ./examples/GroupListChangedNotification/groups-list-changed.json}
+ *
+ * @category `notifications/groups/list_changed`
+ */
+export interface GroupListChangedNotification extends JSONRPCNotification {
+  method: "notifications/groups/list_changed";
+  params?: NotificationParams;
+}
+
+/**
+ * Definition for a group that organizes MCP primitives.
+ *
+ * @example Basic group
+ * {@includeCode ./examples/Group/basic-group.json}
+ *
+ * @example Group with nested groups
+ * {@includeCode ./examples/Group/group-with-nested-groups.json}
+ *
+ * @category `groups/list`
+ */
+export interface Group extends BaseMetadata, Icons {
+  /**
+   * A human-readable description of the group.
+   */
+  description?: string;
+
+  /**
+   * Optional additional group information.
+   *
+   * Display name precedence order is: `title`, `annotations.title`, then `name`.
+   */
+  annotations?: Annotations;
+
+  _meta?: MetaObject;
+}
+
 /* Logging */
 
 /**
@@ -3155,6 +3249,7 @@ export type ClientRequest =
   | UnsubscribeRequest
   | CallToolRequest
   | ListToolsRequest
+  | ListGroupsRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -3200,6 +3295,7 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
+  | GroupListChangedNotification
   | ElicitationCompleteNotification
   | TaskStatusNotification;
 
@@ -3215,6 +3311,7 @@ export type ServerResult =
   | ReadResourceResult
   | CallToolResult
   | ListToolsResult
+  | ListGroupsResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult

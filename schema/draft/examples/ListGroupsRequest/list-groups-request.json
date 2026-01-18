@@ -1,0 +1,5 @@
+{
+  "jsonrpc": "2.0",
+  "id": "list-groups-example",
+  "method": "groups/list"
+}

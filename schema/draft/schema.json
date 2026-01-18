@@ -499,6 +499,9 @@
                     "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
+                    "$ref": "#/$defs/ListGroupsRequest"
+                },
+                {
                     "$ref": "#/$defs/SetLevelRequest"
                 },
                 {
@@ -1420,6 +1423,62 @@
             ],
             "type": "object"
         },
+        "Group": {
+            "description": "Definition for a group that organizes MCP primitives.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/Annotations",
+                    "description": "Optional additional group information.\n\nDisplay name precedence order is: `title`, `annotations.title`, then `name`."
+                },
+                "description": {
+                    "description": "A human-readable description of the group.",
+                    "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/$defs/Icon"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "GroupListChangedNotification": {
+            "description": "An optional notification from the server to the client, informing it that the list\nof groups it offers has changed.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/groups/list_changed",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/NotificationParams"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method"
+            ],
+            "type": "object"
+        },
         "Icon": {
             "description": "An optionally-sized icon that can be displayed in a user interface.",
             "properties": {
@@ -1868,6 +1927,74 @@
             "required": [
                 "enum",
                 "type"
+            ],
+            "type": "object"
+        },
+        "ListGroupsRequest": {
+            "description": "Sent from the client to request a list of groups the server has.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "groups/list",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/PaginatedRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method"
+            ],
+            "type": "object"
+        },
+        "ListGroupsResult": {
+            "description": "The result returned by the server for a {@link ListGroupsRequestgroups/list} request.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "groups": {
+                    "items": {
+                        "$ref": "#/$defs/Group"
+                    },
+                    "type": "array"
+                },
+                "nextCursor": {
+                    "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "groups"
+            ],
+            "type": "object"
+        },
+        "ListGroupsResultResponse": {
+            "description": "A successful response from the server for a {@link ListGroupsRequestgroups/list} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/ListGroupsResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
             ],
             "type": "object"
         },
@@ -3337,6 +3464,16 @@
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
+                "groups": {
+                    "description": "Present if the server offers any groups to organize primitives.",
+                    "properties": {
+                        "listChanged": {
+                            "description": "Whether this server supports notifications for changes to the group list.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
                 "logging": {
                     "additionalProperties": true,
                     "description": "Present if the server supports sending log messages to the client.",
@@ -3440,6 +3577,9 @@
                     "$ref": "#/$defs/TaskStatusNotification"
                 },
                 {
+                    "$ref": "#/$defs/GroupListChangedNotification"
+                },
+                {
                     "$ref": "#/$defs/LoggingMessageNotification"
                 },
                 {
@@ -3517,6 +3657,9 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksResult"
+                },
+                {
+                    "$ref": "#/$defs/ListGroupsResult"
                 },
                 {
                     "$ref": "#/$defs/CompleteResult"
