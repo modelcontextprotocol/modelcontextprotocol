@@ -756,7 +756,7 @@ For example, URL mode elicitation may be used to perform OAuth flows where the s
 3. Alice's client displays the URL and asks for consent
 4. Instead of clicking on the link, Alice tricks a victim user (Bob) of the same benign server into clicking it
 5. Bob opens the link and completes the authorization, thinking they are authorizing their own connection to the benign server
-6. The benign server receives a callback/redirect form the third-party authorization server, and assumes it's Alice's request
+6. The benign server receives a callback/redirect from the third-party authorization server, and assumes it's Alice's request
 7. The tokens for the third-party server are bound to Alice's session and identity, instead of Bob's, resulting in an account takeover
 
 To prevent this attack, the server **MUST** ensure that the user who started the elicitation request (the end-user who is accessing the server via the MCP client) is the same user who completes the authorization flow.

@@ -383,7 +383,7 @@ Writing to stdout will corrupt the JSON-RPC messages and break your server.
 ### Best Practices
 
 1. Use a logging library that writes to stderr or files, such as `logging` in Python.
-2. For JavaScript, be especially careful - `console.log()` writes to stdout by default
+2. For JavaScript, be especially careful - `console.log()` writes to stdout by default.
 
 ### Quick Examples
 
@@ -965,8 +965,8 @@ public class WeatherService {
 }
 ```
 
-The `@Service` annotation with auto-register the service in your application context.
-The Spring AI `@Tool` annotation, making it easy to create and maintain MCP tools.
+The `@Service` annotation will auto-register the service in your application context.
+The Spring AI `@Tool` annotation makes it easy to create and maintain MCP tools.
 
 The auto-configuration will automatically register these tools with the MCP server.
 
@@ -1129,7 +1129,7 @@ You can reuse the existing Anthropic Desktop configuration:
 spring.ai.mcp.client.stdio.servers-configuration=file:PATH/TO/claude_desktop_config.json
 ```
 
-When you start your client application, the auto-configuration will create, automatically MCP clients from the claude_desktop_config.json.
+When you start your client application, the auto-configuration will automatically create MCP clients from the claude_desktop_config.json.
 
 For more information, see the [MCP Client Boot Starters](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-client-docs.html) reference documentation.
 
@@ -2246,7 +2246,7 @@ Let's make sure Claude for Desktop is picking up the two tools we've exposed in 
   <img src="/images/visual-indicator-mcp-tools.png" />
 </Frame>
 
-After clicking on the plus icon, hover over the "Connectors" menu, you should see the `weather`servers listed:
+After clicking on the plus icon, hover over the "Connectors" menu. You should see the `weather` servers listed:
 
 <Frame>
   <img src="/images/available-mcp-tools.png" />
