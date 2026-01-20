@@ -2,58 +2,14 @@
  * Core maintainer team lookup
  */
 
-import type { Logger } from 'pino';
-import type { Config } from '../config.js';
-import type { GitHubClient } from '../github/client.js';
+import type { Logger } from "pino";
+import type { Config } from "../config.js";
+import type { GitHubClient } from "../github/client.js";
 
 /**
- * Subteams of steering-committee whose members can sponsor SEPs.
+ * The root team whose members (including all subteam members) can sponsor SEPs.
  */
-const SPONSOR_TEAMS = [
-  'core-maintainers',
-  'moderators',
-  'working-groups',
-  'interest-groups',
-  'sdk-maintainers',
-  'inspector-maintainers',
-  'mcpb-maintainers',
-  'docs-maintainers',
-  'lead-maintainers',
-];
-
-/**
- * Fallback list of allowed sponsors.
- * Used when the GitHub Teams API is not accessible.
- * Keep this in sync with the steering-committee subteams.
- *
- * Generated from: steering-committee subteams
- * Last updated: 2026-01-16
- */
-const FALLBACK_SPONSORS = new Set([
-  // core-maintainers
-  'jspahrsummers', 'pcarleton', 'CaitieM20', 'pwwpche', 'kurtisvg',
-  'localden', 'nickcoai', '000-000-000-000-000', 'dsp-ant', 'bhosmer-ant',
-  // moderators
-  'jonathanhefner', 'cliffhall', 'evalstate', 'tadasant', 'maheshmurag',
-  'olaservo', 'jerome3o-anthropic',
-  // working-groups
-  'toby', 'aaronpk', 'felixweinberger', 'domdomegg', 'rdimitrov',
-  'an-dustin', 'LucaButBoring', 'D-McAdams', 'jenn-newton', 'og-ant', 'petery-ant',
-  // interest-groups
-  'sambhav', 'PederHP',
-  // sdk-maintainers
-  'mattt', 'koic', 'michaelneale', 'fabpot', 'atesgoral', 'halter73',
-  'nicolas-grekas', 'markpollack', 'ochafik', 'stallent', 'ignatov',
-  'alexhancock', 'KKonstantinov', 'ansaba', 'pronskiy', 'Nyholm',
-  'tzolov', 'kpavlov', 'topherbullock', 'movetz', 'chemicL', 'stephentoub',
-  'eiriktsarpalis', 'chr-hertel', 'maciej-kisiel', 'e5l', 'jamadeo',
-  // inspector-maintainers (KKonstantinov, cliffhall, olaservo already listed)
-  // mcpb-maintainers
-  'felixrieseberg', 'MarshallOfSound', 'asklar', 'joan-anthropic',
-  // docs-maintainers
-  'ihrpr', 'a-akimov',
-  // lead-maintainers (dsp-ant already listed)
-]);
+const SPONSOR_ROOT_TEAM = "steering-committee";
 
 export class MaintainerResolver {
   private readonly config: Config;
@@ -69,8 +25,8 @@ export class MaintainerResolver {
   }
 
   /**
-   * Load allowed sponsors from the API (all steering-committee subteams),
-   * falling back to static list on error.
+   * Load allowed sponsors from the API by recursively traversing
+   * all subteams of steering-committee.
    */
   private async ensureSponsorsLoaded(): Promise<Set<string>> {
     if (this.maintainerSet) {
@@ -78,21 +34,32 @@ export class MaintainerResolver {
     }
 
     if (this.loadAttempted) {
-      // Already tried and failed, use fallback
-      return FALLBACK_SPONSORS;
+      // Already tried and failed, return empty set
+      return new Set();
     }
 
     this.loadAttempted = true;
 
     try {
+      // Discover all teams recursively from the root team
+      const allTeams = await this.github.getAllDescendantTeams(
+        this.config.targetOwner,
+        SPONSOR_ROOT_TEAM,
+      );
+
+      this.logger?.debug(
+        { teams: allTeams },
+        "Discovered sponsor teams from steering-committee",
+      );
+
       const allMembers = new Set<string>();
 
-      // Fetch members from all sponsor teams
-      for (const team of SPONSOR_TEAMS) {
+      // Fetch members from all discovered teams
+      for (const team of allTeams) {
         try {
           const members = await this.github.getTeamMembers(
             this.config.targetOwner,
-            team
+            team,
           );
           for (const member of members) {
             allMembers.add(member);
@@ -100,7 +67,7 @@ export class MaintainerResolver {
         } catch (error) {
           this.logger?.debug(
             { team, error: String(error) },
-            'Failed to load team, continuing with others'
+            "Failed to load team members, continuing with others",
           );
         }
       }
@@ -108,20 +75,20 @@ export class MaintainerResolver {
       if (allMembers.size > 0) {
         this.maintainerSet = allMembers;
         this.logger?.info(
-          { count: allMembers.size },
-          'Loaded allowed sponsors from API'
+          { count: allMembers.size, teamCount: allTeams.length },
+          "Loaded allowed sponsors from API",
         );
         return this.maintainerSet;
       }
 
-      // All teams failed, use fallback
-      throw new Error('No team members loaded from any team');
+      throw new Error("No team members loaded from any team");
     } catch (error) {
-      this.logger?.warn(
+      this.logger?.error(
         { error: String(error) },
-        'Failed to load sponsors from API, using fallback list'
+        "Failed to load sponsors from API",
       );
-      this.maintainerSet = FALLBACK_SPONSORS;
+      // No fallback - return empty set
+      this.maintainerSet = new Set();
       return this.maintainerSet;
     }
   }
@@ -133,13 +100,6 @@ export class MaintainerResolver {
   async canSponsor(username: string): Promise<boolean> {
     const sponsors = await this.ensureSponsorsLoaded();
     return sponsors.has(username);
-  }
-
-  /**
-   * Alias for canSponsor (for backward compatibility)
-   */
-  async isCoreMaintainer(username: string): Promise<boolean> {
-    return this.canSponsor(username);
   }
 
   /**
