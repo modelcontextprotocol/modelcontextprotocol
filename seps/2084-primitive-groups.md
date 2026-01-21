@@ -29,6 +29,7 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently. Some use cases identified by the community include:
 
 #### Client-Side & User Organization
+
 - **Client-side Filtering:** Client UIs could display a list of groups and allow users to select/deselect specific groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
 
 - **Library Management:** Enabling users to create and manage organized Prompt and Resource libraries that can be shared or reused across different sessions.
@@ -38,6 +39,7 @@ Organizing a server's primitives by functionality or use case enables richer cli
 - **Workflow-Specific Context:** Providing a model with a "set" of tools and tasks specifically curated for a particular workflow, rather than overwhelming it with every available primitive.
 
 #### Server-Side & Architectural Patterns
+
 - **Gateway Facades:** Using a Gateway Server to wrap various backend services (REST APIs, databases, or legacy systems) into a single cohesive facade. For example, a group might dynamically expose a mix of tools from different MCP servers, APIs, REST services, etc.
 
 - **Dynamic Orchestration:** Supporting the ability to add or remove groups and tools without restarting the server, which is essential for high-availability gateway environments.
@@ -45,6 +47,7 @@ Organizing a server's primitives by functionality or use case enables richer cli
 - **Task Management:** Grouping the new Task primitive alongside tools and prompts to manage long-running workflows, sequencing, and concurrency.
 
 #### Governance & Development Lifecycle
+
 - **Governance and Security:** Providing a standardized mechanism for server-side governance of who can access specific sets of tools and resources.
 
 - **Ecosystem Tooling:** Supporting broader developer workflows such as debugging, automated testing, and documentation by grouping related diagnostic tools together.
