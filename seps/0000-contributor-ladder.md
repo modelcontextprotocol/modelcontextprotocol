@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2025-01-15
-- **Author(s)**: David Soria Parra (@dsp-ant)
+- **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
 - **Sponsor**: None
 - **PR**: TBD
 
