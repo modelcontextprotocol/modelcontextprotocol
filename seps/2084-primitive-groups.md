@@ -26,7 +26,7 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 
 ### Why use Groups?
 
-Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently. Some use cases identified by the community include:
+Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently. Some use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) include:
 
 #### Client-Side & User Organization
 
