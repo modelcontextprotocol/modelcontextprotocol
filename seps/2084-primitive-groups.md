@@ -244,4 +244,4 @@ Note: Tasks are not included in the example as they are ephemeral, but the SDK c
 
 ## Acknowledgements
 
-@cliffhall and @chughtapan thank @patwhite for their earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed.
+@cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed. And to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping.
