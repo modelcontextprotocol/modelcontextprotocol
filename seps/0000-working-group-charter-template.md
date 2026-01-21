@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2025-01-15
-- **Author(s)**: David Soria Parra (@dsp-ant)
+- **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
 - **Sponsor**: None
 - **PR**: TBD
 
@@ -40,14 +40,16 @@ Charters are stored as MDX files in `docs/community/workinggroups/` in the model
 #### 1. Mission Statement
 
 A 2-3 sentence summary of the working group's purpose, articulating:
+
 - The problem space being addressed
 - Why cross-cutting collaboration is needed
 
-*Example: "The Transport Working Group exists to evolve MCP's transport mechanisms to support diverse deployment scenarios—from local subprocess communication to horizontally-scaled cloud deployments—while maintaining protocol coherence and backward compatibility."*
+_Example: "The Transport Working Group exists to evolve MCP's transport mechanisms to support diverse deployment scenarios—from local subprocess communication to horizontally-scaled cloud deployments—while maintaining protocol coherence and backward compatibility."_
 
 #### 2. Scope
 
 **In Scope**: Enumerated responsibilities including:
+
 - Specification Work: Specific spec sections or SEPs owned
 - Reference Implementations: SDK components or reference implementations
 - Cross-Cutting Concerns: Areas requiring coordination with other groups
@@ -60,15 +62,18 @@ A 2-3 sentence summary of the working group's purpose, articulating:
 #### 3. Leadership
 
 **Working Group Leads** table with:
+
 - Role, Name, Organization, GitHub handle, Term
 
 **Lead Requirements:**
+
 - Demonstrated sustained contribution to scope area
 - Ability to facilitate across organizational boundaries
 - Commitment to 2-3 hours/week for WG activities
 - Sponsored by at least two Core Maintainers or one Lead Core Maintainer
 
 **Lead Responsibilities:**
+
 - Schedule and facilitate regular working group meetings
 - Set agendas in collaboration with participants
 - Ensure meeting notes are published within 48 hours
@@ -79,20 +84,21 @@ A 2-3 sentence summary of the working group's purpose, articulating:
 
 #### 4. Authority & Decision Rights
 
-*This section addresses the "unclear authority" issue identified in community interviews. Each WG should explicitly define what decisions it can make autonomously.*
+_This section addresses the "unclear authority" issue identified in community interviews. Each WG should explicitly define what decisions it can make autonomously._
 
 Each WG must explicitly define its decision authority:
 
-| Decision Type | Authority Level | Process |
-|---------------|-----------------|---------|
-| Meeting logistics & scheduling | WG Leads (autonomous) | Leads decide |
-| Proposal prioritization within WG | WG Leads (autonomous) | Lazy consensus among leads |
-| Technical design within scope | WG consensus | Discussion → lazy consensus → escalate if blocked |
-| Spec changes (additive) | WG recommends → Core Maintainer approval | SEP process |
-| Spec changes (breaking/fundamental) | WG recommends → Core Maintainer approval + wider review | SEP process with extended comment period |
-| Scope expansion | Core Maintainer approval required | Charter amendment process |
+| Decision Type                       | Authority Level                                         | Process                                           |
+| ----------------------------------- | ------------------------------------------------------- | ------------------------------------------------- |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                   | Leads decide                                      |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                   | Lazy consensus among leads                        |
+| Technical design within scope       | WG consensus                                            | Discussion → lazy consensus → escalate if blocked |
+| Spec changes (additive)             | WG recommends → Core Maintainer approval                | SEP process                                       |
+| Spec changes (breaking/fundamental) | WG recommends → Core Maintainer approval + wider review | SEP process with extended comment period          |
+| Scope expansion                     | Core Maintainer approval required                       | Charter amendment process                         |
 
 **Escalation Path:**
+
 1. WG Lead documents decision, options, and points of disagreement
 2. WG Lead presents to Core Maintainer with clear ask
 3. Core Maintainer either: (a) provides binding guidance, (b) requests more information, or (c) brings to full Core Maintainer group
@@ -100,24 +106,26 @@ Each WG must explicitly define its decision authority:
 
 #### 5. Membership
 
-*Addressing the interview feedback that it's "not clear who should be participating in these groups"*
+_Addressing the interview feedback that it's "not clear who should be participating in these groups"_
 
 **Participation Levels:**
 
-| Level | Description | Privileges |
-|-------|-------------|------------|
-| **Observer** | Anyone interested in following the WG's work | Read access, may attend meetings, limited discussion participation |
-| **Participant** | Active contributor to WG discussions | Can propose agenda items, participate in async votes |
-| **Member** | Sustained contributor with demonstrated expertise | Can champion SEPs, counted for quorum |
-| **Lead** | Operational leadership of the WG | Sets agenda, facilitates, escalates |
+| Level           | Description                                       | Privileges                                                         |
+| --------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| **Observer**    | Anyone interested in following the WG's work      | Read access, may attend meetings, limited discussion participation |
+| **Participant** | Active contributor to WG discussions              | Can propose agenda items, participate in async votes               |
+| **Member**      | Sustained contributor with demonstrated expertise | Can champion SEPs, counted for quorum                              |
+| **Lead**        | Operational leadership of the WG                  | Sets agenda, facilitates, escalates                                |
 
 **Becoming a Member:**
+
 - Sustained participation over 3 months
 - Meaningful contributions (code, spec text, reviews, or documentation)
 - Nomination by existing Member or Lead
 - No objections from Leads, Core Maintainers, or Lead Core Maintainers within 7 days
 
 **Responsibilities:**
+
 - Continue contributing in good faith
 - Maintain name, organization and Discord name in the respective working group member list
 
@@ -127,12 +135,13 @@ Each WG must explicitly define its decision authority:
 
 **Meetings:**
 
-| Meeting | Frequency | Duration | Purpose |
-|---------|-----------|----------|---------|
-| Working Session | Weekly/Biweekly | 60 min | Technical discussion, proposal review |
-| Office Hours | Monthly | 30 min | Open Q&A for newcomers and observers |
+| Meeting         | Frequency       | Duration | Purpose                               |
+| --------------- | --------------- | -------- | ------------------------------------- |
+| Working Session | Weekly/Biweekly | 60 min   | Technical discussion, proposal review |
+| Office Hours    | Monthly         | 30 min   | Open Q&A for newcomers and observers  |
 
 **Meeting Norms:**
+
 - Meeting published on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io) 7 days in advance
 - Agendas published 24 hours in advance to an [issue created for the meeting](https://github.com/modelcontextprotocol/modelcontextprotocol/issues)
 - Notes published within 48 hours to the same issue
@@ -142,27 +151,30 @@ Each WG must explicitly define its decision authority:
 
 **Communication Channels:**
 
-| Channel | Purpose | Response Expectation |
-|---------|---------|---------------------|
-| Discord #wg-name | Quick questions, coordination | Best effort |
-| GitHub Discussions | Long-form technical discussion | Weekly triage |
+| Channel            | Purpose                        | Response Expectation |
+| ------------------ | ------------------------------ | -------------------- |
+| Discord #wg-name   | Quick questions, coordination  | Best effort          |
+| GitHub Discussions | Long-form technical discussion | Weekly triage        |
 
 **Decision-Making:**
 
-*Addressing interview feedback about "one maintainer says this thing, then two weeks later another maintainer says this other thing"*
+_Addressing interview feedback about "one maintainer says this thing, then two weeks later another maintainer says this other thing"_
 
 **Default: Lazy Consensus**
+
 - Proposals announced with clear deadline (3 days minimum for minor items, 7 days for significant items)
 - Silence is consent
 - Any Member may block with documented objection
 - Blocks must propose alternatives or clear criteria for resolution
 
 **When Voting Required:**
+
 - Lazy consensus fails to achieve resolution
 - Lead or three or more Members request formal vote
 - Decision has broad impact beyond WG scope
 
 **Voting Rules:**
+
 - Quorum: 50% of active Members
 - Passage: Simple majority for routine matters; 2/3 majority for scope changes
 - Core Maintainer feedback is advisory unless explicitly stated as binding
@@ -172,13 +184,14 @@ Each WG must explicitly define its decision authority:
 
 **Active Work Items Table:**
 
-| Item | Status | Target Date | Champion |
-|------|--------|-------------|----------|
-| SEP-XXX: Name | Draft/Review/Approved | Date | Name |
+| Item          | Status                | Target Date | Champion |
+| ------------- | --------------------- | ----------- | -------- |
+| SEP-XXX: Name | Draft/Review/Approved | Date        | Name     |
 
 **Success Criteria:** Measurable outcomes for WG success.
 
 **Quarterly Reporting:** Working groups provide quarterly updates (end of January, April, July, October) including:
+
 - Progress against deliverables
 - Blocked items and escalations
 - Membership changes
@@ -188,6 +201,7 @@ Each WG must explicitly define its decision authority:
 #### 8. Lifecycle
 
 **Formation Requirements:**
+
 - Cross-cutting concern requiring coordination
 - At least two Core Maintainers or one Lead Core Maintainer sponsor
 - Initial charter approved by Core Maintainers or Lead Core Maintainers
@@ -196,11 +210,13 @@ Each WG must explicitly define its decision authority:
 **Initial Membership:** Sponsoring Core Maintainers may directly appoint initial WG Leads and Members, bypassing normal nomination. Subsequent members follow standard process.
 
 **Retirement Criteria:**
+
 - Mission accomplished
 - Unable to maintain quorum for 3+ months
 - Scope absorbed into core governance or another WG
 
 **Retirement Process:**
+
 1. WG Lead or Core Maintainer proposes retirement with rationale
 2. Core Maintainer or Lead Core Maintainer approval
 3. Documentation archived, channels marked inactive
@@ -208,6 +224,7 @@ Each WG must explicitly define its decision authority:
 #### 9. Charter Amendments
 
 Changes to a WG charter require:
+
 - Proposal by WG Lead or Core Maintainer
 - Approval by Core Maintainers
 
@@ -220,6 +237,7 @@ Track charter versions with date and changes.
 ### Why a Standardized Template?
 
 Standardization:
+
 - Ensures all WGs address critical governance questions
 - Makes it easier for community members to understand any WG's operations
 - Reduces overhead for forming new WGs
@@ -232,6 +250,7 @@ The authority table directly addresses the "unclear authority" feedback. By enum
 ### Why Tiered Participation?
 
 Different engagement levels serve different community needs:
+
 - **Observers** can learn without commitment
 - **Participants** can contribute without full Member responsibilities
 - **Members** take on accountability and get decision rights
@@ -240,6 +259,7 @@ Different engagement levels serve different community needs:
 ### Why Lazy Consensus as Default?
 
 Lazy consensus:
+
 - Enables efficient decision-making for routine matters
 - Reduces meeting burden
 - Documents decisions through announcement/deadline structure
