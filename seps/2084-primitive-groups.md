@@ -250,7 +250,6 @@ Note: Tasks are not included in the example as they are ephemeral, but the SDK c
 
 ## Acknowledgements
 
-@cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed. 
-And thanks to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping.
-Thanks also to @bdoyle0182, @LucaButBoring, and @SamMorrowDrums for providing feedback and opinions in Discord and meetings.
-
+- @cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed.
+- And thanks to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping and providing input on alternative implementations.
+- Thanks also to @bdoyle0182, @LucaButBoring, and @SamMorrowDrums for providing feedback and opinions in Discord and meetings.
