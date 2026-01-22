@@ -8,7 +8,7 @@
   "homepage": "https://modelcontextprotocol.io",
   "bugs": "https://github.com/modelcontextprotocol/specification/issues",
   "engines": {
-    "node": ">=20"
+    "node": ">=20,<25"
   },
   "prettier": {
     "overrides": [
