@@ -1,0 +1,96 @@
+# SEP-985: Align OAuth 2.0 Protected Resource Metadata with RFC 9728
+
+- **Status**: Final
+- **Type**: Standards Track
+- **Created**: 2025-07-16
+- **Author(s)**: sunishsheth2009
+- **Issue**: #985
+
+## Abstract
+
+This proposal brings the MCP spec's handling of OAuth 2.0 Protected Resource Metadata in line with [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728#name-obtaining-protected-resourc).
+
+Currently, the MCP spec requires the use of the HTTP WWW-Authenticate header when returning a 401 Unauthorized to indicate the location of the protected resource metadata. However, [RFC 9728, Section 5](https://datatracker.ietf.org/doc/html/rfc9728#section-5) states:
+
+“A protected resource MAY use the WWW-Authenticate HTTP response header field, as discussed in RFC 9110, to return a URL to its protected resource metadata to the client.”
+
+This suggests that the MCP spec could be made more flexible while still maintaining RFC compliance.
+
+## Rationale
+
+Many large-scale, dynamic, multi-tenant environments rely on a centralized authentication service separate from the backend resource servers. In such deployments, injecting WWW-Authenticate headers from backend services is non-trivial due to separation of concerns and infrastructure complexity.
+
+In these scenarios, having the option to discover metadata via a well-known URL provides a practical path forward for easier MCP adoption. Requiring only the header would impose significant communication overhead between components, especially when hundreds or thousands of MCP instances are created and destroyed dynamically. Also if there are specific managed MCP servers, adopting headers across centralized system would add significant overhead.
+
+While this increases complexity for clients—who must now implement logic to probe metadata endpoints—it reduces friction for server deployments and may encourage broader adoption. There are tradeoffs:
+
+Pros for Server Developers: Avoid complex header injection; simplifies integration in distributed environments.
+
+Cons for Client Developers: Clients must fall back to metadata discovery logic when the header is absent, increasing client complexity.
+
+## Proposed State
+
+Update the MCP spec to:
+
+```
+Clients MUST interpret the WWW-Authenticate header, and fallback to probing for metadata if not present.
+Servers SHOULD return the WWW-Authenticate header
+```
+
+**The reason for deviating a bit on the RFC:**
+Go with SHOULD over MAY for WWW-Authenticate is that it makes supporting other features, such as incremental authorization easier (e.g. you make a request for a tool, but need additional scopes, and receive a WWW-Authenticate challenge indicating the scopes).
+
+Based on the above, following the updated flow:
+
+- Attempt the MCP request without a token.
+- If a 401 Unauthorized response is received: Check for a WWW-Authenticate header. If present and includes the resource_metadata parameter, use it to locate the resource metadata.
+- If the header is absent or does not include resource_metadata, fallback to requesting /.well-known/oauth-protected-resource.
+
+This change allows more flexible deployment models without removing existing capabilities.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant M as MCP Server (Resource Server)
+    participant A as Authorization Server
+
+    Note over C: Attempt unauthenticated MCP request
+    C->>M: MCP request without token
+    M-->>C: HTTP 401 Unauthorized (may include WWW-Authenticate header)
+
+    alt Header includes resource_metadata
+        Note over C: Extract resource_metadata URL from header
+        C->>M: GET resource_metadata URI
+        M-->>C: Resource metadata with authorization server URL
+    else No resource_metadata in header
+        Note over C: Fallback to metadata probing
+        C->>M: GET /.well-known/oauth-protected-resource
+        alt Metadata found
+            M-->>C: Resource metadata with authorization server URL
+        else Metadata not found
+            Note over C: Abort or use pre-configured values
+        end
+    end
+
+    Note over C: Validate RS metadata,<br />build AS metadata URL
+
+    C->>A: GET /.well-known/oauth-authorization-server
+    A-->>C: Authorization server metadata
+
+    Note over C,A: OAuth 2.1 authorization flow happens here
+
+    C->>A: Token request
+    A-->>C: Access token
+
+    C->>M: MCP request with access token
+    M-->>C: MCP response
+    Note over C,M: MCP communication continues with valid token
+```
+
+## Backward Compatibility
+
+This proposal is fully backward-compatible.
+
+It retains support for the WWW-Authenticate header (already in the spec) and introduces a fallback mechanism using the .well-known metadata path, which is already defined in MCP as a MUST-support location.
+
+Clients that already support metadata probing benefit from improved interoperability. Servers are not required to emit the WWW-Authenticate header if it is infeasible, but doing so is still encouraged to reduce client complexity and enable future extensibility.
