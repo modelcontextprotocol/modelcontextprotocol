@@ -22,7 +22,10 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 - A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
 - A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
 
-**Note:** Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
+#### NOTE 
+* Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
+* Since groups are a primitive, they may belong to multiple groups, and so the result is **not a hierarchy** but rather, potentially overlapping sets. 
+* Server developers should take care to avoid cyclic graphs — e.g., a group belonging to itself or to a child.
 
 ### Why use Groups?
 
@@ -226,12 +229,14 @@ This specification proposal was selected for its ease of understanding since it 
   This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
   Since this proposal spans all primitives, such a compatibility failure would be unacceptable. We could require SDK developers to implement a "feature flag" that suppresses the top-level groups field in all primitives after protocol version negotiation takes place if there is a mismatch. However, that would be more effort and complexity than simply using a reserved metadata key to pass the primitive's group list, which older clients would simply ignore.
 
-- **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, beacuse groups can be hierarchical, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
+- **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, beacuse groups belong to other groups, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
   More information on this approach can be found in @scottslewis's [proposal](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1567).
 
 ## Security Implications
 
-None identified
+No serious implications identified. 
+
+We do wish to point out that use of groups for controlling access to a set of primitives, while a stated use case, could have security implications if groups change dynamically.
 
 ## Reference Implementation
 
@@ -244,4 +249,4 @@ Note: Tasks are not included in the example as they are ephemeral, but the SDK c
 
 ## Acknowledgements
 
-@cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed. And to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping.
+@cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed. And thanks to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping.
