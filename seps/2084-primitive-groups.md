@@ -22,10 +22,11 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 - A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
 - A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
 
-#### NOTE 
-* Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
-* Since groups are a primitive, they may belong to multiple groups, and so the result is **not a hierarchy** but rather, potentially overlapping sets. 
-* Server developers should take care to avoid cyclic graphs — e.g., a group belonging to itself or to a child.
+#### NOTE
+
+- Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
+- Since groups are a primitive, they may belong to multiple groups, and so the result is **not a hierarchy** but rather, potentially overlapping sets.
+- Server developers should take care to avoid cyclic graphs — e.g., a group belonging to itself or to a child.
 
 ### Why use Groups?
 
@@ -234,7 +235,7 @@ This specification proposal was selected for its ease of understanding since it 
 
 ## Security Implications
 
-No serious implications identified. 
+No serious implications identified.
 
 We do wish to point out that use of groups for controlling access to a set of primitives, while a stated use case, could have security implications if groups change dynamically.
 
