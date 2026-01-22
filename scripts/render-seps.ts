@@ -92,6 +92,14 @@ function formatAuthors(authors: string): string {
 }
 
 /**
+ * Truncate title to max length, adding ellipsis if needed
+ */
+function truncateTitle(title: string, maxLength: number): string {
+  if (title.length <= maxLength) return title;
+  return title.slice(0, maxLength - 1).trim() + "…";
+}
+
+/**
  * Get status badge color for Mintlify
  */
 function getStatusBadgeColor(status: string): string {
@@ -117,7 +125,7 @@ function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
 
   return `---
 title: "SEP-${sep.number}: ${sep.title}"
-sidebarTitle: "SEP-${sep.number}"
+sidebarTitle: "SEP-${sep.number}: ${truncateTitle(sep.title, 40)}"
 description: "${sep.title}"
 ---
 
@@ -265,16 +273,67 @@ function readAllSEPs(): { metadata: SEPMetadata; content: string }[] {
 }
 
 /**
- * Update docs.json to include SEPs in navigation
+ * Group SEPs by status for navigation
+ */
+function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
+  const groups: Record<string, SEPMetadata[]> = {};
+
+  // Define status order for navigation
+  const statusOrder = ["Final", "Accepted", "In-Review", "Draft", "Withdrawn", "Rejected", "Superseded", "Dormant"];
+
+  for (const sep of seps) {
+    // Normalize status to title case
+    const status = sep.status.charAt(0).toUpperCase() + sep.status.slice(1).toLowerCase();
+    if (!groups[status]) {
+      groups[status] = [];
+    }
+    groups[status].push(sep);
+  }
+
+  // Sort each group by SEP number
+  for (const status of Object.keys(groups)) {
+    groups[status].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+  }
+
+  // Return in preferred order
+  const orderedGroups: Record<string, SEPMetadata[]> = {};
+  for (const status of statusOrder) {
+    if (groups[status]) {
+      orderedGroups[status] = groups[status];
+    }
+  }
+  // Add any remaining statuses not in the predefined order
+  for (const status of Object.keys(groups)) {
+    if (!orderedGroups[status]) {
+      orderedGroups[status] = groups[status];
+    }
+  }
+
+  return orderedGroups;
+}
+
+/**
+ * Update docs.json to include SEPs in navigation, grouped by status
  */
 function updateDocsJson(seps: SEPMetadata[]): string {
   const docsJson = JSON.parse(fs.readFileSync(DOCS_JSON_PATH, "utf-8"));
 
-  // Sort SEPs by number for navigation
-  const sortedSeps = [...seps].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+  // Group SEPs by status
+  const groupedSeps = groupSepsByStatus(seps);
 
-  // Build the SEPs pages array
-  const sepPages = sortedSeps.map((sep) => `community/seps/${sep.number}-${sep.slug}`);
+  // Build nested navigation structure
+  const sepSubgroups: Array<string | { group: string; pages: string[] }> = [];
+
+  for (const [status, statusSeps] of Object.entries(groupedSeps)) {
+    if (statusSeps.length === 0) continue;
+
+    const pages = statusSeps.map((sep) => `community/seps/${sep.number}-${sep.slug}`);
+
+    sepSubgroups.push({
+      group: status,
+      pages,
+    });
+  }
 
   // Find the Community tab and add/update SEPs group
   const communityTab = docsJson.navigation.tabs.find((tab: { tab: string }) => tab.tab === "Community");
@@ -286,7 +345,7 @@ function updateDocsJson(seps: SEPMetadata[]): string {
 
     const sepsGroup = {
       group: "SEPs",
-      pages: ["community/seps/index", ...sepPages],
+      pages: ["community/seps/index", ...sepSubgroups],
     };
 
     if (sepsGroupIndex >= 0) {
