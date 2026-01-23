@@ -2055,7 +2055,11 @@ export interface Group extends BaseMetadata, Icons {
    */
   annotations?: Annotations;
 
-  _meta?: MetaObject;
+  _meta: z.optional(
+        z.looseObject({
+            [GROUPS_META_KEY]: z.array(z.string()).optional()
+        })
+    )
 }
 
 /* Logging */
