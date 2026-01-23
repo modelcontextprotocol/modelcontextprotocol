@@ -22,11 +22,20 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 - A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
 - A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
 
-#### NOTE
+#### Groups are overlapping sets NOT hierarchies
 
 - Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
 - Since groups are a primitive, they may belong to multiple groups, and so the result is **not a hierarchy** but rather, potentially overlapping sets.
 - Server developers should take care to avoid cyclic graphs — e.g., a group belonging to itself or to a child.
+
+#### Transitivity
+
+- Primitive A is in group B. Group B is in group C. Is primitive A implicitly in group C also?
+- The Transitivity of groups is a matter of client interpretation.
+  - In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
+  - When listing the primitives in the `communications` group, I chose to have it display the contents of both children.
+  - So `email_thank_contributor` would appear in both `email` and `communications`.
+  - Some clients might wish to only show direct children of a group.
 
 ### Why use Groups?
 
@@ -177,7 +186,7 @@ Response:
 
 ### Changes to Response Formats
 
-As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `prompts/list`, `tasks/list`.
+As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `resources/templates/list`, `prompts/list`, `tasks/list`.
 Here is an example tool definition from `tools/list` response with new groups property:
 
 ```json
