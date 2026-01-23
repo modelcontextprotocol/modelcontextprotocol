@@ -14,7 +14,7 @@ export type JSONRPCMessage =
 export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
-
+export const GROUPS_META_KEY = 'io.modelcontextprotocol/groups';
 /**
  * Represents the contents of a `_meta` field, which clients and servers use to attach additional metadata to their interactions.
  *
