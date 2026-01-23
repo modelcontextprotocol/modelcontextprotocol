@@ -36,6 +36,7 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
   - When listing the primitives in the `communications` group, I chose to have it display the contents of both children.
   - So `email_thank_contributor` would appear in both `email` and `communications`.
   - Some clients might wish to only show direct children of a group.
+    - If a server contained cyclic graphs, configuring the client to only show the direct children of a group would short circuit the graph traversal, unless the group contains itself as a direct child, which would be an obvious mistake on the server developer's part that would likely never happen in production.
 
 #### Visibility of Groups to LLMs
 
@@ -247,6 +248,8 @@ This specification proposal was selected for its ease of understanding since it 
 
 - **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, beacuse groups belong to other groups, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
   More information on this approach can be found in @scottslewis's [proposal](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1567).
+
+- **No Grouping of Groups** - A variation of the proposed specification, but Groups cannot have a group list. Avoids any worry of graphs — e.g., a group belonging to itself or to a child. Makes groups a flat list.
 
 ## Security Implications
 
