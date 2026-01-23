@@ -510,7 +510,10 @@ export interface ClientCapabilities {
    * @example Elicitation — form mode only (implicit)
    * {@includeCode ./examples/ClientCapabilities/elicitation-form-only-implicit.json}
    */
-  elicitation?: { form?: Record<string, unknown>; url?: Record<string, unknown> };
+  elicitation?: {
+    form?: Record<string, unknown>;
+    url?: Record<string, unknown>;
+  };
 
   /**
    * Present if the client supports task-augmented requests.
