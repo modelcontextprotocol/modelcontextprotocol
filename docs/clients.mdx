@@ -5,7 +5,7 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions"];
+export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks"];
 
 export const filterStore = {
   state: {
@@ -949,7 +949,7 @@ Delegate tasks to GitHub Copilot coding agent and let it work in the background 
 <McpClient
   name="Glama"
   homepage="https://glama.ai/chat"
-  supports="Resources, Prompts, Tools"
+  supports="Discovery, Elicitation, Instructions, Prompts, Resources, Sampling, Tasks, Tools"
 >
 
 Glama is a comprehensive AI workspace and integration platform that offers a unified interface to leading LLM providers, including OpenAI, Anthropic, and others. It supports the Model Context Protocol (MCP) ecosystem, enabling developers and enterprises to easily discover, build, and manage MCP servers.
