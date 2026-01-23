@@ -462,7 +462,7 @@ export interface ClientCapabilities {
   /**
    * Experimental, non-standard capabilities that the client supports.
    */
-  experimental?: { [key: string]: object };
+  experimental?: { [key: string]: Record<string, unknown> };
   /**
    * Present if the client supports listing roots.
    *
@@ -495,11 +495,11 @@ export interface ClientCapabilities {
      * Whether the client supports context inclusion via `includeContext` parameter.
      * If not declared, servers SHOULD only use `includeContext: "none"` (or omit it).
      */
-    context?: object;
+    context?: Record<string, unknown>;
     /**
      * Whether the client supports tool use via `tools` and `toolChoice` parameters.
      */
-    tools?: object;
+    tools?: Record<string, unknown>;
   };
   /**
    * Present if the client supports elicitation from the server.
@@ -510,7 +510,7 @@ export interface ClientCapabilities {
    * @example Elicitation — form mode only (implicit)
    * {@includeCode ./examples/ClientCapabilities/elicitation-form-only-implicit.json}
    */
-  elicitation?: { form?: object; url?: object };
+  elicitation?: { form?: Record<string, unknown>; url?: Record<string, unknown> };
 
   /**
    * Present if the client supports task-augmented requests.
@@ -519,11 +519,11 @@ export interface ClientCapabilities {
     /**
      * Whether this client supports {@link ListTasksRequest | tasks/list}.
      */
-    list?: object;
+    list?: Record<string, unknown>;
     /**
      * Whether this client supports {@link CancelTaskRequest | tasks/cancel}.
      */
-    cancel?: object;
+    cancel?: Record<string, unknown>;
     /**
      * Specifies which request types can be augmented with tasks.
      */
@@ -535,7 +535,7 @@ export interface ClientCapabilities {
         /**
          * Whether the client supports task-augmented `sampling/createMessage` requests.
          */
-        createMessage?: object;
+        createMessage?: Record<string, unknown>;
       };
       /**
        * Task support for elicitation-related requests.
@@ -544,7 +544,7 @@ export interface ClientCapabilities {
         /**
          * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
          */
-        create?: object;
+        create?: Record<string, unknown>;
       };
     };
   };
@@ -559,21 +559,21 @@ export interface ServerCapabilities {
   /**
    * Experimental, non-standard capabilities that the server supports.
    */
-  experimental?: { [key: string]: object };
+  experimental?: { [key: string]: Record<string, unknown> };
   /**
    * Present if the server supports sending log messages to the client.
    *
    * @example Logging — minimum baseline support
    * {@includeCode ./examples/ServerCapabilities/logging-minimum-baseline-support.json}
    */
-  logging?: object;
+  logging?: Record<string, unknown>;
   /**
    * Present if the server supports argument autocompletion suggestions.
    *
    * @example Completions — minimum baseline support
    * {@includeCode ./examples/ServerCapabilities/completions-minimum-baseline-support.json}
    */
-  completions?: object;
+  completions?: Record<string, unknown>;
   /**
    * Present if the server offers any prompt templates.
    *
@@ -636,11 +636,11 @@ export interface ServerCapabilities {
     /**
      * Whether this server supports {@link ListTasksRequest | tasks/list}.
      */
-    list?: object;
+    list?: Record<string, unknown>;
     /**
      * Whether this server supports {@link CancelTaskRequest | tasks/cancel}.
      */
-    cancel?: object;
+    cancel?: Record<string, unknown>;
     /**
      * Specifies which request types can be augmented with tasks.
      */
@@ -652,7 +652,7 @@ export interface ServerCapabilities {
         /**
          * Whether the server supports task-augmented {@link CallToolRequest | tools/call} requests.
          */
-        call?: object;
+        call?: Record<string, unknown>;
       };
     };
   };
@@ -1687,7 +1687,7 @@ export interface Tool extends BaseMetadata, Icons {
   inputSchema: {
     $schema?: string;
     type: "object";
-    properties?: { [key: string]: object };
+    properties?: { [key: string]: Record<string, unknown> };
     required?: string[];
   };
 
@@ -1706,7 +1706,7 @@ export interface Tool extends BaseMetadata, Icons {
   outputSchema?: {
     $schema?: string;
     type: "object";
-    properties?: { [key: string]: object };
+    properties?: { [key: string]: Record<string, unknown> };
     required?: string[];
   };
 
@@ -2108,7 +2108,7 @@ export interface CreateMessageRequestParams extends TaskAugmentedRequestParams {
   /**
    * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
    */
-  metadata?: object;
+  metadata?: Record<string, unknown>;
   /**
    * Tools that the model may use during generation.
    * The client MUST return an error if this field is provided but {@link ClientCapabilities.sampling.tools} is not declared.
