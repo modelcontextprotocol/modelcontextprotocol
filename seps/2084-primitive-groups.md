@@ -38,9 +38,10 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
   - Some clients might wish to only show direct children of a group.
 
 #### Visibility of Groups to LLMs
-- Groups are simply an organizational tool available to the server developer. 
+
+- Groups are simply an organizational tool available to the server developer.
 - It is up to clients to decide how to interpret and make use of them, e.g., for deciding what primitives to expose to LLMs or simply ignoring them.
-- Server developers cannot expect that clients will pass any group information to LLMs, although they may. 
+- Server developers cannot expect that clients will pass any group information to LLMs, although they may.
 
 ### Why use Groups?
 
