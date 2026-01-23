@@ -332,23 +332,17 @@
                     "description": "Present if the client supports elicitation from the server.",
                     "properties": {
                         "form": {
-                            "additionalProperties": true,
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>"
                         },
                         "url": {
-                            "additionalProperties": true,
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>"
                         }
                     },
                     "type": "object"
                 },
                 "experimental": {
                     "additionalProperties": {
-                        "additionalProperties": true,
-                        "properties": {},
-                        "type": "object"
+                        "$ref": "#/$defs/Record<string,unknown>"
                     },
                     "description": "Experimental, non-standard capabilities that the client supports.",
                     "type": "object"
@@ -367,16 +361,12 @@
                     "description": "Present if the client supports sampling from an LLM.",
                     "properties": {
                         "context": {
-                            "additionalProperties": true,
-                            "description": "Whether the client supports context inclusion via `includeContext` parameter.\nIf not declared, servers SHOULD only use `includeContext: \"none\"` (or omit it).",
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>",
+                            "description": "Whether the client supports context inclusion via `includeContext` parameter.\nIf not declared, servers SHOULD only use `includeContext: \"none\"` (or omit it)."
                         },
                         "tools": {
-                            "additionalProperties": true,
-                            "description": "Whether the client supports tool use via `tools` and `toolChoice` parameters.",
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>",
+                            "description": "Whether the client supports tool use via `tools` and `toolChoice` parameters."
                         }
                     },
                     "type": "object"
@@ -385,16 +375,12 @@
                     "description": "Present if the client supports task-augmented requests.",
                     "properties": {
                         "cancel": {
-                            "additionalProperties": true,
-                            "description": "Whether this client supports {@link CancelTaskRequesttasks/cancel}.",
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>",
+                            "description": "Whether this client supports {@link CancelTaskRequesttasks/cancel}."
                         },
                         "list": {
-                            "additionalProperties": true,
-                            "description": "Whether this client supports {@link ListTasksRequesttasks/list}.",
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>",
+                            "description": "Whether this client supports {@link ListTasksRequesttasks/list}."
                         },
                         "requests": {
                             "description": "Specifies which request types can be augmented with tasks.",
@@ -403,10 +389,8 @@
                                     "description": "Task support for elicitation-related requests.",
                                     "properties": {
                                         "create": {
-                                            "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests.",
-                                            "properties": {},
-                                            "type": "object"
+                                            "$ref": "#/$defs/Record<string,unknown>",
+                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests."
                                         }
                                     },
                                     "type": "object"
@@ -415,10 +399,8 @@
                                     "description": "Task support for sampling-related requests.",
                                     "properties": {
                                         "createMessage": {
-                                            "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests.",
-                                            "properties": {},
-                                            "type": "object"
+                                            "$ref": "#/$defs/Record<string,unknown>",
+                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
                                         }
                                     },
                                     "type": "object"
@@ -743,10 +725,8 @@
                     "type": "array"
                 },
                 "metadata": {
-                    "additionalProperties": true,
-                    "description": "Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.",
-                    "properties": {},
-                    "type": "object"
+                    "$ref": "#/$defs/Record<string,unknown>",
+                    "description": "Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific."
                 },
                 "modelPreferences": {
                     "$ref": "#/$defs/ModelPreferences",
@@ -2880,6 +2860,9 @@
             ],
             "type": "object"
         },
+        "Record<string,unknown>": {
+            "type": "object"
+        },
         "RelatedTaskMetadata": {
             "description": "Metadata for associating messages with a task.\nInclude this in the `_meta` field under the key `io.modelcontextprotocol/related-task`.",
             "properties": {
@@ -3323,25 +3306,19 @@
             "description": "Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.",
             "properties": {
                 "completions": {
-                    "additionalProperties": true,
-                    "description": "Present if the server supports argument autocompletion suggestions.",
-                    "properties": {},
-                    "type": "object"
+                    "$ref": "#/$defs/Record<string,unknown>",
+                    "description": "Present if the server supports argument autocompletion suggestions."
                 },
                 "experimental": {
                     "additionalProperties": {
-                        "additionalProperties": true,
-                        "properties": {},
-                        "type": "object"
+                        "$ref": "#/$defs/Record<string,unknown>"
                     },
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
                 "logging": {
-                    "additionalProperties": true,
-                    "description": "Present if the server supports sending log messages to the client.",
-                    "properties": {},
-                    "type": "object"
+                    "$ref": "#/$defs/Record<string,unknown>",
+                    "description": "Present if the server supports sending log messages to the client."
                 },
                 "prompts": {
                     "description": "Present if the server offers any prompt templates.",
@@ -3371,16 +3348,12 @@
                     "description": "Present if the server supports task-augmented requests.",
                     "properties": {
                         "cancel": {
-                            "additionalProperties": true,
-                            "description": "Whether this server supports {@link CancelTaskRequesttasks/cancel}.",
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>",
+                            "description": "Whether this server supports {@link CancelTaskRequesttasks/cancel}."
                         },
                         "list": {
-                            "additionalProperties": true,
-                            "description": "Whether this server supports {@link ListTasksRequesttasks/list}.",
-                            "properties": {},
-                            "type": "object"
+                            "$ref": "#/$defs/Record<string,unknown>",
+                            "description": "Whether this server supports {@link ListTasksRequesttasks/list}."
                         },
                         "requests": {
                             "description": "Specifies which request types can be augmented with tasks.",
@@ -3389,10 +3362,8 @@
                                     "description": "Task support for tool-related requests.",
                                     "properties": {
                                         "call": {
-                                            "additionalProperties": true,
-                                            "description": "Whether the server supports task-augmented {@link CallToolRequesttools/call} requests.",
-                                            "properties": {},
-                                            "type": "object"
+                                            "$ref": "#/$defs/Record<string,unknown>",
+                                            "description": "Whether the server supports task-augmented {@link CallToolRequesttools/call} requests."
                                         }
                                     },
                                     "type": "object"
@@ -4001,9 +3972,7 @@
                         },
                         "properties": {
                             "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
-                                "type": "object"
+                                "$ref": "#/$defs/Record<string,unknown>"
                             },
                             "type": "object"
                         },
@@ -4035,9 +4004,7 @@
                         },
                         "properties": {
                             "additionalProperties": {
-                                "additionalProperties": true,
-                                "properties": {},
-                                "type": "object"
+                                "$ref": "#/$defs/Record<string,unknown>"
                             },
                             "type": "object"
                         },
