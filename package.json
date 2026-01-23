@@ -8,7 +8,7 @@
   "homepage": "https://modelcontextprotocol.io",
   "bugs": "https://github.com/modelcontextprotocol/specification/issues",
   "engines": {
-    "node": ">=20"
+    "node": ">=20,<25"
   },
   "prettier": {
     "overrides": [
@@ -21,7 +21,8 @@
     ]
   },
   "scripts": {
-    "check": "npm run check:schema && npm run check:docs",
+    "check": "npm run check:schema && npm run check:docs && npm run check:seps",
+    "check:seps": "tsx scripts/render-seps.ts --check",
     "check:docs": "npm run check:docs:format && npm run check:docs:js-comments && npm run check:docs:links",
     "check:docs:format": "prettier --check \"**/*.{md,mdx}\"",
     "check:docs:js-comments": "tsx scripts/check-mdx-comments.ts",
@@ -33,6 +34,7 @@
     "check:schema:md": "for f in schema/*/schema.mdx; do typedoc --entryPoints \"${f%.mdx}.ts\" --schemaPageTemplate \"$f\" | cmp docs/specification/$(basename -- $(dirname -- \"$f\"))/schema.mdx - || exit 1; done",
     "format": "prettier --write \"**/*.{md,mdx}\" --ignore \"docs/specification/*/schema.mdx\" ",
     "generate:schema": "npm run generate:schema:json & npm run generate:schema:md & wait",
+    "generate:seps": "tsx scripts/render-seps.ts",
     "generate:schema:json": "tsx scripts/generate-schemas.ts",
     "generate:schema:md": "find schema/*/schema.mdx -print0 | xargs -0 -P 0 -I {} sh -c 'f=\"{}\"; typedoc --entryPoints \"${f%.mdx}.ts\" --schemaPageTemplate \"$f\" > docs/specification/$(basename -- $(dirname -- \"$f\"))/schema.mdx'",
     "prep:changes": "npm run check:schema:ts && npm run generate:schema && npm run check:docs && npm run format",

@@ -306,8 +306,10 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError
-  extends Omit<JSONRPCErrorResponse, "error"> {
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -666,7 +668,7 @@ export interface Icon {
    * A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a
    * `data:` URI with Base64-encoded image data.
    *
-   * Consumers SHOULD takes steps to ensure URLs serving icons are from the
+   * Consumers SHOULD take steps to ensure URLs serving icons are from the
    * same domain as the client/server or a trusted domain.
    *
    * Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain
@@ -939,8 +941,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResultResponse
-  extends JSONRPCResultResponse {
+export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
   result: ListResourceTemplatesResult;
 }
 
