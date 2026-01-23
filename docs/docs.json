@@ -349,12 +349,28 @@
                   "community/seps/985-align-oauth-20-protected-resource-metadata-with-rf",
                   "community/seps/986-specify-format-for-tool-names",
                   "community/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o",
+                  "community/seps/991-enable-url-based-client-registration-using-oauth-c",
                   "community/seps/994-shared-communication-practicesguidelines",
+                  "community/seps/1024-mcp-client-security-requirements-for-local-server-",
+                  "community/seps/1034--support-default-values-for-all-primitive-types-in",
+                  "community/seps/1036-url-mode-elicitation-for-secure-out-of-band-intera",
                   "community/seps/1046-support-oauth-client-credentials-flow-in-authoriza",
                   "community/seps/1302-formalize-working-groups-and-interest-groups-in-mc",
+                  "community/seps/1303-input-validation-errors-as-tool-execution-errors",
                   "community/seps/1319-decouple-request-payload-from-rpc-methods-definiti",
                   "community/seps/1330-elicitation-enum-schema-improvements-and-standards",
+                  "community/seps/1577--sampling-with-tools",
+                  "community/seps/1613-establish-json-schema-2020-12-as-default-dialect-f",
+                  "community/seps/1686-tasks",
+                  "community/seps/1699-support-sse-polling-via-server-side-disconnect",
+                  "community/seps/1730-sdks-tiering-system",
                   "community/seps/1850-pr-based-sep-workflow"
+                ]
+              },
+              {
+                "group": "Draft",
+                "pages": [
+                  "community/seps/2085-governance-succession-and-amendment"
                 ]
               }
             ]
