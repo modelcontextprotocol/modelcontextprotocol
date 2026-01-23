@@ -1,0 +1,150 @@
+---
+title: "SEP-973: Expose additional metadata for Implementations, Resources, Tools and Prompts"
+sidebarTitle: "SEP-973: Expose additional metadata for Implemen…"
+description: "Expose additional metadata for Implementations, Resources, Tools and Prompts"
+---
+
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="green">Final</Badge>
+  <Badge color="gray">Standards Track</Badge>
+</div>
+
+| Field         | Value                                                                        |
+| ------------- | ---------------------------------------------------------------------------- |
+| **SEP**       | 973                                                                          |
+| **Title**     | Expose additional metadata for Implementations, Resources, Tools and Prompts |
+| **Status**    | Final                                                                        |
+| **Type**      | Standards Track                                                              |
+| **Created**   | 2025-07-15                                                                   |
+| **Author(s)** | [@jesselumarie](https://github.com/jesselumarie)                             |
+| **Sponsor**   | None                                                                         |
+| **PR**        | [#973](https://github.com/modelcontextprotocol/specification/pull/973)       |
+
+---
+
+## Abstract
+
+This SEP proposes adding two optional fields—`icons` and `websiteUrl`. The `icons` and `websiteUrl` would be added to the `Implementation` schema so that clients can visually identify third-party implementations and link directly to their documentation. The `icons` parameter will also be added to the `Tool`, `Resource` and `Prompt` schemas. While this can be used by both servers and clients for all implementations, we expect it to be used initially for server-provided implementations.
+
+## Motivation
+
+### Current State
+
+Current implementations only expose namespaced metadata, forcing clients to display generic labels with no visual cues.
+
+<img
+  width="606"
+  height="242"
+  alt="Image"
+  src="https://github.com/user-attachments/assets/0708a467-ed16-4654-8017-47fc30df9b23"
+/>
+
+### Proposed State
+
+The proposed implementation would allow us to add visual affordances and links to documentation, making it easier to visually identify which servers/clients are providing an implementation e.g. a tool in a slash command interface:
+
+<img
+  width="1104"
+  height="780"
+  alt="Image"
+  src="https://github.com/user-attachments/assets/2989b847-8a35-4c49-bb73-d27828df4df6"
+/>
+
+- **Visual Affordance:** Icons make it immediately clear to users which tool or resource source is in use.
+- **Discoverability:** A link to documentation (`websiteUrl`) allows clients to direct users to more information with a single click.
+
+## Rationale
+
+This design builds on prior work in web manifests (MDN) and consolidates community feedback:
+
+- **Consolidation of PRs:** Merges the changes from PR #417 and PR #862 into a single, cohesive enhancement.
+- **Flexible Icon Sizes:** Supports multiple icon sizes (e.g., `48x48`, `96x96`, or `any` for vector formats) to accommodate different client UI needs.
+- **Optional Fields:** By making both fields optional, existing implementations remain fully compatible.
+
+## Specification
+
+Extend the `Implementation` object as follows:
+
+```typescript
+/**
+ * A url pointing to an icon URL or a base64-encoded data URI
+ *
+ * Clients that support rendering icons MUST support at least the following MIME types:
+ * - image/png - PNG images (safe, universal compatibility)
+ * - image/jpeg (and image/jpg) - JPEG images (safe, universal compatibility)
+ *
+ * Clients that support rendering icons SHOULD also support:
+ * - image/svg+xml - SVG images (scalable but requires security precautions)
+ * - image/webp - WebP images (modern, efficient format)
+ */
+export interface Icon {
+  /**
+   * A standard URI pointing to an icon resource.
+   *
+   * Consumers MUST takes steps to ensure URLs serving icons are from the
+   * same domain as the client/server or a trusted domain.
+   *
+   * Consumers MUST take appropriate precautions when consuming SVGs as they can contain
+   * executable JavaScript
+   *
+   * @format uri
+   */
+  src: string;
+  /** Optional override if the server’s MIME type is missing or generic. */
+  mimeType?: string;
+  /** e.g. "48x48", "any" (for SVG), or "48x48 96x96" */
+  sizes?: string;
+}
+
+/**
+ * Describes the MCP implementation
+ */
+export interface Implementation extends BaseMetadata {
+  version: string;
+  /**
+   * An optional list of icons for this implementation.
+   * This can be used by clients to display the implementation in a user interface.
+   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
+   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
+   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
+   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
+   */
+  icons?: Icon[];
+  /**
+   * An optional URL of the website for this implementation.
+   *
+   * Consumers MUST takes steps to ensure URLs serving icons are from the
+   * same domain as the client/server or a trusted domain.
+   *
+   * Consumers MUST take appropriate precautions when consuming SVGs as they can contain
+   * executable JavaScript
+   *
+   * @format: uri
+   */
+  websiteUrl?: string;
+}
+```
+
+Extend the `Tool`, `Resource` and `Prompt` interfaces with the following type:
+
+```typescript
+  /**
+   * An optional list of icons for a resource.
+   * This can be used by clients to display the resource's icon in a user interface.
+   * Each icon should have a `kind` property that specifies whether it is a data representation or a URL source, a `src` property that points to the icon file or data representation, and may also include a `mimeType` and `sizes` property.
+   * The `mimeType` property should be a valid MIME type for the icon file, such as "image/png" or "image/svg+xml".
+   * The `sizes` property should be a string that specifies one or more sizes at which the icon file can be used, such as "48x48" or "any" for scalable formats like SVG.
+   * The `sizes` property is optional, and if not provided, the client should assume that the icon can be used at any size.
+   */
+  icons?: Icon[];
+```
+
+## Backwards Compatibility
+
+Both icons and websiteUrl are optional fields; clients that ignore them will fall back to existing behavior.
+
+## Security Implications
+
+This shouldn't introduce any new security implications.
