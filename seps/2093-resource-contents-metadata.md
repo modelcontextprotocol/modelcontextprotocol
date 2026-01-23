@@ -331,15 +331,15 @@ We considered adding a `metadataOnly` flag to `resources/read`, but a separate m
 
 Analysis of multi-content usage across MCP server implementations revealed the following patterns:
 
-| Pattern | Example | % |
-|---------|---------|---|
-| Collection/List | GitHub directory contents, Jasper styles, K8s contexts, calendar events | 65% |
-| Test/Example | SDK tests returning text+blob, FastMCP multi-item tests | 20% |
-| Batch Fetch | `drive-multi:?ids=a,b,c`, screenshot with array | 8% |
-| Composite/Sectioned | Terraform guide (6 markdown sections), project resource (repos/api/db/tools) | 8% |
-| Resource + Metadata | Gyazo image blob + metadata markdown, tile image + JSON metadata | 6% |
-| Search Results | Vector store search returning top 3 matches | 4% |
-| Header + Items | Status message + error list, data + user context | 4% |
+| Pattern             | Example                                                                      | %   |
+| ------------------- | ---------------------------------------------------------------------------- | --- |
+| Collection/List     | GitHub directory contents, Jasper styles, K8s contexts, calendar events      | 65% |
+| Test/Example        | SDK tests returning text+blob, FastMCP multi-item tests                      | 20% |
+| Batch Fetch         | `drive-multi:?ids=a,b,c`, screenshot with array                              | 8%  |
+| Composite/Sectioned | Terraform guide (6 markdown sections), project resource (repos/api/db/tools) | 8%  |
+| Resource + Metadata | Gyazo image blob + metadata markdown, tile image + JSON metadata             | 6%  |
+| Search Results      | Vector store search returning top 3 matches                                  | 4%  |
+| Header + Items      | Status message + error list, data + user context                             | 4%  |
 
 The dominant use case (65%) is returning collection contents—child resources with different URIs. The `isCollection` flag legitimizes this pattern while providing clear semantics.
 
