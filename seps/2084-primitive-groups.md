@@ -37,6 +37,11 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
   - So `email_thank_contributor` would appear in both `email` and `communications`.
   - Some clients might wish to only show direct children of a group.
 
+#### Visibility of Groups to LLMs
+- Groups are simply an organizational tool available to the server developer. 
+- It is up to clients to decide how to interpret and make use of them, e.g., for deciding what primitives to expose to LLMs or simply ignoring them.
+- Server developers cannot expect that clients will pass any group information to LLMs, although they may. 
+
 ### Why use Groups?
 
 Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently. Some use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) include:
