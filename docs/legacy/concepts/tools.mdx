@@ -28,6 +28,7 @@ Each tool is defined with the following structure:
 ```typescript
 {
   name: string;          // Unique identifier for the tool
+  title?: string;        // Optional human-readable name of the tool for display purposes
   description?: string;  // Human-readable description
   inputSchema: {         // JSON Schema for the tool's parameters
     type: "object",
@@ -68,6 +69,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "calculate_sum",
+        title: "Calculate Sum",
         description: "Add two numbers together",
         inputSchema: {
           type: "object",
@@ -107,6 +109,7 @@ async def list_tools() -> list[types.Tool]:
     return [
         types.Tool(
             name="calculate_sum",
+            title="Calculate Sum",
             description="Add two numbers together",
             inputSchema={
                 "type": "object",
@@ -145,6 +148,7 @@ Tools that interact with the local system:
 ```typescript
 {
   name: "execute_command",
+  title: "Execute Command",
   description: "Run a shell command",
   inputSchema: {
     type: "object",
@@ -163,6 +167,7 @@ Tools that wrap external APIs:
 ```typescript
 {
   name: "github_create_issue",
+  title: "Create GitHub Issue",
   description: "Create a GitHub issue",
   inputSchema: {
     type: "object",
@@ -182,6 +187,7 @@ Tools that transform or analyze data:
 ```typescript
 {
   name: "analyze_csv",
+  title: "Analyze CSV",
   description: "Analyze a CSV file",
   inputSchema: {
     type: "object",
@@ -359,6 +365,7 @@ Here's how to define tools with annotations for different scenarios:
 // A read-only search tool
 {
   name: "web_search",
+  title: "Web Search",
   description: "Search the web for information",
   inputSchema: {
     type: "object",
@@ -377,6 +384,7 @@ Here's how to define tools with annotations for different scenarios:
 // A destructive file deletion tool
 {
   name: "delete_file",
+  title: "Delete File",
   description: "Delete a file from the filesystem",
   inputSchema: {
     type: "object",
@@ -397,6 +405,7 @@ Here's how to define tools with annotations for different scenarios:
 // A non-destructive database record creation tool
 {
   name: "create_record",
+  title: "Create Database Record",
   description: "Create a new record in the database",
   inputSchema: {
     type: "object",
@@ -426,6 +435,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "calculate_sum",
+        title: "Calculate Sum",
         description: "Add two numbers together",
         inputSchema: {
           type: "object",

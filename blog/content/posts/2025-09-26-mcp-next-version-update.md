@@ -7,6 +7,8 @@ author: "David Soria Parra"
 description: "An update on the timeline and priorities for the next Model Context Protocol specification version"
 ---
 
+**Update (November 11, 2025):** The specification release candidate (RC) date has been shifted from November 11th to **November 14th, 2025**. The specification release date remains to be **November 25th, 2025**.
+
 ## Release Timeline
 
 The next version of the Model Context Protocol specification will be released on **November 25th, 2025**, with a release candidate (RC) available on **November 11th, 2025**.
