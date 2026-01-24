@@ -1427,7 +1427,8 @@
             "description": "Definition for a group that organizes MCP primitives.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -2466,6 +2467,25 @@
             "description": "Represents the contents of a `_meta` field, which clients and servers use to attach additional metadata to their interactions.\n\nCertain key names are reserved by MCP for protocol-level metadata; implementations MUST NOT make assumptions about values at these keys. Additionally, specific schema definitions may reserve particular names for purpose-specific metadata, as declared in those definitions.\n\nValid keys have two segments:\n\n**Prefix:**\n- Optional — if specified, MUST be a series of _labels_ separated by dots (`.`), followed by a slash (`/`).\n- Labels MUST start with a letter and end with a letter or digit. Interior characters may be letters, digits, or hyphens (`-`).\n- Any prefix consisting of zero or more labels, followed by `modelcontextprotocol` or `mcp`, followed by any label, is **reserved** for MCP use. For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.\n\n**Name:**\n- Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).\n- Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).",
             "type": "object"
         },
+        "MetaWithGroups": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                {
+                    "properties": {
+                        "io.modelcontextprotocol/groups": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                }
+            ],
+            "description": "Represents a metadata object extended with an additional property for grouping.\n\nExtends the base `MetaObject` and includes an optional field\n`io.modelcontextprotocol/groups` that specifies a list of groups names"
+        },
         "MethodNotFoundError": {
             "description": "A JSON-RPC error indicating that the requested method does not exist or is not available.\n\nIn MCP, this error is returned when a request is made for a method that requires a capability that has not been declared. This can occur in either direction:\n\n- A server returning this error when the client requests a capability it doesn't support (e.g., requesting completions when the `completions` capability was not advertised)\n- A client returning this error when the server requests a capability it doesn't support (e.g., requesting roots when the client did not declare the `roots` capability)",
             "properties": {
@@ -2800,7 +2820,8 @@
             "description": "A prompt or prompt template that the server offers.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "arguments": {
                     "description": "A list of arguments to use for templating the prompt.",
@@ -3007,6 +3028,9 @@
             ],
             "type": "object"
         },
+        "Record<string,unknown>": {
+            "type": "object"
+        },
         "RelatedTaskMetadata": {
             "description": "Metadata for associating messages with a task.\nInclude this in the `_meta` field under the key `io.modelcontextprotocol/related-task`.",
             "properties": {
@@ -3065,7 +3089,8 @@
             "description": "A known resource that the server is capable of reading.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -3135,7 +3160,8 @@
             "description": "A resource that the server is capable of reading, included in a prompt or tool call result.\n\nNote: resource links returned by tools are not guaranteed to appear in the results of {@link ListResourcesRequestresources/list} requests.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -3227,7 +3253,8 @@
             "description": "A template description for resources available on the server.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -3842,6 +3869,10 @@
         "Task": {
             "description": "Data associated with a task.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/Record<string,unknown>",
+                    "description": "Like `MetaObject` but contains optional keys\nthat, if present, must have the defined value type"
+                },
                 "createdAt": {
                     "description": "ISO 8601 timestamp when the task was created.",
                     "type": "string"
@@ -4115,7 +4146,8 @@
             "description": "Definition for a tool the client can call.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/ToolAnnotations",

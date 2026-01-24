@@ -37,6 +37,14 @@ export const GROUPS_META_KEY = 'io.modelcontextprotocol/groups';
 export type MetaObject = Record<string, unknown>;
 
 /**
+ * Represents a metadata object extended with an additional property for grouping.
+ *
+ * Extends the base `MetaObject` and includes an optional field
+ * `io.modelcontextprotocol/groups` that specifies a list of groups names
+ */
+export type MetaWithGroups = MetaObject & { 'io.modelcontextprotocol/groups'?: string[] };
+
+/**
  * Extends {@link MetaObject} with additional request-specific fields. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
@@ -1170,7 +1178,12 @@ export interface Resource extends BaseMetadata, Icons {
    */
   size?: number;
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups
+
 }
 
 /**
@@ -1203,7 +1216,11 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
    */
   annotations?: Annotations;
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups
 }
 
 /**
@@ -1367,7 +1384,11 @@ export interface Prompt extends BaseMetadata, Icons {
    */
   arguments?: PromptArgument[];
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups
 }
 
 /**
@@ -1731,7 +1752,11 @@ export interface Tool extends BaseMetadata, Icons {
    */
   annotations?: ToolAnnotations;
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups
 }
 
 /* Tasks */
@@ -1818,6 +1843,12 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
+
+  /**
+   * Like `MetaObject` but contains optional keys
+   * that, if present, must have the defined value type
+   */
+  _meta?: Record<string, unknown>
 }
 
 /**
@@ -2055,11 +2086,12 @@ export interface Group extends BaseMetadata, Icons {
    */
   annotations?: Annotations;
 
-  _meta: z.optional(
-        z.looseObject({
-            [GROUPS_META_KEY]: z.array(z.string()).optional()
-        })
-    )
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups
+
 }
 
 /* Logging */
