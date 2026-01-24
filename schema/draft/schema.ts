@@ -14,7 +14,6 @@ export type JSONRPCMessage =
 export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
-export const GROUPS_META_KEY = 'io.modelcontextprotocol/groups';
 /**
  * Represents the contents of a `_meta` field, which clients and servers use to attach additional metadata to their interactions.
  *
@@ -42,7 +41,9 @@ export type MetaObject = Record<string, unknown>;
  * Extends the base `MetaObject` and includes an optional field
  * `io.modelcontextprotocol/groups` that specifies a list of groups names
  */
-export type MetaWithGroups = MetaObject & { 'io.modelcontextprotocol/groups'?: string[] };
+export type MetaWithGroups = MetaObject & {
+  "io.modelcontextprotocol/groups"?: string[];
+};
 
 /**
  * Extends {@link MetaObject} with additional request-specific fields. All key naming rules from `MetaObject` apply.
@@ -314,10 +315,8 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError extends Omit<
-  JSONRPCErrorResponse,
-  "error"
-> {
+export interface URLElicitationRequiredError
+  extends Omit<JSONRPCErrorResponse, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -964,7 +963,8 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
+export interface ListResourceTemplatesResultResponse
+  extends JSONRPCResultResponse {
   result: ListResourceTemplatesResult;
 }
 
@@ -1183,8 +1183,7 @@ export interface Resource extends BaseMetadata, Icons {
    * Like `MetaObject` but if the group metadata key
    * is present, must contain an array of strings (group names)
    */
-  _meta?: MetaWithGroups
-
+  _meta?: MetaWithGroups;
 }
 
 /**
@@ -1221,7 +1220,7 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
    * Like `MetaObject` but if the group metadata key
    * is present, must contain an array of strings (group names)
    */
-  _meta?: MetaWithGroups
+  _meta?: MetaWithGroups;
 }
 
 /**
@@ -1389,7 +1388,7 @@ export interface Prompt extends BaseMetadata, Icons {
    * Like `MetaObject` but if the group metadata key
    * is present, must contain an array of strings (group names)
    */
-  _meta?: MetaWithGroups
+  _meta?: MetaWithGroups;
 }
 
 /**
@@ -1757,7 +1756,7 @@ export interface Tool extends BaseMetadata, Icons {
    * Like `MetaObject` but if the group metadata key
    * is present, must contain an array of strings (group names)
    */
-  _meta?: MetaWithGroups
+  _meta?: MetaWithGroups;
 }
 
 /* Tasks */
@@ -1849,7 +1848,7 @@ export interface Task {
    * Like `MetaObject` but contains optional keys
    * that, if present, must have the defined value type
    */
-  _meta?: Record<string, unknown>
+  _meta?: Record<string, unknown>;
 }
 
 /**
@@ -2091,8 +2090,7 @@ export interface Group extends BaseMetadata, Icons {
    * Like `MetaObject` but if the group metadata key
    * is present, must contain an array of strings (group names)
    */
-  _meta?: MetaWithGroups
-
+  _meta?: MetaWithGroups;
 }
 
 /* Logging */
