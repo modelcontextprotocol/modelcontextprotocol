@@ -1,0 +1,101 @@
+---
+title: "SEP-1319: Decouple Request Payload from RPC Methods Definition"
+sidebarTitle: "SEP-1319: Decouple Request Payload from RPC Metho…"
+description: "Decouple Request Payload from RPC Methods Definition"
+---
+
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="green">Final</Badge>
+  <Badge color="gray">Standards Track</Badge>
+</div>
+
+| Field         | Value                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| **SEP**       | 1319                                                                     |
+| **Title**     | Decouple Request Payload from RPC Methods Definition                     |
+| **Status**    | Final                                                                    |
+| **Type**      | Standards Track                                                          |
+| **Created**   | 2025-08-08                                                               |
+| **Author(s)** | [@kurtisvg](https://github.com/kurtisvg)                                 |
+| **Sponsor**   | None                                                                     |
+| **PR**        | [#1319](https://github.com/modelcontextprotocol/specification/pull/1319) |
+
+---
+
+## Abstract
+
+This SEP proposes a structural refactoring of the Model Context Protocol (MCP) specification. The core change is to define payload of requests (e.g., CallToolRequest) as independent definitions and have the RPC method definitions refer to these models. This decouples the definition of the data payload from the definition of the remote procedure that transports it, leading to a clearer, more modular, and more maintainable specification.
+
+## Motivation
+
+The current MCP specification tightly couples the data payload of a request with the JSON-RPC method that transports it. This design presents several challenges:
+
+- **Reduced Clarity:** It forces developers to mentally parse the JSON-RPC transport structure just to understand the core data being exchanged. This increases cognitive load and makes the specification difficult to read and implement correctly.
+- **Hindered Maintainability:** Defining data structures inline prevents their reuse across different methods, leading to redundancy and making future updates to the protocol more complex and error-prone.
+- **Tightly Coupled to JSON-RPC:** Most critically, this tight coupling to JSON-RPC is the primary blocker for defining bindings for other transport protocols. To support transports like **gRPC** (which is currently a [popular ask from the community](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/966)), a transport-agnostic definition of its request and response messages. The current structure makes this practically impossible.
+
+By refactoring the specification to separate the data model (the "what") from the RPC method (the "how"), this proposal will create a clearer, more modular specification. This change will immediately improve the developer experience and, most importantly, pave the way for the future evolution of MCP across multiple transports.
+
+## Specification
+
+The proposal introduces the following principle: All data structures used as parameters (params) or results (result) for RPC methods should be defined as standalone, named schemas. The RPC method definitions will then use references to these schemas.
+
+### Current Approach (Inline Definition):
+
+The RPC method definition contains the full structure of its parameters and results.
+
+```ts
+export interface CallToolRequest extends Request {
+  method: "tools/call";
+  params: {
+    name: string;
+    arguments?: { [key: string]: unknown };
+  };
+}
+```
+
+### Proposed Approach (Decoupled Definition):
+
+First, the data models for the request and response are defined as top-level schemas.
+
+```ts
+/**
+ * Parameters for a `tools/call` request.
+ *
+ * @category tools/call
+ */
+export interface CallToolRequestParams extends RequestParams {
+  name: string;
+  arguments?: { [key: string]: unknown };
+}
+```
+
+Then, the RPC method definition becomes much simpler, merely referring to these models.
+
+```ts
+export interface CallToolRequest extends Request {
+  method: "tools/call";
+  params: CallToolRequestParams;
+}
+```
+
+## Rationale
+
+The proposed solution—separating payload definitions from the RPC method—was chosen as the most direct and non-disruptive path to achieving the goals outlined in the motivation.
+
+This approach establishes a clear architectural boundary between two distinct concerns:
+
+1. **The Data Layer:** The transport-agnostic payload definition (e.g., `CallToolRequestParams`), which represents the core information being exchanged.
+2. **The Transport Layer:** The protocol-specific wrapper (e.g., the JSON-RPC `CallToolRequest` object), which describes how the data is sent.
+
+This architectural separation is superior to maintaining separate, parallel specifications for each transport (e.g., one for JSON-RPC, another for gRPC), which would introduce significant maintenance overhead and risk inconsistencies.
+
+Crucially, this design refactors the specification document itself but intentionally **leaves the on-the-wire format unchanged**. This makes the proposal fully backward-compatible, requiring no changes from existing, compliant clients and servers. In short, this change is a strategic, foundational improvement that enables future growth without penalizing the current ecosystem.
+
+## Backward Compatibility
+
+This proposal is a **non-breaking change** for existing implementations. It is a refactoring of the _specification document itself_ and does not alter the on-the-wire JSON format of the protocol messages. A client or server that is compliant with the old specification structure will remain compliant with the new one, as the resulting JSON payloads are identical.
+
+The primary impact is on developers who read the specification and on tools that parse the specification to generate code or documentation.
