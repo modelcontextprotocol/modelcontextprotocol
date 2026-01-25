@@ -332,17 +332,17 @@
                     "description": "Present if the client supports elicitation from the server.",
                     "properties": {
                         "form": {
-                            "$ref": "#/$defs/Record<string,unknown>"
+                            "$ref": "#/$defs/JSONObject"
                         },
                         "url": {
-                            "$ref": "#/$defs/Record<string,unknown>"
+                            "$ref": "#/$defs/JSONObject"
                         }
                     },
                     "type": "object"
                 },
                 "experimental": {
                     "additionalProperties": {
-                        "$ref": "#/$defs/Record<string,unknown>"
+                        "$ref": "#/$defs/JSONObject"
                     },
                     "description": "Experimental, non-standard capabilities that the client supports.",
                     "type": "object"
@@ -361,11 +361,11 @@
                     "description": "Present if the client supports sampling from an LLM.",
                     "properties": {
                         "context": {
-                            "$ref": "#/$defs/Record<string,unknown>",
+                            "$ref": "#/$defs/JSONObject",
                             "description": "Whether the client supports context inclusion via `includeContext` parameter.\nIf not declared, servers SHOULD only use `includeContext: \"none\"` (or omit it)."
                         },
                         "tools": {
-                            "$ref": "#/$defs/Record<string,unknown>",
+                            "$ref": "#/$defs/JSONObject",
                             "description": "Whether the client supports tool use via `tools` and `toolChoice` parameters."
                         }
                     },
@@ -375,11 +375,11 @@
                     "description": "Present if the client supports task-augmented requests.",
                     "properties": {
                         "cancel": {
-                            "$ref": "#/$defs/Record<string,unknown>",
+                            "$ref": "#/$defs/JSONObject",
                             "description": "Whether this client supports {@link CancelTaskRequesttasks/cancel}."
                         },
                         "list": {
-                            "$ref": "#/$defs/Record<string,unknown>",
+                            "$ref": "#/$defs/JSONObject",
                             "description": "Whether this client supports {@link ListTasksRequesttasks/list}."
                         },
                         "requests": {
@@ -389,7 +389,7 @@
                                     "description": "Task support for elicitation-related requests.",
                                     "properties": {
                                         "create": {
-                                            "$ref": "#/$defs/Record<string,unknown>",
+                                            "$ref": "#/$defs/JSONObject",
                                             "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests."
                                         }
                                     },
@@ -399,7 +399,7 @@
                                     "description": "Task support for sampling-related requests.",
                                     "properties": {
                                         "createMessage": {
-                                            "$ref": "#/$defs/Record<string,unknown>",
+                                            "$ref": "#/$defs/JSONObject",
                                             "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
                                         }
                                     },
@@ -725,7 +725,7 @@
                     "type": "array"
                 },
                 "metadata": {
-                    "$ref": "#/$defs/Record<string,unknown>",
+                    "$ref": "#/$defs/JSONObject",
                     "description": "Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific."
                 },
                 "modelPreferences": {
@@ -1700,6 +1700,18 @@
             ],
             "type": "object"
         },
+        "JSONArray": {
+            "items": {
+                "$ref": "#/$defs/JSONValue"
+            },
+            "type": "array"
+        },
+        "JSONObject": {
+            "additionalProperties": {
+                "$ref": "#/$defs/JSONValue"
+            },
+            "type": "object"
+        },
         "JSONRPCErrorResponse": {
             "description": "A response to a request that indicates an error occurred.",
             "properties": {
@@ -1814,6 +1826,27 @@
                 "result"
             ],
             "type": "object"
+        },
+        "JSONValue": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/JSONObject"
+                },
+                {
+                    "items": {
+                        "$ref": "#/$defs/JSONValue"
+                    },
+                    "type": "array"
+                },
+                {
+                    "type": [
+                        "string",
+                        "integer",
+                        "boolean"
+                    ]
+                }
+            ],
+            "description": "JSON types"
         },
         "LegacyTitledEnumSchema": {
             "description": "Use {@link TitledSingleSelectEnumSchema} instead.\nThis interface will be removed in a future version.",
@@ -2860,9 +2893,6 @@
             ],
             "type": "object"
         },
-        "Record<string,unknown>": {
-            "type": "object"
-        },
         "RelatedTaskMetadata": {
             "description": "Metadata for associating messages with a task.\nInclude this in the `_meta` field under the key `io.modelcontextprotocol/related-task`.",
             "properties": {
@@ -3306,18 +3336,18 @@
             "description": "Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.",
             "properties": {
                 "completions": {
-                    "$ref": "#/$defs/Record<string,unknown>",
+                    "$ref": "#/$defs/JSONObject",
                     "description": "Present if the server supports argument autocompletion suggestions."
                 },
                 "experimental": {
                     "additionalProperties": {
-                        "$ref": "#/$defs/Record<string,unknown>"
+                        "$ref": "#/$defs/JSONObject"
                     },
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
                 "logging": {
-                    "$ref": "#/$defs/Record<string,unknown>",
+                    "$ref": "#/$defs/JSONObject",
                     "description": "Present if the server supports sending log messages to the client."
                 },
                 "prompts": {
@@ -3348,11 +3378,11 @@
                     "description": "Present if the server supports task-augmented requests.",
                     "properties": {
                         "cancel": {
-                            "$ref": "#/$defs/Record<string,unknown>",
+                            "$ref": "#/$defs/JSONObject",
                             "description": "Whether this server supports {@link CancelTaskRequesttasks/cancel}."
                         },
                         "list": {
-                            "$ref": "#/$defs/Record<string,unknown>",
+                            "$ref": "#/$defs/JSONObject",
                             "description": "Whether this server supports {@link ListTasksRequesttasks/list}."
                         },
                         "requests": {
@@ -3362,7 +3392,7 @@
                                     "description": "Task support for tool-related requests.",
                                     "properties": {
                                         "call": {
-                                            "$ref": "#/$defs/Record<string,unknown>",
+                                            "$ref": "#/$defs/JSONObject",
                                             "description": "Whether the server supports task-augmented {@link CallToolRequesttools/call} requests."
                                         }
                                     },
@@ -3972,7 +4002,7 @@
                         },
                         "properties": {
                             "additionalProperties": {
-                                "$ref": "#/$defs/Record<string,unknown>"
+                                "$ref": "#/$defs/JSONValue"
                             },
                             "type": "object"
                         },
@@ -4004,7 +4034,7 @@
                         },
                         "properties": {
                             "additionalProperties": {
-                                "$ref": "#/$defs/Record<string,unknown>"
+                                "$ref": "#/$defs/JSONValue"
                             },
                             "type": "object"
                         },
