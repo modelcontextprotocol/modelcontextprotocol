@@ -17,9 +17,9 @@ MCP clients currently lack efficient mechanisms to discover information about MC
 
 ### Current Pain Points
 
-* **Manual Endpoint Configuration**: Users must manually configure transport URLs for each server, with no standardized discovery mechanism.
-* **No Domain-Level Discovery**: Clients cannot automatically discover available MCP servers on a domain. This prevents automated integration scenarios, such as registry crawling or service auto-detection.
-* **Expensive Initialization**: Every capability query requires a full initialization sequence. This round-trip is costly, difficult to cache efficiently, and creates unnecessary latency for simple metadata retrieval.
+- **Manual Endpoint Configuration**: Users must manually configure transport URLs for each server, with no standardized discovery mechanism.
+- **No Domain-Level Discovery**: Clients cannot automatically discover available MCP servers on a domain. This prevents automated integration scenarios, such as registry crawling or service auto-detection.
+- **Expensive Initialization**: Every capability query requires a full initialization sequence. This round-trip is costly, difficult to cache efficiently, and creates unnecessary latency for simple metadata retrieval.
 
 ### Proposed Solution
 
@@ -27,10 +27,10 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 ### Enabled Use Cases
 
-* **Autoconfiguration**: IDE extensions can automatically configure themselves when pointed at a domain, eliminating manual setup.
-* **Automated Discovery**: Clients and registries can crawl domains to discover available MCP servers, enabling ecosystem-wide server indexes.
-* **Static Verification**: Clients can validate tool descriptions against security classifiers and cache these validations, improving safety without repeated checks.
-* **Reduced Latency:** Display server information, capabilities, and metadata without waiting for full initialization sequences.
+- **Autoconfiguration**: IDE extensions can automatically configure themselves when pointed at a domain, eliminating manual setup.
+- **Automated Discovery**: Clients and registries can crawl domains to discover available MCP servers, enabling ecosystem-wide server indexes.
+- **Static Verification**: Clients can validate tool descriptions against security classifiers and cache these validations, improving safety without repeated checks.
+- **Reduced Latency:** Display server information, capabilities, and metadata without waiting for full initialization sequences.
 
 ### Design Philosophy
 
@@ -43,6 +43,7 @@ The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path t
 MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp/server-cards.json`.
 
 Example:
+
 - "Restaurant A" works with platform "Restaurant Reservations SaaS" to provide MCP-powered bookings for their restaurant
 - Restaurant A also works with platform "Jobs SaaS" to provide MCP-powered job listings to prospective job seekers
 - Restaurant A would advertise the two relevant AI Cards at `restaurant-a.com/.well-known/ai-catalog.json`
@@ -280,47 +281,47 @@ Fleshed out (contrived values) example:
 Most fields follow the current MCP Registry `server.json` standard: https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md
 
 1. **name** (string, required): Server name in reverse-DNS format. Must contain exactly one forward slash separating namespace from server name.
-2. **version** (string, required): Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.*').
+2. **version** (string, required): Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.\*').
 3. **description** (string, optional): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
 4. **title** (string, optional): Optional human-readable title or display name for the MCP server.
 5. **websiteUrl** (string, optional): Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
 6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/server.schema.json#L371).
 7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L18).
 8. **remotes** (array of object, optional): Metadata helpful for making HTTP-based connections to this MCP server.
-  1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
-  2. **authentication** (object, optional): Authentication requirements
-    1. **required** (boolean, required): Whether authentication is mandatory
-    2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
-  2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
-9. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
-  1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
-  2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
-9. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
-   1. **experimental** (object, optional): Experimental capabilities
-   2. **logging** (object, optional): Log message support
-   3. **completions** (object, optional): Argument autocompletion support
-   4. **prompts** (object, optional): Prompt template support
-      1. **listChanged** (boolean, optional): Change notification support
-   5. **resources** (object, optional): Resource support
-      1. **subscribe** (boolean, optional): Subscription support
-      2. **listChanged** (boolean, optional): Change notification support
-   6. **tools** (object, optional): Tool support
-      1. **listChanged** (boolean, optional): Change notification support
-10. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
+9. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
+10. **authentication** (object, optional): Authentication requirements
+11. **required** (boolean, required): Whether authentication is mandatory
+12. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
+13. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
+14. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
+15. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
+16. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
+17. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
+    1. **experimental** (object, optional): Experimental capabilities
+    2. **logging** (object, optional): Log message support
+    3. **completions** (object, optional): Argument autocompletion support
+    4. **prompts** (object, optional): Prompt template support
+       1. **listChanged** (boolean, optional): Change notification support
+    5. **resources** (object, optional): Resource support
+       1. **subscribe** (boolean, optional): Subscription support
+       2. **listChanged** (boolean, optional): Change notification support
+    6. **tools** (object, optional): Tool support
+       1. **listChanged** (boolean, optional): Change notification support
+18. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
     1. **experimental** (object, optional): Required experimental capabilities
     2. **roots** (object, optional): Root access requirement
     3. **sampling** (object, optional): LLM sampling requirement
     4. **elicitation** (object, optional): User elicitation requirement
-13. **resources** (string | array, optional): Resource definitions
+19. **resources** (string | array, optional): Resource definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Resource` interface
-14. **tools** (string | array, optional): Tool definitions
+20. **tools** (string | array, optional): Tool definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Tool` interface
-15. **prompts** (string | array, optional): Prompt definitions
+21. **prompts** (string | array, optional): Prompt definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Prompt` interface
-16. **_meta** (object, optional): Additional metadata following [_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
+22. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
 ### Dynamic Primitives
 
@@ -330,12 +331,13 @@ MCP primitives are dynamic in nature and can change. To indicate that a list of 
 
 MCP Server Cards can be provided through multiple endpoints. All endpoints are optional, but at least one endpoint is recommended for servers that wish to support discovery.
 
-- All MCP Servers *SHOULD* provide server cards via an MCP resource.
-- MCP servers supporting HTTP-based transports (including Streamable HTTP and SSE) *SHOULD* provide a server card via a .well-known URI.
+- All MCP Servers _SHOULD_ provide server cards via an MCP resource.
+- MCP servers supporting HTTP-based transports (including Streamable HTTP and SSE) _SHOULD_ provide a server card via a .well-known URI.
 
 #### MCP Resource
 
 Servers SHOULD provide their server card as an MCP resource with:
+
 - **URI**: `mcp://server-card.json`
 - **MIME type**: `application/json`
 - **Resource type**: Static resource containing the server card JSON
@@ -351,6 +353,7 @@ Servers using HTTP-based transports SHOULD provide their server card at:
 ```
 
 This endpoint:
+
 - MUST be accessible via HTTPS (HTTP MAY be supported for local/development use)
 - MUST return `Content-Type: application/json`
 - MUST include appropriate CORS headers (see below)
@@ -441,6 +444,7 @@ This SEP is fully backward compatible with existing MCP implementations:
 ### Information Disclosure
 
 Server cards are publicly accessible by design. Servers MUST NOT include sensitive information in server cards, including:
+
 - Authentication credentials or tokens
 - Internal network topology or private endpoints
 - Proprietary business logic or algorithms
@@ -448,7 +452,8 @@ Server cards are publicly accessible by design. Servers MUST NOT include sensiti
 
 ### Tool Description Security
 
-Exposing tool descriptions in server cards before connection establishment creates an opportunity for clients to perform security analysis. This is a security *improvement* as it enables:
+Exposing tool descriptions in server cards before connection establishment creates an opportunity for clients to perform security analysis. This is a security _improvement_ as it enables:
+
 - Offline security scanning of tool capabilities
 - Automated classification before user exposure
 - Cached security validations reducing runtime overhead
@@ -458,6 +463,7 @@ However, clients MUST still validate that the actual tools provided during initi
 ### CORS Requirements
 
 Server cards MUST be served with appropriate CORS headers to enable browser-based client discovery. The recommended configuration (`Access-Control-Allow-Origin: *`) is safe for server cards because:
+
 1. Server cards contain only public metadata (no credentials or secrets)
 2. They are read-only (no state-changing operations)
 3. Wide accessibility benefits the discovery use case
@@ -472,13 +478,14 @@ Server cards SHOULD be served over HTTPS. Clients SHOULD validate TLS certificat
 
 ## Reference Implementation
 
-*To be added. A reference implementation is required before this SEP can be given "Final" status.*
+_To be added. A reference implementation is required before this SEP can be given "Final" status._
 
 ## IETF Registration
 
 `.well-known/` URIs must be registered with the IETF per RFC 8615. The SEP authors are responsible for submitting a registration request to IANA for the `.well-known/mcp/` URI suffix once this SEP is approved.
 
 The registration will include:
+
 - URI suffix: `mcp`
 - Change controller: Model Context Protocol Steering Committee
 - Specification document: This SEP
@@ -486,7 +493,7 @@ The registration will include:
 
 ## References
 
-* [RFC 8414: OAuth 2.0 Authorization Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414)
-* [RFC 8615: Well-Known URIs](https://datatracker.ietf.org/doc/html/rfc8615)
-* [MCP Protocol Specification](https://modelcontextprotocol.io/specification)
-* [Original GitHub Issue #1649](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649)
+- [RFC 8414: OAuth 2.0 Authorization Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414)
+- [RFC 8615: Well-Known URIs](https://datatracker.ietf.org/doc/html/rfc8615)
+- [MCP Protocol Specification](https://modelcontextprotocol.io/specification)
+- [Original GitHub Issue #1649](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649)
