@@ -14,7 +14,6 @@ export type JSONRPCMessage =
 export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
-
 /**
  * Represents the contents of a `_meta` field, which clients and servers use to attach additional metadata to their interactions.
  *
@@ -35,6 +34,16 @@ export const JSONRPC_VERSION = "2.0";
  * @category Common Types
  */
 export type MetaObject = Record<string, unknown>;
+
+/**
+ * Represents a metadata object extended with an additional property for grouping.
+ *
+ * Extends the base `MetaObject` and includes an optional field
+ * `io.modelcontextprotocol/groups` that specifies a list of groups names
+ */
+export type MetaWithGroups = MetaObject & {
+  "io.modelcontextprotocol/groups"?: string[];
+};
 
 /**
  * Extends {@link MetaObject} with additional request-specific fields. All key naming rules from `MetaObject` apply.
@@ -630,6 +639,21 @@ export interface ServerCapabilities {
     listChanged?: boolean;
   };
   /**
+   * Present if the server offers any groups to organize primitives.
+   *
+   * @example Groups — minimum baseline support
+   * {@includeCode ./examples/ServerCapabilities/groups-minimum-baseline-support.json}
+   *
+   * @example Groups — list changed notifications
+   * {@includeCode ./examples/ServerCapabilities/groups-list-changed-notifications.json}
+   */
+  groups?: {
+    /**
+     * Whether this server supports notifications for changes to the group list.
+     */
+    listChanged?: boolean;
+  };
+  /**
    * Present if the server supports task-augmented requests.
    */
   tasks?: {
@@ -1159,7 +1183,11 @@ export interface Resource extends BaseMetadata, Icons {
    */
   size?: number;
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups;
 }
 
 /**
@@ -1192,7 +1220,11 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
    */
   annotations?: Annotations;
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups;
 }
 
 /**
@@ -1356,7 +1388,11 @@ export interface Prompt extends BaseMetadata, Icons {
    */
   arguments?: PromptArgument[];
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups;
 }
 
 /**
@@ -1720,7 +1756,11 @@ export interface Tool extends BaseMetadata, Icons {
    */
   annotations?: ToolAnnotations;
 
-  _meta?: MetaObject;
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups;
 }
 
 /* Tasks */
@@ -1807,6 +1847,12 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
+
+  /**
+   * Like `MetaObject` but contains optional keys
+   * that, if present, must have the defined value type
+   */
+  _meta?: Record<string, unknown>;
 }
 
 /**
@@ -1966,6 +2012,89 @@ export type TaskStatusNotificationParams = NotificationParams & Task;
 export interface TaskStatusNotification extends JSONRPCNotification {
   method: "notifications/tasks/status";
   params: TaskStatusNotificationParams;
+}
+
+/* Groups */
+
+/**
+ * Sent from the client to request a list of groups the server has.
+ *
+ * @example List groups request
+ * {@includeCode ./examples/ListGroupsRequest/list-groups-request.json}
+ *
+ * @category `groups/list`
+ */
+export interface ListGroupsRequest extends PaginatedRequest {
+  method: "groups/list";
+}
+
+/**
+ * The result returned by the server for a {@link ListGroupsRequest | groups/list} request.
+ *
+ * @example Groups list with cursor
+ * {@includeCode ./examples/ListGroupsResult/groups-list-with-cursor.json}
+ *
+ * @category `groups/list`
+ */
+export interface ListGroupsResult extends PaginatedResult {
+  groups: Group[];
+}
+
+/**
+ * A successful response from the server for a {@link ListGroupsRequest | groups/list} request.
+ *
+ * @example List groups result response
+ * {@includeCode ./examples/ListGroupsResultResponse/list-groups-result-response.json}
+ *
+ * @category `groups/list`
+ */
+export interface ListGroupsResultResponse extends JSONRPCResultResponse {
+  result: ListGroupsResult;
+}
+
+/**
+ * An optional notification from the server to the client, informing it that the list
+ * of groups it offers has changed.
+ *
+ * @example Groups list changed
+ * {@includeCode ./examples/GroupListChangedNotification/groups-list-changed.json}
+ *
+ * @category `notifications/groups/list_changed`
+ */
+export interface GroupListChangedNotification extends JSONRPCNotification {
+  method: "notifications/groups/list_changed";
+  params?: NotificationParams;
+}
+
+/**
+ * Definition for a group that organizes MCP primitives.
+ *
+ * @example Basic group
+ * {@includeCode ./examples/Group/basic-group.json}
+ *
+ * @example Group with nested groups
+ * {@includeCode ./examples/Group/group-with-nested-groups.json}
+ *
+ * @category `groups/list`
+ */
+export interface Group extends BaseMetadata, Icons {
+  /**
+   * A human-readable description of the group.
+   */
+  description?: string;
+
+  /**
+   * Optional additional group information.
+   *
+   * Display name precedence order is: `title`, `annotations.title`, then `name`.
+   */
+  annotations?: Annotations;
+
+  /**
+   * Like `MetaObject` but if the group metadata key
+   * is present, must contain an array of strings (group names)
+   */
+  _meta?: MetaWithGroups;
 }
 
 /* Logging */
@@ -3159,6 +3288,7 @@ export type ClientRequest =
   | UnsubscribeRequest
   | CallToolRequest
   | ListToolsRequest
+  | ListGroupsRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -3204,6 +3334,7 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
+  | GroupListChangedNotification
   | ElicitationCompleteNotification
   | TaskStatusNotification;
 
@@ -3219,6 +3350,7 @@ export type ServerResult =
   | ReadResourceResult
   | CallToolResult
   | ListToolsResult
+  | ListGroupsResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult

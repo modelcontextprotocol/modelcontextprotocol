@@ -499,6 +499,9 @@
                     "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
+                    "$ref": "#/$defs/ListGroupsRequest"
+                },
+                {
                     "$ref": "#/$defs/SetLevelRequest"
                 },
                 {
@@ -1420,6 +1423,63 @@
             ],
             "type": "object"
         },
+        "Group": {
+            "description": "Definition for a group that organizes MCP primitives.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/Annotations",
+                    "description": "Optional additional group information.\n\nDisplay name precedence order is: `title`, `annotations.title`, then `name`."
+                },
+                "description": {
+                    "description": "A human-readable description of the group.",
+                    "type": "string"
+                },
+                "icons": {
+                    "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+                    "items": {
+                        "$ref": "#/$defs/Icon"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "GroupListChangedNotification": {
+            "description": "An optional notification from the server to the client, informing it that the list\nof groups it offers has changed.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/groups/list_changed",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/NotificationParams"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method"
+            ],
+            "type": "object"
+        },
         "Icon": {
             "description": "An optionally-sized icon that can be displayed in a user interface.",
             "properties": {
@@ -1869,6 +1929,74 @@
             "required": [
                 "enum",
                 "type"
+            ],
+            "type": "object"
+        },
+        "ListGroupsRequest": {
+            "description": "Sent from the client to request a list of groups the server has.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "groups/list",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/PaginatedRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method"
+            ],
+            "type": "object"
+        },
+        "ListGroupsResult": {
+            "description": "The result returned by the server for a {@link ListGroupsRequestgroups/list} request.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "groups": {
+                    "items": {
+                        "$ref": "#/$defs/Group"
+                    },
+                    "type": "array"
+                },
+                "nextCursor": {
+                    "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "groups"
+            ],
+            "type": "object"
+        },
+        "ListGroupsResultResponse": {
+            "description": "A successful response from the server for a {@link ListGroupsRequestgroups/list} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/ListGroupsResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
             ],
             "type": "object"
         },
@@ -2340,6 +2468,25 @@
             "description": "Represents the contents of a `_meta` field, which clients and servers use to attach additional metadata to their interactions.\n\nCertain key names are reserved by MCP for protocol-level metadata; implementations MUST NOT make assumptions about values at these keys. Additionally, specific schema definitions may reserve particular names for purpose-specific metadata, as declared in those definitions.\n\nValid keys have two segments:\n\n**Prefix:**\n- Optional — if specified, MUST be a series of _labels_ separated by dots (`.`), followed by a slash (`/`).\n- Labels MUST start with a letter and end with a letter or digit. Interior characters may be letters, digits, or hyphens (`-`).\n- Any prefix consisting of zero or more labels, followed by `modelcontextprotocol` or `mcp`, followed by any label, is **reserved** for MCP use. For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.\n\n**Name:**\n- Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).\n- Interior characters may be alphanumeric, hyphens (`-`), underscores (`_`), or dots (`.`).",
             "type": "object"
         },
+        "MetaWithGroups": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                {
+                    "properties": {
+                        "io.modelcontextprotocol/groups": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                }
+            ],
+            "description": "Represents a metadata object extended with an additional property for grouping.\n\nExtends the base `MetaObject` and includes an optional field\n`io.modelcontextprotocol/groups` that specifies a list of groups names"
+        },
         "MethodNotFoundError": {
             "description": "A JSON-RPC error indicating that the requested method does not exist or is not available.\n\nIn MCP, this error is returned when a request is made for a method that requires a capability that has not been declared. This can occur in either direction:\n\n- A server returning this error when the client requests a capability it doesn't support (e.g., requesting completions when the `completions` capability was not advertised)\n- A client returning this error when the server requests a capability it doesn't support (e.g., requesting roots when the client did not declare the `roots` capability)",
             "properties": {
@@ -2674,7 +2821,8 @@
             "description": "A prompt or prompt template that the server offers.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "arguments": {
                     "description": "A list of arguments to use for templating the prompt.",
@@ -2881,6 +3029,9 @@
             ],
             "type": "object"
         },
+        "Record<string,unknown>": {
+            "type": "object"
+        },
         "RelatedTaskMetadata": {
             "description": "Metadata for associating messages with a task.\nInclude this in the `_meta` field under the key `io.modelcontextprotocol/related-task`.",
             "properties": {
@@ -2939,7 +3090,8 @@
             "description": "A known resource that the server is capable of reading.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -3009,7 +3161,8 @@
             "description": "A resource that the server is capable of reading, included in a prompt or tool call result.\n\nNote: resource links returned by tools are not guaranteed to appear in the results of {@link ListResourcesRequestresources/list} requests.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -3101,7 +3254,8 @@
             "description": "A template description for resources available on the server.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
@@ -3338,6 +3492,16 @@
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
+                "groups": {
+                    "description": "Present if the server offers any groups to organize primitives.",
+                    "properties": {
+                        "listChanged": {
+                            "description": "Whether this server supports notifications for changes to the group list.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
                 "logging": {
                     "additionalProperties": true,
                     "description": "Present if the server supports sending log messages to the client.",
@@ -3441,6 +3605,9 @@
                     "$ref": "#/$defs/TaskStatusNotification"
                 },
                 {
+                    "$ref": "#/$defs/GroupListChangedNotification"
+                },
+                {
                     "$ref": "#/$defs/LoggingMessageNotification"
                 },
                 {
@@ -3518,6 +3685,9 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksResult"
+                },
+                {
+                    "$ref": "#/$defs/ListGroupsResult"
                 },
                 {
                     "$ref": "#/$defs/CompleteResult"
@@ -3700,6 +3870,10 @@
         "Task": {
             "description": "Data associated with a task.",
             "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/Record<string,unknown>",
+                    "description": "Like `MetaObject` but contains optional keys\nthat, if present, must have the defined value type"
+                },
                 "createdAt": {
                     "description": "ISO 8601 timestamp when the task was created.",
                     "type": "string"
@@ -3973,7 +4147,8 @@
             "description": "Definition for a tool the client can call.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/MetaWithGroups",
+                    "description": "Like `MetaObject` but if the group metadata key\nis present, must contain an array of strings (group names)"
                 },
                 "annotations": {
                     "$ref": "#/$defs/ToolAnnotations",
