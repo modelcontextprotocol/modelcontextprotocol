@@ -1,11 +1,11 @@
-# SEP-0000: MCP Working Group Charter Template
+# SEP-2149: MCP Working Group Charter Template
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2025-01-15
 - **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
 - **Sponsor**: None
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2149
 
 ## Abstract
 
