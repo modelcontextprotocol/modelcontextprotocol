@@ -2,14 +2,14 @@
 
 - **Status**: Draft
 - **Type**: Standards Track
-- **Created**: 2025-01-21
+- **Created**: 2026-01-21
 - **Author(s)**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai)
 - **Sponsor**: None
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
 
 ## Abstract
 
-This SEP proposes adding a standardized discovery mechanism for HTTP-based MCP servers using a `.well-known/mcp.json` endpoint. This enables clients to automatically discover server capabilities, available transports, authentication requirements, protocol versions and descriptions of primitives before establishing a connection.
+This SEP proposes adding a standardized discovery mechanism for MCP servers using a `.well-known` endpoint. This enables clients to automatically discover server capabilities, available transports, authentication requirements, protocol versions and descriptions of primitives before establishing a connection.
 
 ## Motivation
 
@@ -23,7 +23,7 @@ MCP clients currently lack efficient mechanisms to discover information about MC
 
 ### Proposed Solution
 
-This SEP introduces **MCP Server Cards** – structured metadata documents that servers expose through standardized mechanisms. The primary mechanism is a `.well-known/mcp.json` endpoint and similar mechanism appropriate for the transport. These provide static server information without requiring connection establishment. In addition the same information is served via a well known MCP resource.
+This SEP introduces **MCP Server Cards** – structured metadata documents that servers expose through standardized mechanisms. The primary mechanism is a `.well-known` endpoint and similar mechanism appropriate for the transport. These provide static server information without requiring connection establishment. In addition the same information is served via a well known MCP resource.
 
 ### Enabled Use Cases
 
@@ -34,7 +34,22 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 ### Design Philosophy
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what is available, while initialization handles how to communicate. By providing initialization-equivalent data in .well-known/mcp.json, we enable round-trip optimizations while maintaining protocol flexibility for dynamic scenarios.
+The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what is available, while initialization handles how to communicate. By providing initialization-equivalent data in `.well-known` file, we enable round-trip optimizations while maintaining protocol flexibility for dynamic scenarios.
+
+### Relationship to AI Card
+
+The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path to providing a protocol-agnostic `.well-known` path and file format for discovering services. They are planning to serve a list of AI Cards at `.well-known/ai-catalog.json`.
+
+MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp/server-cards.json`.
+
+Example:
+- "Restaurant A" works with platform "Restaurant Reservations SaaS" to provide MCP-powered bookings for their restaurant
+- Restaurant A also works with platform "Jobs SaaS" to provide MCP-powered job listings to prospective job seekers
+- Restaurant A would advertise the two relevant AI Cards at `restaurant-a.com/.well-known/ai-catalog.json`
+- Restaurant Reservations SaaS would have many Server Cards at `restaurant-reservations-saas.com/.well-known/mcp/server-cards.json`, including entries for each of Restaurant A, Restaurant B, etc.
+- Jobs Saas would have many Server Cards at `jobs-saas.com/.well-known/mcp/server-cards.json`, including entries for each of Restaurant A, Coffee Shop B, etc.
+
+We can develop and iterate on MCP Server Cards largely independently from the broader effort to integrate with AI Cards, as long as we maintain some integration point so it is possible to understand when an entry in an AI Card references an MCP Server Card that is hosted and maintained elsewhere.
 
 ## Specification
 
@@ -44,21 +59,140 @@ This section provides the technical specification for MCP Server Cards.
 
 ```json
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
-  "version": "1.0",
-  "protocolVersion": "2025-06-18",
-  "serverInfo": {
-    "name": "example-mcp-server",
-    "title": "Example MCP Server",
-    "version": "1.2.0"
+  "name": "io.modelcontextprotocol.anonymous/brave-search",
+  "version": "1.0.2",
+  "description": "MCP server for Brave Search API integration",
+  "title": "Brave Search",
+  "websiteUrl": "https://anonymous.modelcontextprotocol.io/examples",
+  "repository": {
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "source": "github",
+    "subfolder": "src/everything"
   },
-  "description": "Example MCP server for demonstration",
-  "iconUrl": "https://example.com/icon.png",
-  "documentationUrl": "https://example.com/documentation",
-  "transport": {
-    "type": "streamable-http",
-    "endpoint": "/mcp"
+  "icons": [ ... ],
+  "remotes": [ ... ],
+  "packages": [ ... ],
+  "capabilities":  { ... },
+  "requires": { ... },
+  "resources": [ ... ],
+  "tools": [ ... ],
+  "prompts": [ ... ],
+  "_meta": { ... }
+}
+```
+
+Fleshed out (contrived values) example:
+
+```json
+{
+  "name": "io.modelcontextprotocol.anonymous/brave-search",
+  "version": "1.0.2",
+  "description": "MCP server for Brave Search API integration",
+  "title": "Brave Search",
+  "websiteUrl": "https://anonymous.modelcontextprotocol.io/examples",
+  "repository": {
+    "url": "https://github.com/modelcontextprotocol/servers",
+    "source": "github",
+    "subfolder": "src/everything"
   },
+  "icons": [
+    {
+      "src": "https://example.com/icons/weather-icon-48.png",
+      "sizes": ["48x48"],
+      "mimeType": "image/png",
+      "theme": "light"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.anonymous.modelcontextprotocol.io/http",
+      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
+      "headers": [
+        {
+          "name": "X-API-Key",
+          "description": "API key for authentication",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "X-Region",
+          "description": "Service region",
+          "default": "us-east-1",
+          "choices": [
+            "us-east-1",
+            "eu-west-1",
+            "ap-southeast-1"
+          ]
+        }
+      ],
+      "authentication": {
+        "required": true,
+        "schemes": ["bearer", "oauth2"]
+      },
+    },
+    {
+      "type": "sse",
+      "url": "https://mcp.anonymous.modelcontextprotocol.io/sse",
+      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
+      "authentication": {
+        "required": true,
+        "schemes": ["bearer", "oauth2"]
+      },
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@modelcontextprotocol/server-brave-search",
+      "version": "1.0.2",
+      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "description": "Mount a volume into the container",
+          "name": "--mount",
+          "value": "type=bind,src={source_path},dst={target_path}",
+          "isRequired": true,
+          "isRepeated": true,
+          "variables": {
+            "source_path": {
+              "description": "Source path on host",
+              "format": "filepath",
+              "isRequired": true
+            },
+            "target_path": {
+              "description": "Path to mount in the container. It should be rooted in `/project` directory.",
+              "isRequired": true,
+              "default": "/project"
+            }
+          }
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        },
+        {
+          "type": "positional",
+          "value": "start"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "BRAVE_API_KEY",
+          "description": "Brave Search API Key",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
   "capabilities": {
     "tools": {
       "listChanged": true
@@ -75,89 +209,92 @@ This section provides the technical specification for MCP Server Cards.
     "sampling": {},
     "roots": {}
   },
-  "authentication": {
-    "required": true,
-    "schemes": ["bearer", "oauth2"]
-  },
-  "instructions": "Optional instructions for using this server",
-  "resources": ["dynamic"],
-  "tools": ["dynamic"],
-  "prompts": ["dynamic"]
-}
-```
-
-Example with static resource definitions:
-
-```json
-{
-  "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
-  "version": "1.0",
-  "protocolVersion": "2025-06-18",
-  "serverInfo": {
-    "name": "example-static-server",
-    "title": "Example Static Server",
-    "version": "1.0.0"
-  },
-  "transport": {
-    "type": "streamable-http",
-    "endpoint": "/mcp"
-  },
-  "capabilities": {
-    "resources": {}
-  },
   "resources": [
     {
-      "name": "example_resource",
-      "title": "Example Resource",
-      "uri": "resource://example/data",
-      "description": "An example resource",
-      "mimeType": "text/plain"
+      "uri": "file:///project/src/main.rs",
+      "name": "main.rs",
+      "title": "Rust Software Application Main File",
+      "description": "Primary application entry point",
+      "mimeType": "text/x-rust",
+      "icons": [
+        {
+          "src": "https://example.com/rust-file-icon.png",
+          "mimeType": "image/png",
+          "sizes": ["48x48"]
+        }
+      ]
     }
   ],
   "tools": [
     {
-      "name": "example_tool",
-      "title": "Example Tool",
-      "description": "An example tool",
+      "name": "get_weather",
+      "title": "Weather Information Provider",
+      "description": "Get current weather information for a location",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "input": {
-            "type": "string"
+          "location": {
+            "type": "string",
+            "description": "City name or zip code"
           }
+        },
+        "required": ["location"]
+      },
+      "icons": [
+        {
+          "src": "https://example.com/weather-icon.png",
+          "mimeType": "image/png",
+          "sizes": ["48x48"]
         }
-      }
+      ]
     }
   ],
   "prompts": [
     {
-      "name": "example_prompt",
-      "title": "Example Prompt",
-      "description": "An example prompt",
-      "arguments": []
+      "name": "code_review",
+      "title": "Request Code Review",
+      "description": "Asks the LLM to analyze code quality and suggest improvements",
+      "arguments": [
+        {
+          "name": "code",
+          "description": "The code to review",
+          "required": true
+        }
+      ],
+      "icons": [
+        {
+          "src": "https://example.com/review-icon.svg",
+          "mimeType": "image/svg+xml",
+          "sizes": ["any"]
+        }
+      ]
     }
   ],
-  "_meta": {}
+  "_meta": { ... }
 }
+
 ```
 
 ### Field Descriptions
 
-Most fields follow the initialization result from: https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle#initialization
+Most fields follow the current MCP Registry `server.json` standard: https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md
 
-1. **$schema** (string, required): URL to the JSON schema definition for the MCP Server Card format
-2. **version** (string, required): Schema version for the server card document (e.g., "1.0")
-3. **protocolVersion** (string, required): The MCP protocol version the server supports (e.g., "2025-06-18")
-4. **serverInfo** (object, required): Server identification following the `Implementation` interface
-   1. **name** (string, required): Server identifier for programmatic use
-   2. **title** (string, optional): Human-readable server display name
-   3. **version** (string, required): Server software version
-5. **description** (string, optional): Human-readable description of the server
-6. **iconUrl** (string, optional): URL to an icon representing the server
-7. **documentationUrl** (string, optional): URL to the server's documentation
-8. **transport** (object, required): Transport configuration
-   1. **type** (string, required): Transport type (e.g., "streamable-http", "stdio", "sse")
-   2. **endpoint** (string, required for HTTP): Transport endpoint path (e.g., "/mcp")
+1. **name** (string, required): Server name in reverse-DNS format. Must contain exactly one forward slash separating namespace from server name.
+2. **version** (string, required): Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.*').
+3. **description** (string, optional): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
+4. **title** (string, optional): Optional human-readable title or display name for the MCP server.
+5. **websiteUrl** (string, optional): Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
+6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/server.schema.json#L371).
+7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L18).
+8. **remotes** (array of object, optional): Metadata helpful for making HTTP-based connections to this MCP server.
+  1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
+  2. **authentication** (object, optional): Authentication requirements
+    1. **required** (boolean, required): Whether authentication is mandatory
+    2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
+  2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
+9. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
+  1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
+  2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
 9. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
    1. **experimental** (object, optional): Experimental capabilities
    2. **logging** (object, optional): Log message support
@@ -174,10 +311,6 @@ Most fields follow the initialization result from: https://modelcontextprotocol.
     2. **roots** (object, optional): Root access requirement
     3. **sampling** (object, optional): LLM sampling requirement
     4. **elicitation** (object, optional): User elicitation requirement
-11. **authentication** (object, optional): Authentication requirements
-    1. **required** (boolean, required): Whether authentication is mandatory
-    2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
-12. **instructions** (string, optional): Usage instructions for the server
 13. **resources** (string | array, optional): Resource definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Resource` interface
@@ -214,7 +347,7 @@ This enables clients to discover server metadata after establishing an MCP conne
 Servers using HTTP-based transports SHOULD provide their server card at:
 
 ```
-/.well-known/mcp/server-card.json
+/.well-known/mcp/server-cards.json
 ```
 
 This endpoint:
@@ -264,9 +397,15 @@ The `.well-known` URI pattern is an established IETF standard (RFC 8615) used by
 - Works with standard HTTP infrastructure (caches, CDNs, load balancers)
 - Is already familiar to developers working with web services
 
+### Why Mirror `server.json`'s shape?
+
+The MCP Registry team has iterated on a shape that properly enables MCP server configuration and connection across hundreds of industry stakeholders over the past year, so we have reasonably high confidence that this shape will work for most use cases.
+
+By avoiding inducing breaking changes to the `server.json` shape, we also leave intact dozens, perhaps hundreds of systems that are already in production across the MCP Registry-related ecosystem.
+
 ### Why Mirror Initialization Data?
 
-By structuring server cards to mirror the initialization response, we:
+By structuring server cards to (mostly) mirror the initialization response, we:
 
 - Minimize implementation complexity for servers
 - Allow clients to use the same parsing logic for both discovery and initialization
