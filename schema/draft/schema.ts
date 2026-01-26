@@ -750,6 +750,9 @@ export interface BaseMetadata {
  * @category `initialize`
  */
 export interface Implementation extends BaseMetadata, Icons {
+  /**
+   * The version of this implementation.
+   */
   version: string;
 
   /**
