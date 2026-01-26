@@ -34,7 +34,7 @@ provides a single, stable convention for metadata propagation without changing r
 
 For any MCP request or notification, the `params` object:
 
-- **MAY** include a `_meta` key whose value is an object with type `{ [key: string]: unknown }`.
+- **MAY** include a `_meta` key whose value is an object whose keys are strings and values can be any other JSON value.
 - `_meta` is reserved for metadata not part of method-specific parameters.
 - Receivers **MUST** ignore `_meta` keys they do not understand.
 
