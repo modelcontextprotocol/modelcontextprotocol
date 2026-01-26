@@ -33,10 +33,18 @@ jobs:
 
       - run: npm ci
 
+      # On PR, verify rendered docs are up to date (must run BEFORE generate)
+      - name: Verify SEPs are up to date
+        if: github.event_name == 'pull_request'
+        run: npm run check:seps
+
+      # On push to main, generate and commit any changes
       - name: Render SEPs
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: npm run generate:seps
 
       - name: Check for changes
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         id: changes
         run: |
           if [[ -n "$(git status --porcelain docs/community/seps/ docs/snippets/badge.mdx docs/docs.json)" ]]; then
@@ -45,7 +53,6 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
 
-      # On push to main, commit any changes
       - name: Commit changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changes.outputs.has_changes == 'true'
         run: |
@@ -54,8 +61,3 @@ jobs:
           git add docs/community/seps/ docs/snippets/badge.mdx docs/docs.json
           git commit -m "docs: auto-render SEPs documentation"
           git push
-
-      # On PR, verify docs are up to date
-      - name: Verify SEPs are up to date
-        if: github.event_name == 'pull_request'
-        run: npm run check:seps

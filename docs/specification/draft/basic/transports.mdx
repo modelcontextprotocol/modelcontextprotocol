@@ -141,7 +141,9 @@ MCP endpoint.
    supported content type.
 3. The server **MUST** either return `Content-Type: text/event-stream` in response to
    this HTTP GET, or else return HTTP 405 Method Not Allowed, indicating that the server
-   does not offer an SSE stream at this endpoint.
+   does not offer an SSE stream at this endpoint. Per [RFC 9110 §15.5.6](https://httpwg.org/specs/rfc9110.html#status.405), if the server returns HTTP 405, it
+   **MUST** include an `Allow` header listing the methods it does support (e.g.,
+   `Allow: POST`).
 4. If the server initiates an SSE stream:
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ on the stream.
    - These messages **SHOULD** be unrelated to any concurrently-running JSON-RPC
@@ -219,7 +221,9 @@ servers which want to establish stateful sessions:
    the client application) **SHOULD** send an HTTP DELETE to the MCP endpoint with the
    `MCP-Session-Id` header, to explicitly terminate the session.
    - The server **MAY** respond to this request with HTTP 405 Method Not Allowed,
-     indicating that the server does not allow clients to terminate sessions.
+     indicating that the server does not allow clients to terminate sessions. If the
+     server returns HTTP 405, it **MUST** include an `Allow` header listing the methods
+     it does support.
 
 ### Sequence Diagram
 
