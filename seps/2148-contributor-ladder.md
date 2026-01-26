@@ -1,11 +1,11 @@
-# SEP-0000: MCP Contributor Ladder
+# SEP-2148: MCP Contributor Ladder
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2025-01-15
 - **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
 - **Sponsor**: None
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2148
 
 ## Abstract
 
