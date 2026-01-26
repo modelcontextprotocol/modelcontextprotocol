@@ -246,6 +246,41 @@ export class GitHubClient {
   }
 
   /**
+   * Get child teams of a parent team
+   */
+  async getChildTeams(org: string, parentTeamSlug: string): Promise<string[]> {
+    await this.ensureInitialized();
+    const children = await this.octokit.paginate(
+      this.octokit.teams.listChildInOrg,
+      {
+        org,
+        team_slug: parentTeamSlug,
+        per_page: 100,
+      }
+    );
+    return children.map(t => t.slug);
+  }
+
+  /**
+   * Recursively get all descendant teams of a parent team (including the parent itself)
+   */
+  async getAllDescendantTeams(org: string, parentTeamSlug: string): Promise<string[]> {
+    const allTeams: string[] = [parentTeamSlug];
+    const queue = [parentTeamSlug];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const children = await this.getChildTeams(org, current);
+      for (const child of children) {
+        allTeams.push(child);
+        queue.push(child);
+      }
+    }
+
+    return allTeams;
+  }
+
+  /**
    * Get a single issue/PR by number
    */
   async getIssue(issueNumber: number): Promise<GitHubIssue> {

@@ -306,8 +306,10 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError
-  extends Omit<JSONRPCErrorResponse, "error"> {
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -748,6 +750,9 @@ export interface BaseMetadata {
  * @category `initialize`
  */
 export interface Implementation extends BaseMetadata, Icons {
+  /**
+   * The version of this implementation.
+   */
   version: string;
 
   /**
@@ -939,8 +944,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResultResponse
-  extends JSONRPCResultResponse {
+export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
   result: ListResourceTemplatesResult;
 }
 
