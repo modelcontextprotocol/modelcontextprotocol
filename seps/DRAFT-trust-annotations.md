@@ -69,6 +69,7 @@ This creates concrete risks:
 - **Prompt injection** can trigger destructive or irreversible actions using untrusted input.
 - **Data exfiltration** can occur when sensitive data is passed to tools that transmit externally.
 - **User consent** cannot be meaningfully enforced without knowing a tool's real-world impact.
+- **Distrust by default** leads to confirmation fatigue and bad user experience.
 
 Action security metadata provides a declarative contract that describes where inputs go, where outputs originate, and what outcomes the tool can cause. This complements trust annotations, which track data characteristics in transit.
 
