@@ -1,11 +1,18 @@
 ---
 title: Understanding Authorization in MCP
-description: Learn how to implement secure authorization for MCP servers using OAuth 2.1 to protect sensitive resources and operations
+description: >-
+  Learn how to implement secure authorization for MCP servers using OAuth 2.1
+  to protect sensitive resources and operations
 ---
 
-Authorization in the Model Context Protocol (MCP) secures access to sensitive resources and operations exposed by MCP servers. If your MCP server handles user data or administrative actions, authorization ensures only permitted users can access its endpoints.
+Authorization in the Model Context Protocol (MCP) secures access to sensitive resources and
+operations exposed by MCP servers. If your MCP server handles user data or administrative
+actions, authorization ensures only permitted users can access its endpoints.
 
-MCP uses standardized authorization flows to build trust between MCP clients and MCP servers. Its design doesn't focus on one specific authorization or identity system, but rather follows the conventions outlined for [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13). For detailed information, see the [Authorization specification](/specification/latest/basic/authorization).
+MCP uses standardized authorization flows to build trust between MCP clients and MCP servers.
+Its design doesn't focus on one specific authorization or identity system, but rather follows
+the conventions outlined for [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13).
+For detailed information, see the [Authorization specification](/specification/latest/basic/authorization).
 
 ## When Should You Use Authorization?
 
@@ -20,9 +27,15 @@ While authorization for MCP servers is **optional**, it is strongly recommended 
 <Tip>
 **Authorization for Local MCP Servers**
 
-For MCP servers using the [STDIO transport](/specification/latest/basic/transports#stdio), you can use environment-based credentials or credentials provided by third-party libraries embedded directly in the MCP server instead. Because a STDIO-built MCP server runs locally, it has access to a range of flexible options when it comes to acquiring user credentials that may or may not rely on in-browser authentication and authorization flows.
+For MCP servers using the [STDIO transport](/specification/latest/basic/transports#stdio), you
+can use environment-based credentials or credentials provided by third-party libraries embedded
+directly in the MCP server instead. Because a STDIO-built MCP server runs locally, it has
+access to a range of flexible options when it comes to acquiring user credentials that may or
+may not rely on in-browser authentication and authorization flows.
 
-OAuth flows, in turn, are designed for HTTP-based transports where the MCP server is remotely-hosted and the client uses OAuth to establish that a user is authorized to access said remote server.
+OAuth flows, in turn, are designed for HTTP-based transports where the MCP server is
+remotely-hosted and the client uses OAuth to establish that a user is authorized to access
+said remote server.
 
 </Tip>
 
@@ -32,7 +45,11 @@ Let's walk through what happens when a client wants to connect to your protected
 
 <Steps>
 <Step title="Initial Handshake">
-When your MCP client first tries to connect, your server responds with a `401 Unauthorized` and tells the client where to find authorization information, captured in a [Protected Resource Metadata (PRM) document](https://datatracker.ietf.org/doc/html/rfc9728). The document is hosted by the MCP server, follows a predictable path pattern, and is provided to the client in the `resource_metadata` parameter within the `WWW-Authenticate` header.
+When your MCP client first tries to connect, your server responds with a `401 Unauthorized`
+and tells the client where to find authorization information, captured in a
+[Protected Resource Metadata (PRM) document](https://datatracker.ietf.org/doc/html/rfc9728).
+The document is hosted by the MCP server, follows a predictable path pattern, and is provided
+to the client in the `resource_metadata` parameter within the `WWW-Authenticate` header.
 
 ```http
 HTTP/1.1 401 Unauthorized
@@ -40,12 +57,15 @@ WWW-Authenticate: Bearer realm="mcp",
   resource_metadata="https://your-server.com/.well-known/oauth-protected-resource"
 ```
 
-This tells the client that authorization is required for the MCP server and where to get the necessary information to kickstart the authorization flow.
+This tells the client that authorization is required for the MCP server and where to get the
+necessary information to kickstart the authorization flow.
 
 </Step>
 
 <Step title="Protected Resource Metadata Discovery">
-With the URI pointer to the PRM document, the client will fetch the metadata to learn about the authorization server, supported scopes, and other resource information. The data is typically encapsulated in a JSON blob, similar to the one below.
+With the URI pointer to the PRM document, the client will fetch the metadata to learn about
+the authorization server, supported scopes, and other resource information. The data is
+typically encapsulated in a JSON blob, similar to the one below.
 
 ```json
 {
@@ -55,15 +75,22 @@ With the URI pointer to the PRM document, the client will fetch the metadata to 
 }
 ```
 
-You can see a more comprehensive example in [RFC 9728 Section 3.2](https://datatracker.ietf.org/doc/html/rfc9728#name-protected-resource-metadata-r).
+You can see a more comprehensive example in
+[RFC 9728 Section 3.2](https://datatracker.ietf.org/doc/html/rfc9728#name-protected-resource-metadata-r).
 
 </Step>
 
 <Step title="Authorization Server Discovery">
-Next, the client discovers what the authorization server can do by fetching its metadata. If the PRM document lists more than one authorization server, the client can decide which one to use.
+Next, the client discovers what the authorization server can do by fetching its metadata.
+If the PRM document lists more than one authorization server, the client can decide which
+one to use.
 
-With an authorization server selected, the client will then construct a standard metadata URI and issue a request to the [OpenID Connect (OIDC) Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html) or [OAuth 2.0 Auth Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414) endpoints (depending on authorization server support)
-and retrieve another set of metadata properties that will allow it to know the endpoints it needs to complete the authorization flow.
+With an authorization server selected, the client will then construct a standard metadata URI
+and issue a request to the
+[OpenID Connect (OIDC) Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html)
+or [OAuth 2.0 Auth Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414) endpoints
+(depending on authorization server support) and retrieve another set of metadata properties
+that will allow it to know the endpoints it needs to complete the authorization flow.
 
 ```json
 {
@@ -77,7 +104,8 @@ and retrieve another set of metadata properties that will allow it to know the e
 </Step>
 
 <Step title="Client Registration">
-With all the metadata out of the way, the client now needs to make sure that it's registered with the authorization server. MCP supports three client registration mechanisms:
+With all the metadata out of the way, the client now needs to make sure that it's registered
+with the authorization server. MCP supports three client registration mechanisms:
 
 | Approach | When to Use |
 |----------|-------------|
@@ -85,12 +113,15 @@ With all the metadata out of the way, the client now needs to make sure that it'
 | **Pre-registration** | When client and server have an existing relationship |
 | **Dynamic Client Registration** | For backwards compatibility with older authorization servers |
 
-See [Client Registration Approaches](#client-registration-approaches) for detailed information on each mechanism.
+See [Client Registration Approaches](#client-registration-approaches) for detailed
+information on each mechanism.
 
 </Step>
 
 <Step title="User Authorization">
-The client will now need to open a browser to the `/authorize` endpoint, where the user can log in and grant the required permissions. The authorization server will then redirect back to the client with an authorization code that the client exchanges for tokens:
+The client will now need to open a browser to the `/authorize` endpoint, where the user can
+log in and grant the required permissions. The authorization server will then redirect back
+to the client with an authorization code that the client exchanges for tokens:
 
 ```json
 {
@@ -101,12 +132,16 @@ The client will now need to open a browser to the `/authorize` endpoint, where t
 }
 ```
 
-The access token is what the client will use to authenticate requests to the MCP server. This step follows standard [OAuth 2.1 authorization code with PKCE](https://oauth.net/2/grant-types/authorization-code/) conventions.
+The access token is what the client will use to authenticate requests to the MCP server.
+This step follows standard
+[OAuth 2.1 authorization code with PKCE](https://oauth.net/2/grant-types/authorization-code/)
+conventions.
 
 </Step>
 
 <Step title="Making Authenticated Requests">
-Finally, the client can make requests to your MCP server using the access token embedded in the `Authorization` header:
+Finally, the client can make requests to your MCP server using the access token embedded in
+the `Authorization` header:
 
 ```http
 GET /mcp HTTP/1.1
@@ -114,7 +149,8 @@ Host: your-server.com
 Authorization: Bearer eyJhbGciOiJSUzI1NiIs...
 ```
 
-The MCP server will need to validate the token and process the request if the token is valid and has the required permissions.
+The MCP server will need to validate the token and process the request if the token is valid
+and has the required permissions.
 
 </Step>
 </Steps>
@@ -129,14 +165,18 @@ MCP supports three client registration mechanisms to accommodate different deplo
 This is the recommended approach for client registration in MCP.
 </Note>
 
-Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)) allow MCP clients to use an HTTPS URL as their `client_id`. The authorization server fetches client metadata from this URL, eliminating the need for pre-registration or dynamic registration.
+Client ID Metadata Documents
+([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
+allow MCP clients to use an HTTPS URL as their `client_id`. The authorization server fetches
+client metadata from this URL, eliminating the need for pre-registration or dynamic registration.
 
 **How it works:**
 
 1. The MCP client hosts a JSON metadata document at a publicly accessible HTTPS URL
 2. When starting authorization, the client uses this URL as its `client_id`
 3. The authorization server detects the URL format and fetches the metadata document
-4. The server validates the document and uses the metadata (like `redirect_uris`) to process the authorization request
+4. The server validates the document and uses the metadata (like `redirect_uris`) to process
+   the authorization request
 
 **Advantages:**
 - No pre-existing relationship required between client and server
@@ -145,21 +185,29 @@ Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](
 - Metadata can be updated by the client at any time
 
 **Requirements for clients:**
-- Host metadata at an HTTPS URL with a path component (e.g., `https://example.com/oauth/metadata.json`)
+- Host metadata at an HTTPS URL with a path component
+  (e.g., `https://example.com/oauth/metadata.json`)
 - Include required fields: `client_id` (must match the URL), `client_name`, `redirect_uris`
 - Ensure the document is publicly accessible
 
 ### Pre-Registration
 
-Pre-registration is appropriate when the client and authorization server have an existing relationship. The client can have embedded client registration information (client ID and optionally client credentials) that it uses to complete the authorization flow.
+Pre-registration is appropriate when the client and authorization server have an existing
+relationship. The client can have embedded client registration information (client ID and
+optionally client credentials) that it uses to complete the authorization flow.
 
 ### Dynamic Client Registration
 
 <Warning>
-This is a legacy approach maintained for backwards compatibility with earlier versions of the MCP authorization specification. New implementations should prefer Client ID Metadata Documents when the authorization server supports them.
+This is a legacy approach maintained for backwards compatibility with earlier versions of
+the MCP authorization specification. New implementations should prefer Client ID Metadata
+Documents when the authorization server supports them.
 </Warning>
 
-Dynamic Client Registration ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)) allows clients to programmatically register with an authorization server by sending a registration request containing client metadata.
+Dynamic Client Registration
+([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)) allows clients to programmatically
+register with an authorization server by sending a registration request containing client
+metadata.
 
 **When to use DCR:**
 - The authorization server doesn't support Client ID Metadata Documents
@@ -168,7 +216,8 @@ Dynamic Client Registration ([RFC7591](https://datatracker.ietf.org/doc/html/rfc
 
 **Security considerations:**
 - Unauthenticated DCR means anyone can register any client with the authorization server
-- Authorization servers should implement appropriate controls (trusted hosts, rate limiting, etc.)
+- Authorization servers should implement appropriate controls (trusted hosts, rate limiting,
+  etc.)
 
 ### Fallback Priority
 
@@ -180,11 +229,14 @@ Clients supporting multiple registration options should follow this priority ord
 
 ## Testing with Client ID Metadata Documents
 
-[client.dev](https://client.dev/) is a reference authorization server that supports Client ID Metadata Documents out of the box. It's designed for testing and experimentation with the CIMD approach.
+[client.dev](https://client.dev/) is a reference authorization server that supports Client ID
+Metadata Documents out of the box. It's designed for testing and experimentation with the
+CIMD approach.
 
 <Steps>
 <Step title="Create Your Client Metadata Document">
-Create a JSON file with your client metadata and host it at a publicly accessible HTTPS URL. The document must include required fields:
+Create a JSON file with your client metadata and host it at a publicly accessible HTTPS URL.
+The document must include required fields:
 
 ```json
 {
@@ -202,7 +254,8 @@ The `client_id` value must exactly match the URL where the document is hosted.
 </Step>
 
 <Step title="Configure Your MCP Server">
-Set up your MCP server to use `https://client.dev` as its authorization server. In your Protected Resource Metadata, include:
+Set up your MCP server to use `https://client.dev` as its authorization server. In your
+Protected Resource Metadata, include:
 
 ```json
 {
@@ -225,19 +278,27 @@ When an MCP client connects to your server, the authorization flow will:
 </Steps>
 
 <Tip>
-[Visual Studio Code](https://code.visualstudio.com/) supports CIMD as an MCP client, making it a convenient tool for testing your CIMD-enabled MCP servers during development.
+[Visual Studio Code](https://code.visualstudio.com/) supports CIMD as an MCP client, making
+it a convenient tool for testing your CIMD-enabled MCP servers during development.
 
 </Tip>
 
 ## Testing with Dynamic Client Registration
 
 <Warning>
-This example uses Dynamic Client Registration (DCR), which is maintained for backwards compatibility. For new implementations, prefer [Client ID Metadata Documents](#testing-with-client-id-metadata-documents) when the authorization server supports them.
+This example uses Dynamic Client Registration (DCR), which is maintained for backwards
+compatibility. For new implementations, prefer
+[Client ID Metadata Documents](#testing-with-client-id-metadata-documents) when the
+authorization server supports them.
 </Warning>
 
-To test with DCR, we will use a [Keycloak](https://www.keycloak.org/) authorization server hosted in a Docker container. Keycloak is an open-source authorization server that can be easily deployed locally for testing and experimentation.
+To test with DCR, we will use a [Keycloak](https://www.keycloak.org/) authorization server
+hosted in a Docker container. Keycloak is an open-source authorization server that can be
+easily deployed locally for testing and experimentation.
 
-Make sure that you download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/). We will need it to deploy Keycloak on our development machine.
+Make sure that you download and install
+[Docker Desktop](https://www.docker.com/products/docker-desktop/). We will need it to deploy
+Keycloak on our development machine.
 
 ### Keycloak Setup
 
@@ -247,16 +308,22 @@ From your terminal application, run the following command to start the Keycloak 
 docker run -p 127.0.0.1:8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak start-dev
 ```
 
-This command will pull the Keycloak container image locally and bootstrap the basic configuration. It will run on port `8080` and have an `admin` user with `admin` password.
+This command will pull the Keycloak container image locally and bootstrap the basic
+configuration. It will run on port `8080` and have an `admin` user with `admin` password.
 
 <Warning>
 **Not for Production**
 
-The configuration above may be suitable for testing and experimentation; however, you should never use it in production. Refer to the [Configuring Keycloak for production](https://www.keycloak.org/server/configuration-production) guide for additional details on how to deploy the authorization server for scenarios that require reliability, security, and high availability.
+The configuration above may be suitable for testing and experimentation; however, you should
+never use it in production. Refer to the
+[Configuring Keycloak for production](https://www.keycloak.org/server/configuration-production)
+guide for additional details on how to deploy the authorization server for scenarios that
+require reliability, security, and high availability.
 
 </Warning>
 
-You will be able to access the Keycloak authorization server from your browser at `http://localhost:8080`.
+You will be able to access the Keycloak authorization server from your browser at
+`http://localhost:8080`.
 
 <Frame>
   <img
@@ -265,15 +332,20 @@ You will be able to access the Keycloak authorization server from your browser a
   />
 </Frame>
 
-When running with the default configuration, Keycloak will already support many of the capabilities that we need for MCP servers, including Dynamic Client Registration. You can check this by looking at the OIDC configuration, available at:
+When running with the default configuration, Keycloak will already support many of the
+capabilities that we need for MCP servers, including Dynamic Client Registration. You can
+check this by looking at the OIDC configuration, available at:
 
 ```http
 http://localhost:8080/realms/master/.well-known/openid-configuration
 ```
 
-We will also need to set up Keycloak to support our scopes and allow our host (local machine) to dynamically register clients, as the default policies restrict anonymous dynamic client registration.
+We will also need to set up Keycloak to support our scopes and allow our host (local machine)
+to dynamically register clients, as the default policies restrict anonymous dynamic client
+registration.
 
-Go to **Client scopes** in the Keycloak dashboard and create a new `mcp:tools` scope. We will use this to access all of the tools on our MCP server.
+Go to **Client scopes** in the Keycloak dashboard and create a new `mcp:tools` scope. We will
+use this to access all of the tools on our MCP server.
 
 <Frame>
   <img
@@ -282,11 +354,16 @@ Go to **Client scopes** in the Keycloak dashboard and create a new `mcp:tools` s
   />
 </Frame>
 
-After creating the scope, make sure that you assign its type to **Default** and have flipped the **Include in token scope** switch, as this will be needed for token validation.
+After creating the scope, make sure that you assign its type to **Default** and have flipped
+the **Include in token scope** switch, as this will be needed for token validation.
 
-Let's now also set up an **audience** for our Keycloak-issued tokens. An audience is important to configure because it embeds the intended destination directly into the issued access token. This helps your MCP server to verify that the token it got was actually meant for it rather than some other API. This is key to help avoid token passthrough scenarios.
+Let's now also set up an **audience** for our Keycloak-issued tokens. An audience is important
+to configure because it embeds the intended destination directly into the issued access token.
+This helps your MCP server to verify that the token it got was actually meant for it rather
+than some other API. This is key to help avoid token passthrough scenarios.
 
-To do this, open your `mcp:tools` client scope and click on **Mappers**, followed by **Configure a new mapper**. Select **Audience**.
+To do this, open your `mcp:tools` client scope and click on **Mappers**, followed by
+**Configure a new mapper**. Select **Audience**.
 
 <Frame>
   <img
@@ -295,16 +372,26 @@ To do this, open your `mcp:tools` client scope and click on **Mappers**, followe
   />
 </Frame>
 
-For **Name**, use `audience-config`. Add a value for **Included Custom Audience**, set to `http://localhost:3000`. This will be the URI of our test server.
+For **Name**, use `audience-config`. Add a value for **Included Custom Audience**, set to
+`http://localhost:3000`. This will be the URI of our test server.
 
 <Warning>
 **Not for Production**
 
-The audience configuration above is meant for testing. For production scenarios, additional set-up and configuration will be required to ensure that audiences are properly constrained for issued tokens. Specifically, the audience needs to be based on the resource parameter passed from the client, not a fixed value.
+The audience configuration above is meant for testing. For production scenarios, additional
+set-up and configuration will be required to ensure that audiences are properly constrained
+for issued tokens. Specifically, the audience needs to be based on the resource parameter
+passed from the client, not a fixed value.
 
 </Warning>
 
-Now, navigate to **Clients**, then **Client registration**, and then **Trusted Hosts**. Disable the **Client URIs Must Match** setting and add the hosts from which you're testing. You can get your current host IP by running the `ifconfig` command on Linux or macOS, or `ipconfig` on Windows. You can see the IP address you need to add by looking at the keycloak logs for a line that looks like `Failed to verify remote host : 192.168.215.1`. Check that the IP address is associated with your host. This may be for a bridge network depending on your docker setup.
+Now, navigate to **Clients**, then **Client registration**, and then **Trusted Hosts**.
+Disable the **Client URIs Must Match** setting and add the hosts from which you're testing.
+You can get your current host IP by running the `ifconfig` command on Linux or macOS, or
+`ipconfig` on Windows. You can see the IP address you need to add by looking at the keycloak
+logs for a line that looks like `Failed to verify remote host : 192.168.215.1`. Check that
+the IP address is associated with your host. This may be for a bridge network depending on
+your docker setup.
 
 <Frame>
   <img
@@ -316,11 +403,14 @@ Now, navigate to **Clients**, then **Client registration**, and then **Trusted H
 <Warning>
 **Getting the Host**
 
-If you are running Keycloak from a container, you will also be able to see the host IP from the Terminal in the container logs.
+If you are running Keycloak from a container, you will also be able to see the host IP from
+the Terminal in the container logs.
 
 </Warning>
 
-Lastly, we need to register a new client that we can use with the **MCP server itself** to talk to Keycloak for things like [token introspection](https://oauth.net/2/token-introspection/). To do that:
+Lastly, we need to register a new client that we can use with the **MCP server itself** to
+talk to Keycloak for things like
+[token introspection](https://oauth.net/2/token-introspection/). To do that:
 
 1. Go to **Clients**.
 1. Click **Create client**.
@@ -328,7 +418,9 @@ Lastly, we need to register a new client that we can use with the **MCP server i
 1. Enable **Client authentication** and click **Next**.
 1. Click **Save**.
 
-Worth noting that token introspection is just _one of_ the available approaches to validate tokens. This can also be done with the help of standalone libraries, specific to each language and platform.
+Worth noting that token introspection is just _one of_ the available approaches to validate
+tokens. This can also be done with the help of standalone libraries, specific to each
+language and platform.
 
 When you open the client details, go to **Credentials** and take note of the **Client Secret**.
 
@@ -342,11 +434,13 @@ When you open the client details, go to **Credentials** and take note of the **C
 <Warning>
 **Handling Secrets**
 
-Never embed client credentials directly in your code. We recommend using environment variables or specialized solutions for secret storage.
+Never embed client credentials directly in your code. We recommend using environment
+variables or specialized solutions for secret storage.
 
 </Warning>
 
-With Keycloak configured, every time the authorization flow is triggered, your MCP server will receive a token like this:
+With Keycloak configured, every time the authorization flow is triggered, your MCP server
+will receive a token like this:
 
 ```text
 eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1TjcxMGw1WW5MWk13WGZ1VlJKWGtCS3ZZMzZzb3JnRG5scmlyZ2tlTHlzIn0.eyJleHAiOjE3NTU1NDA4MTcsImlhdCI6MTc1NTU0MDc1NywiYXV0aF90aW1lIjoxNzU1NTM4ODg4LCJqdGkiOiJvbnJ0YWM6YjM0MDgwZmYtODQwNC02ODY3LTgxYmUtMTIzMWI1MDU5M2E4IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9tYXN0ZXIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJzdWIiOiIzM2VkNmM2Yi1jNmUwLTQ5MjgtYTE2MS1mMmY2OWM3YTAzYjkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiI3OTc1YTViNi04YjU5LTRhODUtOWNiYS04ZmFlYmRhYjg5NzQiLCJzaWQiOiI4ZjdlYzI3Ni0zNThmLTRjY2MtYjMxMy1kYjA4MjkwZjM3NmYiLCJzY29wZSI6Im1jcDp0b29scyJ9.P5xCRtXORly0R0EXjyqRCUx-z3J4uAOWNAvYtLPXroykZuVCCJ-K1haiQSwbURqfsVOMbL7jiV-sD6miuPzI1tmKOkN_Yct0Vp-azvj7U5rEj7U6tvPfMkg2Uj_jrIX0KOskyU2pVvGZ-5BgqaSvwTEdsGu_V3_E0xDuSBq2uj_wmhqiyTFm5lJ1WkM3Hnxxx1_AAnTj7iOKMFZ4VCwMmk8hhSC7clnDauORc0sutxiJuYUZzxNiNPkmNeQtMCGqWdP1igcbWbrfnNXhJ6NswBOuRbh97_QraET3hl-CNmyS6C72Xc0aOwR_uJ7xVSBTD02OaQ1JA6kjCATz30kGYg
@@ -377,20 +471,27 @@ Decoded, it will look like this:
 <Warning>
 **Embedded Audience**
 
-Notice the `aud` claim embedded in the token - it's currently set to be the URI of the test MCP server and it's inferred from the scope that we've previously configured. This will be important in our implementation to validate.
+Notice the `aud` claim embedded in the token - it's currently set to be the URI of the test
+MCP server and it's inferred from the scope that we've previously configured. This will be
+important in our implementation to validate.
 
 </Warning>
 
 ### MCP Server Setup
 
-We will now set up our MCP server to use the locally-running Keycloak authorization server. Depending on your programming language preference, you can use one of the supported [MCP SDKs](/docs/sdk).
+We will now set up our MCP server to use the locally-running Keycloak authorization server.
+Depending on your programming language preference, you can use one of the supported
+[MCP SDKs](/docs/sdk).
 
-For our testing purposes, we will create an extremely simple MCP server that exposes two tools - one for addition and another for multiplication. The server will require authorization to access these.
+For our testing purposes, we will create an extremely simple MCP server that exposes two
+tools - one for addition and another for multiplication. The server will require
+authorization to access these.
 
 <Tabs>
 <Tab title='TypeScript'>
 
-You can see the complete TypeScript project in the [sample repository](https://github.com/localden/min-ts-mcp-auth).
+You can see the complete TypeScript project in the
+[sample repository](https://github.com/localden/min-ts-mcp-auth).
 
 Prior to running the code below, ensure that you have a `.env` file with the following content:
 
@@ -409,9 +510,12 @@ OAUTH_CLIENT_ID=<YOUR_SERVER_CLIENT_ID>
 OAUTH_CLIENT_SECRET=<YOUR_SERVER_CLIENT_SECRET>
 ```
 
-`OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` are associated with the MCP server client we created earlier.
+`OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` are associated with the MCP server client we
+created earlier.
 
-In addition to implementing the MCP authorization specification, the server below also does token introspection via Keycloak to make sure that the token it receives from the client is valid. It also implements basic logging to allow you to easily diagnose any issues.
+In addition to implementing the MCP authorization specification, the server below also does
+token introspection via Keycloak to make sure that the token it receives from the client is
+valid. It also implements basic logging to allow you to easily diagnose any issues.
 
 ```typescript
 import "dotenv/config";
@@ -708,19 +812,26 @@ app.listen(CONFIG.port, CONFIG.host, () => {
 });
 ```
 
-When you run the server, you can add it to your MCP client, such as Visual Studio Code, by providing the MCP server endpoint.
+When you run the server, you can add it to your MCP client, such as Visual Studio Code, by
+providing the MCP server endpoint.
 
-For more details about implementing MCP servers in TypeScript, refer to the [TypeScript SDK documentation](https://github.com/modelcontextprotocol/typescript-sdk).
+For more details about implementing MCP servers in TypeScript, refer to the
+[TypeScript SDK documentation](https://github.com/modelcontextprotocol/typescript-sdk).
 
 </Tab>
 
 <Tab title='Python'>
 
-You can see the complete Python project in the [sample repository](https://github.com/localden/min-py-mcp-auth).
+You can see the complete Python project in the
+[sample repository](https://github.com/localden/min-py-mcp-auth).
 
-To simplify our authorization interaction, in Python scenarios we rely on [FastMCP](https://gofastmcp.com/getting-started/welcome). Many of the conventions around authorization, like the endpoints and token validation logic, are consistent across languages, but some offer simpler ways of integrating them in production scenarios.
+To simplify our authorization interaction, in Python scenarios we rely on
+[FastMCP](https://gofastmcp.com/getting-started/welcome). Many of the conventions around
+authorization, like the endpoints and token validation logic, are consistent across languages,
+but some offer simpler ways of integrating them in production scenarios.
 
-Prior to writing the actual server, we need to set up our configuration in `config.py` - the contents are entirely based on your local server setup:
+Prior to writing the actual server, we need to set up our configuration in `config.py` - the
+contents are entirely based on your local server setup:
 
 ```python
 """Configuration settings for the MCP auth server."""
@@ -913,7 +1024,9 @@ if __name__ == "__main__":
     exit(main())
 ```
 
-Lastly, the token verification logic is delegated entirely to `token_verifier.py`, ensuring that we can use the Keycloak introspection endpoint to verify the validity of any credential artifacts
+Lastly, the token verification logic is delegated entirely to `token_verifier.py`, ensuring
+that we can use the Keycloak introspection endpoint to verify the validity of any credential
+artifacts
 
 ```python
 """Token verifier implementation using OAuth 2.0 Token Introspection (RFC 7662)."""
@@ -1017,15 +1130,19 @@ class IntrospectionTokenVerifier(TokenVerifier):
         return check_resource_allowed(self.resource_url, resource)
 ```
 
-For more details, see the [Python SDK documentation](https://github.com/modelcontextprotocol/python-sdk).
+For more details, see the
+[Python SDK documentation](https://github.com/modelcontextprotocol/python-sdk).
 
 </Tab>
 
 <Tab title='C#'>
 
-You can see the complete C# project in the [sample repository](https://github.com/localden/min-cs-mcp-auth).
+You can see the complete C# project in the
+[sample repository](https://github.com/localden/min-cs-mcp-auth).
 
-To set up authorization in your MCP server using the MCP C# SDK, you can lean on the standard ASP.NET Core builder pattern. Instead of using the introspection endpoint provided by Keycloak, we will use built-in ASP.NET Core capabilities for token validation.
+To set up authorization in your MCP server using the MCP C# SDK, you can lean on the standard
+ASP.NET Core builder pattern. Instead of using the introspection endpoint provided by
+Keycloak, we will use built-in ASP.NET Core capabilities for token validation.
 
 ```csharp
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -1118,16 +1235,20 @@ Console.WriteLine("Press Ctrl+C to stop the server");
 app.Run(serverUrl);
 ```
 
-For more details, see the [C# SDK documentation](https://github.com/modelcontextprotocol/csharp-sdk).
+For more details, see the
+[C# SDK documentation](https://github.com/modelcontextprotocol/csharp-sdk).
 
 </Tab>
 </Tabs>
 
 ## Testing the MCP Server
 
-For testing purposes, we will be using [Visual Studio Code](https://code.visualstudio.com), but any client that supports MCP and the new authorization specification will fit.
+For testing purposes, we will be using [Visual Studio Code](https://code.visualstudio.com),
+but any client that supports MCP and the new authorization specification will fit.
 
-Press <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> and select **MCP: Add server...**. Select **HTTP** and enter `http://localhost:3000`. Give the server a unique name to be used inside Visual Studio Code. In `mcp.json` you should now see an entry like this:
+Press <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> and select **MCP: Add server...**.
+Select **HTTP** and enter `http://localhost:3000`. Give the server a unique name to be used
+inside Visual Studio Code. In `mcp.json` you should now see an entry like this:
 
 ```json
 "my-mcp-server-18676652": {
@@ -1136,7 +1257,8 @@ Press <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> and select **MCP: Add ser
 }
 ```
 
-On connection, you will be taken to the browser, where you will be prompted to consent to Visual Studio Code having access to the `mcp:tools` scope.
+On connection, you will be taken to the browser, where you will be prompted to consent to
+Visual Studio Code having access to the `mcp:tools` scope.
 
 <Frame>
   <img
@@ -1165,30 +1287,63 @@ You will be able to invoke individual tools with the help of the `#` sign in the
 
 ## Common Pitfalls and How to Avoid Them
 
-For comprehensive security guidance, including attack vectors, mitigation strategies, and implementation best practices, make sure to read through [Security Best Practices](/specification/draft/basic/security_best_practices). A few key issues are called out below.
+For comprehensive security guidance, including attack vectors, mitigation strategies, and
+implementation best practices, make sure to read through
+[Security Best Practices](/specification/draft/basic/security_best_practices). A few key
+issues are called out below.
 
-- **Do not implement token validation or authorization logic by yourself**. Use off-the-shelf, well-tested, and secure libraries for things like token validation or authorization decisions. Doing everything from scratch means that you're more likely to implement things incorrectly unless you are a security expert.
-- **Use short-lived access tokens**. Depending on the authorization server used, this setting might be customizable. We recommend to not use long-lived tokens - if a malicious actor steals them, they will be able to maintain their access for longer periods.
-- **Always validate tokens**. Just because your server received a token does not mean that the token is valid or that it's meant for your server. Always verify that what your MCP server is getting from the client matches the required constraints.
-- **Store tokens in secure, encrypted storage**. In certain scenarios, you might need to cache tokens server-side. If that is the case, ensure that the storage has the right access controls and cannot be easily exfiltrated by malicious parties with access to your server. You should also implement robust cache eviction policies to ensure that your MCP server is not re-using expired or otherwise invalid tokens.
-- **Enforce HTTPS in production**. Do not accept tokens or redirect callbacks over plain HTTP except for `localhost` during development.
-- **Least-privilege scopes**. Don't use catch‑all scopes. Split access per tool or capability where possible and verify required scopes per route/tool on the resource server.
-- **Don't log credentials**. Never log `Authorization` headers, tokens, codes, or secrets. Scrub query strings and headers. Redact sensitive fields in structured logs.
-- **Separate app vs. resource server credentials**. Don't reuse your MCP server's client secret for end‑user flows. Store all secrets in a proper secret manager, not in source control.
-- **Return proper challenges**. On 401, include `WWW-Authenticate` with `Bearer`, `realm`, and `resource_metadata` so clients can discover how to authenticate.
-- **DCR (Dynamic Client Registration) controls**. If using the legacy DCR approach, be aware of constraints specific to your organization, such as trusted hosts, required vetting, and audited registrations. Unauthenticated DCR means that anyone can register any client with your authorization server. Consider migrating to Client ID Metadata Documents for improved security and flexibility.
-- **Multi‑tenant/realm mix-ups**. Pin to a single issuer/tenant unless explicitly multi‑tenant. Reject tokens from other realms even if signed by the same authorization server.
-- **Audience/resource indicator misuse**. Don't configure or accept generic audiences (like `api`) or unrelated resources. Require the audience/resource to match your configured server.
-- **Error detail leakage**. Return generic messages to clients, but log detailed reasons with correlation IDs internally to aid troubleshooting without exposing internals.
-- **Session identifier hardening**. Treat `Mcp-Session-Id` as untrusted input; never tie authorization to it. Regenerate on auth changes and validate lifecycle server‑side.
+- **Do not implement token validation or authorization logic by yourself**. Use off-the-shelf,
+  well-tested, and secure libraries for things like token validation or authorization
+  decisions. Doing everything from scratch means that you're more likely to implement things
+  incorrectly unless you are a security expert.
+- **Use short-lived access tokens**. Depending on the authorization server used, this setting
+  might be customizable. We recommend to not use long-lived tokens - if a malicious actor
+  steals them, they will be able to maintain their access for longer periods.
+- **Always validate tokens**. Just because your server received a token does not mean that the
+  token is valid or that it's meant for your server. Always verify that what your MCP server
+  is getting from the client matches the required constraints.
+- **Store tokens in secure, encrypted storage**. In certain scenarios, you might need to cache
+  tokens server-side. If that is the case, ensure that the storage has the right access
+  controls and cannot be easily exfiltrated by malicious parties with access to your server.
+  You should also implement robust cache eviction policies to ensure that your MCP server is
+  not re-using expired or otherwise invalid tokens.
+- **Enforce HTTPS in production**. Do not accept tokens or redirect callbacks over plain HTTP
+  except for `localhost` during development.
+- **Least-privilege scopes**. Don't use catch‑all scopes. Split access per tool or capability
+  where possible and verify required scopes per route/tool on the resource server.
+- **Don't log credentials**. Never log `Authorization` headers, tokens, codes, or secrets.
+  Scrub query strings and headers. Redact sensitive fields in structured logs.
+- **Separate app vs. resource server credentials**. Don't reuse your MCP server's client
+  secret for end‑user flows. Store all secrets in a proper secret manager, not in source
+  control.
+- **Return proper challenges**. On 401, include `WWW-Authenticate` with `Bearer`, `realm`,
+  and `resource_metadata` so clients can discover how to authenticate.
+- **DCR (Dynamic Client Registration) controls**. If using the legacy DCR approach, be aware
+  of constraints specific to your organization, such as trusted hosts, required vetting, and
+  audited registrations. Unauthenticated DCR means that anyone can register any client with
+  your authorization server. Consider migrating to Client ID Metadata Documents for improved
+  security and flexibility.
+- **Multi‑tenant/realm mix-ups**. Pin to a single issuer/tenant unless explicitly
+  multi‑tenant. Reject tokens from other realms even if signed by the same authorization
+  server.
+- **Audience/resource indicator misuse**. Don't configure or accept generic audiences (like
+  `api`) or unrelated resources. Require the audience/resource to match your configured
+  server.
+- **Error detail leakage**. Return generic messages to clients, but log detailed reasons with
+  correlation IDs internally to aid troubleshooting without exposing internals.
+- **Session identifier hardening**. Treat `Mcp-Session-Id` as untrusted input; never tie
+  authorization to it. Regenerate on auth changes and validate lifecycle server‑side.
 
 ## Related Standards and Documentation
 
 MCP authorization builds on these well-established standards:
 
-- **[OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13)**: The core authorization framework
-- **[RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414)**: Authorization Server Metadata discovery
-- **[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)**: Client ID Metadata Documents
+- **[OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13)**: The core
+  authorization framework
+- **[RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414)**: Authorization Server Metadata
+  discovery
+- **[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)**:
+  Client ID Metadata Documents
 - **[RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)**: Dynamic Client Registration
 - **[RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)**: Protected Resource Metadata
 - **[RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707)**: Resource Indicators
@@ -1199,4 +1354,5 @@ For additional details, refer to:
 - [Security Best Practices](/specification/latest/basic/security_best_practices)
 - [Available MCP SDKs](/docs/sdk)
 
-Understanding these standards will help you implement authorization correctly and troubleshoot issues when they arise.
+Understanding these standards will help you implement authorization correctly and
+troubleshoot issues when they arise.
