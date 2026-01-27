@@ -62,7 +62,7 @@ Regulated industries (healthcare, finance) need audit trails and sensitivity cla
 
 ### The Problem with Undeclared Tool Actions
 
-MCP today treats all tool calls as equivalent at the protocol level. A tool that reads drafts and a tool that sends emails are indistinguishable, even though their security and privacy implications are radically different. Implementations fall back to heuristics or model inference to decide when to request user consent or block operations.
+MCP today treats all tool calls as equivalent at the protocol level. A tool that reads drafts and a tool that sends emails are indistinguishable (other than the most basic static Annotations), even though their security and privacy implications are radically different. Implementations fall back to heuristics or model inference to decide when to request user consent or block operations.
 
 This creates concrete risks:
 
