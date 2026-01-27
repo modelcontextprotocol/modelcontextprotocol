@@ -406,15 +406,6 @@ The MCP Registry team has iterated on a shape that properly enables MCP server c
 
 By avoiding inducing breaking changes to the `server.json` shape, we also leave intact dozens, perhaps hundreds of systems that are already in production across the MCP Registry-related ecosystem.
 
-### Why Mirror Initialization Data?
-
-By structuring server cards to (mostly) mirror the initialization response, we:
-
-- Minimize implementation complexity for servers
-- Allow clients to use the same parsing logic for both discovery and initialization
-- Enable round-trip optimizations where discovery data can be used directly
-- Maintain consistency between advertised and actual capabilities
-
 ### Why Support Both Static and Dynamic Primitives?
 
 Some servers have fixed tool sets that never change, while others generate tools dynamically based on user context or external data. Supporting both patterns:
