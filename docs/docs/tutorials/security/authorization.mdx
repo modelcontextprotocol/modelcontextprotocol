@@ -107,11 +107,11 @@ that will allow it to know the endpoints it needs to complete the authorization 
 With all the metadata out of the way, the client now needs to make sure that it's registered
 with the authorization server. MCP supports three client registration mechanisms:
 
-| Approach | When to Use |
-|----------|-------------|
-| **Client ID Metadata Documents** | When client and server have no prior relationship |
-| **Pre-registration** | When client and server have an existing relationship |
-| **Dynamic Client Registration** | For backwards compatibility with older authorization servers |
+| Approach                         | When to Use                                                  |
+| -------------------------------- | ------------------------------------------------------------ |
+| **Client ID Metadata Documents** | When client and server have no prior relationship            |
+| **Pre-registration**             | When client and server have an existing relationship         |
+| **Dynamic Client Registration**  | For backwards compatibility with older authorization servers |
 
 See [Client Registration Approaches](#client-registration-approaches) for detailed
 information on each mechanism.
@@ -161,9 +161,7 @@ MCP supports three client registration mechanisms to accommodate different deplo
 
 ### Client ID Metadata Documents
 
-<Note>
-This is the recommended approach for client registration in MCP.
-</Note>
+<Note>This is the recommended approach for client registration in MCP.</Note>
 
 Client ID Metadata Documents
 ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
@@ -179,12 +177,14 @@ client metadata from this URL, eliminating the need for pre-registration or dyna
    the authorization request
 
 **Advantages:**
+
 - No pre-existing relationship required between client and server
 - Client maintains full control over its metadata
 - No server-side storage needed for client registration
 - Metadata can be updated by the client at any time
 
 **Requirements for clients:**
+
 - Host metadata at an HTTPS URL with a path component
   (e.g., `https://example.com/oauth/metadata.json`)
 - Include required fields: `client_id` (must match the URL), `client_name`, `redirect_uris`
@@ -199,9 +199,10 @@ optionally client credentials) that it uses to complete the authorization flow.
 ### Dynamic Client Registration
 
 <Warning>
-This is a legacy approach maintained for backwards compatibility with earlier versions of
-the MCP authorization specification. New implementations should prefer Client ID Metadata
-Documents when the authorization server supports them.
+  This is a legacy approach maintained for backwards compatibility with earlier
+  versions of the MCP authorization specification. New implementations should
+  prefer Client ID Metadata Documents when the authorization server supports
+  them.
 </Warning>
 
 Dynamic Client Registration
@@ -210,11 +211,13 @@ register with an authorization server by sending a registration request containi
 metadata.
 
 **When to use DCR:**
+
 - The authorization server doesn't support Client ID Metadata Documents
 - You're integrating with legacy systems
 - The authorization server requires server-side client registration for policy reasons
 
 **Security considerations:**
+
 - Unauthenticated DCR means anyone can register any client with the authorization server
 - Authorization servers should implement appropriate controls (trusted hosts, rate limiting,
   etc.)
@@ -222,6 +225,7 @@ metadata.
 ### Fallback Priority
 
 Clients supporting multiple registration options should follow this priority order:
+
 1. Use pre-registered client information if available
 2. Use Client ID Metadata Documents if the authorization server supports it
 3. Use Dynamic Client Registration as a fallback
@@ -286,10 +290,10 @@ it a convenient tool for testing your CIMD-enabled MCP servers during developmen
 ## Testing with Dynamic Client Registration
 
 <Warning>
-This example uses Dynamic Client Registration (DCR), which is maintained for backwards
-compatibility. For new implementations, prefer
-[Client ID Metadata Documents](#testing-with-client-id-metadata-documents) when the
-authorization server supports them.
+  This example uses Dynamic Client Registration (DCR), which is maintained for
+  backwards compatibility. For new implementations, prefer [Client ID Metadata
+  Documents](#testing-with-client-id-metadata-documents) when the authorization
+  server supports them.
 </Warning>
 
 To test with DCR, we will use a [Keycloak](https://www.keycloak.org/) authorization server
