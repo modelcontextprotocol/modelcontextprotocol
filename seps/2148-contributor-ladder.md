@@ -79,7 +79,6 @@ Members are established contributors who have demonstrated ongoing commitment.
 - At least one merged PR or accepted contribution
 - Multiple contributions to MCP (code, documentation, or community)
 - Ongoing engagement (not just drive-by contributions)
-- Sponsored by two existing Members, Reviewers, or Maintainers from different organizations
 - No objections from existing Members within 7 days
 
 **Sponsorship:**
@@ -100,7 +99,6 @@ Members are established contributors who have demonstrated ongoing commitment.
 
 - Can be assigned to issues and PRs
 - Can use `/lgtm` command on PRs
-- Trusted CI runs automatically
 - Listed in community membership roster
 - Can participate in lazy consensus decisions
 
@@ -140,6 +138,8 @@ Reviewers have demonstrated technical competence and good judgment in a specific
 
 **Inactivity:** Reviewers with no contributions for 3 months may be moved to emeritus status. Re-engagement follows a simplified re-familiarization process.
 
+All pathways can lead to Reviewer, though the specific scope will align with the contribution type.
+
 ### Maintainer
 
 Maintainers are trusted stewards who take operational responsibility for specific areas.
@@ -173,6 +173,8 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Can sponsor Reviewers and Maintainers
 - Participate in roadmap and prioritization discussions
 - Listed in MAINTAINERS.md
+
+All pathways can lead to Maintainer, though the specific scope will align with the contribution type.
 
 ### Core Maintainer
 
@@ -331,8 +333,6 @@ MCP values diverse contributions. Here are recognized pathways to advancement:
 - Security review and analysis
 - Test coverage improvement
 - Release validation
-
-All pathways can lead to Reviewer and Maintainer roles, though the specific scope will align with the contribution type.
 
 ### Working Group Leadership
 
