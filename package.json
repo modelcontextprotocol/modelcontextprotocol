@@ -32,7 +32,7 @@
     "check:schema:json": "tsx scripts/generate-schemas.ts --check",
     "check:schema:examples": "tsx scripts/validate-examples.ts",
     "check:schema:md": "for f in schema/*/schema.mdx; do typedoc --entryPoints \"${f%.mdx}.ts\" --schemaPageTemplate \"$f\" | cmp docs/specification/$(basename -- $(dirname -- \"$f\"))/schema.mdx - || exit 1; done",
-    "format": "prettier --write \"**/*.{md,mdx}\" --ignore \"docs/specification/*/schema.mdx\" ",
+    "format": "prettier --write \"**/*.{md,mdx}\" \"schema/**/*.ts\" --ignore \"docs/specification/*/schema.mdx\" ",
     "generate:schema": "npm run generate:schema:json & npm run generate:schema:md & wait",
     "generate:seps": "tsx scripts/render-seps.ts",
     "generate:schema:json": "tsx scripts/generate-schemas.ts",
