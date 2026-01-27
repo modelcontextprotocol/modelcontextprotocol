@@ -206,6 +206,8 @@ export interface JSONRPCErrorResponse {
 
 /**
  * A response to a request, containing either the result or error.
+ *
+ * @category JSON-RPC
  */
 export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
@@ -564,6 +566,15 @@ export interface ClientCapabilities {
       };
     };
   };
+  /**
+   * Optional MCP extensions that the client supports. Keys are extension identifiers
+   * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
+   * per-extension settings objects. An empty object indicates support with no settings.
+   *
+   * @example Extensions — UI extension with MIME type support
+   * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
+   */
+  extensions?: { [key: string]: object };
 }
 
 /**
@@ -672,6 +683,15 @@ export interface ServerCapabilities {
       };
     };
   };
+  /**
+   * Optional MCP extensions that the server supports. Keys are extension identifiers
+   * (e.g., "io.modelcontextprotocol/apps"), and values are per-extension settings
+   * objects. An empty object indicates support with no settings.
+   *
+   * @example Extensions — UI extension support
+   * {@includeCode ./examples/ServerCapabilities/extensions-ui.json}
+   */
+  extensions?: { [key: string]: object };
 }
 
 /**
@@ -766,6 +786,9 @@ export interface BaseMetadata {
  * @category `initialize`
  */
 export interface Implementation extends BaseMetadata, Icons {
+  /**
+   * The version of this implementation.
+   */
   version: string;
 
   /**
@@ -2230,6 +2253,10 @@ export interface SamplingMessage {
   content: SamplingMessageContentBlock | SamplingMessageContentBlock[];
   _meta?: MetaObject;
 }
+
+/**
+ * @category `sampling/createMessage`
+ */
 export type SamplingMessageContentBlock =
   | TextContent
   | ImageContent
@@ -3231,6 +3258,7 @@ export type ServerResult =
   | ListResourcesResult
   | ReadResourceResult
   | CallToolResult
+  | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
   | GetTaskPayloadResult

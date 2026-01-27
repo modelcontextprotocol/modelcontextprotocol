@@ -1,0 +1,68 @@
+---
+title: Extensions
+description: Optional extensions to the Model Context Protocol
+---
+
+# MCP Extensions
+
+MCP extensions are optional additions to the specification that define capabilities beyond the core protocol. Extensions enable functionality that may be modular (e.g., distinct features like authentication), specialized (e.g., industry-specific logic), or experimental (e.g., features being incubated for potential core inclusion).
+
+Extensions are identified using a unique _extension identifier_ with the format: `{vendor-prefix}/{extension-name}`, e.g. `io.modelcontextprotocol/oauth-client-credentials`. Official extensions use the `io.modelcontextprotocol` vendor prefix.
+
+## Official Extension Repositories
+
+Official extensions live inside the [MCP GitHub org](https://github.com/modelcontextprotocol/) in repositories with the `ext-` prefix.
+
+### ext-auth
+
+**Repository:** [github.com/modelcontextprotocol/ext-auth](https://github.com/modelcontextprotocol/ext-auth)
+
+Extensions for supplementary authorization mechanisms beyond the core specification.
+
+| Extension                        | Description                                                                | Specification                                                                                                               |
+| -------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| OAuth Client Credentials         | OAuth 2.0 client credentials flow for machine-to-machine authentication    | [Link](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/oauth-client-credentials.mdx)         |
+| Enterprise-Managed Authorization | Framework for enterprise environments requiring centralized access control | [Link](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/enterprise-managed-authorization.mdx) |
+
+### ext-apps
+
+**Repository:** [github.com/modelcontextprotocol/ext-apps](https://github.com/modelcontextprotocol/ext-apps)
+
+Extensions for interactive UI elements in conversational MCP clients.
+
+| Extension | Description                                                                                                      | Specification                                                                                   |
+| --------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| MCP Apps  | Allows MCP Servers to display interactive UI elements (charts, forms, video players) inline within conversations | [Link](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx) |
+
+## Creating Extensions
+
+The lifecycle for official extensions is similar to a SEP, but delegated to extension repository maintainers:
+
+1. **Propose**: Author creates a SEP in the main MCP repository using the [standard SEP guidelines](/community/sep-guidelines) with type **Extensions Track**.
+2. **Review**: Extension SEPs are reviewed by the relevant extension repository maintainers.
+3. **Implement**: Extension SEPs **MUST** have at least one reference implementation in an official SDK before being accepted.
+4. **Publish**: Once approved, the author produces a PR that introduces the extension to the extension repository.
+5. **Adopt**: Approved extensions **MAY** be implemented in additional clients, servers, and SDKs.
+
+### Requirements
+
+- Extension specifications **MUST** use RFC 2119 language (MUST, SHOULD, MAY)
+- Extensions **SHOULD** have an associated working group or interest group
+
+### SDK Implementation
+
+SDKs **MAY** implement extensions. Where implemented:
+
+- Extensions **MUST** be disabled by default and require explicit opt-in
+- SDK documentation **SHOULD** list supported extensions
+- SDK maintainers have full autonomy over which extensions they support
+- Extension support is not required for protocol conformance
+
+### Evolution
+
+Extensions evolve independently of the core protocol. Updates to extensions are managed by the extension repository maintainers and do not require core maintainer review.
+
+Extensions **MUST** consider backwards compatibility in their design:
+
+- Extensions **SHOULD** maintain backwards compatibility through capability flags or versioning within the extension settings object, rather than creating a new extension identifier
+- When backwards-incompatible changes are unavoidable, a new extension identifier **MUST** be used (e.g., `io.modelcontextprotocol/my-extension-v2`)
