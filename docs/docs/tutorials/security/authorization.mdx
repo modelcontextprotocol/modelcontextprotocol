@@ -77,11 +77,41 @@ and retrieve another set of metadata properties that will allow it to know the e
 </Step>
 
 <Step title="Client Registration">
-With all the metadata out of the way, the client now needs to make sure that it's registered with the authorization server. This can be done in two ways.
+With all the metadata out of the way, the client now needs to make sure that it's registered with the authorization server. MCP supports three client registration mechanisms.
 
-First, the client can be **pre-registered** with a given authorization server, in which case it can have embedded client registration information that it uses to complete the authorization flow.
+#### Client ID Metadata Documents (Recommended)
 
-Alternatively, the client can use **Dynamic Client Registration** (DCR) to dynamically register itself with the authorization server. The latter scenario requires the authorization server to support DCR. If the authorization server does support DCR, the client will send a request to the `registration_endpoint` with its information:
+The recommended approach is **Client ID Metadata Documents** (CIMD), where the client uses an HTTPS URL as its `client_id`. This URL points to a JSON document containing the client's metadata, which the authorization server fetches to validate the client.
+
+This approach is ideal for the common MCP scenario where servers and clients have no pre-existing relationship. The client simply hosts its metadata at a publicly accessible URL:
+
+```json
+{
+  "client_id": "https://app.example.com/oauth/client-metadata.json",
+  "client_name": "My MCP Client",
+  "redirect_uris": ["http://localhost:3000/callback"],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+The authorization server will fetch this document when it encounters a URL-formatted `client_id` and validate the redirect URI against the registered values. Authorization servers that support this approach will include `client_id_metadata_document_supported: true` in their metadata.
+
+#### Pre-Registration
+
+Alternatively, the client can be **pre-registered** with a given authorization server, in which case it can have embedded client registration information that it uses to complete the authorization flow.
+
+#### Dynamic Client Registration (Legacy)
+
+<Warning>
+**Legacy Approach**
+
+Dynamic Client Registration is included for backwards compatibility with earlier versions of the MCP authorization specification. New implementations **should** prefer Client ID Metadata Documents when possible.
+
+</Warning>
+
+For backwards compatibility, clients can use **Dynamic Client Registration** (DCR) to dynamically register with the authorization server. If the authorization server supports DCR (indicated by a `registration_endpoint` in its metadata), the client will send a request to that endpoint with its information:
 
 ```json
 {
@@ -95,9 +125,13 @@ Alternatively, the client can use **Dynamic Client Registration** (DCR) to dynam
 If the registration succeeds, the authorization server will return a JSON blob with client registration information.
 
 <Tip>
-**No DCR or Pre-Registration**
+**Fallback Priority**
 
-In case an MCP client connects to an MCP server that doesn't use an authorization server that supports DCR and the client is not pre-registered with said authorization server, it's the responsibility of the client developer to provide an affordance for the end-user to enter client information manually.
+Clients supporting multiple registration options should follow this priority order:
+1. Use pre-registered client information if available
+2. Use Client ID Metadata Documents if the authorization server supports it
+3. Use Dynamic Client Registration as a fallback
+4. Prompt the user to enter client information manually if no other option is available
 
 </Tip>
 
@@ -133,9 +167,77 @@ The MCP server will need to validate the token and process the request if the to
 </Step>
 </Steps>
 
+## Client Registration Approaches
+
+MCP supports three client registration mechanisms to accommodate different deployment scenarios. Choose based on your needs:
+
+| Approach | When to Use | Authorization Server Requirement |
+|----------|-------------|----------------------------------|
+| **Client ID Metadata Documents** | Most common; when client and server have no prior relationship | Must support `client_id_metadata_document_supported` |
+| **Pre-registration** | When client and server have an existing relationship | Client credentials pre-configured |
+| **Dynamic Client Registration** | Legacy; backwards compatibility | Must expose `registration_endpoint` |
+
+### Client ID Metadata Documents (Recommended)
+
+Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)) allow MCP clients to use an HTTPS URL as their `client_id`. The authorization server fetches client metadata from this URL, eliminating the need for pre-registration or dynamic registration.
+
+**How it works:**
+
+1. The MCP client hosts a JSON metadata document at a publicly accessible HTTPS URL
+2. When starting authorization, the client uses this URL as its `client_id`
+3. The authorization server detects the URL format and fetches the metadata document
+4. The server validates the document and uses the metadata (like `redirect_uris`) to process the authorization request
+
+**Advantages:**
+- No pre-existing relationship required between client and server
+- Client maintains full control over its metadata
+- No server-side storage needed for client registration
+- Metadata can be updated by the client at any time
+
+**Requirements for clients:**
+- Host metadata at an HTTPS URL with a path component (e.g., `https://example.com/oauth/metadata.json`)
+- Include required fields: `client_id` (must match the URL), `client_name`, `redirect_uris`
+- Ensure the document is publicly accessible
+
+<Tip>
+**Testing Client ID Metadata Documents**
+
+To experiment with Client ID Metadata Documents:
+- Use [client.dev](https://client.dev/) as a reference authorization server that supports CIMD
+- [Visual Studio Code](https://code.visualstudio.com/) supports CIMD as an MCP client for development and testing
+
+</Tip>
+
+### Dynamic Client Registration (Legacy)
+
+<Warning>
+**Legacy Approach**
+
+Dynamic Client Registration is maintained for backwards compatibility with earlier versions of the MCP authorization specification and authorization servers that don't yet support Client ID Metadata Documents. New implementations should prefer Client ID Metadata Documents when the authorization server supports them.
+
+</Warning>
+
+Dynamic Client Registration ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)) allows clients to programmatically register with an authorization server by sending a registration request containing client metadata.
+
+**When to use DCR:**
+- The authorization server doesn't support Client ID Metadata Documents
+- You're integrating with legacy systems
+- The authorization server requires server-side client registration for policy reasons
+
+**Security considerations:**
+- Unauthenticated DCR means anyone can register any client with the authorization server
+- Authorization servers should implement appropriate controls (trusted hosts, rate limiting, etc.)
+
 ## Implementation Example
 
 To get started with a practical implementation, we will use a [Keycloak](https://www.keycloak.org/) authorization server hosted in a Docker container. Keycloak is an open-source authorization server that can be easily deployed locally for testing and experimentation.
+
+<Note>
+**Using Dynamic Client Registration**
+
+This example uses Dynamic Client Registration (DCR) because Keycloak has built-in support for it. While DCR is considered a legacy approach in MCP, it remains useful for testing with authorization servers that support it out of the box. For production deployments, consider using an authorization server that supports Client ID Metadata Documents, which is the recommended approach for MCP.
+
+</Note>
 
 Make sure that you download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/). We will need it to deploy Keycloak on our development machine.
 
@@ -1076,7 +1178,7 @@ For comprehensive security guidance, including attack vectors, mitigation strate
 - **Don't log credentials**. Never log `Authorization` headers, tokens, codes, or secrets. Scrub query strings and headers. Redact sensitive fields in structured logs.
 - **Separate app vs. resource server credentials**. Don't reuse your MCP server's client secret for end‑user flows. Store all secrets in a proper secret manager, not in source control.
 - **Return proper challenges**. On 401, include `WWW-Authenticate` with `Bearer`, `realm`, and `resource_metadata` so clients can discover how to authenticate.
-- **DCR (Dynamic Client Registration) controls**. If enabled, be aware of constraints specific to your organization, such as trusted hosts, required vetting, and audited registrations. Unauthenticated DCR means that anyone can register any client with your authorization server.
+- **DCR (Dynamic Client Registration) controls**. If using the legacy DCR approach, be aware of constraints specific to your organization, such as trusted hosts, required vetting, and audited registrations. Unauthenticated DCR means that anyone can register any client with your authorization server. Consider migrating to Client ID Metadata Documents for improved security and flexibility.
 - **Multi‑tenant/realm mix-ups**. Pin to a single issuer/tenant unless explicitly multi‑tenant. Reject tokens from other realms even if signed by the same authorization server.
 - **Audience/resource indicator misuse**. Don't configure or accept generic audiences (like `api`) or unrelated resources. Require the audience/resource to match your configured server.
 - **Error detail leakage**. Return generic messages to clients, but log detailed reasons with correlation IDs internally to aid troubleshooting without exposing internals.
@@ -1088,14 +1190,15 @@ MCP authorization builds on these well-established standards:
 
 - **[OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13)**: The core authorization framework
 - **[RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414)**: Authorization Server Metadata discovery
-- **[RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)**: Dynamic Client Registration
+- **[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)**: Client ID Metadata Documents (recommended for client registration)
+- **[RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)**: Dynamic Client Registration (legacy)
 - **[RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)**: Protected Resource Metadata
 - **[RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707)**: Resource Indicators
 
 For additional details, refer to:
 
-- [Authorization Specification](/specification/draft/basic/authorization)
-- [Security Best Practices](/specification/draft/basic/security_best_practices)
+- [Authorization Specification](/specification/latest/basic/authorization)
+- [Security Best Practices](/specification/latest/basic/security_best_practices)
 - [Available MCP SDKs](/docs/sdk)
 
 Understanding these standards will help you implement authorization correctly and troubleshoot issues when they arise.
