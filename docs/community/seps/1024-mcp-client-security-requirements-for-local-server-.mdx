@@ -1,0 +1,122 @@
+---
+title: "SEP-1024: MCP Client Security Requirements for Local Server Installation"
+sidebarTitle: "SEP-1024: MCP Client Security Requirements for Lo…"
+description: "MCP Client Security Requirements for Local Server Installation"
+---
+
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="green">Final</Badge>
+  <Badge color="gray">Standards Track</Badge>
+</div>
+
+| Field         | Value                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| **SEP**       | 1024                                                                     |
+| **Title**     | MCP Client Security Requirements for Local Server Installation           |
+| **Status**    | Final                                                                    |
+| **Type**      | Standards Track                                                          |
+| **Created**   | 2025-07-22                                                               |
+| **Author(s)** | Den Delimarsky                                                           |
+| **Sponsor**   | None                                                                     |
+| **PR**        | [#1024](https://github.com/modelcontextprotocol/specification/pull/1024) |
+
+---
+
+## Abstract
+
+This SEP addresses critical security vulnerabilities in MCP client implementations that support one-click installation of local MCP servers. The current MCP specification lacks explicit security requirements for client-side installation flows, allowing malicious actors to execute arbitrary commands on user systems through crafted MCP server configurations distributed via links or social engineering.
+
+This proposal establishes a best practice for MCP clients, requiring explicit user consent before executing any local server installation commands and complete command transparency.
+
+## Motivation
+
+The existing MCP specification does not address client-side security concerns related to streamlined ("one-click") local server configuration. Current MCP clients that implement these configuration experiences create significant attack vectors:
+
+1. **Silent Command Execution**: MCP clients can automatically execute embedded commands without user review or consent when installing local servers via one-click flows.
+
+2. **Lack of Visibility**: Users have no insight into what commands are being executed on their systems, creating opportunities for data exfiltration, system compromise, and privilege escalation.
+
+3. **Social Engineering Vulnerabilities**: Users become comfortable executing commands labeled as "MCP servers" without proper scrutiny, making them susceptible to malicious configurations.
+
+4. **Arbitrary Code Execution**: Attackers can embed harmful commands in MCP server configurations and distribute them through legitimate channels (repositories, documentation, social media).
+
+Visual Studio Code [addressed this](https://den.dev/blog/vs-code-mcp-install-consent/) by implementing consent dialogs. Similarly, Cursor also supports a consent dialog for one-click local MCP server installation.
+
+Without explicit security requirements in the specification, MCP client implementers may unknowingly create vulnerable installation flows, putting end users at risk of system compromise.
+
+## Specification
+
+### Client Security Requirements
+
+MCP clients that support one-click local MCP server configuration **MUST** implement the following security controls:
+
+#### Pre-Configuration Consent
+
+Before executing any command to install or configure a local MCP server, the MCP client **MUST**:
+
+1. Display a clear consent dialog that shows:
+   - The exact command that will be executed, without truncation
+   - All arguments and parameters
+   - A clear warning that this operation may be potentially dangerous
+2. Require explicit user approval through an affirmative action (button click, checkbox, etc.)
+
+3. Provide an option for users to cancel the installation
+
+4. Not proceed with installation if consent is denied or not provided
+
+## Rationale
+
+### Design Decisions
+
+**Mandatory Consent Dialogs**: The requirement for explicit consent dialogs balances security with usability. While this adds friction to the MCP server configuration process, it prevents potential breaches from silent command execution.
+
+## Backward Compatibility
+
+This SEP introduces new **requirements** for MCP client implementations but does not change the core MCP protocol or wire format.
+
+**Impact Assessment:**
+
+- **Low Impact**: Existing MCP servers and the core protocol remain unchanged
+- **Client Implementation Required**: MCP clients must update their local server installation flows to comply with new security requirements
+- **User Experience Changes**: Users will see consent dialogs where none existed before
+
+**Migration Path:**
+
+1. MCP clients can implement these changes in new versions without breaking existing functionality
+2. Existing installed MCP servers continue to work normally
+3. Only new installation flows require the consent mechanisms
+
+No protocol-level backward compatibility issues exist, as this SEP addresses client behavior rather than the MCP wire protocol.
+
+## Reference Implementation
+
+N/A
+
+## Security Implications
+
+### Security Benefits
+
+This SEP directly addresses:
+
+- **Arbitrary Code Execution**: Prevents silent execution of malicious commands
+- **Social Engineering**: Forces users to consciously review commands before execution
+- **Supply Chain Attacks**: Creates visibility into MCP server installation commands
+- **Privilege Escalation**: Users can identify and reject commands requesting elevated privileges
+
+### Residual Risks
+
+Even with these controls, risks remain:
+
+- **User Override**: Users may approve malicious commands despite warnings
+- **Sophisticated Obfuscation**: Advanced attackers may craft commands that appear legitimate
+- **Implementation Gaps**: Clients may implement controls incorrectly
+
+### Risk Mitigation
+
+These residual risks are addressed through:
+
+- Clear warning language in consent dialogs
+- Recommendation for additional security layers (sandboxing, signatures)
+- Ongoing security research and community awareness

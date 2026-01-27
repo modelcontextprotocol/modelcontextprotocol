@@ -1,0 +1,104 @@
+---
+title: "SEP-2085: Governance Succession and Amendment Procedures"
+sidebarTitle: "SEP-2085: Governance Succession and Amendment Pro…"
+description: "Governance Succession and Amendment Procedures"
+---
+
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray">Draft</Badge>
+  <Badge color="gray">Process</Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2085                                                                            |
+| **Title**     | Governance Succession and Amendment Procedures                                  |
+| **Status**    | Draft                                                                           |
+| **Type**      | Process                                                                         |
+| **Created**   | 2025-12-05                                                                      |
+| **Author(s)** | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant))                      |
+| **Sponsor**   | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant))                      |
+| **PR**        | [#2085](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2085) |
+
+---
+
+## Abstract
+
+This SEP establishes formal procedures for Lead Maintainer succession and governance amendment within the Model Context Protocol project. It defines clear processes for leadership transitions when a Lead Maintainer leaves their role and establishes requirements for proposing and approving changes to the governance structure itself.
+
+## Motivation
+
+The current MCP governance structure defines roles and responsibilities but lacks explicit procedures for two critical scenarios:
+
+1. **Leadership Succession**: The governance document identifies Justin Spahr-Summers and David Soria Parra as Lead Maintainers (BDFLs) but does not specify what happens if one or both leave their roles. Without a defined succession process, an unexpected departure could create uncertainty about project leadership and decision-making authority.
+
+2. **Governance Evolution**: As the MCP project grows and the community evolves, the governance structure may need to adapt. Currently, there is no defined process for how the governance document itself can be amended, which could lead to ad-hoc changes without proper community input or unclear authority for making such changes.
+
+Establishing these procedures now, while the project leadership is stable, ensures continuity and provides clear guidance for future scenarios.
+
+## Specification
+
+The following sections shall be added to the MCP Governance document.
+
+### Succession
+
+If a Lead Maintainer leaves their role for any reason, the succession process begins upon their written notice or, if unable to provide notice, upon a determination by the remaining Lead Maintainer(s) or Core Maintainers that the Lead Maintainer is unable to continue serving.
+
+If one or more Lead Maintainer(s) remain, they shall appoint a successor (by majority vote if multiple), and the remaining Lead Maintainer(s) will continue to govern until a successor is appointed.
+
+If no Lead Maintainers remain, the Core Maintainers shall appoint a successor by majority vote within 30 days, and the project operates by two-thirds vote of Core Maintainers until a new Lead Maintainer is appointed.
+
+### Amendment
+
+Amendments to this governance structure may only be proposed by Lead Maintainers. Any proposed amendment must be approved by a two-thirds (2/3) majority of all Core Maintainers to take effect.
+
+Amendment proposals shall:
+
+1. Be submitted in writing with clear rationale for the proposed change
+2. Include specific language describing the modification to existing governance provisions
+3. Allow for a minimum comment period of five (5) days before voting
+4. Be decided by recorded vote of Core Maintainers
+
+## Rationale
+
+### Succession Process Design
+
+The succession process is designed with several principles in mind:
+
+- **Continuity**: Remaining Lead Maintainers can continue operating and appoint successors without disruption to project governance.
+- **Fallback Authority**: If all Lead Maintainers depart, Core Maintainers have clear authority to select new leadership, preventing a governance vacuum.
+- **Time-Bound Process**: The 30-day requirement ensures succession happens promptly while allowing adequate time for deliberation.
+- **Supermajority Interim Governance**: Two-thirds voting during interregnum periods ensures major decisions have broad support during transitional periods.
+
+### Amendment Process Design
+
+The amendment process balances stability with adaptability:
+
+- **Lead Maintainer Proposal Authority**: Limiting proposal authority to Lead Maintainers prevents governance churn from frequent amendment proposals while ensuring those with deepest project investment can drive necessary changes.
+- **Core Maintainer Approval**: Requiring two-thirds Core Maintainer approval ensures amendments have broad support from those actively governing the project.
+- **Comment Period**: The five-day minimum comment period allows affected parties to review and provide input before voting.
+- **Recorded Votes**: Transparency in voting ensures accountability and provides a historical record of governance decisions.
+
+### Alternatives Considered
+
+**Succession by Election**: An open election process was considered but rejected as potentially disruptive and slow during critical transition periods. The current proposal allows for quick succession while maintaining checks through the existing maintainer structure.
+
+**Amendment by Any Maintainer**: Allowing any maintainer to propose amendments was considered but could lead to governance instability. The current approach balances stability with the ability to evolve.
+
+**Longer Comment Periods**: Longer comment periods (e.g., 30 days) were considered but deemed excessive for a project that already has regular bi-weekly Core Maintainer meetings. Five days allows for at least one meeting cycle while enabling timely decisions.
+
+## Backward Compatibility
+
+This SEP adds new procedures without modifying existing governance structures. No backward compatibility concerns exist.
+
+## Security Implications
+
+This SEP has no direct security implications. However, clear succession procedures indirectly support security by ensuring continuous responsible stewardship of the project, including security-related decisions.
+
+## Reference Implementation
+
+Upon acceptance, this SEP will be implemented by adding the Succession and Amendment sections to `docs/community/governance.mdx`. The new sections will be inserted after the "Lead Maintainers (BDFL)" section and before the "Decision Process" section.
+
+A draft pull request implementing these changes will be linked here once available.
