@@ -40,15 +40,15 @@ The discovery mechanism complements rather than replaces initialization. Discove
 
 The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path to providing a protocol-agnostic `.well-known` path and file format for discovering services. They are planning to serve a list of AI Cards at `.well-known/ai-catalog.json`.
 
-MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp/server-cards.json`.
+MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp/server-card`.
 
 Example:
 
 - "Restaurant A" works with platform "Restaurant Reservations SaaS" to provide MCP-powered bookings for their restaurant
 - Restaurant A also works with platform "Jobs SaaS" to provide MCP-powered job listings to prospective job seekers
 - Restaurant A would advertise the two relevant AI Cards at `restaurant-a.com/.well-known/ai-catalog.json`
-- Restaurant Reservations SaaS would have many Server Cards at `restaurant-reservations-saas.com/.well-known/mcp/server-cards.json`, including entries for each of Restaurant A, Restaurant B, etc.
-- Jobs Saas would have many Server Cards at `jobs-saas.com/.well-known/mcp/server-cards.json`, including entries for each of Restaurant A, Coffee Shop B, etc.
+- Restaurant Reservations SaaS would have many Server Cards at `restaurant-reservations-saas.com/.well-known/mcp/server-card/*`, including entries for each of Restaurant A (`restaurant-reservations-saas.com/.well-known/mcp/server-card/restaurant-a`), Restaurant B (`restaurant-reservations-saas.com/.well-known/mcp/server-card/restaurant-b`), etc.
+- Jobs Saas would have many Server Cards at `jobs-saas.com/.well-known/mcp/server-card/*`, including entries for each of Restaurant A (`jobs-saas.com/.well-known/mcp/server-card/restaurant-a`), Coffee Shop B (`jobs-saas.com/.well-known/mcp/server-card/coffee-shop-b`), etc.
 
 We can develop and iterate on MCP Server Cards largely independently from the broader effort to integrate with AI Cards, as long as we maintain some integration point so it is possible to understand when an entry in an AI Card references an MCP Server Card that is hosted and maintained elsewhere.
 
@@ -349,7 +349,7 @@ This enables clients to discover server metadata after establishing an MCP conne
 Servers using HTTP-based transports SHOULD provide their server card at:
 
 ```
-/.well-known/mcp/server-cards.json
+/.well-known/mcp/server-card
 ```
 
 This endpoint:
@@ -470,7 +470,7 @@ Server cards MUST be served with appropriate CORS headers to enable browser-base
 
 ### Denial of Service
 
-Servers SHOULD implement rate limiting on `.well-known/mcp/server-card.json` endpoints to prevent abuse. Clients SHOULD respect cache headers and avoid excessive polling.
+Servers SHOULD implement rate limiting on `.well-known/mcp/server-card` endpoints to prevent abuse. Clients SHOULD respect cache headers and avoid excessive polling.
 
 ### Man-in-the-Middle Attacks
 
