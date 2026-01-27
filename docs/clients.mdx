@@ -5,7 +5,7 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions"];
+export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks"];
 
 export const filterStore = {
   state: {
@@ -252,7 +252,7 @@ This page provides an overview of applications that support the Model Context Pr
 
 <Note>
 
-This list is maintained by the community. If you notice any inaccuracies or would like to update information about MCP support in your application, please submit a pull request or [open an issue in our documentation repository](https://github.com/modelcontextprotocol/modelcontextprotocol/issues).
+This list is maintained by the community. If you notice any inaccuracies or would like to add or update information about MCP support in your application, please [submit a pull request](https://github.com/modelcontextprotocol/modelcontextprotocol/pulls).
 
 </Note>
 
@@ -949,7 +949,7 @@ Delegate tasks to GitHub Copilot coding agent and let it work in the background 
 <McpClient
   name="Glama"
   homepage="https://glama.ai/chat"
-  supports="Resources, Prompts, Tools"
+  supports="Discovery, Elicitation, Instructions, Prompts, Resources, Sampling, Tasks, Tools"
 >
 
 Glama is a comprehensive AI workspace and integration platform that offers a unified interface to leading LLM providers, including OpenAI, Anthropic, and others. It supports the Model Context Protocol (MCP) ecosystem, enabling developers and enterprises to easily discover, build, and manage MCP servers.
@@ -1362,25 +1362,25 @@ MCPHub is a powerful Neovim plugin that integrates MCP (Model Context Protocol) 
 - Install, configure and manage MCP servers with an intuitive UI.
 - Built-in Neovim MCP server with support for file operations (read, write, search, replace), command execution, terminal integration, LSP integration, buffers, and diagnostics.
 - Create Lua-based MCP servers directly in Neovim.
-- Inegrates with popular Neovim chat plugins Avante.nvim and CodeCompanion.nvim
+- Integrates with popular Neovim chat plugins Avante.nvim and CodeCompanion.nvim
 
 </McpClient>
 
 <McpClient
   name="MCPJam"
   homepage="https://github.com/MCPJam/inspector"
-  supports="Resources, Prompts, Tools, Elicitation"
+  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks"
   instructions="https://docs.mcpjam.com/getting-started"
 >
 
-MCPJam is an open source testing and debugging tool for MCP servers - Postman for MCP servers.
+MCPJam Inspector is the local development client for ChatGPT apps, MCP ext-apps, and MCP servers.
 
 **Key features:**
 
-- Test your MCP server's tools, resources, prompts, and OAuth. MCP spec compliant.
-- LLM playground to test your server against different LLMs.
-- Tracing and logging error messages.
-- Connect and test multiple MCP servers simultaneously.
+- Local emulator for ChatGPT Apps SDK and MCP ext-apps. No more ChatGPT subscription or ngrok needed.
+- OAuth debugger to visually inspect MCP server OAuth at every step.
+- LLM playground to chat with your MCP server against any LLM. We provide our own API tokens for free.
+- Connect, test, and inspect any MCP server that's local or remote. Manually invoke MCP tools, resource, prompts, etc. View all JSON-RPC logs.
 - Supports all transports - STDIO, SSE, and Streamable HTTP.
 
 </McpClient>
@@ -1671,6 +1671,30 @@ Postman is the most popular API client and now supports MCP server testing and d
 - Fast, seamless UI for debugging MCP capabilities
 - MCP config integration (Claude, VSCode, etc.) for fast first-time experience in testing MCPs
 - Integration with history, variables, and collections for reuse and collaboration
+
+</McpClient>
+
+<McpClient
+  name="Proxyman"
+  homepage="https://proxyman.com"
+  supports="Tools"
+  instructions="https://docs.proxyman.com/mcp"
+>
+
+Proxyman is a native macOS app for HTTP debugging and network monitoring. It now includes an MCP Server that enables AI assistants (Claude, Cursor, and other MCP-compatible tools) to directly interact with Proxyman for inspecting HTTP traffic, creating debugging rules, and controlling the app through natural language.
+
+**Key features:**
+
+- **AI-Powered Debugging**: Ask AI to analyze captured traffic, find specific requests, or explain API responses
+- **Hands-Free Rule Creation**: Create breakpoints, map local/remote rules through conversation
+- **Traffic Inspection Tools**: Get flows, flow details, export cURL commands, and filter traffic with multiple criteria
+- **Session Control**: Clear sessions, toggle recording, and manage SSL proxying domains
+- **Secure by Design**: Localhost-only server with per-session token authentication
+
+**Learn more:**
+
+- [Proxyman MCP Documentation](https://docs.proxyman.com/mcp)
+- [Proxyman Website](https://proxyman.com)
 
 </McpClient>
 

@@ -196,6 +196,7 @@ Key capabilities include:
 | Client   | `sampling`     | Support for LLM [sampling](/specification/draft/client/sampling) requests                |
 | Client   | `elicitation`  | Support for server [elicitation](/specification/draft/client/elicitation) requests       |
 | Client   | `tasks`        | Support for [task-augmented](/specification/draft/basic/utilities/tasks) client requests |
+| Client   | `extensions`   | Support for optional [extensions](/extensions) beyond the core protocol                  |
 | Client   | `experimental` | Describes support for non-standard experimental features                                 |
 | Server   | `prompts`      | Offers [prompt templates](/specification/draft/server/prompts)                           |
 | Server   | `resources`    | Provides readable [resources](/specification/draft/server/resources)                     |
@@ -203,6 +204,7 @@ Key capabilities include:
 | Server   | `logging`      | Emits structured [log messages](/specification/draft/server/utilities/logging)           |
 | Server   | `completions`  | Supports argument [autocompletion](/specification/draft/server/utilities/completion)     |
 | Server   | `tasks`        | Support for [task-augmented](/specification/draft/basic/utilities/tasks) server requests |
+| Server   | `extensions`   | Support for optional [extensions](/extensions) beyond the core protocol                  |
 | Server   | `experimental` | Describes support for non-standard experimental features                                 |
 
 Capability objects can describe sub-capabilities like:
@@ -210,6 +212,42 @@ Capability objects can describe sub-capabilities like:
 - `listChanged`: Support for list change notifications (for prompts, resources, and
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
+
+#### Extension Negotiation
+
+Clients and servers can also negotiate support for optional [extensions](/extensions) beyond the core protocol. Extensions are advertised in the `extensions` field of capabilities, which is a map of extension identifiers to per-extension settings objects.
+
+Example client capabilities with extensions:
+
+```json
+{
+  "capabilities": {
+    "roots": {},
+    "extensions": {
+      "io.modelcontextprotocol/apps": {
+        "mimeTypes": ["text/html;profile=mcp-app"]
+      }
+    }
+  }
+}
+```
+
+Example server capabilities with extensions:
+
+```json
+{
+  "capabilities": {
+    "tools": {},
+    "extensions": {
+      "io.modelcontextprotocol/apps": {}
+    }
+  }
+}
+```
+
+Each extension specifies the schema of its settings object; an empty object indicates support with no additional settings.
+
+If one party supports an extension but the other does not, the supporting party **MUST** either revert to core protocol behavior or reject the request with an appropriate error. Extensions **SHOULD** document their expected fallback behavior.
 
 ### Operation
 
