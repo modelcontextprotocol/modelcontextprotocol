@@ -28,7 +28,7 @@ import { Badge } from "/snippets/badge.mdx";
 
 This SEP establishes a lightweight framework for extending the Model Context Protocol through optional, composable extensions. This proposal defines a governance model and presentation structure for extensions that allows the MCP ecosystem to evolve while maintaining core protocol stability. Extensions enable experimentation with new capabilities without forcing adoption across all implementations, providing clear extension points for the community to propose, review, and adopt enhanced functionality.
 
-At this stage we are only defining official extensions, i.e. those maintained by MCP maintainers. Externally maintained extensions will likely come at a later stage once this initial SEP is approved.
+This SEP defines both official extensions (maintained by MCP maintainers) and experimental extensions (an incubation pathway for Working Groups and Interest Groups to prototype and collaborate on extension ideas before formal acceptance). Externally maintained extensions will likely come at a later stage.
 
 ## Motivation
 
@@ -48,7 +48,7 @@ Breaking changes MUST use a new identifier, e.g. `io.modelcontextprotocol/oauth-
 
 Extensions may have settings that are sent in client/server messages for fine-grained configuration.
 
-For now, we only define _Official Extensions_. _Unofficial extensions_ will not yet be recognized by MCP governance, but may be introduced and governed by developers and distributed in non official channels like GitHub.
+This SEP defines _Official Extensions_ and _Experimental Extensions_. Experimental extensions are maintained within the MCP organization as an incubation pathway but are not yet officially accepted. _Unofficial extensions_ are not recognized by MCP governance and may be introduced and governed by developers outside the MCP organization.
 
 ### Official Extensions
 
@@ -66,17 +66,34 @@ An _extension_ is a versioned specification document within an extension reposit
 
 While day-to-day governance is delegated to extension repository maintainers, the core maintainers retain ultimate authority over official extensions, including the ability to modify, deprecate, or remove any extension.
 
+### Experimental Extensions
+
+Experimental extensions provide an incubation pathway for Working Groups (WGs) and Interest Groups (IGs) to facilitate discovery, prototype ideas, and collaborate on extension concepts before formal SEP submission. Experimental extensions allow cross-company collaboration under neutral governance with clear anti-trust protection and IP clarity.
+
+An _experimental extension repository_ is a repository within the official modelcontextprotocol github org with the `experimental-ext-` prefix, e.g. `https://github.com/modelcontextprotocol/experimental-ext-interceptors`.
+
+- Any maintainer MAY create an experimental extension repository while the associated SEP is still in draft state (or before a SEP has been submitted).
+- Experimental extensions MUST be associated with a Working Group or Interest Group, whose maintainers are responsible for day-to-day governance of the repository.
+- Experimental extension repositories MUST clearly indicate their experimental/non-official status (e.g., in the README) to avoid confusion with official extensions.
+- Any published packages from experimental extensions MUST use naming that clearly indicates their experimental status.
+- Core maintainers retain oversight of experimental extension repositories, including the ability to archive or remove them.
+
+To graduate an experimental extension to official status, the standard SEP process (Extensions Track) applies. The experimental repository and any reference implementations developed during incubation MAY be referenced in the SEP to demonstrate the extension's practicality.
+
 ### Lifecycle
 
 #### Creation
 
-Extensions are initially created via a SEP in the [main MCP repository](https://github.com/modelcontextprotocol/modelcontextprotocol/) using the [standard SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines) but with a new type: **Extensions Track**. This type follows the same review and acceptance process as Standards Track SEPs, but clearly indicates that the proposal is for an extension rather than a core protocol addition. The SEP must identify the Working Group and Extension Maintainers that will be responsible for the extension. See [SEP-2148](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2148) for how maintainers are appointed.
+Extensions MAY optionally begin as experimental extensions (see _Experimental Extensions_ section) to facilitate prototyping and collaboration before formal submission. This incubation period is encouraged but not required.
+
+To become an official extension, extensions are created via a SEP in the [main MCP repository](https://github.com/modelcontextprotocol/modelcontextprotocol/) using the [standard SEP guidelines](https://modelcontextprotocol.io/community/sep-guidelines) but with a new type: **Extensions Track**. This type follows the same review and acceptance process as Standards Track SEPs, but clearly indicates that the proposal is for an extension rather than a core protocol addition. The SEP must identify the Working Group and Extension Maintainers that will be responsible for the extension. See [SEP-2148](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2148) for how maintainers are appointed.
 
 Extension SEPs:
 
 - SHOULD be discussed and iterated on in a relevant working group prior to submission.
 - MUST have at least one reference implementation in an official SDK prior to review to ensure the extension is practical and implementable.
-- Will be reviewed by the Core Maintainers, who have the final authority over its inclusion as an Offical Extension.
+- MAY reference an existing experimental extension repository and implementations developed during incubation.
+- Will be reviewed by the Core Maintainers, who have the final authority over its inclusion as an Official Extension.
 
 Once approved, the author SHOULD produce a PR that introduces the extension to the extension repository and reference in the main spec (see _Spec Recommendation_ section). Approved extensions MAY be implemented in additional clients / servers / SDKs (see _SDK Implementation_).
 

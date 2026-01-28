@@ -5,11 +5,11 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Client ID Metadata Documents (CIMD)", "Dynamic Client Registration (DCR)"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Client ID Metadata Documents (CIMD)", "Dynamic Client Registration (DCR)"];
 
 export const filterStore = {
   state: {
-    selectedCapabilities: [],
+    selectedFeatures: [],
     searchText: "",
     visibleCount: 0,
     totalCount: 0
@@ -36,11 +36,11 @@ export const useFilterStore = () => {
 };
 
 export const useFilter = ({ name, supports }) => {
-  const { selectedCapabilities, searchText } = useFilterStore();
+  const { selectedFeatures, searchText } = useFilterStore();
 
   const isVisible = (
     name.toLowerCase().includes(searchText.toLowerCase()) &&
-    selectedCapabilities.every(cap => supports?.includes(cap))
+    selectedFeatures.every(feature => supports?.includes(feature))
   );
 
   useEffect(() => {
@@ -60,24 +60,24 @@ export const useFilter = ({ name, supports }) => {
 
 
 export const ClientFilter = () => {
-  const { selectedCapabilities, searchText, visibleCount, totalCount } = useFilterStore();
+  const { selectedFeatures, searchText, visibleCount, totalCount } = useFilterStore();
 
   useEffect(() => {
-    filterStore.setState({ selectedCapabilities: [], searchText: "" });
+    filterStore.setState({ selectedFeatures: [], searchText: "" });
   }, []);
 
-  const toggleCapability = (cap) => {
-    const newCaps = selectedCapabilities.includes(cap)
-      ? selectedCapabilities.filter(c => c !== cap)
-      : [...selectedCapabilities, cap];
-    filterStore.setState({ selectedCapabilities: newCaps });
+  const toggleFeature = (feature) => {
+    const newFeatures = selectedFeatures.includes(feature)
+      ? selectedFeatures.filter(f => f !== feature)
+      : [...selectedFeatures, feature];
+    filterStore.setState({ selectedFeatures: newFeatures });
   };
 
   const clearFilters = () => {
-    filterStore.setState({ selectedCapabilities: [], searchText: "" });
+    filterStore.setState({ selectedFeatures: [], searchText: "" });
   };
 
-  const hasFilters = selectedCapabilities.length > 0 || searchText.length > 0;
+  const hasFilters = selectedFeatures.length > 0 || searchText.length > 0;
 
   return (
     <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
@@ -105,25 +105,25 @@ export const ClientFilter = () => {
       </div>
       <div className="mt-4">
         <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Filter by capabilities:
+          Filter by features:
         </div>
         <div className="flex flex-wrap gap-2">
-          {CAPABILITIES.map(cap => (
+          {FEATURES.map(feature => (
             <button
-              key={cap}
-              onClick={() => toggleCapability(cap)}
+              key={feature}
+              onClick={() => toggleFeature(feature)}
               className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors cursor-pointer ${
-                selectedCapabilities.includes(cap)
+                selectedFeatures.includes(feature)
                   ? 'bg-primary/10 text-primary dark:bg-gray-700 dark:text-gray-100'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
               <Icon
-                icon={selectedCapabilities.includes(cap) ? "square-check" : "square"}
-                iconType={selectedCapabilities.includes(cap) ? "solid" : "regular"}
+                icon={selectedFeatures.includes(feature) ? "square-check" : "square"}
+                iconType={selectedFeatures.includes(feature) ? "solid" : "regular"}
                 size={16}
               />
-              {cap}
+              {feature}
             </button>
           ))}
         </div>
