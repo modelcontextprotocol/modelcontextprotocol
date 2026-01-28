@@ -56,11 +56,13 @@ SEPs are submitted as pull requests to the [`seps/` directory](https://github.co
 
 6. **Informal review**: The sponsor reviews the proposal and may request changes based on community feedback. Discussion happens in the PR comments.
 
-7. **Formal review**: When the SEP is ready, the sponsor updates the status to `in-review`. The SEP enters formal review by the Core Maintainers team.
+7. **Implementation**: Prior to formal review, a reference implementation must be completed. This includes a PR updating the specification, schema, and docs (in this repo) as well as a working implementation and example in at least one first-tier SDK.
 
-8. **Resolution**: The SEP may be `accepted`, `rejected`, or returned for revision. The sponsor updates the status accordingly.
+8. **Formal review**: When the SEP is ready, the sponsor updates the status to `in-review`. The SEP enters formal review by the Core Maintainers team.
 
-9. **Finalization**: Once accepted, the reference implementation must be completed. When complete and incorporated into the specification, the sponsor updates the status to `final`.
+9. **Resolution**: The SEP may be `accepted`, `rejected`, or returned for revision. The sponsor updates the status accordingly.
+
+10. **Finalization**: Once accepted and incorporated into the specification, the sponsor updates the status to `final`.
 
 If a SEP has not found a sponsor within six months, Core Maintainers may close the PR and mark the SEP as `dormant`.
 
@@ -74,7 +76,7 @@ Each SEP should have the following parts:
 4. **Specification** -- The technical specification should describe the syntax and semantics of any new protocol feature. The specification should be detailed enough to allow competing, interoperable implementations.
 5. **Rationale** -- The rationale explains why particular design decisions were made. It should describe alternate designs that were considered and related work. The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion.
 6. **Backward Compatibility** -- All SEPs that introduce backward incompatibilities must include a section describing these incompatibilities and their severity. The SEP must explain how the author proposes to deal with these incompatibilities.
-7. **Reference Implementation** -- The reference implementation must be completed before any SEP is given status "Final", but it need not be completed before the SEP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of protocol details.
+7. **Reference Implementation** -- There is merit to the approach of reaching consensus on the specification and rationale before writing code, which is the purpose of the informal review period. For formal review, however, the principle of "rough consensus and running code" can be vital when it comes to resolving many discussions of protocol details.
 8. **Security Implications** -- If there are security concerns in relation to the SEP, those concerns should be explicitly written out to make sure reviewers of the SEP are aware of them.
 
 See the [SEP template](https://github.com/modelcontextprotocol/specification/blob/main/seps/README.md#sep-file-structure) for the complete file structure.
@@ -84,11 +86,12 @@ See the [SEP template](https://github.com/modelcontextprotocol/specification/blo
 SEPs can be in one of the following states:
 
 - `draft`: SEP proposal with a sponsor, undergoing informal review.
-- `in-review`: SEP proposal ready for formal review by Core Maintainers.
-- `accepted`: SEP accepted by Core Maintainers, but still requires final wording and reference implementation.
+- `in-review`: SEP proposal ready for formal review by Core Maintainers, including a reference implementation.
+- `accepted`: SEP accepted as-is by Core Maintainers.
+- `accepted-with-changes`: SEP accepted by Core Maintainers, but requires final wording and/or implementation changes based on feedback from the formal review.
 - `rejected`: SEP rejected by Core Maintainers.
 - `withdrawn`: SEP withdrawn by the author.
-- `final`: SEP finalized with reference implementation complete.
+- `final`: SEP finalized; wording is complete, and the reference implementation is merged.
 - `superseded`: SEP has been replaced by a newer SEP.
 - `dormant`: SEP that has not found a sponsor and was subsequently closed.
 
@@ -109,13 +112,13 @@ SEPs are reviewed by the MCP Core Maintainers team on a bi-weekly basis.
 
 For a SEP to be accepted it must meet certain minimum criteria:
 
-- A prototype implementation demonstrating the proposal
+- A reference implementation demonstrating all aspects of the proposal
 - Clear benefit to the MCP ecosystem
 - Community support and consensus
 
-Once a SEP has been accepted, the reference implementation must be completed. When the reference implementation is complete and incorporated into the main source code repository, the status will be changed to "Final".
+Once an SEP has been accepted, and any requested changes to wording and/or the reference implementation are complete and incorporated into the repositories, the sponsor will change the status to "Final".
 
-A SEP can also be "Rejected" or "Withdrawn". A SEP that is "Withdrawn" may be re-submitted at a later date.
+An SEP can also be "Rejected" or "Withdrawn". A SEP that is "Withdrawn" may be re-submitted at a later date.
 
 ## The Sponsor Role
 
