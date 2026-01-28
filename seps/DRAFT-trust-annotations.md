@@ -4,7 +4,7 @@
 | :------ | :------------------------------------------------------------------------------ |
 | Type    | Standards Track                                                                 |
 | Created | 2025-06-11                                                                      |
-| Authors | @SamMorrowDrums, @rreichel3                                                      |
+| Authors | @SamMorrowDrums, @rreichel3                                                     |
 | Sponsor | @dend                                                                           |
 | Issue   | [#711](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/711) |
 
@@ -79,7 +79,7 @@ Recent research proposes several design patterns for secure LLM agents. Trust an
 
 | Pattern               | Trust Annotation Role                                                                            |
 | :-------------------- | :----------------------------------------------------------------------------------------------- |
-| **Plan-Then-Execute** | Planning phase uses `openWorldHint` and action metadata to determine allowed tool sequences     |
+| **Plan-Then-Execute** | Planning phase uses `openWorldHint` and action metadata to determine allowed tool sequences      |
 | **Map-Reduce**        | Isolated agents return results with annotations; aggregation enforces sensitivity policies       |
 | **Dual LLM**          | Privileged LLM receives annotations on quarantined results to make display decisions             |
 | **ShardGuard**        | Coordination service uses annotations to select sanitization functions and opaque value policies |
@@ -246,11 +246,7 @@ interface ReturnMetadata {
     | "user"
     | "system"
     | Array<
-        | "untrustedPublic"
-        | "trustedPublic"
-        | "internal"
-        | "user"
-        | "system"
+        "untrustedPublic" | "trustedPublic" | "internal" | "user" | "system"
       >;
 
   /**
@@ -267,8 +263,7 @@ type DataClass =
   | "credentials"
   | { regulated: { scopes: RegulatoryScope[] } };
 
-type RegulatoryScope =
-  | string;
+type RegulatoryScope = string;
 ```
 
 `DataClass` keeps sensitivity simple for common cases while allowing regulated data to be scoped. The `regulated` form declares applicable regimes; it does not assert compliance.
@@ -477,7 +472,13 @@ Add to the existing `ToolAnnotations` definition in `schema.json`, and introduce
         "oneOf": [
           {
             "type": "string",
-            "enum": ["untrustedPublic", "trustedPublic", "internal", "user", "system"]
+            "enum": [
+              "untrustedPublic",
+              "trustedPublic",
+              "internal",
+              "user",
+              "system"
+            ]
           },
           {
             "type": "array",
@@ -608,19 +609,19 @@ In these cases, servers **SHOULD** return the narrowest possible set at resolve 
   "description": "Read the user's email drafts.",
   "inputSchema": {
     "type": "object",
-    "additionalProperties": false
+    "additionalProperties": false,
   },
   "annotations": {
     "inputMetadata": {
       "destination": "ephemeral",
       "sensitivity": "none",
-      "outcomes": "benign"
+      "outcomes": "benign",
     },
     "returnMetadata": {
       "source": "user",
-      "sensitivity": "pii"
-    }
-  }
+      "sensitivity": "pii",
+    },
+  },
 }
 ```
 
@@ -633,22 +634,22 @@ In these cases, servers **SHOULD** return the narrowest possible set at resolve 
   "inputSchema": {
     "type": "object",
     "properties": {
-      "limit": { "type": "number" }
+      "limit": { "type": "number" },
     },
     "required": [],
-    "additionalProperties": false
+    "additionalProperties": false,
   },
   "annotations": {
     "inputMetadata": {
       "destination": "ephemeral",
       "sensitivity": "none",
-      "outcomes": "benign"
+      "outcomes": "benign",
     },
     "returnMetadata": {
       "source": "untrustedPublic",
-      "sensitivity": ["pii", "user"]
-    }
-  }
+      "sensitivity": ["pii", "user"],
+    },
+  },
 }
 ```
 
@@ -663,22 +664,22 @@ In these cases, servers **SHOULD** return the narrowest possible set at resolve 
     "properties": {
       "to": { "type": "string", "format": "email" },
       "subject": { "type": "string" },
-      "body": { "type": "string" }
+      "body": { "type": "string" },
     },
     "required": ["to", "subject", "body"],
-    "additionalProperties": false
+    "additionalProperties": false,
   },
   "annotations": {
     "inputMetadata": {
       "destination": "public",
       "sensitivity": ["pii", "user"],
-      "outcomes": "irreversible"
+      "outcomes": "irreversible",
     },
     "returnMetadata": {
       "source": "system",
-      "sensitivity": "none"
-    }
-  }
+      "sensitivity": "none",
+    },
+  },
 }
 ```
 
@@ -768,7 +769,10 @@ const examplePolicies = {
       conditions: {
         and: [
           { fact: "request.annotations.openWorldHint", equals: true },
-          { fact: "tool.annotations.inputMetadata.destination", equals: "public" },
+          {
+            fact: "tool.annotations.inputMetadata.destination",
+            equals: "public",
+          },
         ],
       },
     },
