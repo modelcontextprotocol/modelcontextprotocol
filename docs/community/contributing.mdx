@@ -1,0 +1,325 @@
+---
+title: Contributing to MCP
+description: How to contribute to the Model Context Protocol project
+---
+
+The Model Context Protocol is an open-source project that welcomes contributions from the community. This guide walks you through everything you need to get started.
+
+## Before You Begin
+
+### Prerequisites
+
+Before contributing, ensure you have:
+
+- **Git** - For cloning repositories and submitting changes
+- **Node.js 18+** - Required for building and testing ([download](https://nodejs.org/))
+- **npm** - Comes with Node.js, used for dependency management
+- **A GitHub account** - For submitting pull requests and issues
+
+Verify your setup:
+
+```bash
+node --version  # Should be 18.x or higher
+npm --version   # Should be 8.x or higher
+git --version   # Any recent version
+```
+
+### Understanding the Repository Structure
+
+MCP spans multiple repositories. Here's where things live:
+
+| Repository                                                                                                | Contents                                       | When to Use                  |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------- |
+| [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) | Specification, documentation, SEPs, governance | Protocol changes, docs, SEPs |
+| [modelcontextprotocol/typescript-sdk](https://github.com/modelcontextprotocol/typescript-sdk)             | TypeScript/JavaScript SDK                      | TS/JS SDK improvements       |
+| [modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)                     | Python SDK                                     | Python SDK improvements      |
+| Other SDK repos                                                                                           | Go, Kotlin, Java, C#, Swift, Rust, Ruby, PHP   | Language-specific SDKs       |
+
+The **specification repository** (`modelcontextprotocol/modelcontextprotocol`) contains the protocol spec, this documentation site, and SEPs. When this guide says "specification repository," it always means this repo.
+
+## Your First Contribution
+
+New to open source or MCP? Start here.
+
+### Step 1: Set Up Your Environment
+
+```bash
+# Clone the specification repository
+git clone https://github.com/modelcontextprotocol/modelcontextprotocol.git
+cd modelcontextprotocol
+
+# Install dependencies
+npm install
+
+# Verify everything works
+npm run check
+```
+
+If `npm run check` fails, see [Troubleshooting](#troubleshooting) below.
+
+### Step 2: Find Something to Work On
+
+Good places to find beginner-friendly work:
+
+1. **Documentation improvements** - Typos, unclear explanations, broken links
+2. **Issues labeled `good first issue`** - In the [specification repo](https://github.com/modelcontextprotocol/modelcontextprotocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or any SDK repo
+3. **Schema examples** - Add examples to `schema/draft/examples/`
+
+### Step 3: Make Your Change
+
+1. Create a branch: `git checkout -b fix/your-description`
+2. Make your changes
+3. Run checks: `npm run check`
+4. Commit with a clear message: `git commit -m "Fix typo in tools documentation"`
+
+### Step 4: Submit a Pull Request
+
+1. Push your branch: `git push origin fix/your-description`
+2. Open a PR on GitHub
+3. Fill in the PR template
+4. Wait for review (typically 1-5 business days)
+
+### Example: Good First Contributions
+
+Here are examples of successful first contributions:
+
+- **Documentation fix**: Clarifying a confusing paragraph
+- **Schema example**: Adding a JSON example for a tool type
+- **Typo correction**: Fixing spelling or grammar
+
+## Types of Contributions
+
+### Small Changes (Direct PR)
+
+Submit a pull request directly for:
+
+- Bug fixes and typo corrections
+- Documentation clarifications
+- Adding examples to existing features
+- Minor schema fixes that don't change behavior
+- Test improvements
+
+**Examples of small changes:**
+
+- Fixing a broken link in documentation
+- Correcting a typo in an error message
+- Adding a missing example to schema documentation
+- Clarifying ambiguous wording
+
+### Major Changes (SEP Required)
+
+You must submit a [Specification Enhancement Proposal (SEP)](/community/sep-guidelines) for:
+
+- New protocol features or API methods
+- Breaking changes to existing behavior
+- Changes to the message format or schema structure
+- New interoperability standards
+- Governance or process changes
+
+**Examples of major changes:**
+
+- Adding a new RPC method like `tools/execute`
+- Changing how authentication works
+- Adding a new capability negotiation field
+- Modifying the transport layer specification
+
+**Not sure which category?** Ask in the [MCP Contributor Discord](https://discord.gg/6CSzBmMkjX) before starting significant work.
+
+## Contributing to the Specification
+
+The MCP specification lives in the [specification repository](https://github.com/modelcontextprotocol/modelcontextprotocol).
+
+### Schema Changes
+
+The TypeScript schema is the source of truth. To modify the schema:
+
+1. Edit `schema/draft/schema.ts`
+2. Generate JSON schema and docs:
+   ```bash
+   npm run generate:schema
+   ```
+3. Validate your changes:
+   ```bash
+   npm run check
+   ```
+
+### Documentation Changes
+
+Documentation is written in MDX format in the `docs/` directory.
+
+```bash
+# Start local docs server
+npm run serve:docs
+
+# Check documentation for issues
+npm run check:docs
+```
+
+### Major Protocol Changes
+
+For significant changes, follow the SEP process:
+
+1. **Validate your idea first** - Discuss in an [Interest Group](/community/working-interest-groups) or on [Discord](https://discord.gg/6CSzBmMkjX)
+2. **Build a prototype** - Demonstrate practical application
+3. **Find a sponsor** - A maintainer from the [maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) who will champion your proposal
+4. **Write the SEP** - Follow the [SEP Guidelines](/community/sep-guidelines)
+
+<Card title="SEP Guidelines" icon="file-lines" href="/community/sep-guidelines">
+  Learn how to write and submit a Specification Enhancement Proposal
+</Card>
+
+## Contributing to SDKs
+
+MCP maintains official SDKs in multiple languages. Each SDK has its own repository with specific contribution guidelines.
+
+### Before Contributing to an SDK
+
+1. **Open an issue first** - Discuss your approach before starting significant work
+2. **Join the SDK channel** - Find the relevant channel in [Discord](https://discord.gg/6CSzBmMkjX) (e.g., `#typescript-sdk-dev`, `#python-sdk-dev`)
+3. **Read the SDK's CONTRIBUTING.md** - Each repo has specific setup and coding standards
+4. **Write tests** - All contributions should include appropriate test coverage
+
+### SDK Repositories
+
+<CardGroup cols={2}>
+  <Card
+    title="TypeScript SDK"
+    icon="square-js"
+    href="https://github.com/modelcontextprotocol/typescript-sdk"
+  />
+  <Card
+    title="Python SDK"
+    icon="python"
+    href="https://github.com/modelcontextprotocol/python-sdk"
+  />
+  <Card
+    title="Go SDK"
+    icon="golang"
+    href="https://github.com/modelcontextprotocol/go-sdk"
+  />
+  <Card
+    title="Kotlin SDK"
+    icon="square-k"
+    href="https://github.com/modelcontextprotocol/kotlin-sdk"
+  />
+  <Card
+    title="Java SDK"
+    icon="java"
+    href="https://github.com/modelcontextprotocol/java-sdk"
+  />
+  <Card
+    title="C# SDK"
+    icon="square-c"
+    href="https://github.com/modelcontextprotocol/csharp-sdk"
+  />
+  <Card
+    title="Swift SDK"
+    icon="swift"
+    href="https://github.com/modelcontextprotocol/swift-sdk"
+  />
+  <Card
+    title="Rust SDK"
+    icon="rust"
+    href="https://github.com/modelcontextprotocol/rust-sdk"
+  />
+  <Card
+    title="Ruby SDK"
+    icon="gem"
+    href="https://github.com/modelcontextprotocol/ruby-sdk"
+  />
+  <Card
+    title="PHP SDK"
+    icon="php"
+    href="https://github.com/modelcontextprotocol/php-sdk"
+  />
+</CardGroup>
+
+## Getting Help
+
+### Communication Channels
+
+- **[Discord](https://discord.gg/6CSzBmMkjX)** - Real-time discussion with contributors and maintainers
+- **[GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions)** - Longer-form questions and proposals
+- **[GitHub Issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues)** - Bug reports and feature requests
+
+For protocol discussions, join Working Group channels like `#auth-wg` or `#server-identity-wg`. For SDK help, find your language's channel (e.g., `#typescript-sdk-dev`).
+
+### Finding a Sponsor for SEPs
+
+If you're submitting a SEP and need a sponsor:
+
+1. Look at the [maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) to find maintainers working in your area
+2. Tag 1-2 relevant maintainers in your PR (don't spam everyone)
+3. Share your PR in the relevant Discord channel
+4. If no response after 2 weeks, ask in `#general` or reach out to a Core Maintainer
+
+Maintainers review open proposals regularly, but response time varies based on complexity and availability.
+
+## Troubleshooting
+
+### `npm run check` fails
+
+Common causes:
+
+- **Wrong Node.js version** - Ensure you have Node.js 18+
+- **Missing dependencies** - Run `npm install` again
+- **Schema out of sync** - Run `npm run generate:schema`
+- **Formatting issues** - Run `npm run format` to auto-fix
+
+### My PR has been sitting for weeks
+
+1. Ensure all CI checks pass
+2. Politely ping the reviewer in a comment
+3. Ask in the relevant Discord channel
+4. For urgent issues, reach out to a Core Maintainer
+
+### I can't find a sponsor for my SEP
+
+1. Make sure your idea has been discussed in Discord or an Interest Group first
+2. Proposals with demonstrated community interest are more likely to find sponsors
+3. Consider whether your change might be too large - could it be split into smaller SEPs?
+4. SEPs without a sponsor after 6 months are marked as `dormant` (not rejected - you can revive them later with renewed interest)
+
+### My SEP was rejected
+
+Rejection is not permanent. You can:
+
+1. Address the feedback and resubmit
+2. Discuss the rejection in Discord to understand concerns
+3. Submit a competing SEP with a different approach
+4. Wait for circumstances to change (new use cases, community growth)
+
+## Out of Scope
+
+This guide covers contributions to the **core MCP project** - the specification, official SDKs, and documentation.
+
+Building your own MCP servers, clients, or tools is **not** covered here. For guidance on building with MCP, see:
+
+- [Build a Server](/docs/develop/build-server)
+- [Build a Client](/docs/develop/build-client)
+- [Example Servers](/examples)
+
+If you build something you'd like to share with the community, you can submit it to the [community servers list](https://github.com/modelcontextprotocol/servers) by opening a PR to add your server to the README.
+
+## AI Contributions
+
+If you use AI assistance (e.g., Claude, ChatGPT) when contributing, disclose this in your pull request. Include the extent of AI usage - whether for documentation, code generation, or other purposes.
+
+Contributions should demonstrate:
+
+- **Human understanding** - You personally understand what the changes do
+- **Clear rationale** - You can explain why the change is needed
+- **Concrete evidence** - Include test cases or examples that demonstrate the improvement
+
+## Code of Conduct
+
+All contributors must follow the [Code of Conduct](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/CODE_OF_CONDUCT.md). We expect respectful, professional, and inclusive interactions across all channels.
+
+## License
+
+By contributing, you agree that your contributions will be licensed under:
+
+- **Code and specifications**: Apache License 2.0
+- **Documentation** (excluding specifications): CC-BY 4.0
+
+See the [LICENSE](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/LICENSE) file for details.
