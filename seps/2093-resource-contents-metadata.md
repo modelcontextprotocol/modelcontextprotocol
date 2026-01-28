@@ -1,4 +1,4 @@
-# SEP-2093: Resource Contents Metadata and Collection Semantics
+# SEP-2093: Resource Contents Metadata and Resource Types
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -15,9 +15,9 @@ This SEP proposes five related changes to improve the consistency and usability 
 
 2. **New `resources/metadata` endpoint**: Introduce a method to fetch resource metadata without retrieving content, enabling efficient conditional loading and metadata refresh.
 
-3. **Introduce `isCollection` flag**: Add an `isCollection` boolean to `Resource` to distinguish collection resources (like directories) from regular resources, with defined semantics for each.
+3. **Introduce `resourceType` field**: Add a `resourceType` enum to `Resource` to distinguish resource kinds (e.g., `"document"` vs `"collection"`), with defined semantics for each.
 
-4. **Define multi-content semantics**: Specify clear rules for `ReadResourceResult.contents[]` based on whether the resource is a collection, resolving the current ambiguity around multi-URI returns.
+4. **Define multi-content semantics**: Specify clear rules for `ReadResourceResult.contents[]` based on the resource type, resolving the current ambiguity around multi-URI returns.
 
 5. **Remove `EmbeddedResource.annotations`**: Since resource contents now include annotations, remove the redundant top-level annotations field from `EmbeddedResource`.
 
@@ -54,9 +54,9 @@ There's no way to refresh metadata for a specific resource without fetching pote
 
 This SEP defines the array's semantics to ensure interoperability.
 
-### 4. No Collection Concept
+### 4. No Resource Type Concept
 
-Many servers expose hierarchical resources (filesystems, databases with tables, etc.) but there's no standard way to indicate that a resource is a collection (container) versus a leaf resource. This leads to ambiguity about what `resources/read` should return for directory-like resources.
+Many servers expose hierarchical resources (filesystems, databases with tables, etc.) but there's no standard way to indicate the kind of resource (e.g., a collection/container versus a leaf document). This leads to ambiguity about what `resources/read` should return for directory-like resources.
 
 ### 5. mimeType Ambiguity
 
@@ -97,11 +97,19 @@ export interface BlobResourceContents extends Resource {
 }
 ```
 
-### 2. Add `isCollection` to Resource
+### 2. Add `resourceType` to Resource
 
-Add a boolean field to `Resource` indicating whether the resource is a collection:
+Add an enum field to `Resource` indicating the kind of resource:
 
 ```typescript
+/**
+ * The type of a resource.
+ *
+ * - `document`: A leaf resource with readable content (e.g., a file, API response).
+ * - `collection`: A container resource that may contain other resources (e.g., a directory, database).
+ */
+export type ResourceType = "document" | "collection";
+
 export interface Resource extends BaseMetadata, Icons {
   /**
    * The URI of this resource.
@@ -123,19 +131,17 @@ export interface Resource extends BaseMetadata, Icons {
   size?: number;
 
   /**
-   * If true, this resource represents a collection (like a directory or folder).
-   * Collections may contain other resources.
+   * The type of this resource.
    *
-   * When reading a collection:
-   * - The `contents` array MAY include child resources with different URIs
-   * - For large collections, clients SHOULD use `resources/list` with this URI instead
+   * - `document`: A leaf resource. `resources/read` MUST return only the requested URI.
+   * - `collection`: A container (like a directory). When reading a collection, the
+   *   `contents` array MAY include child resources with different URIs. For large
+   *   collections, clients SHOULD use `resources/list` with this URI instead.
    *
-   * When `isCollection` is false, `resources/read` MUST return only the requested URI.
-   *
-   * When `isCollection` is absent, servers MAY return multiple URIs for backwards
-   * compatibility, but this behavior is deprecated for non-collection resources.
+   * When absent, servers MAY return multiple URIs for backwards compatibility,
+   * but this behavior is deprecated for non-collection resources.
    */
-  isCollection?: boolean;
+  resourceType?: ResourceType;
 
   /**
    * Optional annotations for the client.
@@ -181,9 +187,9 @@ Servers advertising the `resources` capability MUST support this method.
 
 ### 4. Multi-Content Semantics
 
-The `contents` array in `ReadResourceResult` has different semantics based on the `isCollection` flag:
+The `contents` array in `ReadResourceResult` has different semantics based on `resourceType`:
 
-#### For Collection Resources (`isCollection: true`)
+#### For Collection Resources (`resourceType: "collection"`)
 
 When reading a collection resource:
 
@@ -204,14 +210,14 @@ Example collection read response:
         "uri": "file:///projects/src/main.ts",
         "name": "main.ts",
         "mimeType": "text/typescript",
-        "isCollection": false,
+        "resourceType": "document",
         "text": "import { app } from './app';\n..."
       },
       {
         "uri": "file:///projects/src/app.ts",
         "name": "app.ts",
         "mimeType": "text/typescript",
-        "isCollection": false,
+        "resourceType": "document",
         "text": "export const app = ..."
       }
     ]
@@ -219,7 +225,7 @@ Example collection read response:
 }
 ```
 
-#### For Non-Collection Resources (`isCollection: false`)
+#### For Document Resources (`resourceType: "document"`)
 
 When reading a non-collection resource:
 
@@ -229,7 +235,7 @@ When reading a non-collection resource:
 4. Metadata fields (name, title, description, annotations) SHOULD be consistent across elements
 5. The `size` field, if present, SHOULD reflect the size of that specific representation
 
-Example non-collection read response with format alternatives:
+Example document read response with format alternatives:
 
 ```json
 {
@@ -241,7 +247,7 @@ Example non-collection read response with format alternatives:
         "uri": "file:///docs/report.pdf",
         "name": "Quarterly Report",
         "mimeType": "application/pdf",
-        "isCollection": false,
+        "resourceType": "document",
         "size": 102400,
         "blob": "JVBERi0xLjQK..."
       },
@@ -249,7 +255,7 @@ Example non-collection read response with format alternatives:
         "uri": "file:///docs/report.pdf",
         "name": "Quarterly Report",
         "mimeType": "text/plain",
-        "isCollection": false,
+        "resourceType": "document",
         "size": 8192,
         "text": "Extracted text content of the PDF..."
       }
@@ -258,13 +264,13 @@ Example non-collection read response with format alternatives:
 }
 ```
 
-#### When `isCollection` is Absent (Backwards Compatibility)
+#### When `resourceType` is Absent (Backwards Compatibility)
 
-For resources where `isCollection` is not specified:
+For resources where `resourceType` is not specified:
 
 1. Servers MAY return multiple URIs in the `contents` array
 2. This behavior is **DEPRECATED** for non-collection resources
-3. New implementations SHOULD always specify `isCollection`
+3. New implementations SHOULD always specify `resourceType`
 4. Clients SHOULD handle multiple URIs gracefully but MAY treat the first element as primary
 
 #### Resource Not Found
@@ -327,7 +333,7 @@ We considered adding a `metadataOnly` flag to `resources/read`, but a separate m
 - Makes capability discovery explicit
 - Follows REST-like principles (different operations = different methods)
 
-### Why an `isCollection` Flag?
+### Why a `resourceType` Enum?
 
 Analysis of multi-content usage across MCP server implementations revealed the following patterns:
 
@@ -341,20 +347,20 @@ Analysis of multi-content usage across MCP server implementations revealed the f
 | Search Results      | Vector store search returning top 3 matches                                  | 4%  |
 | Header + Items      | Status message + error list, data + user context                             | 4%  |
 
-The dominant use case (65%) is returning collection contents—child resources with different URIs. The `isCollection` flag legitimizes this pattern while providing clear semantics.
+The dominant use case (65%) is returning collection contents—child resources with different URIs. The `resourceType` field legitimizes this pattern while providing clear semantics.
 
-We considered several alternatives for distinguishing collections:
+We considered several alternatives for distinguishing resource kinds:
 
 1. **Use mimeType (e.g., `inode/directory`)** - mimeType describes content format, not resource semantics; mixing concerns
 2. **Infer from URI patterns** - Unreliable; not all collections end with `/`
-3. **Separate resource types** - Would require larger schema changes
-4. **Explicit boolean flag** - Clear, simple, no overloading of existing fields
+3. **Boolean `isCollection` flag** - Works but not extensible; a boolean can't accommodate future resource kinds
+4. **Separate resource interfaces** - Would require larger schema changes and a discriminated union
 
-The boolean flag is explicit about intent and allows servers to clearly communicate resource semantics.
+An enum is explicit about intent, avoids the "boolean trap" (callers must remember what `true` means), and is extensible for future resource kinds without additional fields.
 
 ### Why Allow Multi-URI Returns for Collections?
 
-While the ideal API would have `resources/read` return only the requested URI (using `resources/list` for collection contents), existing implementations return child resources directly. The `isCollection` flag allows us to:
+While the ideal API would have `resources/read` return only the requested URI (using `resources/list` for collection contents), existing implementations return child resources directly. The `resourceType` field allows us to:
 
 1. Legitimize existing collection behavior
 2. Deprecate multi-URI returns for non-collections
@@ -383,14 +389,14 @@ Most changes in this proposal are backwards compatible. The removal of `Embedded
 - All new fields in `resources/read` responses are optional
 - Clients can ignore fields they don't recognize
 - Existing code continues to work unchanged
-- Clients SHOULD handle `isCollection` but absence is valid (backwards compat)
+- Clients SHOULD handle `resourceType` but absence is valid (backwards compat)
 
 ### For Servers
 
 - Servers SHOULD provide metadata fields when available, but they remain optional
 - Servers with the `resources` capability MUST implement the new `resources/metadata` method
-- Servers SHOULD set `isCollection` on all resources
-- Servers returning multiple URIs for non-collections SHOULD migrate to collection semantics or single-URI returns
+- Servers SHOULD set `resourceType` on all resources
+- Servers returning multiple URIs for non-collections SHOULD migrate to `resourceType: "collection"` or single-URI returns
 
 ### EmbeddedResource.annotations Removal
 
@@ -420,11 +426,11 @@ This SEP standardizes on `-32602` (InvalidParams) as it is the correct standard 
 ### Migration Path
 
 1. Servers should start including metadata in `resources/read` responses
-2. Servers should set `isCollection` on all resources
+2. Servers should set `resourceType` on all resources
 3. Servers should implement `resources/metadata`
 4. Servers should use error code `-32602` for resource not found
 5. Servers returning multiple URIs for non-collections should either:
-   - Mark the resource as `isCollection: true` if it's genuinely a collection
+   - Mark the resource as `resourceType: "collection"` if it's genuinely a collection
    - Return only the requested URI if it's not a collection
 6. Clients can gradually adopt the new fields and method
 7. SDKs should implement the compatibility shim for `EmbeddedResource.annotations`
@@ -435,5 +441,5 @@ This proposal introduces no new security concerns:
 
 - All information exposed via `resources/read` metadata was already available via `resources/list`
 - The `resources/metadata` endpoint exposes no new information
-- The `isCollection` flag exposes no new information
+- The `resourceType` field exposes no new information
 - Access controls should already be in place for resource access
