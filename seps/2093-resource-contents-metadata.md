@@ -273,24 +273,6 @@ For resources where `resourceType` is not specified:
 3. New implementations SHOULD always specify `resourceType`
 4. Clients SHOULD handle multiple URIs gracefully but MAY treat the first element as primary
 
-#### Resource Not Found
-
-If the requested resource does not exist, servers MUST return a JSON-RPC error with code `-32602` (invalid params) rather than an empty contents array:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "error": {
-    "code": -32602,
-    "message": "Resource not found",
-    "data": {
-      "uri": "file:///nonexistent.txt"
-    }
-  }
-}
-```
-
 ### 5. Resource.mimeType Semantics
 
 When a resource supports multiple formats:
@@ -408,32 +390,16 @@ The removal of `EmbeddedResource.annotations` is a breaking change at the schema
 
 This allows existing code to continue working while the protocol itself has a single, unambiguous location for annotations.
 
-### Error Code Standardization
-
-Current SDK implementations vary in their error handling for resource not found:
-
-| SDK        | Current Error Code                   |
-| ---------- | ------------------------------------ |
-| TypeScript | `-32602` (InvalidParams)             |
-| Python     | `0` (generic)                        |
-| C#         | `-32002` (custom RESOURCE_NOT_FOUND) |
-| Rust       | `-32002` (custom RESOURCE_NOT_FOUND) |
-| Java       | `-32002` (custom RESOURCE_NOT_FOUND) |
-| Go         | `-32002` (custom RESOURCE_NOT_FOUND) |
-
-This SEP standardizes on `-32602` (InvalidParams) as it is the correct standard JSON-RPC error code for invalid parameters, and a non-existent URI is semantically an invalid parameter. While this is a breaking change for C#, Rust, Java, and Go SDKs, clients already need to handle multiple error codes due to the existing inconsistency between TypeScript (-32602), Python (0), and the others (-32002). Standardizing on the correct JSON-RPC code provides a clear path forward.
-
 ### Migration Path
 
 1. Servers should start including metadata in `resources/read` responses
 2. Servers should set `resourceType` on all resources
 3. Servers should implement `resources/metadata`
-4. Servers should use error code `-32602` for resource not found
-5. Servers returning multiple URIs for non-collections should either:
+4. Servers returning multiple URIs for non-collections should either:
    - Mark the resource as `resourceType: "collection"` if it's genuinely a collection
    - Return only the requested URI if it's not a collection
-6. Clients can gradually adopt the new fields and method
-7. SDKs should implement the compatibility shim for `EmbeddedResource.annotations`
+5. Clients can gradually adopt the new fields and method
+6. SDKs should implement the compatibility shim for `EmbeddedResource.annotations`
 
 ## Security Implications
 
