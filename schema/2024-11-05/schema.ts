@@ -822,14 +822,14 @@ export interface Annotated {
   annotations?: {
     /**
      * Describes who the intended customer of this object or data is.
-     * 
+     *
      * It can include multiple entries to indicate content useful for multiple audiences (e.g., `["user", "assistant"]`).
      */
     audience?: Role[];
 
     /**
      * Describes how important this data is for operating the server.
-     * 
+     *
      * A value of 1 means "most important," and indicates that the data is
      * effectively required, while 0 means "least important," and indicates that
      * the data is entirely optional.
@@ -839,7 +839,7 @@ export interface Annotated {
      * @maximum 1
      */
     priority?: number;
-  }
+  };
 }
 
 /**

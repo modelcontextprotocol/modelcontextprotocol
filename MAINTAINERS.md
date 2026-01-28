@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** October 15, 2025
+**Last updated:** January 13, 2026
 
 ## Lead Maintainers
 
@@ -16,7 +16,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Paul Carleton](https://github.com/pcarleton)
 - [Nick Cooper](https://github.com/nicknotfun)
 - [Nick Aldridge](https://github.com/000-000-000-000-000)
-- Che Liu
+- [Che Liu](https://github.com/pwwpche)
 - [Den Delimarsky](https://github.com/localden)
 
 ## SDK Maintainers
@@ -26,17 +26,21 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Christian Tzolov](https://github.com/tzolov)
 - [Dariusz Jędrzejczyk](https://github.com/chemicL)
 - [Daniel Garnier-Moiroux](https://github.com/Kehrlann)
+- [Mark Pollack](https://github.com/markpollack)
 
 ### Ruby SDK
 
 - [Topher Bullock](https://github.com/topherbullock)
 - [Koichi Ito](https://github.com/koic)
 - [Ateş Göral](https://github.com/atesgoral)
+- [Jonathan Hefner](https://github.com/jonathanhefner)
 
 ### Swift SDK
 
 - [Matt Zmuda](https://github.com/mattt)
 - [Carl Peaslee](https://github.com/carlpeaslee)
+- [Maksym Mova](https://github.com/movetz)
+- [Stephen Tallent](https://github.com/stallent)
 
 ### Go SDK
 
@@ -48,33 +52,52 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Stephan Halter](https://github.com/halter73)
 - [Mike Kistler](https://github.com/mikekistler)
+- [Den Delimarsky](https://github.com/dend)
+- [Eirik Tsarpalis](https://github.com/eiriktsarpalis)
+- [Stephen Toub](https://github.com/stephentoub)
 
 ### Kotlin SDK
 
 - [Leonid Stashevsky](https://github.com/e5l)
 - [Sergey Ignatov](https://github.com/ignatov)
+- [Konstantin Pavlov](https://github.com/kpavlov)
+- [Pavel Gorgulov](https://github.com/devcrocod)
+- [Briliantov Vadim](https://github.com/Ololoshechkin)
+- [Sergei Dubov](https://github.com/sdubov)
+- [Maria Tigina](https://github.com/tiginamaria)
 
 ### Python SDK
 
 - [Inna Harper](https://github.com/ihrpr)
 - [Jerome Swannack](https://github.com/jerome3o)
-- [Samuel Colvin](https://github.com/samuelcolvin)
 - [Marcelo Trylesinski](https://github.com/Kludex)
+- [Max Isbey](https://github.com/maxisbey)
+- [Felix Weinberger](https://github.com/felixweinberger)
 
 ### TypeScript SDK
 
 - [Inna Harper](https://github.com/ihrpr)
 - [Felix Weinberger](https://github.com/felixweinberger)
 - [Olivier Chafik](https://github.com/ochafik)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Matt Carey](https://github.com/mattzcarey)
 
 ### Rust SDK
 
 - [Alex Hancock](https://github.com/alexhancock)
+- [Michael Bolin](https://github.com/bolinfest)
+- [Bradley Axen](https://github.com/baxen)
+- [Jack Amadeo](https://github.com/jamadeo)
+- [Michael Neale](https://github.com/michaelneale)
 
 ### PHP SDK
 
 - [Kyrian Obikwelu](https://github.com/CodeWithKyrian)
 - [Christopher Hertel](https://github.com/chr-hertel)
+- [Fabien Potencier](https://github.com/fabpot)
+- [Nicolas Grekas](https://github.com/nicolas-grekas)
+- [Tobias Nyholm](https://github.com/Nyholm)
+- [Roman Pronskiy](https://github.com/pronskiy)
 
 ## Project Maintainers
 
@@ -84,8 +107,9 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Inspector
 
-- [Ola Hungerford](https://github.com/olaservo)
 - [Cliff Hall](https://github.com/cliffhall)
+- [Konstantin Konstantinov](https://github.com/KKonstantinov)
+- [Ola Hungerford](https://github.com/olaservo)
 
 ### Registry
 
@@ -93,6 +117,12 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
+
+### MCPB (Model Context Protocol Bundle)
+
+- [Alexander Sklar](https://github.com/asklar)
+- [Adam Jones](https://github.com/domdomegg)
+- [Joan Xie](https://github.com/joan-anthropic)
 
 ### Reference Servers
 
@@ -141,6 +171,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Financial Services Interest Group
 
 - [Sambhav Kothari](https://github.com/sambhav)
+- [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
 ### Transports Interest Group
 
@@ -151,6 +182,7 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Server Identity Working Group
 
+- [David Soria Parra](https://github.com/dsp-ant)
 - [Nick Cooper](https://github.com/nicknotfun)
 
 ### Agents Working Group
@@ -158,6 +190,11 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Peter Alexander](https://github.com/pja-ant)
 - [Luca Chang](https://github.com/LucaButBoring)
 - [Inna Harper](https://github.com/ihrpr)
+
+### MCP Apps Working Group
+
+- [Liad Yosef](https://github.com/liady)
+- [Ido Salomon](https://github.com/idosal)
 
 ## About This Document
 
