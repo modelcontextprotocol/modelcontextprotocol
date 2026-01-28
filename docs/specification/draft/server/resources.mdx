@@ -394,8 +394,10 @@ taking the above guidance in to account.
 
 Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 
-- Resource not found: `-32002`
+- Resource not found: `-32602` (Invalid Params)
 - Internal errors: `-32603`
+
+Servers **MUST NOT** return an empty `contents` array for a non-existent resource. An empty array is ambiguous—it could mean the resource exists but has no content, or that it doesn't exist at all.
 
 Example error:
 
@@ -404,7 +406,7 @@ Example error:
   "jsonrpc": "2.0",
   "id": 5,
   "error": {
-    "code": -32002,
+    "code": -32602,
     "message": "Resource not found",
     "data": {
       "uri": "file:///nonexistent.txt"
