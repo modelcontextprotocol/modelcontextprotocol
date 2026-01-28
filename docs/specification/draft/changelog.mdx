@@ -15,6 +15,7 @@ N/A
 
 1. Add `extensions` field to `ClientCapabilities` and `ServerCapabilities` to support optional [extensions](/docs/extensions/overview) beyond the core protocol.
 2. Document OpenTelemetry trace context propagation conventions for `_meta` keys (`traceparent`, `tracestate`, `baggage`) ([SEP-414](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/414)).
+3. Change resource not found error code from `-32002` to `-32602` (Invalid Params) to align with JSON-RPC specification.
 
 ## Other schema changes
 

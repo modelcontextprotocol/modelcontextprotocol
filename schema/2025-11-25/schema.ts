@@ -187,10 +187,8 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError extends Omit<
-  JSONRPCErrorResponse,
-  "error"
-> {
+export interface URLElicitationRequiredError
+  extends Omit<JSONRPCErrorResponse, "error"> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
