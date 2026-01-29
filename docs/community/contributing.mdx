@@ -143,19 +143,26 @@ To make sure that we can review your change, you will need to create it in your 
     ```bash
     git checkout -b fix/your-description
     ```
+    Use a descriptive branch name that reflects your change, like `fix/typo-in-tools-doc` or
+    `feat/add-example-for-resources`.
   </Step>
   <Step title="Make your changes">
-    Edit the relevant files in your local copy.
+    Edit the relevant files in your local copy. If you're editing schema files, remember to run
+    `npm run generate:schema` to regenerate the JSON schema and documentation.
   </Step>
   <Step title="Run checks">
     ```bash
     npm run check
     ```
+    Fix any issues before committing. If you have formatting errors, `npm run format` can
+    auto-fix most of them.
   </Step>
   <Step title="Commit with a clear message">
     ```bash
     git commit -m "Fix typo in tools documentation"
     ```
+    Write a concise message that describes what you changed and why. Reference issue numbers
+    if applicable (e.g., `Fix typo in tools documentation (#123)`).
   </Step>
 </Steps>
 
