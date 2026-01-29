@@ -13,7 +13,7 @@ community. This guide walks you through everything you need to get started.
 Before contributing, ensure you have the following installed and ready:
 
 - **[Git](https://git-scm.com/downloads)** - For cloning repositories and submitting changes
-- **[Node.js 18+](https://nodejs.org/)** - Required for building and testing our projects
+- **[Node.js 24+](https://nodejs.org/)** - Required for building and testing our projects
 - **npm** - Comes with Node.js, used for dependency management
 - **[GitHub account](https://github.com/signup)** - For submitting pull requests and issues
 - **Language-specific tooling** - If contributing to an SDK, you'll need the appropriate
@@ -22,8 +22,8 @@ Before contributing, ensure you have the following installed and ready:
 Verify your setup:
 
 ```bash
-node --version  # Should be 18.x or higher
-npm --version   # Should be 8.x or higher
+node --version  # Should be 24.x or higher
+npm --version   # Should be 11.x or higher
 git --version   # Any recent version
 ```
 
@@ -220,14 +220,13 @@ Maintainers typically respond within 1-5 business days.
 
 Help us review your contribution quickly by following these patterns:
 
-| Harder to Review                             | Thoughtful and Impactful                             |
-| -------------------------------------------- | ---------------------------------------------------- |
-| Large PR with unrelated changes              | Focused PR addressing one issue                      |
-| Reformatting code without functional changes | Fixing a bug with a clear explanation                |
-| Vague commit messages ("fixed stuff")        | Descriptive commits linking to issues                |
-| Changes without testing or verification      | Includes `npm run check` output confirming no breaks |
-| Submitting with failing CI checks            | All CI tests pass before requesting review           |
-| Duplicating existing documentation           | Documenting an undocumented feature or edge case     |
+| Harder to Review                             | Thoughtful and Impactful                         |
+| -------------------------------------------- | ------------------------------------------------ |
+| Large PR with unrelated changes              | Focused PR addressing one issue                  |
+| Reformatting code without functional changes | Fixing a bug with a clear explanation            |
+| Vague commit messages ("fixed stuff")        | Descriptive commits linking to issues            |
+| Submitting with failing CI checks            | All CI tests pass before requesting review       |
+| Duplicating existing documentation           | Documenting an undocumented feature or edge case |
 
 ## Types of Contributions
 
@@ -295,7 +294,7 @@ Make your changes in `schema/draft/schema.ts`.
 </Step>
 <Step title="Add examples (optional)">
 
-Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g., `Tool/my-example.json`). Reference them in the schema using `@includeCode` JSDoc tags.
+Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g., `Tool/my-example.json`). Reference them in the schema using `@example` + `@includeCode` JSDoc tags.
 
 </Step>
 <Step title="Generate JSON schema and docs">
@@ -336,7 +335,7 @@ This launches a live preview at `http://localhost:3000` with hot reloading.
 </Step>
 <Step title="Make your changes">
 
-Edit the relevant `.mdx` files. You can use Mintlify components like `<Note>`, `<Tip>`, `<Steps>`, and `<Card>` for richer formatting.
+Edit the relevant `.mdx` files. You can use [Mintlify components](https://www.mintlify.com/docs/components) like `<Note>`, `<Tip>`, `<Steps>`, and `<Card>` for richer formatting.
 
 </Step>
 <Step title="Check for issues">
@@ -476,11 +475,11 @@ Got questions or need guidance? The MCP community is here to help.
 - **[Discord](/community/communication#discord)** - Real-time discussion with contributors and
   maintainers, focused on MCP contributions (not general MCP support)
 - **[GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions)**
-  \- Exploration and conversation: feature ideas, questions, roadmap planning, and proposals that
-  need input before becoming concrete tasks
+  \- Exploration and conversation: **feature requests**, questions, roadmap planning, and proposals
+  that need input before becoming concrete tasks
 - **[GitHub Issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues)** -
   Actionable work: bug reports with reproducible steps, documentation fixes, and tasks that are
-  well-defined and ready to implement
+  well-defined and ready to implement (not feature requests)
 
 This separation helps maintainers focus on work that's ready for implementation while giving ideas
 room to develop. If you're unsure whether something is ready to be an issue, start with a
@@ -538,7 +537,7 @@ unstuck.
 
 Common causes:
 
-- **Wrong Node.js version** - Ensure you have Node.js 18+
+- **Wrong Node.js version** - Ensure you have Node.js 24+
 - **Missing dependencies** - Run `npm install` again
 - **Schema out of sync** - Run `npm run generate:schema`
 - **Formatting issues** - Run `npm run format` to auto-fix
@@ -586,8 +585,7 @@ with MCP, see our documentation:
 - [Example Servers](/examples)
 
 If you build something you'd like to share with the community, you can submit it to the
-[community servers list](https://github.com/modelcontextprotocol/servers) by opening a PR to add
-your server to the README.
+[MCP Registry](/registry/about).
 
 ## AI Contributions
 

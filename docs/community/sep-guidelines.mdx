@@ -41,45 +41,28 @@ There are three kinds of SEP:
 
 ## SEP Workflow
 
-```
-                    ┌──────────┐
-                    │  Idea    │
-                    └────┬─────┘
-                         │ Submit PR with SEP file
-                         ▼
-              ┌─────────────────────┐
-              │  Awaiting Sponsor   │
-              │   (up to 6 months)  │
-              └──────────┬──────────┘
-                         │
-          ┌──────────────┼──────────────┐
-          │              │              │
-          ▼              ▼              ▼
-    ┌──────────┐   ┌──────────┐   ┌──────────┐
-    │  Draft   │   │ Dormant  │   │Withdrawn │
-    │          │   │(no sponsor)   │(by author)│
-    └────┬─────┘   └──────────┘   └──────────┘
-         │ Sponsor reviews
-         ▼
-    ┌──────────┐
-    │In-Review │
-    │          │
-    └────┬─────┘
-         │ Core Maintainers decide
-         │
-    ┌────┴────────────────┐
-    │                     │
-    ▼                     ▼
-┌──────────┐        ┌──────────┐
-│ Accepted │        │ Rejected │
-│          │        │          │
-└────┬─────┘        └──────────┘
-     │ Reference implementation complete
-     ▼
-┌──────────┐
-│  Final   │
-│          │
-└──────────┘
+```mermaid
+flowchart TD
+    Idea["Idea"]
+    AwaitingSponsor{"Awaiting Sponsor<br/>(up to 6 months)"}
+    Draft["Draft"]
+    Dormant["Dormant<br/>(no sponsor)"]
+    Withdrawn["Withdrawn<br/>(by author)"]
+    InReview["In-Review"]
+    Decision{"Core Maintainers decide"}
+    Accepted["Accepted"]
+    Rejected["Rejected"]
+    Final["Final"]
+
+    Idea -->|"Submit PR with SEP file"| AwaitingSponsor
+    AwaitingSponsor --> Draft
+    AwaitingSponsor --> Dormant
+    AwaitingSponsor --> Withdrawn
+    Draft -->|"Sponsor reviews"| InReview
+    InReview --> Decision
+    Decision --> Accepted
+    Decision --> Rejected
+    Accepted -->|"Reference implementation complete"| Final
 ```
 
 ### Step-by-Step Process
@@ -99,7 +82,7 @@ There are three kinds of SEP:
 
 6. **Informal review**: The sponsor reviews the proposal and may request changes. Discussion happens in PR comments.
 
-7. **Formal review**: When ready, the sponsor updates the status to `in-review`. The SEP enters formal review by Core Maintainers (bi-weekly meetings).
+7. **Formal review**: When ready, the sponsor updates the status to `in-review`. The SEP enters formal review by Core Maintainers (meetings every two weeks).
 
 8. **Resolution**: The SEP may be `accepted`, `rejected`, or returned for revision. The sponsor updates the status.
 
@@ -210,7 +193,7 @@ Both the markdown status field and PR labels should be kept in sync. The markdow
 
 ## SEP Review & Resolution
 
-SEPs are reviewed by the MCP Core Maintainers team on a bi-weekly basis.
+SEPs are reviewed by the MCP Core Maintainers team every two weeks.
 
 For a SEP to be accepted it must meet these criteria:
 
