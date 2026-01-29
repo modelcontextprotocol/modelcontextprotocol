@@ -409,7 +409,9 @@ The `.well-known` URI pattern is an established IETF standard (RFC 8615) used by
 
 ### Why Mirror `server.json`'s shape?
 
-The MCP Registry team has iterated on a shape that properly enables MCP server configuration and connection across hundreds of industry stakeholders over the past year, so we have reasonably high confidence that this shape will work for most use cases.
+MCP Server Cards aim to provide a static representation of server metadata and capabilities so that clients can discover and connect to them without prior knowledge of their existence.
+
+The MCP Registry and conformant internal Sub-Registry implementations share the same goal, just distributed via a centralized rather than decentralized manner.
 
 By avoiding inducing breaking changes to the `server.json` shape, we also leave intact dozens, perhaps hundreds of systems that are already in production across the MCP Registry-related ecosystem.
 
