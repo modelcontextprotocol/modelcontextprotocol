@@ -64,6 +64,7 @@ This section provides the technical specification for MCP Server Cards.
 
 ```json
 {
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
   "name": "io.modelcontextprotocol.anonymous/brave-search",
   "version": "1.0.2",
   "description": "MCP server for Brave Search API integration",
@@ -90,6 +91,7 @@ Fleshed out (contrived values) example:
 
 ```json
 {
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
   "name": "io.modelcontextprotocol.anonymous/brave-search",
   "version": "1.0.2",
   "description": "MCP server for Brave Search API integration",
@@ -284,6 +286,7 @@ Fleshed out (contrived values) example:
 
 Most fields follow the current MCP Registry `server.json` standard: https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md
 
+0. **$schema** (string, required): The Server Card JSON schema URI that evolves in-place per major version iteration
 1. **name** (string, required): Server name in reverse-DNS format. Must contain exactly one forward slash separating namespace from server name.
 2. **version** (string, required): Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.\*').
 3. **description** (string, optional): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
