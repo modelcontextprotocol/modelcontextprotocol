@@ -12,16 +12,14 @@ community. This guide walks you through everything you need to get started.
 
 Before contributing, ensure you have the following installed and ready:
 
-- **[Git](https://git-scm.com/downloads)** - For version control (available via platform-specific
-  package managers or OS distributions) and being able to check out and contribute specification
-  contents and documentation
+- **[Git](https://git-scm.com/downloads)** - For cloning repositories and submitting changes
 - **[Node.js 18+](https://nodejs.org/)** - Required for building and testing our projects
 - **npm** - Comes with Node.js, used for dependency management
 - **[GitHub account](https://github.com/signup)** - For submitting pull requests and issues
 - **Language-specific tooling** - If contributing to an SDK, you'll need the appropriate
   development environment for that language (e.g., Python, Rust, Go)
 
-To check that you have all the basic tools available, run the following commands in your terminal:
+Verify your setup:
 
 ```bash
 node --version  # Should be 18.x or higher
@@ -34,7 +32,7 @@ git --version   # Any recent version
   go on any platform.
 </Note>
 
-### Understanding the Repository Structure
+### Repository Structure
 
 MCP spans multiple repositories in the
 [`modelcontextprotocol`](https://github.com/modelcontextprotocol) organization on GitHub. Here are
@@ -58,7 +56,7 @@ Throughout this guide, **specification repository** refers to
 `modelcontextprotocol/modelcontextprotocol`, which contains the protocol spec, this documentation
 site, and [Spec Enhancement Proposals (SEPs)](/community/sep-guidelines).
 
-### Understanding Project Roles
+### Project Roles
 
 MCP follows a [governance model](/community/governance) with different levels of responsibility:
 
@@ -86,8 +84,7 @@ Start here if you are new to MCP and contributing to its ecosystem.
 
 ### Step 1: Set Up Your Environment
 
-First, set up the basics in your **local environment**. This will give you the ability to test and
-validate changes without worrying about breaking anything in the production repositories.
+Set up your local environment so you can test and validate changes before submitting them.
 
 <Steps>
   <Step title="Fork the repository">
@@ -136,7 +133,7 @@ for newcomers, there are plenty of places where you can start with your first im
 
 ### Step 3: Make Your Change
 
-To make sure that we can review your change, you will need to create it in your own Git branch.
+Create your changes in a dedicated branch.
 
 <Steps>
   <Step title="Create a branch">
@@ -168,8 +165,7 @@ To make sure that we can review your change, you will need to create it in your 
 
 ### Step 4: Submit a Pull Request
 
-Once you are ready to have your change reviewed by the MCP maintainer team, you will need to
-create a GitHub pull request.
+When you're ready, push your branch and open a pull request.
 
 <Steps>
   <Step title="Push your branch">
@@ -199,9 +195,7 @@ create a GitHub pull request.
 
 ### What Makes a Good Contribution
 
-As with any contributions, we want to make sure that the team reviews them quickly and is able to
-validate the changes. Here are a few examples that will help you make sure that your contribution
-is in good shape prior to the review:
+Help us review your contribution quickly by following these patterns:
 
 | Harder to Review                             | Thoughtful and Impactful                             |
 | -------------------------------------------- | ---------------------------------------------------- |
@@ -214,9 +208,7 @@ is in good shape prior to the review:
 
 ## Types of Contributions
 
-Different types of contributions may follow different processes. To make sure that we avoid
-frustrating back-and-forth conversations, here are some recommended approaches to tackling changes
-depending on their scope.
+Different contributions follow different processes depending on their scope.
 
 <Tip>
   Not sure which category your change falls into? Ask in the [MCP Contributor
@@ -295,10 +287,6 @@ To modify the schema:
 
 ### Documentation Changes
 
-Documentation helps developers understand how to use MCP, build clients and servers, and integrate
-the protocol into their applications. Clear documentation lowers the barrier to adoption and
-reduces questions in support channels.
-
 Docs are written in [MDX format](https://mdxjs.com/) (Markdown with JSX components) and powered by
 [Mintlify](https://mintlify.com/). The `docs/` directory contains:
 
@@ -351,10 +339,8 @@ lot of time on a spec proposal, make sure to follow these best practices.
 
 ## Working with the SDK Repositories
 
-MCP maintains official SDKs in multiple languages, making it easy for developers to build clients
-and servers for their preferred platform. SDK contributions of any kind are highly valued,
-regardless of whether you're fixing bugs, improving performance, adding features, or enhancing
-documentation.
+MCP maintains official SDKs in multiple languages. Contributions are welcome - whether you're
+fixing bugs, improving performance, adding features, or enhancing documentation.
 
 <Note>
   Each SDK has its own repository, maintainers, and contribution guidelines.
@@ -365,8 +351,7 @@ documentation.
 
 ### Before Contributing to an SDK
 
-To ensure a smooth contribution process and respect maintainers' time, follow these steps before
-diving into code.
+Before diving into code, follow these steps.
 
 <Steps>
   <Step title="Open an issue first">
@@ -450,8 +435,7 @@ diving into code.
 
 ### Communication Channels
 
-Got questions or need guidance? The MCP community is here to help. Choose the channel that best
-fits your needs.
+Got questions or need guidance? The MCP community is here to help.
 
 - **[Discord](/community/communication#discord)** - Real-time discussion with contributors and
   maintainers, focused on MCP contributions (not general MCP support)
