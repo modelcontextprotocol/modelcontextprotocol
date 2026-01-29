@@ -30,7 +30,8 @@ git --version   # Any recent version
 ```
 
 <Note>
-These commands work the same on macOS, Linux, and Windows, so you're good to go on any platform.
+  These commands work the same on macOS, Linux, and Windows, so you're good to
+  go on any platform.
 </Note>
 
 ### Understanding the Repository Structure
@@ -79,8 +80,8 @@ need guidance on your contribution.
 Start here if you are new to MCP and contributing to its ecosystem.
 
 <Note>
-While we use the specification repository as an example, the key patterns are applicable to other
-MCP repos as well.
+  While we use the specification repository as an example, the key patterns are
+  applicable to other MCP repos as well.
 </Note>
 
 ### Step 1: Set Up Your Environment
@@ -90,26 +91,16 @@ validate changes without worrying about breaking anything in the production repo
 
 <Steps>
   <Step title="Fork the repository">
-    Click the **Fork** button on the
-    [repository page](https://github.com/modelcontextprotocol/modelcontextprotocol) to create your
-    own copy.
+    Click the **Fork** button on the [repository
+    page](https://github.com/modelcontextprotocol/modelcontextprotocol) to
+    create your own copy.
   </Step>
   <Step title="Clone your fork">
-    ```bash
-    git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
-    cd modelcontextprotocol
-    ```
+    ```bash git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
+    cd modelcontextprotocol ```
   </Step>
-  <Step title="Install dependencies">
-    ```bash
-    npm install
-    ```
-  </Step>
-  <Step title="Verify everything works">
-    ```bash
-    npm run check
-    ```
-  </Step>
+  <Step title="Install dependencies">```bash npm install ```</Step>
+  <Step title="Verify everything works">```bash npm run check ```</Step>
 </Steps>
 
 If `npm run check` fails, see [Troubleshooting](#troubleshooting) below.
@@ -133,22 +124,14 @@ To make sure that we can review your change, you will need to create it in your 
 
 <Steps>
   <Step title="Create a branch">
-    ```bash
-    git checkout -b fix/your-description
-    ```
+    ```bash git checkout -b fix/your-description ```
   </Step>
   <Step title="Make your changes">
     Edit the relevant files in your local copy.
   </Step>
-  <Step title="Run checks">
-    ```bash
-    npm run check
-    ```
-  </Step>
+  <Step title="Run checks">```bash npm run check ```</Step>
   <Step title="Commit with a clear message">
-    ```bash
-    git commit -m "Fix typo in tools documentation"
-    ```
+    ```bash git commit -m "Fix typo in tools documentation" ```
   </Step>
 </Steps>
 
@@ -159,16 +142,12 @@ create a GitHub pull request.
 
 <Steps>
   <Step title="Push your branch">
-    ```bash
-    git push origin fix/your-description
-    ```
+    ```bash git push origin fix/your-description ```
   </Step>
   <Step title="Open a PR on GitHub">
-    You can use the [GitHub CLI](https://cli.github.com/) to make this process easier:
-    ```bash
-    gh pr create --fill
-    ```
-    Alternatively, navigate to your fork on GitHub and click **Compare & pull request**.
+    You can use the [GitHub CLI](https://cli.github.com/) to make this process
+    easier: ```bash gh pr create --fill ``` Alternatively, navigate to your fork
+    on GitHub and click **Compare & pull request**.
   </Step>
   <Step title="Fill in the PR template">
     Provide a clear description of your changes and link any related issues.
@@ -179,8 +158,8 @@ create a GitHub pull request.
 </Steps>
 
 <Tip>
-That's it, **congratulations on your first contribution**! Every improvement, no matter how small,
-helps make MCP better for everyone.
+  That's it, **congratulations on your first contribution**! Every improvement,
+  no matter how small, helps make MCP better for everyone.
 </Tip>
 
 ### What Makes a Good Contribution
@@ -189,14 +168,14 @@ As with any contributions, we want to make sure that the team reviews them quick
 validate the changes. Here are a few examples that will help you make sure that your contribution
 is in good shape prior to the review:
 
-| Harder to Review                              | Thoughtful and Impactful                              |
-| --------------------------------------------- | ----------------------------------------------------- |
-| Large PR with unrelated changes               | Focused PR addressing one issue                       |
-| Reformatting code without functional changes  | Fixing a bug with a clear explanation                 |
-| Vague commit messages ("fixed stuff")         | Descriptive commits linking to issues                 |
-| Changes without testing or verification       | Includes `npm run check` output confirming no breaks  |
-| Submitting with failing CI checks             | All CI tests pass before requesting review            |
-| Duplicating existing documentation            | Documenting an undocumented feature or edge case      |
+| Harder to Review                             | Thoughtful and Impactful                             |
+| -------------------------------------------- | ---------------------------------------------------- |
+| Large PR with unrelated changes              | Focused PR addressing one issue                      |
+| Reformatting code without functional changes | Fixing a bug with a clear explanation                |
+| Vague commit messages ("fixed stuff")        | Descriptive commits linking to issues                |
+| Changes without testing or verification      | Includes `npm run check` output confirming no breaks |
+| Submitting with failing CI checks            | All CI tests pass before requesting review           |
+| Duplicating existing documentation           | Documenting an undocumented feature or edge case     |
 
 ## Types of Contributions
 
@@ -205,8 +184,9 @@ frustrating back-and-forth conversations, here are some recommended approaches t
 depending on their scope.
 
 <Tip>
-Not sure which category your change falls into? Ask in the
-[MCP Contributor Discord](/community/communication#discord) before starting any significant work.
+  Not sure which category your change falls into? Ask in the [MCP Contributor
+  Discord](/community/communication#discord) before starting any significant
+  work.
 </Tip>
 
 ### Small Changes (Direct PR)
@@ -262,19 +242,14 @@ To modify the schema:
     Make your changes in `schema/draft/schema.ts`.
   </Step>
   <Step title="Add examples (optional)">
-    Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g., `Tool/my-example.json`).
-    Reference them in the schema using `@includeCode` JSDoc tags.
+    Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g.,
+    `Tool/my-example.json`). Reference them in the schema using `@includeCode`
+    JSDoc tags.
   </Step>
   <Step title="Generate JSON schema and docs">
-    ```bash
-    npm run generate:schema
-    ```
+    ```bash npm run generate:schema ```
   </Step>
-  <Step title="Validate your changes">
-    ```bash
-    npm run check
-    ```
-  </Step>
+  <Step title="Validate your changes">```bash npm run check ```</Step>
 </Steps>
 
 ### Documentation Changes
@@ -324,8 +299,8 @@ lot of time on a spec proposal, make sure to follow these best practices.
     Demonstrate practical application of your idea.
   </Step>
   <Step title="Find a sponsor">
-    A maintainer from the
-    [maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
+    A maintainer from the [maintainer
+    list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
     who will champion your proposal.
   </Step>
   <Step title="Write the SEP">
@@ -341,9 +316,10 @@ regardless of whether you're fixing bugs, improving performance, adding features
 documentation.
 
 <Note>
-Each SDK has its own repository, maintainers, and contribution guidelines. Some SDKs are
-maintained in collaboration with larger partner organizations, such as Google, Microsoft,
-JetBrains, and others, so processes may vary slightly between repositories.
+  Each SDK has its own repository, maintainers, and contribution guidelines.
+  Some SDKs are maintained in collaboration with larger partner organizations,
+  such as Google, Microsoft, JetBrains, and others, so processes may vary
+  slightly between repositories.
 </Note>
 
 ### Before Contributing to an SDK
@@ -353,22 +329,24 @@ diving into code.
 
 <Steps>
   <Step title="Open an issue first">
-    Before starting significant work, open an issue to discuss your approach. This helps avoid
-    duplicate effort, ensures your contribution aligns with the SDK's direction, and gives
-    maintainers a chance to provide early feedback.
+    Before starting significant work, open an issue to discuss your approach.
+    This helps avoid duplicate effort, ensures your contribution aligns with the
+    SDK's direction, and gives maintainers a chance to provide early feedback.
   </Step>
   <Step title="Join the SDK channel">
     Find the relevant channel in [Discord](https://discord.gg/6CSzBmMkjX) (e.g.,
     `#typescript-sdk-dev`, `#python-sdk-dev`).
   </Step>
   <Step title="Read the SDK's CONTRIBUTING.md">
-    Each repository has its own `CONTRIBUTING.md` with specific instructions for setting up your
-    development environment, coding standards, commit message conventions, and PR requirements.
+    Each repository has its own `CONTRIBUTING.md` with specific instructions for
+    setting up your development environment, coding standards, commit message
+    conventions, and PR requirements.
   </Step>
   <Step title="Write tests">
-    All contributions should include appropriate test coverage. Bug fixes should include a test
-    that reproduces the issue, and new features should have tests covering the expected behavior.
-    This helps maintain SDK reliability and prevents regressions.
+    All contributions should include appropriate test coverage. Bug fixes should
+    include a test that reproduces the issue, and new features should have tests
+    covering the expected behavior. This helps maintain SDK reliability and
+    prevents regressions.
   </Step>
 </Steps>
 
@@ -453,17 +431,18 @@ process. They provide feedback, help refine your proposal, and present it at Cor
 meetings.
 
 <Warning>
-Every SEP needs a sponsor to move forward. SEPs that don't find a sponsor within 6 months are
-marked as **dormant**. Dormant SEPs aren't rejected outright - they can be revived later if a
-sponsor is found or the proposal is re-assessed to be needed.
+  Every SEP needs a sponsor to move forward. SEPs that don't find a sponsor
+  within 6 months are marked as **dormant**. Dormant SEPs aren't rejected
+  outright - they can be revived later if a sponsor is found or the proposal is
+  re-assessed to be needed.
 </Warning>
 
 To find a sponsor:
 
 <Steps>
   <Step title="Find relevant maintainers">
-    Look at the
-    [maintainer list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
+    Look at the [maintainer
+    list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
     to find maintainers working in your area.
   </Step>
   <Step title="Tag maintainers in your PR">
@@ -473,7 +452,8 @@ To find a sponsor:
     Post your PR in the relevant Discord channel to increase visibility.
   </Step>
   <Step title="Follow up if needed">
-    If no response after 2 weeks, ask in `#general` or reach out to a Core Maintainer.
+    If no response after 2 weeks, ask in `#general` or reach out to a Core
+    Maintainer.
   </Step>
 </Steps>
 
