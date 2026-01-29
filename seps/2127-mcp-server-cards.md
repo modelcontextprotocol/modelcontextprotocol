@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-01-21
-- **Author(s)**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai)
+- **Author(s)**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai), Tadas Antanavicius (@tadasant)
 - **Sponsor**: None
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
 
