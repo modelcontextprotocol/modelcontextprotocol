@@ -36,9 +36,13 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what is available, while initialization handles how to communicate.
 
-### Relationship to AI Card
+### Discovery
 
-The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path to providing a protocol-agnostic `.well-known` path and file format for discovering services. They are planning to serve a list of AI Cards at `.well-known/ai-catalog.json`.
+#### Relationship to AI Card
+
+The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path to providing decentralized, protocol-agnostic mechanisms for identifying agent entrypoints. For example, a `.well-known` path and file format for discovering services (`.well-known/ai-catalog.json`).
+
+#### MCP Connection Details
 
 MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp/server-card`.
 
