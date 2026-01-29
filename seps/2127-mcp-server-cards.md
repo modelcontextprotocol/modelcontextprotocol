@@ -34,7 +34,7 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 ### Design Philosophy
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what is available, while initialization handles how to communicate. By providing initialization-equivalent data in `.well-known` file, we enable round-trip optimizations while maintaining protocol flexibility for dynamic scenarios.
+The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what is available, while initialization handles how to communicate.
 
 ### Relationship to AI Card
 
