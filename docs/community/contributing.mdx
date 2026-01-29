@@ -96,11 +96,21 @@ validate changes without worrying about breaking anything in the production repo
     create your own copy.
   </Step>
   <Step title="Clone your fork">
-    ```bash git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
-    cd modelcontextprotocol ```
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
+    cd modelcontextprotocol
+    ```
   </Step>
-  <Step title="Install dependencies">```bash npm install ```</Step>
-  <Step title="Verify everything works">```bash npm run check ```</Step>
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  <Step title="Verify everything works">
+    ```bash
+    npm run check
+    ```
+  </Step>
 </Steps>
 
 If `npm run check` fails, see [Troubleshooting](#troubleshooting) below.
@@ -124,14 +134,22 @@ To make sure that we can review your change, you will need to create it in your 
 
 <Steps>
   <Step title="Create a branch">
-    ```bash git checkout -b fix/your-description ```
+    ```bash
+    git checkout -b fix/your-description
+    ```
   </Step>
   <Step title="Make your changes">
     Edit the relevant files in your local copy.
   </Step>
-  <Step title="Run checks">```bash npm run check ```</Step>
+  <Step title="Run checks">
+    ```bash
+    npm run check
+    ```
+  </Step>
   <Step title="Commit with a clear message">
-    ```bash git commit -m "Fix typo in tools documentation" ```
+    ```bash
+    git commit -m "Fix typo in tools documentation"
+    ```
   </Step>
 </Steps>
 
@@ -142,12 +160,16 @@ create a GitHub pull request.
 
 <Steps>
   <Step title="Push your branch">
-    ```bash git push origin fix/your-description ```
+    ```bash
+    git push origin fix/your-description
+    ```
   </Step>
   <Step title="Open a PR on GitHub">
-    You can use the [GitHub CLI](https://cli.github.com/) to make this process
-    easier: ```bash gh pr create --fill ``` Alternatively, navigate to your fork
-    on GitHub and click **Compare & pull request**.
+    You can use the [GitHub CLI](https://cli.github.com/) to make this process easier:
+    ```bash
+    gh pr create --fill
+    ```
+    Alternatively, navigate to your fork on GitHub and click **Compare & pull request**.
   </Step>
   <Step title="Fill in the PR template">
     Provide a clear description of your changes and link any related issues.
@@ -247,9 +269,15 @@ To modify the schema:
     JSDoc tags.
   </Step>
   <Step title="Generate JSON schema and docs">
-    ```bash npm run generate:schema ```
+    ```bash
+    npm run generate:schema
+    ```
   </Step>
-  <Step title="Validate your changes">```bash npm run check ```</Step>
+  <Step title="Validate your changes">
+    ```bash
+    npm run check
+    ```
+  </Step>
 </Steps>
 
 ### Documentation Changes
