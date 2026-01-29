@@ -91,25 +91,31 @@ validate changes without worrying about breaking anything in the production repo
 
 <Steps>
   <Step title="Fork the repository">
-    Click the **Fork** button on the [repository
-    page](https://github.com/modelcontextprotocol/modelcontextprotocol) to
-    create your own copy.
+    Click the **Fork** button on the
+    [repository page](https://github.com/modelcontextprotocol/modelcontextprotocol) to create your
+    own copy. This gives you a personal workspace where you can make changes without affecting the
+    main project.
   </Step>
   <Step title="Clone your fork">
     ```bash
     git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
     cd modelcontextprotocol
     ```
+    Replace `YOUR-USERNAME` with your GitHub username.
   </Step>
   <Step title="Install dependencies">
     ```bash
     npm install
     ```
+    This installs the tools needed for schema generation, documentation building, and validation.
   </Step>
   <Step title="Verify everything works">
     ```bash
     npm run check
     ```
+    This runs TypeScript compilation, schema validation, example validation, documentation link
+    checks, and formatting checks. If everything passes, your environment is good and you're
+    ready to contribute.
   </Step>
 </Steps>
 
