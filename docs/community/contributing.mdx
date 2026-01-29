@@ -87,33 +87,39 @@ Start here if you are new to MCP and contributing to its ecosystem.
 Set up your local environment so you can test and validate changes before submitting them.
 
 <Steps>
-  <Step title="Fork the repository">
-    Click the **Fork** button on the [repository
-    page](https://github.com/modelcontextprotocol/modelcontextprotocol) to
-    create your own copy. This gives you a personal workspace where you can make
-    changes without affecting the main project.
-  </Step>
-  <Step title="Clone your fork">
-    ```bash
-    git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
-    cd modelcontextprotocol
-    ```
-    Replace `YOUR-USERNAME` with your GitHub username.
-  </Step>
-  <Step title="Install dependencies">
-    ```bash
-    npm install
-    ```
-    This installs the tools needed for schema generation, documentation building, and validation.
-  </Step>
-  <Step title="Verify everything works">
-    ```bash
-    npm run check
-    ```
-    This runs TypeScript compilation, schema validation, example validation, documentation link
-    checks, and formatting checks. If everything passes, your environment is good and you're ready
-    to contribute.
-  </Step>
+<Step title="Fork the repository">
+
+Click the **Fork** button on the [repository page](https://github.com/modelcontextprotocol/modelcontextprotocol) to create your own copy. This gives you a personal workspace where you can make changes without affecting the main project.
+
+</Step>
+<Step title="Clone your fork">
+
+```bash
+git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
+cd modelcontextprotocol
+```
+
+Replace `YOUR-USERNAME` with your GitHub username.
+
+</Step>
+<Step title="Install dependencies">
+
+```bash
+npm install
+```
+
+This installs the tools needed for schema generation, documentation building, and validation.
+
+</Step>
+<Step title="Verify everything works">
+
+```bash
+npm run check
+```
+
+This runs TypeScript compilation, schema validation, example validation, documentation link checks, and formatting checks. If everything passes, your environment is good and you're ready to contribute.
+
+</Step>
 </Steps>
 
 If `npm run check` fails, see [Troubleshooting](#troubleshooting) below.
@@ -136,31 +142,38 @@ for newcomers, there are plenty of places where you can start with your first im
 Create your changes in a dedicated branch.
 
 <Steps>
-  <Step title="Create a branch">
-    ```bash
-    git checkout -b fix/your-description
-    ```
-    Use a descriptive branch name that reflects your change, like `fix/typo-in-tools-doc` or
-    `feat/add-example-for-resources`.
-  </Step>
-  <Step title="Make your changes">
-    Edit the relevant files in your local copy. If you're editing schema files, remember to run
-    `npm run generate:schema` to regenerate the JSON schema and documentation.
-  </Step>
-  <Step title="Run checks">
-    ```bash
-    npm run check
-    ```
-    Fix any issues before committing. If you have formatting errors, `npm run format` can
-    auto-fix most of them.
-  </Step>
-  <Step title="Commit with a clear message">
-    ```bash
-    git commit -m "Fix typo in tools documentation"
-    ```
-    Write a concise message that describes what you changed and why. Reference issue numbers if
-    applicable (e.g., `Fix typo in tools documentation (#123)`).
-  </Step>
+<Step title="Create a branch">
+
+```bash
+git checkout -b fix/your-description
+```
+
+Use a descriptive branch name that reflects your change, like `fix/typo-in-tools-doc` or `feat/add-example-for-resources`.
+
+</Step>
+<Step title="Make your changes">
+
+Edit the relevant files in your local copy. If you're editing schema files, remember to run `npm run generate:schema` to regenerate the JSON schema and documentation.
+
+</Step>
+<Step title="Run checks">
+
+```bash
+npm run check
+```
+
+Fix any issues before committing. If you have formatting errors, `npm run format` can auto-fix most of them.
+
+</Step>
+<Step title="Commit with a clear message">
+
+```bash
+git commit -m "Fix typo in tools documentation"
+```
+
+Write a concise message that describes what you changed and why. Reference issue numbers if applicable (e.g., `Fix typo in tools documentation (#123)`).
+
+</Step>
 </Steps>
 
 ### Step 4: Submit a Pull Request
@@ -168,24 +181,34 @@ Create your changes in a dedicated branch.
 When you're ready, push your branch and open a pull request.
 
 <Steps>
-  <Step title="Push your branch">
-    ```bash
-    git push origin fix/your-description
-    ```
-  </Step>
-  <Step title="Open a PR on GitHub">
-    You can use the [GitHub CLI](https://cli.github.com/) to make this process easier:
-    ```bash
-    gh pr create --fill
-    ```
-    Alternatively, navigate to your fork on GitHub and click **Compare & pull request**.
-  </Step>
-  <Step title="Fill in the PR template">
-    Provide a clear description of your changes and link any related issues.
-  </Step>
-  <Step title="Wait for review">
-    Maintainers typically respond within 1-5 business days.
-  </Step>
+<Step title="Push your branch">
+
+```bash
+git push origin fix/your-description
+```
+
+</Step>
+<Step title="Open a PR on GitHub">
+
+You can use the [GitHub CLI](https://cli.github.com/) to make this process easier:
+
+```bash
+gh pr create --fill
+```
+
+Alternatively, navigate to your fork on GitHub and click **Compare & pull request**.
+
+</Step>
+<Step title="Fill in the PR template">
+
+Provide a clear description of your changes and link any related issues.
+
+</Step>
+<Step title="Wait for review">
+
+Maintainers typically respond within 1-5 business days.
+
+</Step>
 </Steps>
 
 <Tip>
@@ -265,24 +288,30 @@ When you run `npm run generate:schema`, it generates:
 To modify the schema:
 
 <Steps>
-  <Step title="Edit the TypeScript schema">
-    Make your changes in `schema/draft/schema.ts`.
-  </Step>
-  <Step title="Add examples (optional)">
-    Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g.,
-    `Tool/my-example.json`). Reference them in the schema using `@includeCode`
-    JSDoc tags.
-  </Step>
-  <Step title="Generate JSON schema and docs">
-    ```bash
-    npm run generate:schema
-    ```
-  </Step>
-  <Step title="Validate your changes">
-    ```bash
-    npm run check
-    ```
-  </Step>
+<Step title="Edit the TypeScript schema">
+
+Make your changes in `schema/draft/schema.ts`.
+
+</Step>
+<Step title="Add examples (optional)">
+
+Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g., `Tool/my-example.json`). Reference them in the schema using `@includeCode` JSDoc tags.
+
+</Step>
+<Step title="Generate JSON schema and docs">
+
+```bash
+npm run generate:schema
+```
+
+</Step>
+<Step title="Validate your changes">
+
+```bash
+npm run check
+```
+
+</Step>
 </Steps>
 
 ### Documentation Changes
@@ -296,22 +325,29 @@ Docs are written in [MDX format](https://mdxjs.com/) (Markdown with JSX componen
 Here is how you can contribute to our documentation:
 
 <Steps>
-  <Step title="Start the local docs server">
-    ```bash
-    npm run serve:docs
-    ```
-    This launches a live preview at `http://localhost:3000` with hot reloading.
-  </Step>
-  <Step title="Make your changes">
-    Edit the relevant `.mdx` files. You can use Mintlify components like `<Note>`, `<Tip>`,
-    `<Steps>`, and `<Card>` for richer formatting.
-  </Step>
-  <Step title="Check for issues">
-    ```bash
-    npm run check:docs
-    ```
-    This validates formatting, broken links, and other common issues.
-  </Step>
+<Step title="Start the local docs server">
+
+```bash
+npm run serve:docs
+```
+
+This launches a live preview at `http://localhost:3000` with hot reloading.
+
+</Step>
+<Step title="Make your changes">
+
+Edit the relevant `.mdx` files. You can use Mintlify components like `<Note>`, `<Tip>`, `<Steps>`, and `<Card>` for richer formatting.
+
+</Step>
+<Step title="Check for issues">
+
+```bash
+npm run check:docs
+```
+
+This validates formatting, broken links, and other common issues.
+
+</Step>
 </Steps>
 
 ### Major Protocol Changes
