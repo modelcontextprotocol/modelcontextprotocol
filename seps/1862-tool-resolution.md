@@ -5,7 +5,7 @@
 | Type    | Standards Track                                                                 |
 | Created | 2025-11-21                                                                      |
 | Authors | @sammorrowdrums                                                                 |
-| Sponsor | TBD                                                                             |
+| Sponsor | @nicknotfun                                                                            |
 | PR      | [#1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862) |
 
 ## Abstract
