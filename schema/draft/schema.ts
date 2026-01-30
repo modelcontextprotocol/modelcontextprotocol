@@ -1,3 +1,16 @@
+/**
+ * JSON types
+ */
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONObject
+  | JSONArray;
+export type JSONObject = { [key: string]: JSONValue };
+export type JSONArray = JSONValue[];
+
 /* JSON-RPC types */
 
 /**
@@ -464,7 +477,7 @@ export interface ClientCapabilities {
   /**
    * Experimental, non-standard capabilities that the client supports.
    */
-  experimental?: { [key: string]: object };
+  experimental?: { [key: string]: JSONObject };
   /**
    * Present if the client supports listing roots.
    *
@@ -497,11 +510,11 @@ export interface ClientCapabilities {
      * Whether the client supports context inclusion via `includeContext` parameter.
      * If not declared, servers SHOULD only use `includeContext: "none"` (or omit it).
      */
-    context?: object;
+    context?: JSONObject;
     /**
      * Whether the client supports tool use via `tools` and `toolChoice` parameters.
      */
-    tools?: object;
+    tools?: JSONObject;
   };
   /**
    * Present if the client supports elicitation from the server.
@@ -512,7 +525,10 @@ export interface ClientCapabilities {
    * @example Elicitation — form mode only (implicit)
    * {@includeCode ./examples/ClientCapabilities/elicitation-form-only-implicit.json}
    */
-  elicitation?: { form?: object; url?: object };
+  elicitation?: {
+    form?: JSONObject;
+    url?: JSONObject;
+  };
 
   /**
    * Present if the client supports task-augmented requests.
@@ -521,11 +537,11 @@ export interface ClientCapabilities {
     /**
      * Whether this client supports {@link ListTasksRequest | tasks/list}.
      */
-    list?: object;
+    list?: JSONObject;
     /**
      * Whether this client supports {@link CancelTaskRequest | tasks/cancel}.
      */
-    cancel?: object;
+    cancel?: JSONObject;
     /**
      * Specifies which request types can be augmented with tasks.
      */
@@ -537,7 +553,7 @@ export interface ClientCapabilities {
         /**
          * Whether the client supports task-augmented `sampling/createMessage` requests.
          */
-        createMessage?: object;
+        createMessage?: JSONObject;
       };
       /**
        * Task support for elicitation-related requests.
@@ -546,7 +562,7 @@ export interface ClientCapabilities {
         /**
          * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
          */
-        create?: object;
+        create?: JSONObject;
       };
     };
   };
@@ -570,21 +586,21 @@ export interface ServerCapabilities {
   /**
    * Experimental, non-standard capabilities that the server supports.
    */
-  experimental?: { [key: string]: object };
+  experimental?: { [key: string]: JSONObject };
   /**
    * Present if the server supports sending log messages to the client.
    *
    * @example Logging — minimum baseline support
    * {@includeCode ./examples/ServerCapabilities/logging-minimum-baseline-support.json}
    */
-  logging?: object;
+  logging?: JSONObject;
   /**
    * Present if the server supports argument autocompletion suggestions.
    *
    * @example Completions — minimum baseline support
    * {@includeCode ./examples/ServerCapabilities/completions-minimum-baseline-support.json}
    */
-  completions?: object;
+  completions?: JSONObject;
   /**
    * Present if the server offers any prompt templates.
    *
@@ -647,11 +663,11 @@ export interface ServerCapabilities {
     /**
      * Whether this server supports {@link ListTasksRequest | tasks/list}.
      */
-    list?: object;
+    list?: JSONObject;
     /**
      * Whether this server supports {@link CancelTaskRequest | tasks/cancel}.
      */
-    cancel?: object;
+    cancel?: JSONObject;
     /**
      * Specifies which request types can be augmented with tasks.
      */
@@ -663,7 +679,7 @@ export interface ServerCapabilities {
         /**
          * Whether the server supports task-augmented {@link CallToolRequest | tools/call} requests.
          */
-        call?: object;
+        call?: JSONObject;
       };
     };
   };
@@ -1710,7 +1726,7 @@ export interface Tool extends BaseMetadata, Icons {
   inputSchema: {
     $schema?: string;
     type: "object";
-    properties?: { [key: string]: object };
+    properties?: { [key: string]: JSONValue };
     required?: string[];
   };
 
@@ -1729,7 +1745,7 @@ export interface Tool extends BaseMetadata, Icons {
   outputSchema?: {
     $schema?: string;
     type: "object";
-    properties?: { [key: string]: object };
+    properties?: { [key: string]: JSONValue };
     required?: string[];
   };
 
@@ -2131,7 +2147,7 @@ export interface CreateMessageRequestParams extends TaskAugmentedRequestParams {
   /**
    * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
    */
-  metadata?: object;
+  metadata?: JSONObject;
   /**
    * Tools that the model may use during generation.
    * The client MUST return an error if this field is provided but {@link ClientCapabilities.sampling.tools} is not declared.
