@@ -26,7 +26,7 @@ import { Badge } from "/snippets/badge.mdx";
 
 ## Abstract
 
-This SEP proposes a standardized mechanism for MCP servers to automatically forward `_meta` fields from client requests to downstream HTTP calls. W3C Trace Context fields (`traceparent`, `tracestate`) are forwarded **by default** to enable distributed tracing without requiring server modifications. Custom metadata fields require explicit opt-in. Currently, `_meta` reaches the MCP server but is not forwarded, breaking end-to-end observability across the MCP boundary.
+This SEP proposes a standardized mechanism for MCP servers to automatically forward `_meta` fields from client requests to downstream HTTP calls using a **group-based policy system**. Header groups (e.g., `trace-context`, `baggage`) can be configured with policies (`clear-and-use-meta`, `merge-with-meta`, `ignore-meta`) that control forwarding behavior and conflict resolution. W3C Trace Context fields are forwarded by default. Currently, `_meta` reaches the MCP server but is not forwarded, breaking end-to-end observability across the MCP boundary.
 
 ## Motivation
 
@@ -85,25 +85,46 @@ Without trace context propagation:
 
 ## Specification
 
-### 1. Field Classification and Default Behavior
+### 1. Group-Based Header Forwarding
 
-Fields in `_meta` are classified into two categories with different default behaviors:
+This specification uses a **group-based model** where semantically related headers are treated as a unit. Each group has a single `policy` setting that controls both forwarding and conflict resolution.
 
-#### 1.1 W3C Trace Context Fields (Forwarded by Default)
+#### 1.1 Policies
 
-The following fields are **automatically forwarded** to downstream HTTP calls unless explicitly disabled:
+| Policy               | Behavior                                                                                                                | Use When                                                         |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `clear-and-use-meta` | If ANY header in the group exists in `_meta`, discard ALL existing headers in that group, then forward ALL from `_meta` | Headers are tightly coupled (e.g., `traceparent` + `tracestate`) |
+| `merge-with-meta`    | For each header: if it exists in `_meta`, overwrite existing; otherwise preserve existing                               | Headers are independent (e.g., `baggage`)                        |
+| `ignore-meta`        | Never forward from `_meta` for this group; existing headers are always preserved                                        | Disable forwarding entirely                                      |
 
-| `_meta` Field | HTTP Header   | Default       |
-| ------------- | ------------- | ------------- |
-| `traceparent` | `traceparent` | **Forwarded** |
-| `tracestate`  | `tracestate`  | **Forwarded** |
-| `baggage`     | `baggage`     | **Forwarded** |
+#### 1.2 Behavior Matrix
 
-**Rationale**: These are standardized W3C fields designed for propagation. They contain no sensitive data and are expected to flow through distributed systems. This matches OpenTelemetry's auto-instrumentation behavior.
+| Policy               | `_meta` has header? | Existing header? | Result                                                |
+| -------------------- | ------------------- | ---------------- | ----------------------------------------------------- |
+| `clear-and-use-meta` | Yes (any in group)  | Yes              | Clear ALL existing in group, forward ALL from `_meta` |
+| `clear-and-use-meta` | Yes (any in group)  | No               | Forward from `_meta`                                  |
+| `clear-and-use-meta` | No                  | Yes              | Keep existing                                         |
+| `merge-with-meta`    | Yes                 | Yes              | Overwrite that specific header with `_meta` value     |
+| `merge-with-meta`    | Yes                 | No               | Forward from `_meta`                                  |
+| `merge-with-meta`    | No                  | Yes              | Keep existing                                         |
+| `ignore-meta`        | Yes                 | Yes              | Keep existing, ignore `_meta`                         |
+| `ignore-meta`        | Yes                 | No               | Do nothing                                            |
+| `ignore-meta`        | No                  | Yes              | Keep existing                                         |
 
-#### 1.2 Custom Fields (Opt-In)
+#### 1.3 Predefined Groups
 
-All other `_meta` fields are **NOT forwarded by default** and require explicit opt-in:
+SDKs MUST support these predefined header groups:
+
+| Group Name      | Headers                     | Default Policy       | Rationale                                                                          |
+| --------------- | --------------------------- | -------------------- | ---------------------------------------------------------------------------------- |
+| `trace-context` | `traceparent`, `tracestate` | `clear-and-use-meta` | Tightly coupled per W3C Trace Context spec; `tracestate` is keyed to `traceparent` |
+| `baggage`       | `baggage`                   | `merge-with-meta`    | Independent W3C standard; can be replaced independently                            |
+
+**Note**: W3C Trace Context and W3C Baggage are separate standards that can version independently, hence they are separate groups with independent policies.
+
+#### 1.4 Custom Fields
+
+All other `_meta` fields are **NOT forwarded by default**. Users can define custom groups to forward them:
 
 | `_meta` Field    | HTTP Header            | Default       |
 | ---------------- | ---------------------- | ------------- |
@@ -115,34 +136,42 @@ All other `_meta` fields are **NOT forwarded by default** and require explicit o
 
 ### 2. Server SDK Behavior
 
-#### 2.1 Automatic W3C Trace Context Forwarding
+#### 2.1 Automatic Header Forwarding
 
-MCP Server SDKs MUST automatically inject W3C Trace Context headers (`traceparent`, `tracestate`, `baggage`) from `_meta` into outbound HTTP requests made during tool execution.
+MCP Server SDKs MUST automatically forward headers from `_meta` to outbound HTTP requests based on group policies. By default:
 
-This behavior:
+- `trace-context` group (`traceparent`, `tracestate`) uses `clear-and-use-meta` policy
+- `baggage` group uses `merge-with-meta` policy
+- Custom fields are not forwarded unless explicitly configured
 
-- Is **enabled by default**
-- Requires no code changes from MCP server authors
-- Can be disabled via configuration
+This behavior requires no code changes from MCP server authors.
 
-```typescript
-// W3C headers are forwarded automatically - no code needed!
+#### 2.2 Configuration API
 
-// To disable (opt-out):
-const server = new Server({
-  forwardTraceContext: false, // Disable automatic W3C header forwarding
-});
-```
-
-#### 2.2 Custom Field Forwarding (Opt-In)
-
-For custom `_meta` fields, SDKs SHOULD provide explicit opt-in configuration:
+SDKs MUST support configuring header groups via `headerGroups`:
 
 ```typescript
 const server = new Server({
-  forwardCustomMeta: true, // Enable custom field forwarding
-  customMetaFields: ["correlation_id", "tenant_id"], // Whitelist specific fields
-  customMetaPrefix: "X-MCP-", // Prefix for custom headers
+  headerGroups: {
+    // Override predefined group policy
+    baggage: { policy: "ignore-meta" }, // Disable baggage forwarding
+
+    // Define custom group for Datadog
+    datadog: {
+      headers: [
+        "x-datadog-trace-id",
+        "x-datadog-parent-id",
+        "x-datadog-sampling-priority",
+      ],
+      policy: "clear-and-use-meta", // These headers are coupled
+    },
+
+    // Define custom group for internal headers
+    internal: {
+      headers: ["x-tenant-id", "x-request-id", "x-correlation-id"],
+      policy: "merge-with-meta", // These are independent
+    },
+  },
 });
 ```
 
@@ -165,8 +194,7 @@ SDKs SHOULD provide a utility for manual header extraction when needed:
 import { extractHttpHeaders } from "@modelcontextprotocol/sdk/utils";
 
 const headers = extractHttpHeaders(context.meta, {
-  includeCustom: true, // Include custom fields
-  customFields: ["correlation_id"], // Whitelist
+  groups: ["trace-context", "internal"], // Extract specific groups
 });
 ```
 
@@ -184,12 +212,21 @@ Invalid fields MUST be silently dropped (not cause errors).
 
 ### 4. Configuration Options
 
-| Option                | Type     | Default    | Description                           |
-| --------------------- | -------- | ---------- | ------------------------------------- |
-| `forwardTraceContext` | boolean  | `true`     | Forward W3C Trace Context headers     |
-| `forwardCustomMeta`   | boolean  | `false`    | Forward custom `_meta` fields         |
-| `customMetaFields`    | string[] | `[]`       | Whitelist of custom fields to forward |
-| `customMetaPrefix`    | string   | `"X-MCP-"` | Prefix for custom field headers       |
+#### 4.1 Header Group Configuration
+
+| Property  | Type                                                             | Required | Description                    |
+| --------- | ---------------------------------------------------------------- | -------- | ------------------------------ |
+| `policy`  | `"clear-and-use-meta"` \| `"merge-with-meta"` \| `"ignore-meta"` | Yes      | Forwarding and conflict policy |
+| `headers` | `string[]`                                                       | No\*     | Headers in this group          |
+
+\* `headers` is required for custom groups, optional when overriding predefined groups.
+
+#### 4.2 Predefined Group Defaults
+
+| Group           | Default Policy       |
+| --------------- | -------------------- |
+| `trace-context` | `clear-and-use-meta` |
+| `baggage`       | `merge-with-meta`    |
 
 ### 5. Transport Considerations
 
@@ -199,19 +236,45 @@ This specification applies to MCP servers making **outbound HTTP/HTTPS requests*
 - **Message Queues**: Map to message headers/properties
 - **WebSocket**: Not applicable (no standard header mechanism)
 
-### 6. Conflict Resolution
+### 6. Conflict Resolution and Group Integrity
 
-When `_meta` contains W3C Trace Context fields and the outbound HTTP request already has corresponding headers set (e.g., via auto-instrumentation):
+Conflict resolution is handled by the group's `policy` setting (see Section 1.1 and 1.2).
 
-1. If `traceparent` is present and valid in `_meta`, SDKs MUST use an **all-or-nothing** approach:
-   - Discard ALL existing W3C Trace Context headers (`traceparent`, `tracestate`, `baggage`) from the outbound request
-   - Forward ONLY the W3C fields present in `_meta`
-2. SDKs SHOULD log a debug-level message when overriding existing headers
-3. No error should be raised—this is expected behavior when integrating with existing observability infrastructure
+#### 6.1 Group Integrity
 
-**Rationale**: W3C Trace Context fields are semantically linked—`tracestate` contains vendor-specific data keyed to the `traceparent`, and `baggage` may contain context relevant to that specific trace. Mixing fields from different sources would create inconsistent trace context. The all-or-nothing approach ensures trace coherence across the MCP boundary.
+By design, the SDK never mixes headers from different sources within a group. Groups stay intact:
+
+- `clear-and-use-meta`: ALL from `_meta`, or ALL from existing (if `_meta` has nothing)
+- `merge-with-meta`: Per-header replacement, but no partial mixing within a single header
+- `ignore-meta`: ALL from existing, `_meta` ignored entirely
+
+#### 6.2 Manual Mixing (Advanced)
+
+To mix sources within a group (e.g., `traceparent` from `_meta` + `tracestate` from existing), the server must:
+
+1. Set `policy: "ignore-meta"` for that group
+2. Manually read from `context.meta` in the tool handler
+3. Construct headers explicitly
+
+This is intentional—mixing coupled headers like `traceparent` + `tracestate` from different sources can break tracing. If you need to do it, you take explicit responsibility.
+
+#### 6.3 Logging
+
+SDKs SHOULD log a debug-level message when overriding existing headers. No error should be raised—this is expected behavior when integrating with existing observability infrastructure.
 
 ## Rationale
+
+### Why Group-Based Design?
+
+The group-based approach was developed through community feedback to address several concerns:
+
+1. **Separate W3C standards**: `traceparent`/`tracestate` (W3C Trace Context) and `baggage` (W3C Baggage) are separate standards that can version independently. They should be configurable independently.
+
+2. **Future-proof**: New standards (Datadog, Jaeger, OpenTelemetry vendor extensions, internal conventions) don't require spec changes—users define their own groups.
+
+3. **Semantic coupling**: Headers like `traceparent` + `tracestate` are tightly coupled (`tracestate` is keyed to `traceparent`). The `clear-and-use-meta` policy ensures they stay together.
+
+4. **Simple mental model**: Single `policy` setting per group, 3 clear policies, no ambiguity.
 
 ### Why Default-On for W3C Trace Context?
 
@@ -240,9 +303,13 @@ These require explicit opt-in to prevent accidental data exposure.
 PR #666 was rejected because it added transport-specific behavior without protocol backing. This SEP:
 
 1. Defines which `_meta` fields have semantic meaning for forwarding
-2. Specifies default behaviors for each field category
+2. Specifies default behaviors via group policies
 3. Provides clear SDK implementation guidance
 4. Allows SDK implementations to follow a standard
+
+### Alignment with OpenTelemetry
+
+This proposal aligns with [OpenTelemetry's MCP context propagation guidance](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/#context-propagation) which recommends using `params._meta`. The approach of using standard header names (no `X-MCP-` prefix for W3C headers) also aligns with OpenTelemetry semantic conventions.
 
 ### Alternative Designs Considered
 
@@ -251,6 +318,10 @@ PR #666 was rejected because it added transport-specific behavior without protoc
 2. **All opt-out**: Too risky for custom fields that may contain sensitive data.
 
 3. **New top-level `request.trace` field**: Would require schema changes and break existing implementations.
+
+4. **Hardcoded W3C headers**: The original design treated all W3C headers as one unit. Rejected because `trace-context` and `baggage` are separate standards.
+
+5. **Two-setting design (`enabled` + `conflictPolicy`)**: Rejected in favor of single `policy` setting for simplicity.
 
 The chosen design balances automatic trace propagation with security for custom data.
 
@@ -270,7 +341,7 @@ This is backward compatible in the sense that:
 
 **Risk mitigation**:
 
-- Servers can set `forwardTraceContext: false` to restore previous behavior
+- Servers can set `policy: "ignore-meta"` for any group to restore previous behavior
 - Only W3C standard headers are forwarded by default (not arbitrary data)
 - SDK release notes should clearly document the behavioral change
 
@@ -302,12 +373,13 @@ This is backward compatible in the sense that:
 
 A reference implementation will be provided in the TypeScript SDK after acceptance. The implementation will include:
 
-1. Automatic W3C Trace Context injection for HTTP clients (fetch, axios, etc.)
-2. `forwardTraceContext` and `forwardCustomMeta` configuration options
-3. `context.meta` accessor in tool handlers
-4. `extractHttpHeaders()` utility for manual use
-5. Validation and sanitization logic
-6. Unit tests covering all scenarios
+1. Automatic header injection for HTTP clients (fetch, axios, etc.) based on group policies
+2. `headerGroups` configuration with predefined `trace-context` and `baggage` groups
+3. Support for custom group definitions
+4. `context.meta` accessor in tool handlers
+5. `extractHttpHeaders()` utility for manual use
+6. Validation and sanitization logic
+7. Unit tests covering all policy behaviors
 
 ### Proof of Concept Testing
 
@@ -328,7 +400,7 @@ Test code available at: [link to test repository or gist]
 
 3. **What about non-HTTP tool implementations?** Tools that don't make HTTP calls (e.g., local file operations) don't benefit from this.
 
-4. **Should `baggage` be opt-in instead?** W3C Baggage can contain arbitrary key-value pairs, which may be more sensitive than trace IDs.
+4. **Should `baggage` default to `ignore-meta`?** W3C Baggage can contain arbitrary key-value pairs. Currently proposing `merge-with-meta` to match OpenTelemetry behavior, but this is open for discussion.
 
 ## Acknowledgments
 
