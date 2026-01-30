@@ -392,6 +392,144 @@ MCP servers intending for their servers to be run locally **SHOULD** implement m
   - Require an authorization token
   - Use unix domain sockets or other Interprocess Communication (IPC) mechanisms with restricted access
 
+### OAuth Authorization URL Validation
+
+OAuth authorization URLs provided by malicious MCP servers can exploit client-side URL handling vulnerabilities, leading to Cross-Site Scripting (XSS) attacks and Remote Code Execution (RCE).
+
+#### Attack Description
+
+During the OAuth authorization flow, MCP servers provide authorization URLs that clients open in browsers or handle programmatically. Malicious servers can exploit insufficient URL validation in MCP clients through the following attack vectors:
+
+**JavaScript URL Injection (XSS)**
+
+1. A malicious MCP server provides a `javascript:` URL as the authorization endpoint
+2. The MCP client passes this URL directly to `window.open()` or similar browser APIs
+3. The browser executes the JavaScript code embedded in the URL
+4. The attacker gains JavaScript execution context within the client application, potentially leading to session hijacking, credential theft, or further exploitation
+
+**Command Injection via Shell Execution**
+
+1. A malicious MCP server provides a URL containing shell command injection payloads
+2. The MCP client uses shell commands (e.g., `cmd.exe`, PowerShell, or shell scripts) to open the URL
+3. The shell interprets parts of the URL as additional commands to execute
+4. The attacker achieves arbitrary code execution on the user's system
+
+**stdio Transport Privilege Escalation**
+
+When XSS vulnerabilities are combined with `stdio` transport capabilities, attackers can escalate web-based attacks to full system compromise. See [stdio Transport Security](#stdio-transport-security) for detailed attack vectors and mitigations.
+
+```mermaid
+sequenceDiagram
+    participant MaliciousMCP as Malicious MCP Server
+    participant Client as MCP Client
+    participant Proxy as MCP Proxy
+    participant System as Host System
+
+    MaliciousMCP->>Client: Malicious authorization URL (javascript:)
+    Client->>Client: Execute JavaScript (XSS)
+    Client->>Client: Extract proxy auth token
+    Client->>Proxy: Malicious stdio command request
+    Note over Client,Proxy: Using stolen authentication token
+    Proxy->>System: Execute arbitrary command
+    System-->>Proxy: Command output
+    Proxy-->>Client: Command result
+    Client-->>MaliciousMCP: Exfiltrate data/establish persistence
+```
+
+#### Risks
+
+OAuth authorization URL vulnerabilities introduce several critical security risks:
+
+- **Cross-Site Scripting (XSS)**. Malicious JavaScript execution can lead to session hijacking, credential theft, and unauthorized actions within the client application.
+- **Remote Code Execution (RCE)**. Command injection through shell execution allows attackers to run arbitrary code with user privileges.
+- **Privilege Escalation**. XSS combined with `stdio` transport can escalate web-based attacks to full system compromise.
+- **Data Exfiltration**. Attackers can access sensitive data, configuration files, and credentials stored on the user's system.
+- **Persistence**. Attackers can install malware, create backdoors, or modify system configurations for persistent access.
+
+#### Mitigation
+
+**URL Scheme Validation**
+
+MCP clients **MUST** validate authorization URLs and reject dangerous schemes:
+
+- **MUST** only allow `http://` and `https://` schemes for authorization URLs
+- **MUST** reject `javascript:`, `data:`, `file:`, `vbscript:`, and other potentially dangerous schemes
+- **SHOULD** use allowlist-based validation rather than blocklist-based approaches
+
+**Secure URL Opening**
+
+MCP clients **MUST** avoid shell execution when opening URLs:
+
+- **MUST NOT** use shell commands (e.g., `cmd.exe`, `sh`, PowerShell) to open URLs
+- **SHOULD** use platform-specific, non-shell URL opening mechanisms
+
+**Content Security Policy (CSP)**
+
+Web-based MCP clients **SHOULD** implement Content Security Policy headers to prevent JavaScript execution:
+
+- Set `script-src 'self'` to prevent execution of inline JavaScript
+- Use `default-src 'self'` to restrict resource loading
+- Consider `script-src 'nonce-<random>'` for dynamic content that requires inline scripts
+
+**Input Sanitization**
+
+MCP clients **MUST** sanitize and validate all URLs received from MCP servers:
+
+- Implement strict URL parsing and validation
+- Escape or remove special characters that could be interpreted by shells
+- Consider using dedicated URL sanitization libraries
+- Log suspicious authorization URLs for security monitoring
+
+### stdio Transport Security in Proxy Scenarios
+
+The `stdio` transport itself is not inherently vulnerable. However, in proxy architectures where a separate proxy service manages `stdio` connections and can spawn MCP servers as child processes, it can provide a critical escalation path from web-based attacks to full system compromise.
+
+#### Attack Description
+
+**Important**: This attack vector only applies to MCP implementations that use a proxy architecture, not to direct `stdio` transport usage.
+
+In proxy-based MCP implementations, a local proxy service sits between the client and MCP servers, spawning servers as child processes via the `stdio` transport. This architecture creates a privileged escalation path when combined with client-side vulnerabilities:
+
+1. Attacker achieves XSS or other client-side code execution (e.g., through OAuth URL vulnerabilities)
+2. Using the attack vector above, the malicious actor accesses the MCP proxy authentication token established between the client and the proxy from the client's environment
+3. Malicious actor makes authenticated requests to the local MCP proxy service
+4. Proxy spawns arbitrary commands via the `stdio` transport (believing they are legitimate MCP server commands)
+5. Attacker achieves Remote Code Execution with user privileges
+
+#### Risks
+
+- **Privilege Escalation**. Web-based vulnerabilities (XSS) can escalate to arbitrary code execution on the host system through proxy command execution
+- **Authentication Bypass**. Stolen proxy authentication tokens allow unauthorized access to stdio process spawning capabilities
+- **System Compromise**. Attackers can execute any command that the MCP proxy process has privileges to run
+
+#### Mitigation
+
+The primary defense is to prevent classes of vulnerabilities that enable this attack vector:
+
+- Implement the mitigations described in [OAuth Authorization URL Validation](#oauth-authorization-url-validation)
+- Use Content Security Policy (CSP) to prevent JavaScript execution from untrusted sources
+- Validate and sanitize all input from MCP servers before processing
+
+Since XSS fundamentally compromises the client's security context, focus on limiting the damage:
+
+**stdio Transport Restrictions**
+
+MCP proxy services **SHOULD** implement additional security controls for `stdio` transport:
+
+- Implement sandboxing or containerization for spawned processes
+- Restrict file system access for spawned MCP servers
+- Log all `stdio` transport usage for security monitoring
+- Require additional authorization for potentially dangerous commands
+
+**Client-Side Protections**
+
+MCP clients **SHOULD** implement defense-in-depth measures:
+
+- Isolate proxy communication in a separate security context when possible
+- Use principle of least privilege for proxy process permissions
+- Implement process-level sandboxing for the proxy service itself
+- Consider running the proxy in a container or restricted environment
+
 ### Scope Minimization
 
 Poor scope design increases token compromise impact, elevates user friction, and obscures audit trails.
