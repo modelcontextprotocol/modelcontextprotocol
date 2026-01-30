@@ -39,15 +39,18 @@ The MCP Apps spec defines a standard communication channel using `postMessage` a
 // Portable: works in any MCP Apps host
 function callTool(name, args) {
   const id = crypto.randomUUID();
-  window.parent.postMessage({
-    jsonrpc: "2.0",
-    id: id,
-    method: "tools/call",
-    params: {
-      name: name,
-      arguments: args
-    }
-  }, "*");
+  window.parent.postMessage(
+    {
+      jsonrpc: "2.0",
+      id: id,
+      method: "tools/call",
+      params: {
+        name: name,
+        arguments: args,
+      },
+    },
+    "*",
+  );
 }
 ```
 
@@ -59,19 +62,23 @@ function callTool(name, args) {
   if (window.openai?.callTool) {
     return window.openai.callTool(name, args);
   }
-  
+
   const id = crypto.randomUUID();
-  window.parent.postMessage({
-    jsonrpc: "2.0",
-    id: id,
-    method: "tools/call",
-    params: { name, arguments: args }
-  }, "*");
+  window.parent.postMessage(
+    {
+      jsonrpc: "2.0",
+      id: id,
+      method: "tools/call",
+      params: { name, arguments: args },
+    },
+    "*",
+  );
 }
 ```
 
 <Note>
-Always implement the `postMessage` path first. Treat host-specific APIs as optional enhancements, not requirements.
+  Always implement the `postMessage` path first. Treat host-specific APIs as
+  optional enhancements, not requirements.
 </Note>
 
 ## Serve assets portably
@@ -95,17 +102,20 @@ For simple widgets, bundle your CSS and JavaScript directly in the HTML:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    .widget { padding: 16px; font-family: system-ui; }
-  </style>
-</head>
-<body>
-  <div class="widget" id="app"></div>
-  <script>
-    // Your widget code here
-  </script>
-</body>
+  <head>
+    <style>
+      .widget {
+        padding: 16px;
+        font-family: system-ui;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="widget" id="app"></div>
+    <script>
+      // Your widget code here
+    </script>
+  </body>
 </html>
 ```
 
