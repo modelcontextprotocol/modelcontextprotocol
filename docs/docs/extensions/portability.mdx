@@ -1,0 +1,201 @@
+---
+title: "Portability guide"
+sidebarTitle: "Portability"
+description: "Write MCP Apps UI widgets that work across different hosts like Claude, ChatGPT, and custom clients."
+---
+
+MCP Apps let servers deliver interactive UI to hosts. But not all hosts are the same. A widget that works perfectly in one client might fail silently in another.
+
+This guide covers common portability pitfalls and how to avoid them.
+
+## The problem
+
+You build an MCP App. It renders beautifully in ChatGPT. You try it in Claude. Nothing shows up. No error, just a blank iframe.
+
+This happens more often than you might expect, and the causes are usually one of three things:
+
+1. Your widget relies on host-specific runtime APIs
+2. Your assets are served from localhost
+3. Your metadata uses vendor-specific keys
+
+Let's fix each of these.
+
+## Avoid host-specific globals
+
+Some hosts inject JavaScript APIs into the iframe's `window` object. For example, ChatGPT's Apps SDK provides:
+
+```javascript
+window.openai.callTool(...)
+window.openai.notifyIntrinsicHeight(...)
+```
+
+These are convenient, but they only exist in ChatGPT. Other hosts won't inject them, so your code fails at runtime.
+
+### The fix: use `postMessage` with JSON-RPC
+
+The MCP Apps spec defines a standard communication channel using `postMessage` and JSON-RPC. This works everywhere:
+
+```javascript
+// Portable: works in any MCP Apps host
+function callTool(name, args) {
+  const id = crypto.randomUUID();
+  window.parent.postMessage({
+    jsonrpc: "2.0",
+    id: id,
+    method: "tools/call",
+    params: {
+      name: name,
+      arguments: args
+    }
+  }, "*");
+}
+```
+
+If you want to support hosts that provide convenience APIs while staying portable, feature-detect first:
+
+```javascript
+function callTool(name, args) {
+  // Use host API if available, fall back to standard postMessage
+  if (window.openai?.callTool) {
+    return window.openai.callTool(name, args);
+  }
+  
+  const id = crypto.randomUUID();
+  window.parent.postMessage({
+    jsonrpc: "2.0",
+    id: id,
+    method: "tools/call",
+    params: { name, arguments: args }
+  }, "*");
+}
+```
+
+<Note>
+Always implement the `postMessage` path first. Treat host-specific APIs as optional enhancements, not requirements.
+</Note>
+
+## Serve assets portably
+
+Widgets often load external JavaScript and CSS:
+
+```html
+<!-- This only works locally -->
+<script src="http://localhost:4444/widget.js"></script>
+<link rel="stylesheet" href="http://localhost:4444/styles.css" />
+```
+
+This works during development, but hosted MCP clients can't reach your localhost.
+
+### The fix: use MCP resources or inline your assets
+
+**Option 1: Inline everything**
+
+For simple widgets, bundle your CSS and JavaScript directly in the HTML:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .widget { padding: 16px; font-family: system-ui; }
+  </style>
+</head>
+<body>
+  <div class="widget" id="app"></div>
+  <script>
+    // Your widget code here
+  </script>
+</body>
+</html>
+```
+
+**Option 2: Use `ui://` resources**
+
+For larger widgets, declare your assets as MCP resources and reference them through the `ui://` scheme:
+
+```json
+{
+  "resources": [
+    {
+      "uri": "ui://myserver/widget",
+      "mimeType": "text/html;profile=mcp-app"
+    },
+    {
+      "uri": "ui://myserver/widget.js",
+      "mimeType": "application/javascript"
+    }
+  ]
+}
+```
+
+**Option 3: Use a CDN**
+
+If you must load external assets, use publicly accessible URLs:
+
+```html
+<script src="https://cdn.example.com/widget/v1/main.js"></script>
+```
+
+## Use standard metadata
+
+The MCP Apps spec defines how to bind tools to UI resources using `_meta.ui.resourceUri`:
+
+```json
+{
+  "name": "get_chart",
+  "description": "Display a chart",
+  "_meta": {
+    "ui": {
+      "resourceUri": "ui://myserver/chart-widget"
+    }
+  }
+}
+```
+
+Some hosts use vendor-specific keys like `openai/outputTemplate` or `openai/csp`. These work in that host but get ignored elsewhere.
+
+### The fix: always include standard metadata
+
+Use `_meta.ui.resourceUri` as your primary binding. You can include vendor-specific keys alongside it for hosts that support extra features:
+
+```json
+{
+  "name": "get_chart",
+  "_meta": {
+    "ui": {
+      "resourceUri": "ui://myserver/chart-widget"
+    }
+  },
+  "openai/outputTemplate": "...",
+  "openai/csp": "..."
+}
+```
+
+Hosts that don't recognize vendor keys will ignore them and use the standard path.
+
+## Testing across hosts
+
+Before shipping your MCP App, test it in multiple environments:
+
+1. **Claude Desktop** or Claude Web (if MCP Apps is enabled)
+2. **ChatGPT** with the Apps SDK
+3. **MCP Inspector** for debugging
+4. **A custom web host** to catch assumptions about specific runtimes
+
+If your widget works in all four, it will probably work anywhere.
+
+## Quick checklist
+
+Before you publish:
+
+- [ ] Widget uses `postMessage` + JSON-RPC (not just `window.openai`)
+- [ ] No hardcoded `localhost` URLs
+- [ ] Assets are inlined, served via `ui://`, or hosted on a CDN
+- [ ] Tool metadata includes `_meta.ui.resourceUri`
+- [ ] Tested in at least two different hosts
+
+## Further reading
+
+- [SEP-1865: MCP Apps specification](/community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp)
+- [MCP-UI community playground](https://mcpui.dev/)
+- [Full MCP Apps spec on GitHub](https://github.com/modelcontextprotocol/ext-apps)

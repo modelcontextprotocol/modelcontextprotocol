@@ -65,7 +65,8 @@
           {
             "group": "Extensions",
             "pages": [
-              "docs/extensions/apps"
+              "docs/extensions/apps",
+              "docs/extensions/portability"
             ]
           }
         ]
