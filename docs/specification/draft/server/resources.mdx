@@ -165,11 +165,14 @@ To retrieve resource contents, clients send a `resources/read` request:
 }
 ```
 
+Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
+
 ### Resource Templates
 
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+This operation supports [pagination](/specification/draft/server/utilities/pagination).
 
 **Request:**
 
@@ -177,7 +180,10 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "resources/templates/list"
+  "method": "resources/templates/list",
+  "params": {
+    "cursor": "optional-cursor-value"
+  }
 }
 ```
 
@@ -203,7 +209,8 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
           }
         ]
       }
-    ]
+    ],
+    "nextCursor": "next-page-cursor"
   }
 }
 ```

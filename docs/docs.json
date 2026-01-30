@@ -27,7 +27,9 @@
         "pages": [
           {
             "group": "Get started",
-            "pages": ["docs/getting-started/intro"]
+            "pages": [
+              "docs/getting-started/intro"
+            ]
           },
           {
             "group": "About MCP",
@@ -56,7 +58,15 @@
           },
           {
             "group": "Developer tools",
-            "pages": ["docs/tools/inspector"]
+            "pages": [
+              "docs/tools/inspector"
+            ]
+          },
+          {
+            "group": "Extensions",
+            "pages": [
+              "docs/extensions/apps"
+            ]
           }
         ]
       },
@@ -321,8 +331,35 @@
         ]
       },
       {
+        "tab": "Registry",
+        "pages": [
+          "registry/about",
+          "registry/quickstart",
+          "registry/faq",
+          {
+            "group": "Publishing",
+            "pages": [
+              "registry/package-types",
+              "registry/remote-servers",
+              "registry/authentication",
+              "registry/versioning",
+              "registry/github-actions",
+              "registry/moderation-policy"
+            ]
+          },
+          {
+            "group": "Consuming",
+            "pages": [
+              "registry/registry-aggregators"
+            ]
+          },
+          "registry/terms-of-service"
+        ]
+      },
+      {
         "tab": "Community",
         "pages": [
+          "community/contributing",
           "community/communication",
           {
             "group": "Governance",
@@ -331,6 +368,47 @@
               "community/sep-guidelines",
               "community/working-interest-groups",
               "community/antitrust"
+            ]
+          },
+          {
+            "group": "SEPs",
+            "pages": [
+              "community/seps/index",
+              {
+                "group": "Final",
+                "pages": [
+                  "community/seps/932-model-context-protocol-governance",
+                  "community/seps/973-expose-additional-metadata-for-implementations-res",
+                  "community/seps/985-align-oauth-20-protected-resource-metadata-with-rf",
+                  "community/seps/986-specify-format-for-tool-names",
+                  "community/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o",
+                  "community/seps/991-enable-url-based-client-registration-using-oauth-c",
+                  "community/seps/994-shared-communication-practicesguidelines",
+                  "community/seps/1024-mcp-client-security-requirements-for-local-server-",
+                  "community/seps/1034--support-default-values-for-all-primitive-types-in",
+                  "community/seps/1036-url-mode-elicitation-for-secure-out-of-band-intera",
+                  "community/seps/1046-support-oauth-client-credentials-flow-in-authoriza",
+                  "community/seps/1302-formalize-working-groups-and-interest-groups-in-mc",
+                  "community/seps/1303-input-validation-errors-as-tool-execution-errors",
+                  "community/seps/1319-decouple-request-payload-from-rpc-methods-definiti",
+                  "community/seps/1330-elicitation-enum-schema-improvements-and-standards",
+                  "community/seps/1577--sampling-with-tools",
+                  "community/seps/1613-establish-json-schema-2020-12-as-default-dialect-f",
+                  "community/seps/1686-tasks",
+                  "community/seps/1699-support-sse-polling-via-server-side-disconnect",
+                  "community/seps/1730-sdks-tiering-system",
+                  "community/seps/1850-pr-based-sep-workflow",
+                  "community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
+                  "community/seps/2085-governance-succession-and-amendment",
+                  "community/seps/2133-extensions"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Extensions",
+            "pages": [
+              "extensions"
             ]
           },
           {
@@ -450,7 +528,7 @@
     },
     {
       "source": "/development/contributing",
-      "destination": "/community/communication"
+      "destination": "/community/contributing"
     }
   ],
   "contextual": {

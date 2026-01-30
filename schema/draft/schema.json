@@ -353,6 +353,15 @@
                     "description": "Experimental, non-standard capabilities that the client supports.",
                     "type": "object"
                 },
+                "extensions": {
+                    "additionalProperties": {
+                        "additionalProperties": true,
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
+                    "type": "object"
+                },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
@@ -1520,6 +1529,7 @@
                     "type": "string"
                 },
                 "version": {
+                    "description": "The version of this implementation.",
                     "type": "string"
                 },
                 "websiteUrl": {
@@ -3337,6 +3347,15 @@
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
+                "extensions": {
+                    "additionalProperties": {
+                        "additionalProperties": true,
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/apps\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
+                    "type": "object"
+                },
                 "logging": {
                     "additionalProperties": true,
                     "description": "Present if the server supports sending log messages to the client.",
@@ -3503,6 +3522,9 @@
                 },
                 {
                     "$ref": "#/$defs/CallToolResult"
+                },
+                {
+                    "$ref": "#/$defs/CreateTaskResult"
                 },
                 {
                     "$ref": "#/$defs/GetTaskResult",
