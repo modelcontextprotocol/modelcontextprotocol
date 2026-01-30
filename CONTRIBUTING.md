@@ -72,7 +72,7 @@ npm run format
 
 > [!NOTE]
 > You can run all schema/documentation
-> changes at once with `npm run prep:changes`.
+> changes at once with `npm run prep`.
 
 ## Blog changes
 
@@ -176,8 +176,10 @@ We reserve the right to close submissions that appear to not follow the disclosu
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT
-License.
+By contributing, you agree that your code or specification contributions will be
+licensed under the Apache License 2.0. Documentation contributions (excluding
+specifications) are licensed under CC-BY 4.0. See the [LICENSE](LICENSE) file for
+details.
 
 ## Security
 

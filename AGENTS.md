@@ -26,12 +26,37 @@ TypeScript files are the **source of truth** for the protocol schema:
 
 Always regenerate after editing schema files.
 
+## Schema Examples
+
+JSON examples live in `schema/[version]/examples/[TypeName]/`:
+
+- Directory name = schema type (e.g., `Tool/`, `Resource/`)
+- Files validate against their directory's type: `Tool/example-name.json` → Tool schema
+- Referenced in `schema.ts` via `@includeCode` JSDoc tags
+
 ## Useful Commands
 
 ```bash
+# Dev servers
 npm run serve:docs       # Local Mintlify docs server
 npm run serve:blog       # Local Hugo blog server
+
+# Generation (run after editing source files)
+npm run generate         # Generate all (schema + SEPs)
 npm run generate:schema  # Generate JSON schemas + MDX from TypeScript
-npm run check:docs       # Check formatting and links
+npm run generate:seps    # Generate SEP documents
+
+# Formatting
+npm run format           # Format all (docs + schema)
+npm run format:docs      # Format markdown/MDX files
+npm run format:schema    # Format schema TypeScript files
+
+# Checks
 npm run check            # Run all checks
+npm run check:schema     # Check schema (TS, JSON, examples, MDX)
+npm run check:docs       # Check docs (format, comments, links)
+npm run check:seps       # Check SEP documents
+
+# Workflow
+npm run prep             # Full prep before committing (check, generate, format)
 ```

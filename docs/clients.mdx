@@ -5,11 +5,139 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Apps"];
+
+export const filterStore = {
+  state: {
+    selectedFeatures: [],
+    searchText: "",
+    visibleCount: 0,
+    totalCount: 0
+  },
+  listeners: new Set(),
+  setState(updater) {
+    if (typeof updater === "function") {
+      this.state = { ...this.state, ...updater(this.state) };
+    } else {
+      this.state = { ...this.state, ...updater };
+    }
+    this.listeners.forEach(fn => fn(this.state));
+  },
+  subscribe(fn) {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+};
+
+export const useFilterStore = () => {
+  const [state, setState] = useState(filterStore.state);
+  useEffect(() => filterStore.subscribe(setState), []);
+  return state;
+};
+
+export const useFilter = ({ name, supports }) => {
+  const { selectedFeatures, searchText } = useFilterStore();
+
+  const isVisible = (
+    name.toLowerCase().includes(searchText.toLowerCase()) &&
+    selectedFeatures.every(feature => supports?.includes(feature))
+  );
+
+  useEffect(() => {
+    filterStore.setState(s => ({ totalCount: s.totalCount + 1 }));
+    return () => filterStore.setState(s => ({ totalCount: s.totalCount - 1 }));
+  }, []);
+
+  useEffect(() => {
+    if (isVisible) {
+      filterStore.setState(s => ({ visibleCount: s.visibleCount + 1 }));
+      return () => filterStore.setState(s => ({ visibleCount: s.visibleCount - 1 }));
+    }
+  }, [isVisible]);
+
+  return isVisible;
+};
+
+
+export const ClientFilter = () => {
+  const { selectedFeatures, searchText, visibleCount, totalCount } = useFilterStore();
+
+  useEffect(() => {
+    filterStore.setState({ selectedFeatures: [], searchText: "" });
+  }, []);
+
+  const toggleFeature = (feature) => {
+    const newFeatures = selectedFeatures.includes(feature)
+      ? selectedFeatures.filter(f => f !== feature)
+      : [...selectedFeatures, feature];
+    filterStore.setState({ selectedFeatures: newFeatures });
+  };
+
+  const clearFilters = () => {
+    filterStore.setState({ selectedFeatures: [], searchText: "" });
+  };
+
+  const hasFilters = selectedFeatures.length > 0 || searchText.length > 0;
+
+  return (
+    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+      <div className="flex items-center justify-between">
+        <span className="font-bold text-gray-700 dark:text-gray-300">
+          Showing {visibleCount} of {totalCount} clients
+        </span>
+        {hasFilters && (
+          <button
+            onClick={clearFilters}
+            className="text-sm cursor-pointer px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          >
+            <Icon icon="xmark" iconType="solid" size={16} /> Clear filters
+          </button>
+        )}
+      </div>
+      <div className="mt-3">
+        <input
+          type="text"
+          placeholder="Search clients by name..."
+          value={searchText}
+          onChange={(e) => filterStore.setState({ searchText: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        />
+      </div>
+      <div className="mt-4">
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Filter by features:
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {FEATURES.map(feature => (
+            <button
+              key={feature}
+              onClick={() => toggleFeature(feature)}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors cursor-pointer ${
+                selectedFeatures.includes(feature)
+                  ? 'bg-primary/10 text-primary dark:bg-gray-700 dark:text-gray-100'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Icon
+                icon={selectedFeatures.includes(feature) ? "square-check" : "square"}
+                iconType={selectedFeatures.includes(feature) ? "solid" : "regular"}
+                size={16}
+              />
+              {feature}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export const McpClient = ({ name, homepage, supports, sourceCode, instructions, children }) => {
   const slug = name
     .toLowerCase()
-    .replace(/[().\s-]+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replace(/[().\s-]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   if (homepage?.match(/^https:\/\/github\.com\/[^/]+\/[^/]+/)) {
     sourceCode ??= homepage;
@@ -30,6 +158,7 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
   const [expanded, setExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
   const contentRef = useRef(null);
+  const isVisible = useFilter({ name, supports });
 
   useEffect(() => {
     const el = contentRef.current;
@@ -37,6 +166,8 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
       setHasOverflow(el.scrollHeight > el.clientHeight);
     }
   }, []);
+
+  if (!isVisible) return null;
 
   return (
     <div id={slug} className="group mt-8 scroll-mt-32">
@@ -93,7 +224,7 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
         <div className="relative">
           <div
             ref={contentRef}
-            className={`px-4 py-4 prose ${!expanded ? 'max-h-[7rem] overflow-hidden' : 'pb-8'}`}
+            className={`px-4 py-4 prose ${!expanded ? "max-h-[7rem] overflow-hidden" : "pb-8"}`}
           >
             {children}
           </div>
@@ -101,10 +232,10 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
             <button
               onClick={() => setExpanded(!expanded)}
               className={`absolute bottom-0 left-0 right-0 flex justify-center items-end pb-1 cursor-pointer text-gray-400 hover:text-gray-600 ${
-                !expanded ? 'h-16 bg-gradient-to-t from-white dark:from-gray-900 to-transparent' : 'h-8'
+                !expanded ? "h-16 bg-gradient-to-t from-white dark:from-gray-900 to-transparent" : "h-8"
               }`}
             >
-              <span className={`${expanded ? 'rotate-180' : ''} bg-white/60 dark:bg-gray-900/60 rounded-full`}>
+              <span className={`${expanded ? "rotate-180" : ""} bg-white/60 dark:bg-gray-900/60 rounded-full`}>
                 <Icon icon="chevron-down" iconType="solid" size={18} />
               </span>
             </button>
@@ -121,11 +252,13 @@ This page provides an overview of applications that support the Model Context Pr
 
 <Note>
 
-This list is maintained by the community. If you notice any inaccuracies or would like to update information about MCP support in your application, please submit a pull request or [open an issue in our documentation repository](https://github.com/modelcontextprotocol/modelcontextprotocol/issues).
+This list is maintained by the community. If you notice any inaccuracies or would like to add or update information about MCP support in your application, please [submit a pull request](https://github.com/modelcontextprotocol/modelcontextprotocol/pulls).
 
 </Note>
 
 ## Client details
+
+<ClientFilter />
 
 <McpClient
   name="5ire"
@@ -279,7 +412,7 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 **Key features:**
 
 - Connects to any MCP server via SSE.
-- Works with the [Apify MCP Server](https://apify.com/apify/actors-mcp-server) to interact with one or more Apify [Actors](https://apify.com/store).
+- Works with the [Apify MCP Server](https://mcp.apify.com) to interact with one or more Apify [Actors](https://apify.com/store).
 - Dynamically utilizes tools based on context and user queries (if supported by the server).
 
 </McpClient>
@@ -465,9 +598,9 @@ Chorus is a native Mac app for chatting with AIs. Chat with multiple models at o
 
 <McpClient
   name="Claude Code"
-  homepage="https://claude.ai/download/claude-code"
-  supports="Resources, Prompts, Tools, Roots, Instructions"
-  instructions="https://docs.anthropic.com/en/docs/claude-code/mcp"
+  homepage="https://claude.com/product/claude-code"
+  supports="Resources, Prompts, Tools, Roots, Instructions, Discovery"
+  instructions="https://code.claude.com/docs/en/mcp"
 >
 
 Claude Code is an interactive agentic coding tool from Anthropic that helps you code faster through natural language commands. It supports MCP integration for resources, prompts, tools, and roots, and also functions as an MCP server to integrate with other clients.
@@ -482,7 +615,7 @@ Claude Code is an interactive agentic coding tool from Anthropic that helps you 
 <McpClient
   name="Claude Desktop App"
   homepage="https://claude.ai/download"
-  supports="Resources, Prompts, Tools"
+  supports="Resources, Prompts, Tools, Apps"
   instructions={[
     ["Local servers", "https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop"],
     ["Remote servers", "https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp"]
@@ -551,6 +684,25 @@ CodeGPT is a popular VS Code and Jetbrains extension that brings AI-powered codi
 **Learn more:**
 
 - [CodeGPT Documentation](https://docs.codegpt.co/)
+
+</McpClient>
+
+<McpClient
+  name="Codex"
+  homepage="https://github.com/openai/codex"
+  supports="Resources, Tools, Elicitation"
+  instructions="https://developers.openai.com/codex/mcp/"
+>
+
+Codex is a lightweight AI-powered coding agent from OpenAI that runs in your terminal.
+
+**Key features:**
+
+- Support for MCP tools (listing and invocation)
+- Support for MCP resources (list, read, and templates)
+- Elicitation support (routes requests to TUI for user input)
+- Supports STDIO and HTTP streaming transports with OAuth
+- Also available as VS Code extension
 
 </McpClient>
 
@@ -675,6 +827,24 @@ fast-agent is a Python Agent framework, with simple declarative support for crea
 </McpClient>
 
 <McpClient
+  name="Firebender"
+  homepage="https://firebender.com"
+  supports="Tools"
+  instructions="https://docs.firebender.com/context/mcp"
+>
+
+Firebender is an IntelliJ plugin that offers a world-class coding agent with MCP integration for tool calling.
+
+**Key features:**
+
+- Tool integration for executing commands and scripts via STDIO, SSE indirectly supported via mcp-remote npm package.
+- Local server connections for enhanced privacy and security
+- MCPs can be installed via project rules or local workstation rules files.
+- Individual tools within MCPs can be turned off.
+
+</McpClient>
+
+<McpClient
   name="FlowDown"
   homepage="https://github.com/Lakr233/FlowDown"
   supports="Tools"
@@ -779,7 +949,7 @@ Delegate tasks to GitHub Copilot coding agent and let it work in the background 
 <McpClient
   name="Glama"
   homepage="https://glama.ai/chat"
-  supports="Resources, Prompts, Tools"
+  supports="Discovery, Elicitation, Instructions, Prompts, Resources, Sampling, Tasks, Tools"
 >
 
 Glama is a comprehensive AI workspace and integration platform that offers a unified interface to leading LLM providers, including OpenAI, Anthropic, and others. It supports the Model Context Protocol (MCP) ecosystem, enabling developers and enterprises to easily discover, build, and manage MCP servers.
@@ -798,7 +968,7 @@ Glama is a comprehensive AI workspace and integration platform that offers a uni
 <McpClient
   name="goose"
   homepage="https://github.com/block/goose"
-  supports="Resources, Prompts, Tools, Sampling, Instructions"
+  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions, Apps"
   instructions="https://block.github.io/goose/docs/getting-started/using-extensions/"
 >
 
@@ -1092,6 +1262,24 @@ MCP Bundler is perfect local proxy for your MCP workflow. The app centralizes al
 </McpClient>
 
 <McpClient
+  name="MCPBundles"
+  homepage="https://www.mcpbundles.com/studio"
+  supports="Resources, Prompts, Tools, Discovery"
+>
+
+MCPBundles provides MCPBundle Studio, a browser-based MCP client for testing and executing MCP tools on remote MCP servers.
+
+**Key features:**
+
+- Discover and inspect available tools with parameter schemas and descriptions
+- Supports OAuth and API key authentication for secure provider connections
+- Execute MCP tools with form-based and chat based input
+- Implements Apps for rendering interactive UI responses from tools
+- Streamable HTTP transport for remote MCP server connections
+
+</McpClient>
+
+<McpClient
   name="mcp-agent"
   homepage="https://github.com/lastmile-ai/mcp-agent"
   supports="Resources, Prompts, Tools, Sampling (partial), Roots, Elicitation"
@@ -1144,6 +1332,24 @@ mcp-use is an open source python library to very easily connect any LLM to any M
 </McpClient>
 
 <McpClient
+  name="mcpc"
+  homepage="https://github.com/apify/mcpc"
+  supports="Resources, Prompts, Tools, Discovery, Instructions"
+>
+
+`mcpc` is a universal CLI client for MCP that maps MCP operations to intuitive commands for interactive shell use, scripts, and AI coding agents.
+
+**Key features:**
+
+- Swiss Army knife for MCP: supports stdio and streamable HTTP, server config files and zero config, OAuth 2.1, HTTP headers, and main MCP features.
+- Persistent sessions for interaction with multiple servers simultaneously.
+- Structured text output enables AI agents to explore and interact with MCP servers.
+- JSON output and schema validation allow stable integration with other CLI tools, scripting, and MCP **code mode** in a shell.
+- Proxy MCP server to provide AI code sandboxes with secure access to authenticated MCP sessions.
+
+</McpClient>
+
+<McpClient
   name="MCPHub"
   homepage="https://github.com/ravitemer/mcphub.nvim"
   supports="Resources, Prompts, Tools"
@@ -1156,25 +1362,25 @@ MCPHub is a powerful Neovim plugin that integrates MCP (Model Context Protocol) 
 - Install, configure and manage MCP servers with an intuitive UI.
 - Built-in Neovim MCP server with support for file operations (read, write, search, replace), command execution, terminal integration, LSP integration, buffers, and diagnostics.
 - Create Lua-based MCP servers directly in Neovim.
-- Inegrates with popular Neovim chat plugins Avante.nvim and CodeCompanion.nvim
+- Integrates with popular Neovim chat plugins Avante.nvim and CodeCompanion.nvim
 
 </McpClient>
 
 <McpClient
   name="MCPJam"
   homepage="https://github.com/MCPJam/inspector"
-  supports="Resources, Prompts, Tools, Elicitation"
+  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks, Apps"
   instructions="https://docs.mcpjam.com/getting-started"
 >
 
-MCPJam is an open source testing and debugging tool for MCP servers - Postman for MCP servers.
+MCPJam Inspector is the local development client for ChatGPT apps, MCP ext-apps, and MCP servers.
 
 **Key features:**
 
-- Test your MCP server's tools, resources, prompts, and OAuth. MCP spec compliant.
-- LLM playground to test your server against different LLMs.
-- Tracing and logging error messages.
-- Connect and test multiple MCP servers simultaneously.
+- Local emulator for ChatGPT Apps SDK and MCP ext-apps. No more ChatGPT subscription or ngrok needed.
+- OAuth debugger to visually inspect MCP server OAuth at every step.
+- LLM playground to chat with your MCP server against any LLM. We provide our own API tokens for free.
+- Connect, test, and inspect any MCP server that's local or remote. Manually invoke MCP tools, resource, prompts, etc. View all JSON-RPC logs.
 - Supports all transports - STDIO, SSE, and Streamable HTTP.
 
 </McpClient>
@@ -1217,6 +1423,30 @@ Memex is the first MCP client and MCP server builder - all-in-one desktop app. U
 **Learn more:**
 
 - [Memex Launch 2: MCP Teams and Agent API](https://memex.tech/blog/memex-launch-2-mcp-teams-and-agent-api-private-preview-125f)
+
+</McpClient>
+
+<McpClient
+  name="Memgraph Lab"
+  homepage="https://memgraph.com/lab"
+  supports="Tools, Sampling, Elicitation, Instructions"
+  instructions="https://memgraph.com/docs/memgraph-lab/features/graphchat#mcp-servers"
+>
+
+[Memgraph Lab](https://memgraph.com/lab) is a visualization and management tool for Memgraph graph databases. Its [GraphChat](https://memgraph.com/docs/memgraph-lab/features/graphchat) feature lets you query graph data using natural language, with MCP server integrations to extend your AI workflows.
+
+**Key features:**
+
+- Build GraphRAG workflows powered by knowledge graphs as the data backbone
+- Connect remote MCP servers via `SSE` or `Streamable HTTP`
+- Support for MCP tools, sampling, elicitation, and instructions
+- Create multiple agents with different configurations for easy comparison and debugging
+- Works with various LLM providers (OpenAI, Azure OpenAI, Anthropic, Gemini, Ollama, DeepSeek)
+- Available as a Desktop app or Docker container
+
+**Learn more:**
+
+- [Memgraph Lab: MCP integration](https://memgraph.com/docs/memgraph-lab/features/graphchat#mcp-servers)
 
 </McpClient>
 
@@ -1380,6 +1610,24 @@ NVIDIA Agent Intelligence (AIQ) toolkit is a flexible, lightweight, and unifying
 </McpClient>
 
 <McpClient
+  name="opencode"
+  homepage="https://opencode.ai"
+  sourceCode="https://github.com/anomalyco/opencode"
+  supports="Resources, Prompts, Tools"
+  instructions="https://opencode.ai/docs/mcp-servers/"
+>
+
+OpenCode is an open source AI coding agent. It’s available as a terminal-based interface, desktop app, or IDE extension.
+
+**Key features:**
+
+- Support for MCP tools
+- Support for MCP resources in the cli using `@` prefix
+- Support for MCP prompts in the cli as slash commands using `/` prefix
+
+</McpClient>
+
+<McpClient
   name="OpenSumi"
   homepage="https://github.com/opensumi/core"
   supports="Tools"
@@ -1412,7 +1660,7 @@ oterm is a terminal client for Ollama allowing users to create chats/agents.
 <McpClient
   name="Postman"
   homepage="https://postman.com/downloads"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Elicitation"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Elicitation, Apps"
 >
 
 Postman is the most popular API client and now supports MCP server testing and debugging.
@@ -1423,6 +1671,30 @@ Postman is the most popular API client and now supports MCP server testing and d
 - Fast, seamless UI for debugging MCP capabilities
 - MCP config integration (Claude, VSCode, etc.) for fast first-time experience in testing MCPs
 - Integration with history, variables, and collections for reuse and collaboration
+
+</McpClient>
+
+<McpClient
+  name="Proxyman"
+  homepage="https://proxyman.com"
+  supports="Tools"
+  instructions="https://docs.proxyman.com/mcp"
+>
+
+Proxyman is a native macOS app for HTTP debugging and network monitoring. It now includes an MCP Server that enables AI assistants (Claude, Cursor, and other MCP-compatible tools) to directly interact with Proxyman for inspecting HTTP traffic, creating debugging rules, and controlling the app through natural language.
+
+**Key features:**
+
+- **AI-Powered Debugging**: Ask AI to analyze captured traffic, find specific requests, or explain API responses
+- **Hands-Free Rule Creation**: Create breakpoints, map local/remote rules through conversation
+- **Traffic Inspection Tools**: Get flows, flow details, export cURL commands, and filter traffic with multiple criteria
+- **Session Control**: Clear sessions, toggle recording, and manage SSL proxying domains
+- **Secure by Design**: Localhost-only server with per-session token authentication
+
+**Learn more:**
+
+- [Proxyman MCP Documentation](https://docs.proxyman.com/mcp)
+- [Proxyman Website](https://proxyman.com)
 
 </McpClient>
 
@@ -1478,6 +1750,22 @@ Roo Code enables AI coding assistance via MCP.
 
 </McpClient>
 
+<McpClient
+  name="rtrvr.ai"
+  homepage="https://rtrvr.ai"
+  supports="Tools"
+  instructions="https://www.rtrvr.ai/docs/tool-calling"
+>
+[rtrvr.ai](https://rtrvr.ai) is AI Web Agent Chrome Extension that autonomously runs complex browser workflows, retrieves data to Sheets, and calls API's/MCP Servers – all with just prompting and within your own browser!
+
+**Key features:**
+
+- Easy MCP Integration within your browser: Just open the Chrome Extension, add the server URL, and prompt server calls with the web as context!
+- Remote control your browser by turning your browser into MCP Server: Just copy/paste MCP URL into any MCP Client (no npx needed), and trigger agentic browser workflows!
+- Prompt our agent to execute workflows combining web agentic actions with MCP tool calls; find someone's email on the web and then send them an email with Zapier MCP.
+- Reusable and Schedulable Automations: After running a workflow, easily rerun or put on a schedule to execute in the background while you do other tasks in your browser.
+
+</McpClient>
 <McpClient
   name="Shortwave"
   homepage="https://www.shortwave.com"
@@ -1765,7 +2053,7 @@ v0 turns your ideas into fullstack apps, no code required. Describe what you wan
 <McpClient
   name="VS Code GitHub Copilot"
   homepage="https://code.visualstudio.com/"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps"
   instructions="https://code.visualstudio.com/docs/copilot/customization/mcp-servers"
 >
 

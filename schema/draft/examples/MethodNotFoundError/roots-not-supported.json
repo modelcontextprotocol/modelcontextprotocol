@@ -1,0 +1,7 @@
+{
+  "code": -32601,
+  "message": "Roots not supported",
+  "data": {
+    "reason": "Client does not have roots capability"
+  }
+}

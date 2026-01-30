@@ -358,7 +358,7 @@ Local MCP servers with inadequate restrictions or from untrusted sources introdu
 - **Arbitrary code execution**. Attackers can execute any command with MCP client privileges.
 - **No visibility**. Users have no insight into what commands are being executed.
 - **Command obfuscation**. Malicious actors can use complex or convoluted commands to appear legitimate.
-- **Data exfiltration**. Attackers can access legitimate local MCP servers via compromised javascript.
+- **Data exfiltration**. Attackers can access legitimate local MCP servers via compromised JavaScript.
 - **Data loss**. Attackers or bugs in legitimate servers could lead to irrecoverable data loss on the host machine.
 
 #### Mitigation
@@ -383,6 +383,7 @@ The MCP client **SHOULD** implement additional checks and guardrails to mitigate
 - Launch MCP servers with restricted access to the file system, network, and other system resources
 - Provide mechanisms for users to explicitly grant additional privileges (e.g., specific directory access, network access) when needed
 - Use platform-appropriate sandboxing technologies (containers, chroot, application sandboxes, etc.)
+- Keep sandboxing solutions up-to-date to account for emerging vulnerabilities
 
 MCP servers intending for their servers to be run locally **SHOULD** implement measures to prevent unauthorized usage from malicious processes:
 
