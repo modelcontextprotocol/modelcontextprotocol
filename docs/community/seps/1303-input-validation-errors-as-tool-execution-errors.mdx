@@ -1,0 +1,196 @@
+---
+title: "SEP-1303: Input Validation Errors as Tool Execution Errors"
+sidebarTitle: "SEP-1303: Input Validation Errors as Tool Executi…"
+description: "Input Validation Errors as Tool Execution Errors"
+---
+
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="green">Final</Badge>
+  <Badge color="gray">Standards Track</Badge>
+</div>
+
+| Field         | Value                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| **SEP**       | 1303                                                                     |
+| **Title**     | Input Validation Errors as Tool Execution Errors                         |
+| **Status**    | Final                                                                    |
+| **Type**      | Standards Track                                                          |
+| **Created**   | 2025-08-05                                                               |
+| **Author(s)** | [@fredericbarthelet](https://github.com/fredericbarthelet)               |
+| **Sponsor**   | None                                                                     |
+| **PR**        | [#1303](https://github.com/modelcontextprotocol/specification/pull/1303) |
+
+---
+
+## Abstract
+
+This SEP proposes treating tools input validation errors as Tool Execution Errors rather than Protocol Errors. This change would enable language models to receive validation error feedback in their context window, allowing them to self-correct and successfully complete tasks without human intervention, significantly improving task completion rate.
+
+## Motivation
+
+Language models can learn from tool input validation error messages and retry a tools/call with corrected parameters accordingly, but only if they receive the error feedback in their context window. Protocol Errors are catch at the application level by the MCP Client. Only Tool Execution Errors are forwarded back to the model as JSON-RPC responses. With the current specifications, models cannot see these error messages and thus cannot self-correct, leading to repeated failures and poor user experiences.
+
+### Problem Statement
+
+Consider a flight booking tool that validates departure dates using the following `zod` validation schema:
+
+```typescript
+departureDate: z.string()
+  .regex(/^\d{2}\/\d{2}\/\d{4}$/, "date must be in dd/mm/yyyy format")
+  .superRefine((dateStr, ctx) => {
+    const date = parseDateFr(dateStr);
+    if (date.getTime() < Date.now()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Dates must be in the future. Current date is " +
+          formatDateFr(new Date()),
+      });
+    }
+    return true;
+  })
+  .describe("Departure date in dd/mm/yyyy format");
+```
+
+Tool expected input JSON schema can only describe the regex statement. The actual programmatic check that the date is in the past cannot be expressed here as JSON schema.
+Even when a model provides a syntactically correct date that passes JSON schema validation, there is no guarantee it will be in the future. When a validation error is raised and returned as a Protocol Error:
+
+1. The model doesn't receive the error message explaining why the date was rejected
+2. The model repeats the same mistake multiple times (e.g., Cursor typically consistently sends dates in 2024 when the user only specify day and month or relative date and repeats the same tools/call request 3 times without getting any information as to why the tools call fails)
+3. The task fails despite the model being capable of correcting itself if given proper feedback
+4. Users experience frustration and must manually intervene
+
+### Benefits of This Proposal
+
+1. **Higher Task Completion Rates**: Models can self-correct validation errors without human intervention
+2. **Better User Experience**: Reduced failures and faster task completion
+3. **Leverages Model Capabilities**: Modern LLMs excel at understanding and responding to error messages
+4. **Reduced API Calls**: Fewer retry attempts as models correct themselves on the first error
+
+## Specification
+
+### Current Behavior
+
+The [tool errors specification](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#error-handling) currently provides ambiguous guidance:
+
+- "Invalid arguments" should be treated as Protocol Error
+- "Invalid input data" should be treated as Tool Execution Error
+
+This ambiguity leads to inconsistent implementations where valuable error feedback is lost.
+
+### Proposed Change
+
+Clarify the specification with the following changes:
+
+1. Removes the "invalid argument" category from **Protocol Errors**.
+2. **Tool Execution Errors** should be used for all tool argument validation failures (merging `invalid argument` and `invalid input data` under a new `input validation errors` category)
+
+### Specification Text Changes
+
+Update the error handling section to include:
+
+```
+## Error Handling
+
+Tools use two error reporting mechanisms:
+
+1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
+
+   - Unknown tools
+   - Server errors
+
+2. **Tool Execution Errors**: Reported in tool results with `isError: true`:
+   - API failures
+   - Input validation errors
+   - Business logic errors
+```
+
+## Implementation
+
+### Before (Protocol Error)
+
+```typescript
+// Model submits past date
+request: {
+  ...
+  method: "tools/call",
+  params: {
+    name: "book_flight",
+    arguments: {
+      departureDate: "12/12/2024"  // Past date
+    }
+  }
+}
+
+// Server returns Protocol Error
+response: {
+  ...
+  error: {
+    code: -32602,
+    message: "Invalid params"
+  }
+}
+
+// Model retries blindly with another past date
+// This cycle repeats until failure
+```
+
+### After (Tool Execution Error)
+
+```typescript
+// Model submits past date
+request: {
+  ...
+  method: "tools/call",
+  params: {
+    name: "book_flight",
+    arguments: {
+      departureDate: "12/12/2024"  // Past date
+    }
+  }
+}
+
+// Server returns Tool Execution Error (visible to model)
+response: {
+  ...
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Dates must be in the future. Current date is 08/08/2025"
+      }
+    ],
+    "isError": true
+  }
+}
+
+// Model understands the error and corrects itself
+request: {
+  method: "tools/call",
+  params: {
+    name: "book_flight",
+    arguments: {
+      departureDate: "12/12/2025"  // Future date
+    }
+  }
+}
+```
+
+## Backwards Compatibility
+
+This change is backwards compatible as it:
+
+- Does not alter the protocol structure
+- Only clarifies existing ambiguous behavior
+- Maintains all existing error types and formats
+- Improves behavior without breaking existing implementations
+
+Servers implementing the clarified behavior will provide better model self-recovery while continuing to work with all existing clients.
+
+## References
+
+- [MCP Tools Error Handling Specification](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#error-handling)
+- [Better MCP tools/call Error Responses: Help Your AI Recover Gracefully](https://dev.to/alpic/better-mcp-toolscall-error-responses-help-your-ai-recover-gracefully-15c7)
+- Related Issue: https://github.com/modelcontextprotocol/typescript-sdk/pull/824
