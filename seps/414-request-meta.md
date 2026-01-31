@@ -1,0 +1,90 @@
+# SEP-414: Document OpenTelemetry Trace Context Propagation Conventions
+
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-01-20
+- **Author(s)**: Adrian Cole (@codefromthecrypt)
+- **Sponsor**: Marcelo Trylesinski (@Kludex)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/414
+
+## Abstract
+
+This SEP documents conventions for OpenTelemetry (OTel) trace context propagation in MCP.
+
+[OTel semantic conventions for MCP](https://github.com/open-telemetry/semantic-conventions/blob/e126ea9105b15912ccd80deab98929025189b696/docs/gen-ai/mcp.md#context-propagation)
+specify using `_meta` as the carrier for W3C Trace Context keys. This is already in practice in the
+C# SDK and other implementations.
+
+This SEP documents these conventions in the MCP specification, enabling interoperability across
+implementations and providing a foundation for other SEPs (such as
+[SEP-2028](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2028)).
+
+## Specification
+
+This SEP adds documentation to the MCP specification noting:
+
+1. When OTel trace context is propagated via `_meta`, the keys `traceparent`, `tracestate`, and
+   `baggage` follow [W3C Trace Context](https://www.w3.org/TR/trace-context/) and
+   [W3C Baggage](https://www.w3.org/TR/baggage/) value formats.
+
+2. A non-normative example showing trace context in `_meta`.
+
+See [agentclientprotocol/agent-client-protocol#297](https://github.com/agentclientprotocol/agent-client-protocol/pull/297)
+for equivalent documentation changes in ACP.
+
+### Non-normative example
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "_meta": {
+      "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
+    }
+  }
+}
+```
+
+## Rationale
+
+### Why document this?
+
+This is currently documented elsewhere, but not as an MCP specification. Doing so ensures that
+SEPs depending on this pattern can complete, as well as other SDKs in and outside the MCP org
+can as well, such as [ToolHive](https://github.com/stacklok/toolhive/issues/3399).
+
+If we don't document this shared concern, differing interpretations could materialize, such
+as namespacing traceparent like `mcp.traceparent`, which will break traces and log correlation.
+
+### Related SEPs
+
+- [SEP-1788](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1788) - reserved
+  keys in `_meta`; should be updated with `traceparent`, `tracestate`, and `baggage` when this
+  SEP is implemented
+- [SEP-2028](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2028) - builds on
+  this SEP for forwarding `_meta` values to HTTP headers
+
+## Backward Compatibility
+
+This SEP documents existing conventions and is backward compatible.
+
+## Security Implications
+
+Trace context in `_meta` may include correlation IDs. Implementations should follow existing
+data-handling guidance appropriate to their environment.
+
+## Reference Implementation
+
+Existing implementations using this pattern:
+
+- [C# SDK instrumentation](https://github.com/modelcontextprotocol/csharp-sdk/blob/main/src/ModelContextProtocol.Core/Diagnostics.cs)
+- [Python SDK instrumentation](https://github.com/modelcontextprotocol/python-sdk/pull/1693)
+- [OpenInference MCP instrumentation (Python)](https://github.com/Arize-ai/openinference/tree/main/python/instrumentation/openinference-instrumentation-mcp)
+- [OpenInference MCP instrumentation (TypeScript)](https://github.com/Arize-ai/openinference/tree/main/js/packages/openinference-instrumentation-mcp)
+- [Envoy AI Gateway](https://github.com/envoyproxy/ai-gateway/blob/6331b54aef81dd6c8d3d184acc4e2cb8167cea2a/internal/tracing/tracingapi/mcp.go)
