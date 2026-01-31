@@ -74,34 +74,34 @@ This specification uses a **group-based model** where semantically related heade
 
 #### 1.1 Policies
 
-| Policy              | Behavior                                                                                                              | Use When                                        |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Policy               | Behavior                                                                                                                | Use When                                                         |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `clear-and-use-meta` | If ANY header in the group exists in `_meta`, discard ALL existing headers in that group, then forward ALL from `_meta` | Headers are tightly coupled (e.g., `traceparent` + `tracestate`) |
-| `merge-with-meta`    | For each header: if it exists in `_meta`, overwrite existing; otherwise preserve existing                             | Headers are independent (e.g., `baggage`)       |
-| `ignore-meta`        | Never forward from `_meta` for this group; existing headers are always preserved                                      | Disable forwarding entirely                     |
+| `merge-with-meta`    | For each header: if it exists in `_meta`, overwrite existing; otherwise preserve existing                               | Headers are independent (e.g., `baggage`)                        |
+| `ignore-meta`        | Never forward from `_meta` for this group; existing headers are always preserved                                        | Disable forwarding entirely                                      |
 
 #### 1.2 Behavior Matrix
 
-| Policy               | `_meta` has header? | Existing header? | Result                                        |
-| -------------------- | ------------------- | ---------------- | --------------------------------------------- |
+| Policy               | `_meta` has header? | Existing header? | Result                                                |
+| -------------------- | ------------------- | ---------------- | ----------------------------------------------------- |
 | `clear-and-use-meta` | Yes (any in group)  | Yes              | Clear ALL existing in group, forward ALL from `_meta` |
-| `clear-and-use-meta` | Yes (any in group)  | No               | Forward from `_meta`                          |
-| `clear-and-use-meta` | No                  | Yes              | Keep existing                                 |
-| `merge-with-meta`    | Yes                 | Yes              | Overwrite that specific header with `_meta` value |
-| `merge-with-meta`    | Yes                 | No               | Forward from `_meta`                          |
-| `merge-with-meta`    | No                  | Yes              | Keep existing                                 |
-| `ignore-meta`        | Yes                 | Yes              | Keep existing, ignore `_meta`                 |
-| `ignore-meta`        | Yes                 | No               | Do nothing                                    |
-| `ignore-meta`        | No                  | Yes              | Keep existing                                 |
+| `clear-and-use-meta` | Yes (any in group)  | No               | Forward from `_meta`                                  |
+| `clear-and-use-meta` | No                  | Yes              | Keep existing                                         |
+| `merge-with-meta`    | Yes                 | Yes              | Overwrite that specific header with `_meta` value     |
+| `merge-with-meta`    | Yes                 | No               | Forward from `_meta`                                  |
+| `merge-with-meta`    | No                  | Yes              | Keep existing                                         |
+| `ignore-meta`        | Yes                 | Yes              | Keep existing, ignore `_meta`                         |
+| `ignore-meta`        | Yes                 | No               | Do nothing                                            |
+| `ignore-meta`        | No                  | Yes              | Keep existing                                         |
 
 #### 1.3 Predefined Groups
 
 SDKs MUST support these predefined header groups:
 
-| Group Name      | Headers                      | Default Policy       | Rationale                                                                 |
-| --------------- | ---------------------------- | -------------------- | ------------------------------------------------------------------------- |
-| `trace-context` | `traceparent`, `tracestate`  | `clear-and-use-meta` | Tightly coupled per W3C Trace Context spec; `tracestate` is keyed to `traceparent` |
-| `baggage`       | `baggage`                    | `merge-with-meta`    | Independent W3C standard; can be replaced independently                   |
+| Group Name      | Headers                     | Default Policy       | Rationale                                                                          |
+| --------------- | --------------------------- | -------------------- | ---------------------------------------------------------------------------------- |
+| `trace-context` | `traceparent`, `tracestate` | `clear-and-use-meta` | Tightly coupled per W3C Trace Context spec; `tracestate` is keyed to `traceparent` |
+| `baggage`       | `baggage`                   | `merge-with-meta`    | Independent W3C standard; can be replaced independently                            |
 
 **Note**: W3C Trace Context and W3C Baggage are separate standards that can version independently, hence they are separate groups with independent policies.
 
@@ -137,20 +137,24 @@ SDKs MUST support configuring header groups via `headerGroups`:
 const server = new Server({
   headerGroups: {
     // Override predefined group policy
-    "baggage": { policy: "ignore-meta" },  // Disable baggage forwarding
+    baggage: { policy: "ignore-meta" }, // Disable baggage forwarding
 
     // Define custom group for Datadog
-    "datadog": {
-      headers: ["x-datadog-trace-id", "x-datadog-parent-id", "x-datadog-sampling-priority"],
-      policy: "clear-and-use-meta"  // These headers are coupled
+    datadog: {
+      headers: [
+        "x-datadog-trace-id",
+        "x-datadog-parent-id",
+        "x-datadog-sampling-priority",
+      ],
+      policy: "clear-and-use-meta", // These headers are coupled
     },
 
     // Define custom group for internal headers
-    "internal": {
+    internal: {
       headers: ["x-tenant-id", "x-request-id", "x-correlation-id"],
-      policy: "merge-with-meta"  // These are independent
-    }
-  }
+      policy: "merge-with-meta", // These are independent
+    },
+  },
 });
 ```
 
@@ -173,7 +177,7 @@ SDKs SHOULD provide a utility for manual header extraction when needed:
 import { extractHttpHeaders } from "@modelcontextprotocol/sdk/utils";
 
 const headers = extractHttpHeaders(context.meta, {
-  groups: ["trace-context", "internal"]  // Extract specific groups
+  groups: ["trace-context", "internal"], // Extract specific groups
 });
 ```
 
@@ -193,10 +197,10 @@ Invalid fields MUST be silently dropped (not cause errors).
 
 #### 4.1 Header Group Configuration
 
-| Property  | Type                                                     | Required | Description                    |
-| --------- | -------------------------------------------------------- | -------- | ------------------------------ |
+| Property  | Type                                                             | Required | Description                    |
+| --------- | ---------------------------------------------------------------- | -------- | ------------------------------ |
 | `policy`  | `"clear-and-use-meta"` \| `"merge-with-meta"` \| `"ignore-meta"` | Yes      | Forwarding and conflict policy |
-| `headers` | `string[]`                                               | No*      | Headers in this group          |
+| `headers` | `string[]`                                                       | No\*     | Headers in this group          |
 
 \* `headers` is required for custom groups, optional when overriding predefined groups.
 
