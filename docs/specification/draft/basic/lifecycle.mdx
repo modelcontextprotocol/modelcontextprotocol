@@ -35,6 +35,71 @@ sequenceDiagram
     Note over Client,Server: Connection closed
 ```
 
+## Server-Side State Machine
+
+The server-side lifecycle can be illustrated as a simple state machine. The states
+below describe the server's view of the handshake and are useful for enforcing
+**MUST**, **MUST NOT**, and **SHOULD** gating rules.
+
+```mermaid
+stateDiagram-v2
+    [*] --> START
+    START --> WAIT_INIT: transport connected
+    WAIT_INIT --> WAIT_INITIALIZED: initialize request accepted + response sent
+    WAIT_INITIALIZED --> READY: initialized notification received
+    READY --> [*]: transport disconnected
+```
+
+### State Definitions and Gating
+
+**START (connected)**  
+Transport is up. No protocol version or capabilities are negotiated yet.
+
+- The server **MUST NOT** assume any negotiated capabilities.
+- The server **SHOULD** transition to `WAIT_INIT` immediately after the transport
+  is connected.
+
+**WAIT_INIT**  
+Server is waiting for the `initialize` request.
+
+- The server **MUST** accept `initialize` as the first request.
+- The server **MUST NOT** process any other request or notification; it **SHOULD**
+  respond with an error such as "server not initialized" if it receives one.
+- The server **SHOULD NOT** send any requests to the client, except
+  [pings](/specification/draft/basic/utilities/ping) if supported.
+
+**WAIT_INITIALIZED**  
+Server has replied to `initialize`, but has not yet received
+`notifications/initialized`.
+
+- The server **MUST** treat protocol version and capabilities as negotiated.
+- The server **MUST NOT** assume the client is ready for capability-dependent
+  behavior.
+- The server **SHOULD NOT** send requests other than
+  [pings](/specification/draft/basic/utilities/ping) and
+  [logging](/specification/draft/server/utilities/logging) before receiving the
+  `initialized` notification.
+
+**READY**  
+Normal operation.
+
+- The server **MUST** respect the negotiated protocol version and capabilities.
+- The server **MAY** send notifications (e.g., logging, progress, list changes) for
+  negotiated features.
+- The server **MAY** accept requests for tools, resources, prompts, tasks, and other
+  negotiated features.
+
+### Protocol State vs Transport State
+
+Protocol state (e.g., `WAIT_INIT`, `READY`) is separate from transport state
+(e.g., connected vs disconnected). A transport can be connected while the protocol
+is not yet initialized, and it can close at any time regardless of protocol state.
+
+For streaming behavior, the transport may carry partial results over an established
+connection, but **streaming is only valid once the protocol is in `READY`** and the
+relevant capability or method is negotiated. Transport-level events (connection
+open/close, backpressure) do not change protocol state by themselves.
+
 ## Lifecycle Phases
 
 ### Initialization
