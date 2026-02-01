@@ -312,7 +312,7 @@ With example values:
 ```json
 {
   // ... all the fields above
-    "packages": [
+  "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
