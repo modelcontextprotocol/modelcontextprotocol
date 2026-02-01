@@ -303,7 +303,7 @@ We rename the MCP Registry's `server.json` to `Extended MCP Server Card`, and de
 ```json
 {
   // ... all the fields above
-  "packages": { ... ]
+  "packages": [ ... ]
 }
 ```
 
