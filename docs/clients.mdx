@@ -5,7 +5,7 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Client ID Metadata Documents (CIMD)", "Dynamic Client Registration (DCR)"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Apps", "Client ID Metadata Documents (CIMD)", "Dynamic Client Registration (DCR)"];
 
 export const filterStore = {
   state: {
@@ -418,6 +418,28 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 </McpClient>
 
 <McpClient
+  name="Apigene MCP Client"
+  homepage="https://apigene.ai"
+  supports="Tools, Resources, Discovery"
+  instructions="https://docs.apigene.ai/user-guide/copilot"
+>
+
+Apigene MCP Client is an AI-powered conversational interface that enables seamless interaction with multiple applications, APIs, and MCP servers through natural language. It provides a unified interface for deploying agents across different AI platforms with optimized performance and governance.
+
+**Key features:**
+
+- **Multi-LLM Compatibility**: Works seamlessly with all leading AI platforms including Claude, OpenAI (ChatGPT), Gemini, xAI, and OpenRouter. Deploy the same agent across different platforms without modification.
+- **Optimized for Cost & Performance**: Dynamic tool loading loads tools only when needed, enabling thousands of tools without context bloat. Tool output optimization provides up to 99% payload reduction via compact JSON representation. Parallel execution runs multiple tool calls simultaneously for 10x faster responses.
+- **Unified Multi-Tool Interface**: Mesh multiple APIs and MCP servers into a single agent. Interact with all tools seamlessly from one Copilot interface without glue code or framework-specific logic.
+- **Governed Access & Audit**: Fine-grained access control defines exactly which operations each user or agent can perform. Complete audit trail tracks every tool call with timestamps, inputs, and outputs for compliance.
+
+**Learn more:**
+
+- [Apigene Copilot Documentation](https://docs.apigene.ai/user-guide/copilot)
+
+</McpClient>
+
+<McpClient
   name="Augment Code"
   homepage="https://augmentcode.com"
   supports="Tools"
@@ -615,7 +637,7 @@ Claude Code is an interactive agentic coding tool from Anthropic that helps you 
 <McpClient
   name="Claude Desktop App"
   homepage="https://claude.ai/download"
-  supports="Resources, Prompts, Tools, Dynamic Client Registration (DCR)"
+  supports="Resources, Prompts, Tools, Apps, Dynamic Client Registration (DCR)"
   instructions={[
     ["Local servers", "https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop"],
     ["Remote servers", "https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp"]
@@ -968,7 +990,7 @@ Glama is a comprehensive AI workspace and integration platform that offers a uni
 <McpClient
   name="goose"
   homepage="https://github.com/block/goose"
-  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions"
+  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions, Apps"
   instructions="https://block.github.io/goose/docs/getting-started/using-extensions/"
 >
 
@@ -1292,7 +1314,7 @@ MCPBundles provides MCPBundle Studio, a browser-based MCP client for testing and
 - Discover and inspect available tools with parameter schemas and descriptions
 - Supports OAuth and API key authentication for secure provider connections
 - Execute MCP tools with form-based and chat based input
-- Implements MCP Apps for rendering interactive UI responses from tools
+- Implements Apps for rendering interactive UI responses from tools
 - Streamable HTTP transport for remote MCP server connections
 
 </McpClient>
@@ -1387,7 +1409,7 @@ MCPHub is a powerful Neovim plugin that integrates MCP (Model Context Protocol) 
 <McpClient
   name="MCPJam"
   homepage="https://github.com/MCPJam/inspector"
-  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks, Client ID Metadata Documents (CIMD), Dynamic Client Registration (DCR)"
+  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks, Apps, Client ID Metadata Documents (CIMD), Dynamic Client Registration (DCR)"
   instructions="https://docs.mcpjam.com/getting-started"
 >
 
@@ -1678,7 +1700,7 @@ oterm is a terminal client for Ollama allowing users to create chats/agents.
 <McpClient
   name="Postman"
   homepage="https://postman.com/downloads"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Elicitation"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Elicitation, Apps"
 >
 
 Postman is the most popular API client and now supports MCP server testing and debugging.
@@ -2071,7 +2093,7 @@ v0 turns your ideas into fullstack apps, no code required. Describe what you wan
 <McpClient
   name="VS Code GitHub Copilot"
   homepage="https://code.visualstudio.com/"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Client ID Metadata Documents (CIMD), Dynamic Client Registration (DCR)"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps, Client ID Metadata Documents (CIMD), Dynamic Client Registration (DCR)"
   instructions="https://code.visualstudio.com/docs/copilot/customization/mcp-servers"
 >
 
