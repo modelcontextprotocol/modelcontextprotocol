@@ -292,7 +292,7 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
     2. If array: Static list following the `Prompt` interface
 21. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
-#### Dynamic Primitives
+### Dynamic Primitives
 
 MCP primitives are dynamic in nature and can change. To indicate that a list of primitives is dynamic in nature, authors can provide the reserved string "dynamic" (as an array with a single element) for the resources, tools, or prompts field. This indicates that the full list of primitives must be discovered through the protocol's standard list operations.
 
