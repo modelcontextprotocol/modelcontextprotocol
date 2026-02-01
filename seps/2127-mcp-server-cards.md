@@ -56,6 +56,24 @@ Example:
 
 We can develop and iterate on MCP Server Cards largely independently from the broader effort to integrate with AI Cards, as long as we maintain some integration point so it is possible to understand when an entry in an AI Card references an MCP Server Card that is hosted and maintained elsewhere.
 
+### Extended MCP Server Cards
+
+The focus of MCP Server Cards is on expressing _remote_ MCP servers; however the card is designed to be compatible with an Extended MCP Server Card that includes consideration for locally-run MCP servers (e.g. where to download executable packages, how to run them).
+
+This alignment is useful for the following reasons:
+
+1) **Cross-cutting concerns**. The two use cases share many cross-cutting concerns, such as static primitive definitions, identity, documentation, and more. By keeping one as a strict subset of the other, we ensure that efforts to improve the shape move in concert and avoid re-inventing the wheel.
+
+2) **Shared tooling**. Only one set of tooling or frameworks needs to exist to parse and generate/modify Server Card files.
+
+3) **Sprawl and adoption friction**. Server maintainers don't have _yet another_ shape to maintain. For example, a single server may already have a `package.json`, `Dockerfile`, `manifest.json`, and more. By consolidating to a single `server-card.json` shape, we limit further maintenance sprawl and adoption friction.
+
+We chose not to include these local considerations in the core MCP Server Card specification because:
+
+1) **Compliance with .well-known guidance**. Given our intent to use MCP Server Cards in concert with `.well-known` standardization, [RFC 5785](https://www.ietf.org/rfc/rfc5785.txt) says, _"in keeping with the Architecture of the World-Wide Web, well-known URIs are not intended for general information retrieval or establishment of large URI namespaces on the Web. Rather, they are designed to facilitate discovery of information on a site when it isn't practical to use other mechanisms; for example, when discovering policy that needs to be evaluated before a resource is accessed, or when using multiple round-trips is judged detrimental to performance."_. Local servers cannot, by definition, be hosted on a website, and so do not belong in file hosted at a `.well-known` URI.
+
+2) **Exposure of additional security vectors**. If we include local servers (and how to run them) in this shape, we would effectively be saying that clients that receive that metadata must absolutely do proper input sanitization as you just gave a one-click shortcut for someone to install something/trigger execution on a local machine. The threat model went from "We can point to resources to connect to" to "Here is an executable blob that might run on a target machine right away if the client didn't check it." You could also argue that this is something we do with the registry today, and the discovery mechanism might just be a variation of it - however, the registry has some degree of moderation. This would be a wide-open mechanism for anyone to advertise their server, however good or bad it is.
+
 ## Specification
 
 This section provides the technical specification for MCP Server Cards.
@@ -77,7 +95,6 @@ This section provides the technical specification for MCP Server Cards.
   },
   "icons": [ ... ],
   "remotes": [ ... ],
-  "packages": [ ... ],
   "capabilities":  { ... },
   "requires": { ... },
   "resources": [ ... ],
@@ -146,58 +163,6 @@ Fleshed out (contrived values) example:
         "required": true,
         "schemes": ["bearer", "oauth2"]
       },
-    }
-  ],
-  "packages": [
-    {
-      "registryType": "npm",
-      "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@modelcontextprotocol/server-brave-search",
-      "version": "1.0.2",
-      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
-      "transport": {
-        "type": "stdio"
-      },
-      "runtimeArguments": [
-        {
-          "type": "named",
-          "description": "Mount a volume into the container",
-          "name": "--mount",
-          "value": "type=bind,src={source_path},dst={target_path}",
-          "isRequired": true,
-          "isRepeated": true,
-          "variables": {
-            "source_path": {
-              "description": "Source path on host",
-              "format": "filepath",
-              "isRequired": true
-            },
-            "target_path": {
-              "description": "Path to mount in the container. It should be rooted in `/project` directory.",
-              "isRequired": true,
-              "default": "/project"
-            }
-          }
-        }
-      ],
-      "packageArguments": [
-        {
-          "type": "positional",
-          "value": "mcp"
-        },
-        {
-          "type": "positional",
-          "value": "start"
-        }
-      ],
-      "environmentVariables": [
-        {
-          "name": "BRAVE_API_KEY",
-          "description": "Brave Search API Key",
-          "isRequired": true,
-          "isSecret": true
-        }
-      ]
     }
   ],
   "capabilities": {
@@ -282,7 +247,7 @@ Fleshed out (contrived values) example:
 
 ```
 
-### Field Descriptions
+#### Field Descriptions
 
 Most fields follow the current MCP Registry `server.json` standard: https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md
 
@@ -295,15 +260,12 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
 6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/server.schema.json#L371).
 7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L18).
 8. **remotes** (array of object, optional): Metadata helpful for making HTTP-based connections to this MCP server.
-9. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
-10. **authentication** (object, optional): Authentication requirements
-11. **required** (boolean, required): Whether authentication is mandatory
-12. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
-13. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
-14. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
-15. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
-16. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
-17. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
+   1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
+   2. **authentication** (object, optional): Authentication requirements
+      1. **required** (boolean, required): Whether authentication is mandatory
+      2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
+   3. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
+16. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
     1. **experimental** (object, optional): Experimental capabilities
     2. **logging** (object, optional): Log message support
     3. **completions** (object, optional): Argument autocompletion support
@@ -314,25 +276,104 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
        2. **listChanged** (boolean, optional): Change notification support
     6. **tools** (object, optional): Tool support
        1. **listChanged** (boolean, optional): Change notification support
-18. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
+17. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
     1. **experimental** (object, optional): Required experimental capabilities
     2. **roots** (object, optional): Root access requirement
     3. **sampling** (object, optional): LLM sampling requirement
     4. **elicitation** (object, optional): User elicitation requirement
-19. **resources** (string | array, optional): Resource definitions
+18. **resources** (string | array, optional): Resource definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Resource` interface
-20. **tools** (string | array, optional): Tool definitions
+19. **tools** (string | array, optional): Tool definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Tool` interface
-21. **prompts** (string | array, optional): Prompt definitions
+20. **prompts** (string | array, optional): Prompt definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Prompt` interface
-22. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
+21. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
-### Dynamic Primitives
+#### Dynamic Primitives
 
 MCP primitives are dynamic in nature and can change. To indicate that a list of primitives is dynamic in nature, authors can provide the reserved string "dynamic" (as an array with a single element) for the resources, tools, or prompts field. This indicates that the full list of primitives must be discovered through the protocol's standard list operations.
+
+### Extended MCP Server Card Schema
+
+We rename the MCP Registry's `server.json` to `Extended MCP Server Card`, and define the schema as having this shape:
+
+```json
+{
+  // ... all the fields above
+  "packages": { ... ]
+}
+```
+
+With example values:
+
+```json
+{
+  // ... all the fields above
+    "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@modelcontextprotocol/server-brave-search",
+      "version": "1.0.2",
+      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "description": "Mount a volume into the container",
+          "name": "--mount",
+          "value": "type=bind,src={source_path},dst={target_path}",
+          "isRequired": true,
+          "isRepeated": true,
+          "variables": {
+            "source_path": {
+              "description": "Source path on host",
+              "format": "filepath",
+              "isRequired": true
+            },
+            "target_path": {
+              "description": "Path to mount in the container. It should be rooted in `/project` directory.",
+              "isRequired": true,
+              "default": "/project"
+            }
+          }
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        },
+        {
+          "type": "positional",
+          "value": "start"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "BRAVE_API_KEY",
+          "description": "Brave Search API Key",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+
+1. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
+   1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Package.
+   2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
+
+See above for the rest.
 
 ### Endpoints
 
@@ -407,13 +448,11 @@ The `.well-known` URI pattern is an established IETF standard (RFC 8615) used by
 - Works with standard HTTP infrastructure (caches, CDNs, load balancers)
 - Is already familiar to developers working with web services
 
-### Why Mirror `server.json`'s shape?
+### Why Adopt `server.json`'s shape?
 
 MCP Server Cards aim to provide a static representation of server metadata and capabilities so that clients can discover and connect to them without prior knowledge of their existence.
 
-The MCP Registry and conformant internal Sub-Registry implementations share the same goal, just distributed via a centralized rather than decentralized manner.
-
-By avoiding inducing breaking changes to the `server.json` shape, we also leave intact dozens, perhaps hundreds of systems that are already in production across the MCP Registry-related ecosystem.
+The MCP Registry and its corresponding `server.json` share the same goal but for different consumers. Consequently, keeping both as closely aligned as possible ensures that we don't have to re-invent and diverge, and that developers have to only rely on one parser.
 
 ### Why Support Both Static and Dynamic Primitives?
 
