@@ -62,17 +62,17 @@ The focus of MCP Server Cards is on expressing _remote_ MCP servers; however the
 
 This alignment is useful for the following reasons:
 
-1) **Cross-cutting concerns**. The two use cases share many cross-cutting concerns, such as static primitive definitions, identity, documentation, and more. By keeping one as a strict subset of the other, we ensure that efforts to improve the shape move in concert and avoid re-inventing the wheel.
+1. **Cross-cutting concerns**. The two use cases share many cross-cutting concerns, such as static primitive definitions, identity, documentation, and more. By keeping one as a strict subset of the other, we ensure that efforts to improve the shape move in concert and avoid re-inventing the wheel.
 
-2) **Shared tooling**. Only one set of tooling or frameworks needs to exist to parse and generate/modify Server Card files.
+2. **Shared tooling**. Only one set of tooling or frameworks needs to exist to parse and generate/modify Server Card files.
 
-3) **Sprawl and adoption friction**. Server maintainers don't have _yet another_ shape to maintain. For example, a single server may already have a `package.json`, `Dockerfile`, `manifest.json`, and more. By consolidating to a single `server-card.json` shape, we limit further maintenance sprawl and adoption friction.
+3. **Sprawl and adoption friction**. Server maintainers don't have _yet another_ shape to maintain. For example, a single server may already have a `package.json`, `Dockerfile`, `manifest.json`, and more. By consolidating to a single `server-card.json` shape, we limit further maintenance sprawl and adoption friction.
 
 We chose not to include these local considerations in the core MCP Server Card specification because:
 
-1) **Compliance with .well-known guidance**. Given our intent to use MCP Server Cards in concert with `.well-known` standardization, [RFC 5785](https://www.ietf.org/rfc/rfc5785.txt) says, _"in keeping with the Architecture of the World-Wide Web, well-known URIs are not intended for general information retrieval or establishment of large URI namespaces on the Web. Rather, they are designed to facilitate discovery of information on a site when it isn't practical to use other mechanisms; for example, when discovering policy that needs to be evaluated before a resource is accessed, or when using multiple round-trips is judged detrimental to performance."_. Local servers cannot, by definition, be hosted on a website, and so do not belong in file hosted at a `.well-known` URI.
+1. **Compliance with .well-known guidance**. Given our intent to use MCP Server Cards in concert with `.well-known` standardization, [RFC 5785](https://www.ietf.org/rfc/rfc5785.txt) says, _"in keeping with the Architecture of the World-Wide Web, well-known URIs are not intended for general information retrieval or establishment of large URI namespaces on the Web. Rather, they are designed to facilitate discovery of information on a site when it isn't practical to use other mechanisms; for example, when discovering policy that needs to be evaluated before a resource is accessed, or when using multiple round-trips is judged detrimental to performance."_. Local servers cannot, by definition, be hosted on a website, and so do not belong in file hosted at a `.well-known` URI.
 
-2) **Exposure of additional security vectors**. If we include local servers (and how to run them) in this shape, we would effectively be saying that clients that receive that metadata must absolutely do proper input sanitization as you just gave a one-click shortcut for someone to install something/trigger execution on a local machine. The threat model went from "We can point to resources to connect to" to "Here is an executable blob that might run on a target machine right away if the client didn't check it." You could also argue that this is something we do with the registry today, and the discovery mechanism might just be a variation of it - however, the registry has some degree of moderation. This would be a wide-open mechanism for anyone to advertise their server, however good or bad it is.
+2. **Exposure of additional security vectors**. If we include local servers (and how to run them) in this shape, we would effectively be saying that clients that receive that metadata must absolutely do proper input sanitization as you just gave a one-click shortcut for someone to install something/trigger execution on a local machine. The threat model went from "We can point to resources to connect to" to "Here is an executable blob that might run on a target machine right away if the client didn't check it." You could also argue that this is something we do with the registry today, and the discovery mechanism might just be a variation of it - however, the registry has some degree of moderation. This would be a wide-open mechanism for anyone to advertise their server, however good or bad it is.
 
 ## Specification
 
@@ -265,32 +265,32 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
       1. **required** (boolean, required): Whether authentication is mandatory
       2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
    3. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
-16. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
-    1. **experimental** (object, optional): Experimental capabilities
-    2. **logging** (object, optional): Log message support
-    3. **completions** (object, optional): Argument autocompletion support
-    4. **prompts** (object, optional): Prompt template support
-       1. **listChanged** (boolean, optional): Change notification support
-    5. **resources** (object, optional): Resource support
-       1. **subscribe** (boolean, optional): Subscription support
-       2. **listChanged** (boolean, optional): Change notification support
-    6. **tools** (object, optional): Tool support
-       1. **listChanged** (boolean, optional): Change notification support
-17. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
+9. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
+   1. **experimental** (object, optional): Experimental capabilities
+   2. **logging** (object, optional): Log message support
+   3. **completions** (object, optional): Argument autocompletion support
+   4. **prompts** (object, optional): Prompt template support
+      1. **listChanged** (boolean, optional): Change notification support
+   5. **resources** (object, optional): Resource support
+      1. **subscribe** (boolean, optional): Subscription support
+      2. **listChanged** (boolean, optional): Change notification support
+   6. **tools** (object, optional): Tool support
+      1. **listChanged** (boolean, optional): Change notification support
+10. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
     1. **experimental** (object, optional): Required experimental capabilities
     2. **roots** (object, optional): Root access requirement
     3. **sampling** (object, optional): LLM sampling requirement
     4. **elicitation** (object, optional): User elicitation requirement
-18. **resources** (string | array, optional): Resource definitions
+11. **resources** (string | array, optional): Resource definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Resource` interface
-19. **tools** (string | array, optional): Tool definitions
+12. **tools** (string | array, optional): Tool definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Tool` interface
-20. **prompts** (string | array, optional): Prompt definitions
+13. **prompts** (string | array, optional): Prompt definitions
     1. If "dynamic": Must be discovered via protocol
     2. If array: Static list following the `Prompt` interface
-21. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
+14. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
 ### Dynamic Primitives
 
@@ -318,7 +318,7 @@ With example values:
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@modelcontextprotocol/server-brave-search",
       "version": "1.0.2",
-      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
+      "supportedProtocolVersions": ["2025-03-12", "2025-06-15"],
       "transport": {
         "type": "stdio"
       },
