@@ -1,12 +1,13 @@
-# MCP Primitive Grouping Server Capability
+# SEP-2084: MCP Primitive Grouping Server Capability
 
 ## Preamble
 
-- **Title:** MCP Primitive Grouping Server Capability
-- **Author(s):** Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall)
-- **Track:** Standards
-- **Status:** Draft
-- **Created:** 14 January 2026
+- **Status**: In-Review
+- **Type**: Standards Track
+- **Created**: 2026-01-14
+- **Author(s)**: Tapan Chugh (@chughtapan), Cliff Hall (@cliffhall)
+- **Sponsor**: Cliff Hall (@cliffhall)
+- **PR**: [#2084](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2084)
 
 ## Abstract
 
