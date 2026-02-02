@@ -400,6 +400,12 @@
                   "community/seps/2085-governance-succession-and-amendment",
                   "community/seps/2133-extensions"
                 ]
+              },
+              {
+                "group": "Unknown",
+                "pages": [
+                  "community/seps/2084-primitive-groups"
+                ]
               }
             ]
           },

@@ -1,0 +1,289 @@
+---
+title: "SEP-2084: Untitled"
+sidebarTitle: "SEP-2084: Untitled"
+description: "Untitled"
+---
+
+import { Badge } from "/snippets/badge.mdx";
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray">Unknown</Badge>
+  <Badge color="gray">Unknown</Badge>
+</div>
+
+| Field         | Value                                                                    |
+| ------------- | ------------------------------------------------------------------------ |
+| **SEP**       | 2084                                                                     |
+| **Title**     | Untitled                                                                 |
+| **Status**    | Unknown                                                                  |
+| **Type**      | Unknown                                                                  |
+| **Created**   | Unknown                                                                  |
+| **Author(s)** | Unknown                                                                  |
+| **Sponsor**   | None                                                                     |
+| **PR**        | [#2084](https://github.com/modelcontextprotocol/specification/pull/2084) |
+
+---
+
+## Abstract
+
+This SEP proposes Groups, a new server capability and primitive, to organize tools, prompts, resources, tasks, and groups themselves, into named collections.
+
+## Motivation
+
+### What are Groups?
+
+Groups are named collections of MCP primitives: tools, prompts, resources, tasks, and other groups, organized by use cases, functionality, etc.
+
+- A productivity server could organize groups such as Email or Calendar, and present related tools, e.g. Email: ["Draft Email", "Spell Check", "Send Email"], Calendar: ["Add Participants", "Find Open Time", "Create Appointment"]
+- A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
+- A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
+
+#### Groups are overlapping sets NOT hierarchies
+
+- Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
+- Since groups are a primitive, they may belong to multiple groups, and so the result is **not a hierarchy** but rather, potentially overlapping sets.
+- Server developers should take care to avoid cyclic graphs — e.g., a group belonging to itself or to a child.
+
+#### Transitivity
+
+- Primitive A is in group B. Group B is in group C. Is primitive A implicitly in group C also?
+- The Transitivity of groups is a matter of client interpretation.
+  - In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
+  - When listing the primitives in the `communications` group, I chose to have it display the contents of both children.
+  - So `email_thank_contributor` would appear in both `email` and `communications`.
+  - Some clients might wish to only show direct children of a group.
+    - If a server contained cyclic graphs, configuring the client to only show the direct children of a group would short circuit the graph traversal, unless the group contains itself as a direct child, which would be an obvious mistake on the server developer's part that would likely never happen in production.
+
+#### Visibility of Groups to LLMs
+
+- Groups are simply an organizational tool available to the server developer.
+- It is up to clients to decide how to interpret and make use of them, e.g., for deciding what primitives to expose to LLMs or simply ignoring them.
+- Server developers cannot expect that clients will pass any group information to LLMs, although they may.
+
+### Why use Groups?
+
+Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently. Some use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) include:
+
+#### Client-Side & User Organization
+
+- **Client-side Filtering:** Client UIs could display a list of groups and allow users to select/deselect specific groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
+
+- **Library Management:** Enabling users to create and manage organized Prompt and Resource libraries that can be shared or reused across different sessions.
+
+- **Presentation and Search:** Improving how humans and AI models look up and discover tools. Grouping helps organize the interface so that relevant tools are easier to find among hundreds of options.
+
+- **Workflow-Specific Context:** Providing a model with a "set" of tools and tasks specifically curated for a particular workflow, rather than overwhelming it with every available primitive.
+
+#### Server-Side & Architectural Patterns
+
+- **Gateway Facades:** Using a Gateway Server to wrap various backend services (REST APIs, databases, or legacy systems) into a single cohesive facade. For example, a group might dynamically expose a mix of tools from different MCP servers, APIs, REST services, etc.
+
+- **Dynamic Orchestration:** Supporting the ability to add or remove groups and tools without restarting the server, which is essential for high-availability gateway environments.
+
+- **Task Management:** Grouping the new Task primitive alongside tools and prompts to manage long-running workflows, sequencing, and concurrency.
+
+#### Governance & Development Lifecycle
+
+- **Governance and Security:** Providing a standardized mechanism for server-side governance of who can access specific sets of tools and resources.
+
+- **Ecosystem Tooling:** Supporting broader developer workflows such as debugging, automated testing, and documentation by grouping related diagnostic tools together.
+
+## Specification
+
+**Recommendation:** Groups are implemented as new MCP primitive, alongside the existing ones (i.e., tools, resources, prompts, and tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, use a new reserved `_meta` key to list the groups to which they belong.
+
+### Capability
+
+Servers that support groups MUST declare the capability during initialization, including whether list change notifications are supported. Group lists can change at runtime, and so support for listChanged notifications for each is included.
+
+```json
+{
+  "capabilities": {
+    "groups": {
+      "listChanged": true
+    }
+  }
+}
+```
+
+### Schema
+
+```json
+"Group": {
+ "properties": {
+   "name": {
+     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present). Must be unique.",
+     "type": "string"
+   },
+   "title": {
+     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood.",
+     "type": "string"
+   },
+   "description": {
+     "description": "A full, human-readable description of the group.",
+     "type": "string"
+   },
+   "_meta": {
+     "additionalProperties": {},
+     "description": "See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.",
+     "io.modelcontextprotocol/groups": {
+        "description": "A list of group names containing this group.",
+        "items": {
+           "type": "string"
+        },
+        "type": "array"
+     },
+     "type": "object",
+   },
+   "annotations": {
+     "$ref": "#/$defs/Annotation",
+     "description": "Optional additional group information.\n\nDisplay name precedence order is: title, annotations.title, then name."
+   },
+   "icons": {
+     "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
+     "items": {
+       "$ref": "#/$defs/Icon"
+     },
+     "type": "array"
+   }
+ },
+ "required": [
+   "name"
+ ],
+ "type": "object"
+}
+```
+
+### Reserved `_meta` Property for All Primitives
+
+Grouping of all primitives is handled in the same way, including groups themselves.
+
+For groups, tools, resources, prompts, and tasks, an optional reserved `_meta` key is used to present the list of group names to which the primitive instance belongs.
+
+By listing a primitive's groups in a reserved `_meta` property, we ensure backward compatibility.
+
+```json
+   "io.modelcontextprotocol/groups": {
+     "description": "A list of group names containing this [primitive name].",
+     "items": {
+       "type": "string"
+     },
+     "type": "array"
+   },
+```
+
+### Groups Discovery Method: groups/list
+
+Request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "groups/list"
+}
+```
+
+Response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "groups": [
+      {
+        "name": "user",
+        "title": "User Management Tools",
+        "description": "Tools used for managing user accounts within the system."
+      },
+      {
+        "name": "mapping",
+        "title": "Geospatial Mapping Tools",
+        "description": "Tools used for map rendering, geocoding, and spatial analysis."
+      }
+    ]
+  }
+}
+```
+
+### Changes to Response Formats
+
+As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `resources/templates/list`, `prompts/list`, `tasks/list`.
+Here is an example tool definition from `tools/list` response with new groups property:
+
+```json
+{
+  "name": "calculator",
+  "title": "Arithmetic Calculator",
+  "description": "Perform mathematical calculations on arithmetic expressions",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "expression": {
+        "type": "string",
+        "description": "Expression to evaluate (e.g., '2 + 3 * 4')"
+      }
+    },
+    "required": ["expression"]
+  },
+  "_meta": {
+    "io.modelcontextprotocol/groups": ["arithmetic"]
+  }
+}
+```
+
+### Notifications
+
+#### List Changed
+
+When the list of available groups changes, servers that declared the listChanged capability SHOULD send a notification:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/groups/list_changed"
+}
+```
+
+#### Membership Changed
+
+If a primitive is added (or removed) from a group, the server SHOULD send the `list_changed` notification appropriate for that primitive.
+
+## Rationale
+
+This specification proposal was selected for its ease of understanding since it mirrors the other MCP primitives.
+
+### Alternatives Considered
+
+- **Groups as MCP Resources instead of new primitive:** A completely separate proposal where the group metadata is declared in MCP resources with a specific schema and mimeType, referenced by their URIs, e.g., `mcp://groups/{groupId}`. Servers MAY publish the group index at a URI which MUST be defined in the capabilities object during the server initialization. This proposal could reduce spec changes and implementation effort significantly, but it was not considered as intuitive.
+
+- **Primitive's group list passed in a first class `groups` property:** A variation of the proposed specification, but the list of groups to which a primitive instance belongs would be presented by a `groups` property added to the top level of each primitive's schema.
+  This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
+  Since this proposal spans all primitives, such a compatibility failure would be unacceptable. We could require SDK developers to implement a "feature flag" that suppresses the top-level groups field in all primitives after protocol version negotiation takes place if there is a mismatch. However, that would be more effort and complexity than simply using a reserved metadata key to pass the primitive's group list, which older clients would simply ignore.
+
+- **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, beacuse groups belong to other groups, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
+  More information on this approach can be found in @scottslewis's [proposal](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1567).
+
+- **No Grouping of Groups** - A variation of the proposed specification, but Groups cannot have a group list. Avoids any worry of graphs — e.g., a group belonging to itself or to a child. Makes groups a flat list.
+
+## Security Implications
+
+No serious implications identified.
+
+We do wish to point out that use of groups for controlling access to a set of primitives, while a stated use case, could have security implications if groups change dynamically.
+
+## Reference Implementation
+
+- **Schema Changes:** [PR #2110](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2110)
+- **TypeScript SDK:** [PR #1399](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399) - Fully implemented with unit tests and documented client/server examples.
+
+The reference implementation's example client and server demonstrate how groups, tools, prompts, and resources can be grouped on the server, and the client can filter them by group. It manually demonstrates how an agent using the server could easily reduce the tokens placed into an LLM's context by only including the primitives in one or more groups rather than providing the full list.
+
+Note: Tasks are not included in the example as they are ephemeral, but the SDK changes do support grouping of tasks.
+
+## Acknowledgements
+
+- @cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed.
+- And thanks to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping and providing input on alternative implementations.
+- Thanks also to @bdoyle0182, @LucaButBoring, and @SamMorrowDrums for providing feedback and opinions in Discord and meetings.
