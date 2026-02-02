@@ -160,6 +160,10 @@
                     "description": "The name of the tool.",
                     "type": "string"
                 },
+                "payment": {
+                    "$ref": "#/$defs/Payment",
+                    "description": "Payment data when payment is required for the tool."
+                },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
@@ -186,6 +190,10 @@
                 "isError": {
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
+                },
+                "paymentResponse": {
+                    "$ref": "#/$defs/PaymentResponse",
+                    "description": "Optional payment settlement response when payment was processed for this tool call."
                 },
                 "structuredContent": {
                     "additionalProperties": {},
@@ -2546,6 +2554,67 @@
             ],
             "type": "object"
         },
+        "Payment": {
+            "description": "Payment data included in tool calls and responses.\n\nFor requests: Contains `paymentRequest` with protocol-specific payment authorization.\nFor responses: Contains `paymentResponse` with protocol-specific settlement data.",
+            "properties": {
+                "paymentRequest": {
+                    "additionalProperties": {},
+                    "description": "Protocol-specific payment request data (used in tool call requests).\nThe structure of this field depends on the payment protocol:\n- For X402: Contains an `authorization` field with the PaymentPayload structure\n- For other protocols: Contains protocol-specific payment request fields\n\nThis is effectively a union type discriminated by the `protocol` field.",
+                    "type": "object"
+                },
+                "paymentResponse": {
+                    "additionalProperties": {},
+                    "description": "Protocol-specific payment response data (used in tool call responses).\nThe structure of this field depends on the payment protocol:\n- For X402: Contains a `settlement` field with the SettlementResponse structure\n- For other protocols: Contains protocol-specific payment response fields\n\nThis is effectively a union type discriminated by the `protocol` field.",
+                    "type": "object"
+                },
+                "protocol": {
+                    "description": "The payment protocol used (e.g., \"x402\", \"future_protocol\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "protocol"
+            ],
+            "type": "object"
+        },
+        "PaymentOption": {
+            "description": "Payment option for a specific protocol that a tool accepts.",
+            "properties": {
+                "paymentRequirement": {
+                    "additionalProperties": {},
+                    "description": "Protocol-specific payment requirement.\nFor X402, this would include the PaymentRequired structure.\nOther protocols define their own requirement format.",
+                    "type": "object"
+                },
+                "protocol": {
+                    "description": "The payment protocol identifier (e.g., \"x402\", \"future_protocol\").",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "paymentRequirement",
+                "protocol"
+            ],
+            "type": "object"
+        },
+        "PaymentResponse": {
+            "description": "Settlement response data included in successful tool results after payment.",
+            "properties": {
+                "protocol": {
+                    "description": "The payment protocol used (e.g., \"x402\", \"future_protocol\").",
+                    "type": "string"
+                },
+                "settlement": {
+                    "additionalProperties": {},
+                    "description": "Protocol-specific settlement data.",
+                    "type": "object"
+                }
+            },
+            "required": [
+                "protocol",
+                "settlement"
+            ],
+            "type": "object"
+        },
         "PingRequest": {
             "description": "A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.",
             "properties": {
@@ -3362,6 +3431,19 @@
                     "properties": {},
                     "type": "object"
                 },
+                "payment": {
+                    "description": "Optional capability declaration for payment protocol support.\n\nServers MAY declare this capability to provide upfront knowledge of payment\nsupport and available protocols. However, payment support can also be discovered\nby examining the `payment` field in tool definitions from `tools/list`.\n\nServers MUST include payment information in tool definitions regardless of\nwhether they declare this capability.",
+                    "properties": {
+                        "protocols": {
+                            "description": "List of payment protocols supported by this server.\nEach protocol identifier corresponds to a specific payment protocol\n(e.g., \"x402\" for X402 Protocol v2).",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
                 "prompts": {
                     "description": "Present if the server offers any prompt templates.",
                     "properties": {
@@ -4078,6 +4160,13 @@
                         "type"
                     ],
                     "type": "object"
+                },
+                "payment": {
+                    "description": "Optional payment options for this tool.\nIf present, this tool requires payment to invoke.\nMultiple payment options allow the tool to accept different protocols or amounts.",
+                    "items": {
+                        "$ref": "#/$defs/PaymentOption"
+                    },
+                    "type": "array"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",
