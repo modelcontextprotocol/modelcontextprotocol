@@ -302,7 +302,8 @@ We rename the MCP Registry's `server.json` to `Extended MCP Server Card`, and de
 
 ```json
 {
-  // ... all the fields above
+  // ... all the fields above except $schema
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/extended-server-card.schema.json",
   "packages": [ ... ]
 }
 ```
@@ -311,7 +312,8 @@ With example values:
 
 ```json
 {
-  // ... all the fields above
+  // ... all the fields above except $schema
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/extended-server-card.schema.json",
   "packages": [
     {
       "registryType": "npm",
