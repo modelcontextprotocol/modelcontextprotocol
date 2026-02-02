@@ -1,0 +1,8 @@
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/elicitation/pending",
+  "params": {
+    "requestId": 42,
+    "message": "User input required to continue processing the tool call"
+  }
+}

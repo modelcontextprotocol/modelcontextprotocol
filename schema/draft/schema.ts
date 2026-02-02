@@ -3172,6 +3172,55 @@ export interface ElicitationCompleteNotification extends JSONRPCNotification {
   };
 }
 
+/**
+ * An optional notification from the server to the client, informing it that an elicitation request
+ * is about to be issued for a specific in-flight request.
+ *
+ * This notification enables clients to coordinate timeouts when a server needs user input during
+ * request processing. Upon receiving this notification, clients SHOULD suspend or extend the
+ * timeout for the associated request until the elicitation completes.
+ *
+ * Servers SHOULD send this notification before issuing an {@link ElicitRequest | elicitation/create}
+ * request when the elicitation is triggered by another in-flight request (e.g., a tool call).
+ *
+ * @example Elicitation pending for tool call
+ * {@includeCode ./examples/ElicitationPendingNotification/elicitation-pending-tool-call.json}
+ *
+ * @example Elicitation pending with timeout hint
+ * {@includeCode ./examples/ElicitationPendingNotification/elicitation-pending-with-timeout.json}
+ *
+ * @category `notifications/elicitation/pending`
+ */
+export interface ElicitationPendingNotification extends JSONRPCNotification {
+  method: "notifications/elicitation/pending";
+  params: {
+    /**
+     * The ID of the original request that triggered this elicitation.
+     *
+     * This allows the client to associate the pending elicitation with the request
+     * whose timeout should be adjusted.
+     */
+    requestId: RequestId;
+
+    /**
+     * An optional hint for how long the server expects to wait for user input, in milliseconds.
+     *
+     * Clients MAY use this to set an appropriate timeout for the elicitation itself.
+     * If not provided, clients SHOULD use a reasonable default or allow unlimited time
+     * for user input.
+     */
+    timeout?: number;
+
+    /**
+     * An optional human-readable message explaining why the elicitation is needed.
+     *
+     * This can help clients provide better UX by showing context to users about
+     * what input is being requested.
+     */
+    message?: string;
+  };
+}
+
 /* Client messages */
 /** @internal */
 export type ClientRequest =
@@ -3233,6 +3282,7 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
+  | ElicitationPendingNotification
   | ElicitationCompleteNotification
   | TaskStatusNotification;
 

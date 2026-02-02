@@ -416,6 +416,99 @@ Clients:
 }
 ```
 
+### Timeout Coordination
+
+When a server issues an elicitation request during the processing of another request (such as a tool call), the client's
+configured request timeout may expire before the user has a chance to respond to the elicitation. This can cause the
+original request to fail even though the server is actively waiting for valid user input.
+
+To address this, servers **MAY** send a `notifications/elicitation/pending` notification before issuing an
+`elicitation/create` request. This notification informs the client that user input is required and that the associated
+request should not timeout while waiting for the elicitation to complete.
+
+#### Pending Notification Parameters
+
+| Name        | Type      | Required | Description                                                                           |
+| ----------- | --------- | -------- | ------------------------------------------------------------------------------------- |
+| `requestId` | RequestId | Yes      | The ID of the original request that triggered the elicitation.                        |
+| `timeout`   | number    | No       | An optional hint for how long the server expects to wait for user input, in milliseconds. |
+| `message`   | string    | No       | An optional human-readable message explaining why the elicitation is needed.          |
+
+#### Server Behavior
+
+Servers **SHOULD**:
+
+- Send `notifications/elicitation/pending` before issuing an `elicitation/create` request when the elicitation is
+  triggered by another in-flight request
+- Include a reasonable `timeout` hint when the expected user interaction time is known
+- Provide a descriptive `message` to help clients show appropriate context to users
+
+#### Client Behavior
+
+Upon receiving a `notifications/elicitation/pending` notification, clients:
+
+- **SHOULD** suspend or extend the timeout for the request identified by `requestId`
+- **SHOULD** resume normal timeout behavior after the corresponding elicitation completes (either via user response or
+  cancellation)
+- **MAY** use the `timeout` hint to set an appropriate maximum wait time for the elicitation itself
+- **MAY** display the `message` to users to provide context about the pending input request
+
+Clients **MUST** still enforce a maximum timeout to prevent indefinite waits, even when a pending notification is
+received.
+
+#### Example: Basic Pending Notification
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/elicitation/pending",
+  "params": {
+    "requestId": 42,
+    "message": "User input required to continue processing the tool call"
+  }
+}
+```
+
+#### Example: Pending Notification with Timeout Hint
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/elicitation/pending",
+  "params": {
+    "requestId": "abc-123",
+    "timeout": 300000,
+    "message": "Please provide your GitHub credentials to access the repository"
+  }
+}
+```
+
+#### Message Flow with Timeout Coordination
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client
+    participant Server
+
+    Client->>Server: tools/call (id: 42)
+    Note over Client: Start request timeout
+
+    Note over Server: Server needs user input
+    Server-->>Client: notifications/elicitation/pending (requestId: 42)
+    Note over Client: Suspend timeout for request 42
+
+    Server->>Client: elicitation/create (mode: form)
+
+    Note over User,Client: Present elicitation UI
+    User-->>Client: Provide requested information
+
+    Client->>Server: Elicitation response
+    Note over Client: Resume normal timeout
+
+    Server->>Client: tools/call result (id: 42)
+```
+
 ### URL Elicitation Required Error
 
 When a request cannot be processed until an elicitation is completed, the server **MAY** return a [`URLElicitationRequiredError`](#error-handling) (code `-32042`) to indicate to the client that a URL mode elicitation is required. The server **MUST NOT** return this error except when URL mode elicitation is required.
