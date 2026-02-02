@@ -1,0 +1,285 @@
+# SEP-0000: Out-of-Band Resource Access via HTTPS URLs
+
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2025-01-28
+- **Author(s)**: Andrew Brookins (@abrookins)
+- **Sponsor**: None
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/0000
+
+## Abstract
+
+This SEP proposes adding optional `httpUrl` and `httpUrlExpiresAt` fields to the `Resource` interface, enabling MCP servers to provide direct HTTPS access URLs alongside the canonical MCP resource URI. This allows resources to be accessed both through the MCP protocol (via `resources/read`) and directly via HTTPS by processes that may not have an authenticated MCP client connection, such as code executing in sandboxed environments or sub-agents spawned by an orchestrating LLM.
+
+## Motivation
+
+Modern LLM applications increasingly use agentic patterns where an orchestrating LLM spawns sub-processes to handle complex tasks. A common pattern is:
+
+1. An MCP tool returns a large result (query results, file contents, API responses)
+2. The LLM decides to process this data programmatically rather than in-context
+3. The LLM writes code and executes it in a sandboxed environment
+4. The sandbox code needs to access the tool's output
+
+**The gap**: Sandboxed code execution environments may not have an authenticated MCP client connection. Without an MCP client connection to call `resources/read`, they cannot fetch the resource via MCP. However, they may have network access to make an HTTP request.
+
+Anthropic's ["Code Execution with MCP"](https://www.anthropic.com/engineering/code-execution-with-mcp) describes how agents can reduce context overhead by executing code that calls MCP tools directly. However, this approach requires the execution environment to have an authenticated MCP client connection, which not all sandboxes or subprocesses will have.
+
+### Current State
+
+PR #603 (merged June 2025) added `ResourceLink`, allowing tools to return resource references instead of embedding full content. However, `ResourceLink` has only one `uri` field:
+
+```typescript
+interface ResourceLink extends Resource {
+  type: "resource_link";
+}
+
+interface Resource {
+  uri: string; // Single URI - must choose MCP or HTTPS
+  name: string;
+  // ...
+}
+```
+
+A server must choose:
+
+- A custom/internal scheme (e.g., `github:///repos/foo/bar`) → requires `resources/read` via MCP
+- An `https://` URL → accessible via HTTPS but loses MCP resource semantics
+
+### Why This Matters
+
+Issue #527 documents this exact scaling concern from GitHub and Microsoft/OneDrive:
+
+> "The caveat to this with private online resources is that we need to provide **signed download URIs** for direct download. Hard to do one-size fits all." — @SamMorrowDrums (GitHub)
+
+> "Our signed URLs for repository content do expire and it would **not be the same as the resource URI**." — @SamMorrowDrums
+
+PR #607 proposed `Resource.uriScope` to indicate whether a URI can be read directly, but this was closed without merge because it doesn't solve the dual-URI problem — it still forces servers to choose one URI.
+
+### Use Cases
+
+1. **Agentic Code Execution**: An LLM orchestrator receives a large dataset from an MCP tool, writes Python code to analyze it, and runs that code in a sandbox. The sandbox needs an HTTPS URL to fetch the data.
+
+2. **Sub-Agent Delegation**: A recursive LLM architecture where a parent agent delegates work to child agents. The parent receives a resource via MCP and needs to pass a reference the child can access without an MCP connection.
+
+3. **Large File Downloads**: GitHub, OneDrive, and similar services want to maintain their internal resource naming while providing signed download URLs for efficient content delivery.
+
+4. **Cross-Environment Workflows**: A resource created in one environment (MCP-connected IDE) needs to be accessed from another (CI/CD pipeline, mobile app, web browser).
+
+## Specification
+
+### Schema Changes
+
+Add two optional fields to the `Resource` interface:
+
+```typescript
+interface Resource extends BaseMetadata {
+  /**
+   * The URI of this resource.
+   * @format uri
+   */
+  uri: string;
+
+  /**
+   * An optional HTTPS URL for direct out-of-band access to this resource's content.
+   *
+   * When provided, clients MAY use this URL to fetch the resource content directly
+   * instead of calling `resources/read`. This is particularly useful for:
+   * - Passing resource references to code executing in sandboxed environments
+   * - Enabling efficient large file downloads via CDN
+   * - Supporting sub-processes that cannot speak MCP
+   *
+   * The content retrieved via `httpUrl` MUST be equivalent to the content that
+   * would be returned by `resources/read` for the same resource.
+   *
+   * Servers SHOULD use signed URLs with appropriate expiration for private resources.
+   *
+   * @format uri
+   */
+  httpUrl?: string;
+
+  /**
+   * The expiration time of the `httpUrl`, as an ISO 8601 formatted string.
+   *
+   * After this time, the `httpUrl` may no longer be valid. Clients needing
+   * continued access SHOULD call `resources/read` to obtain fresh content
+   * or request an updated resource reference.
+   *
+   * If not specified, clients SHOULD NOT assume the URL is permanent.
+   */
+  httpUrlExpiresAt?: string;
+
+  // ... existing fields unchanged
+  name: string;
+  description?: string;
+  mimeType?: string;
+  annotations?: Annotations;
+  size?: number;
+}
+```
+
+Since `ResourceLink` extends `Resource`, these fields are automatically available on `ResourceLink` as well.
+
+### Semantics
+
+1. **Equivalence**: The content available at `httpUrl` MUST be semantically equivalent to what `resources/read` would return for the same `uri`. Servers MUST NOT provide different content through different access methods.
+
+2. **Optional**: Both fields are optional. Servers that cannot or choose not to provide HTTPS access simply omit them.
+
+3. **Expiration**: When `httpUrlExpiresAt` is provided, clients SHOULD treat the URL as invalid after that time. Servers MAY reject requests to expired URLs with appropriate HTTP status codes (401, 403, or 410).
+
+4. **Authentication**: The `httpUrl` SHOULD be self-authenticating (e.g., signed URL with token) or accessible without additional authentication. Servers MUST NOT require MCP-specific authentication for `httpUrl` access.
+
+5. **Refresh**: Clients needing access after expiration SHOULD either:
+   - Call `resources/read` to get the content directly
+   - Request an updated resource reference (implementation-specific)
+
+## Example
+
+A tool returning a large query result:
+
+````json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Query returned 50,000 rows. Here's a preview:\n\n```json\n[\n  {\"id\": 1, \"name\": \"foo\", \"value\": 42},\n  {\"id\": 2, \"name\": \"bar\", \"value\": 17},\n  ...\n]\n```"
+    },
+    {
+      "type": "resource_link",
+      "uri": "myapp:///cache/query-results/abc123",
+      "httpUrl": "https://api.myapp.com/cache/abc123?token=eyJhbGc...&expires=1706486400",
+      "httpUrlExpiresAt": "2025-01-28T20:00:00Z",
+      "name": "query_results.json",
+      "mimeType": "application/json",
+      "size": 4500000
+    }
+  ]
+}
+````
+
+The LLM can then:
+
+1. See the preview in context
+2. Decide to process the full data programmatically
+3. Write code that fetches from `httpUrl`
+4. Execute that code in a sandbox
+
+```python
+# Code the LLM might generate for sandbox execution
+import requests
+import pandas as pd
+
+# Fetch the full dataset via HTTPS (sandbox has no MCP connection)
+response = requests.get(
+    "https://api.myapp.com/cache/abc123?token=eyJhbGc...&expires=1706486400"
+)
+data = response.json()
+
+# Process and return summary
+df = pd.DataFrame(data)
+summary = df.groupby('category').agg({'value': ['mean', 'sum', 'count']})
+print(summary.to_markdown())
+```
+
+## Rationale
+
+### Why Not Just Use HTTPS URIs?
+
+Servers could put HTTPS URLs in the `uri` field directly. However:
+
+1. **Loss of MCP semantics**: The `uri` field is used for MCP operations like `resources/read`, subscriptions, and resource identification. Using HTTPS URLs there conflates two different concerns.
+
+2. **Different lifecycles**: The canonical resource URI may be stable (`github:///repos/foo/bar/main.rs`) while the HTTPS URL is temporary (signed URL expiring in 1 hour).
+
+3. **Different access patterns**: MCP clients should use `resources/read` for proper error handling, caching, and protocol semantics. HTTPS URLs are for out-of-band access by non-MCP consumers.
+
+4. **Diverse client capabilities**: MCP servers support clients with varying capabilities — some can spawn sub-agents with code execution, others cannot. Exposing both a `uri` and an `httpUrl` lets servers support all client patterns without negotiation.
+
+### Why Not Two ResourceLinks?
+
+Servers could return two `ResourceLink` items — one with an MCP URI, one with an HTTPS URL. However:
+
+1. **Semantic confusion**: The LLM sees two items that represent the same resource
+2. **No explicit relationship**: Nothing indicates they're equivalent
+3. **Duplication**: All metadata must be repeated
+
+### Why Not `uriScope` (PR #607)?
+
+The `uriScope` proposal indicated whether a URI could be read directly, but:
+
+1. **Still one URI**: Doesn't allow different URIs for different access patterns
+2. **No expiration**: No way to indicate when direct access expires
+3. **Conflates concerns**: Mixes "can you read this directly?" with "here's how to read it directly"
+
+### Alternative Considered: `alternateUris` Array
+
+An array of alternate URIs with scheme hints:
+
+```typescript
+alternateUris?: Array<{
+  uri: string;
+  scheme: "http" | "https" | "file" | string;
+  expiresAt?: string;
+}>;
+```
+
+Rejected because:
+
+- Over-engineered for the primary use case (HTTPS access)
+- Unclear semantics for multiple alternates
+- The simple case (one HTTPS URL) is the common case
+
+## Backward Compatibility
+
+This proposal is fully backward compatible:
+
+1. **New fields are optional**: Existing servers and clients continue to work unchanged
+2. **No changes to existing fields**: The `uri` field semantics are unchanged
+3. **Graceful degradation**: Clients unaware of `httpUrl` simply use `resources/read`
+
+Clients SHOULD:
+
+- Check for `httpUrl` when they need out-of-band access
+- Fall back to `resources/read` if `httpUrl` is absent or expired
+- Not assume `httpUrl` is always present
+
+## Security Implications
+
+### Signed URL Security
+
+1. **Token exposure**: HTTPS URLs with embedded tokens may be logged or leaked. Servers SHOULD:
+   - Use short expiration times (minutes to hours, not days)
+   - Scope tokens to specific resources
+   - Support token revocation if possible
+
+2. **HTTPS required**: Servers MUST use HTTPS for `httpUrl` to prevent token interception.
+
+3. **No credential escalation**: The `httpUrl` SHOULD NOT grant more access than `resources/read` would provide for the same resource.
+
+### Sandbox Security
+
+1. **URL validation**: Sandboxed code should validate that URLs match expected patterns before fetching.
+
+2. **Content validation**: Clients should validate that content from `httpUrl` matches expected `mimeType` and `size`.
+
+### Expiration Enforcement
+
+1. **Server-side**: Servers MUST reject requests to expired URLs
+2. **Client-side**: Clients SHOULD check `httpUrlExpiresAt` before using URLs
+
+## Reference Implementation
+
+[easy-mcp-proxy](https://github.com/abrookins/easy-mcp-proxy) implements this pattern using a custom response format:
+
+1. Tool returns large output
+2. Proxy caches the output and generates a signed HTTPS URL with expiration
+3. Returns preview text + retrieval URL to the client
+4. Clients can fetch full content via HTTPS
+
+If this SEP is accepted, easy-mcp-proxy would be updated to use the standardized `httpUrl` and `httpUrlExpiresAt` fields on `ResourceLink`.
+
+SDK changes required:
+
+- TypeScript SDK: Add optional fields to `Resource` interface
+- Python SDK: Add optional fields to `Resource` model
+- Other SDKs: Similar additions
