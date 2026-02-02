@@ -5,11 +5,11 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const CAPABILITIES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Apps"];
 
 export const filterStore = {
   state: {
-    selectedCapabilities: [],
+    selectedFeatures: [],
     searchText: "",
     visibleCount: 0,
     totalCount: 0
@@ -36,11 +36,11 @@ export const useFilterStore = () => {
 };
 
 export const useFilter = ({ name, supports }) => {
-  const { selectedCapabilities, searchText } = useFilterStore();
+  const { selectedFeatures, searchText } = useFilterStore();
 
   const isVisible = (
     name.toLowerCase().includes(searchText.toLowerCase()) &&
-    selectedCapabilities.every(cap => supports?.includes(cap))
+    selectedFeatures.every(feature => supports?.includes(feature))
   );
 
   useEffect(() => {
@@ -60,24 +60,24 @@ export const useFilter = ({ name, supports }) => {
 
 
 export const ClientFilter = () => {
-  const { selectedCapabilities, searchText, visibleCount, totalCount } = useFilterStore();
+  const { selectedFeatures, searchText, visibleCount, totalCount } = useFilterStore();
 
   useEffect(() => {
-    filterStore.setState({ selectedCapabilities: [], searchText: "" });
+    filterStore.setState({ selectedFeatures: [], searchText: "" });
   }, []);
 
-  const toggleCapability = (cap) => {
-    const newCaps = selectedCapabilities.includes(cap)
-      ? selectedCapabilities.filter(c => c !== cap)
-      : [...selectedCapabilities, cap];
-    filterStore.setState({ selectedCapabilities: newCaps });
+  const toggleFeature = (feature) => {
+    const newFeatures = selectedFeatures.includes(feature)
+      ? selectedFeatures.filter(f => f !== feature)
+      : [...selectedFeatures, feature];
+    filterStore.setState({ selectedFeatures: newFeatures });
   };
 
   const clearFilters = () => {
-    filterStore.setState({ selectedCapabilities: [], searchText: "" });
+    filterStore.setState({ selectedFeatures: [], searchText: "" });
   };
 
-  const hasFilters = selectedCapabilities.length > 0 || searchText.length > 0;
+  const hasFilters = selectedFeatures.length > 0 || searchText.length > 0;
 
   return (
     <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
@@ -105,25 +105,25 @@ export const ClientFilter = () => {
       </div>
       <div className="mt-4">
         <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Filter by capabilities:
+          Filter by features:
         </div>
         <div className="flex flex-wrap gap-2">
-          {CAPABILITIES.map(cap => (
+          {FEATURES.map(feature => (
             <button
-              key={cap}
-              onClick={() => toggleCapability(cap)}
+              key={feature}
+              onClick={() => toggleFeature(feature)}
               className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors cursor-pointer ${
-                selectedCapabilities.includes(cap)
+                selectedFeatures.includes(feature)
                   ? 'bg-primary/10 text-primary dark:bg-gray-700 dark:text-gray-100'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
               <Icon
-                icon={selectedCapabilities.includes(cap) ? "square-check" : "square"}
-                iconType={selectedCapabilities.includes(cap) ? "solid" : "regular"}
+                icon={selectedFeatures.includes(feature) ? "square-check" : "square"}
+                iconType={selectedFeatures.includes(feature) ? "solid" : "regular"}
                 size={16}
               />
-              {cap}
+              {feature}
             </button>
           ))}
         </div>
@@ -418,6 +418,28 @@ It uses plain JavaScript (old-school style) and is hosted on Apify, allowing you
 </McpClient>
 
 <McpClient
+  name="Apigene MCP Client"
+  homepage="https://apigene.ai"
+  supports="Tools, Resources, Discovery"
+  instructions="https://docs.apigene.ai/user-guide/copilot"
+>
+
+Apigene MCP Client is an AI-powered conversational interface that enables seamless interaction with multiple applications, APIs, and MCP servers through natural language. It provides a unified interface for deploying agents across different AI platforms with optimized performance and governance.
+
+**Key features:**
+
+- **Multi-LLM Compatibility**: Works seamlessly with all leading AI platforms including Claude, OpenAI (ChatGPT), Gemini, xAI, and OpenRouter. Deploy the same agent across different platforms without modification.
+- **Optimized for Cost & Performance**: Dynamic tool loading loads tools only when needed, enabling thousands of tools without context bloat. Tool output optimization provides up to 99% payload reduction via compact JSON representation. Parallel execution runs multiple tool calls simultaneously for 10x faster responses.
+- **Unified Multi-Tool Interface**: Mesh multiple APIs and MCP servers into a single agent. Interact with all tools seamlessly from one Copilot interface without glue code or framework-specific logic.
+- **Governed Access & Audit**: Fine-grained access control defines exactly which operations each user or agent can perform. Complete audit trail tracks every tool call with timestamps, inputs, and outputs for compliance.
+
+**Learn more:**
+
+- [Apigene Copilot Documentation](https://docs.apigene.ai/user-guide/copilot)
+
+</McpClient>
+
+<McpClient
   name="Augment Code"
   homepage="https://augmentcode.com"
   supports="Tools"
@@ -615,7 +637,7 @@ Claude Code is an interactive agentic coding tool from Anthropic that helps you 
 <McpClient
   name="Claude Desktop App"
   homepage="https://claude.ai/download"
-  supports="Resources, Prompts, Tools"
+  supports="Resources, Prompts, Tools, Apps"
   instructions={[
     ["Local servers", "https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop"],
     ["Remote servers", "https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp"]
@@ -968,7 +990,7 @@ Glama is a comprehensive AI workspace and integration platform that offers a uni
 <McpClient
   name="goose"
   homepage="https://github.com/block/goose"
-  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions"
+  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions, Apps"
   instructions="https://block.github.io/goose/docs/getting-started/using-extensions/"
 >
 
@@ -1274,7 +1296,7 @@ MCPBundles provides MCPBundle Studio, a browser-based MCP client for testing and
 - Discover and inspect available tools with parameter schemas and descriptions
 - Supports OAuth and API key authentication for secure provider connections
 - Execute MCP tools with form-based and chat based input
-- Implements MCP Apps for rendering interactive UI responses from tools
+- Implements Apps for rendering interactive UI responses from tools
 - Streamable HTTP transport for remote MCP server connections
 
 </McpClient>
@@ -1369,7 +1391,7 @@ MCPHub is a powerful Neovim plugin that integrates MCP (Model Context Protocol) 
 <McpClient
   name="MCPJam"
   homepage="https://github.com/MCPJam/inspector"
-  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks"
+  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks, Apps"
   instructions="https://docs.mcpjam.com/getting-started"
 >
 
@@ -1660,7 +1682,7 @@ oterm is a terminal client for Ollama allowing users to create chats/agents.
 <McpClient
   name="Postman"
   homepage="https://postman.com/downloads"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Elicitation"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Elicitation, Apps"
 >
 
 Postman is the most popular API client and now supports MCP server testing and debugging.
@@ -2053,7 +2075,7 @@ v0 turns your ideas into fullstack apps, no code required. Describe what you wan
 <McpClient
   name="VS Code GitHub Copilot"
   homepage="https://code.visualstudio.com/"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps"
   instructions="https://code.visualstudio.com/docs/copilot/customization/mcp-servers"
 >
 
