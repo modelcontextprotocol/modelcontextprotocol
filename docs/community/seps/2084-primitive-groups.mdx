@@ -243,7 +243,7 @@ This specification proposal was selected for its ease of understanding since it 
 - **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, because groups belong to other groups, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
   More information on this approach can be found in @scottslewis's [proposal](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1567).
 
-- **No Grouping of Groups** - A variation of the proposed specification, but Groups cannot have a group list. Avoids any worry of graphs — e.g., a group belonging to itself or to a child. Makes groups a flat list.
+- **No Grouping of Groups** - A variation of the proposed specification, but Groups cannot have a group membership list. Avoids any worry of graphs — e.g., a group belonging to itself or to a child. Makes groups a flat list.
 
 ## Security Implications
 
