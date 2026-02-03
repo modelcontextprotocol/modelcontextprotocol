@@ -243,12 +243,13 @@ The reference implementation's example client and server demonstrate how groups,
 Note: For simplicity, tasks and resource templates are not included in the example, but the SDK changes support grouping of both.
 
 ### Transitivity Example
-
+A client that composes the group membership graph from the group list can represent the transitive relationships in whatever way it chooses. 
 - In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups. 
-  - The example client allows the user to configure the maximum depth of the depth-first graph search. 
-  - When listing the primitives in the `communications` group at maximum graph depth, it displays the contents of both children.
-  - In that case, `email_thank_contributor` would appear in both `email` and `communications`.
-- Some clients might wish to only show direct children of a group (depth of 1 in the example).
+  - The example client allows the user to configure the maximum display depth of the graph.
+  - When listing the primitives in the `communications` group at maximum graph depth, it displays the contents of all child groups.
+  - In that case, the `email_thank_contributor` tool would appear in both `email` and `communications`.
+  - Some clients might wish to only show direct children of a group (depth of 1 in the example).
+  - In that case, the `email_thank_contributor` tool would appear in the `email` group, but not its parent, `communications`.
 
 ## Acknowledgements
 
