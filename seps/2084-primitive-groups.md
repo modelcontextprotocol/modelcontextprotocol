@@ -171,7 +171,6 @@ Response:
 
 As mentioned above, all primitives have a new property that appears in their list result. This includes responses from `groups/list`, `prompts/list`, `resources/list`, `resources/templates/list`, `tasks/list`, and `tools/list`,
 
-
 Here is an example tool definition from `tools/list` response with new property in its `_meta` field:
 
 ```json
@@ -190,7 +189,7 @@ Here is an example tool definition from `tools/list` response with new property 
     "required": ["expression"]
   },
   "_meta": {
-    "io.modelcontextprotocol/groups": ["arithmetic"]  // New property
+    "io.modelcontextprotocol/groups": ["arithmetic"] // New property
   }
 }
 ```
@@ -243,8 +242,10 @@ The reference implementation's example client and server demonstrate how groups,
 Note: For simplicity, tasks and resource templates are not included in the example, but the SDK changes support grouping of both.
 
 ### Transitivity Example
-A client that composes the group membership graph from the group list can represent the transitive relationships in whatever way it chooses. 
-- In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups. 
+
+A client that composes the group membership graph from the group list can represent the transitive relationships in whatever way it chooses.
+
+- In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
   - The example client allows the user to configure the maximum display depth of the graph.
   - When listing the primitives in the `communications` group at maximum graph depth, it displays the contents of all child groups.
     - In that case, the `email_thank_contributor` tool would appear in both `email` and `communications`.
