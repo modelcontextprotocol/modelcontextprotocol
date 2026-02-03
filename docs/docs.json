@@ -359,12 +359,14 @@
       {
         "tab": "Community",
         "pages": [
+          "community/contributing",
           "community/communication",
           {
             "group": "Governance",
             "pages": [
               "community/governance",
               "community/sep-guidelines",
+              "community/sdk-tiers",
               "community/working-interest-groups",
               "community/antitrust"
             ]
@@ -397,13 +399,9 @@
                   "community/seps/1699-support-sse-polling-via-server-side-disconnect",
                   "community/seps/1730-sdks-tiering-system",
                   "community/seps/1850-pr-based-sep-workflow",
+                  "community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
+                  "community/seps/2085-governance-succession-and-amendment",
                   "community/seps/2133-extensions"
-                ]
-              },
-              {
-                "group": "Draft",
-                "pages": [
-                  "community/seps/2085-governance-succession-and-amendment"
                 ]
               }
             ]
@@ -531,7 +529,7 @@
     },
     {
       "source": "/development/contributing",
-      "destination": "/community/communication"
+      "destination": "/community/contributing"
     }
   ],
   "contextual": {

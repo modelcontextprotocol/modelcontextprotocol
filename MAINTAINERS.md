@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** January 13, 2026
+**Last updated:** February 2, 2026
 
 ## Lead Maintainers
 
@@ -11,13 +11,14 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ## Core Maintainers
 
-- [Inna Harper](https://github.com/ihrpr)
-- [Basil Hosmer](https://github.com/bhosmer-ant)
-- [Paul Carleton](https://github.com/pcarleton)
-- [Nick Cooper](https://github.com/nicknotfun)
-- [Nick Aldridge](https://github.com/000-000-000-000-000)
+- [Caitie McCaffrey](https://github.com/CaitieM20)
 - [Che Liu](https://github.com/pwwpche)
 - [Den Delimarsky](https://github.com/localden)
+- [Kurtis Van Gent](https://github.com/kurtisvg)
+- [Nick Aldridge](https://github.com/000-000-000-000-000)
+- [Nick Cooper](https://github.com/nickcoai)
+- [Paul Carleton](https://github.com/pcarleton)
+- [Peter Alexander](https://github.com/pja-ant)
 
 ## SDK Maintainers
 
@@ -183,7 +184,7 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Server Identity Working Group
 
 - [David Soria Parra](https://github.com/dsp-ant)
-- [Nick Cooper](https://github.com/nicknotfun)
+- [Nick Cooper](https://github.com/nickcoai)
 
 ### Agents Working Group
 
