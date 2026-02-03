@@ -6,6 +6,8 @@ on:
     - cron: "0 18 * * 3"
   workflow_dispatch: # Allow manual triggering
 
+permissions: {}
+
 jobs:
   discord-reminder:
     runs-on: ubuntu-latest
