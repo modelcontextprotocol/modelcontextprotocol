@@ -11,22 +11,22 @@ import { Badge } from "/snippets/badge.mdx";
   <Badge color="gray">Standards Track</Badge>
 </div>
 
-| Field         | Value                                                              |
-| ------------- | ------------------------------------------------------------------ |
-| **SEP**       | 0000                                                               |
-| **Title**     | Automatic \_meta to HTTP Header Forwarding for Distributed Tracing |
-| **Status**    | Draft                                                              |
-| **Type**      | Standards Track                                                    |
-| **Created**   | 2025-12-29                                                         |
-| **Author(s)** | Manah Khalil ([@monahk](https://github.com/monahk))                |
-| **Sponsor**   | None                                                               |
-| **PR**        | [#0000](#2028)                                                     |
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 0000                                                                            |
+| **Title**     | Automatic \_meta to HTTP Header Forwarding for Distributed Tracing              |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2025-12-29                                                                      |
+| **Author(s)** | Manah Khalil ([@monahk](https://github.com/monahk))                             |
+| **Sponsor**   | None                                                                            |
+| **PR**        | [#2028](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2028) |
 
 ---
 
 ## Abstract
 
-This SEP proposes a standardized mechanism for MCP servers to automatically forward `_meta` fields from client requests to downstream HTTP calls using a **group-based policy system**. Header groups (e.g., `trace-context`, `baggage`) can be configured with policies (`clear-and-use-meta`, `merge-with-meta`, `ignore-meta`) that control forwarding behavior and conflict resolution. W3C Trace Context fields are forwarded by default. Currently, `_meta` reaches the MCP server but is not forwarded, breaking end-to-end observability across the MCP boundary.
+This SEP proposes a standardized mechanism for MCP servers to automatically forward `_meta` fields from client requests to downstream HTTP calls using a **group-based policy system**. Header groups (e.g., `trace-context`, `baggage`) can be configured with policies (`clear-and-use-meta`, `prefer-meta`, `ignore-meta`) that control forwarding behavior and conflict resolution. W3C Trace Context fields are forwarded by default. Currently, `_meta` reaches the MCP server but is not forwarded, breaking end-to-end observability across the MCP boundary.
 
 ## Motivation
 
@@ -94,7 +94,7 @@ This specification uses a **group-based model** where semantically related heade
 | Policy               | Behavior                                                                                                                | Use When                                                         |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `clear-and-use-meta` | If ANY header in the group exists in `_meta`, discard ALL existing headers in that group, then forward ALL from `_meta` | Headers are tightly coupled (e.g., `traceparent` + `tracestate`) |
-| `merge-with-meta`    | For each header: if it exists in `_meta`, overwrite existing; otherwise preserve existing                               | Headers are independent (e.g., `baggage`)                        |
+| `prefer-meta`        | For each header: if it exists in `_meta`, overwrite existing; otherwise preserve existing                               | Headers are independent (e.g., `baggage`)                        |
 | `ignore-meta`        | Never forward from `_meta` for this group; existing headers are always preserved                                        | Disable forwarding entirely                                      |
 
 #### 1.2 Behavior Matrix
@@ -104,9 +104,9 @@ This specification uses a **group-based model** where semantically related heade
 | `clear-and-use-meta` | Yes (any in group)  | Yes              | Clear ALL existing in group, forward ALL from `_meta` |
 | `clear-and-use-meta` | Yes (any in group)  | No               | Forward from `_meta`                                  |
 | `clear-and-use-meta` | No                  | Yes              | Keep existing                                         |
-| `merge-with-meta`    | Yes                 | Yes              | Overwrite that specific header with `_meta` value     |
-| `merge-with-meta`    | Yes                 | No               | Forward from `_meta`                                  |
-| `merge-with-meta`    | No                  | Yes              | Keep existing                                         |
+| `prefer-meta`        | Yes                 | Yes              | Overwrite that specific header with `_meta` value     |
+| `prefer-meta`        | Yes                 | No               | Forward from `_meta`                                  |
+| `prefer-meta`        | No                  | Yes              | Keep existing                                         |
 | `ignore-meta`        | Yes                 | Yes              | Keep existing, ignore `_meta`                         |
 | `ignore-meta`        | Yes                 | No               | Do nothing                                            |
 | `ignore-meta`        | No                  | Yes              | Keep existing                                         |
@@ -115,10 +115,10 @@ This specification uses a **group-based model** where semantically related heade
 
 SDKs MUST support these predefined header groups:
 
-| Group Name      | Headers                     | Default Policy       | Rationale                                                                          |
-| --------------- | --------------------------- | -------------------- | ---------------------------------------------------------------------------------- |
-| `trace-context` | `traceparent`, `tracestate` | `clear-and-use-meta` | Tightly coupled per W3C Trace Context spec; `tracestate` is keyed to `traceparent` |
-| `baggage`       | `baggage`                   | `merge-with-meta`    | Independent W3C standard; can be replaced independently                            |
+| Group Name      | Headers                     | Default Policy       | Required          | Rationale                                                                          |
+| --------------- | --------------------------- | -------------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `trace-context` | `traceparent`, `tracestate` | `clear-and-use-meta` | `["traceparent"]` | Tightly coupled per W3C Trace Context spec; `tracestate` is keyed to `traceparent` |
+| `baggage`       | `baggage`                   | `prefer-meta`        | —                 | Independent W3C standard; can be replaced independently                            |
 
 **Note**: W3C Trace Context and W3C Baggage are separate standards that can version independently, hence they are separate groups with independent policies.
 
@@ -140,8 +140,8 @@ All other `_meta` fields are **NOT forwarded by default**. Users can define cust
 
 MCP Server SDKs MUST automatically forward headers from `_meta` to outbound HTTP requests based on group policies. By default:
 
-- `trace-context` group (`traceparent`, `tracestate`) uses `clear-and-use-meta` policy
-- `baggage` group uses `merge-with-meta` policy
+- `trace-context` group (`traceparent`, `tracestate`) uses `clear-and-use-meta` policy with `required: ["traceparent"]`
+- `baggage` group uses `prefer-meta` policy
 - Custom fields are not forwarded unless explicitly configured
 
 This behavior requires no code changes from MCP server authors.
@@ -156,7 +156,14 @@ const server = new Server({
     // Override predefined group policy
     baggage: { policy: "ignore-meta" }, // Disable baggage forwarding
 
-    // Define custom group for Datadog
+    // Override with custom validator for W3C Trace Context format
+    "trace-context": {
+      policy: "clear-and-use-meta",
+      required: ["traceparent"],
+      validator: (headers) => isValidTraceparent(headers.traceparent),
+    },
+
+    // Define custom group for Datadog (with required header)
     datadog: {
       headers: [
         "x-datadog-trace-id",
@@ -164,12 +171,13 @@ const server = new Server({
         "x-datadog-sampling-priority",
       ],
       policy: "clear-and-use-meta", // These headers are coupled
+      required: ["x-datadog-trace-id"], // Group skipped if trace-id missing
     },
 
     // Define custom group for internal headers
     internal: {
       headers: ["x-tenant-id", "x-request-id", "x-correlation-id"],
-      policy: "merge-with-meta", // These are independent
+      policy: "prefer-meta", // These are independent
     },
   },
 });
@@ -198,7 +206,16 @@ const headers = extractHttpHeaders(context.meta, {
 });
 ```
 
-### 3. Field Validation
+### 3. Field Validation and Processing Order
+
+SDKs MUST process `_meta` fields in the following order:
+
+1. **Validation**: Validate all `_meta` field values (see below)
+2. **Required check**: For each group with a `required` array, verify all required headers are present in `_meta`; skip the group entirely if any are missing
+3. **Custom validation**: If a `validator` function is configured for the group, invoke it; skip the group if validation fails
+4. **Policy application**: Apply the group's policy to determine final headers
+
+#### 3.1 Validation Rules
 
 SDKs MUST validate `_meta` fields before forwarding:
 
@@ -214,19 +231,21 @@ Invalid fields MUST be silently dropped (not cause errors).
 
 #### 4.1 Header Group Configuration
 
-| Property  | Type                                                             | Required | Description                    |
-| --------- | ---------------------------------------------------------------- | -------- | ------------------------------ |
-| `policy`  | `"clear-and-use-meta"` \| `"merge-with-meta"` \| `"ignore-meta"` | Yes      | Forwarding and conflict policy |
-| `headers` | `string[]`                                                       | No\*     | Headers in this group          |
+| Property    | Type                                                         | Required | Description                                                                                    |
+| ----------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------- |
+| `policy`    | `"clear-and-use-meta"` \| `"prefer-meta"` \| `"ignore-meta"` | Yes      | Forwarding and conflict policy                                                                 |
+| `headers`   | `string[]`                                                   | No\*     | Headers in this group                                                                          |
+| `required`  | `string[]`                                                   | No       | Headers that MUST be present in `_meta` for group to forward; if any missing, group is skipped |
+| `validator` | `(headers: Record<string, string>) => boolean`               | No       | Custom validation function; if it returns false, group is skipped                              |
 
 \* `headers` is required for custom groups, optional when overriding predefined groups.
 
 #### 4.2 Predefined Group Defaults
 
-| Group           | Default Policy       |
-| --------------- | -------------------- |
-| `trace-context` | `clear-and-use-meta` |
-| `baggage`       | `merge-with-meta`    |
+| Group           | Default Policy       | Required          |
+| --------------- | -------------------- | ----------------- |
+| `trace-context` | `clear-and-use-meta` | `["traceparent"]` |
+| `baggage`       | `prefer-meta`        | —                 |
 
 ### 5. Transport Considerations
 
@@ -244,8 +263,8 @@ Conflict resolution is handled by the group's `policy` setting (see Section 1.1 
 
 By design, the SDK never mixes headers from different sources within a group. Groups stay intact:
 
-- `clear-and-use-meta`: ALL from `_meta`, or ALL from existing (if `_meta` has nothing)
-- `merge-with-meta`: Per-header replacement, but no partial mixing within a single header
+- `clear-and-use-meta`: ALL from `_meta`, or ALL from existing (if `_meta` has nothing or `required` headers are missing)
+- `prefer-meta`: Per-header replacement, but no partial mixing within a single header
 - `ignore-meta`: ALL from existing, `_meta` ignored entirely
 
 #### 6.2 Manual Mixing (Advanced)
@@ -400,7 +419,7 @@ Test code available at: [link to test repository or gist]
 
 3. **What about non-HTTP tool implementations?** Tools that don't make HTTP calls (e.g., local file operations) don't benefit from this.
 
-4. **Should `baggage` default to `ignore-meta`?** W3C Baggage can contain arbitrary key-value pairs. Currently proposing `merge-with-meta` to match OpenTelemetry behavior, but this is open for discussion.
+4. **Should `baggage` default to `ignore-meta`?** W3C Baggage can contain arbitrary key-value pairs. Currently proposing `prefer-meta` to match OpenTelemetry behavior, but this is open for discussion.
 
 ## Acknowledgments
 
