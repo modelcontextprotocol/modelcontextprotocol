@@ -247,14 +247,14 @@ This specification proposal was selected for its ease of understanding since it 
 
 ## Security Implications
 
-No new implications identified. Offering group information to LLMs presents challenges similar to other primitives, and if servers use groups for access control, that might raise additional implications.
+Offering group information to LLMs presents challenges similar to other primitives, and if servers use groups for access control, that might raise additional implications.
 
 ## Reference Implementation
 
-- **Schema Changes:** [PR #2110](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2110)
+- **Schema Changes:** [PR #2110](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2110) - Changes to documentation and types in the draft spec and schema.
 - **TypeScript SDK:** [PR #1399](https://github.com/modelcontextprotocol/typescript-sdk/pull/1399) - Fully implemented with unit tests and documented client/server examples.
 
-The reference implementation's example client and server demonstrate how groups, tools, prompts, and resources can be grouped on the server, and the client can filter them by group. It manually demonstrates how an agent using the server could easily reduce the tokens placed into an LLM's context by only including the primitives in one or more groups rather than providing the full list.
+The reference implementation's example client and server demonstrate how groups, tools, prompts, and resources can be grouped on the server, and the client can filter them by group. It manually demonstrates how an agent using the server could easily reduce the tokens placed into an LLM's context by only including the primitives in one or more groups rather than providing the full list. It also demonstrates how the client can choose what depth of the group graph to display. Note that a client could ignore the graph altogether and treat the group list as flat.
 
 Note: Tasks are not included in the example as they are ephemeral, but the SDK changes do support grouping of tasks.
 
