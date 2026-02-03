@@ -4,7 +4,7 @@
 - **Type**: Standards Track
 - **Created**: 2025-11-21
 - **Author(s)**: Sam Morrow (@sammorrowdrums)
-- **Sponsor**: @nicknotfun
+- **Sponsor**: @nickoai
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862
 
 ## Abstract
