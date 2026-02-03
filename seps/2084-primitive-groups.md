@@ -23,59 +23,34 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 - A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
 - A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
 
-#### Groups are overlapping sets NOT hierarchies
-
-- Primitives can belong to multiple groups; for instance, if tools are grouped by use case, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
-- Since groups are a primitive, they may belong to multiple groups, and so the result is **not a hierarchy** but rather, potentially overlapping sets.
-- Server developers should take care to avoid cyclic graphs — e.g., a group belonging to itself or to a child.
-
-#### Transitivity
-
-- Primitive A is in group B. Group B is in group C. Is primitive A implicitly in group C also?
-- The Transitivity of groups is a matter of client interpretation.
-  - In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
-  - When listing the primitives in the `communications` group, I chose to have it display the contents of both children.
-  - So `email_thank_contributor` would appear in both `email` and `communications`.
-  - Some clients might wish to only show direct children of a group.
-    - If a server contained cyclic graphs, configuring the client to only show the direct children of a group would short circuit the graph traversal, unless the group contains itself as a direct child, which would be an obvious mistake on the server developer's part that would likely never happen in production.
-
-#### Visibility of Groups to LLMs
-
-- Groups are simply an organizational tool available to the server developer.
-- It is up to clients to decide how to interpret and make use of them, e.g., for deciding what primitives to expose to LLMs or simply ignoring them.
-- Server developers cannot expect that clients will pass any group information to LLMs, although they may.
-
 ### Why use Groups?
 
-Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings can be applied to multiple primitives concurrently. Some use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) include:
+Organizing a server's primitives by functionality or use case enables richer client workflows, wherein certain operations or settings to be applied to multiple primitives concurrently:
 
-#### Client-Side & User Organization
+- **Client-side filtering:** Client UIs could display a list of groups and allow users to select/deselect groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
+- **Agentic control:** In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
+- **Simplify server instructions:** When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
 
-- **Client-side Filtering:** Client UIs could display a list of groups and allow users to select/deselect specific groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
+The [appendix](#community-identified-use-cases) described many other use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772). 
 
-- **Library Management:** Enabling users to create and manage organized Prompt and Resource libraries that can be shared or reused across different sessions.
+It is up to clients to decide how to interpret and use groups, and if grouping semantics are exposed to the LLMs are not. 
 
-- **Presentation and Search:** Improving how humans and AI models look up and discover tools. Grouping helps organize the interface so that relevant tools are easier to find among hundreds of options.
+## Protocol Considerations
 
-- **Workflow-Specific Context:** Providing a model with a "set" of tools and tasks specifically curated for a particular workflow, rather than overwhelming it with every available primitive.
+#### New Primitive or Extension?
 
-#### Server-Side & Architectural Patterns
+Groups are implemented as new MCP primitive, alongside the existing ones (i.e., tools, resources, prompts, and tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, use a new reserved `_meta` key to list the groups to which they belong. An alternative proposal for implementing groups as an extension over existing primitives was disregarded since it was considered unintuitive.
 
-- **Gateway Facades:** Using a Gateway Server to wrap various backend services (REST APIs, databases, or legacy systems) into a single cohesive facade. For example, a group might dynamically expose a mix of tools from different MCP servers, APIs, REST services, etc.
+#### Membership Constraints
 
-- **Dynamic Orchestration:** Supporting the ability to add or remove groups and tools without restarting the server, which is essential for high-availability gateway environments.
+This SEP recommends flexible grouping membership given diversity in potential use-cases:
 
-- **Task Management:** Grouping the new Task primitive alongside tools and prompts to manage long-running workflows, sequencing, and concurrency.
-
-#### Governance & Development Lifecycle
-
-- **Governance and Security:** Providing a standardized mechanism for server-side governance of who can access specific sets of tools and resources.
-
-- **Ecosystem Tooling:** Supporting broader developer workflows such as debugging, automated testing, and documentation by grouping related diagnostic tools together.
+1. Primitives **can** belong to multiple groups. This is crucial for key use-cases e.g., if grouping tools by specfic workflows, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups. 
+2. Groups **may** belong to multiple groups. This results in overlapping sets, not a rigid **not a hierarchy**.
+3. Clients **may** interpret transitive relationships based on their specific use-cases (see [reference implementation](#transitity-example)).
+4. Although servers are responsible for avoiding invalid groupings such as self or cyclic memberships, SDKs can help. We argue the maintenance overhead would be modest and consider it acceptable for the additional flexibility, since such features are already implemented in most language compilers / interpreters.
 
 ## Specification
-
-**Recommendation:** Groups are implemented as new MCP primitive, alongside the existing ones (i.e., tools, resources, prompts, and tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, use a new reserved `_meta` key to list the groups to which they belong.
 
 ### Capability
 
@@ -254,9 +229,7 @@ This specification proposal was selected for its ease of understanding since it 
 
 ## Security Implications
 
-No serious implications identified.
-
-We do wish to point out that use of groups for controlling access to a set of primitives, while a stated use case, could have security implications if groups change dynamically.
+No new implications identified. Offering group information to LLMs presents challenges similar to other primitives, and if servers use groups for access control, that might raise additional implications.
 
 ## Reference Implementation
 
@@ -267,8 +240,46 @@ The reference implementation's example client and server demonstrate how groups,
 
 Note: Tasks are not included in the example as they are ephemeral, but the SDK changes do support grouping of tasks.
 
+### Transitivity Example
+- In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
+  - When listing the primitives in the `communications` group, it displays the contents of both children.
+  - So `email_thank_contributor` would appear in both `email` and `communications`.
+- Some clients might wish to only show direct children of a group.
+<!-- If a server contained cyclic graphs, configuring the client to only show the direct children of a group would short circuit the graph traversal, unless the group contains itself as a direct child, which would be an obvious mistake on the server developer's part that would likely never happen in production.  -->
+
+
 ## Acknowledgements
 
 - @cliffhall and @chughtapan thank @patwhite for his earlier work on [SEP-1300](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300) where a version of this grouping approach was first proposed.
 - And thanks to @scottslewis for rounding up [use cases](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) for grouping and providing input on alternative implementations.
 - Thanks also to @bdoyle0182, @LucaButBoring, and @SamMorrowDrums for providing feedback and opinions in Discord and meetings.
+
+## Appendix
+
+### Community Identified Use-Cases
+
+Additional use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772) include:
+
+#### Client-Side & User Organization
+
+- **Client-side Filtering:** Client UIs could display a list of groups and allow users to select/deselect specific groups to interact with or ignore. Primitives from deselected groups would not be presented to the LLM.
+
+- **Library Management:** Enabling users to create and manage organized Prompt and Resource libraries that can be shared or reused across different sessions.
+
+- **Presentation and Search:** Improving how humans and AI models look up and discover tools. Grouping helps organize the interface so that relevant tools are easier to find among hundreds of options.
+
+- **Workflow-Specific Context:** Providing a model with a "set" of tools and tasks specifically curated for a particular workflow, rather than overwhelming it with every available primitive.
+
+#### Server-Side & Architectural Patterns
+
+- **Gateway Facades:** Using a Gateway Server to wrap various backend services (REST APIs, databases, or legacy systems) into a single cohesive facade. For example, a group might dynamically expose a mix of tools from different MCP servers, APIs, REST services, etc.
+
+- **Dynamic Orchestration:** Supporting the ability to add or remove groups and tools without restarting the server, which is essential for high-availability gateway environments.
+
+- **Task Management:** Grouping the new Task primitive alongside tools and prompts to manage long-running workflows, sequencing, and concurrency.
+
+#### Governance & Development Lifecycle
+
+- **Governance and Security:** Providing a standardized mechanism for server-side governance of who can access specific sets of tools and resources.
+
+- **Ecosystem Tooling:** Supporting broader developer workflows such as debugging, automated testing, and documentation by grouping related diagnostic tools together.
