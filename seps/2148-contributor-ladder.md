@@ -46,8 +46,8 @@ The contributor ladder operates under these principles:
 | **Contributor**          | Anyone who contributes to MCP              | Submit issues, PRs, participate in discussions                            | Immediate                                             |
 | **Member**               | Established, active contributor            | GitHub Org Membership, trusted CI, triage rights, WG Leadership           | 2-3 months                                            |
 | **Reviewer**             | Recognized for technical judgment          | Review and approve PRs in scope area                                      | 3 months as Member                                    |
-| **Maintainer**           | Area owner with operational responsibility | Merge rights, release participation                                       | 6+ months as Member                                   |
-| **Core Maintainer**      | Project-wide technical leadership          | Final decision authority, governance participation                        | By invitation after sustained Maintainer contribution |
+| **Maintainer**           | Area steward with operational responsibility | Merge rights, release participation                                       | 6+ months as Member                                   |
+| **Core Maintainer**      | Technical leadership and protocol stewardship          | Final decision authority, governance participation                        | By invitation after sustained Maintainer contribution |
 | **Lead Core Maintainer** | Ultimate project authority                 | All Core Maintainer privileges, veto authority, appoints Core Maintainers | Lifetime appointment                                  |
 
 ### Contributor
@@ -113,6 +113,7 @@ Reviewers have demonstrated technical competence and good judgment in a specific
 - Member for at least 3 months
 - Primary reviewer for at least 5 substantial PRs in scope area
 - Reviewed at least 15 PRs total in scope area
+- Demonstrates working understanding of how MCP integrates with AI systems and model capabilities
 - Demonstrates knowledge of code quality, testing standards, and design patterns
 - Demonstrated good judgment and constructive feedback in reviews
 
@@ -150,6 +151,7 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Demonstrated leadership in working groups or significant initiatives
 - Shown ability to represent MCP's interests above organizational interests
 - Deep understanding of MCP's vision, roadmap, and design principles
+- Understands how their area impacts real-world AI integration and model interaction patterns
 - Completed security and governance onboarding
 
 **Sponsorship & Approval:**
@@ -165,6 +167,8 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Active participation in governance discussions
 - Mentor Reviewers and develop future Maintainers
 - Represent MCP in external contexts when appropriate
+- Engage with the area ecosystem and stakeholders, understanding real-world usage, and representing community needs
+- Ensure proposals reaching Core Maintainers are refined, well-considered, and account for ecosystem-wide impact
 - Active participation in discussions on communication channels (GitHub issues, Discord)
 
 **Privileges:**
@@ -201,6 +205,7 @@ _Note: The Core Maintainer role is intentionally limited to ensure coherent tech
 - Governance and policy decisions
 - External representation of MCP
 - Succession planning and community health
+- Ensure restraint and sustainability in protocol evolution
 - Participation in Core Maintainer meetings and Core Maintainer meetups
 
 **Privileges:**
