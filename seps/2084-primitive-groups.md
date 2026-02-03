@@ -21,7 +21,7 @@ Groups are named collections of MCP primitives: tools, prompts, resources, tasks
 
 - A productivity server could organize groups such as Email or Calendar, and present related tools, e.g. Email: ["Draft Email", "Spell Check", "Send Email"], Calendar: ["Add Participants", "Find Open Time", "Create Appointment"]
 - A server with many tools could separate them by functionality such as "Pull Requests", "Issues", "Actions".
-- A server with various reference programming resources could separate them by language, like "Python", "TypeScript, and "Kotlin".
+- A server with various reference programming resources could separate them by language, like "Python", "TypeScript", and "Kotlin".
 
 ### Why use Groups?
 
@@ -31,9 +31,9 @@ Organizing a server's primitives by functionality or use case enables richer cli
 - **Agentic control:** In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
 - **Simplify server instructions:** When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
 
-The [appendix](#community-identified-use-cases) described many other use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772).
+The [appendix](#community-identified-use-cases) describes many other use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772).
 
-It is up to clients to decide how to interpret and use groups, and if grouping semantics are exposed to the LLMs are not.
+It is up to clients to decide how to interpret and use groups, and if grouping semantics are exposed to the LLMs or not.
 
 ## Protocol Considerations
 
@@ -45,9 +45,9 @@ Groups are implemented as new MCP primitive, alongside the existing ones (i.e., 
 
 This SEP recommends flexible grouping membership given diversity in potential use-cases:
 
-1. Primitives **can** belong to multiple groups. This is crucial for key use-cases e.g., if grouping tools by specfic workflows, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
-2. Groups **may** belong to multiple groups. This results in overlapping sets, not a rigid **not a hierarchy**.
-3. Clients **may** interpret transitive relationships based on their specific use-cases (see [reference implementation](#transitity-example)).
+1. Primitives **can** belong to multiple groups. This is crucial for key use-cases e.g., if grouping tools by specific workflows, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
+2. Groups **may** belong to multiple groups. This results in overlapping sets, **not a hierarchy**.
+3. Clients **may** interpret transitive relationships based on their specific use-cases (see [reference implementation](#transitivity-example)).
 4. Although servers are responsible for avoiding invalid groupings such as self or cyclic memberships, SDKs can help. We argue the maintenance overhead would be modest and consider it acceptable for the additional flexibility, since such features are already implemented in most language compilers / interpreters.
 
 ## Specification
@@ -222,7 +222,7 @@ This specification proposal was selected for its ease of understanding since it 
   This idea was discarded because it could lead to backward compatibility issues. For instance, if a server returned a tool, resource, etc, with this property to an older client which validated it against a strict schema that did not contain this property, it would most likely cause an error.
   Since this proposal spans all primitives, such a compatibility failure would be unacceptable. We could require SDK developers to implement a "feature flag" that suppresses the top-level groups field in all primitives after protocol version negotiation takes place if there is a mismatch. However, that would be more effort and complexity than simply using a reserved metadata key to pass the primitive's group list, which older clients would simply ignore.
 
-- **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, beacuse groups belong to other groups, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
+- **Primitive's group list as an array of Group instances not names:** A variation of the proposed specification, but the schema would reference the Groups definition instead of declaring a string (group name). This means that full Group instances would appear in the primitive's group list, significantly increasing the token count when passed to an LLM without modification. Also, because groups belong to other groups, every child of a given group would carry a duplicate of the parent instance. There was discussion of mitigating the duplication on the line using libraries that perform a marshalling on send/receive, replacing the parent with a pointer to a single copy of the parent instance. This would put an unnecessary burden on SDK developers for no clear benefit, when a client can easily look up a group by name in its cached `groups/list` result.
   More information on this approach can be found in @scottslewis's [proposal](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1567).
 
 - **No Grouping of Groups** - A variation of the proposed specification, but Groups cannot have a group list. Avoids any worry of graphs — e.g., a group belonging to itself or to a child. Makes groups a flat list.
