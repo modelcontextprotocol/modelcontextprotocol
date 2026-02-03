@@ -20,9 +20,11 @@ flood model context. The changes are non-breaking and do not modify the protocol
 
 ## Motivation
 
-Since `structuredContent` was introduced in PR #371 and back-compat relaxed in PR #559, servers and
-clients have implemented divergent interpretations of how `content` and `structuredContent` should
-be used:
+Since `structuredContent` was introduced in
+[PR #371](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/371) and back-compat was
+relaxed in [PR #559](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/559), servers
+and clients have implemented divergent interpretations of how `content` and `structuredContent`
+should be used:
 
 - Clients disagree on which field to pass to models, with some preferring `content`, others
   preferring `structuredContent`, and some forwarding both.
@@ -35,9 +37,11 @@ The official MCP Apps extension
 (https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) makes the ambiguity more
 urgent. Tools can now return interactive UIs and richer data for hosts to render. Without explicit
 guidance, model context can be flooded with UI-oriented data or the UI can lack a reliable
-structured payload. The ext-apps issue #380 and related client issues (for example, python-sdk
-#1796 and vscode #290063) highlight persistent confusion about what is model-visible and what is
-host-only.
+structured payload. The ext-apps issue
+[#380](https://github.com/modelcontextprotocol/ext-apps/issues/380) and related client issues (for
+example, [python-sdk #1796](https://github.com/modelcontextprotocol/python-sdk/issues/1796) and
+[vscode #290063](https://github.com/microsoft/vscode/issues/290063)) highlight persistent confusion
+about what is model-visible and what is host-only.
 
 This SEP consolidates the consensus from issue #1624 and related discussions: `content` is the
 model-facing representation, `structuredContent` is for programmatic or UI use, and clients should
