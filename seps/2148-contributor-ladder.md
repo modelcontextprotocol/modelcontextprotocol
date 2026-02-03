@@ -40,15 +40,15 @@ The contributor ladder operates under these principles:
 
 ### Role Definitions
 
-| Role                                             | Summary                                    | Key Privileges                                                            | Minimum Timeline                                      |
-| ------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------- | ----------------------------------------------------- |
-| [**Contributor**](#contributor)                  | Anyone who contributes to MCP              | Submit issues, PRs, participate in discussions                            | Immediate                                             |
-| [**Member**](#member)                            | Established, active contributor            | GitHub org membership, triage rights, eligible for WG/IG leadership       | 2-3 months of meaningful contributions                |
-| [**Reviewer**](#reviewer)                        | Recognized for technical judgment          | Review and approve PRs in scope area                                      | 3 months as Member                                    |
-| [**Maintainer**](#maintainer)                    | Area owner with operational responsibility | Merge rights, release participation                                       | 6+ months as Member                                   |
-| [**Core Maintainer**](#core-maintainer)          | Project-wide technical leadership          | Final decision authority, governance participation                        | By invitation after sustained Maintainer contribution |
-| [**Lead Maintainer**](#lead-maintainer)          | Ultimate project authority (founders)      | All Core Maintainer privileges, veto authority, appoints Core Maintainers | Reserved for project founders — succession only       |
-| [**Community Moderator**](#community-moderators) | CoC enforcement and community health       | Moderation rights on community platforms, incident handling               | Parallel track — Member status + appointment          |
+| Role                                             | Summary                                       | Key Privileges                                                            | Minimum Timeline                                      |
+| ------------------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [**Contributor**](#contributor)                  | Anyone who contributes to MCP                 | Submit issues, PRs, participate in discussions                            | Immediate                                             |
+| [**Member**](#member)                            | Established, active contributor               | GitHub org membership, triage rights, eligible for WG/IG leadership       | 2-3 months of meaningful contributions                |
+| [**Reviewer**](#reviewer)                        | Recognized for technical judgment             | Review and approve PRs in scope area                                      | 3 months as Member                                    |
+| [**Maintainer**](#maintainer)                    | Area steward with operational responsibility  | Merge rights, release participation                                       | 6+ months as Member                                   |
+| [**Core Maintainer**](#core-maintainer)          | Technical leadership and protocol stewardship | Final decision authority, governance participation                        | By invitation after sustained Maintainer contribution |
+| [**Lead Maintainer**](#lead-maintainer)          | Ultimate project authority (founders)         | All Core Maintainer privileges, veto authority, appoints Core Maintainers | Reserved for project founders — succession only       |
+| [**Community Moderator**](#community-moderators) | CoC enforcement and community health          | Moderation rights on community platforms, incident handling               | Parallel track — Member status + appointment          |
 
 _Timelines listed are minimum contribution periods, not guarantees of advancement. They exist to protect the project from rapid privilege escalation and to ensure a high bar of demonstrated commitment. Actual advancement is discretionary and may take longer in practice; the only guarantee is that advancement will not happen on a shorter timescale than documented. Exceptions require explicit Core Maintainer approval with documented rationale._
 
@@ -117,6 +117,7 @@ Reviewers have demonstrated technical competence and good judgment in a specific
 - Member for at least 3 months
 - Primary reviewer for at least 5 substantial PRs in scope area
 - Reviewed at least 15 PRs total in scope area
+- Demonstrates working understanding of how MCP integrates with AI systems and model capabilities
 - Demonstrates knowledge of code quality, testing standards, and design patterns
 - Demonstrated good judgment and constructive feedback in reviews
 
@@ -154,6 +155,7 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Demonstrated leadership in working groups or significant initiatives
 - Shown ability to represent MCP's interests above an individual employer's or organization's interests
 - Deep understanding of the MCP vision, roadmap, and design principles
+- Understands how their area impacts real-world AI integration and model interaction patterns
 - Completed security and governance onboarding
 
 **Sponsorship & Approval:**
@@ -169,6 +171,8 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Active participation in governance discussions
 - Mentor Reviewers and develop future Maintainers
 - Represent MCP in external contexts when appropriate
+- Engage with the area ecosystem and stakeholders, understanding real-world usage, and representing community needs
+- Ensure proposals reaching Core Maintainers are refined, well-considered, and account for ecosystem-wide impact
 - Active participation in discussions on communication channels (GitHub issues, Discord)
 
 **Privileges:**
@@ -209,6 +213,7 @@ When evaluating candidates, Core Maintainers should consider whether the current
 - Governance and policy decisions
 - External representation of MCP
 - Succession planning and community health
+- Ensure restraint and sustainability in protocol evolution
 - Participation in Core Maintainer meetings and Core Maintainer meetups
 
 **Privileges:**
