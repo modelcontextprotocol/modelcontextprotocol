@@ -1523,11 +1523,18 @@ export interface ListToolsResultResponse extends JSONRPCResultResponse {
 export interface CallToolResult extends Result {
   /**
    * A list of content objects that represent the unstructured result of the tool call.
+   *
+   * This is the model-oriented representation. Clients that provide tool results to a model
+   * SHOULD use `content` when present and only fall back to `structuredContent` if `content`
+   * is empty or omitted.
    */
   content: ContentBlock[];
 
   /**
    * An optional JSON object that represents the structured result of the tool call.
+   *
+   * Intended for programmatic use; when both fields are present, it SHOULD be semantically
+   * equivalent to `content`.
    */
   structuredContent?: { [key: string]: unknown };
 

@@ -322,17 +322,21 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 The `content` and `structuredContent` fields serve different audiences:
 
-- `content`: model-oriented output optimized for readability and token efficiency. Preferred for conversational agents and direct model prompting.
+- `content`: model-oriented output optimized for readability and token efficiency. Preferred for conversational agents and when tool responses are fed directly into the model's context window.
 - `structuredContent`: machine-oriented output for programmatic use, code generation, typed orchestration, and UI hydration.
 
 When both fields are present, they SHOULD be semantically equivalent (same information, different presentation). `content` may summarize or textualize the structured data without listing every field verbatim, but it SHOULD NOT contradict it.
 
-For backwards compatibility, tools that return structured content SHOULD also return a `content` representation of the same information. JSON-serialized text is acceptable, but not required.
+For backwards compatibility, tools that return structured content SHOULD also return a `content` representation of the same information. JSON-serialized text is acceptable, but not required and may be suboptimal depending on the use case.
 
 Clients SHOULD choose the appropriate field to expose to the model based on their use case:
 
 - Conversational/agent UX: prefer `content`.
 - Programmatic/code mode: prefer `structuredContent`.
+
+When sending tool results to a model context, clients SHOULD use `content` when present and only
+fall back to `structuredContent` if `content` is empty or omitted. Programmatic/code-mode hosts
+that want structured inputs can omit `content` so the fallback applies.
 
 Clients SHOULD NOT forward both fields verbatim to the model as separate inputs.
 
@@ -411,7 +415,7 @@ Example valid response for this tool:
 ```
 
 When returning both fields, `structuredContent` should carry the full structured data required by
-`outputSchema`, while `content` should provide a concise, model-friendly summary.
+`outputSchema`, while `content` should provide a concise, model-friendly equivalent.
 
 Providing an output schema helps clients and LLMs understand and properly handle structured tool outputs by:
 

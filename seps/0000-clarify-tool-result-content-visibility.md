@@ -1,10 +1,10 @@
 # SEP-0000: Clarify Tool Result Content and Model Visibility
 
 - **Status**: Draft
-- **Type**: Standards Track
+- **Type**: Informational
 - **Created**: 2026-02-03
-- **Author(s)**: Kyrubeno (@kyrubeno)
-- **Sponsor**: None (seeking sponsor)
+- **Author(s)**: Kyle Rubenok (@kyrubeno)
+- **Sponsor**: Ola Hungerford (@olaservo)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
 - **Related Issues**: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1624
 
@@ -67,19 +67,24 @@ This SEP proposes the following clarifications to the MCP specification (draft):
      contradict it.
    - For backwards compatibility, tools that return `structuredContent` SHOULD also return a
      `content` representation of the same information. JSON-serialized text is acceptable, but
-     not required.
+     not required and may be suboptimal depending on the use case.
 
 3. **Client selection guidance**
 
    - Clients SHOULD choose the field that best matches their experience:
      - Conversational/agent UX: prefer `content`.
      - Programmatic/code mode: prefer `structuredContent`.
+   - When providing tool results to a model context, clients SHOULD use `content` when present
+     and only fall back to `structuredContent` if `content` is empty or omitted.
+   - If the preferred field is missing or empty, clients MAY fall back to the other field.
    - Clients SHOULD NOT forward both fields verbatim to the model as separate inputs.
 
 4. **MCP Apps and model visibility**
 
    - For MCP Apps hosts, `content` is the model-visible summary, while `structuredContent` and
-     `_meta` are typically used for UI rendering or host-specific metadata.
+     `_meta` are typically used for UI rendering or host-specific metadata. Model visibility is
+     ultimately client-controlled; `_meta` should be treated as host-only metadata unless a
+     client explicitly exposes it.
    - Apps can update model context explicitly using the MCP Apps API (e.g., `ui/update-model-context`).
 
 5. **Output schema documentation**
