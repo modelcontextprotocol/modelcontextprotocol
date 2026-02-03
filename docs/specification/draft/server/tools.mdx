@@ -320,7 +320,27 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
-For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+The `content` and `structuredContent` fields serve different audiences:
+
+- `content`: model-oriented output optimized for readability and token efficiency. Preferred for conversational agents and direct model prompting.
+- `structuredContent`: machine-oriented output for programmatic use, code generation, typed orchestration, and UI hydration.
+
+When both fields are present, they SHOULD be semantically equivalent (same information, different presentation). `content` may summarize or textualize the structured data without listing every field verbatim, but it SHOULD NOT contradict it.
+
+For backwards compatibility, tools that return structured content SHOULD also return a `content` representation of the same information. JSON-serialized text is acceptable, but not required.
+
+Clients SHOULD choose the appropriate field to expose to the model based on their use case:
+
+- Conversational/agent UX: prefer `content`.
+- Programmatic/code mode: prefer `structuredContent`.
+
+Clients SHOULD NOT forward both fields verbatim to the model as separate inputs.
+
+<Note>
+  [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) hosts typically pass `content`
+  to the model and use `structuredContent` or `_meta` for UI rendering or host-specific metadata.
+  Apps can update model context explicitly via `ui/update-model-context`.
+</Note>
 
 #### Output Schema
 
@@ -378,7 +398,7 @@ Example valid response for this tool:
     "content": [
       {
         "type": "text",
-        "text": "{\"temperature\": 22.5, \"conditions\": \"Partly cloudy\", \"humidity\": 65}"
+        "text": "Temperature: 22.5 C, conditions: partly cloudy, humidity: 65%."
       }
     ],
     "structuredContent": {
@@ -389,6 +409,9 @@ Example valid response for this tool:
   }
 }
 ```
+
+When returning both fields, `structuredContent` should carry the full structured data required by
+`outputSchema`, while `content` should provide a concise, model-friendly summary.
 
 Providing an output schema helps clients and LLMs understand and properly handle structured tool outputs by:
 
