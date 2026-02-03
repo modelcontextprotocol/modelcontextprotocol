@@ -60,3 +60,7 @@ npm run check:seps       # Check SEP documents
 # Workflow
 npm run prep             # Full prep before committing (check, generate, format)
 ```
+
+## Commit Guidelines
+
+- Do not include model names or details (e.g., "Claude", "Opus") in commit messages

@@ -29,7 +29,7 @@ interface SEPMetadata {
   accepted?: string;
   authors: string;
   sponsor: string;
-  prUrl: string;
+  prNumber: string;
   slug: string;
   filename: string;
 }
@@ -67,7 +67,7 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
   const acceptedMatch = content.match(/^\s*-\s*\*\*Accepted\*\*:\s*(.+)$/m);
   const authorsMatch = content.match(/^\s*-\s*\*\*Author\(s\)\*\*:\s*(.+)$/m);
   const sponsorMatch = content.match(/^\s*-\s*\*\*Sponsor\*\*:\s*(.+)$/m);
-  const prMatch = content.match(/^\s*-\s*\*\*PR\*\*:\s*(.+)$/m);
+  const prMatch = content.match(/^\s*-\s*\*\*PR\*\*:.*?(?:#|\/pull\/)(\d+)/m);
 
   return {
     number,
@@ -78,7 +78,7 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
     accepted: acceptedMatch ? acceptedMatch[1].trim() : undefined,
     authors: authorsMatch ? authorsMatch[1].trim() : "Unknown",
     sponsor: sponsorMatch ? sponsorMatch[1].trim() : "None",
-    prUrl: prMatch ? prMatch[1].trim() : `https://github.com/modelcontextprotocol/specification/pull/${number}`,
+    prNumber: prMatch ? prMatch[1] : number,
     slug,
     filename,
   };
@@ -89,6 +89,13 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
  */
 function formatAuthors(authors: string): string {
   return authors.replace(/@([\w-]+)/g, "[@$1](https://github.com/$1)");
+}
+
+/**
+ * Format PR number as a GitHub link
+ */
+function formatPrLink(prNumber: string): string {
+  return `[#${prNumber}](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/${prNumber})`;
 }
 
 /**
@@ -145,7 +152,7 @@ import { Badge } from '/snippets/badge.mdx'
 | **Created** | ${sep.created} |
 ${sep.accepted ? `| **Accepted** | ${sep.accepted} |\n` : ""}| **Author(s)** | ${formatAuthors(sep.authors)} |
 | **Sponsor** | ${formatAuthors(sep.sponsor)} |
-| **PR** | [#${sep.number}](${sep.prUrl}) |
+| **PR** | ${formatPrLink(sep.prNumber)} |
 
 ---
 
