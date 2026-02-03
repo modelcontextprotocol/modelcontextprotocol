@@ -37,9 +37,9 @@ It is up to clients to decide how to interpret and use groups, and if grouping s
 
 ## Protocol Considerations
 
-#### New Primitive or Extension?
+#### New Primitive
 
-Groups are implemented as new MCP primitive, alongside the existing ones (i.e., tools, resources, prompts, and tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, use a new reserved `_meta` key to list the groups to which they belong. An alternative proposal for implementing groups as an extension over existing primitives was disregarded since it was considered unintuitive.
+Groups are implemented as new MCP primitive, alongside the existing ones (i.e., tools, resources, prompts, and tasks). The new primitive will have a similar schema, list method, and list changed notification. Additionally, all MCP primitives, including groups, use a new reserved `_meta` key to list the groups to which they belong.
 
 #### Membership Constraints
 
