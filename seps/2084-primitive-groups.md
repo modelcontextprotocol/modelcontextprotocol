@@ -246,7 +246,6 @@ Note: Tasks are not included in the example as they are ephemeral, but the SDK c
   - When listing the primitives in the `communications` group, it displays the contents of both children.
   - So `email_thank_contributor` would appear in both `email` and `communications`.
 - Some clients might wish to only show direct children of a group.
-<!-- If a server contained cyclic graphs, configuring the client to only show the direct children of a group would short circuit the graph traversal, unless the group contains itself as a direct child, which would be an obvious mistake on the server developer's part that would likely never happen in production.  -->
 
 ## Acknowledgements
 
