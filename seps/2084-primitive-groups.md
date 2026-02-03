@@ -242,10 +242,11 @@ Note: Tasks are not included in the example as they are ephemeral, but the SDK c
 
 ### Transitivity Example
 
-- In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
-  - When listing the primitives in the `communications` group, it displays the contents of both children.
-  - So `email_thank_contributor` would appear in both `email` and `communications`.
-- Some clients might wish to only show direct children of a group.
+- In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups. 
+  - The example client allows the user to configure the maximum depth of the depth-first graph search. 
+  - When listing the primitives in the `communications` group at maximum graph depth, it displays the contents of both children.
+  - In that case, `email_thank_contributor` would appear in both `email` and `communications`.
+- Some clients might wish to only show direct children of a group (depth of 1 in the example).
 
 ## Acknowledgements
 
