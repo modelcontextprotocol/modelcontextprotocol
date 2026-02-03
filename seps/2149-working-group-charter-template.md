@@ -153,7 +153,7 @@ _Addressing the interview feedback that it's "not clear who should be participat
 
 | Channel            | Purpose                        | Response Expectation |
 | ------------------ | ------------------------------ | -------------------- |
-| Discord #wg-name   | Quick questions, coordination  | Best effort          |
+| Discord #name-wg   | Quick questions, coordination  | Best effort          |
 | GitHub Discussions | Long-form technical discussion | Weekly triage        |
 
 **Decision-Making:**
