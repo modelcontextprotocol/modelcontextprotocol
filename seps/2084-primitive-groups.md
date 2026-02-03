@@ -247,9 +247,9 @@ A client that composes the group membership graph from the group list can repres
 - In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups. 
   - The example client allows the user to configure the maximum display depth of the graph.
   - When listing the primitives in the `communications` group at maximum graph depth, it displays the contents of all child groups.
-  - In that case, the `email_thank_contributor` tool would appear in both `email` and `communications`.
+    - In that case, the `email_thank_contributor` tool would appear in both `email` and `communications`.
   - Some clients might wish to only show direct children of a group (depth of 1 in the example).
-  - In that case, the `email_thank_contributor` tool would appear in the `email` group, but not its parent, `communications`.
+    - In that case, the `email_thank_contributor` tool would appear in the `email` group, but not its parent, `communications`.
 
 ## Acknowledgements
 
