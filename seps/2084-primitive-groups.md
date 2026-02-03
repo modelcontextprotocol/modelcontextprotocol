@@ -46,7 +46,7 @@ Groups are implemented as new MCP primitive, alongside the existing ones (i.e., 
 This SEP recommends flexible grouping membership given diversity in potential use-cases:
 
 1. Primitives **can** belong to multiple groups. This is crucial for key use-cases e.g., if grouping tools by specific workflows, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
-2. Groups **may** belong to multiple groups. This results in overlapping sets, **not a hierarchy**.
+2. Groups, themselves being primitives, **may** also belong to multiple groups. This results in overlapping sets, **not a hierarchy**.
 3. Clients **may** interpret transitive relationships based on their specific use-cases (see [reference implementation](#transitivity-example)).
 4. Although servers are responsible for avoiding invalid groupings such as self or cyclic memberships, SDKs can help. We argue the maintenance overhead would be modest and consider it acceptable for the additional flexibility, since such features are already implemented in most language compilers / interpreters.
 
