@@ -120,7 +120,7 @@ Grouping of all primitives is handled in the same way, including groups themselv
 
 For groups, tools, resources, prompts, and tasks, an optional reserved `_meta` key is used to present the list of group names to which the primitive instance belongs.
 
-By listing a primitive's groups in a reserved `_meta` property, we ensure backward compatibility.
+By listing a primitive's group memberships in a reserved `_meta` property, we ensure backward compatibility.
 
 ```json
    "io.modelcontextprotocol/groups": {
