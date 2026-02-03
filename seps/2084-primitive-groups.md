@@ -132,7 +132,7 @@ By listing a primitive's group memberships in a reserved `_meta` property, we en
    },
 ```
 
-### Groups Discovery Method: groups/list
+### Groups Discovery Method: `groups/list`
 
 Request:
 
@@ -169,8 +169,8 @@ Response:
 
 ### Changes to Response Formats
 
-As mentioned above, all primitives have a new property that appears in their list result. This includes `tools/list`, `resources/list`, `resources/templates/list`, `prompts/list`, `tasks/list`.
-Here is an example tool definition from `tools/list` response with new groups property:
+As mentioned above, all primitives, including `groups/list`, `prompts/list`, `resources/list`, `resources/templates/list`, `tasks/list`, and `tools/list`, have a new property that appears in their list result. 
+Here is an example tool definition from `tools/list` response with new property in its `_meta` field:
 
 ```json
 {
@@ -188,7 +188,7 @@ Here is an example tool definition from `tools/list` response with new groups pr
     "required": ["expression"]
   },
   "_meta": {
-    "io.modelcontextprotocol/groups": ["arithmetic"]
+    "io.modelcontextprotocol/groups": ["arithmetic"]  // New property
   }
 }
 ```
