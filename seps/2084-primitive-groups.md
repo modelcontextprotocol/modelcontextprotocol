@@ -199,7 +199,7 @@ Here is an example tool definition from `tools/list` response with new property 
 
 #### List Changed
 
-When the list of available groups changes, servers that declared the listChanged capability SHOULD send a notification:
+When the list of available groups changes, servers that declared the `groups.listChanged` capability SHOULD send a notification:
 
 ```json
 {
