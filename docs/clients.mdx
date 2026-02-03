@@ -5,7 +5,25 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Sampling", "Roots", "Elicitation", "Instructions", "Tasks", "Apps"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "Tasks", "Apps"];
+
+export const FEATURE_COLORS = {
+  Resources: "blue",
+  Prompts: "blue",
+  Tools: "blue",
+  Instructions: "purple",
+  Discovery: "purple",
+  Sampling: "green",
+  Roots: "green",
+  Elicitation: "green",
+  Tasks: "orange",
+  Apps: "orange",
+};
+
+export const FeatureBadge = ({ feature }) => {
+  const color = FEATURE_COLORS[feature.split(" (")[0]] || "gray";
+  return <Badge shape="pill" stroke color={color}>{feature}</Badge>;
+};
 
 export const filterStore = {
   state: {
@@ -143,6 +161,12 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
     sourceCode ??= homepage;
   }
 
+  const features = (supports ?? "").split(", ").sort((a, b) => {
+    const featureA = a.split(" (")[0];
+    const featureB = b.split(" (")[0];
+    return FEATURES.indexOf(featureA) - FEATURES.indexOf(featureB);
+  });
+
   const instructionsLinks = Array.isArray(instructions)
     ? <>
         <strong>Configuration instructions:</strong>{" "}
@@ -190,18 +214,23 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
               #
             </a>
           </div>
-          {supports && (
-            <div className="flex items-start gap-1.5 mt-2 text-base">
-              <span className="flex items-center h-[1lh]">
-                <Icon icon="check" iconType="solid" size={18} />
+          {features.length > 0 && (
+            <div className="flex items-baseline gap-1.5 mt-2 text-base">
+              <span className="inline-flex items-center h-[1lh]">
+                {'\u200B'}<Icon icon="check" iconType="solid" size={18} />
               </span>
-              <span><strong>Supports:</strong> {supports}</span>
+              <strong>Supports:</strong>
+              <span className="flex flex-wrap gap-1">
+                {features.map(feature => (
+                  <FeatureBadge key={feature} feature={feature} />
+                ))}
+              </span>
             </div>
           )}
           {sourceCode && (
-            <div className="flex items-start gap-1.5 mt-2 text-base">
-              <span className="flex items-center h-[1lh]">
-                <Icon icon="code" iconType="solid" size={18} />
+            <div className="flex items-baseline gap-1.5 mt-2 text-base">
+              <span className="inline-flex items-center h-[1lh]">
+                {'\u200B'}<Icon icon="code" iconType="solid" size={18} />
               </span>
               <span>
                 <a href={sourceCode} target="_blank" rel="noopener noreferrer">
@@ -211,9 +240,9 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
             </div>
           )}
           {instructions && (
-            <div className="flex items-start gap-1.5 mt-2 text-base">
-              <span className="flex items-center h-[1lh]">
-                <Icon icon="gear" iconType="solid" size={18} />
+            <div className="flex items-baseline gap-1.5 mt-2 text-base">
+              <span className="inline-flex items-center h-[1lh]">
+                {'\u200B'}<Icon icon="gear" iconType="solid" size={18} />
               </span>
               <span>
                 {instructionsLinks}
@@ -248,7 +277,20 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
 
 {/* prettier-ignore-end */}
 
-This page provides an overview of applications that support the Model Context Protocol (MCP). Each client may support different MCP features, allowing for varying levels of integration with MCP servers.
+This page showcases applications that support the Model Context Protocol (MCP). Each client may support different MCP features:
+
+| Feature                                 | Description                                               |
+| --------------------------------------- | --------------------------------------------------------- |
+| <FeatureBadge feature="Resources" />    | Server-exposed data and content                           |
+| <FeatureBadge feature="Prompts" />      | Pre-defined templates for LLM interactions                |
+| <FeatureBadge feature="Tools" />        | Executable functions that LLMs can invoke                 |
+| <FeatureBadge feature="Discovery" />    | Support for tools/prompts/resources changed notifications |
+| <FeatureBadge feature="Instructions" /> | Server-provided guidance for LLMs                         |
+| <FeatureBadge feature="Sampling" />     | Server-initiated LLM completions                          |
+| <FeatureBadge feature="Roots" />        | Filesystem boundary definitions                           |
+| <FeatureBadge feature="Elicitation" />  | User information requests                                 |
+| <FeatureBadge feature="Tasks" />        | Long-running operation tracking                           |
+| <FeatureBadge feature="Apps" />         | Interactive HTML interfaces                               |
 
 <Note>
 
