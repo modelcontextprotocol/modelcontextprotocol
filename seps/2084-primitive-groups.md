@@ -31,9 +31,9 @@ Organizing a server's primitives by functionality or use case enables richer cli
 - **Agentic control:** In-addition to human-affordances, clients can offer agents special tools which enable the LLM to dynamically enable / disable specific groups.
 - **Simplify server instructions:** When describing how to use various primitives in a server, the instructions could refer to them by group name rather than exhaustive lists.
 
-The [appendix](#community-identified-use-cases) described many other use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772). 
+The [appendix](#community-identified-use-cases) described many other use cases [identified by the community](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1772).
 
-It is up to clients to decide how to interpret and use groups, and if grouping semantics are exposed to the LLMs are not. 
+It is up to clients to decide how to interpret and use groups, and if grouping semantics are exposed to the LLMs are not.
 
 ## Protocol Considerations
 
@@ -45,7 +45,7 @@ Groups are implemented as new MCP primitive, alongside the existing ones (i.e., 
 
 This SEP recommends flexible grouping membership given diversity in potential use-cases:
 
-1. Primitives **can** belong to multiple groups. This is crucial for key use-cases e.g., if grouping tools by specfic workflows, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups. 
+1. Primitives **can** belong to multiple groups. This is crucial for key use-cases e.g., if grouping tools by specfic workflows, a `spell_check` tool might appear in both `compose_email` and `compose_document` groups.
 2. Groups **may** belong to multiple groups. This results in overlapping sets, not a rigid **not a hierarchy**.
 3. Clients **may** interpret transitive relationships based on their specific use-cases (see [reference implementation](#transitity-example)).
 4. Although servers are responsible for avoiding invalid groupings such as self or cyclic memberships, SDKs can help. We argue the maintenance overhead would be modest and consider it acceptable for the additional flexibility, since such features are already implemented in most language compilers / interpreters.
@@ -241,12 +241,12 @@ The reference implementation's example client and server demonstrate how groups,
 Note: Tasks are not included in the example as they are ephemeral, but the SDK changes do support grouping of tasks.
 
 ### Transitivity Example
+
 - In the TypeScript reference implementation, the `communications` group contains `email` and `calendar` groups.
   - When listing the primitives in the `communications` group, it displays the contents of both children.
   - So `email_thank_contributor` would appear in both `email` and `communications`.
 - Some clients might wish to only show direct children of a group.
 <!-- If a server contained cyclic graphs, configuring the client to only show the direct children of a group would short circuit the graph traversal, unless the group contains itself as a direct child, which would be an obvious mistake on the server developer's part that would likely never happen in production.  -->
-
 
 ## Acknowledgements
 
