@@ -1,11 +1,11 @@
-# SEP-0000: Clarify Tool Result Content and Model Visibility
+# SEP-2200: Clarify Tool Result Content and Model Visibility
 
 - **Status**: Draft
 - **Type**: Informational
 - **Created**: 2026-02-03
 - **Author(s)**: Kyle Rubenok (@kyrubeno)
 - **Sponsor**: Ola Hungerford (@olaservo)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200
 - **Related Issues**: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1624
 
 ## Abstract
