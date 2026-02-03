@@ -15,7 +15,7 @@ export class MaintainerResolver {
   private readonly config: Config;
   private readonly github: GitHubClient;
   private readonly logger: Logger | undefined;
-  private maintainerSet: Set<string> | null = null;
+  private sponsorSet: Set<string> | null = null;
   private loadAttempted = false;
 
   constructor(config: Config, github: GitHubClient, logger?: Logger) {
@@ -25,12 +25,12 @@ export class MaintainerResolver {
   }
 
   /**
-   * Load allowed sponsors from the API by recursively traversing
-   * all subteams of steering-committee.
+   * Load allowed sponsors from the API by finding all teams descended from
+   * steering-committee and collecting their members.
    */
   private async ensureSponsorsLoaded(): Promise<Set<string>> {
-    if (this.maintainerSet) {
-      return this.maintainerSet;
+    if (this.sponsorSet) {
+      return this.sponsorSet;
     }
 
     if (this.loadAttempted) {
@@ -41,7 +41,8 @@ export class MaintainerResolver {
     this.loadAttempted = true;
 
     try {
-      // Discover all teams recursively from the root team
+      // Find all teams descended from the root team
+      // This uses listOrgTeams + parent traversal, avoiding admin permissions
       const allTeams = await this.github.getAllDescendantTeams(
         this.config.targetOwner,
         SPONSOR_ROOT_TEAM,
@@ -73,12 +74,12 @@ export class MaintainerResolver {
       }
 
       if (allMembers.size > 0) {
-        this.maintainerSet = allMembers;
+        this.sponsorSet = allMembers;
         this.logger?.info(
           { count: allMembers.size, teamCount: allTeams.length },
           "Loaded allowed sponsors from API",
         );
-        return this.maintainerSet;
+        return this.sponsorSet;
       }
 
       throw new Error("No team members loaded from any team");
@@ -88,14 +89,14 @@ export class MaintainerResolver {
         "Failed to load sponsors from API",
       );
       // No fallback - return empty set
-      this.maintainerSet = new Set();
-      return this.maintainerSet;
+      this.sponsorSet = new Set();
+      return this.sponsorSet;
     }
   }
 
   /**
    * Check if a user can sponsor SEPs.
-   * Any member of a steering-committee subteam can sponsor.
+   * Any member of steering-committee or its subteams can sponsor.
    */
   async canSponsor(username: string): Promise<boolean> {
     const sponsors = await this.ensureSponsorsLoaded();
@@ -118,7 +119,7 @@ export class MaintainerResolver {
    * Clear the cached sponsor list (useful for testing)
    */
   clearCache(): void {
-    this.maintainerSet = null;
+    this.sponsorSet = null;
     this.loadAttempted = false;
   }
 }

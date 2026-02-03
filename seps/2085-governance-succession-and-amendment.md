@@ -1,6 +1,6 @@
 # SEP-2085: Governance Succession and Amendment Procedures
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Process
 - **Created**: 2025-12-05
 - **Author(s)**: David Soria Parra (@dsp-ant)

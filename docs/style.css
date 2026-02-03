@@ -8,6 +8,11 @@
   h6 {
     font-weight: 400;
   }
+
+  /* Fix code block line highlight color */
+  code .line-highlight {
+    --primary-light: 100 175 250;
+  }
 }
 
 
