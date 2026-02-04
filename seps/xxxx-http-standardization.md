@@ -1,5 +1,7 @@
 # SEP-xxxx: HTTP Header Standardization for Streamable HTTP Transport
 
+<!-- cspell:ignore streamable -->
+
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-02-04
@@ -28,12 +30,12 @@ By exposing key fields in HTTP headers, we enable standard network infrastructur
 
 The Streamable HTTP transport will require POST requests to include the following headers mirrored from the request body:
 
-| Header Name | Source Field | Required For |
-|-------------|--------------|--------------|
-| `Mcp-Method` | `method` | All requests |
-| `Mcp-Tool-Name` | `params.name` | `tools/call` requests |
-| `Mcp-Resource` | `params.uri` | `resources/read` requests |
-| `Mcp-Prompt-Name` | `params.name` | `prompts/get` requests |
+| Header Name       | Source Field   | Required For              |
+| ----------------- | -------------- | ------------------------- |
+| `Mcp-Method`      | `method`       | All requests              |
+| `Mcp-Tool-Name`   | `params.name`  | `tools/call` requests     |
+| `Mcp-Resource`    | `params.uri`   | `resources/read` requests |
+| `Mcp-Prompt-Name` | `params.name`  | `prompts/get` requests    |
 
 These headers are **required** for compliance with the MCP version in which they are introduced.
 
