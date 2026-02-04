@@ -464,11 +464,53 @@ Mcp-Param-Priority: high
 
 ### Headers vs Path
 
-This proposal mirrors request data into headers rather than the path for:
+This proposal mirrors request data into headers rather than encoding it in the URL path.
+
+**Advantages of Headers**:
 
 1. **Simplicity**: All widely-used network load balancers support routing based on HTTP headers
 2. **Multi-version support**: Easier to support multiple MCP versions in clients and servers
-3. **Compatibility**: Headers work with the existing Streamable HTTP transport design
+3. **Compatibility**: Headers work with the existing Streamable HTTP transport design without changing the endpoint structure
+4. **Unlimited values**: Header values can contain characters that would require encoding in URLs (e.g., `/`, `?`, `#`)
+5. **No URL length limits**: Very long values can be transmitted without hitting URL length restrictions
+
+**Advantages of Path-based Routing**:
+
+1. **Framework simplicity**: Many web frameworks (Flask, Express, Django, Rails) have built-in support for path-based routing with minimal configuration
+2. **Caching**: HTTP caches naturally key on the URL path, making path-based routing cache-friendly
+3. **Logging**: URL paths are typically logged by default, making debugging easier
+
+**Trade-offs and Framework Considerations**:
+
+| Framework | Header-based Routing | Path-based Routing |
+|-----------|---------------------|-------------------|
+| Flask (Python) | Requires middleware or decorators to extract headers before routing | Native support via `@app.route('/mcp/<method>')` |
+| Express (Node.js) | Easy via `req.headers` but requires custom routing logic | Native support via `app.post('/mcp/:method')` |
+| Django (Python) | Requires custom middleware | Native URL patterns |
+| Go (net/http) | Easy via `r.Header.Get()` | Native via path patterns |
+| ASP.NET Core | Easy via `[FromHeader]` attribute | Native via route templates |
+
+For frameworks like Flask that strongly favor path-based routing, implementing header-based routing requires additional code:
+
+```python
+# Flask example: Header-based routing requires manual dispatch
+@app.route('/mcp', methods=['POST'])
+def mcp_handler():
+    method = request.headers.get('Mcp-Method')
+    if method == 'tools/call':
+        return handle_tools_call(request)
+    elif method == 'resources/read':
+        return handle_resources_read(request)
+    # ... etc
+```
+
+Despite this additional complexity in some frameworks, header-based routing was chosen because:
+
+1. **Infrastructure benefits outweigh framework complexity**: The primary goal is enabling network infrastructure (load balancers, proxies, WAFs) to route and process requests without body parsing. This benefit applies regardless of the server framework.
+
+2. **Single endpoint simplicity**: Keeping a single `/mcp` endpoint simplifies CORS configuration, authentication middleware, and client implementation.
+
+3. **Separation of concerns**: The URL path identifies the MCP service; headers identify the operation within that service. This mirrors how HTTP methods (GET, POST, etc.) work alongside paths.
 
 ### Infrastructure Support
 
