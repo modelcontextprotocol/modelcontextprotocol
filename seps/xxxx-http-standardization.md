@@ -268,10 +268,25 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
 
 **Validation Failure Conditions**:
 
-- A required header is missing
+- A required standard header (`Mcp-Method`, `Mcp-Tool-Name`, etc.) is missing
 - A header value does not match the request body value
 - A Base64-encoded value cannot be decoded
 - A header value contains invalid characters
+
+**Custom Header Handling**:
+
+Custom headers (those defined via `x-mcp-header`) follow different rules than standard headers:
+
+| Scenario | Client Behavior | Server Behavior |
+|----------|-----------------|-----------------|
+| Parameter value provided | Client MUST include the header | Server MUST validate header matches body |
+| Parameter value is `null` | Client MUST omit the header | Server MUST NOT expect the header |
+| Parameter not in arguments | Client MUST omit the header | Server MUST NOT expect the header |
+| Client omits header but value is in body | Non-conforming client | Server SHOULD accept the request but MAY log a warning |
+
+**Rationale for Lenient Server Behavior**: Unlike standard headers, custom headers are primarily intended to enable infrastructure optimizations (routing, rate limiting, etc.). A missing custom header does not prevent the server from processing the request—the parameter value is still available in the request body. Servers SHOULD prioritize interoperability with older or non-conforming clients over strict enforcement. However, servers MAY choose to reject such requests in environments where header-based routing is critical to correct operation.
+
+If a server chooses to reject requests with missing custom headers, it MUST return HTTP status `400 Bad Request` with JSON-RPC error code `-32001` (`HeaderMismatch`).
 
 #### Example: Geo-Distributed Database
 
@@ -629,6 +644,14 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Parameter with x-mcp-header is null | `"region": null` | Client MUST omit header |
 | Parameter with x-mcp-header is missing | Parameter not in arguments | Client MUST omit header |
 | Optional parameter present | Optional parameter provided | Client MUST include header |
+
+#### Missing Custom Header with Value in Body
+
+| Test Case | Header Present | Body Value | Expected Behavior |
+|-----------|----------------|------------|-------------------|
+| Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server SHOULD accept; MAY log warning |
+| Custom header omitted, value in body (strict mode) | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MAY reject with 400 and error code `-32001` |
+| Standard header omitted, value in body | No `Mcp-Tool-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001` |
 
 ## Reference Implementation
 
