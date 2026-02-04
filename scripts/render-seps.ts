@@ -136,11 +136,9 @@ sidebarTitle: "SEP-${sep.number}: ${truncateTitle(sep.title, 40)}"
 description: "${sep.title}"
 ---
 
-import { Badge } from '/snippets/badge.mdx'
-
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="${getStatusBadgeColor(sep.status)}">${sep.status}</Badge>
-  <Badge color="gray">${sep.type}</Badge>
+  <Badge color="${getStatusBadgeColor(sep.status)}" shape="pill">${sep.status}</Badge>
+  <Badge color="gray" shape="pill">${sep.type}</Badge>
 </div>
 
 | Field | Value |
@@ -180,7 +178,7 @@ function generateIndexPage(seps: SEPMetadata[]): string {
   // Generate table rows
   const tableRows = sortedSeps
     .map((sep) => {
-      const statusBadge = `<Badge color="${getStatusBadgeColor(sep.status)}">${sep.status}</Badge>`;
+      const statusBadge = `<Badge color="${getStatusBadgeColor(sep.status)}" shape="pill">${sep.status}</Badge>`;
       return `| [SEP-${sep.number}](/community/seps/${sep.number}-${sep.slug}) | ${sep.title} | ${statusBadge} | ${sep.type} | ${sep.created} |`;
     })
     .join("\n");
@@ -195,8 +193,6 @@ title: Specification Enhancement Proposals (SEPs)
 sidebarTitle: SEP Index
 description: Index of all MCP Specification Enhancement Proposals
 ---
-
-import { Badge } from '/snippets/badge.mdx'
 
 Specification Enhancement Proposals (SEPs) are the primary mechanism for proposing major changes to the Model Context Protocol. Each SEP provides a concise technical specification and rationale for proposed features.
 
@@ -216,48 +212,16 @@ ${tableRows}
 
 ## SEP Status Definitions
 
-- <Badge color="gray">Draft</Badge> - SEP proposal with a sponsor, undergoing informal review
-- <Badge color="yellow">In-Review</Badge> - SEP proposal ready for formal review by Core Maintainers
-- <Badge color="blue">Accepted</Badge> - SEP accepted, awaiting reference implementation
-- <Badge color="green">Final</Badge> - SEP finalized with reference implementation complete
-- <Badge color="red">Rejected</Badge> - SEP rejected by Core Maintainers
-- <Badge color="red">Withdrawn</Badge> - SEP withdrawn by the author
-- <Badge color="purple">Superseded</Badge> - SEP replaced by a newer SEP
-- <Badge color="orange">Dormant</Badge> - SEP without a sponsor, closed after 6 months
-`;
-}
-
-/**
- * Generate the badge snippet MDX file
- */
-function generateBadgeSnippet(): string {
-  // Use inline styles for dark mode since Mintlify may not support all Tailwind dark: classes
-  return `export const Badge = ({ children, color = "gray" }) => {
-  const styles = {
-    green: { light: { bg: "#dcfce7", text: "#166534" }, dark: { bg: "#14532d", text: "#86efac" } },
-    blue: { light: { bg: "#dbeafe", text: "#1e40af" }, dark: { bg: "#1e3a5f", text: "#93c5fd" } },
-    yellow: { light: { bg: "#fef9c3", text: "#854d0e" }, dark: { bg: "#713f12", text: "#fde047" } },
-    red: { light: { bg: "#fee2e2", text: "#991b1b" }, dark: { bg: "#7f1d1d", text: "#fca5a5" } },
-    orange: { light: { bg: "#ffedd5", text: "#9a3412" }, dark: { bg: "#7c2d12", text: "#fdba74" } },
-    purple: { light: { bg: "#f3e8ff", text: "#6b21a8" }, dark: { bg: "#581c87", text: "#d8b4fe" } },
-    gray: { light: { bg: "#f3f4f6", text: "#1f2937" }, dark: { bg: "#374151", text: "#d1d5db" } },
-  };
-  const s = styles[color] || styles.gray;
-  return (
-    <>
-      <style>{\`
-        .badge-\${color} { background-color: \${s.light.bg}; color: \${s.light.text}; }
-        .dark .badge-\${color}, [data-theme="dark"] .badge-\${color} { background-color: \${s.dark.bg}; color: \${s.dark.text}; }
-        @media (prefers-color-scheme: dark) {
-          .badge-\${color}:not(.light *) { background-color: \${s.dark.bg}; color: \${s.dark.text}; }
-        }
-      \`}</style>
-      <span className={\`badge-\${color} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium\`}>
-        {children}
-      </span>
-    </>
-  );
-};
+| Status | Definition |
+| --- | --- |
+| <Badge color="gray" shape="pill">Draft</Badge> | SEP proposal with a sponsor, undergoing informal review |
+| <Badge color="yellow" shape="pill">In-Review</Badge> | SEP proposal ready for formal review by Core Maintainers |
+| <Badge color="blue" shape="pill">Accepted</Badge> | SEP accepted, awaiting reference implementation |
+| <Badge color="green" shape="pill">Final</Badge> | SEP finalized with reference implementation complete |
+| <Badge color="red" shape="pill">Rejected</Badge> | SEP rejected by Core Maintainers |
+| <Badge color="red" shape="pill">Withdrawn</Badge> | SEP withdrawn by the author |
+| <Badge color="purple" shape="pill">Superseded</Badge> | SEP replaced by a newer SEP |
+| <Badge color="orange" shape="pill">Dormant</Badge> | SEP without a sponsor, closed after 6 months |
 `;
 }
 
@@ -386,19 +350,8 @@ async function main() {
     fs.mkdirSync(DOCS_SEPS_DIR, { recursive: true });
   }
 
-  // Ensure snippets directory exists
-  const snippetsDir = path.join(__dirname, "..", "docs", "snippets");
-  if (!fs.existsSync(snippetsDir)) {
-    fs.mkdirSync(snippetsDir, { recursive: true });
-  }
-
   // Track all expected files for check mode
   const expectedFiles: { path: string; content: string }[] = [];
-
-  // Generate badge snippet
-  const badgeSnippetPath = path.join(snippetsDir, "badge.mdx");
-  const badgeContent = generateBadgeSnippet();
-  expectedFiles.push({ path: badgeSnippetPath, content: badgeContent });
 
   // Generate index page
   const indexPath = path.join(DOCS_SEPS_DIR, "index.mdx");
