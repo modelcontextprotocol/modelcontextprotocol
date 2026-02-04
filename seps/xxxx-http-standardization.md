@@ -544,6 +544,55 @@ The `x-mcp-header` extension is placed directly within the JSON Schema of the pr
 
 5. **Reduced complexity**: A separate metadata structure would require defining a mapping mechanism (e.g., JSON Pointer or property paths) to associate headers with properties, adding implementation complexity and potential for errors.
 
+### Header Size and Count Limits
+
+This specification currently defines a single limit: individual header values exceeding 8192 bytes MUST be omitted. The following additional limits are under consideration:
+
+#### Maximum Number of Custom Headers
+
+**Option**: Limit the number of `Mcp-Param-*` headers per request (e.g., 32 or 64).
+
+| Pros | Cons |
+|------|------|
+| Prevents abuse where tools define excessive headers | Artificial constraint that may limit legitimate use cases |
+| Ensures predictable memory usage on servers | Tools with many routable parameters would need workarounds |
+| Simplifies implementation (fixed-size arrays) | Adds complexity for clients to track and enforce |
+
+**Current stance**: Not specified. Implementations SHOULD accept a reasonable number of custom headers (at least 32). Server implementations MAY impose their own limits and reject requests exceeding them with error code `-32001`.
+
+#### Maximum Header Name Length
+
+**Option**: Limit the `{Name}` portion of `Mcp-Param-{Name}` (e.g., 64 or 256 bytes).
+
+| Pros | Cons |
+|------|------|
+| Prevents excessively long header names | x-mcp-header values are already server-controlled |
+| Aligns with common HTTP server limits | May require truncation logic in SDKs |
+| Improves log readability | Adds validation overhead |
+
+**Current stance**: Not specified. The `x-mcp-header` value is defined by the server and SHOULD be kept reasonably short (recommended maximum: 64 characters). HTTP infrastructure typically limits header names to 1-8 KB; staying well under this avoids interoperability issues.
+
+#### Maximum Total MCP Header Size
+
+**Option**: Limit the combined size of all MCP-related headers (e.g., 16 KB or 32 KB).
+
+| Pros | Cons |
+|------|------|
+| Provides a clear upper bound for resource allocation | Complex to calculate across multiple headers |
+| Protects against memory exhaustion attacks | May conflict with infrastructure-imposed limits |
+| Ensures compatibility with restrictive proxies | Requires clients to track cumulative size |
+
+**Current stance**: Not specified. Implementations SHOULD be aware that many HTTP servers and proxies impose total header size limits (commonly 8-16 KB).
+
+#### Recommendations for Implementers
+
+Until specific limits are mandated by a future version of this specification:
+
+1. **Servers** SHOULD document any limits they impose on header count or size
+2. **Tool authors** SHOULD limit the number of `x-mcp-header` annotations to those providing clear infrastructure benefits
+3. **Clients** SHOULD gracefully handle `413 Request Entity Too Large` or `431 Request Header Fields Too Large` responses
+4. **SDKs** SHOULD provide configuration options for header limits to support diverse deployment environments
+
 ## Backward Compatibility
 
 ### Standard Headers
