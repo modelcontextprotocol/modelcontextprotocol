@@ -134,6 +134,8 @@ Mcp-Method: initialize
 
 MCP servers MAY designate specific tool parameters to be mirrored into HTTP headers using an `x-mcp-header` extension property in the parameter's schema within the tool's `inputSchema`.
 
+**Client Requirement**: While the use of `x-mcp-header` is optional for servers, clients MUST support this feature. When a server's tool definition includes `x-mcp-header` annotations, conforming clients MUST mirror the designated parameter values into HTTP headers as specified in this document.
+
 #### Schema Extension
 
 The `x-mcp-header` property specifies the name portion used to construct the header name `Mcp-Param-{name}`.
@@ -470,7 +472,7 @@ Servers implementing the new version MUST reject requests missing required heade
 
 ### Custom Headers from Tool Parameters
 
-This is a new, optional feature. Existing tools without `x-mcp-header` properties continue to work unchanged. Clients that do not support this feature will still function but will not provide the header-based routing benefits.
+The `x-mcp-header` extension is optional for servers. Existing tools without this property continue to work unchanged. However, clients implementing the MCP version that includes this specification MUST support the feature. Older clients that do not support `x-mcp-header` will still function but will not provide the header-based routing benefits that servers may depend on.
 
 ## Security Implications
 
