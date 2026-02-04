@@ -1,4 +1,4 @@
-# SEP-0000: Automatic \_meta to HTTP Header Forwarding for Distributed Tracing
+# SEP-2028: Automatic \_meta to HTTP Header Forwarding for Distributed Tracing
 
 - **Status**: Draft
 - **Type**: Standards Track
