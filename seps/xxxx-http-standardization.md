@@ -174,8 +174,66 @@ When constructing a `tools/call` request via HTTP transport, the client:
 
 1. Inspects the tool's `inputSchema` for properties marked with `x-mcp-header`
 2. Extracts the value provided for that parameter
-3. Sanitizes the value to ensure it is safe for HTTP headers (ASCII only, no newlines)
+3. Encodes the value according to the rules in [Value Encoding](#value-encoding)
 4. Appends a header to the request: `Mcp-Param-{Name}: {Value}`
+
+#### Value Encoding
+
+Clients MUST encode parameter values before including them in HTTP headers to ensure safe transmission and prevent injection attacks.
+
+**Character Restrictions**
+
+Per [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-values), HTTP header field values must consist of visible ASCII characters (0x21-0x7E), space (0x20), and horizontal tab (0x09). The following characters are explicitly prohibited:
+
+- Carriage return (`\r`, 0x0D)
+- Line feed (`\n`, 0x0A)
+- Null character (`\0`, 0x00)
+- Any character outside the ASCII range (> 0x7F)
+
+**Encoding Rules**
+
+Clients MUST apply the following encoding rules in order:
+
+1. **Type conversion**: Convert the parameter value to its string representation:
+   - `string`: Use the value as-is
+   - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+   - `boolean`: Convert to lowercase `"true"` or `"false"`
+
+2. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
+   - If valid, proceed to step 3
+   - If invalid (contains non-ASCII or control characters), apply Base64 encoding (see below)
+
+3. **Control character check**: If the string contains any control characters (0x00-0x1F or 0x7F):
+   - Apply Base64 encoding (see below)
+
+4. **Length validation**: If the encoded value exceeds 8192 bytes, the client MUST omit the header and MAY log a warning
+
+**Base64 Encoding for Unsafe Values**
+
+When a value cannot be safely represented as a plain ASCII header value, clients MUST use Base64 encoding with the following format:
+
+```
+Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
+```
+
+The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
+
+**Example**:
+
+A parameter value of `"Hello, 世界"` (contains non-ASCII) would be encoded as:
+
+```
+Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=
+```
+
+**Server Validation**
+
+Servers MUST validate that encoded header values, after decoding if Base64-encoded, match the corresponding values in the request body. Servers MUST reject requests with a `400 Bad Request` status if:
+
+- A required header is missing
+- A header value does not match the request body value
+- A Base64-encoded value cannot be decoded
+- A header value contains invalid characters
 
 #### Example: Geo-Distributed Database
 
@@ -407,18 +465,30 @@ This is a new, optional feature. Existing tools without `x-mcp-header` propertie
 
 ### Header Injection
 
-Clients MUST sanitize parameter values before including them in headers to prevent header injection attacks:
+Header injection attacks occur when malicious values containing control characters (especially `\r\n`) are included in headers, potentially allowing attackers to inject additional headers or terminate the header section early.
 
-- Remove or reject values containing newline characters (`\r`, `\n`)
-- Ensure values contain only valid ASCII characters for HTTP header values
+Clients MUST follow the [Value Encoding](#value-encoding) rules defined in this specification. These rules ensure that:
+
+- Control characters are never included in header values
+- Non-ASCII values are safely encoded using Base64
+- Values exceeding safe length limits are omitted
 
 ### Header Spoofing
 
 Servers MUST validate that header values match the corresponding values in the request body. This prevents clients from sending mismatched headers to manipulate routing while executing different operations.
 
+For example, a malicious client could attempt to:
+- Route a request to a less-secured region while executing operations intended for a high-security region
+- Bypass rate limits by spoofing tenant identifiers
+- Evade security policies by misrepresenting the operation being performed
+
 ### Information Disclosure
 
-Tool parameter values designated for headers will be visible to network intermediaries. Server developers SHOULD NOT mark sensitive parameters (passwords, tokens, PII) with `x-mcp-header`.
+Tool parameter values designated for headers will be visible to network intermediaries (load balancers, proxies, logging systems). Server developers:
+
+- SHOULD NOT mark sensitive parameters (passwords, API keys, tokens, PII) with `x-mcp-header`
+- SHOULD document which parameters are exposed as headers
+- SHOULD consider that Base64 encoding provides no confidentiality—it is merely an encoding, not encryption
 
 ## Reference Implementation
 
@@ -427,5 +497,5 @@ _To be provided before this SEP reaches Final status._
 Implementation requirements:
 
 - **Server SDKs**: Provide a mechanism (attribute/decorator) for marking parameters with `x-mcp-header`
-- **Client SDKs**: Implement the client behavior for extracting and sanitizing header values
+- **Client SDKs**: Implement the client behavior for extracting and encoding header values
 - **Validation**: Both sides must validate header/body consistency
