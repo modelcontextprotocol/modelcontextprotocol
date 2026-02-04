@@ -56,9 +56,9 @@ Example:
 
 We can develop and iterate on MCP Server Cards largely independently from the broader effort to integrate with AI Cards, as long as we maintain some integration point so it is possible to understand when an entry in an AI Card references an MCP Server Card that is hosted and maintained elsewhere.
 
-### Extended MCP Server Cards
+### Relationship to `server.json`
 
-The focus of MCP Server Cards is on expressing _remote_ MCP servers; however the card is designed to be compatible with an Extended MCP Server Card that includes consideration for locally-run MCP servers (e.g. where to download executable packages, how to run them).
+The focus of MCP Server Cards is on expressing _remote_ MCP servers; however the card is designed to be compatible with the previously established `server.json` standard that includes consideration for locally-run MCP servers (e.g. where to download executable packages, how to run them).
 
 This alignment is useful for the following reasons:
 
@@ -296,14 +296,14 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
 
 MCP primitives are dynamic in nature and can change. To indicate that a list of primitives is dynamic in nature, authors can provide the reserved string "dynamic" (as an array with a single element) for the resources, tools, or prompts field. This indicates that the full list of primitives must be discovered through the protocol's standard list operations.
 
-### Extended MCP Server Card Schema
+### `server.json` Schema
 
-We rename the MCP Registry's `server.json` to `Extended MCP Server Card`, and define the schema as having this shape:
+Building on the previously established [`server.json` shape](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md), we move it to be defined in terms of the new Server Card shape:
 
 ```json
 {
   // ... all the fields above except $schema
-  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/extended-server-card.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server.schema.json",
   "packages": [ ... ]
 }
 ```
@@ -313,7 +313,7 @@ With example values:
 ```json
 {
   // ... all the fields above except $schema
-  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/extended-server-card.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server.schema.json",
   "packages": [
     {
       "registryType": "npm",
