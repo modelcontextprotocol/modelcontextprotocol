@@ -241,7 +241,32 @@ The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded
 
 **Server Validation**
 
-Servers MUST validate that encoded header values, after decoding if Base64-encoded, match the corresponding values in the request body. Servers MUST reject requests with a `400 Bad Request` status if:
+Servers MUST validate that encoded header values, after decoding if Base64-encoded, match the corresponding values in the request body. Servers MUST reject requests with a `400 Bad Request` HTTP status if any validation fails.
+
+**Error Code**
+
+When rejecting a request due to header validation failure, servers MUST return a JSON-RPC error response with the following error code:
+
+| Code | Name | Description |
+|------|------|-------------|
+| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+
+This error code is in the JSON-RPC implementation-defined server error range (`-32000` to `-32099`).
+
+**Error Response Format**:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32001,
+    "message": "Header mismatch: Mcp-Tool-Name header value 'foo' does not match body value 'bar'"
+  }
+}
+```
+
+**Validation Failure Conditions**:
 
 - A required header is missing
 - A header value does not match the request body value
@@ -521,9 +546,9 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 | Test Case | Header Value | Body Value | Expected Behavior |
 |-----------|--------------|------------|-------------------|
-| Method mismatch | `Mcp-Method: tools/call` | `"method": "prompts/get"` | Server MUST reject with 400 |
-| Tool name mismatch | `Mcp-Tool-Name: foo` | `"params": {"name": "bar"}` | Server MUST reject with 400 |
-| Missing required header | (no `Mcp-Method`) | Valid body | Server MUST reject with 400 |
+| Method mismatch | `Mcp-Method: tools/call` | `"method": "prompts/get"` | Server MUST reject with 400 and error code `-32001` |
+| Tool name mismatch | `Mcp-Tool-Name: foo` | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32001` |
+| Missing required header | (no `Mcp-Method`) | Valid body | Server MUST reject with 400 and error code `-32001` |
 | Extra whitespace in header | `Mcp-Tool-Name:  foo ` | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec) |
 
 #### Special Characters in Values
@@ -591,8 +616,8 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Test Case | Header Value | Expected Behavior |
 |-----------|--------------|-------------------|
 | Valid Base64 | `=?base64?SGVsbG8=?=` | Server decodes to `"Hello"` and validates |
-| Invalid Base64 padding | `=?base64?SGVsbG8?=` | Server MUST reject with 400 |
-| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 |
+| Invalid Base64 padding | `=?base64?SGVsbG8?=` | Server MUST reject with 400 and error code `-32001` |
+| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001` |
 | Missing prefix | `SGVsbG8=` | Server treats as literal value, not Base64 |
 | Missing suffix | `=?base64?SGVsbG8=` | Server treats as literal value, not Base64 |
 | Malformed wrapper | `=?BASE64?SGVsbG8=?=` | Server MUST accept (case-insensitive prefix) |
