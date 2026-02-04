@@ -43,6 +43,93 @@ These headers are **required** for compliance with the MCP version in which they
 
 **Case Sensitivity**: Header names (called "field names" in [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-names)) are case-insensitive. Clients and servers MUST use case-insensitive comparisons for header names.
 
+#### Example: tools/call Request
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: tools/call
+Mcp-Tool-Name: get_weather
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "Seattle, WA"
+    }
+  }
+}
+```
+
+#### Example: resources/read Request
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: resources/read
+Mcp-Resource: file:///projects/myapp/config.json
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "resources/read",
+  "params": {
+    "uri": "file:///projects/myapp/config.json"
+  }
+}
+```
+
+#### Example: prompts/get Request
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: prompts/get
+Mcp-Prompt-Name: code_review
+
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "prompts/get",
+  "params": {
+    "name": "code_review",
+    "arguments": {
+      "language": "python"
+    }
+  }
+}
+```
+
+#### Example: Other Request Methods
+
+For requests that don't involve tools, resources, or prompts, only the `Mcp-Method` header is required:
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Method: initialize
+
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "ExampleClient",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
 ### Custom Headers from Tool Parameters
 
 MCP servers MAY designate specific tool parameters to be mirrored into HTTP headers using an `x-mcp-header` extension property in the parameter's schema within the tool's `inputSchema`.
@@ -90,11 +177,46 @@ When constructing a `tools/call` request via HTTP transport, the client:
 3. Sanitizes the value to ensure it is safe for HTTP headers (ASCII only, no newlines)
 4. Appends a header to the request: `Mcp-Param-{Name}: {Value}`
 
-**Example Request**:
+#### Example: Geo-Distributed Database
+
+Consider a server exposing an `execute_sql` tool for Google Cloud Spanner, which requires a `region` parameter.
+
+**Tool Definition**:
+
+```json
+{
+  "name": "execute_sql",
+  "description": "Execute SQL on Google Cloud Spanner",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "region": {
+        "type": "string",
+        "description": "The region to execute the query in",
+        "x-mcp-header": "Region"
+      },
+      "query": {
+        "type": "string",
+        "description": "The SQL query to execute"
+      }
+    },
+    "required": ["region", "query"]
+  }
+}
+```
+
+**Scenario**: A client requests to execute SQL in `us-west1`.
+
+**Current Friction**: The global load balancer receives the request but must terminate TLS and parse the entire JSON body to find `"region": "us-west1"` before it knows whether to route the packet to the Oregon or Belgium cluster.
+
+**With This Proposal**: The client detects the `x-mcp-header` annotation and automatically adds the header `Mcp-Param-Region: us-west1` to the HTTP request. The load balancer can now route based on the header without parsing the body.
+
+**Request**:
 
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
 Mcp-Tool-Name: execute_sql
 Mcp-Param-Region: us-west1
@@ -108,6 +230,120 @@ Mcp-Param-Region: us-west1
     "arguments": {
       "region": "us-west1",
       "query": "SELECT * FROM users"
+    }
+  }
+}
+```
+
+#### Example: Multi-Tenant SaaS Application
+
+A SaaS platform exposes tools that operate on different customer tenants. By exposing the tenant ID in a header, the platform can route requests to tenant-specific infrastructure.
+
+**Tool Definition**:
+
+```json
+{
+  "name": "query_analytics",
+  "description": "Query analytics data for a tenant",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "tenant_id": {
+        "type": "string",
+        "description": "The tenant identifier",
+        "x-mcp-header": "TenantId"
+      },
+      "metric": {
+        "type": "string",
+        "description": "The metric to query"
+      },
+      "start_date": {
+        "type": "string",
+        "description": "Start date for the query range"
+      },
+      "end_date": {
+        "type": "string",
+        "description": "End date for the query range"
+      }
+    },
+    "required": ["tenant_id", "metric", "start_date", "end_date"]
+  }
+}
+```
+
+**Request**:
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: tools/call
+Mcp-Tool-Name: query_analytics
+Mcp-Param-TenantId: acme-corp
+
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "tools/call",
+  "params": {
+    "name": "query_analytics",
+    "arguments": {
+      "tenant_id": "acme-corp",
+      "metric": "page_views",
+      "start_date": "2026-01-01",
+      "end_date": "2026-01-31"
+    }
+  }
+}
+```
+
+#### Example: Priority-Based Request Handling
+
+A server can expose a priority parameter to allow infrastructure to prioritize certain requests.
+
+**Tool Definition**:
+
+```json
+{
+  "name": "generate_report",
+  "description": "Generate a complex report",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "report_type": {
+        "type": "string",
+        "description": "Type of report to generate"
+      },
+      "priority": {
+        "type": "string",
+        "description": "Request priority: low, normal, or high",
+        "x-mcp-header": "Priority"
+      }
+    },
+    "required": ["report_type"]
+  }
+}
+```
+
+**Request**:
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: tools/call
+Mcp-Tool-Name: generate_report
+Mcp-Param-Priority: high
+
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "method": "tools/call",
+  "params": {
+    "name": "generate_report",
+    "arguments": {
+      "report_type": "quarterly_summary",
+      "priority": "high"
     }
   }
 }
