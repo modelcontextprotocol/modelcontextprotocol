@@ -190,6 +190,13 @@ Per [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-values),
 - Null character (`\0`, 0x00)
 - Any character outside the ASCII range (> 0x7F)
 
+**Whitespace Handling**
+
+HTTP parsers typically trim leading and trailing whitespace from header values. To preserve leading and trailing spaces in parameter values, clients MUST use Base64 encoding when the value:
+
+- Starts with a space (0x20) or horizontal tab (0x09)
+- Ends with a space (0x20) or horizontal tab (0x09)
+
 **Encoding Rules**
 
 Clients MUST apply the following encoding rules in order:
@@ -199,14 +206,17 @@ Clients MUST apply the following encoding rules in order:
    - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
    - `boolean`: Convert to lowercase `"true"` or `"false"`
 
-2. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
-   - If valid, proceed to step 3
-   - If invalid (contains non-ASCII or control characters), apply Base64 encoding (see below)
-
-3. **Control character check**: If the string contains any control characters (0x00-0x1F or 0x7F):
+2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):
    - Apply Base64 encoding (see below)
 
-4. **Length validation**: If the encoded value exceeds 8192 bytes, the client MUST omit the header and MAY log a warning
+3. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
+   - If valid, proceed to step 4
+   - If invalid (contains non-ASCII characters), apply Base64 encoding (see below)
+
+4. **Control character check**: If the string contains any control characters (0x00-0x1F or 0x7F):
+   - Apply Base64 encoding (see below)
+
+5. **Length validation**: If the encoded value exceeds 8192 bytes, the client MUST omit the header and MAY log a warning
 
 **Base64 Encoding for Unsafe Values**
 
@@ -218,13 +228,14 @@ Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 
 The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
 
-**Example**:
+**Examples**:
 
-A parameter value of `"Hello, 世界"` (contains non-ASCII) would be encoded as:
-
-```
-Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=
-```
+| Original Value | Reason | Encoded Header Value |
+|----------------|--------|---------------------|
+| `"us-west1"` | Plain ASCII | `Mcp-Param-Region: us-west1` |
+| `"Hello, 世界"` | Contains non-ASCII | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "` | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=` |
+| `"line1\nline2"` | Contains newline | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=` |
 
 **Server Validation**
 
@@ -489,6 +500,108 @@ Tool parameter values designated for headers will be visible to network intermed
 - SHOULD NOT mark sensitive parameters (passwords, API keys, tokens, PII) with `x-mcp-header`
 - SHOULD document which parameters are exposed as headers
 - SHOULD consider that Base64 encoding provides no confidentiality—it is merely an encoding, not encryption
+
+## Conformance Test Cases
+
+This section defines edge cases that conformance tests MUST cover to ensure interoperability between implementations.
+
+### Standard Header Edge Cases
+
+#### Case Sensitivity
+
+| Test Case | Input | Expected Behavior |
+|-----------|-------|-------------------|
+| Header name case variation | `mcp-method: tools/call` | Server MUST accept (header names are case-insensitive) |
+| Header name mixed case | `MCP-METHOD: tools/call` | Server MUST accept |
+| Method value case | `Mcp-Method: TOOLS/CALL` | Server MUST reject (method values are case-sensitive) |
+
+#### Header/Body Mismatch
+
+| Test Case | Header Value | Body Value | Expected Behavior |
+|-----------|--------------|------------|-------------------|
+| Method mismatch | `Mcp-Method: tools/call` | `"method": "prompts/get"` | Server MUST reject with 400 |
+| Tool name mismatch | `Mcp-Tool-Name: foo` | `"params": {"name": "bar"}` | Server MUST reject with 400 |
+| Missing required header | (no `Mcp-Method`) | Valid body | Server MUST reject with 400 |
+| Extra whitespace in header | `Mcp-Tool-Name:  foo ` | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec) |
+
+#### Special Characters in Values
+
+| Test Case | Value | Expected Behavior |
+|-----------|-------|-------------------|
+| Tool name with hyphen | `my-tool-name` | Client sends as-is; server accepts |
+| Tool name with underscore | `my_tool_name` | Client sends as-is; server accepts |
+| Resource URI with special chars | `file:///path/to/file%20name.txt` | Client sends as-is; server accepts |
+| Resource URI with query string | `https://example.com/resource?id=123` | Client sends as-is; server accepts |
+
+### Custom Header Edge Cases
+
+#### x-mcp-header Name Conflicts
+
+| Test Case | Schema | Expected Behavior |
+|-----------|--------|-------------------|
+| Duplicate header names (same case) | Two properties with `"x-mcp-header": "Region"` | Server MUST reject tool definition |
+| Duplicate header names (different case) | `"x-mcp-header": "Region"` and `"x-mcp-header": "REGION"` | Server MUST reject tool definition (case-insensitive uniqueness) |
+| Header name matches standard header | `"x-mcp-header": "Method"` | Allowed (produces `Mcp-Param-Method`, not `Mcp-Method`) |
+| Empty header name | `"x-mcp-header": ""` | Server MUST reject tool definition |
+
+#### Invalid x-mcp-header Values
+
+| Test Case | x-mcp-header Value | Expected Behavior |
+|-----------|-------------------|-------------------|
+| Contains space | `"x-mcp-header": "My Region"` | Server MUST reject tool definition |
+| Contains colon | `"x-mcp-header": "Region:Primary"` | Server MUST reject tool definition |
+| Contains non-ASCII | `"x-mcp-header": "Région"` | Server MUST reject tool definition |
+| Contains control character | `"x-mcp-header": "Region\t1"` | Server MUST reject tool definition |
+
+#### Value Encoding Edge Cases
+
+| Test Case | Parameter Value | Expected Header Value |
+|-----------|-----------------|----------------------|
+| Plain ASCII string | `"us-west1"` | `Mcp-Param-Region: us-west1` |
+| String with leading space | `" us-west1"` | `Mcp-Param-Region: =?base64?IHVzLXdlc3Qx?=` |
+| String with trailing space | `"us-west1 "` | `Mcp-Param-Region: =?base64?dXMtd2VzdDEg?=` |
+| String with leading/trailing spaces | `" us-west1 "` | `Mcp-Param-Region: =?base64?IHVzLXdlc3QxIA==?=` |
+| String with internal spaces only | `"us west 1"` | `Mcp-Param-Region: us west 1` |
+| Boolean true | `true` | `Mcp-Param-Flag: true` |
+| Boolean false | `false` | `Mcp-Param-Flag: false` |
+| Integer | `42` | `Mcp-Param-Count: 42` |
+| Floating point | `3.14159` | `Mcp-Param-Value: 3.14159` |
+| Non-ASCII characters | `"日本語"` | `Mcp-Param-Text: =?base64?5pel5pys6Kqe?=` |
+| String with newline | `"line1\nline2"` | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=` |
+| String with carriage return | `"line1\r\nline2"` | `Mcp-Param-Text: =?base64?bGluZTENCmxpbmUy?=` |
+| String with leading tab | `"\tindented"` | `Mcp-Param-Text: =?base64?CWluZGVudGVk?=` |
+| Empty string | `""` | `Mcp-Param-Name: ` (empty value) |
+| String exceeding length limit | 10000 character string | Client MUST omit header |
+
+#### Type Restriction Violations
+
+| Test Case | Property Type | x-mcp-header Present | Expected Behavior |
+|-----------|---------------|---------------------|-------------------|
+| Array type | `"type": "array"` | Yes | Server MUST reject tool definition |
+| Object type | `"type": "object"` | Yes | Server MUST reject tool definition |
+| Null type | `"type": "null"` | Yes | Server MUST reject tool definition |
+| Nested property | Property inside object | Yes | Server MUST reject tool definition |
+
+### Server Validation Edge Cases
+
+#### Base64 Decoding
+
+| Test Case | Header Value | Expected Behavior |
+|-----------|--------------|-------------------|
+| Valid Base64 | `=?base64?SGVsbG8=?=` | Server decodes to `"Hello"` and validates |
+| Invalid Base64 padding | `=?base64?SGVsbG8?=` | Server MUST reject with 400 |
+| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 |
+| Missing prefix | `SGVsbG8=` | Server treats as literal value, not Base64 |
+| Missing suffix | `=?base64?SGVsbG8=` | Server treats as literal value, not Base64 |
+| Malformed wrapper | `=?BASE64?SGVsbG8=?=` | Server MUST accept (case-insensitive prefix) |
+
+#### Null and Missing Values
+
+| Test Case | Scenario | Expected Behavior |
+|-----------|----------|-------------------|
+| Parameter with x-mcp-header is null | `"region": null` | Client MUST omit header |
+| Parameter with x-mcp-header is missing | Parameter not in arguments | Client MUST omit header |
+| Optional parameter present | Optional parameter provided | Client MUST include header |
 
 ## Reference Implementation
 
