@@ -484,6 +484,30 @@ own resources.
 
 MCP servers **MUST NOT** accept or transit any other tokens.
 
+## Refresh Tokens
+
+This section provides guidance for Authorization Servers, MCP Clients, and MCP Servers when handling or issuing
+refresh tokens for both OAuth and OpenID Connect.
+
+**Authorization Servers**:
+
+- **SHOULD** check client metadata for `refresh_token` in `grant_types` and **SHOULD NOT** issue
+  refresh tokens to clients that don't advertise support
+- **SHOULD** determine based on risk assessment whether to issue refresh tokens (e.g., reputation-based policies)
+  whether to issue refresh tokens to a client that supports them
+- **MAY** treat `offline_access` scope requests as equivalent to `refresh_token` grant support,
+  though risk-based policies still apply.
+
+**MCP Clients** that desire refresh tokens:
+
+- **SHOULD** include `refresh_token` in their `grant_types` client metadata
+- **MAY** add `offline_access` to scopes when the AS metadata contains it in `scopes_supported`
+- **MUST NOT** assume refresh tokens will be issued; the AS retains discretion
+
+**MCP Servers** (Protected Resources) **SHOULD NOT** include `offline_access` in
+`WWW-Authenticate` scope or Protected Resource Metadata `scopes_supported`, as refresh
+tokens are not a resource requirement.
+
 ## Error Handling
 
 Servers **MUST** return appropriate HTTP status codes for authorization errors:
