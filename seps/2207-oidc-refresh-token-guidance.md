@@ -1,30 +1,11 @@
----
-title: "SEP-0000: OIDC-Flavored Refresh Token Guidance"
-sidebarTitle: "SEP-0000: OIDC-Flavored Refresh Token Guidance"
-description: "OIDC-Flavored Refresh Token Guidance"
----
+# SEP-2207: OIDC-Flavored Refresh Token Guidance
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Standards Track
-  </Badge>
-</div>
-
-| Field         | Value                                                                           |
-| ------------- | ------------------------------------------------------------------------------- |
-| **SEP**       | 0000                                                                            |
-| **Title**     | OIDC-Flavored Refresh Token Guidance                                            |
-| **Status**    | Draft                                                                           |
-| **Type**      | Standards Track                                                                 |
-| **Created**   | 2026-02-04                                                                      |
-| **Author(s)** | Wils Dawson ([@wdawson](https://github.com/wdawson))                            |
-| **Sponsor**   | Den Delimarsky ([@localden](https://github.com/localden))                       |
-| **PR**        | [#0000](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000) |
-
----
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-02-04
+- **Author(s)**: Wils Dawson (@wdawson)
+- **Sponsor**: Den Delimarsky (@localden)
+- **PR**: #2207
 
 ## Abstract
 
