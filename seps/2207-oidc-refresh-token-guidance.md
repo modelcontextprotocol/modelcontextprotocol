@@ -20,8 +20,8 @@ authorization.
 ## Motivation
 
 MCP's authorization mechanism is based on OAuth 2.1, but many real-world
-deployments use Authorization Servers that implement OpenID Connect (OIDC). A
-key difference between pure OAuth and OIDC is how refresh tokens are handled:
+deployments use Authorization Servers that also implement OpenID Connect (OIDC).
+A key difference between pure OAuth and OIDC is how refresh tokens are handled:
 
 - In **pure OAuth 2.1**, there is no standard mechanism for a client to
   explicitly request a refresh token. The Authorization Server determines
@@ -80,7 +80,8 @@ This creates several problems in the MCP ecosystem:
 
 ### MCP Client Requirements
 
-MCP Clients that desire refresh tokens **SHOULD** follow these guidelines:
+MCP Clients that intend to use refresh tokens and are capable of storing them
+securely **SHOULD** follow these guidelines:
 
 1. **Advertise capability**: Clients **SHOULD** include `refresh_token` in their
    `grant_types` client metadata to indicate they support refresh tokens.
@@ -97,7 +98,7 @@ MCP Clients that desire refresh tokens **SHOULD** follow these guidelines:
 
 ### MCP Server (Resource Server) Requirements
 
-MCP Servers acting as OAuth 2.0 Protected Resources:
+MCP Servers (acting as OAuth 2.0 Protected Resources):
 
 1. **SHOULD NOT** include `offline_access` in the `scope` parameter of
    `WWW-Authenticate` headers, as refresh tokens are not a resource requirement.
@@ -117,7 +118,7 @@ the `scope` attribute in `WWW-Authenticate` indicates "the required scope of the
 access token for accessing the requested resource." Since the resource doesn't
 require `offline_access`, including it would be semantically incorrect.
 
-### Why check client metadata for grant types?
+### Why check client metadata for grant types? Why not always issue refresh tokens?
 
 OAuth 2.1 requires clients to register their supported grant types. A client
 that doesn't support the `refresh_token` grant either:
@@ -168,7 +169,7 @@ functional.
    don't advertise support, we reduce the risk of long-lived tokens being stored
    insecurely.
 
-2. **Defense in depth**: The risk-based assessment gives Authorization Servers
+2. **Defense in depth**: The risk-based assessment step gives Authorization Servers
    flexibility to implement additional security controls.
 
 ### Considerations
