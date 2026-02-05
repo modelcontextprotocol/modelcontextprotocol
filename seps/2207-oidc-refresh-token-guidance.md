@@ -4,7 +4,7 @@
 - **Type**: Standards Track
 - **Created**: 2026-02-04
 - **Author(s)**: Wils Dawson (@wdawson)
-- **Sponsor**: Den Delimarsky (@localden)
+- **Sponsor**: Paul Carleton (@pcarleton)
 - **PR**: #2207
 
 ## Abstract
