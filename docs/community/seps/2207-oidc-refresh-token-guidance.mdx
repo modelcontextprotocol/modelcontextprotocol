@@ -28,13 +28,12 @@ description: "OIDC-Flavored Refresh Token Guidance"
 
 ## Abstract
 
-This proposal provides guidance for MCP implementations that use OIDC-flavored
-Authorization Servers regarding refresh token issuance and requests. The
-`offline_access` scope is an OIDC concept that doesn't exist in pure OAuth 2.1,
-creating ambiguity for clients and authorization servers about when to issue or
-request refresh tokens. This SEP clarifies the expected behavior for both
-Authorization Servers and MCP Clients when working with OIDC-based
-authorization.
+This proposal provides guidance for MCP implementations regarding refresh token
+issuance and requests, particularly when Authorization Servers support the
+`offline_access` scope. The `offline_access` scope originated in OIDC but can be
+adopted by any OAuth 2.1 Authorization Server as a mechanism to let clients
+explicitly request refresh tokens. This SEP clarifies the expected behavior for
+both Authorization Servers and MCP Clients when working with this pattern.
 
 ## Motivation
 
@@ -46,8 +45,9 @@ A key difference between pure OAuth and OIDC is how refresh tokens are handled:
   explicitly request a refresh token. The Authorization Server determines
   whether to issue one based on the client's capabilities (e.g., the
   `refresh_token` grant type in client metadata) and its own policies.
-- In **OIDC**, the `offline_access` scope exists to allow clients to explicitly
-  request refresh tokens, in addition to the OAuth logic.
+- In **OIDC** (and Authorization Servers that adopt this convention), the
+  `offline_access` scope exists to allow clients to explicitly request refresh
+  tokens, in addition to the OAuth logic.
 
 This creates several problems in the MCP ecosystem:
 
@@ -105,11 +105,11 @@ securely **SHOULD** follow these guidelines:
 1. **Advertise capability**: Clients **SHOULD** include `refresh_token` in their
    `grant_types` client metadata to indicate they support refresh tokens.
 
-2. **Scope augmentation for OIDC Authorization Servers**: When the client
-   desires a refresh token and the Authorization Server metadata contains
-   `offline_access` in its `scopes_supported` field, the client **MAY** add the
-   `offline_access` scope to the list of scopes from the resource server before
-   making authorization requests to the Authorization Server.
+2. **Scope augmentation**: When the client desires a refresh token and the
+   Authorization Server metadata contains `offline_access` in its
+   `scopes_supported` field, the client **MAY** add the `offline_access` scope
+   to the list of scopes from the resource server before making authorization
+   requests to the Authorization Server.
 
 3. **No guarantee**: Clients **MUST NOT** assume that advertising support or
    requesting `offline_access` guarantees they will receive a refresh token. The
@@ -151,10 +151,12 @@ tokens are leaked.
 
 ### Why allow `offline_access` as an alternative signal?
 
-For deployments using strict OIDC Authorization Servers that only issue refresh
-tokens when `offline_access` is requested, this provides a compatible path.
-Clients can detect OIDC Authorization Servers by checking for `offline_access`
-in `scopes_supported` and adapt their behavior accordingly.
+Some Authorization Servers—whether fully OIDC-compliant or simply adopting this
+convention—only issue refresh tokens when `offline_access` is explicitly
+requested. Supporting this pattern provides a compatible path for such
+deployments. Clients can detect Authorization Servers that support this
+convention by checking for `offline_access` in `scopes_supported` in the
+Authorization Server Metadata and adapt their behavior accordingly.
 
 ### Alternative approaches considered
 
@@ -193,10 +195,13 @@ functional.
 
 ### Considerations
 
-1. **Client metadata trust**: Authorization Servers should validate client
-   metadata claims through appropriate mechanisms (Client ID Metadata Documents,
-   pre-registration, etc.) rather than blindly trusting self-reported
-   capabilities.
+1. **Client metadata may not be sufficient**: Since client metadata is
+   self-reported, a malicious actor could register a client claiming
+   `refresh_token` grant support to obtain long-lived tokens. Authorization
+   Servers MAY use the risk-based assessment step (see Specification) to apply
+   additional restrictions—such as domain allowlists, reputation checks, or
+   verification requirements—rather than solely relying on client metadata
+   claims when deciding whether to issue refresh tokens.
 
 2. **Scope injection**: Clients adding `offline_access` should ensure this
    doesn't interfere with other scope-related logic or create unexpected
@@ -210,6 +215,7 @@ official MCP SDKs:
 - **TypeScript SDK**: Client-side `offline_access` scope handling
 - **Python SDK**: Client-side `offline_access` scope handling
 - **Authorization Server example**: Demonstration of client capability checking
+- **Client conformance test**: Allowing for easy validation of SDK implementations
 
 Links to implementations will be added once the SEP is accepted.
 
