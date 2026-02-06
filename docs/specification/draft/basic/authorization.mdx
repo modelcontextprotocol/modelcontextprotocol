@@ -486,10 +486,22 @@ MCP servers **MUST NOT** accept or transit any other tokens.
 
 ## Refresh Tokens
 
-This section provides guidance for Authorization Servers, MCP Clients, and MCP Servers when handling or issuing
+This section provides guidance for MCP Clients and MCP Servers when handling or issuing
 refresh tokens for both OAuth and OpenID Connect.
 
-**Authorization Servers**:
+**MCP Clients** that desire refresh tokens:
+
+- **MUST** keep refresh tokens confidential in transit and storage as specified in [OAuth 2.1 Section 4.3](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-14#section-4.3)
+- **SHOULD** include `refresh_token` in their `grant_types` client metadata
+- **MAY** add `offline_access` to the `scope` parameter of the authorization and token requests when the Authorization Server metadata contains it in `scopes_supported`
+- **MUST NOT** assume refresh tokens will be issued; the AS retains discretion
+
+**MCP Servers** (Protected Resources) **SHOULD NOT** include `offline_access` in
+`WWW-Authenticate` scope or Protected Resource Metadata `scopes_supported`, as refresh
+tokens are not a resource requirement.
+
+When building or selecting an Authorization Server for use in protecting MCP Servers,
+the Authorization Server:
 
 - **SHOULD** check client metadata for `refresh_token` in `grant_types` and **SHOULD NOT** issue
   refresh tokens to clients that don't advertise support
@@ -497,17 +509,6 @@ refresh tokens for both OAuth and OpenID Connect.
   whether to issue refresh tokens to a client that supports them
 - **MAY** treat `offline_access` scope requests as equivalent to `refresh_token` grant support,
   though risk-based policies still apply.
-
-**MCP Clients** that desire refresh tokens:
-
-- **MUST** keep refresh tokens confidential in transit and storage as specified in [OAuth 2.1 Section 4.3](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-14#section-4.3)
-- **SHOULD** include `refresh_token` in their `grant_types` client metadata
-- **MAY** add `offline_access` to scopes when the AS metadata contains it in `scopes_supported`
-- **MUST NOT** assume refresh tokens will be issued; the AS retains discretion
-
-**MCP Servers** (Protected Resources) **SHOULD NOT** include `offline_access` in
-`WWW-Authenticate` scope or Protected Resource Metadata `scopes_supported`, as refresh
-tokens are not a resource requirement.
 
 ## Error Handling
 
