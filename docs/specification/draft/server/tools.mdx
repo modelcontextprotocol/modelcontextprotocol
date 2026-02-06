@@ -451,12 +451,15 @@ Providing an output schema helps clients and LLMs understand and properly handle
 
 Tools use two error reporting mechanisms:
 
-1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
-   - Unknown tools
+1. **Protocol Errors**: Standard JSON-RPC errors for protocol-level issues like:
    - Malformed requests (requests that fail to satisfy [CallToolRequest schema](/specification/draft/schema#calltoolrequest))
-   - Server errors
+   - Server errors (when the server cannot return a tool result)
+   - Unsupported methods (e.g., server does not implement `tools/call`)
 
 2. **Tool Execution Errors**: Reported in tool results with `isError: true`:
+   - Tool resolution failures (unknown tool name)
+   - Tool availability failures (disabled, unavailable, policy-restricted)
+   - Output validation errors (e.g., tool declared `outputSchema` but returned missing or non-conforming `structuredContent`)
    - API failures
    - Input validation errors (e.g., date in wrong format, value out of range)
    - Business logic errors
@@ -474,12 +477,12 @@ Example protocol error:
   "id": 3,
   "error": {
     "code": -32602,
-    "message": "Unknown tool: invalid_tool_name"
+    "message": "Invalid params"
   }
 }
 ```
 
-Example tool execution error (input validation):
+Example tool execution error (unknown tool):
 
 ```json
 {
@@ -489,7 +492,43 @@ Example tool execution error (input validation):
     "content": [
       {
         "type": "text",
-        "text": "Invalid departure date: must be in the future. Current date is 08/08/2025."
+        "text": "Unknown tool: invalid_tool_name. Re-run tools/list and retry."
+      }
+    ],
+    "isError": true
+  }
+}
+```
+
+Example tool execution error (input validation):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Input validation error: Invalid arguments for tool book_flight: Invalid departure date, must be in the future. Current date is 08/08/2025."
+      }
+    ],
+    "isError": true
+  }
+}
+```
+
+Example tool execution error (output validation):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Output validation error: outputSchema defined but no structured output returned."
       }
     ],
     "isError": true
