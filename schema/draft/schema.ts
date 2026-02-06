@@ -193,6 +193,8 @@ export interface JSONRPCErrorResponse {
 
 /**
  * A response to a request, containing either the result or error.
+ *
+ * @category JSON-RPC
  */
 export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
@@ -306,8 +308,10 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError
-  extends Omit<JSONRPCErrorResponse, "error"> {
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -421,7 +425,12 @@ export interface InitializeResult extends Result {
   /**
    * Instructions describing how to use the server and its features.
    *
-   * This can be used by clients to improve the LLM's understanding of available tools, resources, etc. It can be thought of like a "hint" to the model. For example, this information MAY be added to the system prompt.
+   * Instructions should focus on information that helps the model use the server effectively (e.g., cross-tool relationships, workflow patterns, constraints), but should not duplicate information already in tool descriptions.
+   *
+   * Clients MAY add this information to the system prompt.
+   *
+   * @example Server with workflow instructions
+   * {@includeCode ./examples/InitializeResult/with-instructions.json}
    */
   instructions?: string;
 }
@@ -546,6 +555,15 @@ export interface ClientCapabilities {
       };
     };
   };
+  /**
+   * Optional MCP extensions that the client supports. Keys are extension identifiers
+   * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
+   * per-extension settings objects. An empty object indicates support with no settings.
+   *
+   * @example Extensions — UI extension with MIME type support
+   * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
+   */
+  extensions?: { [key: string]: object };
 }
 
 /**
@@ -654,6 +672,15 @@ export interface ServerCapabilities {
       };
     };
   };
+  /**
+   * Optional MCP extensions that the server supports. Keys are extension identifiers
+   * (e.g., "io.modelcontextprotocol/apps"), and values are per-extension settings
+   * objects. An empty object indicates support with no settings.
+   *
+   * @example Extensions — UI extension support
+   * {@includeCode ./examples/ServerCapabilities/extensions-ui.json}
+   */
+  extensions?: { [key: string]: object };
 }
 
 /**
@@ -748,6 +775,9 @@ export interface BaseMetadata {
  * @category `initialize`
  */
 export interface Implementation extends BaseMetadata, Icons {
+  /**
+   * The version of this implementation.
+   */
   version: string;
 
   /**
@@ -939,8 +969,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResultResponse
-  extends JSONRPCResultResponse {
+export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
   result: ListResourceTemplatesResult;
 }
 
@@ -2213,6 +2242,10 @@ export interface SamplingMessage {
   content: SamplingMessageContentBlock | SamplingMessageContentBlock[];
   _meta?: MetaObject;
 }
+
+/**
+ * @category `sampling/createMessage`
+ */
 export type SamplingMessageContentBlock =
   | TextContent
   | ImageContent
@@ -3214,6 +3247,7 @@ export type ServerResult =
   | ListResourcesResult
   | ReadResourceResult
   | CallToolResult
+  | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
   | GetTaskPayloadResult
