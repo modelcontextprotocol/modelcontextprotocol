@@ -582,6 +582,13 @@ Servers implementing elicitation **MUST** securely associate this state with ind
   requirements while maintaining security best practices.
 </Note>
 
+<Note>
+  Implementation considerations: If elicitation state is stored in process memory,
+  deployments should ensure requests for a given `Mcp-Session-Id` are routed to the
+  same backend (session affinity) or externalize state so any worker can handle the
+  request.
+</Note>
+
 ### URL Mode Elicitation for Sensitive Data
 
 For servers that interact with external APIs requiring sensitive information (e.g., credentials, payment information), URL mode elicitation provides a secure mechanism for users to provide this information without exposing it to the MCP client.
