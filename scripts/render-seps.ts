@@ -253,8 +253,10 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
   const statusOrder = ["Final", "Accepted", "In-Review", "Draft", "Withdrawn", "Rejected", "Superseded", "Dormant"];
 
   for (const sep of seps) {
-    // Normalize status to title case
-    const status = sep.status.charAt(0).toUpperCase() + sep.status.slice(1).toLowerCase();
+    // Normalize status to title case (handling hyphenated statuses like "In-Review")
+    const status = sep.status.split('-').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join('-');
     if (!groups[status]) {
       groups[status] = [];
     }
