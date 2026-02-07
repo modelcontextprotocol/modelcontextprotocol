@@ -269,6 +269,7 @@
       {
         "tab": "Community",
         "pages": [
+          "community/contributing",
           "community/communication",
           {
             "group": "Governance",
@@ -395,7 +396,7 @@
     },
     {
       "source": "/development/contributing",
-      "destination": "/community/communication"
+      "destination": "/community/contributing"
     }
   ],
   "contextual": {
