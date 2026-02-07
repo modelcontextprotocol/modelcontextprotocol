@@ -16,6 +16,7 @@ Before contributing, ensure you have the following installed and ready:
 
 - **[Git](https://git-scm.com/downloads)** - For cloning repositories and submitting changes
 - **[Node.js 20+](https://nodejs.org/)** - Required for building and testing our projects
+- **[Node.js 24+](https://nodejs.org/)** - Required for building and testing our projects
 - **npm** - Comes with Node.js, used for dependency management
 - **[GitHub account](https://github.com/signup)** - For submitting pull requests and issues
 - **Language-specific tooling** - If contributing to an SDK, you'll need the appropriate
@@ -26,6 +27,8 @@ Verify your setup:
 ```bash
 node --version  # Should be 20.x or higher
 npm --version   # Should be 10.x or higher
+node --version  # Should be 24.x or higher
+npm --version   # Should be 11.x or higher
 git --version   # Any recent version
 ```
 
@@ -120,6 +123,39 @@ Set up your local environment so you can test and validate changes before submit
     This runs TypeScript compilation, schema validation, documentation link checks, and formatting checks. If everything passes, your environment is good and you're ready to contribute.
 
   </Step>
+<Step title="Fork the repository">
+
+Click the **Fork** button on the [repository page](https://github.com/modelcontextprotocol/modelcontextprotocol) to create your own copy. This gives you a personal workspace where you can make changes without affecting the main project.
+
+</Step>
+<Step title="Clone your fork">
+
+```bash
+git clone https://github.com/YOUR-USERNAME/modelcontextprotocol.git
+cd modelcontextprotocol
+```
+
+Replace `YOUR-USERNAME` with your GitHub username.
+
+</Step>
+<Step title="Install dependencies">
+
+```bash
+npm install
+```
+
+This installs the tools needed for schema generation, documentation building, and validation.
+
+</Step>
+<Step title="Verify everything works">
+
+```bash
+npm run check
+```
+
+This runs TypeScript compilation, schema validation, example validation, documentation link checks, and formatting checks. If everything passes, your environment is good and you're ready to contribute.
+
+</Step>
 </Steps>
 
 If `npm run check` fails, see [Troubleshooting](#troubleshooting) below.
@@ -174,6 +210,38 @@ Create your changes in a dedicated branch.
     Write a concise message that describes what you changed and why. Reference issue numbers if applicable (e.g., `Fix typo in tools documentation (#123)`).
 
   </Step>
+<Step title="Create a branch">
+
+```bash
+git checkout -b fix/your-description
+```
+
+Use a descriptive branch name that reflects your change, like `fix/typo-in-tools-doc` or `feat/add-example-for-resources`.
+
+</Step>
+<Step title="Make your changes">
+
+Edit the relevant files in your local copy. If you're editing schema files, remember to run `npm run generate:schema` to regenerate the JSON schema and documentation.
+
+</Step>
+<Step title="Run checks">
+
+```bash
+npm run check
+```
+
+Fix any issues before committing. If you have formatting errors, `npm run format` can auto-fix most of them.
+
+</Step>
+<Step title="Commit with a clear message">
+
+```bash
+git commit -m "Fix typo in tools documentation"
+```
+
+Write a concise message that describes what you changed and why. Reference issue numbers if applicable (e.g., `Fix typo in tools documentation (#123)`).
+
+</Step>
 </Steps>
 
 ### Step 4: Submit a Pull Request
@@ -210,6 +278,39 @@ When you're ready, push your branch and open a pull request.
 <Tip>
   That's it -- congratulations on your first contribution! Every improvement, no
   matter how small, helps make MCP better for everyone.
+<Step title="Push your branch">
+
+```bash
+git push origin fix/your-description
+```
+
+</Step>
+<Step title="Open a PR on GitHub">
+
+You can use the [GitHub CLI](https://cli.github.com/) to make this process easier:
+
+```bash
+gh pr create --fill
+```
+
+Alternatively, navigate to your fork on GitHub and click **Compare & pull request**.
+
+</Step>
+<Step title="Fill in the PR template">
+
+Provide a clear description of your changes and link any related issues.
+
+</Step>
+<Step title="Wait for review">
+
+Maintainers typically respond within 1-5 business days.
+
+</Step>
+</Steps>
+
+<Tip>
+  That's it, **congratulations on your first contribution**! Every improvement,
+  no matter how small, helps make MCP better for everyone.
 </Tip>
 
 ### What Makes a Good Contribution
@@ -302,6 +403,30 @@ To modify the schema:
     npm run check
     ```
   </Step>
+<Step title="Edit the TypeScript schema">
+
+Make your changes in `schema/draft/schema.ts`.
+
+</Step>
+<Step title="Add examples (optional)">
+
+Add JSON examples in `schema/draft/examples/[TypeName]/` (e.g., `Tool/my-example.json`). Reference them in the schema using `@example` + `@includeCode` JSDoc tags.
+
+</Step>
+<Step title="Generate JSON schema and docs">
+
+```bash
+npm run generate:schema
+```
+
+</Step>
+<Step title="Validate your changes">
+
+```bash
+npm run check
+```
+
+</Step>
 </Steps>
 
 ### Documentation Changes
@@ -336,6 +461,29 @@ Here is how you can contribute to our documentation:
     This validates formatting, broken links, and other common issues.
 
   </Step>
+<Step title="Start the local docs server">
+
+```bash
+npm run serve:docs
+```
+
+This launches a live preview at `http://localhost:3000` with hot reloading.
+
+</Step>
+<Step title="Make your changes">
+
+Edit the relevant `.mdx` files. You can use [Mintlify components](https://www.mintlify.com/docs/components) like `<Note>`, `<Tip>`, `<Steps>`, and `<Card>` for richer formatting.
+
+</Step>
+<Step title="Check for issues">
+
+```bash
+npm run check:docs
+```
+
+This validates formatting, broken links, and other common issues.
+
+</Step>
 </Steps>
 
 ### Major Protocol Changes
@@ -359,6 +507,14 @@ lot of time on a spec proposal, make sure to follow these best practices.
   who will champion your proposal.
 </Step>
 
+  <Step title="Build a prototype">
+    Demonstrate practical application of your idea.
+  </Step>
+  <Step title="Find a sponsor">
+    A maintainer from the [maintainer
+    list](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md)
+    who will champion your proposal.
+  </Step>
   <Step title="Write the SEP">
     Follow the [SEP Guidelines](/community/sep-guidelines).
   </Step>
@@ -367,6 +523,7 @@ lot of time on a spec proposal, make sure to follow these best practices.
 ## Working with the SDK Repositories
 
 MCP maintains official SDKs in multiple languages. Contributions are welcome -- whether you're
+MCP maintains official SDKs in multiple languages. Contributions are welcome - whether you're
 fixing bugs, improving performance, adding features, or enhancing documentation.
 
 <Note>
@@ -398,6 +555,15 @@ Before diving into code, follow these steps.
   conventions, and PR requirements.
 </Step>
 
+  <Step title="Join the SDK channel">
+    Find the relevant channel in [Discord](https://discord.gg/6CSzBmMkjX) (e.g.,
+    `#typescript-sdk-dev`, `#python-sdk-dev`).
+  </Step>
+  <Step title="Read the SDK's CONTRIBUTING.md">
+    Each repository has its own `CONTRIBUTING.md` with specific instructions for
+    setting up your development environment, coding standards, commit message
+    conventions, and PR requirements.
+  </Step>
   <Step title="Write tests">
     All contributions should include appropriate test coverage. Bug fixes should
     include a test that reproduces the issue, and new features should have tests
@@ -495,6 +661,7 @@ meetings.
   Every SEP needs a sponsor to move forward. SEPs that don't find a sponsor
   within 6 months are marked as **dormant**. Dormant SEPs aren't rejected
   outright -- they can be revived later if a sponsor is found or the proposal is
+  outright - they can be revived later if a sponsor is found or the proposal is
   re-assessed to be needed.
 </Warning>
 
@@ -515,6 +682,12 @@ To find a sponsor:
   Post your PR in the relevant Discord channel to increase visibility.
 </Step>
 
+  <Step title="Tag maintainers in your PR">
+    Tag 1-2 relevant maintainers (don't spam everyone).
+  </Step>
+  <Step title="Share in Discord">
+    Post your PR in the relevant Discord channel to increase visibility.
+  </Step>
   <Step title="Follow up if needed">
     If no response after 2 weeks, ask in `#general` or reach out to a Core
     Maintainer.
@@ -527,6 +700,7 @@ availability.
 ## Troubleshooting
 
 Sometimes things don't go as planned. Here are solutions to common
+Sometimes things don't go as planned - that's completely normal! Here are solutions to common
 issues. If you're still stuck, don't hesitate to ask for help in
 [Discord](/community/communication#discord). The community is friendly and happy to help you get
 unstuck.
@@ -536,6 +710,7 @@ unstuck.
 Common causes:
 
 - **Wrong Node.js version** - Ensure you have Node.js 20+
+- **Wrong Node.js version** - Ensure you have Node.js 24+
 - **Missing dependencies** - Run `npm install` again
 - **Schema out of sync** - Run `npm run generate:schema`
 - **Formatting issues** - Run `npm run format` to auto-fix
@@ -556,6 +731,11 @@ Common causes:
 ### My SEP was rejected
 
 Don't take it personally -- a SEP rejection doesn't mean your idea was bad. SEPs can be rejected
+3. Consider whether your change might be too large - could it be split into smaller SEPs?
+
+### My SEP was rejected
+
+Don't take it personally - a SEP rejection doesn't mean your idea was bad. SEPs can be rejected
 for many reasons: timing, scope, competing priorities, or simply because the protocol isn't ready
 for that change yet. The feedback you receive is valuable and often points toward a path forward.
 
@@ -573,6 +753,7 @@ Rejection is not permanent. You have a few options ahead:
 ## Out of Scope
 
 This guide covers contributions to the **core MCP project** -- the specification, official SDKs,
+This guide covers contributions to the **core MCP project** - the specification, official SDKs,
 and documentation.
 
 Building your own MCP servers, clients, or tools is **not** covered here. For guidance on building
@@ -586,6 +767,13 @@ with MCP, see our documentation:
 
 We welcome the use of AI tools like Claude or ChatGPT to help with your contributions! If you do
 use AI assistance, just let us know in your pull request or issue -- a quick note about how you
+If you build something you'd like to share with the community, you can submit it to the
+[MCP Registry](/registry/about).
+
+## AI Contributions
+
+We welcome the use of AI tools like Claude or ChatGPT to help with your contributions! If you do
+use AI assistance, just let us know in your pull request or issue - a quick note about how you
 used it (drafting docs, generating code, brainstorming, etc.) is all we need.
 
 The key is that you understand and can stand behind your contribution:
@@ -607,3 +795,11 @@ We expect respectful, professional, and inclusive interactions across all channe
 
 By contributing, you agree that your contributions will be licensed under the
 [MIT License](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/LICENSE).
+By contributing, you agree that your contributions will be licensed under:
+
+- **Code and specifications**: Apache License 2.0
+- **Documentation** (excluding specifications): CC-BY 4.0
+
+See the
+[LICENSE](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/LICENSE) file for
+details.

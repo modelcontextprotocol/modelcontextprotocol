@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "error": {
+    "code": -32042,
+    "message": "This request requires more information.",
+    "data": {
+      "elicitations": [
+        {
+          "mode": "url",
+          "elicitationId": "550e8400-e29b-41d4-a716-446655440000",
+          "url": "https://mcp.example.com/connect?elicitationId=550e8400-e29b-41d4-a716-446655440000",
+          "message": "Authorization is required to access your Example Co files."
+        }
+      ]
+    }
+  }
+}
