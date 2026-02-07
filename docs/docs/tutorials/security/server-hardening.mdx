@@ -26,6 +26,7 @@ If you expose an MCP server over a network transport (HTTP/SSE/WebSocket), assum
 - Require authentication for any server reachable over a network.
 - Gate tool execution by user identity and scope/role where applicable.
 - Prefer OAuth-based flows for remote servers (see the [Authorization tutorial](/docs/tutorials/security/authorization)).
+- If you are not intentionally building a remote server, bind to localhost (`127.0.0.1` / `::1`) and avoid listening on all interfaces (`0.0.0.0` / `::`).
 
 ### 2) Treat The Browser As Hostile (CORS / Cookies / CSRF)
 
