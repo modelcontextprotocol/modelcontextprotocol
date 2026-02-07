@@ -295,7 +295,7 @@ A typical MCP App project separates the server code from the UI code:
   </Tree.Folder>
 </Tree>
 
-The server registers the tool and serves the UI resource. The UI files get bundled into a single HTML file that the server returns when the host requests the resource.
+The server registers the tool and serves the UI resource. The UI doesn't need to be bundled into a single file — you can serve it however you like, including as separate HTML, CSS, and JS files. This guide uses `vite-plugin-singlefile` as a convenience, but any approach that produces valid HTML works.
 
 </Step>
 <Step title="Install dependencies">
@@ -305,7 +305,7 @@ npm install @modelcontextprotocol/ext-apps @modelcontextprotocol/sdk
 npm install -D typescript vite vite-plugin-singlefile express cors @types/express @types/cors tsx
 ```
 
-The `ext-apps` package provides helpers for both the server side (registering tools and resources) and the client side (the `App` class for UI-to-host communication). Vite with the `vite-plugin-singlefile` plugin bundles your UI into a single HTML file that can be served as a resource.
+The `ext-apps` package provides helpers for both the server side (registering tools and resources) and the client side (the `App` class for UI-to-host communication). Vite with the `vite-plugin-singlefile` plugin is used here to bundle your UI into a single HTML file for convenience, but this is optional — you can use any bundler or serve unbundled files.
 
 </Step>
 <Step title="Configure the project">
