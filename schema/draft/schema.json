@@ -177,7 +177,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "content": {
-                    "description": "A list of content objects that represent the unstructured result of the tool call.",
+                    "description": "A list of content objects that represent the unstructured result of the tool call.\n\nThis is the model-oriented representation. Clients that provide tool results to a model\nSHOULD use `content` when present and only fall back to `structuredContent` if `content`\nis empty or omitted.",
                     "items": {
                         "$ref": "#/$defs/ContentBlock"
                     },
@@ -189,7 +189,7 @@
                 },
                 "structuredContent": {
                     "additionalProperties": {},
-                    "description": "An optional JSON object that represents the structured result of the tool call.",
+                    "description": "An optional JSON object that represents the structured result of the tool call.\n\nIntended for programmatic use; when both fields are present, it SHOULD be semantically\nequivalent to `content`.",
                     "type": "object"
                 }
             },
