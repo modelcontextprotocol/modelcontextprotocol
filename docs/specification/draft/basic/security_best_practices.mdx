@@ -12,46 +12,6 @@ This document provides security considerations for the Model Context Protocol (M
 
 The primary audience for this document includes developers implementing MCP authorization flows, MCP server operators, and security professionals evaluating MCP-based systems. This document should be read alongside the MCP Authorization specification and [OAuth 2.0 security best practices](https://datatracker.ietf.org/doc/html/rfc9700).
 
-## Practical Hardening Checklist (Servers)
-
-The attacks below map to recurring implementation pitfalls. As a quick baseline, MCP server operators SHOULD apply the following hardening steps, especially for servers exposed over network transports (HTTP/SSE/WebSocket).
-
-### Require Authentication for Network-Exposed Servers
-
-- Servers reachable over a network transport SHOULD require authentication.
-- Tool execution SHOULD be authorized per user identity and scope/role where applicable.
-- Servers that are not intended to be remotely reachable SHOULD bind to loopback (`127.0.0.1` / `::1`) by default and require explicit configuration to listen on non-loopback interfaces.
-
-### Treat Browsers as Hostile (CORS / Cookies / CSRF)
-
-If you do not intend your MCP server to be called by browser-based clients, do not enable CORS.
-
-If you do intend browser usage:
-
-- Do not use wildcard CORS (`Access-Control-Allow-Origin: *`) on authenticated endpoints.
-- Do not reflect `Origin` without allowlist validation; prefer a strict origin allowlist and set `Vary: Origin`.
-- Avoid cookie-based authentication unless you also implement CSRF protections.
-- Never combine `Access-Control-Allow-Credentials: true` with broad origins.
-
-Misconfigured CORS can unintentionally expose a local or private tool server to untrusted browser contexts.
-
-### Bound Resource Usage (DoS Resistance)
-
-- Enforce maximum request body sizes on all endpoints.
-- Apply timeouts to outbound requests (HTTP, databases, upstream APIs).
-- Add rate limiting and concurrency limits/backpressure for expensive tools.
-
-### Constrain Tool Capabilities (Least Privilege)
-
-- Keep the tool surface area small and purpose-built.
-- Avoid exposing arbitrary shell execution and filesystem access.
-- If you must run commands, do not invoke a shell (`sh -c`, `cmd /c`, `shell=True`), enforce strict allowlists for commands/arguments, and pass arguments as arrays.
-
-### Validate Inputs and Avoid Secret Leakage
-
-- Validate tool inputs against strict schemas; reject unexpected fields.
-- Redact secrets in logs and error messages (for example: `Authorization` headers, cookies, session tokens, and API keys).
-
 ## Attacks and Mitigations
 
 This section gives a detailed description of attacks on MCP implementations, along with potential countermeasures.
