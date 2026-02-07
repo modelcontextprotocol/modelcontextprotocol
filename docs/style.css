@@ -15,7 +15,49 @@
   }
 }
 
+#implementation-tracking-matrix-wrapper td,
+#implementation-tracking-matrix-wrapper th {
+  padding: 0.3rem 0rem;
+  text-align: center;
+  white-space: nowrap;
+}
 
+#implementation-tracking-matrix-wrapper td:first-child,
+#implementation-tracking-matrix-wrapper th:first-child {
+  text-align: left;
+  width: 12%;
+}
+
+#implementation-tracking-matrix-wrapper th:first-child {
+  white-space: normal;
+}
+
+#implementation-tracking-matrix-wrapper table {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 0.6rem;
+}
+
+#implementation-tracking-matrix-wrapper td,
+#implementation-tracking-matrix-wrapper th {
+  padding: 0.3rem 0rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#implementation-tracking-matrix-wrapper td:first-child,
+#implementation-tracking-matrix-wrapper th:first-child {
+  text-align: left;
+  width: 12%;
+}
+
+#implementation-tracking-matrix-wrapper th:first-child {
+  white-space: normal;
+}
+
+#tracking-matrix-legend-wrapper {
+  font-size: 0.7rem;
+}
 
 /*** Add automatic section numbers to headings and table of contents items ***/
 

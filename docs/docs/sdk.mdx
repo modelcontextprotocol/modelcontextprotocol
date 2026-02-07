@@ -60,6 +60,175 @@ Build MCP servers and clients using our official SDKs. SDKs are classified into 
   />
 </CardGroup>
 
+## Implementation Tracking Matrix
+
+This matrix tracks the support status of protocol specification releases across all official MCP SDKs.
+
+<div id="tracking-matrix-legend-wrapper">
+
+- ✅ - Launched
+- 🚧 - In Development
+- ❌ - No Compliant Versions
+- ❓ - Range of Compliant Versions Unknown
+
+</div>
+
+<div id="implementation-tracking-matrix-wrapper">
+
+{/* prettier-ignore-start */}
+
+| Specification Version    	| Status 	| [Typescript] 	| [Python] 	| [Go] 	| [Kotlin] 	| [Swift] 	| [Java] 	| [C#] 	| [Ruby] 	| [Rust] 	| [PHP] 	|
+|--------------------------	|--------	|--------------	|-----------	|-------	|-----------	|-----------	|---------	|-------	|---------	|---------	|-------	|
+| [2024-11-05][2024-11-05] 	| ✅      	| ❓            	| ❓         	| ❓     	| ❓         	| ❓         	| ❓       	| ❓     	| ❓       	| ❓       	| ❓     	|
+| [2025-03-26][2025-03-26] 	| ✅      	| ❓            	| ❓         	| ❓     	| ❓         	| ❓         	| ❓       	| ❓     	| ❓       	| ❓       	| ❓     	|
+| [2025-06-18][2025-06-18] 	| ✅      	| ❓            	| ❓         	| ❓     	| ❓         	| ❓         	| ❓       	| ❓     	| ❓       	| ❓       	| ❓     	|
+| 2025-11-25               	| 🚧      	| ❓            	| ❓         	| ❓     	| ❓         	| ❓         	| ❓       	| ❓     	| ❓       	| ❓       	| ❓     	|
+
+{/* prettier-ignore-end */}
+
+[Typescript]: https://github.com/modelcontextprotocol/typescript-sdk
+[Python]: https://github.com/modelcontextprotocol/python-sdk
+[Go]: https://github.com/modelcontextprotocol/go-sdk
+[Kotlin]: https://github.com/modelcontextprotocol/kotlin-sdk
+[Swift]: https://github.com/modelcontextprotocol/swift-sdk
+[Java]: https://github.com/modelcontextprotocol/java-sdk
+[C#]: https://github.com/modelcontextprotocol/csharp-sdk
+[Ruby]: https://github.com/modelcontextprotocol/ruby-sdk
+[Rust]: https://github.com/modelcontextprotocol/rust-sdk
+[PHP]: https://github.com/modelcontextprotocol/php-sdk
+[2024-11-05]: /specification/2024-11-05
+[2025-03-26]: /specification/2025-03-26
+[2025-06-18]: /specification/2025-06-18
+
+</div>
+
+## Feature Support Matrix
+
+This matrix tracks the support status of MCP features across all official MCP SDKs.
+
+<div id="tracking-matrix-legend-wrapper">
+
+- ✅ - Full Support
+- 🚧 - Partial Support
+- ❌ - No Support
+- ❓ - Support Status Unknown
+
+</div>
+
+### Base Protocol Features
+
+<div id="feature-support-matrix-wrapper">
+
+{/* prettier-ignore-start */}
+
+| SDK          	| [Progress] 	| [Ping] 	| [Cancellation] 	| Tasks 	|
+|--------------	|-----------	|--------	|---------------	|-------	|
+| [Typescript] 	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Python]     	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Go]         	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Kotlin]     	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Swift]      	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Java]       	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [C#]         	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Ruby]       	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [Rust]       	| ❓         	| ❓      	| ❓             	| ❓     	|
+| [PHP]        	| ❓         	| ❓      	| ❓             	| ❓     	|
+
+{/* prettier-ignore-end */}
+
+[Typescript]: https://github.com/modelcontextprotocol/typescript-sdk
+[Python]: https://github.com/modelcontextprotocol/python-sdk
+[Go]: https://github.com/modelcontextprotocol/go-sdk
+[Kotlin]: https://github.com/modelcontextprotocol/kotlin-sdk
+[Swift]: https://github.com/modelcontextprotocol/swift-sdk
+[Java]: https://github.com/modelcontextprotocol/java-sdk
+[C#]: https://github.com/modelcontextprotocol/csharp-sdk
+[Ruby]: https://github.com/modelcontextprotocol/ruby-sdk
+[Rust]: https://github.com/modelcontextprotocol/rust-sdk
+[PHP]: https://github.com/modelcontextprotocol/php-sdk
+[Progress]: /docs/concepts/progress
+[Ping]: /docs/concepts/ping
+[Cancellation]: /docs/concepts/cancellation
+
+</div>
+
+### Client Features
+
+<div id="feature-support-matrix-wrapper">
+
+{/* prettier-ignore-start */}
+
+| SDK          	| [Roots] 	| [Sampling] 	| [Elicitation] 	|
+|--------------	|---------	|------------	|---------------	|
+| [Typescript] 	| ❓       	| ❓          	| ❓             	|
+| [Python]     	| ❓       	| ❓          	| ❓             	|
+| [Go]         	| ❓       	| ❓          	| ❓             	|
+| [Kotlin]     	| ❓       	| ❓          	| ❓             	|
+| [Swift]      	| ❓       	| ❓          	| ❓             	|
+| [Java]       	| ❓       	| ❓          	| ❓             	|
+| [C#]         	| ❓       	| ❓          	| ❓             	|
+| [Ruby]       	| ❓       	| ❓          	| ❓             	|
+| [Rust]       	| ❓       	| ❓          	| ❓             	|
+| [PHP]        	| ❓       	| ❓          	| ❓             	|
+
+{/* prettier-ignore-end */}
+
+[Typescript]: https://github.com/modelcontextprotocol/typescript-sdk
+[Python]: https://github.com/modelcontextprotocol/python-sdk
+[Go]: https://github.com/modelcontextprotocol/go-sdk
+[Kotlin]: https://github.com/modelcontextprotocol/kotlin-sdk
+[Swift]: https://github.com/modelcontextprotocol/swift-sdk
+[Java]: https://github.com/modelcontextprotocol/java-sdk
+[C#]: https://github.com/modelcontextprotocol/csharp-sdk
+[Ruby]: https://github.com/modelcontextprotocol/ruby-sdk
+[Rust]: https://github.com/modelcontextprotocol/rust-sdk
+[PHP]: https://github.com/modelcontextprotocol/php-sdk
+[Roots]: /docs/concepts/roots
+[Sampling]: /docs/concepts/sampling
+[Elicitation]: /docs/concepts/elicitation
+
+</div>
+
+### Server Features
+
+<div id="feature-support-matrix-wrapper">
+
+{/* prettier-ignore-start */}
+
+| SDK          	| [Prompts] 	| [Resources] 	| [Tools] 	| [Completion] 	| [Logging] 	| [Pagination] 	|
+|--------------	|-----------	|-------------	|---------	|--------------	|-----------	|--------------	|
+| [Typescript] 	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Python]     	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Go]         	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Kotlin]     	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Swift]      	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Java]       	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [C#]         	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Ruby]       	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [Rust]       	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+| [PHP]        	| ❓         	| ❓           	| ❓       	| ❓             	| ❓         	| ❓            	|
+
+{/* prettier-ignore-end */}
+
+[Typescript]: https://github.com/modelcontextprotocol/typescript-sdk
+[Python]: https://github.com/modelcontextprotocol/python-sdk
+[Go]: https://github.com/modelcontextprotocol/go-sdk
+[Kotlin]: https://github.com/modelcontextprotocol/kotlin-sdk
+[Swift]: https://github.com/modelcontextprotocol/swift-sdk
+[Java]: https://github.com/modelcontextprotocol/java-sdk
+[C#]: https://github.com/modelcontextprotocol/csharp-sdk
+[Ruby]: https://github.com/modelcontextprotocol/ruby-sdk
+[Rust]: https://github.com/modelcontextprotocol/rust-sdk
+[PHP]: https://github.com/modelcontextprotocol/php-sdk
+[Prompts]: /docs/concepts/prompts
+[Resources]: /docs/concepts/resources
+[Tools]: /docs/concepts/tools
+[Completion]: /docs/concepts/completion
+[Logging]: /docs/concepts/logging
+[Pagination]: /docs/concepts/pagination
+
+</div>
+
 ## Getting Started
 
 Each SDK provides the same functionality but follows the idioms and best practices of its language. All SDKs support:
