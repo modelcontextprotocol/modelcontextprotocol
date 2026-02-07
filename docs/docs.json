@@ -51,7 +51,8 @@
               {
                 "group": "Security",
                 "pages": [
-                  "docs/tutorials/security/authorization"
+                  "docs/tutorials/security/authorization",
+                  "docs/tutorials/security/server-hardening"
                 ]
               }
             ]
