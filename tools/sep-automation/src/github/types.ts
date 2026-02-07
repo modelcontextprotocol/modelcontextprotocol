@@ -36,3 +36,10 @@ export interface GitHubTeamMembership {
   readonly state: 'active' | 'pending';
   readonly role: 'member' | 'maintainer';
 }
+
+export interface GitHubTeam {
+  readonly id: number;
+  readonly slug: string;
+  readonly name: string;
+  readonly parent: { readonly id: number; readonly slug: string } | null;
+}
