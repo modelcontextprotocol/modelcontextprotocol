@@ -1,0 +1,84 @@
+---
+title: Hardening MCP Servers (Practical)
+description: A checklist of common production hardening steps for MCP servers, especially when exposed over HTTP/SSE/WebSocket
+---
+
+This page complements the protocol-level guidance in [Security Best Practices](/specification/latest/basic/security_best_practices) with practical steps you can apply in most MCP server implementations.
+
+## Threat Model: Local vs Remote
+
+<Tip>
+  **Local servers (STDIO) are not automatically safe.** They run with your user
+  privileges and can still be dangerous if they expose powerful tools
+  (filesystem, shell, network access) without strict controls.
+</Tip>
+
+If you expose an MCP server over a network transport (HTTP/SSE/WebSocket), assume:
+
+- attackers can send arbitrary requests
+- browsers may be able to reach your endpoint (intentionally or accidentally)
+- requests and responses may contain sensitive data
+
+## Baseline Checklist
+
+### 1) Require Authentication (And Prefer Authorization)
+
+- Require authentication for any server reachable over a network.
+- Gate tool execution by user identity and scope/role where applicable.
+- Prefer OAuth-based flows for remote servers (see the [Authorization tutorial](/docs/tutorials/security/authorization)).
+
+### 2) Treat The Browser As Hostile (CORS / Cookies / CSRF)
+
+If you do not intend your MCP server to be called by browser-based clients, do not enable CORS.
+
+If you do intend browser usage:
+
+- Do not use wildcard CORS (`Access-Control-Allow-Origin: *`) on authenticated endpoints.
+- Do not reflect `Origin` without allowlist validation.
+- Prefer a strict origin allowlist and set `Vary: Origin`.
+- Avoid cookie-based auth unless you also implement CSRF protections.
+- Never combine `Access-Control-Allow-Credentials: true` with broad origins.
+
+<Warning>
+  Misconfigured CORS is one of the easiest ways to turn a private tool server
+  into a public one.
+</Warning>
+
+### 3) Bound Resource Usage (DoS Resistance)
+
+- Set an explicit maximum request body size on all endpoints.
+- Apply timeouts to outbound requests (HTTP, DB, upstream APIs).
+- Add rate limiting (per user/token and/or per IP).
+- Add concurrency limits and backpressure for expensive tools.
+
+### 4) Constrain Tool Capabilities (Least Privilege)
+
+- Keep the tool surface area small and purpose-built.
+- Avoid exposing shell execution and arbitrary filesystem access.
+- If you must run commands:
+  - do not invoke a shell (`sh -c`, `cmd /c`, `shell=True`)
+  - enforce strict allowlists for command names and arguments
+  - pass arguments as arrays (no string concatenation)
+- Run servers as an unprivileged user and isolate them (container, sandbox, VM) when possible.
+
+### 5) Validate Inputs And Outputs
+
+- Validate tool inputs against a strict schema.
+- Reject unexpected fields; avoid "pass-through" JSON into downstream APIs.
+- Sanitize and bound any user-controlled strings used in paths, URLs, or queries.
+
+### 6) Don’t Leak Secrets (Logging And Error Handling)
+
+- Do not log full request headers by default.
+- Redact `Authorization`, cookies, session tokens, and API keys.
+- Be careful with stack traces and error messages returned to clients.
+
+## A Simple Rule Of Thumb
+
+If a tool can cause irreversible impact (money, data deletion, external side effects), treat it like a production API:
+
+- authn/authz
+- least privilege
+- input validation
+- rate limiting + timeouts
+- audit logging (with redaction)
