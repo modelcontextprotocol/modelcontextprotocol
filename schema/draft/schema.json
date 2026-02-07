@@ -1130,6 +1130,52 @@
             ],
             "type": "object"
         },
+        "ElicitationPendingNotification": {
+            "description": "An optional notification from the server to the client, informing it that an elicitation request is about to be issued for a specific in-flight request.\n\nThis notification enables clients to coordinate timeouts when a server needs user input during request processing. Upon receiving this notification, clients SHOULD suspend or extend the timeout for the associated request until the elicitation completes.\n\nServers SHOULD send this notification before issuing an elicitation/create request when the elicitation is triggered by another in-flight request (e.g., a tool call).",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/elicitation/pending",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "requestId": {
+                            "description": "The ID of the original request that triggered this elicitation.\n\nThis allows the client to associate the pending elicitation with the request whose timeout should be adjusted.",
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ]
+                        },
+                        "timeout": {
+                            "description": "An optional hint for how long the server expects to wait for user input, in milliseconds.\n\nClients MAY use this to set an appropriate timeout for the elicitation itself. If not provided, clients SHOULD use a reasonable default or allow unlimited time for user input.",
+                            "type": "number"
+                        },
+                        "message": {
+                            "description": "An optional human-readable message explaining why the elicitation is needed.\n\nThis can help clients provide better UX by showing context to users about what input is being requested.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "requestId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
@@ -3460,6 +3506,9 @@
                 },
                 {
                     "$ref": "#/$defs/LoggingMessageNotification"
+                },
+                {
+                    "$ref": "#/$defs/ElicitationPendingNotification"
                 },
                 {
                     "$ref": "#/$defs/ElicitationCompleteNotification"

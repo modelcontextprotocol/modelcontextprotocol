@@ -1,0 +1,9 @@
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/elicitation/pending",
+  "params": {
+    "requestId": "abc-123",
+    "timeout": 300000,
+    "message": "Please provide your GitHub credentials to access the repository"
+  }
+}
