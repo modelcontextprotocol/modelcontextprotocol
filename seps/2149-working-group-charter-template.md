@@ -31,9 +31,7 @@ A standardized charter template addresses these issues by requiring each working
 
 ### Charter Template Structure
 
-Every MCP Working Group must maintain a charter document following this template structure. Charters are stored as MDX files in `docs/community/workinggroups/` in the modelcontextprotocol repository.
-
-Charters are stored as MDX files in `docs/community/workinggroups/` in the modelcontextprotocol repository and added to the `docs.json` to be displayed on modelcontextprotocol.io website.
+Every MCP Working Group must maintain a charter document following this template structure. Charters are stored as MDX files in `docs/community/workinggroups/` in the modelcontextprotocol repository and added to the `docs.json` file.
 
 ### Required Sections
 
