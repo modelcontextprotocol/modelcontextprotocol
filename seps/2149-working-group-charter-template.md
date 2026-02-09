@@ -79,6 +79,7 @@ _Example: "The Transport Working Group exists to evolve MCP's transport mechanis
 - Escalate blocked decisions to Core Maintainers with clear context
 - Provide quarterly status updates to the Community and Core Maintainer Group
 - Maintain the working group's documentation, roadmap and member list
+- Proactively reach out to potentially relevant participants to ensure the working group has broad, representative membership across organizations and perspectives, particularly during formation and when members depart or become inactive
 
 #### 4. Authority & Decision Rights
 
