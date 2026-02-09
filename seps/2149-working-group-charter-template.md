@@ -88,15 +88,15 @@ _This section addresses the "unclear authority" issue identified in community in
 
 Each WG must explicitly define its decision authority:
 
-| Decision Type                       | Authority Level                                         | Process                                           |
-| ----------------------------------- | ------------------------------------------------------- | ------------------------------------------------- |
-| Meeting logistics & scheduling      | WG Leads (autonomous)                                   | Leads decide                                      |
-| Proposal prioritization within WG   | WG Leads (autonomous)                                   | Lazy consensus among leads                        |
-| Technical design within scope       | WG consensus                                            | Lazy consensus → vote if blocked → escalate if unresolved |
-| Spec changes (additive)             | WG consensus → Core Maintainer approval                 | SEP process; lazy consensus → vote if blocked → escalate if unresolved |
-| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review  | SEP process with extended comment period; lazy consensus → vote if blocked → escalate if unresolved |
-| Scope expansion                     | Core Maintainer approval required                       | Charter amendment process                         |
-| Member approval                     | WG Member                                               | WG Member sponsors                                |
+| Decision Type                       | Authority Level                                        | Process                                                                                             |
+| ----------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  | Leads decide                                                                                        |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  | Lazy consensus among leads                                                                          |
+| Technical design within scope       | WG consensus                                           | Lazy consensus → vote if blocked → escalate if unresolved                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                | SEP process; lazy consensus → vote if blocked → escalate if unresolved                              |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review | SEP process with extended comment period; lazy consensus → vote if blocked → escalate if unresolved |
+| Scope expansion                     | Core Maintainer approval required                      | Charter amendment process                                                                           |
+| Member approval                     | WG Member                                              | WG Member sponsors                                                                                  |
 
 **Escalation Path:**
 
@@ -171,7 +171,7 @@ Regardless of format or frequency, all WG meetings must:
 
 **Community Involvement:**
 
-WG Leads should actively involve Members and Participants in operational duties such as preparing agendas, taking meeting notes, and facilitating discussions. 
+WG Leads should actively involve Members and Participants in operational duties such as preparing agendas, taking meeting notes, and facilitating discussions.
 
 **Communication Channels:**
 
