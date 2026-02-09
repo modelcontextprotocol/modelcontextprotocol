@@ -145,9 +145,8 @@ _Addressing the interview feedback that it's "not clear who should be participat
 **Meeting Norms:**
 
 - Meeting published on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io) 7 days in advance
-- Agendas published 24 hours in advance to an [issue created for the meeting](https://github.com/modelcontextprotocol/modelcontextprotocol/issues)
-- Notes published within 48 hours to the same issue
-- Recordings available to all participants
+- Agendas published 24 hours in advance to a [GitHub Discussion in the Meeting Notes category](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/categories/meeting-notes)
+- Notes published within 48 hours to the same discussion
 - Use of hand-raising protocol
 - Time-boxed discussions with explicit next steps
 
