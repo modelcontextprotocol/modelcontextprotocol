@@ -98,10 +98,13 @@ Each WG must explicitly define its decision authority:
 
 **Escalation Path:**
 
-1. WG Lead documents decision, options, and points of disagreement
-2. WG Lead presents to Core Maintainer with clear ask
-3. Core Maintainer either: (a) provides binding guidance, (b) requests more information, or (c) brings to full Core Maintainer group
-4. Timeline: Escalations should receive initial response within 5 business days
+Working groups should strive to resolve disagreements locally before escalating. When escalation is necessary:
+
+1. WG Lead documents the decision, options considered, and points of disagreement
+2. WG Lead presents the escalation to the Core Maintainer group with a clear ask
+3. The Core Maintainer group designates a CM—who should not share organizational affiliation with the parties involved—to resolve the issue and report back to the group
+4. The designated CM either: (a) provides binding guidance, (b) requests more information, or (c) recommends the full Core Maintainer group deliberate
+5. Timeline: Escalations should receive initial response within 5 business days
 
 #### 5. Membership
 
