@@ -73,13 +73,14 @@ _Example: "The Transport Working Group exists to evolve MCP's transport mechanis
 **Lead Responsibilities:**
 
 - Schedule and facilitate regular working group meetings
-- Set agendas in collaboration with participants
+- Set agendas in collaboration with participants and publish them in advance
 - Ensure meeting notes are published within 48 hours
 - Drive proposals through the [SEP](https://modelcontextprotocol.io/community/sep-guidelines) (Specification Enhancement Proposal) process to resolution
 - Escalate blocked decisions to Core Maintainers with clear context
+- Maintain the working group's documentation, roadmap, and member list
+- Solicit feedback from one or more Core Maintainers on the general direction of the group on a continuous basis
 - Provide quarterly status updates to the Community and Core Maintainer Group
-- Maintain the working group's documentation, roadmap and member list
-- Proactively reach out to potentially relevant participants to ensure the working group has broad, representative membership across organizations and perspectives, particularly during formation and when members depart or become inactive
+- Proactively recruit and retain broad, representative membership across organizations and perspectives—particularly during formation and when members depart or become inactive
 
 #### 4. Authority & Decision Rights
 
@@ -91,14 +92,25 @@ Each WG must explicitly define its decision authority:
 | ----------------------------------- | ------------------------------------------------------- | ------------------------------------------------- |
 | Meeting logistics & scheduling      | WG Leads (autonomous)                                   | Leads decide                                      |
 | Proposal prioritization within WG   | WG Leads (autonomous)                                   | Lazy consensus among leads                        |
-| Technical design within scope       | WG consensus                                            | Discussion → lazy consensus → escalate if blocked |
-| Spec changes (additive)             | WG recommends → Core Maintainer approval                | SEP process                                       |
-| Spec changes (breaking/fundamental) | WG recommends → Core Maintainer approval + wider review | SEP process with extended comment period          |
+| Technical design within scope       | WG consensus                                            | Lazy consensus → vote if blocked → escalate if unresolved |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                 | SEP process; lazy consensus → vote if blocked → escalate if unresolved |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review  | SEP process with extended comment period; lazy consensus → vote if blocked → escalate if unresolved |
 | Scope expansion                     | Core Maintainer approval required                       | Charter amendment process                         |
+| Member approval                     | WG Member                                               | WG Member sponsors                                |
 
 **Escalation Path:**
 
-Working groups should strive to resolve disagreements locally before escalating. When escalation is necessary:
+For technical and design disagreements within the WG's scope, working groups should resolve disagreements locally using the decision-making progression (lazy consensus → vote → escalation) before involving Core Maintainers.
+
+Some disagreements are not appropriate for WG voting and should be escalated directly to Core Maintainers:
+
+- Scope disputes (whether a topic falls within the WG's charter)
+- Authority disputes (whether the WG has the right to decide a matter)
+- Cross-WG conflicts (disagreements spanning multiple working groups)
+- Code of conduct or behavioral concerns
+- Membership or participation disputes
+
+When escalation is necessary:
 
 1. WG Lead documents the decision, options considered, and points of disagreement
 2. WG Lead presents the escalation to the Core Maintainer group with a clear ask
@@ -116,7 +128,7 @@ _Addressing the interview feedback that it's "not clear who should be participat
 | --------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
 | **Observer**    | Anyone interested in following the WG's work      | Read access, may attend meetings, limited discussion participation |
 | **Participant** | Active contributor to WG discussions              | Can propose agenda items, participate in async votes               |
-| **Member**      | Sustained contributor with demonstrated expertise | Can champion SEPs, counted for quorum                              |
+| **Member**      | Sustained contributor with demonstrated expertise | Counted for quorum                                                 |
 | **Lead**        | Operational leadership of the WG                  | Sets agenda, facilitates, escalates                                |
 
 **Becoming a Member:**
@@ -137,18 +149,29 @@ _Addressing the interview feedback that it's "not clear who should be participat
 
 **Meetings:**
 
+WG Leads determine meeting frequency, format, and duration based on the group's current needs and lifecycle stage. There is no fixed cadence requirement — a WG near a specification release may meet weekly, while one in early exploration may meet monthly or work primarily asynchronously.
+
+Each WG charter should document its current meeting approach, which may change over time.
+
+_Example: A common approach used by most WGs:_
+
 | Meeting         | Frequency       | Duration | Purpose                               |
 | --------------- | --------------- | -------- | ------------------------------------- |
 | Working Session | Weekly/Biweekly | 60 min   | Technical discussion, proposal review |
 | Office Hours    | Monthly         | 30 min   | Open Q&A for newcomers and observers  |
 
-**Meeting Norms:**
+**Meeting Requirements:**
 
-- Meeting published on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io) 7 days in advance
-- Agendas published 24 hours in advance to a [GitHub Discussion in the Meeting Notes category](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/categories/meeting-notes)
-- Notes published within 48 hours to the same discussion
-- Use of hand-raising protocol
-- Time-boxed discussions with explicit next steps
+Regardless of format or frequency, all WG meetings must:
+
+- Be open to all community participants (no closed or organization-internal meetings)
+- Be published on [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io) at least 7 days in advance
+- Have agendas published at least 24 hours in advance to a [GitHub Discussion in the Meeting Notes category](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/)
+- Have notes published within 48 hours to the same discussion
+
+**Community Involvement:**
+
+WG Leads should actively involve Members and Participants in operational duties such as preparing agendas, taking meeting notes, and facilitating discussions. 
 
 **Communication Channels:**
 
@@ -161,25 +184,33 @@ _Addressing the interview feedback that it's "not clear who should be participat
 
 _Addressing interview feedback about "one maintainer says this thing, then two weeks later another maintainer says this other thing"_
 
-**Default: Lazy Consensus**
+**WG Consensus** is achieved through the following progression. Each step is attempted before moving to the next:
+
+**Step 1: Lazy Consensus (default)**
 
 - Proposals announced with clear deadline (3 days minimum for minor items, 7 days for significant items)
 - Silence is consent
 - Any Member may block with documented objection
 - Blocks must propose alternatives or clear criteria for resolution
+- If no blocks are raised by the deadline, the proposal is accepted
 
-**When Voting Required:**
+**Step 2: Formal Vote (when lazy consensus is blocked)**
 
-- Lazy consensus fails to achieve resolution
-- Lead or three or more Members request formal vote
-- Decision has broad impact beyond WG scope
+A formal vote is triggered when:
 
-**Voting Rules:**
+- A Member blocks during the lazy consensus period
+- A Lead or three or more Members request a formal vote
+
+Voting rules:
 
 - Quorum: 50% of active Members
 - Passage: Simple majority for routine matters; 2/3 majority for scope changes
 - Core Maintainer feedback is advisory unless explicitly stated as binding
 - All votes documented with rationale
+
+**Step 3: Escalation (when voting does not resolve)**
+
+If a vote fails to resolve the matter (no quorum, does not pass, or the result is contested), the WG Lead escalates to Core Maintainers following the escalation path defined in Section 4.
 
 #### 7. Deliverables & Success Metrics
 
