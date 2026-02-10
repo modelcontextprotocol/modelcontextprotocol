@@ -51,7 +51,8 @@
               {
                 "group": "Security",
                 "pages": [
-                  "docs/tutorials/security/authorization"
+                  "docs/tutorials/security/authorization",
+                  "docs/tutorials/security/security_best_practices"
                 ]
               }
             ]
@@ -87,7 +88,6 @@
                   "specification/2025-11-25/basic/lifecycle",
                   "specification/2025-11-25/basic/transports",
                   "specification/2025-11-25/basic/authorization",
-                  "specification/2025-11-25/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -140,7 +140,6 @@
                   "specification/2025-06-18/basic/lifecycle",
                   "specification/2025-06-18/basic/transports",
                   "specification/2025-06-18/basic/authorization",
-                  "specification/2025-06-18/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -289,7 +288,6 @@
                   "specification/draft/basic/lifecycle",
                   "specification/draft/basic/transports",
                   "specification/draft/basic/authorization",
-                  "specification/draft/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -525,6 +523,18 @@
     {
       "source": "/development/contributing",
       "destination": "/community/contributing"
+    },
+    {
+      "source": "/specification/draft/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-11-25/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-06-18/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
     },
     {
       "source": "/extensions",
