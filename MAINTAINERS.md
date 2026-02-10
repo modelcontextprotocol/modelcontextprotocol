@@ -197,6 +197,10 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Liad Yosef](https://github.com/liady)
 - [Ido Salomon](https://github.com/idosal)
 
+### Primitive Grouping Interest Group
+
+- [Tapan Chugh](https://github.com/chughtapan)
+
 ## About This Document
 
 This document is updated by the MCP maintainers and reflects the current
