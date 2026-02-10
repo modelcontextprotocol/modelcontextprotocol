@@ -96,7 +96,7 @@ To discover available tools, clients send a `tools/list` request. This operation
           {
             "src": "https://example.com/weather-icon.png",
             "mimeType": "image/png",
-            "sizes": "48x48"
+            "sizes": ["48x48"]
           }
         ]
       }
@@ -191,16 +191,36 @@ A tool definition includes:
 - `name`: Unique identifier for the tool
 - `title`: Optional human-readable name of the tool for display purposes.
 - `description`: Human-readable description of functionality
+- `icons`: Optional array of icons for display in user interfaces
 - `inputSchema`: JSON Schema defining expected parameters
+  - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
+  - Defaults to 2020-12 if no `$schema` field is present
+  - **MUST** be a valid JSON Schema object (not `null`)
+  - For tools with no parameters, use one of these valid approaches:
+    - `{ "type": "object", "additionalProperties": false }` - **Recommended**: explicitly accepts only empty objects
+    - `{ "type": "object" }` - accepts any object (including with properties)
 - `outputSchema`: Optional JSON Schema defining expected output structure
-- `annotations`: optional properties describing tool behavior
+  - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
+  - Defaults to 2020-12 if no `$schema` field is present
+- `annotations`: Optional properties describing tool behavior
 
 <Warning>
-
-For trust & safety and security, clients **MUST** consider
-tool annotations to be untrusted unless they come from trusted servers.
-
+  For trust & safety and security, clients **MUST** consider tool annotations to
+  be untrusted unless they come from trusted servers.
 </Warning>
+
+#### Tool Names
+
+- Tool names **SHOULD** be between 1 and 128 characters in length (inclusive).
+- Tool names **SHOULD** be considered case-sensitive.
+- The following **SHOULD** be the only allowed characters: uppercase and lowercase ASCII letters (A-Z, a-z), digits
+  (0-9), underscore (\_), hyphen (-), and dot (.)
+- Tool names **SHOULD NOT** contain spaces, commas, or other special characters.
+- Tool names **SHOULD** be unique within a server.
+- Example valid tool names:
+  - `getUser`
+  - `DATA_EXPORT_v2`
+  - `admin.tools.list`
 
 ### Tool Result
 
@@ -375,19 +395,74 @@ Providing an output schema helps clients and LLMs understand and properly handle
 - Guiding clients and LLMs to properly parse and utilize the returned data
 - Supporting better documentation and developer experience
 
+### Schema Examples
+
+#### Tool with default 2020-12 schema:
+
+```json
+{
+  "name": "calculate_sum",
+  "description": "Add two numbers",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "a": { "type": "number" },
+      "b": { "type": "number" }
+    },
+    "required": ["a", "b"]
+  }
+}
+```
+
+#### Tool with explicit draft-07 schema:
+
+```json
+{
+  "name": "calculate_sum",
+  "description": "Add two numbers",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "a": { "type": "number" },
+      "b": { "type": "number" }
+    },
+    "required": ["a", "b"]
+  }
+}
+```
+
+#### Tool with no parameters:
+
+```json
+{
+  "name": "get_current_time",
+  "description": "Returns the current server time",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}
+```
+
 ## Error Handling
 
 Tools use two error reporting mechanisms:
 
 1. **Protocol Errors**: Standard JSON-RPC errors for issues like:
    - Unknown tools
-   - Invalid arguments
+   - Malformed requests (requests that fail to satisfy [CallToolRequest schema](/specification/draft/schema#calltoolrequest))
    - Server errors
 
 2. **Tool Execution Errors**: Reported in tool results with `isError: true`:
    - API failures
-   - Invalid input data
+   - Input validation errors (e.g., date in wrong format, value out of range)
    - Business logic errors
+
+**Tool Execution Errors** contain actionable feedback that language models can use to self-correct and retry with adjusted parameters.
+**Protocol Errors** indicate issues with the request structure itself that models are less likely to be able to fix.
+Clients **SHOULD** provide tool execution errors to language models to enable self-correction.
+Clients **MAY** provide protocol errors to language models, though these are less likely to result in successful recovery.
 
 Example protocol error:
 
@@ -402,7 +477,7 @@ Example protocol error:
 }
 ```
 
-Example tool execution error:
+Example tool execution error (input validation):
 
 ```json
 {
@@ -412,7 +487,7 @@ Example tool execution error:
     "content": [
       {
         "type": "text",
-        "text": "Failed to fetch weather data: API rate limit exceeded"
+        "text": "Invalid departure date: must be in the future. Current date is 08/08/2025."
       }
     ],
     "isError": true

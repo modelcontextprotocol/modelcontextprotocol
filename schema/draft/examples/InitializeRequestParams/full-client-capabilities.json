@@ -1,0 +1,37 @@
+{
+  "protocolVersion": "2024-11-05",
+  "capabilities": {
+    "roots": {
+      "listChanged": true
+    },
+    "sampling": {},
+    "elicitation": {
+      "form": {},
+      "url": {}
+    },
+    "tasks": {
+      "requests": {
+        "elicitation": {
+          "create": {}
+        },
+        "sampling": {
+          "createMessage": {}
+        }
+      }
+    }
+  },
+  "clientInfo": {
+    "name": "ExampleClient",
+    "title": "Example Client Display Name",
+    "version": "1.0.0",
+    "description": "An example MCP client application",
+    "icons": [
+      {
+        "src": "https://example.com/icon.png",
+        "mimeType": "image/png",
+        "sizes": ["48x48"]
+      }
+    ],
+    "websiteUrl": "https://example.com"
+  }
+}

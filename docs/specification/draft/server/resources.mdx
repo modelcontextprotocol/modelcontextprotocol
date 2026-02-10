@@ -118,7 +118,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
           {
             "src": "https://example.com/rust-file-icon.png",
             "mimeType": "image/png",
-            "sizes": "48x48"
+            "sizes": ["48x48"]
           }
         ]
       }
@@ -163,11 +163,14 @@ To retrieve resource contents, clients send a `resources/read` request:
 }
 ```
 
+Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
+
 ### Resource Templates
 
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
+This operation supports [pagination](/specification/draft/server/utilities/pagination).
 
 **Request:**
 
@@ -175,7 +178,10 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "resources/templates/list"
+  "method": "resources/templates/list",
+  "params": {
+    "cursor": "optional-cursor-value"
+  }
 }
 ```
 
@@ -192,9 +198,17 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
         "name": "Project Files",
         "title": "📁 Project Files",
         "description": "Access files in the project directory",
-        "mimeType": "application/octet-stream"
+        "mimeType": "application/octet-stream",
+        "icons": [
+          {
+            "src": "https://example.com/folder-icon.png",
+            "mimeType": "image/png",
+            "sizes": ["48x48"]
+          }
+        ]
       }
-    ]
+    ],
+    "nextCursor": "next-page-cursor"
   }
 }
 ```
@@ -252,6 +266,10 @@ sequenceDiagram
     Client->>Server: resources/list
     Server-->>Client: List of resources
 
+    Note over Client,Server: Resource Template Discovery
+    Client->>Server: resources/templates/list
+    Server-->>Client: List of resource templates
+
     Note over Client,Server: Resource Access
     Client->>Server: resources/read
     Server-->>Client: Resource contents
@@ -276,6 +294,7 @@ A resource definition includes:
 - `name`: The name of the resource.
 - `title`: Optional human-readable name of the resource for display purposes.
 - `description`: Optional description
+- `icons`: Optional array of icons for display in user interfaces
 - `mimeType`: Optional MIME type
 - `size`: Optional size in bytes
 
@@ -335,7 +354,7 @@ Clients can use these annotations to:
 
 ## Common URI Schemes
 
-The protocol defines several standard URI schemes. This list not
+The protocol defines several standard URI schemes. This list is not
 exhaustive&mdash;implementations are always free to use additional, custom URI schemes.
 
 ### https://

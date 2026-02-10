@@ -34,10 +34,9 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
 
-## Authorization Flow
-
-### Roles
+## Roles
 
 A protected _MCP server_ acts as an [OAuth 2.1 resource server](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#name-roles),
 capable of accepting and responding to protected resource requests using access tokens.
@@ -50,30 +49,33 @@ The implementation details of the authorization server are beyond the scope of t
 resource server or a separate entity. The [Authorization Server Discovery section](#authorization-server-discovery)
 specifies how an MCP server indicates the location of its corresponding authorization server to a client.
 
-### Overview
+## Overview
 
 1. Authorization servers **MUST** implement OAuth 2.1 with appropriate security
    measures for both confidential and public clients.
 
-1. Authorization servers and MCP clients **SHOULD** support the OAuth 2.0 Dynamic Client Registration
+2. Authorization servers and MCP clients **SHOULD** support OAuth Client ID Metadata Documents
+   ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)).
+
+3. Authorization servers and MCP clients **MAY** support the OAuth 2.0 Dynamic Client Registration
    Protocol ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)).
 
-1. MCP servers **MUST** implement OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)).
+4. MCP servers **MUST** implement OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)).
    MCP clients **MUST** use OAuth 2.0 Protected Resource Metadata for authorization server discovery.
 
-1. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
+5. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
    - OAuth 2.0 Authorization Server Metadata ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414))
    - [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 
    MCP clients **MUST** support both discovery mechanisms to obtain the information required to interact with the authorization server.
 
-### Authorization Server Discovery
+## Authorization Server Discovery
 
 This section describes the mechanisms by which MCP servers advertise their associated
 authorization servers to MCP clients, as well as the discovery process through which MCP
 clients can determine authorization server endpoints and supported capabilities.
 
-#### Authorization Server Location
+### Authorization Server Location
 
 MCP servers **MUST** implement the OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
 specification to indicate the locations of authorization servers. The Protected Resource Metadata document returned by the MCP server **MUST** include
@@ -86,7 +88,7 @@ guidance on implementation details.
 Implementors should note that Protected Resource Metadata documents can define multiple authorization servers. The responsibility for selecting which authorization server to use lies with the MCP client, following the guidelines specified in
 [RFC9728 Section 7.6 "Authorization Servers"](https://datatracker.ietf.org/doc/html/rfc9728#name-authorization-servers).
 
-#### Protected Resource Metadata Discovery Requirements
+### Protected Resource Metadata Discovery Requirements
 
 MCP servers **MUST** implement one of the following discovery mechanisms to provide authorization server location information to MCP clients:
 
@@ -96,9 +98,35 @@ MCP servers **MUST** implement one of the following discovery mechanisms to prov
    - At the path of the server's MCP endpoint: `https://example.com/public/mcp` could host metadata at `https://example.com/.well-known/oauth-protected-resource/public/mcp`
    - At the root: `https://example.com/.well-known/oauth-protected-resource`
 
-MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed WWW-Authenticate headers when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
+MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed `WWW-Authenticate` headers when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
 
-#### Authorization Server Metadata Discovery
+MCP servers **SHOULD** include a `scope` parameter in the `WWW-Authenticate` header as defined in
+[RFC 6750 Section 3](https://datatracker.ietf.org/doc/html/rfc6750#section-3)
+to indicate the scopes required for accessing the resource. This provides clients with immediate
+guidance on the appropriate scopes to request during authorization,
+following the principle of least privilege and preventing clients from requesting excessive permissions.
+
+The scopes included in the `WWW-Authenticate` challenge **MAY** match `scopes_supported`, be a subset
+or superset of it, or an alternative collection that is neither a strict subset nor
+superset. Clients **MUST NOT** assume any particular set relationship between the challenged
+scope set and `scopes_supported`. Clients **MUST** treat the scopes provided in the
+challenge as authoritative for satisfying the current request. Servers **SHOULD** strive for
+consistency in how they construct scope sets but they are not required to surface every dynamically
+issued scope through `scopes_supported`.
+
+Example 401 response with scope guidance:
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
+                         scope="files:read"
+```
+
+MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
+
+If the `scope` parameter is absent, clients **SHOULD** apply the fallback behavior defined in the [Scope Selection Strategy](#scope-selection-strategy) section.
+
+### Authorization Server Metadata Discovery
 
 To handle different issuer URL formats and ensure interoperability with both OAuth 2.0 Authorization Server Metadata and OpenID Connect Discovery 1.0 specifications, MCP clients **MUST** attempt multiple well-known endpoints when discovering authorization server metadata.
 
@@ -115,7 +143,7 @@ For issuer URLs without path components (e.g., `https://auth.example.com`), clie
 1. OAuth 2.0 Authorization Server Metadata: `https://auth.example.com/.well-known/oauth-authorization-server`
 2. OpenID Connect Discovery 1.0: `https://auth.example.com/.well-known/openid-configuration`
 
-#### Sequence Diagram
+### Authorization Server Discovery Sequence Diagram
 
 The following diagram outlines an example flow:
 
@@ -165,22 +193,129 @@ sequenceDiagram
     Note over C,M: MCP communication continues with valid token
 ```
 
-### Dynamic Client Registration
+## Client Registration Approaches
 
-MCP clients and authorization servers **SHOULD** support the
-OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)
-to allow MCP clients to obtain OAuth client IDs without user interaction. This provides a
-standardized way for clients to automatically register with new authorization servers, which is crucial
-for MCP because:
+MCP supports three client registration mechanisms. Choose based on your scenario:
 
-- Clients may not know all possible MCP servers and their authorization servers in advance.
-- Manual registration would create friction for users.
-- It enables seamless connection to new MCP servers and their authorization servers.
-- Authorization servers can implement their own registration policies.
+- **Client ID Metadata Documents**: When client and server have no prior relationship (most common)
+- **Pre-registration**: When client and server have an existing relationship
+- **Dynamic Client Registration**: For backwards compatibility or specific requirements
 
-Any authorization servers that _do not_ support Dynamic Client Registration need to provide
-alternative ways to obtain a client ID (and, if applicable, client credentials). For one of
-these authorization servers, MCP clients will have to either:
+Clients supporting all options **SHOULD** follow the following priority order:
+
+1. Use pre-registered client information for the server if the client has it available
+2. Use Client ID Metadata Documents if the Authorization Server indicates if the server supports it (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
+3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
+4. Prompt the user to enter the client information if no other option is available
+
+### Client ID Metadata Documents
+
+MCP clients and authorization servers **SHOULD** support OAuth Client ID Metadata Documents as specified in
+[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00).
+This approach enables clients to use HTTPS URLs as client identifiers, where the URL points to a JSON document
+containing client metadata. This addresses the common MCP scenario where servers and clients have
+no pre-existing relationship.
+
+#### Implementation Requirements
+
+MCP implementations supporting Client ID Metadata Documents **MUST** follow the requirements specified in
+[OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00).
+Key requirements include:
+
+**For MCP Clients:**
+
+- Clients **MUST** host their metadata document at an HTTPS URL following RFC requirements
+- The `client_id` URL **MUST** use the "https" scheme and contain a path component, e.g. `https://example.com/client.json`
+- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`
+- Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
+- Clients **MAY** use `private_key_jwt` for client authentication (e.g., for requests to the token endpoint) with appropriate JWKS configuration as described in [Section 6.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)
+
+**For Authorization Servers:**
+
+- **SHOULD** fetch metadata documents when encountering URL-formatted client_ids
+- **MUST** validate that the fetched document's `client_id` matches the URL exactly
+- **SHOULD** cache metadata respecting HTTP cache headers
+- **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
+- **MUST** validate the document structure is valid JSON and contains required fields
+- **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6)
+
+#### Example Metadata Document
+
+```json
+{
+  "client_id": "https://app.example.com/oauth/client-metadata.json",
+  "client_name": "Example MCP Client",
+  "client_uri": "https://app.example.com",
+  "logo_uri": "https://app.example.com/logo.png",
+  "redirect_uris": [
+    "http://127.0.0.1:3000/callback",
+    "http://localhost:3000/callback"
+  ],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+#### Client ID Metadata Documents Flow
+
+The following diagram illustrates the complete flow when using Client ID Metadata Documents:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client as MCP Client
+    participant Server as Authorization Server
+    participant Metadata as Metadata Endpoint<br/>(Client's HTTPS URL)
+    participant Resource as MCP Server
+
+    Note over Client,Metadata: Client hosts metadata at<br/>https://app.example.com/oauth/metadata.json
+
+    User->>Client: Initiates connection to MCP Server
+    Client->>Server: Authorization Request<br/>client_id=https://app.example.com/oauth/metadata.json<br/>redirect_uri=http://localhost:3000/callback
+
+    Server->>User: Authentication prompt
+    User->>Server: Provides credentials
+    Note over Server: Authenticates user
+
+    Note over Server: Detects URL-formatted client_id
+
+    Server->>Metadata: GET https://app.example.com/oauth/metadata.json
+    Metadata-->>Server: JSON Metadata Document<br/>{client_id, client_name, redirect_uris, ...}
+
+    Note over Server: Validates:<br/>1. client_id matches URL<br/>2. redirect_uri in allowed list<br/>3. Document structure valid<br/>4. (Optional) Domain allowed via trust policy
+
+    alt Validation Success
+        Server->>User: Display consent page with client_name
+        User->>Server: Approves access
+        Server->>Client: Authorization code via redirect_uri
+        Client->>Server: Exchange code for token<br/>client_id=https://app.example.com/oauth/metadata.json
+        Server-->>Client: Access token
+        Client->>Resource: MCP requests with access token
+        Resource-->>Client: MCP responses
+    else Validation Failure
+        Server->>User: Error response<br/>error=invalid_client or invalid_request
+    end
+
+    Note over Server: Cache metadata for future requests<br/>(respecting HTTP cache headers)
+```
+
+#### Discovery
+
+Authorization servers advertise that they support clients using Client ID Metadata Documents by including the following property in their OAuth Authorization Server metadata:
+
+```json
+{
+  "client_id_metadata_document_supported": true
+}
+```
+
+MCP clients **SHOULD** check for this capability and **MAY** fall back to Dynamic Client Registration
+or pre-registration if unavailable.
+
+### Preregistration
+
+MCP clients **SHOULD** support an option for static client credentials such as those supplied by a preregistration flow. This could be:
 
 1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
    interacting with that authorization server, or
@@ -188,7 +323,31 @@ these authorization servers, MCP clients will have to either:
    OAuth client themselves (e.g., through a configuration interface hosted by the
    server).
 
-### Authorization Flow Steps
+### Dynamic Client Registration
+
+MCP clients and authorization servers **MAY** support the
+OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)
+to allow MCP clients to obtain OAuth client IDs without user interaction.
+This option is included for backwards compatibility with earlier versions of the MCP authorization spec.
+
+## Scope Selection Strategy
+
+When implementing authorization flows, MCP clients **SHOULD** follow the principle of least privilege by requesting
+only the scopes necessary for their intended operations. During the initial authorization handshake, MCP clients
+**SHOULD** follow this priority order for scope selection:
+
+1. **Use `scope` parameter** from the initial `WWW-Authenticate` header in the 401 response, if provided
+2. **If `scope` is not available**, use all scopes defined in `scopes_supported` from the Protected Resource Metadata document, omitting the `scope` parameter if `scopes_supported` is undefined.
+
+This approach accommodates the general-purpose nature of MCP clients, which typically lack domain-specific knowledge to make informed decisions about individual scope selection. Requesting all available scopes allows the authorization server and end-user to determine appropriate permissions during the consent process.
+
+This approach minimizes user friction while following the principle of least privilege.
+The `scopes_supported` field is intended to represent the minimal set of scopes necessary
+for basic functionality (see [Scope Minimization](/specification/draft/basic/security_best_practices#scope-minimization)),
+with additional scopes requested incrementally through the step-up authorization flow steps
+described in the [Scope Challenge Handling](#scope-challenge-handling) section.
+
+## Authorization Flow Steps
 
 The complete Authorization flow proceeds as follows:
 
@@ -212,12 +371,20 @@ sequenceDiagram
     Note over C,A: Try OAuth 2.0 and OpenID Connect<br/>discovery endpoints in priority order
     A-->>C: Authorization server metadata
 
-    alt Dynamic client registration
+    alt Client ID Metadata Documents
+        Note over C: Client uses HTTPS URL as client_id
+        Note over A: Server detects URL-formatted client_id
+        A->>C: Fetch metadata from client_id URL
+        C-->>A: JSON metadata document
+        Note over A: Validate metadata and redirect_uris
+    else Dynamic client registration
         C->>A: POST /register
         A->>C: Client Credentials
+    else Pre-registered client
+        Note over C: Use existing client_id
     end
 
-    Note over C: Generate PKCE parameters<br/>Include resource parameter
+    Note over C: Generate PKCE parameters<br/>Include resource parameter<br/>Apply scope selection strategy
     C->>B: Open browser with authorization URL + code_challenge + resource
     B->>A: Authorization request with resource parameter
     Note over A: User authorizes
@@ -230,7 +397,7 @@ sequenceDiagram
     Note over C,M: MCP communication continues with valid token
 ```
 
-#### Resource Parameter Implementation
+## Resource Parameter Implementation
 
 MCP clients **MUST** implement Resource Indicators for OAuth 2.0 as defined in [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707.html)
 to explicitly specify the target resource for which the token is being requested. The `resource` parameter:
@@ -239,7 +406,7 @@ to explicitly specify the target resource for which the token is being requested
 2. **MUST** identify the MCP server that the client intends to use the token with.
 3. **MUST** use the canonical URI of the MCP server as defined in [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#name-access-token-request).
 
-##### Canonical Server URI
+### Canonical Server URI
 
 For the purposes of this specification, the canonical URI of an MCP server is defined as the resource identifier as specified in
 [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2) and aligns with the `resource` parameter in
@@ -269,9 +436,9 @@ For example, if accessing an MCP server at `https://mcp.example.com`, the author
 
 MCP clients **MUST** send this parameter regardless of whether authorization servers support it.
 
-### Access Token Usage
+## Access Token Usage
 
-#### Token Requirements
+### Token Requirements
 
 Access token handling when making requests to MCP servers **MUST** conform to the requirements defined in
 [OAuth 2.1 Section 5 "Resource Requests"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5).
@@ -297,7 +464,7 @@ Host: mcp.example.com
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
-#### Token Handling
+### Token Handling
 
 MCP servers, acting in their role as an OAuth 2.1 resource server, **MUST** validate access tokens as described in
 [OAuth 2.1 Section 5.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.2).
@@ -310,12 +477,12 @@ response.
 
 MCP clients **MUST NOT** send tokens to the MCP server other than ones issued by the MCP server's authorization server.
 
-Authorization servers **MUST** only accept tokens that are valid for use with their
+MCP servers **MUST** only accept tokens that are valid for use with their
 own resources.
 
 MCP servers **MUST NOT** accept or transit any other tokens.
 
-### Error Handling
+## Error Handling
 
 Servers **MUST** return appropriate HTTP status codes for authorization errors:
 
@@ -324,6 +491,69 @@ Servers **MUST** return appropriate HTTP status codes for authorization errors:
 | 401         | Unauthorized | Authorization required or token invalid    |
 | 403         | Forbidden    | Invalid scopes or insufficient permissions |
 | 400         | Bad Request  | Malformed authorization request            |
+
+### Scope Challenge Handling
+
+This section covers handling insufficient scope errors during runtime operations when
+a client already has a token but needs additional permissions. This follows the error
+handling patterns defined in [OAuth 2.1 Section 5](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5)
+and leverages the metadata fields from [RFC 9728 (OAuth 2.0 Protected Resource Metadata)](https://datatracker.ietf.org/doc/html/rfc9728).
+
+#### Runtime Insufficient Scope Errors
+
+When a client makes a request with an access token with insufficient
+scope during runtime operations, the server **SHOULD** respond with:
+
+- `HTTP 403 Forbidden` status code (per [RFC 6750 Section 3.1](https://datatracker.ietf.org/doc/html/rfc6750#section-3.1))
+- `WWW-Authenticate` header with the `Bearer` scheme and additional parameters:
+  - `error="insufficient_scope"` - indicating the specific type of authorization failure
+  - `scope="required_scope1 required_scope2"` - specifying the minimum scopes needed for the operation
+  - `resource_metadata` - the URI of the Protected Resource Metadata document (for consistency with 401 responses)
+  - `error_description` (optional) - human-readable description of the error
+
+**Server Scope Management**: When responding with insufficient scope errors, servers
+**SHOULD** include the scopes needed to satisfy the current request in the `scope`
+parameter.
+
+Servers have flexibility in determining which scopes to include:
+
+- **Minimum approach**: Include the newly-required scopes for the specific operation. Include any existing granted scopes as well, if they are required, to prevent clients from losing previously granted permissions.
+- **Recommended approach**: Include both existing relevant scopes and newly required scopes to prevent clients from losing previously granted permissions
+- **Extended approach**: Include existing scopes, newly required scopes, and related scopes that commonly work together
+
+The choice depends on the server's assessment of user experience impact and authorization friction.
+
+Servers **SHOULD** be consistent in their scope inclusion strategy to provide predictable behavior for clients.
+
+Servers **SHOULD** consider the user experience impact when determining which scopes to include in the
+response, as misconfigured scopes may require frequent user interaction.
+
+Example insufficient scope response:
+
+```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="insufficient_scope",
+                         scope="files:read files:write user:profile",
+                         resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
+                         error_description="Additional file write permission required"
+```
+
+#### Step-Up Authorization Flow
+
+Clients will receive scope-related errors during initial authorization or at runtime (`insufficient_scope`).
+Clients **SHOULD** respond to these errors by requesting a new access token with an increased set of scopes via a step-up authorization flow or handle the errors in other, appropriate ways.
+Clients acting on behalf of a user **SHOULD** attempt the step-up authorization flow. Clients acting on their own behalf (`client_credentials` clients)
+**MAY** attempt the step-up authorization flow or abort the request immediately.
+
+The flow is as follows:
+
+1. **Parse error information** from the authorization server response or `WWW-Authenticate` header
+2. **Determine required scopes** as outlined in [Scope Selection Strategy](#scope-selection-strategy).
+3. **Initiate (re-)authorization** with the determined scope set
+4. **Retry the original request** with the new authorization no more than a few times and treat this as a permanent authorization failure
+
+Clients **SHOULD** implement retry limits and **SHOULD** track scope upgrade attempts to avoid
+repeated failures for the same resource and operation combination.
 
 ## Security Considerations
 
@@ -393,6 +623,49 @@ Authorization servers **MUST** take precautions to prevent redirecting user agen
 
 Authorization servers **SHOULD** only automatically redirect the user agent if it trusts the redirection URI. If the URI is not trusted, the authorization server MAY inform the user and rely on the user to make the correct decision.
 
+### Client ID Metadata Document Security
+
+When implementing Client ID Metadata Documents, authorization servers **MUST** consider the security implications
+detailed in [OAuth Client ID Metadata Document, Section 6](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-security-considerations).
+Key considerations include:
+
+#### Authorization Server Abuse Protection
+
+The authorization server takes a URL as input from an unknown client and fetches that URL.
+A malicious client could use this to trigger the authorization server to make requests to arbitrary URLs,
+such as requests to private administration endpoints the authorization server has access to.
+
+Authorization servers fetching metadata documents **SHOULD** consider
+[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-server-side-request-forgery).
+
+#### Localhost Redirect URI Risks
+
+Client ID Metadata Documents cannot prevent `localhost` URL impersonation by themselves. An attacker can claim to be any client by:
+
+1. Providing the legitimate client's metadata URL as their `client_id`
+2. Binding to the any `localhost` port, and providing that address as the redirect_uri
+3. Receiving the authorization code via the redirect when the user approves
+
+The server will see the legitimate client's metadata document and the user will see the legitimate client's name, making attack detection difficult.
+
+Authorization servers:
+
+- **SHOULD** display additional warnings for `localhost`-only redirect URIs
+- **MAY** require additional attestation mechanisms for enhanced security
+- **MUST** clearly display the redirect URI hostname during authorization
+
+#### Trust Policies
+
+Authorization servers **MAY** implement domain-based trust policies:
+
+- Allowlists for trusted domains (for protected servers)
+- Accept any HTTPS `client_id` (for open servers)
+- Reputation checks for unknown domains
+- Restrictions based on domain age or certificate validation
+- Display the CIMD and other associated client hostnames prominently to prevent phishing
+
+Servers maintain full control over their access policies.
+
 ### Confused Deputy Problem
 
 Attackers can exploit MCP servers acting as intermediaries to third-party APIs, leading to [confused deputy vulnerabilities](/specification/draft/basic/security_best_practices#confused-deputy-problem).
@@ -422,3 +695,14 @@ MCP clients **MUST** implement and use the `resource` parameter as defined in [R
 to explicitly specify the target resource for which the token is being requested. This requirement aligns with the recommendation in
 [RFC 9728 Section 7.4](https://datatracker.ietf.org/doc/html/rfc9728#section-7.4). This ensures that access tokens are bound to their intended resources and
 cannot be misused across different services.
+
+## MCP Authorization Extensions
+
+There are several authorization extensions to the core protocol that define additional authorization mechanisms. These extensions are:
+
+- **Optional** - Implementations can choose to adopt these extensions
+- **Additive** - Extensions do not modify or break core protocol functionality; they add new capabilities while preserving core protocol behavior
+- **Composable** - Extensions are modular and designed to work together without conflicts, allowing implementations to adopt multiple extensions simultaneously
+- **Versioned independently** - Extensions follow the core MCP versioning cycle but may adopt independent versioning as needed
+
+A list of supported extensions can be found in the [MCP Authorization Extensions](https://github.com/modelcontextprotocol/ext-auth) repository.

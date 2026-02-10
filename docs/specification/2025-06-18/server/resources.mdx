@@ -148,8 +148,6 @@ To retrieve resource contents, clients send a `resources/read` request:
     "contents": [
       {
         "uri": "file:///project/src/main.rs",
-        "name": "main.rs",
-        "title": "Rust Software Application Main File",
         "mimeType": "text/x-rust",
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
@@ -163,6 +161,7 @@ To retrieve resource contents, clients send a `resources/read` request:
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/2025-06-18/server/utilities/completion).
+This operation supports [pagination](/specification/2025-06-18/server/utilities/pagination).
 
 **Request:**
 
@@ -170,7 +169,10 @@ auto-completed through [the completion API](/specification/2025-06-18/server/uti
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "resources/templates/list"
+  "method": "resources/templates/list",
+  "params": {
+    "cursor": "optional-cursor-value"
+  }
 }
 ```
 
@@ -189,7 +191,8 @@ auto-completed through [the completion API](/specification/2025-06-18/server/uti
         "description": "Access files in the project directory",
         "mimeType": "application/octet-stream"
       }
-    ]
+    ],
+    "nextCursor": "next-page-cursor"
   }
 }
 ```
@@ -231,8 +234,7 @@ to specific resources and receive notifications when they change:
   "jsonrpc": "2.0",
   "method": "notifications/resources/updated",
   "params": {
-    "uri": "file:///project/src/main.rs",
-    "title": "Rust Software Application Main File"
+    "uri": "file:///project/src/main.rs"
   }
 }
 ```
@@ -247,6 +249,10 @@ sequenceDiagram
     Note over Client,Server: Resource Discovery
     Client->>Server: resources/list
     Server-->>Client: List of resources
+
+    Note over Client,Server: Resource Template Discovery
+    Client->>Server: resources/templates/list
+    Server-->>Client: List of resource templates
 
     Note over Client,Server: Resource Access
     Client->>Server: resources/read
@@ -284,8 +290,6 @@ Resources can contain either text or binary data:
 ```json
 {
   "uri": "file:///example.txt",
-  "name": "example.txt",
-  "title": "Example Text File",
   "mimeType": "text/plain",
   "text": "Resource content"
 }
@@ -296,8 +300,6 @@ Resources can contain either text or binary data:
 ```json
 {
   "uri": "file:///example.png",
-  "name": "example.png",
-  "title": "Example Image",
   "mimeType": "image/png",
   "blob": "base64-encoded-data"
 }

@@ -24,7 +24,9 @@ Before starting, ensure your system meets these requirements:
 
 First, create a new Python project with `uv`:
 
-```bash
+<CodeGroup>
+
+```bash macOS/Linux
 # Create project directory
 uv init mcp-client
 cd mcp-client
@@ -33,23 +35,40 @@ cd mcp-client
 uv venv
 
 # Activate virtual environment
-# On Windows:
-.venv\Scripts\activate
-# On Unix or macOS:
 source .venv/bin/activate
 
 # Install required packages
 uv add mcp anthropic python-dotenv
 
 # Remove boilerplate files
-# On Windows:
-del main.py
-# On Unix or macOS:
 rm main.py
 
 # Create our main file
 touch client.py
 ```
+
+```powershell Windows
+# Create project directory
+uv init mcp-client
+cd mcp-client
+
+# Create virtual environment
+uv venv
+
+# Activate virtual environment
+.venv\Scripts\activate
+
+# Install required packages
+uv add mcp anthropic python-dotenv
+
+# Remove boilerplate files
+del main.py
+
+# Create our main file
+new-item client.py
+```
+
+</CodeGroup>
 
 ## Setting Up Your API Key
 
@@ -58,14 +77,7 @@ You'll need an Anthropic API key from the [Anthropic Console](https://console.an
 Create a `.env` file to store it:
 
 ```bash
-# Create .env file
-touch .env
-```
-
-Add your key to the `.env` file:
-
-```bash
-ANTHROPIC_API_KEY=<your key here>
+echo "ANTHROPIC_API_KEY=your-api-key-goes-here" > .env
 ```
 
 Add `.env` to your `.gitignore`:
@@ -166,7 +178,7 @@ async def process_query(self, query: str) -> str:
 
     # Initial Claude API call
     response = self.anthropic.messages.create(
-        model="claude-3-5-sonnet-20241022",
+        model="claude-sonnet-4-20250514",
         max_tokens=1000,
         messages=messages,
         tools=available_tools
@@ -206,7 +218,7 @@ async def process_query(self, query: str) -> str:
 
             # Get next response from Claude
             response = self.anthropic.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-20250514",
                 max_tokens=1000,
                 messages=messages,
                 tools=available_tools
@@ -267,7 +279,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-You can find the complete `client.py` file [here.](https://gist.github.com/zckly/f3f28ea731e096e53b39b47bf0a2d4b1)
+You can find the complete `client.py` file [here](https://github.com/modelcontextprotocol/quickstart-resources/blob/main/mcp-client-python/client.py).
 
 ## Key Components Explained
 
@@ -332,7 +344,7 @@ uv run client.py path/to/build/index.js # node server
 
 <Note>
 
-If you're continuing the weather tutorial from the server quickstart, your command might look something like this: `python client.py .../quickstart-resources/weather-server-python/weather.py`
+If you're continuing [the weather tutorial from the server quickstart](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-python), your command might look something like this: `python client.py .../quickstart-resources/weather-server-python/weather.py`
 
 </Note>
 
@@ -380,6 +392,10 @@ When you submit a query:
    - Validate server responses
    - Be cautious with tool permissions
 
+4. **Tool Names**
+   - Tool names can be validated according to the format specified [here](/specification/draft/server/tools#tool-names)
+   - If a tool name conforms to the specified format, it should not fail validation by an MCP client
+
 ## Troubleshooting
 
 ### Server Path Issues
@@ -424,7 +440,7 @@ If you see:
 
 </Tab>
 
-<Tab title="Node">
+<Tab title="TypeScript">
 
 [You can find the complete code for this tutorial here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/mcp-client-typescript)
 
@@ -631,7 +647,7 @@ async processQuery(query: string) {
   ];
 
   const response = await this.anthropic.messages.create({
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-sonnet-4-20250514",
     max_tokens: 1000,
     messages,
     tools: this.tools,
@@ -660,7 +676,7 @@ async processQuery(query: string) {
       });
 
       const response = await this.anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         messages,
       });
@@ -722,6 +738,10 @@ async function main() {
   try {
     await mcpClient.connectToServer(process.argv[2]);
     await mcpClient.chatLoop();
+  } catch (e) {
+    console.error("Error:", e);
+    await mcpClient.cleanup();
+    process.exit(1);
   } finally {
     await mcpClient.cleanup();
     process.exit(0);
@@ -746,7 +766,7 @@ node build/index.js path/to/build/index.js # node server
 
 <Note>
 
-If you're continuing the weather tutorial from the server quickstart, your command might look something like this: `node build/index.js .../quickstart-resources/weather-server-typescript/build/index.js`
+If you're continuing [the weather tutorial from the server quickstart](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-typescript), your command might look something like this: `node build/index.js .../quickstart-resources/weather-server-typescript/build/index.js`
 
 </Note>
 
@@ -826,6 +846,7 @@ If you see:
 - `Tool execution failed`: Verify the tool's required environment variables are set
 - `ANTHROPIC_API_KEY is not set`: Check your .env file and environment variables
 - `TypeError`: Ensure you're using the correct types for tool arguments
+- `BadRequestError`: Ensure you have enough credits to access the Anthropic API
 
 </Tab>
 
@@ -865,7 +886,7 @@ Before starting, ensure your system meets these requirements:
 
    ```bash
    git clone https://github.com/spring-projects/spring-ai-examples.git
-   cd model-context-protocol/brave-chatbot
+   cd model-context-protocol/web-search/brave-chatbot
    ```
 
 3. Set up your API keys:
@@ -1099,13 +1120,13 @@ Also, add the following plugins to your build script:
 
 ```kotlin build.gradle.kts
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.9"
 }
 ```
 
 ```groovy build.gradle
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.9'
 }
 ```
 
@@ -1123,7 +1144,7 @@ export ANTHROPIC_API_KEY='your-anthropic-api-key-here'
 
 <Warning>
 
-Make sure your keep your `ANTHROPIC_API_KEY` secure!
+Make sure you keep your `ANTHROPIC_API_KEY` secure!
 
 </Warning>
 
@@ -1214,7 +1235,7 @@ Now let's add the core functionality for processing queries and handling tool ca
 
 ```kotlin
 private val messageParamsBuilder: MessageCreateParams.Builder = MessageCreateParams.builder()
-    .model(Model.CLAUDE_3_5_SONNET_20241022)
+    .model(Model.CLAUDE_SONNET_4_20250514)
     .maxTokens(1024)
 
 suspend fun processQuery(query: String): String {
@@ -1509,7 +1530,7 @@ var clientTransport = new StdioClientTransport(new()
     Arguments = arguments,
 });
 
-await using var mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+await using var mcpClient = await McpClient.CreateAsync(clientTransport);
 
 var tools = await mcpClient.ListToolsAsync();
 foreach (var tool in tools)
@@ -1549,7 +1570,7 @@ using var anthropicClient = new AnthropicClient(new APIAuthentication(builder.Co
 var options = new ChatOptions
 {
     MaxOutputTokens = 1000,
-    ModelId = "claude-3-5-sonnet-20241022",
+    ModelId = "claude-sonnet-4-20250514",
     Tools = [.. tools]
 };
 
@@ -1588,7 +1609,7 @@ static void PromptForInput()
 
 ### 1. Client Initialization
 
-- The client is initialized using `McpClientFactory.CreateAsync()`, which sets up the transport type and command to run the server.
+- The client is initialized using `McpClient.CreateAsync()`, which sets up the transport type and command to run the server.
 
 ### 2. Server Connection
 
@@ -1631,7 +1652,7 @@ The client will:
    - Get responses from Claude
 4. Exit the session when done
 
-Here's an example of what it should look like it connected to a weather server quickstart:
+Here's an example of what it should look like if connected to the weather server quickstart:
 
 <Frame>
   <img src="/images/quickstart-dotnet-client.png" />
