@@ -378,7 +378,16 @@ This template is adapted from Kubernetes governance structures and tailored for 
 
 ## Backward Compatibility
 
-This SEP establishes a template for new and existing groups. Existing WGs and IGs should update their documentation to conform to this template within 90 days of SEP acceptance.
+### Transition for Existing Groups
+
+Working Groups and Interest Groups that exist at the time this SEP is accepted are grandfathered in — they are recognized as valid groups and do not need to re-apply through the formation process defined in Section 1.9.
+
+However, existing groups must create a charter conforming to the template in Part 2 within **8 weeks** of this SEP's acceptance. During this transition period:
+
+- Existing groups continue to operate under their current processes
+- Leads/Facilitators are responsible for drafting the charter
+- Core Maintainers will review and approve WG charters; community moderators will review IG charters
+- Groups that do not produce a charter within 8 weeks will be considered inactive and subject to retirement
 
 ## Security Implications
 
@@ -391,5 +400,5 @@ Upon acceptance, this SEP will be implemented by:
 1. Publishing the governance rules at `docs/community/governance.mdx`
 2. Publishing the charter template at `docs/community/charter-template.mdx`
 3. Adding governance and template guidance to the Working and Interest Groups section of modelcontextprotocol.io
-4. Existing WGs and IGs updating their charters to conform within 90 days
+4. Existing WGs and IGs updating their charters to conform within 8 weeks
 5. Adding governance and charter documents to `docs.json` for website display
