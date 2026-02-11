@@ -353,6 +353,15 @@
                     "description": "Experimental, non-standard capabilities that the client supports.",
                     "type": "object"
                 },
+                "extensions": {
+                    "additionalProperties": {
+                        "additionalProperties": true,
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
+                    "type": "object"
+                },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
@@ -1435,7 +1444,7 @@
                     "type": "array"
                 },
                 "src": {
-                    "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD takes steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
+                    "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD take steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
                     "format": "uri",
                     "type": "string"
                 },
@@ -1520,6 +1529,7 @@
                     "type": "string"
                 },
                 "version": {
+                    "description": "The version of this implementation.",
                     "type": "string"
                 },
                 "websiteUrl": {
@@ -1594,7 +1604,7 @@
                     "$ref": "#/$defs/ServerCapabilities"
                 },
                 "instructions": {
-                    "description": "Instructions describing how to use the server and its features.\n\nThis can be used by clients to improve the LLM's understanding of available tools, resources, etc. It can be thought of like a \"hint\" to the model. For example, this information MAY be added to the system prompt.",
+                    "description": "Instructions describing how to use the server and its features.\n\nInstructions should focus on information that helps the model use the server effectively (e.g., cross-tool relationships, workflow patterns, constraints), but should not duplicate information already in tool descriptions.\n\nClients MAY add this information to the system prompt.",
                     "type": "string"
                 },
                 "protocolVersion": {
@@ -3337,6 +3347,15 @@
                     "description": "Experimental, non-standard capabilities that the server supports.",
                     "type": "object"
                 },
+                "extensions": {
+                    "additionalProperties": {
+                        "additionalProperties": true,
+                        "properties": {},
+                        "type": "object"
+                    },
+                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/apps\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
+                    "type": "object"
+                },
                 "logging": {
                     "additionalProperties": true,
                     "description": "Present if the server supports sending log messages to the client.",
@@ -3503,6 +3522,9 @@
                 },
                 {
                     "$ref": "#/$defs/CallToolResult"
+                },
+                {
+                    "$ref": "#/$defs/CreateTaskResult"
                 },
                 {
                     "$ref": "#/$defs/GetTaskResult",

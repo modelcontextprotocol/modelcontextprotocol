@@ -45,30 +45,27 @@ This quickstart assumes you have familiarity with:
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to standard output (stdout). This includes:
-
-- `print()` statements in Python
-- `console.log()` in JavaScript
-- `fmt.Println()` in Go
-- Similar stdout functions in other languages
-
-Writing to stdout will corrupt the JSON-RPC messages and break your server.
+**For STDIO-based servers:** Never write to stdout. Writing to stdout will corrupt the JSON-RPC messages and break your server. The `print()` function writes to stdout by default, but can be used safely with `file=sys.stderr`.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-1. Use a logging library that writes to stderr or files.
-1. For Python, be especially careful - `print()` writes to stdout by default.
+- Use a logging library that writes to stderr or files.
 
 ### Quick Examples
 
 ```python
+import sys
+import logging
+
 # ❌ Bad (STDIO)
 print("Processing request")
 
 # ✅ Good (STDIO)
-import logging
+print("Processing request", file=sys.stderr)
+
+# ✅ Good (STDIO)
 logging.info("Processing request")
 ```
 
@@ -369,21 +366,13 @@ This quickstart assumes you have familiarity with:
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to standard output (stdout). This includes:
-
-- `print()` statements in Python
-- `console.log()` in JavaScript
-- `fmt.Println()` in Go
-- Similar stdout functions in other languages
-
-Writing to stdout will corrupt the JSON-RPC messages and break your server.
+**For STDIO-based servers:** Never use `console.log()`, as it writes to standard output (stdout) by default. Writing to stdout will corrupt the JSON-RPC messages and break your server.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-1. Use a logging library that writes to stderr or files, such as `logging` in Python.
-2. For JavaScript, be especially careful - `console.log()` writes to stdout by default
+- Use `console.error()` which writes to stderr, or use a logging library that writes to stderr or files.
 
 ### Quick Examples
 
@@ -842,21 +831,14 @@ For manual MCP Server implementation, refer to the [MCP Server Java SDK document
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to standard output (stdout). This includes:
-
-- `print()` statements in Python
-- `console.log()` in JavaScript
-- `fmt.Println()` in Go
-- Similar stdout functions in other languages
-
-Writing to stdout will corrupt the JSON-RPC messages and break your server.
+**For STDIO-based servers:** Never use `System.out.println()` or `System.out.print()`, as they write to standard output (stdout). Writing to stdout will corrupt the JSON-RPC messages and break your server.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-1. Use a logging library that writes to stderr or files.
-2. Ensure any configured logging library will not write to STDOUT
+- Use a logging library that writes to stderr or files.
+- Ensure any configured logging library will not write to stdout.
 
 ### System requirements
 
@@ -965,8 +947,8 @@ public class WeatherService {
 }
 ```
 
-The `@Service` annotation with auto-register the service in your application context.
-The Spring AI `@Tool` annotation, making it easy to create and maintain MCP tools.
+The `@Service` annotation will auto-register the service in your application context.
+The Spring AI `@Tool` annotation makes it easy to create and maintain MCP tools.
 
 The auto-configuration will automatically register these tools with the MCP server.
 
@@ -1129,7 +1111,7 @@ You can reuse the existing Anthropic Desktop configuration:
 spring.ai.mcp.client.stdio.servers-configuration=file:PATH/TO/claude_desktop_config.json
 ```
 
-When you start your client application, the auto-configuration will create, automatically MCP clients from the claude_desktop_config.json.
+When you start your client application, the auto-configuration will automatically create MCP clients from the claude_desktop_config.json.
 
 For more information, see the [MCP Client Boot Starters](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-client-docs.html) reference documentation.
 
@@ -1150,6 +1132,18 @@ This quickstart assumes you have familiarity with:
 
 - Kotlin
 - LLMs like Claude
+
+### Logging in MCP Servers
+
+When implementing MCP servers, be careful about how you handle logging:
+
+**For STDIO-based servers:** Never use `println()`, as it writes to standard output (stdout) by default. Writing to stdout will corrupt the JSON-RPC messages and break your server.
+
+**For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
+
+### Best Practices
+
+- Use a logging library that writes to stderr or files.
 
 ### System requirements
 
@@ -1538,20 +1532,13 @@ This quickstart assumes you have familiarity with:
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to standard output (stdout). This includes:
-
-- `print()` statements in Python
-- `console.log()` in JavaScript
-- `fmt.Println()` in Go
-- Similar stdout functions in other languages
-
-Writing to stdout will corrupt the JSON-RPC messages and break your server.
+**For STDIO-based servers:** Never use `Console.WriteLine()` or `Console.Write()`, as they write to standard output (stdout). Writing to stdout will corrupt the JSON-RPC messages and break your server.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-1. Use a logging library that writes to stderr or files
+- Use a logging library that writes to stderr or files.
 
 ### System requirements
 
@@ -1811,21 +1798,14 @@ This quickstart assumes you have familiarity with:
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to standard output (stdout). This includes:
-
-- `print()` statements in Python
-- `console.log()` in JavaScript
-- `println!()` in Rust
-- Similar stdout functions in other languages
-
-Writing to stdout will corrupt the JSON-RPC messages and break your server.
+**For STDIO-based servers:** Never use `println!()` or `print!()`, as they write to standard output (stdout). Writing to stdout will corrupt the JSON-RPC messages and break your server.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-1. Use a logging library that writes to stderr or files, such as `tracing` or `log` in Rust.
-2. Configure your logging framework to avoid stdout output.
+- Use a logging library that writes to stderr or files, such as `tracing` or `log` in Rust.
+- Configure your logging framework to avoid stdout output.
 
 ### Quick Examples
 
@@ -1834,8 +1814,7 @@ Writing to stdout will corrupt the JSON-RPC messages and break your server.
 println!("Processing request");
 
 // ✅ Good (STDIO)
-use tracing::info;
-info!("Processing request"); // writes to stderr
+eprintln!("Processing request"); // writes to stderr
 ```
 
 ### System requirements
@@ -2246,7 +2225,7 @@ Let's make sure Claude for Desktop is picking up the two tools we've exposed in 
   <img src="/images/visual-indicator-mcp-tools.png" />
 </Frame>
 
-After clicking on the plus icon, hover over the "Connectors" menu, you should see the `weather`servers listed:
+After clicking on the plus icon, hover over the "Connectors" menu. You should see the `weather` servers listed:
 
 <Frame>
   <img src="/images/available-mcp-tools.png" />
