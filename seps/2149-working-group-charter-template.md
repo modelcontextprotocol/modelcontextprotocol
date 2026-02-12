@@ -85,12 +85,12 @@ Each group has one or more **Leads**.
 
 All groups use the following participation tiers:
 
-| Level               | Description                                       | Privileges                                                         |
-| ------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
-| **Observer**        | Anyone interested in following the group's work   | Read access, may attend meetings, limited discussion participation |
-| **Participant**     | Active contributor to group discussions           | Can propose agenda items, participate in async votes               |
-| **Member**          | Sustained contributor with demonstrated expertise | Counted for quorum (WGs only)                                      |
-| **Lead/Facilitator**| Operational leadership of the group               | Sets agenda, facilitates, escalates                                |
+| Level                | Description                                       | Privileges                                                         |
+| -------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| **Observer**         | Anyone interested in following the group's work   | Read access, may attend meetings, limited discussion participation |
+| **Participant**      | Active contributor to group discussions           | Can propose agenda items, participate in async votes               |
+| **Member**           | Sustained contributor with demonstrated expertise | Counted for quorum (WGs only)                                      |
+| **Lead/Facilitator** | Operational leadership of the group               | Sets agenda, facilitates, escalates                                |
 
 Interest Groups primarily operate with Observers, Participants, and Facilitators. IGs may adopt the Member tier if their work warrants formal decision-making, but are not required to.
 
@@ -177,10 +177,10 @@ Leads should actively involve Members and Participants in operational duties suc
 
 All groups use the following channels:
 
-| Channel                        | Purpose                        | Response Expectation |
-| ------------------------------ | ------------------------------ | -------------------- |
-| Discord #name-wg or #name-ig   | Quick questions, coordination  | Best effort          |
-| GitHub Discussions              | Long-form technical discussion | Weekly triage        |
+| Channel                      | Purpose                        | Response Expectation |
+| ---------------------------- | ------------------------------ | -------------------- |
+| Discord #name-wg or #name-ig | Quick questions, coordination  | Best effort          |
+| GitHub Discussions           | Long-form technical discussion | Weekly triage        |
 
 In addition to Discord, groups can establish a discussion category in the [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/). Leads will be granted the appropriate roles to manage and moderate discussions.
 
