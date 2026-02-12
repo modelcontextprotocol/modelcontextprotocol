@@ -7,6 +7,12 @@
 /docs/specification/ @modelcontextprotocol/core-maintainers
 /schema/ @modelcontextprotocol/core-maintainers
 
+# Working Group and Interest Group governance (SEP-2149)
+# WG/IG overview pages require approval by Maintainers
+/docs/community/*/overview.mdx @modelcontextprotocol/maintainers
+# WG/IG charter documents require approval from Core Maintainers
+/docs/community/*/charter.mdx @modelcontextprotocol/core-maintainers
+
 # Authorization-related files - @auth team should be notified
 /docs/specification/**/authorization.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg
 /docs/specification/**/security_best_practices.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg
