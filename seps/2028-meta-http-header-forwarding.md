@@ -139,11 +139,15 @@ const server = new Server({
     // Override predefined group policy
     baggage: { policy: "ignore-meta" }, // Disable baggage forwarding
 
-    // Override with custom validator for W3C Trace Context format
+    // Per-header validators for W3C Trace Context format
     "trace-context": {
       policy: "clear-and-use-meta",
+      validators: {
+        traceparent: isValidTraceparent,
+        tracestate: isValidTracestate,
+      },
+      // Presence evaluated after validation
       required: ["traceparent"],
-      validator: (headers) => isValidTraceparent(headers.traceparent),
     },
 
     // Define custom group for Datadog (with required header)
@@ -194,9 +198,11 @@ const headers = extractHttpHeaders(context.meta, {
 SDKs MUST process `_meta` fields in the following order:
 
 1. **Validation**: Validate all `_meta` field values (see below)
-2. **Required check**: For each group with a `required` array, verify all required headers are present in `_meta`; skip the group entirely if any are missing
-3. **Custom validation**: If a `validator` function is configured for the group, invoke it; skip the group if validation fails
+2. **Per-header validation**: If `validators` are configured for the group, invoke each header's validator; drop/ignore individual headers that fail validation
+3. **Required check**: For each group with a `required` array, verify all required headers are present (and not dropped by validation); skip the group entirely if any are missing
 4. **Policy application**: Apply the group's policy to determine final headers
+
+**Rationale for ordering**: Per-header validators run before required presence checks so that malformed values are caught and dropped early. If a required header is dropped due to validation failure, the group is skipped entirely—preventing forwarding of an incomplete set.
 
 #### 3.1 Validation Rules
 
@@ -214,12 +220,12 @@ Invalid fields MUST be silently dropped (not cause errors).
 
 #### 4.1 Header Group Configuration
 
-| Property    | Type                                                         | Required | Description                                                                                    |
-| ----------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------- |
-| `policy`    | `"clear-and-use-meta"` \| `"prefer-meta"` \| `"ignore-meta"` | Yes      | Forwarding and conflict policy                                                                 |
-| `headers`   | `string[]`                                                   | No\*     | Headers in this group                                                                          |
-| `required`  | `string[]`                                                   | No       | Headers that MUST be present in `_meta` for group to forward; if any missing, group is skipped |
-| `validator` | `(headers: Record<string, string>) => boolean`               | No       | Custom validation function; if it returns false, group is skipped                              |
+| Property     | Type                                                         | Required | Description                                                                                    |
+| ------------ | ------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------- |
+| `policy`     | `"clear-and-use-meta"` \| `"prefer-meta"` \| `"ignore-meta"` | Yes      | Forwarding and conflict policy                                                                 |
+| `headers`    | `string[]`                                                   | No\*     | Headers in this group                                                                          |
+| `required`   | `string[]`                                                   | No       | Headers that MUST be present in `_meta` for group to forward; if any missing, group is skipped |
+| `validators` | `Record<string, (value: string) => boolean>`                 | No       | Per-header validation functions; headers that fail validation are dropped                      |
 
 \* `headers` is required for custom groups, optional when overriding predefined groups.
 
