@@ -1,6 +1,7 @@
 # SEP-xxxx: HTTP Header Standardization for Streamable HTTP Transport
 
 <!-- cspell:ignore streamable -->
+<!-- markdownlint-disable MD036 MD060 -->
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -40,6 +41,8 @@ The Streamable HTTP transport will require POST requests to include the followin
 These headers are **required** for compliance with the MCP version in which they are introduced.
 
 **Server Behavior**: Servers MUST reject requests where the values specified in the headers do not match the values in the request body.
+
+> **Rationale**: This requirement prevents potential security vulnerabilities and error conditions that could arise when different components in the network rely on different sources of truth. For example, a load balancer or gateway might use the header values to make routing decisions, while the MCP server uses the body values for execution. This requirement applies to any network intermediary that processes the message body, as well as the MCP server itself.
 
 **Case Sensitivity**: Header names (called "field names" in [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-names)) are case-insensitive. Clients and servers MUST use case-insensitive comparisons for header names.
 
@@ -142,9 +145,12 @@ The `x-mcp-header` property specifies the name portion used to construct the hea
 
 **Constraints on `x-mcp-header` values**:
 
+- MUST NOT be empty
 - MUST contain only ASCII characters (excluding space and `:`)
 - MUST be case-insensitively unique among all `x-mcp-header` values in the `inputSchema`
 - MUST only be applied to parameters with primitive types (number, string, boolean)
+
+Clients MUST reject tool definitions where any `x-mcp-header` value violates these constraints. Rejection means the client MUST exclude the invalid tool from the result of `tools/list`. Clients SHOULD log a warning when rejecting a tool definition, including the tool name and the reason for rejection. This behavior ensures that a single malformed tool definition does not prevent other valid tools from being used.
 
 **Example Tool Definition**:
 
@@ -169,124 +175,6 @@ The `x-mcp-header` property specifies the name portion used to construct the hea
   }
 }
 ```
-
-#### Client Behavior
-
-When constructing a `tools/call` request via HTTP transport, the client:
-
-1. Inspects the tool's `inputSchema` for properties marked with `x-mcp-header`
-2. Extracts the value provided for that parameter
-3. Encodes the value according to the rules in [Value Encoding](#value-encoding)
-4. Appends a header to the request: `Mcp-Param-{Name}: {Value}`
-
-#### Value Encoding
-
-Clients MUST encode parameter values before including them in HTTP headers to ensure safe transmission and prevent injection attacks.
-
-**Character Restrictions**
-
-Per [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-values), HTTP header field values must consist of visible ASCII characters (0x21-0x7E), space (0x20), and horizontal tab (0x09). The following characters are explicitly prohibited:
-
-- Carriage return (`\r`, 0x0D)
-- Line feed (`\n`, 0x0A)
-- Null character (`\0`, 0x00)
-- Any character outside the ASCII range (> 0x7F)
-
-**Whitespace Handling**
-
-HTTP parsers typically trim leading and trailing whitespace from header values. To preserve leading and trailing spaces in parameter values, clients MUST use Base64 encoding when the value:
-
-- Starts with a space (0x20) or horizontal tab (0x09)
-- Ends with a space (0x20) or horizontal tab (0x09)
-
-**Encoding Rules**
-
-Clients MUST apply the following encoding rules in order:
-
-1. **Type conversion**: Convert the parameter value to its string representation:
-   - `string`: Use the value as-is
-   - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
-   - `boolean`: Convert to lowercase `"true"` or `"false"`
-
-2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):
-   - Apply Base64 encoding (see below)
-
-3. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
-   - If valid, proceed to step 4
-   - If invalid (contains non-ASCII characters), apply Base64 encoding (see below)
-
-4. **Control character check**: If the string contains any control characters (0x00-0x1F or 0x7F):
-   - Apply Base64 encoding (see below)
-
-5. **Length validation**: If the encoded value exceeds 8192 bytes, the client MUST omit the header and MAY log a warning
-
-**Base64 Encoding for Unsafe Values**
-
-When a value cannot be safely represented as a plain ASCII header value, clients MUST use Base64 encoding with the following format:
-
-```
-Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
-```
-
-The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
-
-**Examples**:
-
-| Original Value | Reason | Encoded Header Value |
-|----------------|--------|---------------------|
-| `"us-west1"` | Plain ASCII | `Mcp-Param-Region: us-west1` |
-| `"Hello, 世界"` | Contains non-ASCII | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
-| `" padded "` | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=` |
-| `"line1\nline2"` | Contains newline | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=` |
-
-**Server Validation**
-
-Servers MUST validate that encoded header values, after decoding if Base64-encoded, match the corresponding values in the request body. Servers MUST reject requests with a `400 Bad Request` HTTP status if any validation fails.
-
-**Error Code**
-
-When rejecting a request due to header validation failure, servers MUST return a JSON-RPC error response with the following error code:
-
-| Code | Name | Description |
-|------|------|-------------|
-| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
-
-This error code is in the JSON-RPC implementation-defined server error range (`-32000` to `-32099`).
-
-**Error Response Format**:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32001,
-    "message": "Header mismatch: Mcp-Tool-Name header value 'foo' does not match body value 'bar'"
-  }
-}
-```
-
-**Validation Failure Conditions**:
-
-- A required standard header (`Mcp-Method`, `Mcp-Tool-Name`, etc.) is missing
-- A header value does not match the request body value
-- A Base64-encoded value cannot be decoded
-- A header value contains invalid characters
-
-**Custom Header Handling**:
-
-Custom headers (those defined via `x-mcp-header`) follow different rules than standard headers:
-
-| Scenario | Client Behavior | Server Behavior |
-|----------|-----------------|-----------------|
-| Parameter value provided | Client MUST include the header | Server MUST validate header matches body |
-| Parameter value is `null` | Client MUST omit the header | Server MUST NOT expect the header |
-| Parameter not in arguments | Client MUST omit the header | Server MUST NOT expect the header |
-| Client omits header but value is in body | Non-conforming client | Server SHOULD accept the request but MAY log a warning |
-
-**Rationale for Lenient Server Behavior**: Unlike standard headers, custom headers are primarily intended to enable infrastructure optimizations (routing, rate limiting, etc.). A missing custom header does not prevent the server from processing the request—the parameter value is still available in the request body. Servers SHOULD prioritize interoperability with older or non-conforming clients over strict enforcement. However, servers MAY choose to reject such requests in environments where header-based routing is critical to correct operation.
-
-If a server chooses to reject requests with missing custom headers, it MUST return HTTP status `400 Bad Request` with JSON-RPC error code `-32001` (`HeaderMismatch`).
 
 #### Example: Geo-Distributed Database
 
@@ -460,6 +348,126 @@ Mcp-Param-Priority: high
 }
 ```
 
+### Header Processing
+
+#### Value Encoding
+
+Clients MUST encode parameter values before including them in HTTP headers to ensure safe transmission and prevent injection attacks.
+
+**Character Restrictions**
+
+Per [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-values), HTTP header field values must consist of visible ASCII characters (0x21-0x7E), space (0x20), and horizontal tab (0x09). The following characters are explicitly prohibited:
+
+- Carriage return (`\r`, 0x0D)
+- Line feed (`\n`, 0x0A)
+- Null character (`\0`, 0x00)
+- Any character outside the ASCII range (> 0x7F)
+
+**Whitespace Handling**
+
+HTTP parsers typically trim leading and trailing whitespace from header values. To preserve leading and trailing spaces in parameter values, clients MUST use Base64 encoding when the value:
+
+- Starts with a space (0x20) or horizontal tab (0x09)
+- Ends with a space (0x20) or horizontal tab (0x09)
+
+**Encoding Rules**
+
+Clients MUST apply the following encoding rules in order:
+
+1. **Type conversion**: Convert the parameter value to its string representation:
+   - `string`: Use the value as-is
+   - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+   - `boolean`: Convert to lowercase `"true"` or `"false"`
+
+2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):
+   - Apply Base64 encoding (see below)
+
+3. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
+   - If valid, proceed to step 4
+   - If invalid (contains non-ASCII characters), apply Base64 encoding (see below)
+
+4. **Control character check**: If the string contains any control characters (0x00-0x1F or 0x7F):
+   - Apply Base64 encoding (see below)
+
+5. **Length validation**: If the encoded value exceeds 8192 bytes, the client MUST omit the header and MAY log a warning
+
+**Base64 Encoding for Unsafe Values**
+
+When a value cannot be safely represented as a plain ASCII header value, clients MUST use Base64 encoding with the following format:
+
+```text
+Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
+```
+
+The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
+
+**Examples**:
+
+| Original Value | Reason | Encoded Header Value |
+|----------------|--------|---------------------|
+| `"us-west1"` | Plain ASCII | `Mcp-Param-Region: us-west1` |
+| `"Hello, 世界"` | Contains non-ASCII | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "` | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=` |
+| `"line1\nline2"` | Contains newline | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=` |
+
+#### Client Behavior
+
+When constructing a `tools/call` request via HTTP transport, the client:
+
+1. Extracts the values for any standard headers from the request body (e.g., `method`, `params.name`, `params.uri`)
+2. Inspects the tool's `inputSchema` for properties marked with `x-mcp-header` and extract the value for each parameter
+3. Encodes the values according to the rules in [Value Encoding](#value-encoding)
+4. Appends a header to the request: `Mcp-Param-{Name}: {Value}`
+
+#### Server Behavior
+
+When receiving a request, the server MUST reject requests with `Mcp-Param-{Name}` headers that contain invalid characters (see "Character Restrictions" in the [Value Encoding](#value-encoding) section).
+
+Any server that processes the message body (not simply forwarding it) MUST validate that encoded header values, after decoding if Base64-encoded, match the corresponding values in the request body. Servers MUST reject requests with a `400 Bad Request` HTTP status if any validation fails.
+
+**Error Code**
+
+When rejecting a request due to header validation failure, servers MUST return a JSON-RPC error response with the following error code:
+
+| Code | Name | Description |
+|------|------|-------------|
+| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+
+This error code is in the JSON-RPC implementation-defined server error range (`-32000` to `-32099`).
+
+**Error Response Format**:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32001,
+    "message": "Header mismatch: Mcp-Tool-Name header value 'foo' does not match body value 'bar'"
+  }
+}
+```
+
+**Validation Failure Conditions**:
+
+- A required standard header (`Mcp-Method`, `Mcp-Tool-Name`, etc.) is missing
+- A header value does not match the request body value
+- A Base64-encoded value cannot be decoded
+- A header value contains invalid characters
+
+**Custom Header Handling**:
+
+Custom headers (those defined via `x-mcp-header`) follow the same validation rules as standard headers:
+
+| Scenario | Client Behavior | Server Behavior |
+|----------|-----------------|-----------------|
+| Parameter value provided | Client MUST include the header | Server MUST validate header matches body |
+| Parameter value is `null` | Client MUST omit the header | Server MUST NOT expect the header |
+| Parameter not in arguments | Client MUST omit the header | Server MUST NOT expect the header |
+| Client omits header but value is in body | Non-conforming client | Server MUST reject the request |
+
+When rejecting requests due to missing or invalid custom headers, the server MUST return HTTP status `400 Bad Request` with JSON-RPC error code `-32001` (`HeaderMismatch`).
+
 ## Rationale
 
 ### Headers vs Path
@@ -506,11 +514,9 @@ def mcp_handler():
 
 Despite this additional complexity in some frameworks, header-based routing was chosen because:
 
-1. **Infrastructure benefits outweigh framework complexity**: The primary goal is enabling network infrastructure (load balancers, proxies, WAFs) to route and process requests without body parsing. This benefit applies regardless of the server framework.
+1. **Backwards Compatibility** introducing path based routing would require all existing MCP Servers to take a major update, and potentially support two sets of endpoints to support multiple versions. Even if the SDKs can paper over this additional operational concerns like testing, metrics, etc would need to happen. Header based routing requires minimal client side changes. And clients which don't opt in will still function correctly.
 
-2. **Single endpoint simplicity**: Keeping a single `/mcp` endpoint simplifies CORS configuration, authentication middleware, and client implementation.
-
-3. **Separation of concerns**: The URL path identifies the MCP service; headers identify the operation within that service. This mirrors how HTTP methods (GET, POST, etc.) work alongside paths.
+2. **Infrastructure benefits outweigh framework complexity**: The primary goal is enabling network infrastructure (load balancers, proxies, WAFs) to route and process requests without body parsing. This benefit applies regardless of the server framework.
 
 ### Infrastructure Support
 
@@ -622,6 +628,7 @@ Clients MUST follow the [Value Encoding](#value-encoding) rules defined in this 
 Servers MUST validate that header values match the corresponding values in the request body. This prevents clients from sending mismatched headers to manipulate routing while executing different operations.
 
 For example, a malicious client could attempt to:
+
 - Route a request to a less-secured region while executing operations intended for a high-security region
 - Bypass rate limits by spoofing tenant identifiers
 - Evade security policies by misrepresenting the operation being performed
@@ -672,19 +679,19 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 | Test Case | Schema | Expected Behavior |
 |-----------|--------|-------------------|
-| Duplicate header names (same case) | Two properties with `"x-mcp-header": "Region"` | Server MUST reject tool definition |
-| Duplicate header names (different case) | `"x-mcp-header": "Region"` and `"x-mcp-header": "REGION"` | Server MUST reject tool definition (case-insensitive uniqueness) |
+| Duplicate header names (same case) | Two properties with `"x-mcp-header": "Region"` | Client MUST reject tool definition |
+| Duplicate header names (different case) | `"x-mcp-header": "Region"` and `"x-mcp-header": "REGION"` | Client MUST reject tool definition (case-insensitive uniqueness) |
 | Header name matches standard header | `"x-mcp-header": "Method"` | Allowed (produces `Mcp-Param-Method`, not `Mcp-Method`) |
-| Empty header name | `"x-mcp-header": ""` | Server MUST reject tool definition |
+| Empty header name | `"x-mcp-header": ""` | Client MUST reject tool definition |
 
 #### Invalid x-mcp-header Values
 
 | Test Case | x-mcp-header Value | Expected Behavior |
 |-----------|-------------------|-------------------|
-| Contains space | `"x-mcp-header": "My Region"` | Server MUST reject tool definition |
-| Contains colon | `"x-mcp-header": "Region:Primary"` | Server MUST reject tool definition |
-| Contains non-ASCII | `"x-mcp-header": "Région"` | Server MUST reject tool definition |
-| Contains control character | `"x-mcp-header": "Region\t1"` | Server MUST reject tool definition |
+| Contains space | `"x-mcp-header": "My Region"` | Client MUST reject tool definition |
+| Contains colon | `"x-mcp-header": "Region:Primary"` | Client MUST reject tool definition |
+| Contains non-ASCII | `"x-mcp-header": "Région"` | Client MUST reject tool definition |
+| Contains control character | `"x-mcp-header": "Region\t1"` | Client MUST reject tool definition |
 
 #### Value Encoding Edge Cases
 
@@ -740,8 +747,7 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 | Test Case | Header Present | Body Value | Expected Behavior |
 |-----------|----------------|------------|-------------------|
-| Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server SHOULD accept; MAY log warning |
-| Custom header omitted, value in body (strict mode) | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MAY reject with 400 and error code `-32001` |
+| Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MUST reject with 400 and error code `-32001` |
 | Standard header omitted, value in body | No `Mcp-Tool-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001` |
 
 ## Reference Implementation
