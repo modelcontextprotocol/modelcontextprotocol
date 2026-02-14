@@ -701,7 +701,7 @@ cannot be misused across different services.
 
 ## Sign-In with Ethereum (SIWE)
 
-MCP servers **MAY** support [Sign-In with Ethereum (SIWE)](https://eips.ethereum.org/EIPS/eip-4361) as an alternative to OAuth for Web3 users who authenticate via wallet signatures. SIWE support is specified in [SEP-0000: Sign-In with Ethereum (SIWE) for Model Context Protocol](/community/seps/0000-sign-in-with-ethereum-siwe-for-mcp) (draft).
+MCP servers **MAY** support [Sign-In with Ethereum (SIWE)](https://eips.ethereum.org/EIPS/eip-4361) as an alternative to OAuth for Web3 users who authenticate via wallet signatures. SIWE support is specified in [SEP-2245: Sign-In with Ethereum (SIWE) for Model Context Protocol](/community/seps/2245-sign-in-with-ethereum-siwe-for-mcp) (draft).
 
 ### SIWE Discovery
 
@@ -734,7 +734,7 @@ The SIWE Protected Resource Metadata document includes:
 5. Server verifies the signature and returns `{ "token", "address" }`
 6. Client uses `Authorization: Bearer <token>` for subsequent MCP requests
 
-MCP servers **MAY** support both OAuth and SIWE; clients **MAY** choose based on user context. See the full [SIWE SEP](/community/seps/0000-sign-in-with-ethereum-siwe-for-mcp) for complete specification.
+MCP servers **MAY** support both OAuth and SIWE; clients **MAY** choose based on user context. See the full [SIWE SEP](/community/seps/2245-sign-in-with-ethereum-siwe-for-mcp) for complete specification.
 
 ## MCP Authorization Extensions
 
@@ -745,4 +745,4 @@ There are several authorization extensions to the core protocol that define addi
 - **Composable** - Extensions are modular and designed to work together without conflicts, allowing implementations to adopt multiple extensions simultaneously
 - **Versioned independently** - Extensions follow the core MCP versioning cycle but may adopt independent versioning as needed
 
-A list of supported extensions can be found in the [MCP Authorization Extensions](https://github.com/modelcontextprotocol/ext-auth) repository. A proposed extension for Sign-In with Ethereum (SIWE) is documented in [SEP-0000](/community/seps/0000-sign-in-with-ethereum-siwe-for-mcp).
+A list of supported extensions can be found in the [MCP Authorization Extensions](https://github.com/modelcontextprotocol/ext-auth) repository. A proposed extension for Sign-In with Ethereum (SIWE) is documented in [SEP-2245](/community/seps/2245-sign-in-with-ethereum-siwe-for-mcp).

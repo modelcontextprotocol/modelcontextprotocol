@@ -1,30 +1,11 @@
----
-title: "SEP-0000: Sign-In with Ethereum (SIWE) for Model Context Protocol"
-sidebarTitle: "SEP-0000: Sign-In with Ethereum (SIWE) for Model…"
-description: "Sign-In with Ethereum (SIWE) for Model Context Protocol"
----
+# SEP-2245: Sign-In with Ethereum (SIWE) for Model Context Protocol
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Standards Track
-  </Badge>
-</div>
-
-| Field         | Value                                                                           |
-| ------------- | ------------------------------------------------------------------------------- |
-| **SEP**       | 0000                                                                            |
-| **Title**     | Sign-In with Ethereum (SIWE) for Model Context Protocol                         |
-| **Status**    | Draft                                                                           |
-| **Type**      | Standards Track                                                                 |
-| **Created**   | 2025-02-13                                                                      |
-| **Author(s)** | (Add your name and [@github-username](https://github.com/github-username))      |
-| **Sponsor**   | None (seeking sponsor)                                                          |
-| **PR**        | [#0000](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000) |
-
----
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2025-02-13
+- **Author(s)**: Nikko Ambroselli @d3l33t
+- **Sponsor**: None (seeking sponsor)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2245
 
 ## Abstract
 
