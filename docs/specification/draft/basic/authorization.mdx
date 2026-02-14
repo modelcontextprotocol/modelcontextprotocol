@@ -37,6 +37,7 @@ while maintaining simplicity:
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
 - OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
+- Sign-In with Ethereum ([EIP-4361](https://eips.ethereum.org/EIPS/eip-4361)) — optional, for SIWE-based authentication
 
 ## Roles
 
@@ -698,6 +699,43 @@ to explicitly specify the target resource for which the token is being requested
 [RFC 9728 Section 7.4](https://datatracker.ietf.org/doc/html/rfc9728#section-7.4). This ensures that access tokens are bound to their intended resources and
 cannot be misused across different services.
 
+## Sign-In with Ethereum (SIWE)
+
+MCP servers **MAY** support [Sign-In with Ethereum (SIWE)](https://eips.ethereum.org/EIPS/eip-4361) as an alternative to OAuth for Web3 users who authenticate via wallet signatures. SIWE support is specified in [SEP-0000: Sign-In with Ethereum (SIWE) for Model Context Protocol](/community/seps/0000-sign-in-with-ethereum-siwe-for-mcp) (draft).
+
+### SIWE Discovery
+
+When an MCP server supports SIWE and requires authentication, it **MAY** respond to unauthenticated requests with:
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/siwe-protected-resource"
+```
+
+The `resource_metadata` URL points to a SIWE Protected Resource Metadata document. Metadata **MAY** also be served at the well-known path `/.well-known/siwe-protected-resource` (and path-scoped variants per [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)).
+
+### SIWE Metadata Parameters
+
+The SIWE Protected Resource Metadata document includes:
+
+- `resource` (REQUIRED): Canonical URI of the MCP server
+- `siwe_nonce_endpoint` (REQUIRED): URL for obtaining a nonce
+- `siwe_verify_endpoint` (REQUIRED): URL for verifying the SIWE signature and issuing a token
+- `siwe_domain` (REQUIRED): Domain for the SIWE message
+- `siwe_statement` (OPTIONAL): Statement shown to the user when signing
+- `siwe_chain_id` (OPTIONAL): Chain ID (default 1)
+
+### SIWE Flow Summary
+
+1. Client receives 401 with `resource_metadata` pointing to SIWE metadata
+2. Client fetches metadata and obtains a nonce from `siwe_nonce_endpoint`
+3. Client constructs an [EIP-4361](https://eips.ethereum.org/EIPS/eip-4361) message and prompts the user to sign via wallet
+4. Client POSTs `{ "message", "signature" }` to `siwe_verify_endpoint`
+5. Server verifies the signature and returns `{ "token", "address" }`
+6. Client uses `Authorization: Bearer <token>` for subsequent MCP requests
+
+MCP servers **MAY** support both OAuth and SIWE; clients **MAY** choose based on user context. See the full [SIWE SEP](/community/seps/0000-sign-in-with-ethereum-siwe-for-mcp) for complete specification.
+
 ## MCP Authorization Extensions
 
 There are several authorization extensions to the core protocol that define additional authorization mechanisms. These extensions are:
@@ -707,4 +745,4 @@ There are several authorization extensions to the core protocol that define addi
 - **Composable** - Extensions are modular and designed to work together without conflicts, allowing implementations to adopt multiple extensions simultaneously
 - **Versioned independently** - Extensions follow the core MCP versioning cycle but may adopt independent versioning as needed
 
-A list of supported extensions can be found in the [MCP Authorization Extensions](https://github.com/modelcontextprotocol/ext-auth) repository.
+A list of supported extensions can be found in the [MCP Authorization Extensions](https://github.com/modelcontextprotocol/ext-auth) repository. A proposed extension for Sign-In with Ethereum (SIWE) is documented in [SEP-0000](/community/seps/0000-sign-in-with-ethereum-siwe-for-mcp).
