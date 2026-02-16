@@ -1,0 +1,12 @@
+{
+  "protocolVersion": "2024-11-05",
+  "capabilities": {
+    "tools": {}
+  },
+  "serverInfo": {
+    "name": "DatabaseServer",
+    "version": "1.0.0",
+    "description": "PostgreSQL database management server"
+  },
+  "instructions": "Use 'validate_schema' before 'migrate_schema' for safe migrations. Rate limited to 10 req/min."
+}

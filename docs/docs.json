@@ -51,7 +51,8 @@
               {
                 "group": "Security",
                 "pages": [
-                  "docs/tutorials/security/authorization"
+                  "docs/tutorials/security/authorization",
+                  "docs/tutorials/security/security_best_practices"
                 ]
               }
             ]
@@ -65,6 +66,7 @@
           {
             "group": "Extensions",
             "pages": [
+              "docs/extensions/overview",
               "docs/extensions/apps"
             ]
           }
@@ -86,7 +88,6 @@
                   "specification/2025-11-25/basic/lifecycle",
                   "specification/2025-11-25/basic/transports",
                   "specification/2025-11-25/basic/authorization",
-                  "specification/2025-11-25/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -139,7 +140,6 @@
                   "specification/2025-06-18/basic/lifecycle",
                   "specification/2025-06-18/basic/transports",
                   "specification/2025-06-18/basic/authorization",
-                  "specification/2025-06-18/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -288,7 +288,6 @@
                   "specification/draft/basic/lifecycle",
                   "specification/draft/basic/transports",
                   "specification/draft/basic/authorization",
-                  "specification/draft/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -359,12 +358,14 @@
       {
         "tab": "Community",
         "pages": [
+          "community/contributing",
           "community/communication",
           {
             "group": "Governance",
             "pages": [
               "community/governance",
               "community/sep-guidelines",
+              "community/sdk-tiers",
               "community/working-interest-groups",
               "community/antitrust"
             ]
@@ -397,16 +398,11 @@
                   "community/seps/1699-support-sse-polling-via-server-side-disconnect",
                   "community/seps/1730-sdks-tiering-system",
                   "community/seps/1850-pr-based-sep-workflow",
+                  "community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
                   "community/seps/2085-governance-succession-and-amendment",
                   "community/seps/2133-extensions"
                 ]
               }
-            ]
-          },
-          {
-            "group": "Extensions",
-            "pages": [
-              "extensions"
             ]
           },
           {
@@ -526,7 +522,23 @@
     },
     {
       "source": "/development/contributing",
-      "destination": "/community/communication"
+      "destination": "/community/contributing"
+    },
+    {
+      "source": "/specification/draft/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-11-25/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-06-18/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/extensions",
+      "destination": "/docs/extensions/overview"
     }
   ],
   "contextual": {

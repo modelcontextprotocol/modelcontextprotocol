@@ -196,7 +196,7 @@ Key capabilities include:
 | Client   | `sampling`     | Support for LLM [sampling](/specification/draft/client/sampling) requests                |
 | Client   | `elicitation`  | Support for server [elicitation](/specification/draft/client/elicitation) requests       |
 | Client   | `tasks`        | Support for [task-augmented](/specification/draft/basic/utilities/tasks) client requests |
-| Client   | `extensions`   | Support for optional [extensions](/extensions) beyond the core protocol                  |
+| Client   | `extensions`   | Support for optional [extensions](/docs/extensions/overview) beyond the core protocol    |
 | Client   | `experimental` | Describes support for non-standard experimental features                                 |
 | Server   | `prompts`      | Offers [prompt templates](/specification/draft/server/prompts)                           |
 | Server   | `resources`    | Provides readable [resources](/specification/draft/server/resources)                     |
@@ -204,7 +204,7 @@ Key capabilities include:
 | Server   | `logging`      | Emits structured [log messages](/specification/draft/server/utilities/logging)           |
 | Server   | `completions`  | Supports argument [autocompletion](/specification/draft/server/utilities/completion)     |
 | Server   | `tasks`        | Support for [task-augmented](/specification/draft/basic/utilities/tasks) server requests |
-| Server   | `extensions`   | Support for optional [extensions](/extensions) beyond the core protocol                  |
+| Server   | `extensions`   | Support for optional [extensions](/docs/extensions/overview) beyond the core protocol    |
 | Server   | `experimental` | Describes support for non-standard experimental features                                 |
 
 Capability objects can describe sub-capabilities like:
@@ -215,7 +215,7 @@ Capability objects can describe sub-capabilities like:
 
 #### Extension Negotiation
 
-Clients and servers can also negotiate support for optional [extensions](/extensions) beyond the core protocol. Extensions are advertised in the `extensions` field of capabilities, which is a map of extension identifiers to per-extension settings objects.
+Clients and servers can also negotiate support for optional [extensions](/docs/extensions/overview) beyond the core protocol. Extensions are advertised in the `extensions` field of capabilities, which is a map of extension identifiers to per-extension settings objects.
 
 Example client capabilities with extensions:
 
