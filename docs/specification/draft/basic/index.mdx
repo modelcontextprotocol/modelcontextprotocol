@@ -127,11 +127,11 @@ to help shape the future of the protocol!
 
 ## Payment
 
-MCP provides a [Payment](/specification/draft/basic/payment) framework for premium features and usage-based billing using the X402 protocol.
-Implementations using an HTTP-based transport **MAY** implement payment handling for tool invocations,
-whereas implementations using STDIO transport **SHOULD NOT** follow this specification.
+MCP provides a [Payment](/specification/draft/basic/payment) framework enabling servers to monetize their tools through various payment methods.
 
-The payment specification enables servers to request payment for specific tools or resources while maintaining security through X402-compliant facilitators.
+The payment specification is protocol-agnostic and supports multiple payment protocols (X402 for blockchain, traditional processors for fiat). It works with any transport (HTTP, STDIO, SSE) by including payment information in the `payment` field of tool call parameters.
+
+Servers can advertise payment requirements in tool definitions, and clients handle payment through protocol-specific payment providers. The framework includes capability declaration, payment discovery, standardized payment challenges (error `-32402`), and payment verification flows.
 
 ## Schema
 
