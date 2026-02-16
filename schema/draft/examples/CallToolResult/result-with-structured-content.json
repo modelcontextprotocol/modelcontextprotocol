@@ -2,7 +2,7 @@
   "content": [
     {
       "type": "text",
-      "text": "Temperature: 22.5 C, conditions: partly cloudy, humidity: 65%."
+      "text": "Weather is 22.5°C and partly cloudy, 65% humidity."
     }
   ],
   "structuredContent": {
