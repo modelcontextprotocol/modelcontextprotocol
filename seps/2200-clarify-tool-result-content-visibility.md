@@ -1,12 +1,12 @@
 # SEP-2200: Clarify Tool Result Content and Model Visibility
 
 - **Status**: Draft
-- **Type**: Informational
+- **Type**: Standards Track
 - **Created**: 2026-02-03
-- **Author(s)**: Kyle Rubenok (@kyrubeno)
+- **Author(s)**: Kyle Rubenok (@krubenok)
 - **Sponsor**: Ola Hungerford (@olaservo)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200
-- **Related Issues**: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1624
+- **Related Issues**: [#1624](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1624), [#1411](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1411), [ext-apps #380](https://github.com/modelcontextprotocol/ext-apps/issues/380)
 
 ## Abstract
 
@@ -42,6 +42,12 @@ structured payload. The ext-apps issue
 example, [python-sdk #1796](https://github.com/modelcontextprotocol/python-sdk/issues/1796) and
 [vscode #290063](https://github.com/microsoft/vscode/issues/290063)) highlight persistent confusion
 about what is model-visible and what is host-only.
+
+Several SDK issues are also currently blocked on this clarification, including
+[typescript-sdk #911](https://github.com/modelcontextprotocol/typescript-sdk/issues/911),
+[python-sdk #1332](https://github.com/modelcontextprotocol/python-sdk/issues/1332),
+[csharp-sdk #747](https://github.com/modelcontextprotocol/csharp-sdk/issues/747), and
+[csharp-sdk #930](https://github.com/modelcontextprotocol/csharp-sdk/issues/930).
 
 This SEP consolidates the consensus from issue #1624 and related discussions: `content` is the
 model-facing representation, `structuredContent` is for programmatic or UI use, and clients should
@@ -82,10 +88,24 @@ This SEP proposes the following clarifications to the MCP specification (draft):
      ultimately client-controlled; `_meta` should be treated as host-only metadata unless a
      client explicitly exposes it.
    - Apps can update model context explicitly using the MCP Apps API (e.g., `ui/update-model-context`).
+   - Example pattern: for a tool that renders an interactive view, `content` can be a concise
+     model-facing summary such as "A view was displayed for item 123, and the user can now
+     interact with it," while detailed UI state can remain in `structuredContent` or `_meta`.
+   - Implementers SHOULD ensure `content` still includes the pertinent result information the
+     model needs, even when the format is more concise or tailored for model use than for
+     populating UI controls.
 
 5. **Output schema documentation**
    - The output schema section should emphasize that `outputSchema` applies to
      `structuredContent`, while `content` remains a model-oriented representation.
+
+6. **Error results (`isError: true`)**
+   - When a tool call results in an error (`isError: true`), the error message SHOULD be
+     returned in `content`.
+   - Servers MAY omit `structuredContent` for error results, since the error is unlikely to
+     conform to the tool's `outputSchema`.
+   - Clients SHOULD NOT validate `structuredContent` against `outputSchema` when `isError` is
+     `true`.
 
 ## Rationale
 

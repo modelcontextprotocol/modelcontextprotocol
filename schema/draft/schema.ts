@@ -1535,6 +1535,10 @@ export interface CallToolResult extends Result {
    *
    * Intended for programmatic use; when both fields are present, it SHOULD be semantically
    * equivalent to `content`.
+   *
+   * If the corresponding tool defines an {@link Tool.outputSchema}, this SHOULD conform to that
+   * schema when `isError` is absent or false. Error results (`isError: true`) MAY omit
+   * `structuredContent`, and clients SHOULD NOT validate it against the output schema.
    */
   structuredContent?: { [key: string]: unknown };
 
@@ -1547,6 +1551,8 @@ export interface CallToolResult extends Result {
    * object, with `isError` set to true, _not_ as an MCP protocol-level error
    * response. Otherwise, the LLM would not be able to see that an error occurred
    * and self-correct.
+   *
+   * When `isError` is true, the actionable error message SHOULD be included in `content`.
    *
    * However, any errors in _finding_ the tool, an error indicating that the
    * server does not support tool calls, or any other exceptional conditions,
@@ -2457,14 +2463,16 @@ export interface ToolResultContent {
   /**
    * An optional structured result object.
    *
-   * If the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema.
+   * If the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema when
+   * `isError` is absent or false. Error results (`isError: true`) MAY omit
+   * `structuredContent`, and clients SHOULD NOT validate it against the output schema.
    */
   structuredContent?: { [key: string]: unknown };
 
   /**
    * Whether the tool use resulted in an error.
    *
-   * If true, the content typically describes the error that occurred.
+   * If true, the actionable error message SHOULD be included in `content`.
    * Default: false
    */
   isError?: boolean;

@@ -345,15 +345,63 @@ Clients SHOULD NOT forward both fields verbatim to the model as separate inputs.
   typically pass `content` to the model and use `structuredContent` or `_meta`
   for UI rendering or host-specific metadata. Apps can update model context
   explicitly via `ui/update-model-context`.
+
+Implementers SHOULD ensure `content` still includes a semantically equivalent result
+that will be visible to the model, even when the format is more concise or tailored
+than the `structuredContent` response used to populate UI controls.
+
 </Note>
+
+Example MCP Apps-oriented tool result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "DHL Order #123 is currently in transit. Estimated delivery: 2026-02-18, departed sorting facility at 2026-02-15T08:32:00Z"
+      }
+    ],
+    "structuredContent": {
+      "orderId": "123",
+      "status": "in_transit",
+      "estimatedDelivery": "2026-02-18",
+      "carrier": "DHL",
+      "trackingEvents": [
+        {
+          "timestamp": "2026-02-15T08:32:00Z",
+          "event": "Departed sorting facility"
+        }
+      ]
+    },
+    "_meta": {
+      "ui": {
+        "view": "order-details",
+        "selectedTab": "timeline"
+      }
+    }
+  }
+}
+```
+
+This keeps model-relevant facts in `content` while preserving UI-specific detail for hosts.
 
 #### Output Schema
 
 Tools may also provide an output schema for validation of structured results.
 If an output schema is provided:
 
-- Servers **MUST** provide structured results that conform to this schema.
-- Clients **SHOULD** validate structured results against this schema.
+- For non-error results (`isError` absent or `false`), servers **MUST** provide
+  `structuredContent` that conforms to this schema.
+- For error results (`isError: true`), servers **MAY** omit
+  `structuredContent`.
+- Clients **SHOULD** validate `structuredContent` against this schema for
+  non-error results.
+- Clients **SHOULD NOT** validate `structuredContent` against this schema when
+  `isError` is `true`.
 
 Example tool with output schema:
 
@@ -488,6 +536,9 @@ Tools use two error reporting mechanisms:
    - API failures
    - Input validation errors (e.g., date in wrong format, value out of range)
    - Business logic errors
+
+When reporting tool execution errors, servers **SHOULD** return the actionable
+error message in `content`.
 
 **Tool Execution Errors** contain actionable feedback that language models can use to self-correct and retry with adjusted parameters.
 **Protocol Errors** indicate issues with the request structure itself that models are less likely to be able to fix.
