@@ -6,7 +6,7 @@
 - **Author(s)**: Kyle Rubenok (@krubenok)
 - **Sponsor**: Ola Hungerford (@olaservo)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200
-- **Related Issues**: [#1624](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1624), [#1411](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1411), [ext-apps #380](https://github.com/modelcontextprotocol/ext-apps/issues/380)
+- **Related Issues**: [#1624](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1624), [#1411](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1411), [ext-apps #380](https://github.com/modelcontextprotocol/ext-apps/issues/380), [inspector #1089](https://github.com/modelcontextprotocol/inspector/issues/1089)
 
 ## Abstract
 
@@ -48,6 +48,9 @@ Several SDK issues are also currently blocked on this clarification, including
 [python-sdk #1332](https://github.com/modelcontextprotocol/python-sdk/issues/1332),
 [csharp-sdk #747](https://github.com/modelcontextprotocol/csharp-sdk/issues/747), and
 [csharp-sdk #930](https://github.com/modelcontextprotocol/csharp-sdk/issues/930).
+
+The MCP Inspector warning that expects `content` to JSON-stringify `structuredContent` is tracked
+in [inspector #1089](https://github.com/modelcontextprotocol/inspector/issues/1089).
 
 This SEP consolidates the consensus from issue #1624 and related discussions: `content` is the
 model-facing representation, `structuredContent` is for programmatic or UI use, and clients should
