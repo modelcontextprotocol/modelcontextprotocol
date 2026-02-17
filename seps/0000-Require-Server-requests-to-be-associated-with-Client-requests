@@ -1,4 +1,4 @@
-# SEP-0000: Require Server requests to be associated with a Client request.
+# SEP-2260: Require Server requests to be associated with a Client request.
 
 - **Status**: Draft
 - **Type**: Standards Track
