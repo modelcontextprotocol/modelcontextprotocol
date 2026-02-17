@@ -1,0 +1,22 @@
+name: SEP Review Reminder
+
+on:
+  schedule:
+    # Every Wednesday at 10am PST (18:00 UTC)
+    - cron: "0 18 * * 3"
+  workflow_dispatch: # Allow manual triggering
+
+permissions: {}
+
+jobs:
+  discord-reminder:
+    runs-on: ubuntu-latest
+    if: github.repository == 'modelcontextprotocol/modelcontextprotocol'
+    steps:
+      - name: Post Discord reminder
+        run: |
+          curl -X POST "${{ secrets.DISCORD_MAINTAINER_WEBHOOK }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "content": "@everyone 📋 **Weekly SEP Review Reminder**\n\nPlease ensure any SEPs that should be reviewed in the next **MCP Core Maintainer Meeting** are:\n\n1. Put into `in-review` state\n2. Added to the [meeting doc](https://docs.google.com/document/d/1annqJ2m4jNFOx6vU0FMnDSr6V3c5uN4TCT_uuZcZFh8/edit?tab=t.0#heading=h.9k72mrwd8fnr)\n\nFor SEP guidelines, see: https://modelcontextprotocol.io/community/sep-guidelines"
+            }'

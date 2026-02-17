@@ -1,0 +1,171 @@
+---
+title: Extensions Overview
+description: Optional extensions to the Model Context Protocol
+---
+
+# MCP Extensions
+
+MCP extensions are optional additions to the specification that define capabilities beyond the core protocol. Extensions enable functionality that may be modular (e.g., distinct features like authentication), specialized (e.g., industry-specific logic), or experimental (e.g., features being incubated for potential core inclusion).
+
+Extensions are identified using a unique _extension identifier_ with the format: `{vendor-prefix}/{extension-name}`, e.g. `io.modelcontextprotocol/oauth-client-credentials`. Official extensions use the `io.modelcontextprotocol` vendor prefix.
+
+<Tip>
+
+If you're building a third-party extension, use a reversed domain name you own as the vendor prefix to avoid collisions (similar to Java package naming). For example, a company owning `example.com` would use `com.example/` as their prefix (e.g., `com.example/my-extension`).
+
+</Tip>
+
+## Official Extension Repositories
+
+Official extensions live inside the [Model Context Protocol GitHub organization](https://github.com/modelcontextprotocol/) in repositories with the `ext-` prefix.
+
+### MCP Authorization Extensions
+
+<Card
+  title="modelcontextprotocol/ext-auth"
+  icon="github"
+  href="https://github.com/modelcontextprotocol/ext-auth"
+>
+  Extensions for supplementary authorization mechanisms beyond the core
+  specification.
+</Card>
+
+| Extension                                                                                                                                               | Description                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [OAuth Client Credentials](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/oauth-client-credentials.mdx)                 | OAuth 2.0 client credentials flow for machine-to-machine authentication.    |
+| [Enterprise-Managed Authorization](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/enterprise-managed-authorization.mdx) | Framework for enterprise environments requiring centralized access control. |
+
+### MCP Apps
+
+<Card
+  title="modelcontextprotocol/ext-apps"
+  icon="github"
+  href="https://github.com/modelcontextprotocol/ext-apps"
+>
+  Extensions for interactive UI elements in conversational MCP clients.
+</Card>
+
+| Extension                                                                                                | Description                                                                                                      |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| [MCP Apps](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) | Allows MCP Servers to display interactive UI elements (charts, forms, video players) inline within conversations |
+
+To get started building MCP Apps, see the [quickstart guide](/docs/extensions/apps#getting-started) or read the full [MCP Apps documentation](https://modelcontextprotocol.github.io/ext-apps/api/documents/Quickstart.html).
+
+## Experimental Extensions
+
+Experimental extensions provide an incubation pathway for [Working Groups and Interest Groups](/community/working-interest-groups) to prototype ideas and collaborate on extension concepts before formal SEP submission.
+
+Experimental extension repositories live within the MCP GitHub organization with the `experimental-ext-` prefix (e.g., `experimental-ext-interceptors`).
+
+### Ground Rules
+
+- Every experimental extension needs to be associated with a Working Group or Interest Group
+- Repositories and published packages need to clearly indicate their experimental status (e.g., in the README and package name)
+- [Core Maintainers](/community/governance#core-maintainers) retain oversight of experimental extension repositories, including the ability to archive or remove them
+
+### Graduation to Official Status
+
+To promote an experimental extension to official status, it goes through the standard SEP process (Extensions Track). Feel free to reference the experimental repository and any reference implementations you built during incubation to demonstrate the extension's practicality.
+
+## Creating Extensions
+
+The lifecycle for official extensions follows a SEP-based process. For full details, see [SEP-2133: Extensions](/community/seps/2133-extensions).
+
+1. **Propose**: Create a SEP in the main MCP repository using the [standard SEP guidelines](/community/sep-guidelines) with type **Extensions Track**.
+2. **Implement**: Build at least one reference implementation in an official SDK — this is required before the SEP can be reviewed.
+3. **Review**: [Core Maintainers](/community/governance#core-maintainers) review the SEP and have final authority over inclusion.
+4. **Publish**: Once approved, open a PR to add the extension to the extension repository.
+5. **Adopt**: After that, other clients, servers, and SDKs can implement the extension too.
+
+### Requirements
+
+- Extension specifications need to use RFC 2119 language (MUST, SHOULD, MAY)
+- Extensions must have an associated working group or interest group
+
+### SDK Implementation
+
+SDKs can choose to implement extensions, but it's not required for protocol conformance. SDK maintainers have full autonomy over which extensions they support. Where an SDK does support extensions, SDK documentation should list which extensions are supported.
+
+<Note>
+
+Extensions are always disabled by default and require explicit opt-in from the developer.
+
+</Note>
+
+### Evolution
+
+Extensions evolve independently of the core protocol. Updates are managed by the extension repository maintainers and don't require core maintainer review.
+
+That said, backwards compatibility matters. When you need to change an extension, prefer using capability flags or versioning within the extension settings object rather than creating a new extension identifier. If a breaking change is unavoidable, use a new identifier (e.g., `io.modelcontextprotocol/my-extension-v2`).
+
+A **breaking change** is any modification that would cause existing implementations to fail or behave incorrectly, including:
+
+- Removing or renaming fields
+- Changing field types
+- Altering the semantics of existing behavior
+- Adding new required fields
+
+## Negotiation
+
+Clients and servers advertise their support for extensions in the `extensions` field within their respective capabilities during the [initialization handshake](/specification/latest/basic/lifecycle).
+
+### Client Capabilities
+
+Clients advertise extension support in the `initialize` request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {
+      "roots": {
+        "listChanged": true
+      },
+      "extensions": {
+        "io.modelcontextprotocol/ui": {
+          "mimeTypes": ["text/html;profile=mcp-app"]
+        }
+      }
+    },
+    "clientInfo": {
+      "name": "ExampleClient",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+### Server Capabilities
+
+Servers advertise extension support in the `initialize` response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {
+      "tools": {},
+      "extensions": {
+        "io.modelcontextprotocol/ui": {}
+      }
+    },
+    "serverInfo": {
+      "name": "ExampleServer",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+Each extension specifies the schema of its settings object; an empty object indicates no settings.
+
+### Graceful Degradation
+
+If one side supports an extension but the other doesn't, the supporting side needs to either fall back to core protocol behavior or reject the request with an appropriate error if the extension is mandatory.
+
+It's a good practice to document expected fallback behavior in your extension. For example, a server offering UI-enhanced tools should still return meaningful text content for clients that don't support the UI extension. On the other hand, a server that requires a specific authentication extension can reject connections from clients that don't support it.
