@@ -40,7 +40,7 @@ The Streamable HTTP transport will require POST requests to include the followin
 
 These headers are **required** for compliance with the MCP version in which they are introduced.
 
-**Server Behavior**: Servers MUST reject requests where the values specified in the headers do not match the values in the request body.
+**Server Behavior**: Servers that process the request body MUST reject requests where the values specified in the headers do not match the values in the request body.
 
 > **Rationale**: This requirement prevents potential security vulnerabilities and error conditions that could arise when different components in the network rely on different sources of truth. For example, a load balancer or gateway might use the header values to make routing decisions, while the MCP server uses the body values for execution. This requirement applies to any network intermediary that processes the message body, as well as the MCP server itself.
 
