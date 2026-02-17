@@ -56,8 +56,6 @@ The current resource specification has several issues that create confusion and 
 - **Inefficient validation**: Checking a single resource's metadata requires paginating through `resources/list`
 - **Inconsistency**: The same logical entity has different representations depending on the operation
 
-This is a recurring pain point across SDK implementations: the C# SDK's `ResourceContents` lacked a `title` field that `Resource` had, blocking OpenAI Apps SDK integration ([csharp-sdk#921](https://github.com/modelcontextprotocol/csharp-sdk/issues/921)); `[McpMeta]` attributes appeared in `resources/list` but were silently dropped from `resources/read` ([csharp-sdk#1228](https://github.com/modelcontextprotocol/csharp-sdk/issues/1228)); the Rust SDK had the inverse asymmetry where `_meta` was available on read contents but not list results ([rust-sdk#557](https://github.com/modelcontextprotocol/rust-sdk/issues/557)). The MCP Apps extension also encountered this as duplicate `_meta` placement, requiring the same UI metadata in both resource registration and read responses ([ext-apps#269](https://github.com/modelcontextprotocol/ext-apps/issues/269), [ext-apps#242](https://github.com/modelcontextprotocol/ext-apps/issues/242)).
-
 ### 2. No Metadata-Only Access
 
 There's no way to refresh metadata for a specific resource without fetching potentially large content. This is problematic for:
@@ -75,15 +73,15 @@ There's no way to refresh metadata for a specific resource without fetching pote
 - Dependent resources like images for a webpage
 - Chunked content
 
-This SEP defines the array's semantics to ensure interoperability. The lack of clarity has been raised multiple times: `EmbeddedResource` returns a single content block while `ReadResourceResult` returns an array with no explanation of the difference ([spec#699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/699)); the broader inconsistency across content type definitions was cataloged in [spec#91](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/91); and an [org discussion](https://github.com/orgs/modelcontextprotocol/discussions/648) asked directly about the correct usage of returning multiple contents from `resources/read`.
+This SEP defines the array's semantics to ensure interoperability.
 
 ### 4. No Per-Resource Capability Discovery
 
-Many servers expose hierarchical resources (filesystems, databases with tables, etc.) but there's no standard way to indicate which operations a specific resource supports. Clients cannot know whether a resource is listable (has children) or subscribable without attempting the operation. Additionally, `subscribe` is currently a server-level capability—either all resources are subscribable or none are—but in practice, servers may only support subscriptions for certain resources. The Everything server has an [open issue](https://github.com/modelcontextprotocol/servers/issues/3130) to add a collection resource example, further demonstrating the need for first-class collection semantics.
+Many servers expose hierarchical resources (filesystems, databases with tables, etc.) but there's no standard way to indicate which operations a specific resource supports. Clients cannot know whether a resource is listable (has children) or subscribable without attempting the operation. Additionally, `subscribe` is currently a server-level capability—either all resources are subscribable or none are—but in practice, servers may only support subscriptions for certain resources.
 
 ### 5. No Way to List Children of a Resource
 
-`resources/list` currently returns a server-determined set of resources with no way to scope the listing. For hierarchical resources (filesystems, databases, etc.), there is no standard mechanism to list only the children of a specific resource. Clients have no reliable way to discover or traverse resource hierarchies. Modeling hierarchical paths in URI templates is also problematic, as path separators in template parameters cause routing issues ([python-sdk#436](https://github.com/modelcontextprotocol/python-sdk/issues/436)).
+`resources/list` currently returns a server-determined set of resources with no way to scope the listing. For hierarchical resources (filesystems, databases, etc.), there is no standard mechanism to list only the children of a specific resource. Clients have no reliable way to discover or traverse resource hierarchies.
 
 ### 6. mimeType Ambiguity
 
