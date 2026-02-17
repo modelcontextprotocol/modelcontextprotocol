@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-01-21
-- **Author(s)**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai), Tadas Antanavicius (@tadasant)
+- **Author(s)**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai), Tadas Antanavicius (@tadasant), Raluca Gruber (@maiargu)
 - **Sponsor**: None
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
 
@@ -88,11 +88,7 @@ This section provides the technical specification for MCP Server Cards.
   "description": "MCP server for Brave Search API integration",
   "title": "Brave Search",
   "websiteUrl": "https://anonymous.modelcontextprotocol.io/examples",
-  "repository": {
-    "url": "https://github.com/modelcontextprotocol/servers",
-    "source": "github",
-    "subfolder": "src/everything"
-  },
+  "repository": { ... },
   "icons": [ ... ],
   "remotes": [ ... ],
   "capabilities":  { ... },
@@ -117,7 +113,8 @@ Fleshed out (contrived values) example:
   "repository": {
     "url": "https://github.com/modelcontextprotocol/servers",
     "source": "github",
-    "subfolder": "src/everything"
+    "subfolder": "src/everything",
+    "id": "b94b5f7e-c7c6-d760-2c78-a5e9b8a5b8c9"
   },
   "icons": [
     {
@@ -257,44 +254,48 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
 3. **description** (string, optional): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
 4. **title** (string, optional): Optional human-readable title or display name for the MCP server.
 5. **websiteUrl** (string, optional): Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
-6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/server.schema.json#L371).
-7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L18).
+6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L371).
+7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L18).
 8. **remotes** (array of object, optional): Metadata helpful for making HTTP-based connections to this MCP server.
    1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
    2. **authentication** (object, optional): Authentication requirements
       1. **required** (boolean, required): Whether authentication is mandatory
       2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
-   3. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
+   3. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L344) for other fields.
 9. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
    1. **experimental** (object, optional): Experimental capabilities
    2. **logging** (object, optional): Log message support
    3. **completions** (object, optional): Argument autocompletion support
    4. **prompts** (object, optional): Prompt template support
-      1. **listChanged** (boolean, optional): Change notification support
+      1. **listChanged** (boolean, optional): Server runtime change notification support for the client when its prompts list has changed
    5. **resources** (object, optional): Resource support
       1. **subscribe** (boolean, optional): Subscription support
-      2. **listChanged** (boolean, optional): Change notification support
+      2. **listChanged** (boolean, optional): Server runtime change notification support for the client when its resources list has changed
    6. **tools** (object, optional): Tool support
-      1. **listChanged** (boolean, optional): Change notification support
+      1. **listChanged** (boolean, optional): Server runtime change notification support for the client when its tools list has changed
 10. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
     1. **experimental** (object, optional): Required experimental capabilities
     2. **roots** (object, optional): Root access requirement
     3. **sampling** (object, optional): LLM sampling requirement
     4. **elicitation** (object, optional): User elicitation requirement
-11. **resources** (string | array, optional): Resource definitions
-    1. If "dynamic": Must be discovered via protocol
-    2. If array: Static list following the `Resource` interface
-12. **tools** (string | array, optional): Tool definitions
-    1. If "dynamic": Must be discovered via protocol
-    2. If array: Static list following the `Tool` interface
-13. **prompts** (string | array, optional): Prompt definitions
-    1. If "dynamic": Must be discovered via protocol
-    2. If array: Static list following the `Prompt` interface
+11. **resources** (array, optional): array of static Resource definitions exposed by the server, array items following the [`Resource`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.json#L2947) JSON Schema
+12. **tools** (array, optional): array of static Tool definitions exposed by the server, array items following the [`Tool`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.json#L3993) JSON Schema
+13. **prompts** (array, optional): array of static Prompt definitions exposed by the server, array items following the [`Prompt`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/schema/draft/schema.json#L2682) JSON Schema
 14. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
-### Dynamic Primitives
+### Primitives
 
-MCP primitives are dynamic in nature and can change. To indicate that a list of primitives is dynamic in nature, authors can provide the reserved string "dynamic" (as an array with a single element) for the resources, tools, or prompts field. This indicates that the full list of primitives must be discovered through the protocol's standard list operations.
+MCP primitives (tools, resources and prompts) are the most important concepts within MCP.
+With the help of the `.well-known` URI a client can discover what primitive capabilities a server can offer.
+
+1. Static Primitives
+
+    The server's available primitives, which would normally be listed in the MCP protocol lifecycle initialization phase (`*/list`), will be listed under the root document `$.tools`, `$.resources`, and `$.prompts` properties.
+
+2. Dynamic Primitives
+
+    To indicate that a list of primitives is dynamic in nature and can change at runtime, authors can set the `$.capabilities.tools.listChanged`, `$.capabilities.resources.listChanged`, or `$.capabilities.prompts.listChanged` boolean to `true`.
+    This indicates that the server will inform the client at runtime when some of its list of primitives has changed.
 
 ### `server.json` Schema
 
@@ -373,7 +374,7 @@ With example values:
 
 1. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
    1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Package.
-   2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
+   2. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L207) for other fields.
 
 See above for the rest.
 
@@ -491,15 +492,16 @@ Server cards are publicly accessible by design. Servers MUST NOT include sensiti
 - Proprietary business logic or algorithms
 - User-specific or session-specific data
 
-### Tool Description Security
+### Primitive Description Security
 
-Exposing tool descriptions in server cards before connection establishment creates an opportunity for clients to perform security analysis. This is a security _improvement_ as it enables:
+Exposing primitive descriptions in server cards before connection establishment creates an opportunity for clients to perform security analysis. This is a security _improvement_ as it enables:
 
-- Offline security scanning of tool capabilities
+- Offline security scanning of server primitives (tools, resources, prompts)
 - Automated classification before user exposure
 - Cached security validations reducing runtime overhead
 
-However, clients MUST still validate that the actual tools provided during initialization match the advertised tools in the server card. Servers MAY omit sensitive tool descriptions from the server card and mark tools as "dynamic" if pre-connection disclosure is undesirable.
+However, clients MUST still validate that the actual primitives provided during initialization lifecycle phase match the advertised primitives in the server card.
+Servers MAY omit sensitive primitives descriptions from the server card and mark primitives as "dynamic" by boolean flag `$.capabilities.tools.listChanged`, `$.capabilities.resources.listChanged`, or `$.capabilities.prompts.listChanged` set to `true`, if pre-connection disclosure is undesirable.
 
 ### CORS Requirements
 
