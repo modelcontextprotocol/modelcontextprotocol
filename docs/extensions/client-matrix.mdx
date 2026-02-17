@@ -1,0 +1,62 @@
+---
+title: Extension Support Matrix
+description: Which MCP clients implement which official extensions
+---
+
+{/* prettier-ignore-start */}
+
+export const CHECK = () => (
+  <span className="flex justify-center">
+    <Icon icon="check" iconType="solid" size={18} className="text-green-500" />
+  </span>
+);
+
+export const DASH = () => (
+  <span className="flex justify-center text-gray-400">—</span>
+);
+
+{/* prettier-ignore-end */}
+
+This matrix shows which MCP clients support each [official extension](/extensions/overview). Extensions are always opt-in — a client only uses an extension if both client and server declare support during the [initialization handshake](/extensions/overview#negotiation).
+
+<Note>
+
+This list is maintained by the community. If you notice any inaccuracies or would like to add or update information, please [submit a pull request](https://github.com/modelcontextprotocol/modelcontextprotocol/pulls).
+
+</Note>
+
+## Extension overview
+
+| Extension                                                                             | Identifier                                                 | Description                                                     |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
+| [MCP Apps](/extensions/apps/overview)                                                 | `io.modelcontextprotocol/ui`                               | Interactive HTML interfaces rendered inline in the conversation |
+| [OAuth Client Credentials](/extensions/auth/oauth-client-credentials)                 | `io.modelcontextprotocol/oauth-client-credentials`         | Machine-to-machine auth without interactive user login          |
+| [Enterprise-Managed Authorization](/extensions/auth/enterprise-managed-authorization) | `io.modelcontextprotocol/enterprise-managed-authorization` | Centralized access control via enterprise IdP                   |
+
+## Support matrix
+
+| Client                                                   | [MCP Apps](/extensions/apps/overview) | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) | [Enterprise Auth](/extensions/auth/enterprise-managed-authorization) |
+| -------------------------------------------------------- | :-----------------------------------: | :-------------------------------------------------------------------: | :------------------------------------------------------------------: |
+| [Claude (web)](https://claude.ai)                        |               <CHECK />               |                                                                       |                                                                      |
+| [Claude Desktop](https://claude.ai/download)             |               <CHECK />               |                                                                       |                                                                      |
+| [VS Code GitHub Copilot](https://code.visualstudio.com/) |               <CHECK />               |                                                                       |                                                                      |
+| [Goose](https://block.github.io/goose/)                  |               <CHECK />               |                                                                       |                                                                      |
+| [Postman](https://postman.com)                           |               <CHECK />               |                                                                       |                                                                      |
+| [MCPJam](https://www.mcpjam.com/)                        |               <CHECK />               |                                                                       |                                                                      |
+
+<Note>
+
+Auth extension support (OAuth Client Credentials and Enterprise-Managed Authorization) is tracked separately from the core MCP authorization features (DCR, CIMD) shown on the [clients page](/clients). Check each extension's specification and the [ext-auth repository](https://github.com/modelcontextprotocol/ext-auth) for the latest implementation status.
+
+</Note>
+
+## Adding extension support to your client
+
+If you're building an MCP client and want to implement extension support:
+
+1. Review the extension specification in the [ext-auth](https://github.com/modelcontextprotocol/ext-auth) or [ext-apps](https://github.com/modelcontextprotocol/ext-apps) repository
+2. Declare support in the `extensions` field of your `initialize` capabilities
+3. Implement the extension's protocol requirements
+4. Submit a pull request to update this matrix
+
+See [Extensions Overview](/extensions/overview#negotiation) for details on the capability negotiation mechanism.
