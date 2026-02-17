@@ -14,6 +14,7 @@ This repository contains the MCP specification, documentation, and blog.
 - When creating flowcharts, and graphs to visualize aspect of the protocol, use mermaid diagrams where
   possible.
 - When writing tables, ensure column headers and columns are aligned with whitespace.
+- Before pushing or creating PR's ensure that `npm run prep` is free of warnings and errors.
 
 ## Specification Versioning
 
