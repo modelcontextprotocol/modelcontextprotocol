@@ -1,4 +1,4 @@
-# SEP-2093: Resource Contents Metadata and Resource Types
+# SEP-2093: Resource Contents Metadata and Resource Capabilities
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -9,17 +9,19 @@
 
 ## Abstract
 
-This SEP proposes five related changes to improve the consistency and usability of MCP resources:
+This SEP proposes six related changes to improve the consistency and usability of MCP resources:
 
 1. **Extend resource contents with full metadata**: Change `TextResourceContents` and `BlobResourceContents` to extend `Resource` instead of `ResourceContents`, making all resource metadata (name, title, description, icons, annotations, size) available in `resources/read` responses.
 
 2. **New `resources/metadata` endpoint**: Introduce a method to fetch resource metadata without retrieving content, enabling efficient conditional loading and metadata refresh.
 
-3. **Introduce `resourceType` field**: Add a `resourceType` enum to `Resource` to distinguish resource kinds (e.g., `"document"` vs `"collection"`), with defined semantics for each.
+3. **Introduce per-resource `capabilities`**: Add a `capabilities` object to `Resource` with `list` (the resource supports `resources/list` to enumerate children) and `subscribe` (the resource supports `resources/subscribe` for change notifications).
 
-4. **Define multi-content semantics**: Specify clear rules for `ReadResourceResult.contents[]` based on the resource type, resolving the current ambiguity around multi-URI returns.
+4. **Extend `resources/list` with optional URI scoping**: Add an optional `uri` parameter to `resources/list` so clients can list children of a specific listable resource.
 
-5. **Remove `EmbeddedResource.annotations`**: Since resource contents now include annotations, remove the redundant top-level annotations field from `EmbeddedResource`.
+5. **Define multi-content semantics**: Specify clear rules for `ReadResourceResult.contents[]` based on the resource's capabilities, resolving the current ambiguity around multi-URI returns.
+
+6. **Remove `EmbeddedResource.annotations`**: Since resource contents now include annotations, remove the redundant top-level annotations field from `EmbeddedResource`.
 
 These changes resolve longstanding semantic ambiguities in the resource APIs.
 
@@ -34,6 +36,8 @@ The current resource specification has several issues that create confusion and 
 - **Staleness**: Clients caching listings have no way to verify if metadata has changed without re-listing all resources
 - **Inefficient validation**: Checking a single resource's metadata requires paginating through `resources/list`
 - **Inconsistency**: The same logical entity has different representations depending on the operation
+
+This is a recurring pain point across SDK implementations: the C# SDK's `ResourceContents` lacked a `title` field that `Resource` had, blocking OpenAI Apps SDK integration ([csharp-sdk#921](https://github.com/modelcontextprotocol/csharp-sdk/issues/921)); `[McpMeta]` attributes appeared in `resources/list` but were silently dropped from `resources/read` ([csharp-sdk#1228](https://github.com/modelcontextprotocol/csharp-sdk/issues/1228)); the Rust SDK had the inverse asymmetry where `_meta` was available on read contents but not list results ([rust-sdk#557](https://github.com/modelcontextprotocol/rust-sdk/issues/557)). The MCP Apps extension also encountered this as duplicate `_meta` placement, requiring the same UI metadata in both resource registration and read responses ([ext-apps#269](https://github.com/modelcontextprotocol/ext-apps/issues/269), [ext-apps#242](https://github.com/modelcontextprotocol/ext-apps/issues/242)).
 
 ### 2. No Metadata-Only Access
 
@@ -52,17 +56,21 @@ There's no way to refresh metadata for a specific resource without fetching pote
 - Dependent resources like images for a webpage
 - Chunked content
 
-This SEP defines the array's semantics to ensure interoperability.
+This SEP defines the array's semantics to ensure interoperability. The lack of clarity has been raised multiple times: `EmbeddedResource` returns a single content block while `ReadResourceResult` returns an array with no explanation of the difference ([spec#699](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/699)); the broader inconsistency across content type definitions was cataloged in [spec#91](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/91); and an [org discussion](https://github.com/orgs/modelcontextprotocol/discussions/648) asked directly about the correct usage of returning multiple contents from `resources/read`.
 
-### 4. No Resource Type Concept
+### 4. No Per-Resource Capability Discovery
 
-Many servers expose hierarchical resources (filesystems, databases with tables, etc.) but there's no standard way to indicate the kind of resource (e.g., a collection/container versus a leaf document). This leads to ambiguity about what `resources/read` should return for directory-like resources.
+Many servers expose hierarchical resources (filesystems, databases with tables, etc.) but there's no standard way to indicate which operations a specific resource supports. Clients cannot know whether a resource is listable (has children) or subscribable without attempting the operation. Additionally, `subscribe` is currently a server-level capability—either all resources are subscribable or none are—but in practice, servers may only support subscriptions for certain resources. The Everything server has an [open issue](https://github.com/modelcontextprotocol/servers/issues/3130) to add a collection resource example, further demonstrating the need for first-class collection semantics.
 
-### 5. mimeType Ambiguity
+### 5. No Way to List Children of a Resource
+
+`resources/list` currently returns a server-determined set of resources with no way to scope the listing. For hierarchical resources (filesystems, databases, etc.), there is no standard mechanism to list only the children of a specific resource. Clients have no reliable way to discover or traverse resource hierarchies. Modeling hierarchical paths in URI templates is also problematic, as path separators in template parameters cause routing issues ([python-sdk#436](https://github.com/modelcontextprotocol/python-sdk/issues/436)).
+
+### 6. mimeType Ambiguity
 
 When `Resource.mimeType` (from listing) differs from `ResourceContents.mimeType` (from reading), the relationship is undefined. Additionally, if a resource supports multiple formats, it's unclear what `Resource.mimeType` should represent.
 
-### 6. Redundant Annotations on EmbeddedResource
+### 7. Redundant Annotations on EmbeddedResource
 
 `EmbeddedResource` has an `annotations` field, but the embedded `resource` (once it extends `Resource`) would also have annotations. This creates confusion about which annotations apply and what happens when they conflict.
 
@@ -97,18 +105,29 @@ export interface BlobResourceContents extends Resource {
 }
 ```
 
-### 2. Add `resourceType` to Resource
+### 2. Add Per-Resource `capabilities`
 
-Add an enum field to `Resource` indicating the kind of resource:
+Add a `capabilities` object to `Resource` indicating which operations the resource supports:
 
 ```typescript
 /**
- * The type of a resource.
- *
- * - `document`: A leaf resource with readable content (e.g., a file, API response).
- * - `collection`: A container resource that may contain other resources (e.g., a directory, database).
+ * Capabilities indicating which operations are supported for a specific resource.
  */
-export type ResourceType = "document" | "collection";
+export interface ResourceCapabilities {
+  /**
+   * If true, this resource supports `resources/list` with its URI to enumerate
+   * child resources. This indicates the resource is a container (e.g., a directory,
+   * database, or other hierarchical grouping).
+   */
+  list?: boolean;
+
+  /**
+   * If true, this resource supports `resources/subscribe` for change notifications.
+   * This provides per-resource granularity beyond the server-level `subscribe`
+   * capability.
+   */
+  subscribe?: boolean;
+}
 
 export interface Resource extends BaseMetadata, Icons {
   /**
@@ -131,17 +150,19 @@ export interface Resource extends BaseMetadata, Icons {
   size?: number;
 
   /**
-   * The type of this resource.
+   * Capabilities indicating which operations are supported for this resource.
    *
-   * - `document`: A leaf resource. `resources/read` MUST return only the requested URI.
-   * - `collection`: A container (like a directory). When reading a collection, the
-   *   `contents` array MAY include child resources with different URIs. For large
-   *   collections, clients SHOULD use `resources/list` with this URI instead.
+   * - `list`: This resource supports `resources/list` to enumerate children.
+   *   When reading a listable resource, the `contents` array MAY include child
+   *   resources with different URIs. For complete access, clients SHOULD use
+   *   `resources/list` with this URI.
+   * - `subscribe`: This resource supports `resources/subscribe` for change
+   *   notifications.
    *
-   * When absent, servers MAY return multiple URIs for backwards compatibility,
-   * but this behavior is deprecated for non-collection resources.
+   * When absent, clients SHOULD NOT assume the resource supports listing or
+   * subscription.
    */
-  resourceType?: ResourceType;
+  capabilities?: ResourceCapabilities;
 
   /**
    * Optional annotations for the client.
@@ -185,20 +206,54 @@ export interface ReadResourceMetadataResult extends Result {
 
 Servers advertising the `resources` capability MUST support this method.
 
-### 4. Multi-Content Semantics
+### 4. Extend `resources/list` with URI Scoping
 
-The `contents` array in `ReadResourceResult` has different semantics based on `resourceType`:
+Add an optional `uri` parameter to `ListResourcesRequest` so clients can list the children of a specific listable resource:
 
-#### For Collection Resources (`resourceType: "collection"`)
+```typescript
+export interface ListResourcesRequestParams extends PaginatedRequestParams {
+  /**
+   * If specified, the server MUST return only resources that are direct children
+   * of the resource identified by this URI. The target resource MUST have
+   * `capabilities.list` set to `true`.
+   *
+   * If omitted, the server returns its default resource list (existing behavior).
+   *
+   * @format uri
+   */
+  uri?: string;
+}
 
-When reading a collection resource:
+export interface ListResourcesRequest extends PaginatedRequest {
+  method: "resources/list";
+  params?: ListResourcesRequestParams;
+}
+```
+
+When `uri` is provided:
+
+1. The server MUST return only direct children of the specified resource
+2. The response uses the existing `ListResourcesResult` format (with pagination support)
+3. If the target resource does not exist or does not have `capabilities.list`, the server SHOULD return an error
+
+This enables efficient traversal of hierarchical resources without requiring the client to infer hierarchy from the default resource list.
+
+> **Note to client implementors**: The resource graph is not guaranteed to be finite or acyclic. A listable resource's children may themselves be listable, and the resulting hierarchy may contain cycles (e.g., symlinks) or be unbounded (e.g., dynamically generated resources). Clients MUST NOT assume that recursively listing all resources will terminate, and SHOULD implement safeguards such as depth limits or visited-URI tracking when traversing resource hierarchies.
+
+### 5. Multi-Content Semantics
+
+The `contents` array in `ReadResourceResult` has different semantics based on the resource's capabilities:
+
+#### For Listable Resources (`capabilities.list: true`)
+
+When reading a listable resource:
 
 1. The `contents` array MAY contain child resources with **different URIs**
 2. Each child resource SHOULD include its own metadata (name, mimeType, etc.)
 3. The array is NOT guaranteed to be complete—large collections may return a subset
-4. For complete and paginated access to children, clients SHOULD use `resources/list` with the collection URI
+4. For complete and paginated access to children, clients SHOULD use `resources/list` with the resource URI
 
-Example collection read response:
+Example listable resource read response:
 
 ```json
 {
@@ -210,14 +265,12 @@ Example collection read response:
         "uri": "file:///projects/src/main.ts",
         "name": "main.ts",
         "mimeType": "text/typescript",
-        "resourceType": "document",
         "text": "import { app } from './app';\n..."
       },
       {
         "uri": "file:///projects/src/app.ts",
         "name": "app.ts",
         "mimeType": "text/typescript",
-        "resourceType": "document",
         "text": "export const app = ..."
       }
     ]
@@ -225,9 +278,9 @@ Example collection read response:
 }
 ```
 
-#### For Document Resources (`resourceType: "document"`)
+#### For Non-Listable Resources
 
-When reading a non-collection resource:
+When reading a resource without `capabilities.list`:
 
 1. The `contents` array MUST contain **at least one element**
 2. All elements MUST have the **same URI** (the one requested)
@@ -235,7 +288,7 @@ When reading a non-collection resource:
 4. Metadata fields (name, title, description, annotations) SHOULD be consistent across elements
 5. The `size` field, if present, SHOULD reflect the size of that specific representation
 
-Example document read response with format alternatives:
+Example read response with format alternatives:
 
 ```json
 {
@@ -247,7 +300,6 @@ Example document read response with format alternatives:
         "uri": "file:///docs/report.pdf",
         "name": "Quarterly Report",
         "mimeType": "application/pdf",
-        "resourceType": "document",
         "size": 102400,
         "blob": "JVBERi0xLjQK..."
       },
@@ -255,7 +307,6 @@ Example document read response with format alternatives:
         "uri": "file:///docs/report.pdf",
         "name": "Quarterly Report",
         "mimeType": "text/plain",
-        "resourceType": "document",
         "size": 8192,
         "text": "Extracted text content of the PDF..."
       }
@@ -264,25 +315,25 @@ Example document read response with format alternatives:
 }
 ```
 
-#### When `resourceType` is Absent (Backwards Compatibility)
+#### When `capabilities` is Absent (Backwards Compatibility)
 
-For resources where `resourceType` is not specified:
+For resources where `capabilities` is not specified:
 
 1. Servers MAY return multiple URIs in the `contents` array
-2. This behavior is **DEPRECATED** for non-collection resources
-3. New implementations SHOULD always specify `resourceType`
+2. This behavior is **DEPRECATED** for non-listable resources
+3. New implementations SHOULD always specify `capabilities`
 4. Clients SHOULD handle multiple URIs gracefully but MAY treat the first element as primary
 
-### 5. Resource.mimeType Semantics
+### 6. Resource.mimeType Semantics
 
 When a resource supports multiple formats:
 
 - `Resource.mimeType` in `resources/list` represents the **primary or preferred** format
 - Clients can discover all available formats via `resources/read` or `resources/metadata`
 - If no primary format exists, `mimeType` MAY be omitted
-- For collections, `mimeType` MAY indicate the collection type (e.g., `inode/directory`) or be omitted
+- For listable resources, `mimeType` MAY indicate the container type (e.g., `inode/directory`) or be omitted
 
-### 6. Remove EmbeddedResource.annotations
+### 7. Remove EmbeddedResource.annotations
 
 Since `TextResourceContents` and `BlobResourceContents` now extend `Resource`, they inherit the `annotations` field. To avoid redundancy and confusion, the `annotations` field is removed from `EmbeddedResource`:
 
@@ -315,7 +366,7 @@ We considered adding a `metadataOnly` flag to `resources/read`, but a separate m
 - Makes capability discovery explicit
 - Follows REST-like principles (different operations = different methods)
 
-### Why a `resourceType` Enum?
+### Why Per-Resource Capabilities?
 
 Analysis of multi-content usage across MCP server implementations revealed the following patterns:
 
@@ -329,26 +380,31 @@ Analysis of multi-content usage across MCP server implementations revealed the f
 | Search Results      | Vector store search returning top 3 matches                                  | 4%  |
 | Header + Items      | Status message + error list, data + user context                             | 4%  |
 
-The dominant use case (65%) is returning collection contents—child resources with different URIs. The `resourceType` field legitimizes this pattern while providing clear semantics.
+The dominant use case (65%) is returning collection contents—child resources with different URIs. The `capabilities.list` field legitimizes this pattern while providing clear semantics.
 
-We considered several alternatives for distinguishing resource kinds:
+A capabilities-based approach was chosen over a type-based approach (e.g., a `resourceType` enum) for several reasons:
 
-1. **Use mimeType (e.g., `inode/directory`)** - mimeType describes content format, not resource semantics; mixing concerns
-2. **Infer from URI patterns** - Unreliable; not all collections end with `/`
-3. **Boolean `isCollection` flag** - Works but not extensible; a boolean can't accommodate future resource kinds
-4. **Separate resource interfaces** - Would require larger schema changes and a discriminated union
+1. **Capabilities describe what you can _do_, not what something _is_**: A resource may be both readable and listable (e.g., a directory that has its own summary content). A type enum would force a single classification.
+2. **Per-resource `subscribe`**: Subscription support is currently a server-level boolean, but in practice servers often only support subscriptions for certain resources. Per-resource capabilities allow clients to know upfront which resources are subscribable.
+3. **Extensible without new types**: Future operations (e.g., streaming, chunking, seeking) can be added as new capability fields without changing an enum or introducing new resource kinds.
+4. **Mirrors server capabilities pattern**: MCP already uses capability objects for server-level feature discovery; applying the same pattern at the resource level is consistent.
 
-An enum is explicit about intent, avoids the "boolean trap" (callers must remember what `true` means), and is extensible for future resource kinds without additional fields.
+We considered several alternatives:
 
-### Why Allow Multi-URI Returns for Collections?
+1. **`resourceType` enum (`"document"` | `"collection"`)** - Forces a single classification; a resource that is both listable and readable doesn't fit cleanly into either category
+2. **Use mimeType (e.g., `inode/directory`)** - mimeType describes content format, not resource semantics; mixing concerns
+3. **Infer from URI patterns** - Unreliable; not all collections end with `/`
+4. **Boolean `isCollection` flag** - Only addresses one dimension; doesn't help with subscribe granularity
 
-While the ideal API would have `resources/read` return only the requested URI (using `resources/list` for collection contents), existing implementations return child resources directly. The `resourceType` field allows us to:
+### Why Allow Multi-URI Returns for Listable Resources?
+
+While the ideal API would have `resources/read` return only the requested URI (using `resources/list` for collection contents), existing implementations return child resources directly. The `capabilities.list` field allows us to:
 
 1. Legitimize existing collection behavior
-2. Deprecate multi-URI returns for non-collections
+2. Deprecate multi-URI returns for non-listable resources
 3. Provide a clear migration path toward stricter semantics
 
-### Why Deprecate Multi-URI for Non-Collections?
+### Why Deprecate Multi-URI for Non-Listable Resources?
 
 Returning unrelated URIs from a read operation violates the principle of least surprise. When I call `read(X)`, I expect to get `X` back—not `Y` and `Z`. The deprecation guides implementations toward the correct pattern while maintaining backwards compatibility.
 
@@ -371,14 +427,14 @@ Most changes in this proposal are backwards compatible. The removal of `Embedded
 - All new fields in `resources/read` responses are optional
 - Clients can ignore fields they don't recognize
 - Existing code continues to work unchanged
-- Clients SHOULD handle `resourceType` but absence is valid (backwards compat)
+- Clients SHOULD handle `capabilities` but absence is valid (backwards compat)
 
 ### For Servers
 
 - Servers SHOULD provide metadata fields when available, but they remain optional
 - Servers with the `resources` capability MUST implement the new `resources/metadata` method
-- Servers SHOULD set `resourceType` on all resources
-- Servers returning multiple URIs for non-collections SHOULD migrate to `resourceType: "collection"` or single-URI returns
+- Servers SHOULD set `capabilities` on all resources
+- Servers returning multiple URIs for non-listable resources SHOULD migrate to `capabilities: { list: true }` or single-URI returns
 
 ### EmbeddedResource.annotations Removal
 
@@ -390,22 +446,11 @@ The removal of `EmbeddedResource.annotations` is a breaking change at the schema
 
 This allows existing code to continue working while the protocol itself has a single, unambiguous location for annotations.
 
-### Migration Path
-
-1. Servers should start including metadata in `resources/read` responses
-2. Servers should set `resourceType` on all resources
-3. Servers should implement `resources/metadata`
-4. Servers returning multiple URIs for non-collections should either:
-   - Mark the resource as `resourceType: "collection"` if it's genuinely a collection
-   - Return only the requested URI if it's not a collection
-5. Clients can gradually adopt the new fields and method
-6. SDKs should implement the compatibility shim for `EmbeddedResource.annotations`
-
 ## Security Implications
 
 This proposal introduces no new security concerns:
 
 - All information exposed via `resources/read` metadata was already available via `resources/list`
 - The `resources/metadata` endpoint exposes no new information
-- The `resourceType` field exposes no new information
+- The `capabilities` field exposes no new information beyond what was already discoverable
 - Access controls should already be in place for resource access
