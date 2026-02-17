@@ -18,19 +18,18 @@ visualizations, forms, dashboards) that render directly in the chat.
 You could build a standalone web app and send users a link. However, MCP Apps
 offer these key advantages that a separate page can't match:
 
-**Context preservation.** The app lives inside the conversation. Users don't
-switch tabs, lose their place, or wonder which chat thread had that dashboard.
-The UI is right there, alongside the discussion that led to it.
-
-**Bidirectional data flow.** Your app can call any tool on the MCP server, and
-the host can push fresh results to your app. A standalone web app would need its
-own API, authentication, and state management. MCP Apps get this via existing
-MCP patterns.
-**Integration with the host's capabilities**. The app can delegate actions to the host, which can then invoke the capabilities and tools the user has already connected (subject to user consent). Instead of every app implementing and maintaining direct integrations (e.g., email providers), the app can request an outcome (like "schedule this meeting"), and the host routes it through the user's existing connected capabilities.
-**Security guarantees.** MCP Apps run in a sandboxed iframe controlled by the
-host. They can't access the parent page, steal cookies, or escape their
-container. This means hosts can safely render third-party apps without trusting
-the server author completely.
+- **Context preservation.** The app lives inside the conversation. Users don't
+  switch tabs, lose their place, or wonder which chat thread had that dashboard.
+  The UI is right there, alongside the discussion that led to it.
+- **Bidirectional data flow.** Your app can call any tool on the MCP server, and
+  the host can push fresh results to your app. A standalone web app would need its
+  own API, authentication, and state management. MCP Apps get this via existing
+  MCP patterns.
+- **Integration with the host's capabilities**. The app can delegate actions to the host, which can then invoke the capabilities and tools the user has already connected (subject to user consent). Instead of every app implementing and maintaining direct integrations (e.g., email providers), the app can request an outcome (like "schedule this meeting"), and the host routes it through the user's existing connected capabilities.
+- **Security guarantees.** MCP Apps run in a sandboxed iframe controlled by the
+  host. They can't access the parent page, steal cookies, or escape their
+  container. This means hosts can safely render third-party apps without trusting
+  the server author completely.
 
 If your use case doesn't benefit from these properties, a regular web app might
 be simpler. But if you want tight integration with the LLM-based conversation,
@@ -137,10 +136,9 @@ the host's cookies or local storage, navigating the parent page, or executing
 scripts in the parent context.
 
 All communication between your app and the host goes through the
-[postMessage API](https://developer.mozilla.org/docs/Web/API/Window/postMessage),
-which the `App` class shown above abstracts for you. The host controls which
-capabilities your app can access. For example, a host might restrict which tools
-an app can call or disable the `sendOpenLink` capability.
+[postMessage API](https://developer.mozilla.org/docs/Web/API/Window/postMessage). 
+The host controls which capabilities your app can access. For example, a host 
+might restrict which tools an app can call or disable the `sendOpenLink` capability.
 
 The sandbox is designed to prevent apps from escaping to access the host or user data.
 
@@ -155,7 +153,7 @@ framework or none at all.
 
 The `App` class from `@modelcontextprotocol/ext-apps` is a convenience wrapper,
 not a requirement. You can implement the
-[postMessage protocol](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx)
+[postMessage protocol](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
 directly if you prefer to avoid dependencies or need tighter control.
 
 The [examples directory](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples)
@@ -174,7 +172,7 @@ MCP Apps is an extension to the [core MCP specification](/specification). Host s
 
 MCP Apps are currently supported by [Claude](https://claude.ai),
 [Claude Desktop](https://claude.ai/download),
-[Visual Studio Code (Insiders)](https://code.visualstudio.com/insiders), [Goose](https://block.github.io/goose/), [Postman](https://postman.com), and [MCPJam](https://www.mcpjam.com/). See the
+[VS Code GitHub Copilot](https://code.visualstudio.com/), [Goose](https://block.github.io/goose/), [Postman](https://postman.com), and [MCPJam](https://www.mcpjam.com/). See the
 [client matrix](/extensions/client-matrix) for the full list of extension support across clients.
 
 If you're building an MCP client and want to support MCP Apps, you have two options:

@@ -561,7 +561,7 @@
     },
     {
       "source": "/docs/extensions/apps",
-      "destination": "/extensions/apps/build"
+      "destination": "/extensions/apps/overview"
     }
   ],
   "contextual": {
