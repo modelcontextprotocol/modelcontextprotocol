@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP clarifies that server-to-client requests (e.g. `sampling/createMessage, `elicitation/create`) requests **MUST** be associated with an originating client-to-server request (e.g., during `tools/call`, `resources/read`, or `prompts/get` processing). Standalone server-initiated requests outside notifications **MUST NOT** be implemented.
+This SEP clarifies that server-to-client requests (e.g. `sampling/createMessage`, `elicitation/create`) requests **MUST** be associated with an originating client-to-server request (e.g., during `tools/call`, `resources/read`, or `prompts/get` processing). Standalone server-initiated requests outside notifications **MUST NOT** be implemented.
 
 Although not enforced in the current MCP Data Layer, logically any server-to-client request **MUST** be associated with a valid client-to-server JSON-RPC Request Id.
 
@@ -33,7 +33,7 @@ Although the GET stream allows "unsolicited" requests, it's use is entirely opti
 
 ### Design Intent
 
-The design intent of MCP Server Reqeusts is to operate reactively **nested within** other MCP operations:
+The design intent of MCP Server Requests is to operate reactively **nested within** other MCP operations:
 
 - **Sampling** enables servers to request LLM assistance while processing a tool call, resource request, or prompt
 - **Elicitation** enables servers to gather additional user input needed to complete an operation
