@@ -9,9 +9,17 @@
 
 ## Abstract
 
-This SEP clarifies that server-to-client requests (e.g. `sampling/createMessage`, `elicitation/create`) requests **MUST** be associated with an originating client-to-server request (e.g., during `tools/call`, `resources/read`, or `prompts/get` processing). Standalone server-initiated requests outside notifications **MUST NOT** be implemented.
+This SEP clarifies that interactive server-to-client requests (e.g.
+`sampling/createMessage`, `elicitation/create`) **MUST** be associated with an
+originating client-to-server request (e.g., during `tools/call`,
+`resources/read`, or `prompts/get` processing). Standalone server-initiated
+interactive requests outside notifications **MUST NOT** be implemented.
 
-Although not enforced in the current MCP Data Layer, logically any server-to-client request **MUST** be associated with a valid client-to-server JSON-RPC Request Id.
+Although not enforced in the current MCP Data Layer, logically these
+interactive server-to-client requests **MUST** be associated with a valid
+client-to-server JSON-RPC Request Id.
+
+The operational server-to-client **Ping** is excepted from this restriction.
 
 ## Motivation
 
@@ -101,14 +109,20 @@ Standalone server-initiated elicitation on independent communication streams (un
 </Warning>
 ```
 
-**In `base/utilities/ping.mdx` (In `Overview` section):**
+**In `basic/utilities/ping.mdx` (In `Overview` section):**
 
 ```markdown
 <Warning>
 
-Servers **MUST** send `ping` requests only in association with an outstanding client request (e.g., during `tools/call`, `resources/read`, or `prompts/get` processing).
+`ping` is an MCP-level liveness check and **MAY** be sent by either party at
+any time on an established session/connection.
 
-Standalone server-initiated elicitation on independent communication streams (unrelated to any client request) is not supported and **MUST NOT** be implemented. Future transport implementations are not required to support this pattern.
+In Streamable HTTP, implementations **SHOULD** prefer transport-level SSE
+keepalive mechanisms for idle-connection maintenance; `ping` remains available
+for protocol-level responsiveness checks.
+
+Request-association requirements for interactive server-to-client requests (such
+as `sampling/createMessage` and `elicitation/create`) do not apply to `ping`.
 
 </Warning>
 ```
@@ -203,7 +217,11 @@ When an MCP Server initiates a "nested" request inside a client request, the dur
 Implementers **MUST** ensure that:
 
 1. Transport timeouts (e.g. HTTP Request Timeout) are sufficient to accommodate "Human-in-the-loop" delays, which may be unbounded.
-2. Short timeouts enforced by infrastructure (e.g. Load Balancers) may result in connection termination before the user responds. Ping Requests **SHOULD** be used to keep the connection alive and reset timers.
+2. Short timeouts enforced by infrastructure (e.g. Load Balancers) may result in
+   connection termination before the user responds. For Streamable HTTP,
+   transport-level SSE keepalive mechanisms **SHOULD** be used to keep
+   connections alive and reset timers; `ping` requests **MAY** additionally be
+   used for protocol-level responsiveness checks.
 
 ### For Client Implementers
 

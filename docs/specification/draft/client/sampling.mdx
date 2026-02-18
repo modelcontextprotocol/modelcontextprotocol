@@ -35,6 +35,20 @@ Applications **SHOULD**:
 
 </Warning>
 
+<Warning>
+
+**Request Association Requirement**
+
+Servers **MUST** send `sampling/createMessage` requests only in association with an
+originating client request (e.g., during `tools/call`, `resources/read`, or
+`prompts/get` processing).
+
+Standalone server-initiated sampling on independent communication streams (unrelated
+to any client request) is not supported and **MUST NOT** be implemented. Future
+transport implementations are not required to support this pattern.
+
+</Warning>
+
 ## Tools in Sampling
 
 Servers can request that the client's LLM use tools during sampling by providing a `tools` array and optional `toolChoice` configuration in their sampling requests. The tool definitions in the `tools` array are scoped to the sampling request — they don't need to correspond to registered tools. This enables servers to implement agentic behaviors where the LLM can call specially designated tools, receive results, and continue the conversation - all within a single sampling request flow.

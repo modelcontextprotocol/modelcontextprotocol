@@ -24,6 +24,20 @@ However, implementations are free to expose roots through any interface pattern 
 suits their needs&mdash;the protocol itself does not mandate any specific user
 interaction model.
 
+<Warning>
+
+Servers **MUST** send server-to-client requests (such as
+`sampling/createMessage` or `elicitation/create`) only in association with an
+originating client request (e.g., during `tools/call`, `resources/read`, or
+`prompts/get` processing).
+
+Standalone server-initiated elicitation on independent communication streams
+(unrelated to any client request) is not supported and **MUST NOT** be
+implemented. Future transport implementations are not required to support this
+pattern.
+
+</Warning>
+
 ## Capabilities
 
 Clients that support roots **MUST** declare the `roots` capability during

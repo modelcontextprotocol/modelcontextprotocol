@@ -120,7 +120,9 @@ MCP endpoint.
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
      JSON-RPC _response_. These messages **SHOULD** relate to the originating client
-     _request_.
+     _request_. In particular, `sampling/createMessage`, `elicitation/create` and `roots/list`
+     requests **MUST** only be sent in this context (associated with a client
+     request).
    - The server **MAY** terminate the SSE stream if the [session](#session-management)
      expires.
    - After the JSON-RPC _response_ has been sent, the server **SHOULD** terminate the
@@ -145,9 +147,10 @@ MCP endpoint.
    **MUST** include an `Allow` header listing the methods it does support (e.g.,
    `Allow: POST`).
 4. If the server initiates an SSE stream:
-   - The server **MAY** send JSON-RPC _requests_ and _notifications_ on the stream.
+   - The server **MAY** send JSON-RPC _notifications_ and _pings_ on the stream.
    - These messages **SHOULD** be unrelated to any concurrently-running JSON-RPC
-     _request_ from the client.
+     _request_ from the client, **except** that `sampling/createMessage` and
+     `elicitation/create` requests **MUST NOT** be sent on standalone streams.
    - The server **MUST NOT** send a JSON-RPC _response_ on the stream **unless**
      [resuming](#resumability-and-redelivery) a stream associated with a previous client
      request.
