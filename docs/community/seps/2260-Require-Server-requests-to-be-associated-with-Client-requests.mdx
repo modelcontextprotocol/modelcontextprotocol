@@ -28,15 +28,14 @@ description: "Require Server requests to be associated with a Client request."
 
 ## Abstract
 
-This SEP clarifies that interactive server-to-client requests (e.g.
-`sampling/createMessage`, `elicitation/create`) **MUST** be associated with an
-originating client-to-server request (e.g., during `tools/call`,
-`resources/read`, or `prompts/get` processing). Standalone server-initiated
-interactive requests outside notifications **MUST NOT** be implemented.
+This SEP clarifies that `roots/list`, `sampling/createMessage`, and
+`elicitation/create` requests **MUST** be associated with an originating
+client-to-server request (e.g., during `tools/call`, `resources/read`, or
+`prompts/get` processing). Standalone server-initiated requests of these types
+outside notifications **MUST NOT** be implemented.
 
-Although not enforced in the current MCP Data Layer, logically these
-interactive server-to-client requests **MUST** be associated with a valid
-client-to-server JSON-RPC Request Id.
+Although not enforced in the current MCP Data Layer, logically these requests
+**MUST** be associated with a valid client-to-server JSON-RPC Request Id.
 
 The operational server-to-client **Ping** is excepted from this restriction.
 
@@ -109,9 +108,15 @@ Standalone server-initiated sampling on independent communication streams (unrel
 
 **Request Association Requirement**
 
-Servers **MUST** send server-to-client requests (such as `sampling/createMessage` or `elicitation/create`) only in association with an originating client request (e.g., during `tools/call`, `resources/read`, or `prompts/get` processing).
+Servers **MUST** send server-to-client requests (such as `roots/list`,
+`sampling/createMessage`, or `elicitation/create`) only in association with an
+originating client request (e.g., during `tools/call`, `resources/read`, or
+`prompts/get` processing).
 
-Standalone server-initiated elicitation on independent communication streams (unrelated to any client request) is not supported and **MUST NOT** be implemented. Future transport implementations are not required to support this pattern.
+Standalone server-initiated requests of these types on independent
+communication streams (unrelated to any client request) are not supported and
+**MUST NOT** be implemented. Future transport implementations are not required
+to support this pattern.
 
 </Warning>
 ```
@@ -121,9 +126,15 @@ Standalone server-initiated elicitation on independent communication streams (un
 ```markdown
 <Warning>
 
-Servers **MUST** send server-to-client requests (such as `sampling/createMessage` or `elicitation/create`) only in association with an originating client request (e.g., during `tools/call`, `resources/read`, or `prompts/get` processing).
+Servers **MUST** send server-to-client requests (such as `roots/list`,
+`sampling/createMessage`, or `elicitation/create`) only in association with an
+originating client request (e.g., during `tools/call`, `resources/read`, or
+`prompts/get` processing).
 
-Standalone server-initiated elicitation on independent communication streams (unrelated to any client request) is not supported and **MUST NOT** be implemented. Future transport implementations are not required to support this pattern.
+Standalone server-initiated requests of these types on independent
+communication streams (unrelated to any client request) are not supported and
+**MUST NOT** be implemented. Future transport implementations are not required
+to support this pattern.
 
 </Warning>
 ```
@@ -140,8 +151,8 @@ In Streamable HTTP, implementations **SHOULD** prefer transport-level SSE
 keepalive mechanisms for idle-connection maintenance; `ping` remains available
 for protocol-level responsiveness checks.
 
-Request-association requirements for interactive server-to-client requests (such
-as `sampling/createMessage` and `elicitation/create`) do not apply to `ping`.
+Request-association requirements for `roots/list`, `sampling/createMessage`,
+and `elicitation/create` do not apply to `ping`.
 
 </Warning>
 ```
@@ -155,10 +166,10 @@ as `sampling/createMessage` and `elicitation/create`) do not apply to `ping`.
 - JSON-RPC _response_. These messages **SHOULD** relate to the originating client
 - _request_.
 + The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
-+ JSON-RPC _response_. These messages **SHOULD** relate to the originating client
-+ _request_.  In particular, `sampling/createMessage`, `elicitation/create` and `roots/list`
-     requests **MUST** only be sent in this context (associated with a client
-     request).
++ JSON-RPC _response_. These messages **MUST** relate to the originating client
++ _request_. In particular, `roots/list`, `sampling/createMessage`, and
++ `elicitation/create` requests **MUST** only be sent in this context
++ (associated with a client request).
 ```
 
 **In `basic/transports.mdx`, GET-initiated standalone SSE streams (line ~147):**
@@ -169,8 +180,9 @@ as `sampling/createMessage` and `elicitation/create`) do not apply to `ping`.
 - _request_ from the client.
 + The server **MAY** send JSON-RPC _notifications_ and _pings_ on the stream.
 + These messages **SHOULD** be unrelated to any concurrently-running JSON-RPC
-+ _request_ from the client, **except** that `sampling/createMessage` and
-+ `elicitation/create` requests **MUST NOT** be sent on standalone streams.
++ _request_ from the client, **except** that `roots/list`,
++ `sampling/createMessage`, and `elicitation/create` requests **MUST NOT** be
++ sent on standalone streams.
 ```
 
 ## Backward Compatibility

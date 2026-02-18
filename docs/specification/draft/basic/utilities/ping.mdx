@@ -23,8 +23,8 @@ In Streamable HTTP, implementations **SHOULD** prefer transport-level SSE
 keepalive mechanisms for idle-connection maintenance; `ping` remains available
 for protocol-level responsiveness checks.
 
-Request-association requirements for interactive server-to-client requests (such
-as `sampling/createMessage` and `elicitation/create`) do not apply to `ping`.
+Request-association requirements for `roots/list`,
+`sampling/createMessage`, and `elicitation/create` do not apply to `ping`.
 
 </Warning>
 
