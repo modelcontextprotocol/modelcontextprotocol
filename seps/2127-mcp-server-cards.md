@@ -254,14 +254,14 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
 3. **description** (string, optional): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
 4. **title** (string, optional): Optional human-readable title or display name for the MCP server.
 5. **websiteUrl** (string, optional): Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
-6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L371).
-7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L18).
+6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L371).
+7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L18).
 8. **remotes** (array of object, optional): Metadata helpful for making HTTP-based connections to this MCP server.
    1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
    2. **authentication** (object, optional): Authentication requirements
       1. **required** (boolean, required): Whether authentication is mandatory
       2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
-   3. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L344) for other fields.
+   3. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
 9. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
    1. **experimental** (object, optional): Experimental capabilities
    2. **logging** (object, optional): Log message support
@@ -374,7 +374,7 @@ With example values:
 
 1. **packages** (array of object, optional): Metadata helpful for running and connecting to local instances of this MCP server.
    1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Package.
-   2. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/draft/server.schema.json#L207) for other fields.
+   2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L207) for other fields.
 
 See above for the rest.
 
