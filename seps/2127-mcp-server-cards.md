@@ -290,12 +290,12 @@ With the help of the `.well-known` URI a client can discover what primitive capa
 
 1. Static Primitives
 
-    The server's available primitives, which would normally be listed in the MCP protocol lifecycle initialization phase (`*/list`), will be listed under the root document `$.tools`, `$.resources`, and `$.prompts` properties.
+   The server's available primitives, which would normally be listed in the MCP protocol lifecycle initialization phase (`*/list`), will be listed under the root document `$.tools`, `$.resources`, and `$.prompts` properties.
 
 2. Dynamic Primitives
 
-    To indicate that a list of primitives is dynamic in nature and can change at runtime, authors can set the `$.capabilities.tools.listChanged`, `$.capabilities.resources.listChanged`, or `$.capabilities.prompts.listChanged` boolean to `true`.
-    This indicates that the server will inform the client at runtime when some of its list of primitives has changed.
+   To indicate that a list of primitives is dynamic in nature and can change at runtime, authors can set the `$.capabilities.tools.listChanged`, `$.capabilities.resources.listChanged`, or `$.capabilities.prompts.listChanged` boolean to `true`.
+   This indicates that the server will inform the client at runtime when some of its list of primitives has changed.
 
 ### `server.json` Schema
 
