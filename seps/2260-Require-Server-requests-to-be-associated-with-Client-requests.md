@@ -148,7 +148,7 @@ and `elicitation/create` do not apply to `ping`.
 - _request_.
 + The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
 + JSON-RPC _response_. These messages **MUST** relate to the originating client
-+ _request_. 
++ _request_.
 ```
 
 **In `basic/transports.mdx`, GET-initiated standalone SSE streams (line ~147):**
