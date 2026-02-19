@@ -45,11 +45,11 @@ The operational server-to-client **Ping** is excepted from this restriction.
 
 The current specification uses **SHOULD** language in the transport layer:
 
-In context of responding to a POST Request in the Streamable HTTP transport [(2025-11-25/basic/transports.mdx:121-L123)](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/d02d768ec849ccee4ab38b4cc17f85db079da592/docs/specification/2025-11-25/basic/transports.mdx?plain=1#L121-L123):
+In context of responding to a POST Request in the Streamable HTTP transport [(2025-11-25/basic/transports.mdx:121-L123)](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/2025-11-25/docs/specification/2025-11-25/basic/transports.mdx?plain=1#L121-L123):
 
 > - "The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the JSON-RPC _response_. These messages **SHOULD** relate to the originating client _request_."
 
-For the optional GET SSE Stream [(2025-11-25/basic/transports.mdx:146-L148)](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/d02d768ec849ccee4ab38b4cc17f85db079da592/docs/specification/2025-11-25/basic/transports.mdx?plain=1#L146C1-L148C32):
+For the optional GET SSE Stream [(2025-11-25/basic/transports.mdx:146-L148)](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/2025-11-25/docs/specification/2025-11-25/basic/transports.mdx?plain=1#L146C1-L148C32):
 
 > - "The server **MAY** send JSON-RPC _requests_ and _notifications_ on the stream."
 > - "These messages **SHOULD** be unrelated to any concurrently-running JSON-RPC _request_ from the client."
@@ -167,9 +167,7 @@ and `elicitation/create` do not apply to `ping`.
 - _request_.
 + The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
 + JSON-RPC _response_. These messages **MUST** relate to the originating client
-+ _request_. In particular, `roots/list`, `sampling/createMessage`, and
-+ `elicitation/create` requests **MUST** only be sent in this context
-+ (associated with a client request).
++ _request_.
 ```
 
 **In `basic/transports.mdx`, GET-initiated standalone SSE streams (line ~147):**
@@ -257,7 +255,9 @@ Implementers **MUST** ensure that:
 
 ### For Client Implementers
 
-**No changes required** - Clients should already handle sampling/elicitation requests in the context of their own outbound requests. Potential to simplify implementations if out-of-band supported.
+**No changes required** - Clients should already handle sampling/elicitation requests in the context of their own outbound requests. Potential to simplify implementations if out-of-band is currently supported.
+
+Clients recieving server-to-client requests with no associated outbound request **SHOULD** respond with a `-32602` (Invalid Params) error.
 
 ### For Transport Implementers
 
