@@ -41,6 +41,22 @@ MCP clients **MUST**:
 
 </Warning>
 
+<Warning>
+
+**Request Association Requirement**
+
+Servers **MUST** send server-to-client requests (such as
+`roots/list`, `sampling/createMessage`, or `elicitation/create`) only in
+association with an originating client request (e.g., during `tools/call`,
+`resources/read`, or `prompts/get` processing).
+
+Standalone server-initiated requests of these types on independent
+communication streams (unrelated to any client request) are not supported and
+**MUST NOT** be implemented. Future transport implementations are not required
+to support this pattern.
+
+</Warning>
+
 ## Capabilities
 
 Clients that support elicitation **MUST** declare the `elicitation` capability during
@@ -693,6 +709,7 @@ Servers **MUST** return standard JSON-RPC errors for common failure cases:
 Clients **MUST** return standard JSON-RPC errors for common failure cases:
 
 - Server sends an `elicitation/create` request with a mode not declared in client capabilities: `-32602` (Invalid params)
+- Server sends an `elicitation/create` request with no associated client-to-server request: `-32602` (Invalid params)
 
 ## Security Considerations
 
