@@ -120,9 +120,7 @@ MCP endpoint.
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
      JSON-RPC _response_. These messages **MUST** relate to the originating client
-     _request_. In particular, `roots/list`, `sampling/createMessage`, and
-     `elicitation/create` requests **MUST** only be sent in this context
-     (associated with a client request).
+     _request_.
    - The server **MAY** terminate the SSE stream if the [session](#session-management)
      expires.
    - After the JSON-RPC _response_ has been sent, the server **SHOULD** terminate the

@@ -158,6 +158,7 @@ Example roots for different use cases:
 Clients **SHOULD** return standard JSON-RPC errors for common failure cases:
 
 - Client does not support roots: `-32601` (Method not found)
+- Server sends a `roots/list` request with no associated client-to-server request: `-32602` (Invalid params)
 - Internal errors: `-32603`
 
 Example error:

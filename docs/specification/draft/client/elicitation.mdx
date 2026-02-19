@@ -709,6 +709,7 @@ Servers **MUST** return standard JSON-RPC errors for common failure cases:
 Clients **MUST** return standard JSON-RPC errors for common failure cases:
 
 - Server sends an `elicitation/create` request with a mode not declared in client capabilities: `-32602` (Invalid params)
+- Server sends an `elicitation/create` request with no associated client-to-server request: `-32602` (Invalid params)
 
 ## Security Considerations
 

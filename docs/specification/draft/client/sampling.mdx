@@ -673,6 +673,7 @@ Clients **SHOULD** return errors for common failure cases:
 - User rejected sampling request: `-1`
 - Tool result missing in request: `-32602` (Invalid params)
 - Tool results mixed with other content: `-32602` (Invalid params)
+- Sampling request not associated with a client-to-server request: `-32602` (Invalid params)
 
 Example errors:
 
