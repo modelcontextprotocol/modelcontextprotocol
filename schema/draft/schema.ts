@@ -1622,11 +1622,6 @@ export interface ToolListChangedNotification extends JSONRPCNotification {
  */
 export interface ToolAnnotations {
   /**
-   * A human-readable title for the tool.
-   */
-  title?: string;
-
-  /**
    * If true, the tool does not modify its environment.
    *
    * Default: false
