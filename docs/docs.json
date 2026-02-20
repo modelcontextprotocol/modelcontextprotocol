@@ -417,6 +417,12 @@
                   "community/seps/2085-governance-succession-and-amendment",
                   "community/seps/2133-extensions"
                 ]
+              },
+              {
+                "group": "Draft",
+                "pages": [
+                  "community/seps/2278-supported-modalities-for-sampling"
+                ]
               }
             ]
           },
