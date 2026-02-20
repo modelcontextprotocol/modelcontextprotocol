@@ -1,0 +1,935 @@
+---
+title: "SEP-1928: Progressive Disclosure for Typed Library Discovery & Introspection"
+sidebarTitle: "SEP-1928: Progressive Disclosure for Typed Librar…"
+description: "Progressive Disclosure for Typed Library Discovery & Introspection"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 1928                                                                            |
+| **Title**     | Progressive Disclosure for Typed Library Discovery & Introspection              |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2025-11-24                                                                      |
+| **Author(s)** | Harshal Patil ([@harche](https://github.com/harche))                            |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#1928](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1928) |
+
+---
+
+## Abstract
+
+This SEP proposes a standard, optional capability for MCP servers to expose typed SDK/library operations through a **progressive disclosure** and **code execution** pattern. Instead of registering hundreds of narrowly-scoped tools (e.g., `listPods`, `createDeployment`, `getRepository`), servers implementing this capability expose standardized tools:
+
+**`<library>.searchTools`**: Discover available operations or retrieve type definitions via a `mode` parameter:
+
+- `mode: "operations"` (default): Search for operations by resource type, action, scope, risk level
+- `mode: "types"`: Retrieve machine-readable type definitions for discovered operations
+
+**`<library>.runSandbox`**: Execute agent-generated code in a secure, isolated environment with pre-configured SDK access.
+
+This pattern enables agents to:
+
+- **Dynamically discover** operations from any typed SDK (Kubernetes, GitHub, GCP, Stripe, etc.)
+- **Generate and execute code** to perform complex multi-step operations, numerical computations, and data transformations outside of context
+- **Chain operations efficiently** by composing multiple SDK calls in a single code block, dramatically reducing round-trips and context usage
+- **Optimize token usage** by keeping intermediate results in the sandbox rather than passing them through the conversation
+
+## Motivation
+
+### Problem Statement
+
+As AI agents connect to more tools and servers, the current approach of directly loading all tool definitions and passing results through the context window becomes fundamentally inefficient. Rich APIs like Kubernetes, cloud SDKs, and CRMs can expose hundreds or thousands of operations, loading them all upfront consumes excessive tokens, increases latency, and degrades agent performance.
+
+Anthropic's research on [code execution with MCP](https://www.anthropic.com/engineering/code-execution-with-mcp) demonstrates that switching from direct tool calls to code-based tool interactions can achieve **up to 98.7% reduction in token usage**. The insight is simple: LLMs are adept at writing code, and developers should leverage this strength.
+
+The solution is a standardized pattern that combines **progressive disclosure** (discover operations on-demand) with **code execution** (compose and run operations in a sandbox). This keeps tool definitions out of context until needed, allows agents to chain multiple operations in a single execution, and returns only final results to the conversation.
+
+### Why Progressive Disclosure?
+
+Anthropic's [guidance on code-execution MCP servers](https://www.anthropic.com/engineering/code-execution-with-mcp) and [Advanced Tool Use](https://www.anthropic.com/engineering/advanced-tool-use) patterns recommend progressive disclosure: agents discover capabilities on-demand rather than loading everything into context upfront.
+
+Benefits:
+
+- **Token efficiency**: Only load schemas for operations the model actually needs
+- **Latency reduction**: Fewer round-trips; less context processing
+- **Safer code generation**: Rich type information enables accurate code synthesis
+- **Governance-friendly**: Operations can be annotated with risk levels and filtered by policy
+
+### Why Code Execution?
+
+Beyond discovery, allowing agents to generate and execute code provides significant advantages:
+
+- **Operation chaining**: Agents can compose multiple SDK calls in a single code block (e.g., list pods → filter by label → get logs → analyze), avoiding round-trips that would each consume context
+- **Complex computations**: Numerical operations, aggregations, and data transformations happen in code rather than in-context, where models are less reliable and more token-intensive
+- **Intermediate results stay local**: When chaining operations, intermediate data remains in the sandbox—only the final result returns to the conversation
+- **Reduced context pollution**: A 10-step workflow becomes one tool call with code, not 10 separate tool calls with 10 result payloads in context
+- **Flexibility**: Agents can adapt their approach dynamically based on discovered operations without requiring new tools
+
+### Why Protocol-Level Standardization?
+
+Without a standard:
+
+- Each server invents its own ad-hoc discovery mechanism
+- Clients cannot provide consistent UX for "search → inspect → generate code" workflows
+- No interoperability between different SDK-backed servers
+- Type information is flattened or lost
+
+With a standard:
+
+- Servers wrapping any typed SDK follow the same pattern
+- Clients implement first-class support for library discovery
+- Operations can be consistently annotated (risk, scope, policy tags)
+- The pattern is reusable across Kubernetes, GitHub, Salesforce, GCP, Stripe, etc.
+
+## Specification
+
+### 1. Capability Advertisement
+
+#### 1.1 Experimental Phase (Immediate)
+
+Servers MAY advertise library discovery support using the existing `experimental` capability:
+
+```json
+{
+  "capabilities": {
+    "tools": {
+      "listChanged": true
+    },
+    "experimental": {
+      "libraryDiscovery": {
+        "version": "0.1.0",
+        "libraries": ["kubernetes"]
+      }
+    }
+  }
+}
+```
+
+#### 1.2 First-Class Capability (Future)
+
+If this SEP is accepted, the specification SHOULD be extended to add `libraryDiscovery` as a first-class capability under `tools`:
+
+```typescript
+interface ServerCapabilities {
+  // ... existing capabilities ...
+  tools?: {
+    listChanged?: boolean;
+    /**
+     * Present if the server supports library discovery and type introspection.
+     * This enables progressive disclosure of typed SDK operations.
+     */
+    libraryDiscovery?: {
+      /**
+       * Version of the library discovery capability.
+       */
+      version: string;
+      /**
+       * List of library identifiers this server exposes.
+       * Each identifier corresponds to a searchTools tool.
+       */
+      libraries: string[];
+    };
+  };
+}
+```
+
+### 2. Standard Tool: `<library>.searchTools`
+
+Servers implementing library discovery MUST expose a tool matching this schema for each advertised library. This single tool supports two modes: **operation discovery** and **type introspection**.
+
+#### Why Two Modes?
+
+For an agent to generate correct, executable code against an SDK, it needs two pieces of information:
+
+1. **Operations** (`mode: "operations"`): What methods exist, their names, which module they belong to, and their parameter signatures. Without this, the agent doesn't know what functions to call or how to call them.
+
+2. **Types** (`mode: "types"`): The structure of input and output types—what fields exist, their types, which are required vs optional. Without this, the agent cannot construct valid request objects or correctly interpret responses.
+
+By separating these into modes, agents can:
+
+- First discover relevant operations (lightweight, returns method signatures)
+- Then fetch detailed type definitions only for the types they actually need (on-demand)
+
+This lazy loading of type information keeps context usage minimal while ensuring the agent has everything needed to write type-correct code.
+
+#### 2.1 Tool Registration
+
+```typescript
+{
+  name: "<library>.searchTools",
+  description: "Search for available operations or get type definitions in the <library> SDK. Use mode: 'operations' (default) to find methods, or mode: 'types' to get type definitions.",
+  inputSchema: SearchToolsInputSchema,
+  outputSchema: SearchToolsOutputSchema,
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: false
+  }
+}
+```
+
+#### 2.2 Input Schema
+
+```typescript
+interface SearchToolsInput {
+  /**
+   * Search mode.
+   * - "operations": Search for API methods (default)
+   * - "types": Get type definitions
+   * - "scripts": List cached scripts from previous runSandbox executions
+   */
+  mode?: "operations" | "types" | "scripts";
+
+  // ============ Operations Mode Parameters ============
+
+  /**
+   * Primary resource type to search for.
+   * Examples: "Pod", "Deployment", "Repository", "User"
+   * Required when mode is "operations".
+   */
+  resourceType?: string;
+
+  /**
+   * Optional action filter.
+   * Standard values: "list", "read", "create", "update", "delete", "patch", "watch"
+   * Servers MAY support additional domain-specific actions.
+   */
+  action?: string;
+
+  /**
+   * Optional scope filter.
+   * Examples: "namespaced", "cluster", "organization", "user"
+   * Interpretation is library-specific.
+   */
+  scope?: string;
+
+  /**
+   * Optional risk level filter.
+   * Standard values: "read", "write", "destructive", "admin"
+   */
+  riskLevel?: "read" | "write" | "destructive" | "admin";
+
+  /**
+   * Optional exclusion criteria.
+   */
+  exclude?: {
+    /** Actions to exclude (e.g., ["delete", "create"]) */
+    actions?: string[];
+    /** API classes/modules to exclude */
+    modules?: string[];
+  };
+
+  /**
+   * Maximum number of results to return.
+   * Default: 10, Maximum: 50
+   */
+  limit?: number;
+
+  /**
+   * Pagination cursor from a previous response.
+   * Use this to fetch the next page of results.
+   */
+  cursor?: string;
+
+  // ============ Types Mode Parameters ============
+
+  /**
+   * Type names or property paths to retrieve.
+   * Supports dot-notation for nested navigation.
+   * Examples: ["V1Pod", "V1Deployment.spec", "V1Pod.spec.containers"]
+   * Required when mode is "types".
+   */
+  types?: string[];
+
+  /**
+   * Depth of nested type resolution.
+   * Default: 1, Maximum: 3
+   */
+  depth?: number;
+
+  // ============ Scripts Mode Parameters ============
+
+  /**
+   * Optional search term to filter cached scripts by name or content.
+   */
+  searchTerm?: string;
+}
+```
+
+#### 2.3 Output Schema (Operations Mode)
+
+When `mode` is `"operations"` (or omitted):
+
+```typescript
+interface SearchToolsOperationsOutput {
+  /**
+   * Indicates this is an operations mode response.
+   */
+  mode: "operations";
+
+  /**
+   * Human-readable summary of the search results.
+   */
+  summary: string;
+
+  /**
+   * Matching operations.
+   */
+  operations: OperationDescriptor[];
+
+  /**
+   * Total number of matches (may exceed returned results).
+   */
+  totalMatches: number;
+
+  /**
+   * Cursor for fetching the next page of results.
+   * Absent if there are no more results.
+   */
+  nextCursor?: string;
+
+  /**
+   * Paths relevant for code generation.
+   */
+  paths?: {
+    /** Directory for writing generated scripts */
+    scriptsDirectory?: string;
+    /** Directory containing installed packages */
+    packageDirectory?: string;
+  };
+}
+
+interface OperationDescriptor {
+  /**
+   * Stable identifier for this operation.
+   */
+  operationId: string;
+
+  /**
+   * API class or module containing this operation.
+   */
+  module: string;
+
+  /**
+   * Method or function name.
+   */
+  methodName: string;
+
+  /**
+   * Resource type this operation acts on.
+   */
+  resourceType: string;
+
+  /**
+   * Human-readable description.
+   */
+  description: string;
+
+  /**
+   * Risk level classification.
+   */
+  riskLevel?: "read" | "write" | "destructive" | "admin";
+
+  /**
+   * Operation scope.
+   */
+  scope?: string;
+
+  /**
+   * Required and optional parameters.
+   */
+  parameters: ParameterDescriptor[];
+
+  /**
+   * Return type identifier (for use with types mode).
+   */
+  returnTypeRef: string;
+
+  /**
+   * JSON Schema for the input parameters.
+   */
+  inputSchema: {
+    type: "object";
+    properties: Record<string, object>;
+    required: string[];
+    description: string;
+  };
+
+  /**
+   * Brief description of the output structure.
+   */
+  outputSchema: {
+    type: "object";
+    description: string;
+    properties?: Record<string, object>;
+  };
+
+  /**
+   * Example usage code.
+   */
+  example?: string;
+
+  /**
+   * Type references for input/output (for types mode).
+   */
+  typeRefs?: {
+    input?: string[];
+    output?: string[];
+  };
+
+  /**
+   * Cached scripts that use this operation.
+   * If present, agents can reuse these scripts instead of generating new code.
+   */
+  cachedScripts?: string[];
+}
+
+interface ParameterDescriptor {
+  name: string;
+  type: string;
+  optional: boolean;
+  description?: string;
+}
+```
+
+#### 2.4 Output Schema (Types Mode)
+
+When `mode` is `"types"`:
+
+```typescript
+interface SearchToolsTypesOutput {
+  /**
+   * Indicates this is a types mode response.
+   */
+  mode: "types";
+
+  /**
+   * Human-readable summary.
+   */
+  summary: string;
+
+  /**
+   * Type definitions keyed by requested type path.
+   */
+  types: Record<string, TypeDefinition>;
+}
+
+interface TypeDefinition {
+  /**
+   * Canonical type name.
+   */
+  name: string;
+
+  /**
+   * Type definition in a normalized format.
+   * Servers SHOULD use JSON Schema. Servers MAY additionally provide
+   * type definitions in language-specific syntax (e.g., TypeScript interfaces,
+   * Python type hints, Go structs).
+   */
+  definition: string;
+
+  /**
+   * Source file path (relative or module reference).
+   */
+  file?: string;
+
+  /**
+   * Referenced types that can be further introspected.
+   */
+  nestedTypes: string[];
+
+  /**
+   * Optional JSON Schema representation of the type.
+   */
+  jsonSchema?: object;
+}
+```
+
+#### 2.5 Output Schema (Scripts Mode)
+
+When `mode` is `"scripts"`:
+
+```typescript
+interface SearchToolsScriptsOutput {
+  /**
+   * Indicates this is a scripts mode response.
+   */
+  mode: "scripts";
+
+  /**
+   * Human-readable summary.
+   */
+  summary: string;
+
+  /**
+   * Cached scripts available for execution.
+   */
+  scripts: ScriptDescriptor[];
+
+  /**
+   * Total number of cached scripts.
+   */
+  totalScripts: number;
+
+  /**
+   * Cursor for fetching the next page of results.
+   */
+  nextCursor?: string;
+}
+
+interface ScriptDescriptor {
+  /**
+   * Unique identifier for referencing this script in runSandbox.
+   */
+  scriptId: string;
+
+  /**
+   * When the script was cached.
+   */
+  createdAt: string;
+
+  /**
+   * Brief description or first line of the script.
+   */
+  description?: string;
+
+  /**
+   * Size of the script in bytes.
+   */
+  size?: number;
+}
+```
+
+### 3. Structured Output via `structuredContent`
+
+The tool MUST return its output in the `structuredContent` field of `CallToolResult`, in addition to human-readable content blocks:
+
+```typescript
+// Operations mode
+{
+  content: [
+    { type: "text", text: result.summary },
+    { type: "text", text: JSON.stringify(result.operations, null, 2) }
+  ],
+  structuredContent: result
+}
+
+// Types mode
+{
+  content: [
+    { type: "text", text: result.summary },
+    { type: "text", text: JSON.stringify(result.types, null, 2) }
+  ],
+  structuredContent: result
+}
+```
+
+This enables:
+
+- Human readability in chat interfaces
+- Machine processing by clients for code generation
+- Consistent parsing across different server implementations
+
+### 4. Code Generation Workflow
+
+The intended workflow for agents using library discovery:
+
+```
+1. Agent calls <library>.searchTools with { mode: "operations", resourceType: "Pod" }
+   → Returns matching operations with type references
+
+2. Agent calls <library>.searchTools with { mode: "types", types: ["V1Pod", "V1PodSpec"] }
+   → Returns structured type information
+
+3. Agent generates code using:
+   - Operation method signatures
+   - Type definitions for inputs/outputs
+   - Example code snippets
+   - Import paths from `paths` object
+
+4. Agent calls <library>.runSandbox with the generated code
+   → Code executes in isolated environment with pre-configured SDK
+   → Only final output returned to conversation
+```
+
+This workflow keeps the agent in control while ensuring:
+
+- Type-safe code generation through discovered schemas
+- Secure execution through sandboxed runtime
+- Minimal token usage by fetching only needed information
+
+### 5. Standard Tool: `<library>.runSandbox`
+
+Servers implementing library discovery SHOULD expose a sandbox execution tool that allows agents to safely run generated code. This tool provides a secure execution environment for code synthesized using the discovered operations and types.
+
+#### 5.1 Tool Registration
+
+```typescript
+{
+  name: "<library>.runSandbox",
+  description: "Execute generated code in a secure sandbox environment with access to the <library> SDK.",
+  inputSchema: RunSandboxInputSchema,
+  annotations: {
+    readOnlyHint: false,
+    openWorldHint: false
+  }
+}
+```
+
+#### 5.2 Input Schema
+
+```typescript
+interface RunSandboxInput {
+  /**
+   * The code to execute inline.
+   * Should be valid code for the sandbox's runtime
+   * (e.g., TypeScript/JavaScript, Python, Go).
+   * Mutually exclusive with `scriptId`.
+   */
+  code?: string;
+
+  /**
+   * Reference to a previously cached script to execute.
+   * Scripts are cached after successful execution and can be retrieved
+   * via searchTools with mode: "scripts".
+   * Mutually exclusive with `code`.
+   */
+  scriptId?: string;
+
+  /**
+   * Optional timeout in seconds.
+   * Default: 30, Maximum: 120
+   */
+  timeout?: number;
+
+  /**
+   * Whether to cache the script after successful execution.
+   * Cached scripts can be re-executed later by scriptId.
+   * Default: false
+   */
+  cache?: boolean;
+}
+```
+
+The tool supports two execution modes:
+
+- **Inline execution**: Provide `code` directly for one-off execution
+- **Cached execution**: Reference a previously cached script by `scriptId` for repeated execution
+
+Script caching enables agents to save frequently-used operations and re-execute them without resending the full code, further reducing token usage.
+
+#### 5.3 Output Schema
+
+```typescript
+interface RunSandboxOutput {
+  /**
+   * Whether the execution completed successfully.
+   */
+  success: boolean;
+
+  /**
+   * Captured console output from the executed code.
+   */
+  output: string;
+
+  /**
+   * Error message if execution failed.
+   */
+  error?: string;
+
+  /**
+   * The return value of the executed code, if any.
+   */
+  result?: unknown;
+}
+```
+
+#### 5.4 Sandbox Security Requirements
+
+Servers providing a sandbox execution environment MUST:
+
+1. **Isolate execution**: Run code in an isolated context (e.g., VM, container, or sandboxed runtime)
+2. **Enforce timeouts**: Terminate execution that exceeds the configured timeout
+3. **Limit resource access**: Restrict filesystem, network, and system access to what's necessary
+4. **Whitelist imports**: Only allow importing pre-approved modules (the library SDK and safe dependencies)
+5. **Capture output**: Collect console output and return values safely
+
+Servers SHOULD:
+
+1. Pre-configure SDK clients with appropriate authentication
+2. Provide helpful error messages for common failures
+3. Support cancellation of long-running operations
+
+#### 5.5 Example Usage
+
+**Simple query:**
+
+```typescript
+{
+  code: `
+    const pods = await coreV1Api.listNamespacedPod({ namespace: 'default' });
+    console.log(\`Found \${pods.items.length} pods\`);
+    return pods.items.map(p => p.metadata?.name);
+  `,
+  timeout: 30
+}
+
+// Result:
+{
+  success: true,
+  output: "Found 5 pods\n",
+  result: ["nginx-abc123", "redis-def456", "app-ghi789", "db-jkl012", "cache-mno345"]
+}
+```
+
+**Chained operations (demonstrates context efficiency):**
+
+```typescript
+// Instead of 4 separate tool calls, the agent chains everything in one execution:
+{
+  code: `
+    // 1. Get all pods with a specific label
+    const pods = await coreV1Api.listNamespacedPod({
+      namespace: 'production',
+      labelSelector: 'app=api-server'
+    });
+
+    // 2. Filter to only unhealthy pods
+    const unhealthy = pods.items.filter(p =>
+      p.status?.containerStatuses?.some(c => c.restartCount > 5)
+    );
+
+    // 3. Get logs from each unhealthy pod (chained calls)
+    const logsPromises = unhealthy.map(p =>
+      coreV1Api.readNamespacedPodLog({
+        name: p.metadata.name,
+        namespace: 'production',
+        tailLines: 50
+      })
+    );
+    const logs = await Promise.all(logsPromises);
+
+    // 4. Analyze and summarize (computation in sandbox, not in context)
+    const summary = unhealthy.map((p, i) => ({
+      name: p.metadata.name,
+      restarts: p.status.containerStatuses[0].restartCount,
+      errorLines: logs[i].split('\\n').filter(l => l.includes('ERROR')).length
+    }));
+
+    return { unhealthyCount: unhealthy.length, summary };
+  `,
+  timeout: 60
+}
+
+// Result: Only the final summary returns to context, not all intermediate data
+{
+  success: true,
+  output: "",
+  result: {
+    unhealthyCount: 2,
+    summary: [
+      { name: "api-server-abc", restarts: 12, errorLines: 47 },
+      { name: "api-server-def", restarts: 8, errorLines: 23 }
+    ]
+  }
+}
+```
+
+### 6. Server Implementation Requirements
+
+Servers advertising `libraryDiscovery` capability MUST:
+
+1. Expose `<library>.searchTools` for each library in the `libraries` array
+2. Support both `mode: "operations"` and `mode: "types"`
+3. Return results conforming to the schemas defined above
+4. Support the core filter parameters (`resourceType`, `action`, `limit` for operations; `types`, `depth` for types)
+5. Return `structuredContent` in tool results
+
+Servers SHOULD:
+
+1. Implement risk level classification for operations
+2. Provide example code snippets
+3. Support dot-notation type navigation (e.g., `V1Deployment.spec.template.spec`)
+4. Include accurate `typeRefs` for code generation
+
+Servers MAY:
+
+1. Support additional domain-specific filter parameters
+2. Cache operation indexes for performance
+3. Implement additional discovery tools (e.g., `listModules`, `getExamples`)
+
+## Rationale
+
+### Why One Tool With Modes Instead of Two Separate Tools?
+
+A single tool with a mode parameter provides:
+
+- **Simpler mental model**: Agents learn one tool, not two
+- **Fewer tools in context**: Reduces cognitive load and token usage
+- **Explicit intent**: The `mode` parameter clearly signals what the agent wants
+- **Lazy loading preserved**: Types are still only fetched when `mode: "types"` is used
+- **Easier implementation**: Server authors implement one tool with branching logic
+
+The mode-based approach was validated through the reference implementation (ProDisco), which initially had two separate tools but consolidated them based on real-world usage patterns.
+
+### Why Not Extend tools/list?
+
+The `tools/list` endpoint returns all tools the server offers. For SDK wrappers, this would mean:
+
+- Either registering hundreds of tools (defeating the purpose)
+- Or implementing complex server-side filtering (not standardized)
+
+The library discovery pattern is orthogonal: servers can still register concrete tools alongside the searchTools tool.
+
+### Why Structured Filters Instead of Free-Text Search?
+
+Structured filters (`resourceType`, `action`, `scope`) enable:
+
+- Consistent behavior across different SDKs
+- Policy-based filtering (e.g., "exclude destructive operations")
+- Predictable, testable results
+
+Free-text search could be added as an optional enhancement but should not be the primary interface.
+
+### Alternative Designs Considered
+
+**Two separate tools (searchOperations + getTypeDefinitions)**: Implemented initially in ProDisco but consolidated into a single tool with modes. Having one tool with a `mode` parameter reduces the number of tools agents need to learn and keeps the mental model simpler.
+
+## Backward Compatibility
+
+This proposal is **fully backward compatible**:
+
+- The capability is optional; existing servers continue to work unchanged
+- Uses existing `tools/list` and `tools/call` mechanisms
+- Can be advertised via `experimental` before first-class adoption
+- Clients that don't understand library discovery simply see an additional tool
+
+## Security Implications
+
+### Risk Classification
+
+Servers SHOULD classify operations by risk level to enable:
+
+- Client-side policy enforcement
+- User consent workflows for dangerous operations
+- Audit logging for sensitive actions
+
+Standard risk levels:
+
+- `read`: No state modification
+- `write`: Creates or updates resources
+- `destructive`: Deletes resources or causes data loss
+- `admin`: Elevated privilege operations
+
+### Permission Boundaries
+
+Servers SHOULD:
+
+- Respect authentication context when filtering operations
+- Not expose operations the current user cannot perform
+- Document what permissions are required for each operation
+
+### Code Execution Safety
+
+Clients implementing the code generation workflow SHOULD:
+
+- Execute generated code in sandboxed environments
+- Validate generated code against expected patterns
+- Implement human-in-the-loop approval for destructive operations
+
+## Reference Implementation
+
+### ProDisco (Kubernetes)
+
+[ProDisco](https://github.com/harche/ProDisco) provides a reference implementation of this pattern for Kubernetes:
+
+- **`kubernetes.searchTools`** with multiple modes:
+  - `mode: "operations"` (default): Searches the official `@kubernetes/client-node` client library
+  - `mode: "types"`: Returns type definitions with dot-notation support
+- **`kubernetes.runSandbox`**: Executes generated code in an isolated VM with:
+  - Pre-configured Kubernetes client and KubeConfig
+  - Whitelisted module imports
+  - Configurable timeout (default 30s, max 120s)
+  - Captured console output and return values
+- Uses the TypeScript compiler API to extract types from the SDK (implementation detail, not a spec requirement)
+- Includes integration tests against KIND clusters
+
+### Implementation Highlights
+
+```typescript
+// Example: Search for Pod list operations
+{
+  mode: "operations",  // or omit for default
+  resourceType: "Pod",
+  action: "list"
+}
+
+// Result:
+{
+  mode: "operations",
+  summary: "Found 3 method(s) for resource 'Pod', action 'list'",
+  operations: [
+    {
+      operationId: "CoreV1Api.listNamespacedPod",
+      module: "CoreV1Api",
+      methodName: "listNamespacedPod",
+      resourceType: "Pod",
+      riskLevel: "read",
+      parameters: [
+        { name: "namespace", type: "string", optional: false }
+      ],
+      returnTypeRef: "V1PodList",
+      example: "const pods = await coreV1Api.listNamespacedPod({ namespace: 'default' });"
+    }
+  ],
+  paths: {
+    scriptsDirectory: "~/.prodisco/scripts/cache/"
+  }
+}
+
+// Example: Get type definitions
+{
+  mode: "types",
+  types: ["V1Pod", "V1Deployment.spec.template.spec"]
+}
+
+// Result:
+{
+  mode: "types",
+  summary: "Fetched 2 type definition(s)",
+  types: {
+    "V1Pod": {
+      name: "V1Pod",
+      definition: "V1Pod {\n  apiVersion?: string\n  kind?: string\n  metadata?: V1ObjectMeta\n  spec?: V1PodSpec\n  status?: V1PodStatus\n}",
+      file: "./node_modules/@kubernetes/client-node/dist/gen/models/V1Pod.d.ts",
+      nestedTypes: ["V1ObjectMeta", "V1PodSpec", "V1PodStatus"]
+    },
+    "V1Deployment.spec.template.spec": {
+      name: "V1PodSpec",
+      definition: "V1PodSpec {\n  containers: V1Container[]\n  ...\n}",
+      file: "./node_modules/@kubernetes/client-node/dist/gen/models/V1PodSpec.d.ts",
+      nestedTypes: ["V1Container", "V1Volume", ...]
+    }
+  }
+}
+```
+
+### Adapting to Other SDKs
+
+The pattern can be applied to any typed SDK:
+
+| SDK         | resourceType examples           | action examples                |
+| ----------- | ------------------------------- | ------------------------------ |
+| GitHub REST | Repository, Issue, PullRequest  | list, get, create, update      |
+| GCP         | Instance, Bucket, Function      | list, get, create, delete      |
+| Stripe      | Customer, Subscription, Invoice | list, retrieve, create, update |
+| Salesforce  | Account, Contact, Opportunity   | query, create, update, delete  |
