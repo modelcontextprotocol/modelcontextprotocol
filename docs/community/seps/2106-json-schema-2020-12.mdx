@@ -1,0 +1,388 @@
+---
+title: "SEP-2106: Tools `inputSchema` & `outputSchema` Conform to JSON Schema 2020-12"
+sidebarTitle: "SEP-2106: Tools `inputSchema` & `outputSchema` Co…"
+description: "Tools `inputSchema` & `outputSchema` Conform to JSON Schema 2020-12"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2106                                                                            |
+| **Title**     | Tools `inputSchema` & `outputSchema` Conform to JSON Schema 2020-12             |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-01-06                                                                      |
+| **Author(s)** | John McBride ([@jpmcb](https://github.com/jpmcb))                               |
+| **Sponsor**   | Ola Hungerford ([@olaservo](https://github.com/olaservo))                       |
+| **PR**        | [#2106](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2106) |
+
+---
+
+## Abstract
+
+This SEP proposes loosening the restrictions on `inputSchema`, `outputSchema`, and `structuredContent` to better support JSON Schema 2020-12. Specifically:
+
+- **`inputSchema`**: Keeps `type: "object"` required (since tool arguments are objects), but allows any additional JSON Schema properties to support powerful validation compositions (`anyOf`, `oneOf`, `allOf`, etc.)
+- **`outputSchema`**: Fully supports JSON Schema 2020-12 since MCP servers may return any valid JSON
+- **`structuredContent`**: Accepts any JSON value validated by `outputSchema`
+
+This proposal enables MCP servers to leverage the expressiveness of JSON Schema 2020-12 while maintaining backward compatibility with existing implementations.
+
+## Motivation
+
+The current MCP specification restricts tool schemas in ways that conflict with full JSON Schema support:
+
+1. **inputSchema restriction**: Currently only allows `type`, `properties`, and `required` fields. This prevents use of composition keywords like `anyOf`, `oneOf`, and `allOf` for sophisticated object validation patterns.
+
+2. **outputSchema restriction**: Also restricted to `type: "object"` with only `properties` and `required`, despite the specification claiming to support "JSON Schema."
+
+3. **structuredContent restriction**: Defined as `{ [key: string]: unknown }` (an object with string keys), which prevents returning arrays—a common API response pattern.
+
+### Real-World Impact
+
+Consider a weather API tool that returns hourly forecasts:
+
+```json
+[
+  { "hour": "09:00", "temp": 68, "conditions": "sunny" },
+  { "hour": "10:00", "temp": 72, "conditions": "partly cloudy" },
+  { "hour": "11:00", "temp": 75, "conditions": "cloudy" }
+]
+```
+
+Currently, this natural array response is **impossible** because `structuredContent` must be an object. Developers are forced to wrap arrays in unnecessary container objects:
+
+```json
+{
+  "forecasts": [
+    { "hour": "09:00", "temp": 68, "conditions": "sunny" },
+    ...
+  ]
+}
+```
+
+This artificial constraint:
+
+- Adds unnecessary nesting to responses
+- Conflicts with common REST API patterns
+- Prevents direct schema validation of array responses
+
+### Schema Composition Use Cases
+
+The current `inputSchema` restriction prevents legitimate schema patterns. With this SEP, tools can use composition keywords alongside `type: "object"`:
+
+```json
+{
+  "type": "object",
+  "oneOf": [
+    { "properties": { "id": { "type": "string" } }, "required": ["id"] },
+    { "properties": { "name": { "type": "string" } }, "required": ["name"] }
+  ]
+}
+```
+
+This pattern allows a tool to accept either an ID-based or name-based lookup—a common API design that is currently unsupported because the schema only allows `type`, `properties`, and `required` fields.
+
+## Specification
+
+### 1. Loosen inputSchema
+
+**Current definition:**
+
+```typescript
+inputSchema: {
+  type: "object";
+  properties?: { [key: string]: object };
+  required?: string[];
+};
+```
+
+**Proposed definition:**
+
+```typescript
+inputSchema: {
+  $schema?: string;
+  type: "object";
+  [key: string]: any;
+};
+```
+
+The `inputSchema` field retains the `type: "object"` requirement (since tool arguments are always objects), but now accepts any additional JSON Schema properties. This enables:
+
+- Composition keywords: `anyOf`, `oneOf`, `allOf`, `not`
+- Conditional schemas: `if`/`then`/`else`
+- Reference schemas: `$ref`, `$defs`
+- Any other valid JSON Schema 2020-12 keywords
+
+### 2. Loosen outputSchema
+
+**Current definition:**
+
+```typescript
+outputSchema?: {
+  type: "object";
+  properties?: { [key: string]: object };
+  required?: string[];
+};
+```
+
+**Proposed definition:**
+
+```typescript
+outputSchema?: {
+  $schema?: string;
+  [key: string]: any;
+};
+```
+
+The `outputSchema` field accepts any valid JSON Schema 2020-12 object, enabling schemas that validate arrays, primitives, or complex compositions. Unlike `inputSchema`, there is no `type: "object"` requirement since tool outputs can be any valid JSON.
+
+### 3. Loosen structuredContent
+
+**Current definition:**
+
+```typescript
+structuredContent?: { [key: string]: unknown };
+```
+
+**Proposed definition:**
+
+```typescript
+structuredContent?: unknown;
+```
+
+The `structuredContent` field accepts any valid JSON value that conforms to the tool's `outputSchema`. This includes:
+
+- Objects: `{ "key": "value" }`
+- Arrays: `[1, 2, 3]` or `[{ "id": "abc" }, { "id": "xyz" }]`
+- Primitives: `"string"`, `42`, `true`, `null`
+
+### 4. Documentation Updates
+
+Update `docs/specification/draft/server/tools.mdx`:
+
+- Remove statement that `structuredContent` is "returned as a JSON object"
+- Clarify that `structuredContent` can be any JSON value conforming to `outputSchema`
+- Add examples demonstrating array responses
+
+### 5. Examples
+
+#### Tool returning an array of objects:
+
+```json
+{
+  "name": "list_users",
+  "description": "List all users in the system",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+    }
+  },
+  "outputSchema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      },
+      "required": ["id", "name"]
+    }
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Found 2 users: Alice (u1, alice@example.com) and Bob (u2, bob@example.com)."
+    }
+  ],
+  "structuredContent": [
+    { "id": "u1", "name": "Alice", "email": "alice@example.com" },
+    { "id": "u2", "name": "Bob", "email": "bob@example.com" }
+  ]
+}
+```
+
+#### Tool with composition schema:
+
+```json
+{
+  "name": "find_resource",
+  "description": "Find a resource by ID or name",
+  "inputSchema": {
+    "type": "object",
+    "oneOf": [
+      {
+        "properties": { "id": { "type": "string", "format": "uuid" } },
+        "required": ["id"]
+      },
+      {
+        "properties": { "name": { "type": "string", "minLength": 1 } },
+        "required": ["name"]
+      }
+    ]
+  }
+}
+```
+
+## Rationale
+
+### Why not just allow arrays?
+
+While we could simply extend `structuredContent` to allow arrays, this would be an incomplete solution. The root cause is that the schema types are artificially restricted to `type: "object"`. By allowing any valid JSON Schema, we:
+
+1. Enable the full power of JSON Schema 2020-12
+2. Align with the specification's claim of JSON Schema support
+3. Provide a consistent, principled approach rather than piecemeal fixes
+
+### Why not require a wrapper object?
+
+Requiring arrays to be wrapped in objects (e.g., `{ "items": [...] }`) was considered but rejected because:
+
+1. It adds unnecessary complexity to responses
+2. It conflicts with common API design patterns
+3. It prevents direct schema validation of the actual response structure
+4. JSON Schema already handles array validation elegantly
+
+### Real-World API Patterns
+
+Many production APIs return arrays directly:
+
+- **GitHub Events API**: Returns arrays of event objects
+- **AccuWeather Search API**: Returns arrays of location matches
+- **REST collection endpoints**: Standard `GET /users` returns `[{...}, {...}]`
+
+Forcing wrapper objects creates friction for developers integrating existing APIs with MCP. Generic JSON Schema validation libraries should work without MCP-specific customization.
+
+### Alignment with JSON Schema 2020-12
+
+JSON Schema 2020-12 provides powerful features for schema composition and validation. By removing artificial restrictions, MCP aligns with industry standards (OpenAPI 3.1 uses JSON Schema 2020-12) and enables developers to leverage existing JSON Schema knowledge and tooling.
+
+### SDK Ecosystem Evidence
+
+The friction caused by current restrictions is not theoretical. FastMCP, one of the most popular Python SDKs for MCP, has implemented extensive workarounds:
+
+1. **Explicit error messages** acknowledge the limitation:
+
+   ```python
+   raise ValueError(
+       f"Output schemas must represent object types due to MCP spec limitations."
+   )
+   ```
+
+2. **Auto-wrapping infrastructure** adds complexity:
+   - A `_WrappedResult` dataclass wraps non-object returns
+   - A custom `x-fastmcp-wrap-result` extension enables client-side unwrapping
+   - Both SDK and client need matching wrap/unwrap logic
+
+3. **Real bugs** have resulted from these workarounds:
+   - Issue #2455: `$ref` schemas without `type: object` broke ALL tools on the server
+   - Issue #2421: Unexpected `{"result": ...}` wrapping confused users
+
+This demonstrates that the current restrictions create genuine ecosystem friction that SEP-2106 would eliminate.
+
+### OpenAPI Precedent
+
+The OpenAPI specification went through a similar evolution. OpenAPI 3.0 used an "extended subset" of JSON Schema with custom restrictions (like requiring `nullable: true` instead of allowing `"null"` as a type).
+
+OpenAPI 3.1 made the strategic decision to fully align with JSON Schema 2020-12, accepting breaking changes to eliminate the friction. The result: better tooling compatibility and less ecosystem confusion.
+
+| OpenAPI's Problem                   | MCP's Parallel                            |
+| ----------------------------------- | ----------------------------------------- |
+| `type` must be string, not array    | `inputSchema` only allows specific fields |
+| Couldn't use standard null handling | Can't use `oneOf`/`anyOf` in schemas      |
+| Custom `nullable` keyword           | Object-only `structuredContent`           |
+| Caused tooling confusion            | Causes SDK workarounds                    |
+
+MCP can learn from OpenAPI's experience rather than repeating the same evolution over several years.
+
+## Backward Compatibility
+
+This change is **backward compatible**:
+
+1. **Existing schemas remain valid**: All current `type: "object"` schemas continue to work without modification.
+
+2. **Existing clients unaffected**: Clients that expect object responses will continue to receive them from tools that return objects.
+
+3. **Graceful degradation**: Tools returning arrays should also include a `TextContent` block with serialized JSON for clients that don't support `structuredContent`.
+
+### Migration Path
+
+No migration is required. Existing tools and clients continue to function. New tools can optionally use the expanded schema capabilities.
+
+## Security Implications
+
+No new security considerations. JSON Schema validation already handles:
+
+- Type checking
+- Value constraints
+- Required field validation
+
+Implementations should continue to validate all inputs and outputs against declared schemas.
+
+## Reference Implementation
+
+### TypeScript SDK
+
+A reference implementation demonstrating the loosened type restrictions:
+
+- **Branch**: [olaservo/typescript-sdk@sep-834-v1x](https://github.com/olaservo/typescript-sdk/tree/sep-834-v1x)
+- **npm**: `@olaservo/mcp-sdk@1.25.2-sep834.4`
+- **Key changes**:
+  - `inputSchema`: Retains `type: "object"` but allows any additional JSON Schema properties (compositions like `oneOf`/`anyOf`)
+  - `outputSchema`: Any valid JSON Schema object (arrays, primitives, objects, compositions)
+  - `structuredContent`: Any JSON value (objects, arrays, or primitives)
+  - McpServer high-level API updated to support array and primitive outputSchema
+
+### Everything Server Demo Tools
+
+Three demo tools added to the `everything` server demonstrating SEP-2106 capabilities:
+
+- **Branch**: [olaservo/servers@sep-834-json-schema-2020-12](https://github.com/olaservo/servers/tree/sep-834-json-schema-2020-12/src/everything)
+- **npm**: `@olaservo/mcp-server-everything-sep834@1.1.0-sep834.1`
+- **Tools**:
+  - `get-weather-forecast`: Returns **raw array** of hourly forecasts directly in `structuredContent`
+    - Matches the exact example from SEP-2106's Motivation section
+    - `outputSchema`: `z.array(HourlyForecastSchema)` - array type at root
+    - `structuredContent`: `[{hour, temp, conditions}, ...]` - direct array
+  - `find-by-id-or-name`: Demonstrates flexible input patterns (accepts `id` OR `name`)
+  - `get-count`: Returns **raw number** directly in `structuredContent` (not wrapped in object)
+    - `outputSchema`: `z.number()` - primitive type at root
+    - `structuredContent`: `42` - direct primitive
+
+### Related Links
+
+- Original PR: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/881
+- Related issue: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/834
+- `outputSchema` type restriction inconsistency: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1906
+- TypeScript SDK schema types: https://github.com/modelcontextprotocol/typescript-sdk/issues/1149
+- SEP-2200 (Clarify Tool Result Content and Model Visibility): https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200
+
+### Implementation Guidance
+
+SDK implementations will need to:
+
+1. Update `inputSchema` types to retain `type: "object"` but allow any additional JSON Schema properties
+2. Update `outputSchema` types to allow any valid JSON Schema (remove `type: "object"` constraint)
+3. Update `structuredContent` types to accept any valid JSON value
+4. Update JSON Schema definitions accordingly
+
+## Acknowledgments
+
+This proposal builds on discussions in GitHub issue #834 and incorporates feedback from the MCP community.
