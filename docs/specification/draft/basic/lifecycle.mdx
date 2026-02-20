@@ -300,6 +300,21 @@ implies that work is actually happening. However, implementations **SHOULD** alw
 enforce a maximum timeout, regardless of progress notifications, to limit the impact of a
 misbehaving client or server.
 
+### Elicitation Timeout Coordination
+
+When a server needs to collect user input via [elicitation](/specification/draft/client/elicitation)
+during request processing, the request timeout may expire before the user responds. To
+coordinate timeouts in this scenario:
+
+- Servers **MAY** send a `notifications/elicitation/pending` notification before issuing an
+  elicitation request, informing the client which request requires user input
+- Upon receiving this notification, clients **SHOULD** suspend or extend the timeout for the
+  identified request until the elicitation completes
+- Clients **MUST** still enforce a maximum timeout to prevent indefinite waits
+
+See the [elicitation documentation](/specification/draft/client/elicitation#timeout-coordination)
+for detailed guidance on implementing timeout coordination.
+
 ## Error Handling
 
 Implementations **SHOULD** be prepared to handle these error cases:
