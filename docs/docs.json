@@ -421,7 +421,8 @@
               {
                 "group": "Draft",
                 "pages": [
-                  "community/seps/2149-working-group-charter-template"
+                  "community/seps/2149-working-group-charter-template",
+                  "community/seps/2282-server-declared-behavioural-hooks"
                 ]
               }
             ]
