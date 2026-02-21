@@ -1782,6 +1782,336 @@ This tells Claude for Desktop:
 
 </Tab>
 
+<Tab title='Ruby'>
+
+Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-ruby)
+
+### Prerequisite knowledge
+
+This quickstart assumes you have familiarity with:
+
+- Ruby
+- LLMs like Claude
+
+### Logging in MCP Servers
+
+When implementing MCP servers, be careful about how you handle logging:
+
+**For STDIO-based servers:** Never write to standard output (stdout). This includes:
+
+- `print()` statements in Python
+- `console.log()` in JavaScript
+- `puts` in Ruby
+- Similar stdout functions in other languages
+
+Writing to stdout will corrupt the JSON-RPC messages and break your server.
+
+**For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
+
+### Best Practices
+
+1. Use a logging library that writes to stderr or files.
+2. For Ruby, be especially careful - `puts` and `print` write to stdout by default.
+
+### Quick Examples
+
+```ruby
+# ❌ Bad (STDIO)
+puts "Processing request"
+
+# ✅ Good (STDIO)
+require "logger"
+logger = Logger.new($stderr)
+logger.info("Processing request")
+```
+
+### System requirements
+
+- Ruby 2.7 or higher installed.
+
+### Set up your environment
+
+First, let's make sure you have Ruby installed. You can check by running:
+
+```bash
+ruby --version
+```
+
+Now, let's create and set up our project:
+
+<CodeGroup>
+
+```bash macOS/Linux
+# Create a new directory for our project
+mkdir weather
+cd weather
+
+# Create a Gemfile
+bundle init
+
+# Add the MCP SDK dependency
+bundle add mcp
+
+# Install dependencies
+bundle install
+
+# Create our server file
+touch weather.rb
+```
+
+```powershell Windows
+# Create a new directory for our project
+mkdir weather
+cd weather
+
+# Create a Gemfile
+bundle init
+
+# Add the MCP SDK dependency
+bundle add mcp
+
+# Install dependencies
+bundle install
+
+# Create our server file
+new-item weather.rb
+```
+
+</CodeGroup>
+
+Now let's dive into building your server.
+
+## Building your server
+
+### Importing packages and setting up constants
+
+Open `weather.rb` and add these requires and constants at the top:
+
+```ruby
+require "json"
+require "mcp"
+require "net/http"
+require "uri"
+
+NWS_API_BASE = "https://api.weather.gov"
+USER_AGENT = "weather-app/1.0"
+```
+
+The `mcp` gem provides the Model Context Protocol SDK for Ruby, with classes for server implementation and stdio transport.
+
+### Helper methods
+
+Next, let's add helper methods for querying and formatting data from the National Weather Service API:
+
+```ruby
+module HelperMethods
+  def make_nws_request(url)
+    uri = URI(url)
+    request = Net::HTTP::Get.new(uri)
+    request["User-Agent"] = USER_AGENT
+    request["Accept"] = "application/geo+json"
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(request)
+    end
+
+    raise "HTTP #{response.code}: #{response.message}" unless response.is_a?(Net::HTTPSuccess)
+
+    JSON.parse(response.body)
+  end
+
+  def format_alert(feature)
+    properties = feature["properties"]
+
+    <<~ALERT
+      Event: #{properties["event"] || "Unknown"}
+      Area: #{properties["areaDesc"] || "Unknown"}
+      Severity: #{properties["severity"] || "Unknown"}
+      Description: #{properties["description"] || "No description available"}
+      Instructions: #{properties["instruction"] || "No specific instructions provided"}
+    ALERT
+  end
+end
+```
+
+### Implementing tool execution
+
+Now let's define our tool classes. Each tool subclasses `MCP::Tool` and implements the tool logic:
+
+```ruby
+class GetAlerts < MCP::Tool
+  extend HelperMethods
+
+  tool_name "get_alerts"
+  description "Get weather alerts for a US state"
+  input_schema(
+    properties: {
+      state: {
+        type: "string",
+        description: "Two-letter US state code (e.g. CA, NY)"
+      }
+    },
+    required: ["state"]
+  )
+
+  def self.call(state:)
+    url = "#{NWS_API_BASE}/alerts/active/area/#{state.upcase}"
+    data = make_nws_request(url)
+
+    if data["features"].empty?
+      return MCP::Tool::Response.new([{
+        type: "text",
+        text: "No active alerts for this state."
+      }])
+    end
+
+    alerts = data["features"].map { |feature| format_alert(feature) }
+    MCP::Tool::Response.new([{
+      type: "text",
+      text: alerts.join("\n---\n")
+    }])
+  end
+end
+
+class GetForecast < MCP::Tool
+  extend HelperMethods
+
+  tool_name "get_forecast"
+  description "Get weather forecast for a location"
+  input_schema(
+    properties: {
+      latitude: {
+        type: "number",
+        description: "Latitude of the location"
+      },
+      longitude: {
+        type: "number",
+        description: "Longitude of the location"
+      }
+    },
+    required: ["latitude", "longitude"]
+  )
+
+  def self.call(latitude:, longitude:)
+    # First get the forecast grid endpoint.
+    points_url = "#{NWS_API_BASE}/points/#{latitude},#{longitude}"
+    points_data = make_nws_request(points_url)
+
+    # Get the forecast URL from the points response.
+    forecast_url = points_data["properties"]["forecast"]
+    forecast_data = make_nws_request(forecast_url)
+
+    # Format the periods into a readable forecast.
+    periods = forecast_data["properties"]["periods"]
+    forecasts = periods.first(5).map do |period|
+      <<~FORECAST
+        #{period["name"]}:
+        Temperature: #{period["temperature"]}°#{period["temperatureUnit"]}
+        Wind: #{period["windSpeed"]} #{period["windDirection"]}
+        Forecast: #{period["detailedForecast"]}
+      FORECAST
+    end
+
+    MCP::Tool::Response.new([{
+      type: "text",
+      text: forecasts.join("\n---\n")
+    }])
+  end
+end
+```
+
+### Running the server
+
+Finally, initialize and run the server:
+
+```ruby
+server = MCP::Server.new(
+  name: "weather",
+  version: "1.0.0",
+  tools: [GetAlerts, GetForecast]
+)
+
+transport = MCP::Server::Transports::StdioTransport.new(server)
+transport.open
+```
+
+Your server is complete! The server will listen for MCP messages on stdin and respond on stdout.
+
+Let's now test your server from an existing MCP host, Claude for Desktop.
+
+## Testing your server with Claude for Desktop
+
+<Note>
+
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+
+</Note>
+
+First, make sure you have Claude for Desktop installed. [You can install the latest version here.](https://claude.ai/download) If you already have Claude for Desktop, **make sure it's updated to the latest version.**
+
+We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
+
+For example, if you have [VS Code](https://code.visualstudio.com/) installed:
+
+<CodeGroup>
+
+```bash macOS/Linux
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+```powershell Windows
+code $env:AppData\Claude\claude_desktop_config.json
+```
+
+</CodeGroup>
+
+You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
+
+In this case, we'll add our single weather server like so:
+
+<CodeGroup>
+
+```json macOS/Linux
+{
+  "mcpServers": {
+    "weather": {
+      "command": "bundle",
+      "args": ["exec", "ruby", "weather.rb"],
+      "cwd": "/ABSOLUTE/PATH/TO/PARENT/FOLDER/weather"
+    }
+  }
+}
+```
+
+```json Windows
+{
+  "mcpServers": {
+    "weather": {
+      "command": "bundle",
+      "args": ["exec", "ruby", "weather.rb"],
+      "cwd": "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather"
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+
+Make sure you pass in the absolute path to your project directory in the `cwd` field. You can get this by running `pwd` on macOS/Linux or `cd` on Windows Command Prompt from your project directory. On Windows, remember to use double backslashes (`\\`) or forward slashes (`/`) in the JSON path.
+
+</Note>
+
+This tells Claude for Desktop:
+
+1. There's an MCP server named "weather"
+2. Launch it by running `bundle exec ruby weather.rb` in the specified directory
+
+Save the file, and restart **Claude for Desktop**.
+
+</Tab>
+
 <Tab title='Rust'>
 
 Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-rust)
