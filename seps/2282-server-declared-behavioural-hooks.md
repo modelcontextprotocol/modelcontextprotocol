@@ -1,11 +1,11 @@
-# SEP-0000: Server-Declared Behavioural Hooks
+# SEP-2282: Server-Declared Behavioural Hooks
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-02-21
 - **Author(s)**: David Hayes (@heyhayes)
 - **Sponsor**: None
-- **PR**: (to be filled after PR creation)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2282
 
 ## Abstract
 
