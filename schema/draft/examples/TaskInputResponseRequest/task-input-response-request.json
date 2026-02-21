@@ -1,0 +1,22 @@
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tasks/input_response",
+  "params": {
+    "inputResponses": {
+      "echo_input": {
+        "result": {
+          "action": "accept",
+          "content": {
+            "input": "Hello World!"
+          }
+        }
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/related-task": {
+        "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
+      }
+    }
+  }
+}

@@ -196,7 +196,7 @@ export interface JSONRPCErrorResponse {
  *
  * @category JSON-RPC
  */
-export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
+export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse | JSONRPCIncompleteResultResponse;
 
 // Standard JSON-RPC error codes
 export const PARSE_ERROR = -32700;
@@ -1580,6 +1580,19 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
    * Arguments to use for the tool call.
    */
   arguments?: { [key: string]: unknown };
+  /**
+   * Responses to server-initiated input requests from a previous
+   * {@link IncompleteResult} for this tool call. Present only when
+   * retrying a request after receiving an incomplete result.
+   */
+  inputResponses?: InputResponses;
+  /**
+   * Opaque request state echoed back from a previous {@link IncompleteResult}.
+   * Clients MUST return this value exactly as received. Present only when
+   * retrying a request after receiving an incomplete result that included
+   * a `requestState` field.
+   */
+  requestState?: string;
 }
 
 /**
@@ -1991,6 +2004,154 @@ export type TaskStatusNotificationParams = NotificationParams & Task;
 export interface TaskStatusNotification extends JSONRPCNotification {
   method: "notifications/tasks/status";
   params: TaskStatusNotificationParams;
+}
+
+/* Multi Round-Trip Requests */
+
+/**
+ * An elicitation input request that the server wants the client to fulfill
+ * as part of a multi round-trip interaction.
+ *
+ * @example Elicitation input request
+ * {@includeCode ./examples/InputRequest/elicitation-input-request.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface ElicitationInputRequest {
+  method: "elicitation/create";
+  params: ElicitRequestParams;
+}
+
+/**
+ * A sampling input request that the server wants the client to fulfill
+ * as part of a multi round-trip interaction.
+ *
+ * @example Sampling input request
+ * {@includeCode ./examples/InputRequest/sampling-input-request.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface SamplingInputRequest {
+  method: "sampling/createMessage";
+  params: CreateMessageRequestParams;
+}
+
+/**
+ * A request that the server wants the client to fulfill as part of a multi round-trip
+ * interaction. The object contains the method name and params of the server-initiated
+ * request (e.g., an elicitation or sampling request), but without the JSON-RPC `id` field.
+ *
+ * @category Multi Round-Trip
+ */
+export type InputRequest = ElicitationInputRequest | SamplingInputRequest;
+
+/**
+ * A map of server-initiated requests that the client must fulfill.
+ * Keys are server-assigned identifiers; values are the request objects.
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputRequests {
+  [key: string]: InputRequest;
+}
+
+/**
+ * A map of client responses to server-initiated requests.
+ * Keys correspond to the keys in the {@link InputRequests} map;
+ * values are the client's result for each request.
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputResponses {
+  [key: string]: { result: { [key: string]: unknown } };
+}
+
+/**
+ * An incomplete result sent by the server to indicate that additional input is needed
+ * before the request can be completed. This is used in the ephemeral multi round-trip
+ * workflow.
+ *
+ * At least one of `inputRequests` or `requestState` MUST be present.
+ *
+ * @example Incomplete result with input requests
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-input-requests.json}
+ *
+ * @example Incomplete result with request state only (load shedding)
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-request-state-only.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface IncompleteResult extends Result {
+  /**
+   * Requests issued by the server that the client must fulfill before retrying
+   * the original request.
+   */
+  inputRequests?: InputRequests;
+  /**
+   * Opaque state to be passed back to the server when the client retries the
+   * original request. Clients MUST treat this as an opaque blob and MUST NOT
+   * inspect, parse, or modify it.
+   */
+  requestState?: string;
+}
+
+/**
+ * A response to a request that indicates the result is incomplete and
+ * additional input is needed.
+ *
+ * @category JSON-RPC
+ */
+export interface JSONRPCIncompleteResultResponse {
+  jsonrpc: typeof JSONRPC_VERSION;
+  id: RequestId;
+  result: IncompleteResult;
+}
+
+/**
+ * Parameters for a `tasks/input_response` request.
+ * Used to deliver client responses to server-initiated input requests
+ * for a task in the persistent multi round-trip workflow.
+ *
+ * @example Task input response params
+ * {@includeCode ./examples/TaskInputResponseRequestParams/task-input-response-params.json}
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequestParams extends RequestParams {
+  /**
+   * The client's responses to the server's input requests.
+   */
+  inputResponses: InputResponses;
+}
+
+/**
+ * A request from the client to deliver input responses for a task
+ * that is in `input_required` status.
+ *
+ * @example Task input response request
+ * {@includeCode ./examples/TaskInputResponseRequest/task-input-response-request.json}
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequest extends JSONRPCRequest {
+  method: "tasks/input_response";
+  params: TaskInputResponseRequestParams;
+}
+
+/**
+ * The result returned for a {@link TaskInputResponseRequest | tasks/input_response} request.
+ *
+ * @category `tasks/input_response`
+ */
+export type TaskInputResponseResult = Result;
+
+/**
+ * A successful response for a {@link TaskInputResponseRequest | tasks/input_response} request.
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseResultResponse extends JSONRPCResultResponse {
+  result: TaskInputResponseResult;
 }
 
 /* Logging */
@@ -3191,7 +3352,8 @@ export type ClientRequest =
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
-  | CancelTaskRequest;
+  | CancelTaskRequest
+  | TaskInputResponseRequest;
 
 /** @internal */
 export type ClientNotification =

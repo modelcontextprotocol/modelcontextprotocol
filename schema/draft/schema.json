@@ -156,8 +156,16 @@
                     "description": "Arguments to use for the tool call.",
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult} for this tool call. Present only when\nretrying a request after receiving an incomplete result."
+                },
                 "name": {
                     "description": "The name of the tool.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 },
                 "task": {
@@ -506,6 +514,9 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksRequest"
+                },
+                {
+                    "$ref": "#/$defs/TaskInputResponseRequest"
                 },
                 {
                     "$ref": "#/$defs/SetLevelRequest"
@@ -1130,6 +1141,23 @@
             ],
             "type": "object"
         },
+        "ElicitationInputRequest": {
+            "description": "An elicitation input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
+            "properties": {
+                "method": {
+                    "const": "elicitation/create",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/ElicitRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
@@ -1544,6 +1572,23 @@
             ],
             "type": "object"
         },
+        "IncompleteResult": {
+            "description": "An incomplete result sent by the server to indicate that additional input is needed\nbefore the request can be completed. This is used in the ephemeral multi round-trip\nworkflow.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "inputRequests": {
+                    "$ref": "#/$defs/InputRequests",
+                    "description": "Requests issued by the server that the client must fulfill before retrying\nthe original request."
+                },
+                "requestState": {
+                    "description": "Opaque state to be passed back to the server when the client retries the\noriginal request. Clients MUST treat this as an opaque blob and MUST NOT\ninspect, parse, or modify it.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
@@ -1664,6 +1709,40 @@
             ],
             "type": "object"
         },
+        "InputRequest": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/ElicitationInputRequest"
+                },
+                {
+                    "$ref": "#/$defs/SamplingInputRequest"
+                }
+            ],
+            "description": "A request that the server wants the client to fulfill as part of a multi round-trip\ninteraction. The object contains the method name and params of the server-initiated\nrequest (e.g., an elicitation or sampling request), but without the JSON-RPC `id` field."
+        },
+        "InputRequests": {
+            "additionalProperties": {
+                "$ref": "#/$defs/InputRequest"
+            },
+            "description": "A map of server-initiated requests that the client must fulfill.\nKeys are server-assigned identifiers; values are the request objects.",
+            "type": "object"
+        },
+        "InputResponses": {
+            "additionalProperties": {
+                "properties": {
+                    "result": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "result"
+                ],
+                "type": "object"
+            },
+            "description": "A map of client responses to server-initiated requests.\nKeys correspond to the keys in the {@link InputRequests} map;\nvalues are the client's result for each request.",
+            "type": "object"
+        },
         "InternalError": {
             "description": "A JSON-RPC error indicating that an internal error occurred on the receiver. This error is returned when the receiver encounters an unexpected condition that prevents it from fulfilling the request.",
             "properties": {
@@ -1750,6 +1829,27 @@
             ],
             "type": "object"
         },
+        "JSONRPCIncompleteResultResponse": {
+            "description": "A response to a request that indicates the result is incomplete and\nadditional input is needed.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/IncompleteResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
+            "type": "object"
+        },
         "JSONRPCMessage": {
             "anyOf": [
                 {
@@ -1763,6 +1863,9 @@
                 },
                 {
                     "$ref": "#/$defs/JSONRPCErrorResponse"
+                },
+                {
+                    "$ref": "#/$defs/JSONRPCIncompleteResultResponse"
                 }
             ],
             "description": "Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent."
@@ -1820,6 +1923,9 @@
                 },
                 {
                     "$ref": "#/$defs/JSONRPCErrorResponse"
+                },
+                {
+                    "$ref": "#/$defs/JSONRPCIncompleteResultResponse"
                 }
             ],
             "description": "A response to a request, containing either the result or error."
@@ -3269,6 +3375,23 @@
             ],
             "type": "object"
         },
+        "SamplingInputRequest": {
+            "description": "A sampling input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
+            "properties": {
+                "method": {
+                    "const": "sampling/createMessage",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/CreateMessageRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
         "SamplingMessage": {
             "description": "Describes a message issued to or received from an LLM API.",
             "properties": {
@@ -3770,6 +3893,73 @@
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
+            "type": "object"
+        },
+        "TaskInputResponseRequest": {
+            "description": "A request from the client to deliver input responses for a task\nthat is in `input_required` status.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "tasks/input_response",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/TaskInputResponseRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "TaskInputResponseRequestParams": {
+            "description": "Parameters for a `tasks/input_response` request.\nUsed to deliver client responses to server-initiated input requests\nfor a task in the persistent multi round-trip workflow.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "The client's responses to the server's input requests."
+                }
+            },
+            "required": [
+                "inputResponses"
+            ],
+            "type": "object"
+        },
+        "TaskInputResponseResult": {
+            "$ref": "#/$defs/Result",
+            "description": "Common result fields."
+        },
+        "TaskInputResponseResultResponse": {
+            "description": "A successful response for a {@link TaskInputResponseRequesttasks/input_response} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/Result"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
             "type": "object"
         },
         "TaskMetadata": {
