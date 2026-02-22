@@ -644,7 +644,14 @@
                         "values": {
                             "description": "An array of completion values. Must not exceed 100 items.",
                             "items": {
-                                "type": "string"
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/$defs/CompletionValue"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
                             },
                             "type": "array"
                         }
@@ -678,6 +685,28 @@
                 "id",
                 "jsonrpc",
                 "result"
+            ],
+            "type": "object"
+        },
+        "CompletionValue": {
+            "description": "A completion value with optional display metadata.\n\nWhen a server returns a `CompletionValue` object instead of a plain string, clients\nSHOULD display the {@link CompletionValue.titletitle} to the user in completion UIs\nand MUST use the {@link CompletionValue.valuevalue} field when constructing\nsubsequent requests.",
+            "properties": {
+                "description": {
+                    "description": "Optional additional context shown as tooltip or help text.",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Human-readable display label for the completion option.",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "The actual completion value submitted in subsequent requests.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "title",
+                "value"
             ],
             "type": "object"
         },

@@ -423,6 +423,12 @@
                 "pages": [
                   "community/seps/2149-working-group-charter-template"
                 ]
+              },
+              {
+                "group": "In-review",
+                "pages": [
+                  "community/seps/0000-enhanced-completion-values"
+                ]
               }
             ]
           },

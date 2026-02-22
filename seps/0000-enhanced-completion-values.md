@@ -1,0 +1,294 @@
+# SEP-0000: Enhanced Completion Values with Rich Metadata Support
+
+- **Status**: in-review
+- **Type**: Standards Track
+- **Created**: 2025-09-08
+- **Author(s)**: Kent C. Dodds <me@kentcdodds.com> (@kentcdodds)
+- **Sponsor**: @evalstate
+- **Issue**: #1440
+- **PR**: TBD
+
+## Abstract
+
+This SEP proposes extending the MCP completion system to support rich metadata in completion values. Currently, `CompleteResult.completion.values` is limited to `string[]`, which prevents servers from providing contextual display information alongside completion options. This proposal introduces a `CompletionValue` object type and changes `values` to `Array<string | CompletionValue>`, where `CompletionValue` carries a required `value` string (the actual argument value), a required `title` string (the human-readable display label), and an optional `description` string (tooltip or help text). The union type preserves full backward compatibility: existing servers returning plain strings require no changes, while new servers can adopt rich objects incrementally. Clients that understand `CompletionValue` SHOULD display `title` to users and submit `value` in subsequent requests; clients that do not understand `CompletionValue` can degrade gracefully by using the `value` field directly.
+
+## Motivation
+
+The current completion system only allows servers to return plain strings in `CompleteResult.completion.values`. This creates several concrete problems:
+
+1. **Opaque identifiers**: When completion values are internal identifiers (e.g., database IDs, version slugs like `py-3.11`), users see cryptic strings with no context about what they represent.
+
+2. **No display/value separation**: There is no way to show a human-readable label (e.g., `"Python 3.11"`) to the user while submitting a different technical value (e.g., `"py-3.11"`) to the server. Servers are forced to either expose IDs directly or encode metadata into the string itself.
+
+3. **No inline documentation**: Rich IDE-style completion interfaces support descriptions and tooltips. These cannot currently be expressed in MCP responses.
+
+4. **Inconsistent client UX**: Without metadata, each client must independently decide how to render completions, leading to inconsistent experiences across MCP clients.
+
+Real-world cases demonstrating the need:
+
+- A journaling server returns numeric entry IDs as completions; users must know which ID maps to which entry.
+- A runtime environment server returns version slugs; `"py-3.11"` is less clear to users than `"Python 3.11"`.
+- VS Code's completion UI can display a label and description alongside a value; MCP cannot currently supply these ([demonstrated by @connor4312](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/585#discussioncomment-13289868)).
+
+## Specification
+
+### New Type: `CompletionValue`
+
+A `CompletionValue` object provides display metadata alongside a completion value:
+
+```typescript
+interface CompletionValue {
+  /** The actual value submitted in argument context for subsequent requests. */
+  value: string;
+  /** Human-readable display label shown to the user in completion UIs. */
+  title: string;
+  /** Optional additional context, shown as a tooltip or help text. */
+  description?: string;
+}
+```
+
+All fields are strings. The `value` field is what gets placed into `context.arguments` in subsequent `completion/complete` requests.
+
+### Change to `CompleteResult`
+
+`CompleteResult.completion.values` changes from:
+
+```typescript
+values: string[]
+```
+
+to:
+
+```typescript
+values: Array<string | CompletionValue>;
+```
+
+The maximum of 100 items per response is unchanged.
+
+### Protocol Examples
+
+#### All plain strings (unchanged, backward compatible)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
+      "values": ["python", "pytorch", "pyside"],
+      "total": 10,
+      "hasMore": true
+    }
+  }
+}
+```
+
+#### All rich objects
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
+      "values": [
+        {
+          "value": "py-3.11",
+          "title": "Python 3.11",
+          "description": "Python programming language, version 3.11"
+        },
+        {
+          "value": "torch-2.0",
+          "title": "PyTorch 2.0",
+          "description": "Open source machine learning framework"
+        },
+        {
+          "value": "pyside-6",
+          "title": "PySide 6"
+        }
+      ],
+      "total": 3,
+      "hasMore": false
+    }
+  }
+}
+```
+
+#### Mixed (plain strings and rich objects in the same response)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
+      "values": [
+        "python",
+        {
+          "value": "torch-2.0",
+          "title": "PyTorch 2.0",
+          "description": "Open source machine learning framework"
+        },
+        "pyside"
+      ],
+      "total": 3,
+      "hasMore": false
+    }
+  }
+}
+```
+
+### Client Behaviour
+
+Clients that receive `CompletionValue` objects:
+
+1. **MUST** use the `value` field (not `title`) when constructing subsequent `completion/complete` requests (i.e., in `context.arguments` or as the argument value).
+2. **SHOULD** display the `title` field to users in place of the raw `value` when rendering completion suggestions.
+3. **SHOULD** display the `description` field as supplemental information (e.g., tooltip, help text) when it is present.
+4. **SHOULD** search or filter completion suggestions against both the `value` and `title` fields when performing client-side filtering, so that users typing either the display name or the technical value can find matches.
+
+Clients that do not yet recognise `CompletionValue` objects MAY fall back to displaying the `value` field directly.
+
+### Server Behaviour
+
+Servers:
+
+1. MAY return only plain strings (existing behaviour, no changes required).
+2. MAY return only `CompletionValue` objects.
+3. MAY mix plain strings and `CompletionValue` objects in the same response.
+4. SHOULD be aware that clients MAY filter on `title` as well as `value`; servers performing server-side prefix matching SHOULD match against both fields, or document which field they match against.
+5. MUST ensure that `value` fields in `CompletionValue` objects are strings. They MUST NOT be numbers or other non-string types.
+
+### Schema Changes
+
+#### `schema.ts` (draft)
+
+Add the new interface:
+
+```typescript
+/**
+ * A completion value with optional display metadata.
+ *
+ * @category `completion/complete`
+ */
+export interface CompletionValue {
+  /** The actual completion value submitted in subsequent requests. */
+  value: string;
+  /** Human-readable display label for the completion option. */
+  title: string;
+  /** Optional additional context shown as tooltip or help text. */
+  description?: string;
+}
+```
+
+Change `CompleteResult.completion.values`:
+
+```typescript
+// Before
+values: string[];
+
+// After
+values: Array<string | CompletionValue>;
+```
+
+#### `schema.json` (draft)
+
+Add `CompletionValue` definition:
+
+```json
+"CompletionValue": {
+  "description": "A completion value with optional display metadata.",
+  "type": "object",
+  "properties": {
+    "value": {
+      "type": "string",
+      "description": "The actual completion value submitted in subsequent requests."
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable display label for the completion option."
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional additional context shown as tooltip or help text."
+    }
+  },
+  "required": ["value", "title"],
+  "additionalProperties": false
+}
+```
+
+Change the `values` items definition in `CompleteResult`:
+
+```json
+"values": {
+  "description": "An array of completion values. Must not exceed 100 items.",
+  "type": "array",
+  "items": {
+    "anyOf": [
+      { "$ref": "#/$defs/CompletionValue" },
+      { "type": "string" }
+    ]
+  }
+}
+```
+
+## Rationale
+
+### Union type rather than always-object
+
+Requiring all items to be `CompletionValue` objects would be a breaking change for existing servers. The `string | CompletionValue` union allows both old and new servers to work without modification, and allows mixed arrays so servers can provide rich metadata only where useful.
+
+### `value` + `title` rather than a single display field
+
+A single optional `label` field alongside a plain string was considered, but the union approach makes field semantics clearer: `value` is always what gets submitted to the server; `title` is always what gets displayed. This avoids ambiguity when a value happens to look like a human-readable label.
+
+### Three fields only (`value`, `title`, `description`)
+
+Additional fields (e.g., icons, categories, sort keys) were considered and rejected to keep the initial scope minimal and reviewable. They can be proposed in a follow-on SEP if real demand emerges.
+
+### `title` required, `description` optional
+
+Requiring `title` ensures that when a server opts into the rich format, it always provides a display label. Making `description` optional avoids overhead for cases where a label alone is sufficient context.
+
+### `additionalProperties: false` on `CompletionValue`
+
+This prevents future accidental extension outside the SEP process and keeps clients free to make assumptions about the structure.
+
+## Backward Compatibility
+
+This change is fully backward compatible:
+
+- **Existing servers** returning `string[]` require zero changes.
+- **Existing clients** that expect `string[]` will encounter object items only if a new-style server is deployed. Such clients SHOULD handle unknown item shapes gracefully (e.g., by extracting a `value` property if present or skipping unrecognised items).
+- **No protocol version bump** is required; this is an additive, optional enrichment.
+
+Recommended migration path:
+
+1. Clients update to handle `string | CompletionValue` (additive, no breaking change).
+2. Servers optionally migrate completions to rich objects where they add value.
+
+## Security Implications
+
+No new attack surface is introduced. The `title` and `description` fields are display-only strings subject to the same input validation requirements as existing completion values. Servers MUST:
+
+- Validate all completion metadata before returning it.
+- Ensure `title` and `description` fields do not leak sensitive information that the plain `value` would not have exposed.
+- Apply the same access control and rate limiting to `CompletionValue` responses as to plain string responses.
+
+## Reference Implementation
+
+A prototype PR with draft schema and documentation changes exists at:
+https://github.com/modelcontextprotocol/modelcontextprotocol/pull/589
+
+> **Note**: The examples in PR #589 contain a bug where `value` fields are shown as integers (e.g., `"value": 45`). The correct type is `string`; this SEP supersedes those examples and the PR should be updated accordingly.
+
+SDK prototype implementations are in progress. The reference implementation requirement will be satisfied before this SEP moves to `final`.
+
+## Open Questions
+
+1. **Client-side filtering**: Should the spec give stronger guidance (MUST vs SHOULD) on clients filtering against both `value` and `title`? Current wording is SHOULD to allow clients that delegate all filtering to the server.
+
+2. **`additionalProperties: false`**: Some schemas in the spec allow extension via additional properties. We have chosen to restrict `CompletionValue` — is this the right call, or should it be open for future extension?
+
+3. **Ordering**: Should the spec say anything about how `title` affects sort order of suggestions? Current proposal is silent on this.
