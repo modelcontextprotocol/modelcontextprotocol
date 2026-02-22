@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2025-09-08
-- **Author(s)**: Kent C. Dodds (me@kentcdodds.com) (@kentcdodds), @evalstate
+- **Author(s)**: Kent C. Dodds (@kentcdodds), @evalstate
 - **Sponsor**: @evalstate
 - **Issue**: #1440
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2293
