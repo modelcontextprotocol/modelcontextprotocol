@@ -1,12 +1,12 @@
-# SEP-0000: Enhanced Completion Values with Rich Metadata Support
+# SEP-2293: Enhanced Completion Values with Rich Metadata Support
 
-- **Status**: in-review
+- **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2025-09-08
-- **Author(s)**: Kent C. Dodds <me@kentcdodds.com> (@kentcdodds)
+- **Author(s)**: Kent C. Dodds (me@kentcdodds.com) (@kentcdodds), @evalstate
 - **Sponsor**: @evalstate
 - **Issue**: #1440
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2293
 
 ## Abstract
 
@@ -278,8 +278,7 @@ No new attack surface is introduced. The `title` and `description` fields are di
 
 ## Reference Implementation
 
-A prototype PR with draft schema and documentation changes exists at:
-https://github.com/modelcontextprotocol/modelcontextprotocol/pull/589
+The original implementation PR is [#589](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/589) by @kentcdodds, which introduced draft schema and documentation changes for enhanced completion values. This SEP formalizes and corrects that work.
 
 > **Note**: The examples in PR #589 contain a bug where `value` fields are shown as integers (e.g., `"value": 45`). The correct type is `string`; this SEP supersedes those examples and the PR should be updated accordingly.
 

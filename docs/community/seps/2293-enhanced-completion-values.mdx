@@ -1,28 +1,28 @@
 ---
-title: "SEP-0000: Enhanced Completion Values with Rich Metadata Support"
-sidebarTitle: "SEP-0000: Enhanced Completion Values with Rich Me…"
+title: "SEP-2293: Enhanced Completion Values with Rich Metadata Support"
+sidebarTitle: "SEP-2293: Enhanced Completion Values with Rich Me…"
 description: "Enhanced Completion Values with Rich Metadata Support"
 ---
 
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="yellow" shape="pill">
-    in-review
+  <Badge color="gray" shape="pill">
+    Draft
   </Badge>
   <Badge color="gray" shape="pill">
     Standards Track
   </Badge>
 </div>
 
-| Field         | Value                                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 0000                                                                                                              |
-| **Title**     | Enhanced Completion Values with Rich Metadata Support                                                             |
-| **Status**    | in-review                                                                                                         |
-| **Type**      | Standards Track                                                                                                   |
-| **Created**   | 2025-09-08                                                                                                        |
-| **Author(s)** | Kent C. Dodds <me[@kentcdodds](https://github.com/kentcdodds).com> ([@kentcdodds](https://github.com/kentcdodds)) |
-| **Sponsor**   | [@evalstate](https://github.com/evalstate)                                                                        |
-| **PR**        | [#0000](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000)                                   |
+| Field         | Value                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SEP**       | 2293                                                                                                                                                          |
+| **Title**     | Enhanced Completion Values with Rich Metadata Support                                                                                                         |
+| **Status**    | Draft                                                                                                                                                         |
+| **Type**      | Standards Track                                                                                                                                               |
+| **Created**   | 2025-09-08                                                                                                                                                    |
+| **Author(s)** | Kent C. Dodds (me[@kentcdodds](https://github.com/kentcdodds).com) ([@kentcdodds](https://github.com/kentcdodds)), [@evalstate](https://github.com/evalstate) |
+| **Sponsor**   | [@evalstate](https://github.com/evalstate)                                                                                                                    |
+| **PR**        | [#2293](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2293)                                                                               |
 
 ---
 
@@ -296,8 +296,7 @@ No new attack surface is introduced. The `title` and `description` fields are di
 
 ## Reference Implementation
 
-A prototype PR with draft schema and documentation changes exists at:
-https://github.com/modelcontextprotocol/modelcontextprotocol/pull/589
+The original implementation PR is [#589](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/589) by @kentcdodds, which introduced draft schema and documentation changes for enhanced completion values. This SEP formalizes and corrects that work.
 
 > **Note**: The examples in PR #589 contain a bug where `value` fields are shown as integers (e.g., `"value": 45`). The correct type is `string`; this SEP supersedes those examples and the PR should be updated accordingly.
 
