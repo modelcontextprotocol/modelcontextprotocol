@@ -49,7 +49,19 @@ Official extensions live inside the [Model Context Protocol GitHub organization]
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | [MCP Apps](/extensions/apps/overview) | Allows MCP Servers to display interactive UI elements (charts, forms, video players) inline within conversations |
 
-To get started building MCP Apps, see the [quickstart guide](/extensions/apps/build#getting-started) or read the full [MCP Apps documentation](https://modelcontextprotocol.github.io/ext-apps/api/documents/Quickstart.html).
+### Getting Started with MCP Apps
+
+To integrate MCP Apps into your workflow:
+
+1. **For MCP-compatible clients (like Claude, Poke, etc.):**
+   - If using a **remote MCP server**: Enter the MCP server URL (e.g., `https://your-mcp-server.example.com/mcp`) in your client's connector settings
+   - If running **locally**: Start your MCP server on localhost (e.g., `http://localhost:3001/mcp`) and use that local URL in your client configuration
+
+2. **To build your own MCP App:**
+   - Follow the comprehensive [quickstart guide](/extensions/apps/build#getting-started) for step-by-step instructions
+   - Refer to the [API documentation](https://modelcontextprotocol.github.io/ext-apps/api/) for SDK reference and technical details
+
+The quickstart guide covers everything from project setup to testing your app with various MCP clients.
 
 ## Experimental Extensions
 
