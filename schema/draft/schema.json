@@ -2954,6 +2954,10 @@
                     "$ref": "#/$defs/Annotations",
                     "description": "Optional annotations for the client."
                 },
+                "capabilities": {
+                    "$ref": "#/$defs/ResourceCapabilities",
+                    "description": "Capabilities indicating which operations are supported for this resource.\n\n- `list`: This resource supports `resources/list` to enumerate children.\n- `subscribe`: This resource supports `resources/subscribe` for change notifications.\n\nIf absent, the resource's capabilities are unknown and clients SHOULD\nattempt operations or use the server-level capabilities to determine support.\nAn explicit `false` value for a capability means the resource definitely does\nnot support that operation."
+                },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
@@ -2993,6 +2997,20 @@
             ],
             "type": "object"
         },
+        "ResourceCapabilities": {
+            "description": "Capabilities indicating which operations are supported for a specific resource.\n\nWhen present on a {@link ResourceTemplate}, these represent the **superset** of\ncapabilities that resources produced by the template may support. The resolved\n{@link Resource} has the authoritative value.",
+            "properties": {
+                "list": {
+                    "description": "If true, this resource supports `resources/list` with its URI to enumerate\nchild resources. This indicates the resource is a container (e.g., a directory,\ndatabase, or other hierarchical grouping).",
+                    "type": "boolean"
+                },
+                "subscribe": {
+                    "description": "If true, this resource supports `resources/subscribe` for change notifications.\nThis provides per-resource granularity beyond the server-level `subscribe`\ncapability.",
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
         "ResourceContents": {
             "description": "The contents of a specific resource or sub-resource.",
             "properties": {
@@ -3023,6 +3041,10 @@
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
                     "description": "Optional annotations for the client."
+                },
+                "capabilities": {
+                    "$ref": "#/$defs/ResourceCapabilities",
+                    "description": "Capabilities indicating which operations are supported for this resource.\n\n- `list`: This resource supports `resources/list` to enumerate children.\n- `subscribe`: This resource supports `resources/subscribe` for change notifications.\n\nIf absent, the resource's capabilities are unknown and clients SHOULD\nattempt operations or use the server-level capabilities to determine support.\nAn explicit `false` value for a capability means the resource definitely does\nnot support that operation."
                 },
                 "description": {
                     "description": "A description of what this resource represents.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",
@@ -3115,6 +3137,10 @@
                 "annotations": {
                     "$ref": "#/$defs/Annotations",
                     "description": "Optional annotations for the client."
+                },
+                "capabilities": {
+                    "$ref": "#/$defs/ResourceCapabilities",
+                    "description": "The superset of capabilities that resources produced by this template may support.\n\nFor example, a filesystem template might declare `{ list: true, subscribe: true }` because\nsome resources (directories) are listable and some support subscriptions, even though not\nevery resource from the template will have all capabilities.\n\nThe resolved {@link Resource} has the authoritative value. Clients SHOULD use template\ncapabilities for early filtering or UI hints, but MUST check the resource's own\ncapabilities before relying on them.\n\nIf absent, the capabilities of resources from this template are unknown. An explicit\n`false` value for a capability means no resource from this template supports that\noperation."
                 },
                 "description": {
                     "description": "A description of what this template is for.\n\nThis can be used by clients to improve the LLM's understanding of available resources. It can be thought of like a \"hint\" to the model.",

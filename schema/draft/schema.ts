@@ -1145,6 +1145,31 @@ export interface ResourceUpdatedNotification extends JSONRPCNotification {
 }
 
 /**
+ * Capabilities indicating which operations are supported for a specific resource.
+ *
+ * When present on a {@link ResourceTemplate}, these represent the **superset** of
+ * capabilities that resources produced by the template may support. The resolved
+ * {@link Resource} has the authoritative value.
+ *
+ * @category `resources/list`
+ */
+export interface ResourceCapabilities {
+  /**
+   * If true, this resource supports `resources/list` with its URI to enumerate
+   * child resources. This indicates the resource is a container (e.g., a directory,
+   * database, or other hierarchical grouping).
+   */
+  list?: boolean;
+
+  /**
+   * If true, this resource supports `resources/subscribe` for change notifications.
+   * This provides per-resource granularity beyond the server-level `subscribe`
+   * capability.
+   */
+  subscribe?: boolean;
+}
+
+/**
  * A known resource that the server is capable of reading.
  *
  * @example File resource with annotations
@@ -1171,6 +1196,19 @@ export interface Resource extends BaseMetadata, Icons {
    * The MIME type of this resource, if known.
    */
   mimeType?: string;
+
+  /**
+   * Capabilities indicating which operations are supported for this resource.
+   *
+   * - `list`: This resource supports `resources/list` to enumerate children.
+   * - `subscribe`: This resource supports `resources/subscribe` for change notifications.
+   *
+   * If absent, the resource's capabilities are unknown and clients SHOULD
+   * attempt operations or use the server-level capabilities to determine support.
+   * An explicit `false` value for a capability means the resource definitely does
+   * not support that operation.
+   */
+  capabilities?: ResourceCapabilities;
 
   /**
    * Optional annotations for the client.
@@ -1211,6 +1249,23 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
    * The MIME type for all resources that match this template. This should only be included if all resources matching this template have the same type.
    */
   mimeType?: string;
+
+  /**
+   * The superset of capabilities that resources produced by this template may support.
+   *
+   * For example, a filesystem template might declare `{ list: true, subscribe: true }` because
+   * some resources (directories) are listable and some support subscriptions, even though not
+   * every resource from the template will have all capabilities.
+   *
+   * The resolved {@link Resource} has the authoritative value. Clients SHOULD use template
+   * capabilities for early filtering or UI hints, but MUST check the resource's own
+   * capabilities before relying on them.
+   *
+   * If absent, the capabilities of resources from this template are unknown. An explicit
+   * `false` value for a capability means no resource from this template supports that
+   * operation.
+   */
+  capabilities?: ResourceCapabilities;
 
   /**
    * Optional annotations for the client.

@@ -15,7 +15,7 @@ This SEP proposes six related changes to improve the consistency and usability o
 
 2. **New `resources/metadata` endpoint**: Introduce a method to fetch resource metadata without retrieving content, enabling efficient conditional loading and metadata refresh.
 
-3. **Introduce per-resource `capabilities`**: Add a `capabilities` object to `Resource` with `list` (the resource supports `resources/list` to enumerate children) and `subscribe` (the resource supports `resources/subscribe` for change notifications).
+3. **Introduce per-resource `capabilities`**: Add a `capabilities` object to `Resource` and `ResourceTemplate` with `list` (the resource supports `resources/list` to enumerate children) and `subscribe` (the resource supports `resources/subscribe` for change notifications). On templates, capabilities use upper-bound semantics — they represent the superset of what produced resources may support.
 
 4. **Extend `resources/list` with optional URI scoping**: Add an optional `uri` parameter to `resources/list` so clients can list children of a specific listable resource.
 
@@ -105,11 +105,15 @@ export interface BlobResourceContents extends Resource {
 
 ### 2. Add Per-Resource `capabilities`
 
-Add a `capabilities` object to `Resource` indicating which operations the resource supports:
+Add a `capabilities` object to both `Resource` and `ResourceTemplate` indicating which operations are supported:
 
 ```typescript
 /**
  * Capabilities indicating which operations are supported for a specific resource.
+ *
+ * When present on a ResourceTemplate, these represent the superset of capabilities
+ * that resources produced by the template may support. The resolved Resource has the
+ * authoritative value.
  */
 export interface ResourceCapabilities {
   /**
@@ -157,8 +161,10 @@ export interface Resource extends BaseMetadata, Icons {
    * - `subscribe`: This resource supports `resources/subscribe` for change
    *   notifications.
    *
-   * When absent, clients SHOULD NOT assume the resource supports listing or
-   * subscription.
+   * If absent, the resource's capabilities are unknown and clients SHOULD
+   * attempt operations or use the server-level capabilities to determine support.
+   * An explicit `false` value for a capability means the resource definitely does
+   * not support that operation.
    */
   capabilities?: ResourceCapabilities;
 
@@ -168,6 +174,35 @@ export interface Resource extends BaseMetadata, Icons {
   annotations?: Annotations;
 }
 ```
+
+`ResourceTemplate` also supports `capabilities` with **upper-bound semantics**:
+
+```typescript
+export interface ResourceTemplate extends BaseMetadata, Icons {
+  uriTemplate: string;
+  // ...existing fields...
+
+  /**
+   * The superset of capabilities that resources produced by this template may support.
+   *
+   * For example, a filesystem template might declare { list: true, subscribe: true }
+   * because some resources (directories) are listable and some support subscriptions,
+   * even though not every resource from the template will have all capabilities.
+   *
+   * The resolved Resource has the authoritative value. Clients SHOULD use template
+   * capabilities for early filtering or UI hints, but MUST check the resource's own
+   * capabilities before relying on them.
+   */
+  capabilities?: ResourceCapabilities;
+}
+```
+
+The relationship between template and resource capabilities follows these rules:
+
+1. Template capabilities represent the **superset** of what resources from this template _may_ support — not what they _all_ support.
+2. `capabilities: { list: true, subscribe: true }` on a template means "resources from this template may be listable and/or subscribable." The resolved `Resource` has the authoritative answer.
+3. If a template omits `capabilities` or declares `capabilities: {}`, the capabilities of its resources are unknown. Clients SHOULD NOT rule out any operations based on the absence of template capabilities. An explicit `false` value for a capability means no resource from this template supports that operation.
+4. A resource MUST NOT declare a capability `true` when its template explicitly declares that capability `false`.
 
 ### 3. New `resources/metadata` Method
 
@@ -393,6 +428,19 @@ We considered several alternatives:
 2. **Use mimeType (e.g., `inode/directory`)** - mimeType describes content format, not resource semantics; mixing concerns
 3. **Infer from URI patterns** - Unreliable; not all collections end with `/`
 4. **Boolean `isCollection` flag** - Only addresses one dimension; doesn't help with subscribe granularity
+
+### Why Capabilities on ResourceTemplate Too?
+
+`ResourceTemplate` uses **upper-bound semantics**: the template's capabilities represent the superset of what its resources _may_ support, while the resolved `Resource` is authoritative.
+
+This was chosen over omitting capabilities from templates for several reasons:
+
+1. **Early capability discovery**: Clients can know before resolving a template whether the resulting resources might be listable or subscribable, enabling better UI (e.g., showing folder icons or "watch" toggles next to templates).
+2. **Reduced round-trips**: Without template capabilities, a client must resolve the template to a URI and then call `resources/metadata` to discover capabilities. With them, listing templates gives clients enough information for initial UI layout.
+3. **Consistent shape**: `Resource` and `ResourceTemplate` already mirror each other closely (`description`, `mimeType`, `annotations`, `icons`). Adding `capabilities` to both maintains this symmetry.
+4. **Mirrors mimeType semantics**: Template-level `mimeType` is already an advisory hint that individual resources may override. Template capabilities follow the same pattern.
+
+Upper-bound semantics were chosen over "all resources support this" semantics because the interesting templates are ones that produce heterogeneous resources (e.g., a filesystem template produces both directories and files). Requiring exact capability guarantees would make the field useless for these cases.
 
 ### Why Allow Multi-URI Returns for Listable Resources?
 
