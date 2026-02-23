@@ -158,7 +158,7 @@
                 },
                 "inputResponses": {
                     "$ref": "#/$defs/InputResponses",
-                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult} for this tool call. Present only when\nretrying a request after receiving an incomplete result."
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
                 },
                 "name": {
                     "description": "The name of the tool.",
@@ -546,13 +546,13 @@
                     "$ref": "#/$defs/ListTasksResult"
                 },
                 {
+                    "$ref": "#/$defs/ElicitResult"
+                },
+                {
                     "$ref": "#/$defs/CreateMessageResult"
                 },
                 {
                     "$ref": "#/$defs/ListRootsResult"
-                },
-                {
-                    "$ref": "#/$defs/ElicitResult"
                 }
             ]
         },
@@ -619,6 +619,10 @@
                     },
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "ref": {
                     "anyOf": [
                         {
@@ -628,6 +632,10 @@
                             "$ref": "#/$defs/ResourceTemplateReference"
                         }
                     ]
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -752,6 +760,10 @@
                     ],
                     "type": "string"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "maxTokens": {
                     "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
                     "type": "integer"
@@ -771,6 +783,10 @@
                 "modelPreferences": {
                     "$ref": "#/$defs/ModelPreferences",
                     "description": "The server's preferences for which model to select. The client MAY ignore these preferences."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "stopSequences": {
                     "items": {
@@ -950,6 +966,10 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
                     "type": "string"
@@ -957,6 +977,10 @@
                 "mode": {
                     "const": "form",
                     "description": "The elicitation mode.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 },
                 "requestedSchema": {
@@ -1020,6 +1044,10 @@
                     "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
                     "type": "string"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -1027,6 +1055,10 @@
                 "mode": {
                     "const": "url",
                     "description": "The elicitation mode.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 },
                 "task": {
@@ -1271,8 +1303,16 @@
                     "description": "Arguments to use for templating the prompt.",
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "name": {
                     "description": "The name of the prompt or prompt template.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 }
             },
@@ -1627,8 +1667,16 @@
                 "clientInfo": {
                     "$ref": "#/$defs/Implementation"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "protocolVersion": {
                     "description": "The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 }
             },
@@ -1727,18 +1775,20 @@
             "description": "A map of server-initiated requests that the client must fulfill.\nKeys are server-assigned identifiers; values are the request objects.",
             "type": "object"
         },
+        "InputResponse": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/ElicitResult"
+                },
+                {
+                    "$ref": "#/$defs/CreateMessageResult"
+                }
+            ],
+            "description": "The client's response to a single server-initiated input request."
+        },
         "InputResponses": {
             "additionalProperties": {
-                "properties": {
-                    "result": {
-                        "additionalProperties": {},
-                        "type": "object"
-                    }
-                },
-                "required": [
-                    "result"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/InputResponse"
             },
             "description": "A map of client responses to server-initiated requests.\nKeys correspond to the keys in the {@link InputRequests} map;\nvalues are the client's result for each request.",
             "type": "object"
@@ -2614,6 +2664,14 @@
                 "cursor": {
                     "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
                     "type": "string"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -2939,6 +2997,14 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3046,6 +3112,14 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -3200,6 +3274,14 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
@@ -3703,9 +3785,17 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "level": {
                     "$ref": "#/$defs/LoggingLevel",
                     "description": "The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as {@link LoggingMessageNotificationnotifications/message}."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -3812,6 +3902,14 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3891,6 +3989,14 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
@@ -3933,6 +4039,10 @@
                 "inputResponses": {
                     "$ref": "#/$defs/InputResponses",
                     "description": "The client's responses to the server's input requests."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
@@ -4515,6 +4625,14 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",

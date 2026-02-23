@@ -1,11 +1,9 @@
 {
   "inputResponses": {
     "echo_input": {
-      "result": {
-        "action": "accept",
-        "content": {
-          "input": "Hello World!"
-        }
+      "action": "accept",
+      "content": {
+        "input": "Hello World!"
       }
     }
   },

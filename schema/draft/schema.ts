@@ -88,6 +88,19 @@ export interface TaskAugmentedRequestParams extends RequestParams {
  */
 export interface RequestParams {
   _meta?: RequestMetaObject;
+  /**
+   * Responses to server-initiated input requests from a previous
+   * {@link IncompleteResult}. Present only when retrying a request
+   * after receiving an incomplete result.
+   */
+  inputResponses?: InputResponses;
+  /**
+   * Opaque request state echoed back from a previous {@link IncompleteResult}.
+   * Clients MUST return this value exactly as received. Present only when
+   * retrying a request after receiving an incomplete result that included
+   * a `requestState` field.
+   */
+  requestState?: string;
 }
 
 /** @internal */
@@ -1580,19 +1593,6 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
    * Arguments to use for the tool call.
    */
   arguments?: { [key: string]: unknown };
-  /**
-   * Responses to server-initiated input requests from a previous
-   * {@link IncompleteResult} for this tool call. Present only when
-   * retrying a request after receiving an incomplete result.
-   */
-  inputResponses?: InputResponses;
-  /**
-   * Opaque request state echoed back from a previous {@link IncompleteResult}.
-   * Clients MUST return this value exactly as received. Present only when
-   * retrying a request after receiving an incomplete result that included
-   * a `requestState` field.
-   */
-  requestState?: string;
 }
 
 /**
@@ -2056,6 +2056,13 @@ export interface InputRequests {
 }
 
 /**
+ * The client's response to a single server-initiated input request.
+ *
+ * @category Multi Round-Trip
+ */
+export type InputResponse = ElicitResult | CreateMessageResult;
+
+/**
  * A map of client responses to server-initiated requests.
  * Keys correspond to the keys in the {@link InputRequests} map;
  * values are the client's result for each request.
@@ -2063,7 +2070,7 @@ export interface InputRequests {
  * @category Multi Round-Trip
  */
 export interface InputResponses {
-  [key: string]: { result: { [key: string]: unknown } };
+  [key: string]: InputResponse;
 }
 
 /**
