@@ -947,10 +947,10 @@
         "ElicitRequestParams": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitRequestURLParams"
+                    "$ref": "#/$defs/ElicitRequestFormParams"
                 },
                 {
-                    "$ref": "#/$defs/ElicitRequestFormParams"
+                    "$ref": "#/$defs/ElicitRequestURLParams"
                 }
             ],
             "description": "The parameters for a request to elicit additional information from the user via the client."
@@ -4438,58 +4438,6 @@
                 "input",
                 "name",
                 "type"
-            ],
-            "type": "object"
-        },
-        "URLElicitationRequiredError": {
-            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
-            "properties": {
-                "error": {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/Error"
-                        },
-                        {
-                            "properties": {
-                                "code": {
-                                    "const": -32042,
-                                    "type": "integer"
-                                },
-                                "data": {
-                                    "additionalProperties": {},
-                                    "properties": {
-                                        "elicitations": {
-                                            "items": {
-                                                "$ref": "#/$defs/ElicitRequestURLParams"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "elicitations"
-                                    ],
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "code",
-                                "data"
-                            ],
-                            "type": "object"
-                        }
-                    ]
-                },
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "error",
-                "jsonrpc"
             ],
             "type": "object"
         },
