@@ -49,7 +49,7 @@
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
-    "eslint": "^9.8.0",
+    "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
     "glob": "^13.0.6",
     "prettier": "^3.6.2",
