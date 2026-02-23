@@ -378,7 +378,7 @@ Note: This is a contrived example, just to illustrate the flow.
     "name": "get_weather",
     "arguments": {
       "location": "New York"
-    }
+    },
     "inputResponses": {
       "github_login": {
         "action": "accept",
@@ -727,14 +727,14 @@ The workflow for `Tasks` is as follows:
 1. Server sets Task Status to `input_required`. The server can pause
    processing the request at this point.
 2. Client retrieves the Task Status by calling `tasks/get` and sees that more information is needed.
-3. Client calls `task/result`
+3. Client calls `tasks/result`
 4. Server returns the `InputRequests` object.
 5. Client calls `tasks/input_response` request that includes an `InputResponses` object along with `Task` metadata field.
 6. Server resumes processing sets TaskStatus back to `Working`.
 
 Since `Tasks` are likely longer running, have state associated with them, and are likely more costly to compute, the request for more information does not end the originally requested operation (e.g., the tool call). Instead, the server can resume processing once the necessary information is provided.
 
-To align with MRTR semantics, the server will respond to the `task/result` request with a `InputRequests` object. Both of these will have the same JsonRPC `id`. When the client responds with a `InputResponses` object this is a new client request wit a new JSONRPC `id` and therefore needs a new method name. We propose `tasks/input_response`.
+To align with MRTR semantics, the server will respond to the `tasks/result` request with a `InputRequests` object. Both of these will have the same JsonRPC `id`. When the client responds with a `InputResponses` object this is a new client request wit a new JSONRPC `id` and therefore needs a new method name. We propose `tasks/input_response`.
 
 The above workflow and below example do not leverage any of the optional Task Status Notifications although this SEP does not preclude their use.
 
@@ -764,9 +764,10 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
     "result":{
         "task":{
             "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5",
-            "status": "Working",
+            "status": "working",
             "statusMessage": "Task has been created for echo tool invocation.",
             "createdAt": "2026-01-27T03:32:48.3148180Z",
+            "lastUpdatedAt": "2026-01-27T03:32:48.3148180Z",
             "ttl": 60000,
             "pollInterval": 100
         }
@@ -796,9 +797,10 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
       "status": "input_required",
       "statusMessage": "Input Required to Proceed call tasks/result",
       "createdAt": "2026-01-27T03:38:07.7534643Z",
+      "lastUpdatedAt": "2026-01-27T03:38:07.7534643Z",
       "ttl": 60000,
       "pollInterval": 100
-    },
+    }
 }
 ```
 
@@ -896,19 +898,20 @@ Client Request
   }
 }
 ```
-10. <b>Server Response</b> with Task status `Completed`
+10. <b>Server Response</b> with Task status `completed`
 ```json
 {
   "id": 5,
   "jsonrpc": "2.0",
   "result":{
     "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5",
-    "status": "Completed",
-    "statusMessage": "Task has been completed successfully, call get/result",
+    "status": "completed",
+    "statusMessage": "Task has been completed successfully, call tasks/result",
     "createdAt": "2026-01-27T03:38:07.7534643Z",
+    "lastUpdatedAt": "2026-01-27T03:38:08.1234567Z",
     "ttl": 60000,
     "pollInterval": 100
-  },
+  }
 }
 ```
 
@@ -921,7 +924,7 @@ Client Message
   "method": "tasks/result",
   "params":{
     "taskId":  "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
-  },
+  }
 }
 ```
 12. <b>Server Response</b> with the final result of the `Task`
@@ -940,7 +943,7 @@ Client Message
         "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
       }
     }
-  },
+  }
 }
 ```
 
@@ -953,7 +956,7 @@ Client Message
      `tasks/result` response.
 
 2. **Client Behavior:**
-   - When `tasks/status` shows state `input_required`, clients MUST call
+   - When `tasks/get` shows state `input_required`, clients MUST call
      `tasks/result` to get the input requests, construct the results of
      those requests, and then call `tasks/input_response` with the input
      responses, unless the client is going to cancel the task.
@@ -1002,7 +1005,7 @@ In the ephemeral workflow, this would look like the following:
     "name": "get_weather",
     "arguments": {
       "location": "New York"
-    }
+    },
     "inputResponses": {
       "not_requested_info": {
         "action": "accept",
@@ -1071,7 +1074,7 @@ Step 7 from above: <b>Client Request</b> The client mistakenly or maliciously se
 }
 ```
 
-Step 8 from above. <b>Server Response</b> Server acknowledges the receipt of the response by sending a `JSONRPCResultResponse`. However, since the response is missing required information, the server does not proceed with processing the taks and leaves the Task status as `input_required`. The next time the client calls `task/result`, the server responds with a new `inputRequest` requesting the necessary information again.
+Step 8 from above. <b>Server Response</b> Server acknowledges the receipt of the response by sending a `JSONRPCResultResponse`. However, since the response is missing required information, the server does not proceed with processing the taks and leaves the Task status as `input_required`. The next time the client calls `tasks/result`, the server responds with a new `inputRequest` requesting the necessary information again.
 ```json
 {
     "id": 4,
