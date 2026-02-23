@@ -1909,7 +1909,11 @@ export interface GetTaskResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * A request to retrieve the result of a completed task.
+ * A request to retrieve the result of a completed task, or to discover
+ * what input is needed for a task in `input_required` status.
+ *
+ * @example Get task payload request
+ * {@includeCode ./examples/GetTaskPayloadRequest/get-task-payload-request.json}
  *
  * @category `tasks/result`
  */
@@ -1928,6 +1932,16 @@ export interface GetTaskPayloadRequest extends JSONRPCRequest {
  * The structure matches the result type of the original request.
  * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
  *
+ * When the task is in `input_required` status, the server MUST return an
+ * {@link IncompleteResult} containing `inputRequests` that the client must
+ * fulfill via a {@link TaskInputResponseRequest | tasks/input_response} request.
+ *
+ * @example Completed task payload
+ * {@includeCode ./examples/GetTaskPayloadResult/completed-task-payload.json}
+ *
+ * @example Input required task payload
+ * {@includeCode ./examples/GetTaskPayloadResult/input-required-task-payload.json}
+ *
  * @category `tasks/result`
  */
 export interface GetTaskPayloadResult extends Result {
@@ -1936,12 +1950,20 @@ export interface GetTaskPayloadResult extends Result {
 
 /**
  * A successful response for a {@link GetTaskPayloadRequest | tasks/result} request.
+ * May be either a complete result or an {@link IncompleteResult} indicating
+ * that additional input is needed via {@link TaskInputResponseRequest | tasks/input_response}.
+ *
+ * @example Completed task payload response
+ * {@includeCode ./examples/GetTaskPayloadResultResponse/completed-task-payload-response.json}
+ *
+ * @example Input required task payload response
+ * {@includeCode ./examples/GetTaskPayloadResultResponse/input-required-task-payload-response.json}
  *
  * @category `tasks/result`
  */
-export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
-  result: GetTaskPayloadResult;
-}
+export type GetTaskPayloadResultResponse =
+  | (JSONRPCResultResponse & { result: GetTaskPayloadResult })
+  | JSONRPCIncompleteResultResponse;
 
 /**
  * A request to cancel a task.

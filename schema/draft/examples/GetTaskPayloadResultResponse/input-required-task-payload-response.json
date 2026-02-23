@@ -1,0 +1,28 @@
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "inputRequests": {
+      "echo_input": {
+        "method": "elicitation/create",
+        "params": {
+          "message": "Please provide the input string to echo back",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "string"
+              }
+            },
+            "required": ["input"]
+          }
+        }
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/related-task": {
+        "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
+      }
+    }
+  }
+}

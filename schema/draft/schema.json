@@ -1265,7 +1265,7 @@
             "type": "object"
         },
         "GetTaskPayloadRequest": {
-            "description": "A request to retrieve the result of a completed task.",
+            "description": "A request to retrieve the result of a completed task, or to discover\nwhat input is needed for a task in `input_required` status.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -1301,7 +1301,7 @@
         },
         "GetTaskPayloadResult": {
             "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.",
+            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.\n\nWhen the task is in `input_required` status, the server MUST return an\n{@link IncompleteResult} containing `inputRequests` that the client must\nfulfill via a {@link TaskInputResponseRequesttasks/input_response} request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -1310,25 +1310,30 @@
             "type": "object"
         },
         "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/JSONRPCIncompleteResultResponse"
                 },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/JSONRPCResultResponse"
+                        },
+                        {
+                            "properties": {
+                                "result": {
+                                    "$ref": "#/$defs/GetTaskPayloadResult"
+                                }
+                            },
+                            "required": [
+                                "result"
+                            ],
+                            "type": "object"
+                        }
+                    ]
                 }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
             ],
-            "type": "object"
+            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.\nMay be either a complete result or an {@link IncompleteResult} indicating\nthat additional input is needed via {@link TaskInputResponseRequesttasks/input_response}."
         },
         "GetTaskRequest": {
             "description": "A request to retrieve the state of a task.",
@@ -3599,6 +3604,9 @@
                     "$ref": "#/$defs/Result"
                 },
                 {
+                    "$ref": "#/$defs/IncompleteResult"
+                },
+                {
                     "$ref": "#/$defs/InitializeResult"
                 },
                 {
@@ -3638,9 +3646,6 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksResult"
-                },
-                {
-                    "$ref": "#/$defs/IncompleteResult"
                 },
                 {
                     "$ref": "#/$defs/CompleteResult"
