@@ -421,7 +421,7 @@
                                     "properties": {
                                         "create": {
                                             "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests.",
+                                            "description": "Whether the client supports task-augmented {@link ElicitationCreateRequestelicitation/create} requests.",
                                             "properties": {},
                                             "type": "object"
                                         }
@@ -544,12 +544,6 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksResult"
-                },
-                {
-                    "$ref": "#/$defs/ElicitResult"
-                },
-                {
-                    "$ref": "#/$defs/CreateMessageResult"
                 },
                 {
                     "$ref": "#/$defs/ListRootsResult"
@@ -719,32 +713,6 @@
                 }
             ]
         },
-        "CreateMessageRequest": {
-            "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "sampling/createMessage",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/CreateMessageRequestParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
@@ -824,7 +792,7 @@
             "type": "object"
         },
         "CreateMessageResult": {
-            "description": "The result returned by the client for a {@link CreateMessageRequestsampling/createMessage} request.\nThe client should inform the user before returning the sampled message, to allow them\nto inspect the response (human in the loop) and decide whether to allow the server to see it.",
+            "description": "The result returned by the client for a {@link SamplingCreateRequestsampling/createMessage} request.\nThe client should inform the user before returning the sampled message, to allow them\nto inspect the response (human in the loop) and decide whether to allow the server to see it.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -873,27 +841,6 @@
             ],
             "type": "object"
         },
-        "CreateMessageResultResponse": {
-            "description": "A successful response from the client for a {@link CreateMessageRequestsampling/createMessage} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/CreateMessageResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
         "CreateTaskResult": {
             "description": "The result returned for a task-augmented request.",
             "properties": {
@@ -933,32 +880,6 @@
         "Cursor": {
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
-        },
-        "ElicitRequest": {
-            "description": "A request from the server to elicit additional information from the user via the client.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "elicitation/create",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/ElicitRequestParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
         },
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
@@ -1080,7 +1001,7 @@
             "type": "object"
         },
         "ElicitResult": {
-            "description": "The result returned by the client for an {@link ElicitRequestelicitation/create} request.",
+            "description": "The result returned by the client for an {@link ElicitationCreateRequestelicitation/create} request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -1118,27 +1039,6 @@
             },
             "required": [
                 "action"
-            ],
-            "type": "object"
-        },
-        "ElicitResultResponse": {
-            "description": "A successful response from the client for a {@link ElicitRequestelicitation/create} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ElicitResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
             ],
             "type": "object"
         },
@@ -3689,13 +3589,7 @@
                     "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
-                    "$ref": "#/$defs/CreateMessageRequest"
-                },
-                {
                     "$ref": "#/$defs/ListRootsRequest"
-                },
-                {
-                    "$ref": "#/$defs/ElicitRequest"
                 }
             ]
         },

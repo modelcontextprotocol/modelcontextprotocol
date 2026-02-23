@@ -553,7 +553,7 @@ export interface ClientCapabilities {
        */
       sampling?: {
         /**
-         * Whether the client supports task-augmented `sampling/createMessage` requests.
+         * Whether the client supports task-augmented {@link SamplingCreateRequest | sampling/createMessage} requests.
          */
         createMessage?: object;
       };
@@ -562,7 +562,7 @@ export interface ClientCapabilities {
        */
       elicitation?: {
         /**
-         * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
+         * Whether the client supports task-augmented {@link ElicitationCreateRequest | elicitation/create} requests.
          */
         create?: object;
       };
@@ -2326,20 +2326,7 @@ export interface ToolChoice {
 }
 
 /**
- * A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.
- *
- * @example Sampling request
- * {@includeCode ./examples/CreateMessageRequest/sampling-request.json}
- *
- * @category `sampling/createMessage`
- */
-export interface CreateMessageRequest extends JSONRPCRequest {
-  method: "sampling/createMessage";
-  params: CreateMessageRequestParams;
-}
-
-/**
- * The result returned by the client for a {@link CreateMessageRequest | sampling/createMessage} request.
+ * The result returned by the client for a {@link SamplingCreateRequest | sampling/createMessage} request.
  * The client should inform the user before returning the sampled message, to allow them
  * to inspect the response (human in the loop) and decide whether to allow the server to see it.
  *
@@ -2372,18 +2359,6 @@ export interface CreateMessageResult extends Result, SamplingMessage {
    * This field is an open string to allow for provider-specific stop reasons.
    */
   stopReason?: "endTurn" | "stopSequence" | "maxTokens" | "toolUse" | string;
-}
-
-/**
- * A successful response from the client for a {@link CreateMessageRequest | sampling/createMessage} request.
- *
- * @example Sampling result response
- * {@includeCode ./examples/CreateMessageResultResponse/sampling-result-response.json}
- *
- * @category `sampling/createMessage`
- */
-export interface CreateMessageResultResponse extends JSONRPCResultResponse {
-  result: CreateMessageResult;
 }
 
 /**
@@ -3002,19 +2977,6 @@ export type ElicitRequestParams =
   | ElicitRequestURLParams;
 
 /**
- * A request from the server to elicit additional information from the user via the client.
- *
- * @example Elicitation request
- * {@includeCode ./examples/ElicitRequest/elicitation-request.json}
- *
- * @category `elicitation/create`
- */
-export interface ElicitRequest extends JSONRPCRequest {
-  method: "elicitation/create";
-  params: ElicitRequestParams;
-}
-
-/**
  * Restricted schema definitions that only allow primitive types
  * without nested objects or arrays.
  *
@@ -3272,7 +3234,7 @@ export type EnumSchema =
   | LegacyTitledEnumSchema;
 
 /**
- * The result returned by the client for an {@link ElicitRequest | elicitation/create} request.
+ * The result returned by the client for an {@link ElicitationCreateRequest | elicitation/create} request.
  *
  * @example Input single field
  * {@includeCode ./examples/ElicitResult/input-single-field.json}
@@ -3300,18 +3262,6 @@ export interface ElicitResult extends Result {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
-}
-
-/**
- * A successful response from the client for a {@link ElicitRequest | elicitation/create} request.
- *
- * @example Elicitation result response
- * {@includeCode ./examples/ElicitResultResponse/elicitation-result-response.json}
- *
- * @category `elicitation/create`
- */
-export interface ElicitResultResponse extends JSONRPCResultResponse {
-  result: ElicitResult;
 }
 
 /**
@@ -3365,9 +3315,7 @@ export type ClientNotification =
 /** @internal */
 export type ClientResult =
   | EmptyResult
-  | CreateMessageResult
   | ListRootsResult
-  | ElicitResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
@@ -3377,9 +3325,7 @@ export type ClientResult =
 /** @internal */
 export type ServerRequest =
   | PingRequest
-  | CreateMessageRequest
   | ListRootsRequest
-  | ElicitRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
