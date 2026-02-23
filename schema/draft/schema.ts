@@ -2049,6 +2049,9 @@ export type InputRequest = ElicitationCreateRequest | SamplingCreateRequest;
  * A map of server-initiated requests that the client must fulfill.
  * Keys are server-assigned identifiers; values are the request objects.
  *
+ * @example Elicitation and sampling input requests
+ * {@includeCode ./examples/InputRequests/elicitation-and-sampling-input-requests.json}
+ *
  * @category Multi Round-Trip
  */
 export interface InputRequests {
@@ -2058,6 +2061,12 @@ export interface InputRequests {
 /**
  * The client's response to a single server-initiated input request.
  *
+ * @example Elicitation input response
+ * {@includeCode ./examples/InputResponse/elicitation-input-response.json}
+ *
+ * @example Sampling input response
+ * {@includeCode ./examples/InputResponse/sampling-input-response.json}
+ *
  * @category Multi Round-Trip
  */
 export type InputResponse = ElicitResult | CreateMessageResult;
@@ -2066,6 +2075,9 @@ export type InputResponse = ElicitResult | CreateMessageResult;
  * A map of client responses to server-initiated requests.
  * Keys correspond to the keys in the {@link InputRequests} map;
  * values are the client's result for each request.
+ *
+ * @example Elicitation and sampling input responses
+ * {@includeCode ./examples/InputResponses/elicitation-and-sampling-input-responses.json}
  *
  * @category Multi Round-Trip
  */
@@ -2081,6 +2093,9 @@ export interface InputResponses {
  *
  * @example Incomplete result with input requests
  * {@includeCode ./examples/IncompleteResult/incomplete-result-with-input-requests.json}
+ *
+ * @example Incomplete result with elicitation and sampling input requests
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-elicitation-and-sampling.json}
  *
  * @example Incomplete result with request state only (load shedding)
  * {@includeCode ./examples/IncompleteResult/incomplete-result-with-request-state-only.json}

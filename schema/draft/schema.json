@@ -433,7 +433,7 @@
                                     "properties": {
                                         "createMessage": {
                                             "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests.",
+                                            "description": "Whether the client supports task-augmented {@link SamplingCreateRequestsampling/createMessage} requests.",
                                             "properties": {},
                                             "type": "object"
                                         }
