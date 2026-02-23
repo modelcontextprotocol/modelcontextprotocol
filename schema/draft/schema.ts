@@ -2067,9 +2067,8 @@ export interface InputResponses {
 }
 
 /**
- * An incomplete result sent by the server to indicate that additional input is needed
- * before the request can be completed. This is used in the ephemeral multi round-trip
- * workflow.
+ * An IncompleteResult sent by the server to indicate that additional input is needed
+ * before the request can be completed. 
  *
  * At least one of `inputRequests` or `requestState` MUST be present.
  *
@@ -2117,7 +2116,7 @@ export interface JSONRPCIncompleteResultResponse {
  *
  * @category `tasks/input_response`
  */
-export interface TaskInputResponseRequestParams extends RequestParams {
+export interface TaskInputResponseRequestParams extends TaskAugmentedRequestParams {
   /**
    * The client's responses to the server's input requests.
    */
@@ -2139,19 +2138,12 @@ export interface TaskInputResponseRequest extends JSONRPCRequest {
 }
 
 /**
- * The result returned for a {@link TaskInputResponseRequest | tasks/input_response} request.
- *
- * @category `tasks/input_response`
- */
-export type TaskInputResponseResult = Result;
-
-/**
  * A successful response for a {@link TaskInputResponseRequest | tasks/input_response} request.
  *
  * @category `tasks/input_response`
  */
 export interface TaskInputResponseResultResponse extends JSONRPCResultResponse {
-  result: TaskInputResponseResult;
+  result: Result;
 }
 
 /* Logging */
