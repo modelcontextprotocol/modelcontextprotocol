@@ -160,15 +160,14 @@ responses, the map values are the responses to those requests.  Here's
 how that would look in the typescript MCP schema:
 
 ```typescript
-export interface InputRequests { [key: string]: ServerRequest; }
+export type InputRequest = ElicitationCreateRequest | SamplingCreateRequest;
 
-export interface InputResponses { [key: string]: ClientResult; }
+export interface InputRequests { [key: string]: InputRequest; }
+
+export type InputResponse = ElicitResult | CreateMessageResult;
+
+export interface InputResponses { [key: string]: InputResponse; }
 ```
-
-TODO: The above schema definitions are not quite right, because
-ServerRequest and ServerResult include the JSON-RPC request id field,
-which is not necessary here.  Figure out what schema refactoring is
-needed to get the types without that field.
 
 The keys are assigned by the server when issuing the requests.  The client
 will send the response for each request using the corresponding key.
@@ -226,26 +225,22 @@ The client would then send the responses in the following form:
 
 ```json5
 "inputResponses": {
-  // Elicitation response.
+  // Elicitation response (ElicitResult).
   "github_login": {
-    "result": {
-      "action": "accept",
-      "content": {
-        "name": "octocat"
-      }
+    "action": "accept",
+    "content": {
+      "name": "octocat"
     }
   },
-  // Sampling response.
+  // Sampling response (CreateMessageResult).
   "capital_of_france": {
-    "result": {
-      "role": "assistant",
-      "content": {
-        "type": "text",
-        "text": "The capital of France is Paris."
-      },
-      "model": "claude-3-sonnet-20240307",
-      "stopReason": "endTurn"
-    }
+    "role": "assistant",
+    "content": {
+      "type": "text",
+      "text": "The capital of France is Paris."
+    },
+    "model": "claude-3-sonnet-20240307",
+    "stopReason": "endTurn"
   }
 }
 ```
@@ -297,15 +292,18 @@ export interface IncompleteResult extends Result {
   requestState?: string;
 }
 
-// New request parameter type that includes fields in a retried request.
-// These parameters may be included in any client-initiated request.
-export interface RetryAugmentedRequestParams extends RequestParams {
-  // New field to carry the responses for the server's requests from the
-  // JSONRPCIncompleteResultResponse message.  For each key in the
-  // response's inputRequests field, the same key must appear here
-  // with the associated response.
+// New fields added directly to RequestParams so that any client-initiated
+// request can carry input responses and request state when retrying after
+// an IncompleteResult.
+export interface RequestParams {
+  _meta?: RequestMetaObject;
+  // Responses to server-initiated input requests from a previous
+  // IncompleteResult. For each key in the response's inputRequests
+  // field, the same key must appear here with the associated response.
   inputResponses?: InputResponses;
   // Request state passed back to the server from the client.
+  // The client must treat this as an opaque blob; it must not
+  // interpret it in any way.
   requestState?: string;
 }
 ```
@@ -383,11 +381,9 @@ Note: This is a contrived example, just to illustrate the flow.
     }
     "inputResponses": {
       "github_login": {
-        "result": {
-          "action": "accept",
-          "content": {
-            "name": "octocat"
-          }
+        "action": "accept",
+        "content": {
+          "name": "octocat"
         }
       }
     },
@@ -500,10 +496,8 @@ server-side storage.
     },
     "inputResponses": {
       "resolution": {
-        "result": {
-          "action": "accept",
-          "content": { "resolution": "Duplicate" }
-        }
+        "action": "accept",
+        "content": { "resolution": "Duplicate" }
       }
     }
   }
@@ -563,10 +557,8 @@ server-side storage.
     },
     "inputResponses": {
       "duplicate_of": {
-        "result": {
-          "action": "accept",
-          "content": { "duplicateOfId": 4301 }
-        }
+        "action": "accept",
+        "content": { "duplicateOfId": 4301 }
       }
     },
     "requestState": "eyJyZXNvbHV0aW9uIjoiRHVwbGljYXRlIn0..."
@@ -862,11 +854,9 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
     "params": {
       "inputResponses":{
         "echo_input":{
-          "result":{
-            "action": "accept",
-            "content":{
-              "input": "Hello World!"
-            }
+          "action": "accept",
+          "content":{
+            "input": "Hello World!"
           }
         }
       },
@@ -1015,11 +1005,9 @@ In the ephemeral workflow, this would look like the following:
     }
     "inputResponses": {
       "not_requested_info": {
-        "result": {
-          "action": "accept",
-          "content": {
-            "not_requested_param_name": "Information the server did not request"
-          }
+        "action": "accept",
+        "content": {
+          "not_requested_param_name": "Information the server did not request"
         }
       }
     }
@@ -1068,11 +1056,9 @@ Step 7 from above: <b>Client Request</b> The client mistakenly or maliciously se
     "params": {
       "inputResponses":{
         "echo_input":{
-          "result":{
-            "action": "accept",
-            "content":{
-              "not_requested_parameter": "Information the server did not request."
-            }
+          "action": "accept",
+          "content":{
+            "not_requested_parameter": "Information the server did not request."
           }
         }
       },
