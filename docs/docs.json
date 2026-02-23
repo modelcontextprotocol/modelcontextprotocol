@@ -62,12 +62,27 @@
             "pages": [
               "docs/tools/inspector"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
           },
           {
-            "group": "Extensions",
+            "group": "Authorization Extensions",
             "pages": [
-              "docs/extensions/overview",
-              "docs/extensions/apps"
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
             ]
           }
         ]
@@ -544,7 +559,15 @@
     },
     {
       "source": "/extensions",
-      "destination": "/docs/extensions/overview"
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/overview",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/apps",
+      "destination": "/extensions/apps/overview"
     }
   ],
   "contextual": {

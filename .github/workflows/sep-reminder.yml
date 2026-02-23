@@ -11,7 +11,7 @@ permissions: {}
 jobs:
   discord-reminder:
     runs-on: ubuntu-latest
-
+    if: github.repository == 'modelcontextprotocol/modelcontextprotocol'
     steps:
       - name: Post Discord reminder
         run: |
