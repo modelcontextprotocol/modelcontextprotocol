@@ -2017,7 +2017,7 @@ export interface TaskStatusNotification extends JSONRPCNotification {
  *
  * @category Multi Round-Trip
  */
-export interface ElicitationInputRequest {
+export interface ElicitationCreateRequest {
   method: "elicitation/create";
   params: ElicitRequestParams;
 }
@@ -2031,7 +2031,7 @@ export interface ElicitationInputRequest {
  *
  * @category Multi Round-Trip
  */
-export interface SamplingInputRequest {
+export interface SamplingCreateRequest {
   method: "sampling/createMessage";
   params: CreateMessageRequestParams;
 }
@@ -2043,7 +2043,7 @@ export interface SamplingInputRequest {
  *
  * @category Multi Round-Trip
  */
-export type InputRequest = ElicitationInputRequest | SamplingInputRequest;
+export type InputRequest = ElicitationCreateRequest | SamplingCreateRequest;
 
 /**
  * A map of server-initiated requests that the client must fulfill.

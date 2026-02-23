@@ -1173,7 +1173,7 @@
             ],
             "type": "object"
         },
-        "ElicitationInputRequest": {
+        "ElicitationCreateRequest": {
             "description": "An elicitation input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
             "properties": {
                 "method": {
@@ -1760,10 +1760,10 @@
         "InputRequest": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitationInputRequest"
+                    "$ref": "#/$defs/ElicitationCreateRequest"
                 },
                 {
-                    "$ref": "#/$defs/SamplingInputRequest"
+                    "$ref": "#/$defs/SamplingCreateRequest"
                 }
             ],
             "description": "A request that the server wants the client to fulfill as part of a multi round-trip\ninteraction. The object contains the method name and params of the server-initiated\nrequest (e.g., an elicitation or sampling request), but without the JSON-RPC `id` field."
@@ -3457,7 +3457,7 @@
             ],
             "type": "object"
         },
-        "SamplingInputRequest": {
+        "SamplingCreateRequest": {
             "description": "A sampling input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
             "properties": {
                 "method": {
