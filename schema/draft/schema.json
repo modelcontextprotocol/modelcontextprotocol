@@ -1573,7 +1573,7 @@
             "type": "object"
         },
         "IncompleteResult": {
-            "description": "An incomplete result sent by the server to indicate that additional input is needed\nbefore the request can be completed. This is used in the ephemeral multi round-trip\nworkflow.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
+            "description": "An IncompleteResult sent by the server to indicate that additional input is needed\nbefore the request can be completed. \n\nAt least one of `inputRequests` or `requestState` MUST be present.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -3664,6 +3664,9 @@
                     "$ref": "#/$defs/ListTasksResult"
                 },
                 {
+                    "$ref": "#/$defs/IncompleteResult"
+                },
+                {
                     "$ref": "#/$defs/CompleteResult"
                 }
             ]
@@ -3930,16 +3933,16 @@
                 "inputResponses": {
                     "$ref": "#/$defs/InputResponses",
                     "description": "The client's responses to the server's input requests."
+                },
+                "task": {
+                    "$ref": "#/$defs/TaskMetadata",
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
             "required": [
                 "inputResponses"
             ],
             "type": "object"
-        },
-        "TaskInputResponseResult": {
-            "$ref": "#/$defs/Result",
-            "description": "Common result fields."
         },
         "TaskInputResponseResultResponse": {
             "description": "A successful response for a {@link TaskInputResponseRequesttasks/input_response} request.",

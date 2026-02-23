@@ -3406,4 +3406,5 @@ export type ServerResult =
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
-  | CancelTaskResult;
+  | CancelTaskResult
+  | IncompleteResult;
