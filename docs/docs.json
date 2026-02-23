@@ -376,6 +376,12 @@
           "community/contributing",
           "community/communication",
           {
+            "group": "Principles & Direction",
+            "pages": [
+              "community/design-principles"
+            ]
+          },
+          {
             "group": "Governance",
             "pages": [
               "community/governance",
