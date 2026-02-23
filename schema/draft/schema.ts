@@ -194,6 +194,18 @@ export interface JSONRPCResultResponse {
 }
 
 /**
+ * A response to a request that indicates the result is incomplete and
+ * additional input is needed.
+ *
+ * @category JSON-RPC
+ */
+export interface JSONRPCIncompleteResultResponse {
+  jsonrpc: typeof JSONRPC_VERSION;
+  id: RequestId;
+  result: IncompleteResult;
+}
+
+/**
  * A response to a request that indicates an error occurred.
  *
  * @category JSON-RPC
@@ -2114,18 +2126,6 @@ export interface IncompleteResult extends Result {
    * inspect, parse, or modify it.
    */
   requestState?: string;
-}
-
-/**
- * A response to a request that indicates the result is incomplete and
- * additional input is needed.
- *
- * @category JSON-RPC
- */
-export interface JSONRPCIncompleteResultResponse {
-  jsonrpc: typeof JSONRPC_VERSION;
-  id: RequestId;
-  result: IncompleteResult;
 }
 
 /**
