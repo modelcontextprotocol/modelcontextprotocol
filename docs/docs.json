@@ -415,7 +415,12 @@
                   "community/seps/1850-pr-based-sep-workflow",
                   "community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
                   "community/seps/2085-governance-succession-and-amendment",
-                  "community/seps/2133-extensions",
+                  "community/seps/2133-extensions"
+                ]
+              },
+              {
+                "group": "Draft",
+                "pages": [
                   "community/seps/2093-resource-contents-metadata"
                 ]
               }
