@@ -1,46 +1,27 @@
----
-title: "SEP-2148: MCP Contributor Ladder"
-sidebarTitle: "SEP-2148: MCP Contributor Ladder"
-description: "MCP Contributor Ladder"
----
+# SEP-2148: MCP Contributor Ladder
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Process
-  </Badge>
-</div>
-
-| Field         | Value                                                                                                                        |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2148                                                                                                                         |
-| **Title**     | MCP Contributor Ladder                                                                                                       |
-| **Status**    | Draft                                                                                                                        |
-| **Type**      | Process                                                                                                                      |
-| **Created**   | 2025-01-15                                                                                                                   |
-| **Author(s)** | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant)), Sarah Novotny ([@sarahnovotny](https://github.com/sarahnovotny)) |
-| **Sponsor**   | None                                                                                                                         |
-| **PR**        | [#2148](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2148)                                              |
-
----
+- **Status**: Draft
+- **Type**: Process
+- **Created**: 2025-01-15
+- **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
+- **Sponsor**: None
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2148
 
 ## Abstract
 
-This SEP establishes a formal contributor ladder for the Model Context Protocol project, defining clear roles, responsibilities, and advancement criteria from initial contributor through Core Maintainer. The ladder provides transparent pathways for community members to grow their involvement and influence within the project while maintaining security through graduated privilege escalation.
+This SEP establishes a formal contributor ladder for the Model Context Protocol project, defining clear roles, responsibilities, and advancement criteria from first-time contributor through Core Maintainer. The ladder provides transparent pathways for community members to understand how they can grow their involvement and influence within the project.
 
 ## Motivation
 
 As MCP adoption grows, the project needs a clear framework for:
 
-1. **Contributor Development**: Community members lack visibility into how to advance their involvement. A defined ladder shows the path from first contribution to project leadership.
+1. **Contributor Development**: Community members lack visibility into how to grow their involvement and influence within the MCP project. A defined ladder shows the path from first contribution to project leadership.
 
-2. **Trust Building**: Merge rights and other elevated privileges carry security implications. A graduated system ensures privileges are granted only after demonstrated trustworthiness over time.
+2. **Trust Building**: Merge rights and other high-privilege responsibilities are earned through demonstrated commitment and good judgment over time. A graduated system ensures contributors are set up for success and are trusted by existing maintainers and broader community before taking on greater ownership of the project.
 
-3. **Organizational Diversity**: With multiple organizations contributing to MCP, the project needs mechanisms to prevent organizational capture while welcoming corporate participation.
+3. **Organizational Diversity**: With multiple organizations contributing to MCP, the project needs mechanisms to prevent organizational capture while welcoming participation from outside Anthropic.
 
-4. **Scalability**: Core Maintainer bandwidth is limited. Delegating authority to Maintainers and Reviewers through clear scope definitions enables the project to scale.
+4. **Scalability**: Core Maintainer bandwidth is limited. Delegating authority to Maintainers and Working/Interest Group Leads through clear scope definitions enables the project to scale.
 
 5. **Recognition**: Contributors invest significant effort in MCP. Formal recognition through defined roles acknowledges their contributions and encourages sustained engagement.
 
@@ -52,29 +33,28 @@ Without a contributor ladder, advancement decisions become ad-hoc, potentially i
 
 The contributor ladder operates under these principles:
 
-- **Earned Trust**: Advancement based on demonstrated contribution, judgment, and sustained engagement—not tenure alone
+- **Earned Trust**: Advancement based on demonstrated meaningful contributions that align with the project goals, good judgment, and sustained engagement, not tenure alone
 - **Multiple Growth Pathways**: Code, specification work, documentation, and community building all lead to advancement
 - **Transparency**: Criteria for advancement are explicit and consistently applied
-- **Security-Conscious Growth**: Elevated privileges require sufficient time and demonstrated trustworthiness
-- **Organizational Diversity**: Individual contributors must demonstrate commitment beyond their employer's interests
+- **Alignment With MCP Goals**: Individual contributors must demonstrate commitment to advance and evolve MCP project components beyond one's employer's interests
 
 ### Role Definitions
 
 | Role                     | Summary                                    | Key Privileges                                                            | Typical Timeline                                      |
 | ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------- | ----------------------------------------------------- |
 | **Contributor**          | Anyone who contributes to MCP              | Submit issues, PRs, participate in discussions                            | Immediate                                             |
-| **Member**               | Established, active contributor            | GitHub Org Membership, trusted CI, triage rights, WG Leadership           | 2-3 months                                            |
+| **Member**               | Established, active contributor            | GitHub Org Membership, triage rights, WG Leadership                       | 2-3 months of meaningful contributions                |
 | **Reviewer**             | Recognized for technical judgment          | Review and approve PRs in scope area                                      | 3 months as Member                                    |
 | **Maintainer**           | Area owner with operational responsibility | Merge rights, release participation                                       | 6+ months as Member                                   |
 | **Core Maintainer**      | Project-wide technical leadership          | Final decision authority, governance participation                        | By invitation after sustained Maintainer contribution |
-| **Lead Core Maintainer** | Ultimate project authority                 | All Core Maintainer privileges, veto authority, appoints Core Maintainers | Lifetime appointment                                  |
+| **Lead Core Maintainer** | Ultimate project authority (founders)      | All Core Maintainer privileges, veto authority, appoints Core Maintainers | Reserved for project founders, no defined timeline    |
 
 ### Contributor
 
 Anyone who has contributed to MCP in any form is a contributor. This includes:
 
 - Opening issues or discussions
-- Submitting pull requests (even if not merged)
+- Submitting pull requests
 - Participating in working group discussions
 - Improving documentation
 - Helping other community members
@@ -86,18 +66,18 @@ Anyone who has contributed to MCP in any form is a contributor. This includes:
 - Review the [Contributing Guide](https://modelcontextprotocol.io/community/contributing)
 - Join community channels (Discord, GitHub Discussions)
 - Look for issues tagged `good-first-issue` or `help-wanted`
-- Attend working group meetings as an observer
+- Attend working group meetings
 
 ### Member
 
-Members are established contributors who have demonstrated ongoing commitment.
+Members are established contributors who have demonstrated ongoing commitment to the success and growth of MCP.
 
 **Requirements:**
 
-- Enabled two-factor authentication on GitHub
+- Multiple contributions to MCP (code, documentation, and/or community)
 - At least one merged PR or accepted contribution
-- Multiple contributions to MCP (code, documentation, or community)
-- Ongoing engagement (not just drive-by contributions)
+- Ongoing engagement with the MCP community and not just one-off contributions
+- Enabled two-factor authentication on GitHub
 - No objections from existing Members within 7 days
 
 **Sponsorship:**
@@ -117,7 +97,7 @@ Members are established contributors who have demonstrated ongoing commitment.
 **Privileges:**
 
 - Can be assigned to issues and PRs
-- Can use `/lgtm` command on PRs
+- Can use shortcut approval or review commands on PRs, such as `/lgtm`
 - Listed in community membership roster
 - Can participate in lazy consensus decisions
 
@@ -167,8 +147,8 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 
 - Member for at least 6 months with sustained, high-quality contributions
 - Demonstrated leadership in working groups or significant initiatives
-- Shown ability to represent MCP's interests above organizational interests
-- Deep understanding of MCP's vision, roadmap, and design principles
+- Shown ability to represent MCP's interests above an individual employer's or organization's interests
+- Deep understanding of the MCP vision, roadmap, and design principles
 - Completed security and governance onboarding
 
 **Sponsorship & Approval:**
@@ -191,15 +171,15 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Merge privileges for owned areas
 - Can sponsor Reviewers and Maintainers
 - Participate in roadmap and prioritization discussions
-- Listed in MAINTAINERS.md
+- Listed in `MAINTAINERS.md`
 
 All pathways can lead to Maintainer, though the specific scope will align with the contribution type.
 
 ### Core Maintainer
 
-Core Maintainers hold final decision-making authority for MCP's technical direction. This is the highest level of trust in the community.
+Core Maintainers hold final decision-making authority for the MCP technical direction. This is the highest level of trust in the community.
 
-_Note: The Core Maintainer role is intentionally limited to ensure coherent technical vision while the project scales. The interview findings about "core maintainer bandwidth" are being addressed through clearer delegation to Maintainers and Working Group Leads, not expansion of Core Maintainer numbers._
+_Note: The Core Maintainer role is intentionally limited to ensure coherent technical vision while the project scales. Core Maintainer bandwidth concerns are addressed through clearer delegation to Maintainers and Working Group Leads, not expansion of Core Maintainer numbers._
 
 **Requirements:**
 
@@ -212,6 +192,8 @@ _Note: The Core Maintainer role is intentionally limited to ensure coherent tech
 
 - Nominated by majority of Core Maintainers, approved by Lead Core Maintainers
 - Or direct appointment by Lead Core Maintainers
+
+When evaluating candidates, Core Maintainers should consider whether the current composition adequately represents the breadth of the MCP ecosystem, including enterprise adopters deploying MCP in production domains.
 
 **Responsibilities:**
 
@@ -233,7 +215,7 @@ _Note: The Core Maintainer role is intentionally limited to ensure coherent tech
 
 ### Lead Core Maintainer
 
-Lead Core Maintainers hold ultimate authority over MCP's direction and governance. This is a lifetime appointment.
+Lead Core Maintainers hold ultimate authority over MCP's direction and governance. This is a lifetime appointment reserved for project founders. There is no defined advancement path to this role; it is only assumed through succession when necessary (see [Succession](#succession)).
 
 **Current Lead Core Maintainer:** David Soria Parra
 
@@ -267,23 +249,23 @@ Contributors may either:
 1. **Self-nominate** when they believe they meet the requirements
 2. **Be nominated** by a sponsor who has observed their contributions
 
-Both paths are valid. Self-nomination is encouraged—it demonstrates initiative and self-awareness.
+Both paths are equally valid. Self-nomination is encouraged and preferred, as it demonstrates initiative and self-awareness of the contribution scope.
 
 #### Process Steps
 
-1. **Nomination**: Nominee or sponsor opens an issue/PR using the appropriate template
-2. **Evidence**: Nomination includes links to contributions demonstrating requirements
-3. **Sponsor Confirmation**: Required sponsors confirm their support
-4. **Community Review**: 7-day period for community input
-5. **Decision**: Approving authority reviews and decides
-6. **Onboarding**: New role-holder receives appropriate access and onboarding
+1. **Nomination**: Nominee or sponsor opens an issue using the nomination template, including links to contributions demonstrating requirements and sponsor confirmations
+2. **Community Review**: 7-day period for community input
+3. **Decision**: Approving authority reviews and decides
+4. **Onboarding**: New role-holder receives appropriate access and onboarding
 
-| Advancement To  | Approved By             | Minimum Sponsors             |
-| --------------- | ----------------------- | ---------------------------- |
-| Member          | Any 2 existing Members+ | 2 (different orgs)           |
-| Reviewer        | Maintainer in scope     | 1                            |
-| Maintainer      | Core Maintainers        | 1 Maintainer + Core approval |
-| Core Maintainer | Lead Core Maintainers   | N/A                          |
+| Advancement To  | Approved By                                             |
+| --------------- | ------------------------------------------------------- |
+| Member          | 2 existing Members+ from different organizations        |
+| Reviewer        | 1 Maintainer in scope area                              |
+| Maintainer      | 1 Maintainer or Core Maintainer sponsor + Core approval |
+| Core Maintainer | Lead Core Maintainers                                   |
+
+Self-nomination is encouraged, but nominees must still secure the required sponsorship. Sponsors confirm support in the nomination issue.
 
 ### Decision-Making & Escalation
 
@@ -353,17 +335,17 @@ MCP values diverse contributions. Here are recognized pathways to advancement:
 - Test coverage improvement
 - Release validation
 
-### Working Group Leadership
+### Working Group and Interest Group Leadership
 
-Working Group (WG) Leads are a special form of community leadership that doesn't require Maintainer status. WG Leadership focuses on facilitation and coordination rather than merge authority.
+Working Group (WG) and Interest Group (IG) Leads are a special form of community leadership that doesn't require Maintainer status. WG/IG Leadership focuses on facilitation and coordination rather than merge authority.
 
 **Requirements:**
 
 - Member status minimum (Reviewer preferred)
-- Demonstrated sustained engagement with the WG's scope
+- Demonstrated sustained engagement with the WG/IG's scope
 - Good facilitation and communication skills
 - Ability to represent multiple perspectives fairly
-- Working Group and Working Group Lead are sponsored by at least two Core Maintainers or one Lead Core Maintainer
+- Working Group/Interest Group and its Lead are sponsored by at least two Core Maintainers or one Lead Core Maintainer
 
 **Relationship to Contributor Ladder:**
 
@@ -451,7 +433,7 @@ This SEP directly addresses security through:
 Upon acceptance, this SEP will be implemented by:
 
 1. Adding the contributor ladder to `docs/community/contributor-ladder.mdx`
-2. Creating nomination templates in `.github/ISSUE_TEMPLATE/`
+2. Creating nomination issue templates in `.github/ISSUE_TEMPLATE/` (see Appendix for checklist templates)
 3. Creating `REVIEWERS.md` template for scope areas
 4. Updating `MAINTAINERS.md` format to reflect role distinctions
 
@@ -462,7 +444,7 @@ Upon acceptance, this SEP will be implemented by:
 ```
 **Nominee:** [GitHub handle]
 **Sponsors:** [GitHub handles]
-**Organizations represented:** [Must be 2+ different orgs among sponsors]
+  - **Organizations represented:** [Must be 2+ different orgs among sponsors]
 
 **Contributions:**
 - [ ] Link to merged PR(s)
