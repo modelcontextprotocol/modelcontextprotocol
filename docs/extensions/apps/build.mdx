@@ -174,7 +174,7 @@ A typical MCP App project separates the server code from the UI code:
   </Tree.Folder>
 </Tree>
 
-The server registers the tool and serves the UI resource. The UI resource will eventually be rendered in a secure iframe with deny-by-default CSP configuration. If your app has CSS and JS assets, you will need to [configure CSP](https://modelcontextprotocol.github.io/ext-apps/api/documents/Patterns.html#configuring-csp-and-cors), or you can bundle your assets into the HTML with a tool like `vite-plugin-singlefile`, which is what we will do in this tutorial.
+The server registers the tool and serves the UI resource. The UI resource will eventually be rendered in a secure iframe with deny-by-default CSP configuration. If your app has CSS and JS assets, you will need to [configure CSP](https://apps.extensions.modelcontextprotocol.io/api/documents/Patterns.html#configuring-csp-and-cors), or you can bundle your assets into the HTML with a tool like `vite-plugin-singlefile`, which is what we will do in this tutorial.
 
 </Step>
 <Step title="Install dependencies">
@@ -184,7 +184,7 @@ npm install @modelcontextprotocol/ext-apps @modelcontextprotocol/sdk
 npm install -D typescript vite vite-plugin-singlefile express cors @types/express @types/cors tsx
 ```
 
-The `ext-apps` package provides helpers for both the server side (registering tools and resources) and the client side (the `App` class for UI-to-host communication). Vite with the `vite-plugin-singlefile` plugin is used here to bundle your UI and assets into a single HTML file for convenience, but this is optional — you can use any bundler or serve unbundled files if you [configure CSP](https://modelcontextprotocol.github.io/ext-apps/api/documents/Patterns.html#configuring-csp-and-cors).
+The `ext-apps` package provides helpers for both the server side (registering tools and resources) and the client side (the `App` class for UI-to-host communication). Vite with the `vite-plugin-singlefile` plugin is used here to bundle your UI and assets into a single HTML file for convenience, but this is optional — you can use any bundler or serve unbundled files if you [configure CSP](https://apps.extensions.modelcontextprotocol.io/api/documents/Patterns.html#configuring-csp-and-cors).
 
 </Step>
 <Step title="Configure the project">
@@ -427,7 +427,7 @@ The key parts:
 
 The `App` class provides additional methods for logging, opening URLs, and
 updating the model's context with structured data from your app. See the full
-[API documentation](https://modelcontextprotocol.github.io/ext-apps/api/).
+[API documentation](https://apps.extensions.modelcontextprotocol.io/api/).
 
 ## Testing your app
 
@@ -535,7 +535,7 @@ app and verify that tool calls work correctly.
   <Card
     title="API Documentation"
     icon="book"
-    href="https://modelcontextprotocol.github.io/ext-apps/api/"
+    href="https://apps.extensions.modelcontextprotocol.io/api/"
   >
     Full SDK reference and API details
   </Card>
