@@ -69,7 +69,7 @@ export type Cursor = string;
  *
  * @internal
  */
-export interface TaskAugmentedRequestParams extends RequestParams {
+export interface TaskAugmentedRequestParams extends RetryAugmentedRequestParams {
   /**
    * If specified, the caller is requesting task-augmented execution for this request.
    * The request will return a {@link CreateTaskResult} immediately, and the actual result can be
@@ -328,6 +328,79 @@ export interface URLElicitationRequiredError extends Omit<
  * @category Common Types
  */
 export type EmptyResult = Result;
+
+/** @internal */
+export type InputRequest =
+  | CreateMessageRequest
+  | ListRootsRequest
+  | ElicitRequest;
+
+/** @internal */
+export type InputResponse =
+  | CreateMessageResult
+  | ListRootsResult
+  | ElicitResult;
+
+/**
+ * A map of server-initiated requests that the client must fulfill.
+ * Keys are server-assigned identifiers; values are the request objects.
+ *
+ * @example Elicitation and sampling input requests
+ * {@includeCode ./examples/InputRequests/elicitation-and-sampling-input-requests.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputRequests {
+  [key: string]: InputRequest;
+}
+
+/**
+ * A map of client responses to server-initiated requests.
+ * Keys correspond to the keys in the {@link InputRequests} map;
+ * values are the client's result for each request.
+ *
+ * @example Elicitation and sampling input responses
+ * {@includeCode ./examples/InputResponses/elicitation-and-sampling-input-responses.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputResponses {
+  [key: string]: InputResponse;
+}
+
+/**
+ * Incomplete response.  May be sent in response to any client-initiated
+ * request.
+ * At least one of the the inputRequests and requestState fields must be
+ * present, since the presence of these fields allow the client to
+ * determine that the result is incomplete.
+ */
+export interface IncompleteResult extends Result {
+  /* Requests issued by the server that must be complete before the
+   * client can retry the original request.
+   */
+  inputRequests?: InputRequests;
+  /* Request state to be passed back to the server when the client
+   * retries the original request.
+   * Note: The client must treat this as an opaque blob; it must not
+   * interpret it in any way.
+   */
+  requestState?: string;
+}
+
+/* New request parameter type that includes fields in a retried request.
+ * These parameters may be included in any client-initiated request.
+ */
+export interface RetryAugmentedRequestParams extends RequestParams {
+  /* New field to carry the responses for the server's requests from the
+   * IncompleteResult message.  For each key in the response's inputRequests
+   * field, the same key must appear here with the associated response.
+   */
+  inputResponses?: InputResponses;
+  /* Request state passed back to the server from the client.
+   */
+  requestState?: string;
+}
 
 /* Cancellation */
 /**
@@ -934,7 +1007,7 @@ export interface ListResourcesResult extends PaginatedResult {
  * @category `resources/list`
  */
 export interface ListResourcesResultResponse extends JSONRPCResultResponse {
-  result: ListResourcesResult;
+  result: ListResourcesResult | IncompleteResult;
 }
 
 /**
@@ -970,7 +1043,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
-  result: ListResourceTemplatesResult;
+  result: ListResourceTemplatesResult | IncompleteResult;
 }
 
 /**
@@ -978,7 +1051,7 @@ export interface ListResourceTemplatesResultResponse extends JSONRPCResultRespon
  *
  * @internal
  */
-export interface ResourceRequestParams extends RequestParams {
+export interface ResourceRequestParams extends RetryAugmentedRequestParams {
   /**
    * The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.
    *
@@ -1029,7 +1102,7 @@ export interface ReadResourceResult extends Result {
  * @category `resources/read`
  */
 export interface ReadResourceResultResponse extends JSONRPCResultResponse {
-  result: ReadResourceResult;
+  result: ReadResourceResult | IncompleteResult;
 }
 
 /**
@@ -1302,7 +1375,7 @@ export interface ListPromptsResult extends PaginatedResult {
  * @category `prompts/list`
  */
 export interface ListPromptsResultResponse extends JSONRPCResultResponse {
-  result: ListPromptsResult;
+  result: ListPromptsResult | IncompleteResult;
 }
 
 /**
@@ -1313,7 +1386,7 @@ export interface ListPromptsResultResponse extends JSONRPCResultResponse {
  *
  * @category `prompts/get`
  */
-export interface GetPromptRequestParams extends RequestParams {
+export interface GetPromptRequestParams extends RetryAugmentedRequestParams {
   /**
    * The name of the prompt or prompt template.
    */
@@ -1362,7 +1435,7 @@ export interface GetPromptResult extends Result {
  * @category `prompts/get`
  */
 export interface GetPromptResultResponse extends JSONRPCResultResponse {
-  result: GetPromptResult;
+  result: GetPromptResult | IncompleteResult;
 }
 
 /**
@@ -1503,7 +1576,7 @@ export interface ListToolsResult extends PaginatedResult {
  * @category `tools/list`
  */
 export interface ListToolsResultResponse extends JSONRPCResultResponse {
-  result: ListToolsResult;
+  result: ListToolsResult | IncompleteResult;
 }
 
 /**
@@ -1557,7 +1630,7 @@ export interface CallToolResult extends Result {
  * @category `tools/call`
  */
 export interface CallToolResultResponse extends JSONRPCResultResponse {
-  result: CallToolResult;
+  result: CallToolResult | IncompleteResult;
 }
 
 /**
@@ -2173,7 +2246,7 @@ export interface ToolChoice {
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageRequest extends JSONRPCRequest {
+export interface CreateMessageRequest {
   method: "sampling/createMessage";
   params: CreateMessageRequestParams;
 }
@@ -2194,7 +2267,7 @@ export interface CreateMessageRequest extends JSONRPCRequest {
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageResult extends Result, SamplingMessage {
+export interface CreateMessageResult extends SamplingMessage {
   /**
    * The name of the model that generated the message.
    */
@@ -2212,18 +2285,6 @@ export interface CreateMessageResult extends Result, SamplingMessage {
    * This field is an open string to allow for provider-specific stop reasons.
    */
   stopReason?: "endTurn" | "stopSequence" | "maxTokens" | "toolUse" | string;
-}
-
-/**
- * A successful response from the client for a {@link CreateMessageRequest | sampling/createMessage} request.
- *
- * @example Sampling result response
- * {@includeCode ./examples/CreateMessageResultResponse/sampling-result-response.json}
- *
- * @category `sampling/createMessage`
- */
-export interface CreateMessageResultResponse extends JSONRPCResultResponse {
-  result: CreateMessageResult;
 }
 
 /**
@@ -2568,7 +2629,7 @@ export interface ModelHint {
  * @example Prompt argument completion with context
  * {@includeCode ./examples/CompleteRequestParams/prompt-argument-completion-with-context.json}
  */
-export interface CompleteRequestParams extends RequestParams {
+export interface CompleteRequestParams extends RetryAugmentedRequestParams {
   ref: PromptReference | ResourceTemplateReference;
   /**
    * The argument's information
@@ -2687,7 +2748,7 @@ export interface PromptReference extends BaseMetadata {
  *
  * @category `roots/list`
  */
-export interface ListRootsRequest extends JSONRPCRequest {
+export interface ListRootsRequest {
   method: "roots/list";
   params?: RequestParams;
 }
@@ -2705,20 +2766,8 @@ export interface ListRootsRequest extends JSONRPCRequest {
  *
  * @category `roots/list`
  */
-export interface ListRootsResult extends Result {
+export interface ListRootsResult {
   roots: Root[];
-}
-
-/**
- * A successful response from the client for a {@link ListRootsRequest | roots/list} request.
- *
- * @example List roots result response
- * {@includeCode ./examples/ListRootsResultResponse/list-roots-result-response.json}
- *
- * @category `roots/list`
- */
-export interface ListRootsResultResponse extends JSONRPCResultResponse {
-  result: ListRootsResult;
 }
 
 /**
@@ -2849,7 +2898,7 @@ export type ElicitRequestParams =
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequest extends JSONRPCRequest {
+export interface ElicitRequest {
   method: "elicitation/create";
   params: ElicitRequestParams;
 }
@@ -3125,7 +3174,7 @@ export type EnumSchema =
  *
  * @category `elicitation/create`
  */
-export interface ElicitResult extends Result {
+export interface ElicitResult {
   /**
    * The user action in response to the elicitation.
    * - `"accept"`: User submitted the form/confirmed the action
@@ -3140,18 +3189,6 @@ export interface ElicitResult extends Result {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
-}
-
-/**
- * A successful response from the client for a {@link ElicitRequest | elicitation/create} request.
- *
- * @example Elicitation result response
- * {@includeCode ./examples/ElicitResultResponse/elicitation-result-response.json}
- *
- * @category `elicitation/create`
- */
-export interface ElicitResultResponse extends JSONRPCResultResponse {
-  result: ElicitResult;
 }
 
 /**
@@ -3204,9 +3241,6 @@ export type ClientNotification =
 /** @internal */
 export type ClientResult =
   | EmptyResult
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
@@ -3216,9 +3250,6 @@ export type ClientResult =
 /** @internal */
 export type ServerRequest =
   | PingRequest
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
