@@ -500,16 +500,6 @@ refresh tokens for both OAuth and OpenID Connect.
 `WWW-Authenticate` scope or Protected Resource Metadata `scopes_supported`, as refresh
 tokens are not a resource requirement.
 
-When building or selecting an Authorization Server for use in protecting MCP Servers,
-the Authorization Server:
-
-- **SHOULD** check client metadata for `refresh_token` in `grant_types` and **SHOULD NOT** issue
-  refresh tokens to clients that don't advertise support
-- **SHOULD** determine based on risk assessment whether to issue refresh tokens (e.g., reputation-based policies)
-  whether to issue refresh tokens to a client that supports them
-- **MAY** treat `offline_access` scope requests as equivalent to `refresh_token` grant support,
-  though risk-based policies still apply.
-
 ## Error Handling
 
 Servers **MUST** return appropriate HTTP status codes for authorization errors:

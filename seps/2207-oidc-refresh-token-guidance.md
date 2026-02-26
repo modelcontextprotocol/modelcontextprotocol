@@ -44,10 +44,11 @@ This creates several problems in the MCP ecosystem:
    semantically incorrect since it implies the resource _requires_ refresh
    tokens, which it never would.
 
-3. **Authorization Servers need guidance**: When processing an authorization
-   code grant, Authorization Servers need clear guidance on when to issue
-   refresh tokens, especially when the client hasn't explicitly requested
-   `offline_access`.
+3. **Authorization Servers can be inconsistent**: When processing an
+   authorization code grant, different Authorization Servers may have different
+   behavior when issuing refresh tokens to different clients, especially when
+   the client doesn't specify `refresh_token` as a grant type or request the
+   `offline_access` scope.
 
 4. **Interoperability gap**: Without this guidance, implementations may behave
    inconsistently, leading to poor user experience (frequent re-authentication)
@@ -55,28 +56,6 @@ This creates several problems in the MCP ecosystem:
    store them).
 
 ## Specification
-
-### Authorization Server Guidelines
-
-1. **Client capability check**: The Authorization Server **SHOULD** check the
-   client metadata for `refresh_token` in the `grant_types` field. If the client
-   does not advertise support for the `refresh_token` grant, the Authorization
-   Server **SHOULD NOT** issue a refresh token.
-
-2. **Risk-based assessment**: The Authorization Server **SHOULD** determine
-   based on its own risk assessment whether to issue a refresh token to clients
-   that support them. This enables security policies such as:
-   - Not issuing refresh tokens to newly-registered client domains until
-     reputation is established
-   - Requiring additional verification for high-risk clients
-   - Implementing domain allowlists for refresh token issuance
-
-3. **`offline_access` scope handling**: If the client requests the
-   `offline_access` scope, the Authorization Server **MAY** treat this as
-   equivalent to the client advertising `refresh_token` grant support in its
-   client metadata. However, the risk-based assessment (point 2) still applies—
-   requesting `offline_access` does not guarantee a refresh token will be
-   issued.
 
 ### MCP Client Requirements
 
@@ -149,6 +128,9 @@ Authorization Server Metadata and adapt their behavior accordingly.
 
 3. **Separate OIDC-specific specification**: Rejected in favor of a unified
    approach that works for both pure OAuth and OIDC deployments.
+
+4. **Provide guidance for Authorization Servers**: Rejected in favor of
+   relying on OAuth and OIDC specs for this guidance as it can vary.
 
 ## Backward Compatibility
 
