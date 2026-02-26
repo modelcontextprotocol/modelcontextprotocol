@@ -42,7 +42,7 @@
     "check:seps": "tsx scripts/render-seps.ts --check",
     "serve:docs": "cd docs && npx mint dev",
     "serve:blog": "cd blog && hugo serve",
-    "prep": "npm run check:schema:ts && npm run generate && npm run check:docs && npm run format"
+    "prep": "npm run check:schema:ts && npm run generate && npm run check:docs && npm run check:seps && npm run format"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
