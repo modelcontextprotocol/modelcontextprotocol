@@ -51,7 +51,8 @@
               {
                 "group": "Security",
                 "pages": [
-                  "docs/tutorials/security/authorization"
+                  "docs/tutorials/security/authorization",
+                  "docs/tutorials/security/security_best_practices"
                 ]
               }
             ]
@@ -61,11 +62,27 @@
             "pages": [
               "docs/tools/inspector"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
           },
           {
-            "group": "Extensions",
+            "group": "Authorization Extensions",
             "pages": [
-              "docs/extensions/apps"
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
             ]
           }
         ]
@@ -86,7 +103,6 @@
                   "specification/2025-11-25/basic/lifecycle",
                   "specification/2025-11-25/basic/transports",
                   "specification/2025-11-25/basic/authorization",
-                  "specification/2025-11-25/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -139,7 +155,6 @@
                   "specification/2025-06-18/basic/lifecycle",
                   "specification/2025-06-18/basic/transports",
                   "specification/2025-06-18/basic/authorization",
-                  "specification/2025-06-18/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -288,7 +303,6 @@
                   "specification/draft/basic/lifecycle",
                   "specification/draft/basic/transports",
                   "specification/draft/basic/authorization",
-                  "specification/draft/basic/security_best_practices",
                   {
                     "group": "Utilities",
                     "pages": [
@@ -413,12 +427,6 @@
             ]
           },
           {
-            "group": "Extensions",
-            "pages": [
-              "extensions"
-            ]
-          },
-          {
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
@@ -536,6 +544,30 @@
     {
       "source": "/development/contributing",
       "destination": "/community/contributing"
+    },
+    {
+      "source": "/specification/draft/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-11-25/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/specification/2025-06-18/basic/security_best_practices",
+      "destination": "/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "source": "/extensions",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/overview",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/apps",
+      "destination": "/extensions/apps/overview"
     }
   ],
   "contextual": {
