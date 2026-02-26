@@ -79,7 +79,9 @@ choose the appropriate field for their use case rather than forwarding both verb
 This SEP proposes the following clarifications to the MCP specification (draft):
 
 1. **Tool result audiences**
-   - `content` is the model-oriented representation of a tool result. It is the default field to pass into model context for and agent experiences. It MAY be designed to differ in schema from `structuredContent` to be further optimized for model-use (i.e. token-efficiency, readability, omission of empty values, etc...)
+   - `content` is the model-oriented representation of a tool result, optimized for readability
+     and token efficiency. It is the default field to pass into model context for conversational
+     and agent experiences.
    - `structuredContent` is the machine-oriented representation for programmatic use, code
      generation, typed orchestration, and UI hydration (including MCP Apps).
 
@@ -89,7 +91,8 @@ This SEP proposes the following clarifications to the MCP specification (draft):
      textualize `structuredContent` without listing every field verbatim, but it SHOULD NOT
      contradict it.
    - For backwards compatibility, tools that return `structuredContent` SHOULD also return a
-     `content` representation of the semantically-equivalent information. JSON-serialized `structuredContent` MAY be used in `content`. 
+     `content` representation of the same information. JSON-serialized text is acceptable, but
+     not required and may be suboptimal depending on the use case.
 
 3. **Client selection guidance**
    - Clients SHOULD choose the field that best matches their experience:
