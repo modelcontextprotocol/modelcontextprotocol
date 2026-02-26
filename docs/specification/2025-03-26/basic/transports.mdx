@@ -208,6 +208,14 @@ servers which want to establish stateful sessions:
    - The server **MAY** respond to this request with HTTP 405 Method Not Allowed,
      indicating that the server does not allow clients to terminate sessions.
 
+<Note>
+  Implementation considerations: If a server keeps session state in process memory,
+  deployments should ensure requests carrying a given `Mcp-Session-Id` are routed to
+  the same backend (session affinity) or externalize session state so any worker can
+  handle the request. This is especially relevant for session-bound features like
+  elicitation or task-augmented flows.
+</Note>
+
 ### Sequence Diagram
 
 ```mermaid
