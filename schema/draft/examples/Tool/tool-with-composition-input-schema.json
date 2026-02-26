@@ -1,0 +1,29 @@
+{
+  "name": "find_resource",
+  "title": "Resource Finder",
+  "description": "Find a resource by ID or name",
+  "inputSchema": {
+    "oneOf": [
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Resource ID"
+          }
+        },
+        "required": ["id"]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Resource name"
+          }
+        },
+        "required": ["name"]
+      }
+    ]
+  }
+}

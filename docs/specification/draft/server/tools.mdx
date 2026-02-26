@@ -318,7 +318,7 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 #### Structured Content
 
-**Structured** content is returned as a JSON object in the `structuredContent` field of a result.
+**Structured** content is returned as a JSON value in the `structuredContent` field of a result. This can be any JSON value (object, array, string, number, boolean, or null) that conforms to the tool's `outputSchema` if one is defined.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
 
@@ -386,6 +386,53 @@ Example valid response for this tool:
       "conditions": "Partly cloudy",
       "humidity": 65
     }
+  }
+}
+```
+
+Example tool with array output schema:
+
+```json
+{
+  "name": "list_users",
+  "title": "User List",
+  "description": "Returns a list of all users",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "outputSchema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["id", "name", "email"]
+    }
+  }
+}
+```
+
+Example valid response for a tool with array output:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 2 users: Alice (alice@example.com) and Bob (bob@example.com)."
+      }
+    ],
+    "structuredContent": [
+      { "id": "1", "name": "Alice", "email": "alice@example.com" },
+      { "id": "2", "name": "Bob", "email": "bob@example.com" }
+    ]
   }
 }
 ```
