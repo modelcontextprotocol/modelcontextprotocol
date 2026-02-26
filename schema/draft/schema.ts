@@ -1992,6 +1992,46 @@ export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
 }
 
 /**
+ * Parameters for a `tasks/input_response` request.
+ * Used to deliver client responses to server-initiated input requests
+ * for a task in the persistent multi round-trip workflow.
+ *
+ * @example Task input response params
+ * {@includeCode ./examples/TaskInputResponseRequestParams/task-input-response-params.json}
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequestParams extends TaskAugmentedRequestParams {
+  /**
+   * The client's responses to the server's input requests.
+   */
+  inputResponses: InputResponses;
+}
+
+/**
+ * A request from the client to deliver input responses for a task
+ * that is in `input_required` status.
+ *
+ * @example Task input response request
+ * {@includeCode ./examples/TaskInputResponseRequest/task-input-response-request.json}
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequest extends JSONRPCRequest {
+  method: "tasks/input_response";
+  params: TaskInputResponseRequestParams;
+}
+
+/**
+ * A successful response for a {@link TaskInputResponseRequest | tasks/input_response} request.
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseResultResponse extends JSONRPCResultResponse {
+  result: Result;
+}
+
+/**
  * A request to cancel a task.
  *
  * @category `tasks/cancel`
@@ -3228,6 +3268,7 @@ export type ClientRequest =
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
+  | TaskInputResponseRequest
   | CancelTaskRequest;
 
 /** @internal */
