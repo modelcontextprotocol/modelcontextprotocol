@@ -16,6 +16,58 @@ The primary audience for this document includes developers implementing MCP auth
 
 This section gives a detailed description of attacks on MCP implementations, along with potential countermeasures.
 
+### Server Exposure and Misconfiguration
+
+MCP servers deployed over network transports (HTTP/SSE/WebSocket) often expose powerful tools and access to private data. Misconfiguration can unintentionally broaden the set of parties that can reach the server (local network exposure), or allow untrusted browser contexts to interact with it (cross-origin access).
+
+#### Attack Description
+
+The following common implementation pitfalls can be exploited:
+
+- A local development server binds to all interfaces (`0.0.0.0`) and becomes reachable from the local network.
+- CORS is enabled permissively (for example: wildcard origins, reflected origins), allowing untrusted websites to read responses from a reachable server.
+- Cookie-based authentication is used without CSRF protections, allowing cross-site requests to trigger actions.
+- Request parsing has no size limits, and expensive tools have no timeouts, rate limits, or concurrency bounds.
+
+#### Risks
+
+- Unauthorized tool invocation and side effects
+- Exfiltration of tool outputs and sensitive resources
+- Denial of service via large requests or expensive tool calls
+- Credential or secret leakage through logs and error messages
+
+#### Mitigation
+
+MCP server operators SHOULD:
+
+- Bind to loopback (`127.0.0.1` / `::1`) by default for servers not intended to be remotely reachable, and require explicit configuration to listen on non-loopback interfaces.
+- If a server is reachable from untrusted networks and provides privileged or user-specific capabilities, require authentication and authorize tool execution per user identity and scope/role where applicable. Public, read-only services may intentionally be unauthenticated.
+- Treat browsers as a hostile environment:
+  - Do not enable CORS unless you intend browser-based usage.
+  - If you do enable CORS, validate `Origin` against a strict allowlist, set `Vary: Origin`, and avoid wildcard or reflected origins on authenticated endpoints.
+  - Avoid cookie-based authentication unless you also implement CSRF protections.
+  - Do not combine `Access-Control-Allow-Credentials: true` with broad origins.
+- Bound resource usage:
+  - Enforce maximum request body sizes on all endpoints.
+  - Apply timeouts to outbound requests (HTTP, databases, upstream APIs).
+  - Add rate limiting and concurrency limits/backpressure for expensive tools.
+- Constrain tool capabilities (least privilege):
+  - Keep the tool surface area small and purpose-built.
+  - Avoid exposing arbitrary shell execution and filesystem access.
+  - If you must run commands, do not invoke a shell (`sh -c`, `cmd /c`, `shell=True`), enforce strict allowlists for commands/arguments, and pass arguments as arrays.
+- Validate inputs and avoid secret leakage:
+  - Validate tool inputs against strict schemas; reject unexpected fields.
+  - Redact secrets in logs and error messages (for example: `Authorization` headers, cookies, session tokens, and API keys).
+
+#### Common Mistakes
+
+- Binding to `0.0.0.0` by default for local development servers
+- Enabling permissive CORS (wildcard origins or reflected origins)
+- Using cookie authentication without CSRF protections
+- Omitting request size limits, timeouts, rate limits, or concurrency bounds
+- Exposing shell/filesystem tools without strict allowlists and safe argument handling
+- Logging credentials, session tokens, API keys, or sensitive tool outputs
+
 ### Confused Deputy Problem
 
 Attackers can exploit MCP proxy servers that connect to third-party APIs, creating "[confused deputy](https://en.wikipedia.org/wiki/Confused_deputy_problem)" vulnerabilities. This attack allows malicious clients to obtain authorization codes without proper user consent by exploiting the combination of static client IDs, dynamic client registration, and consent cookies.
