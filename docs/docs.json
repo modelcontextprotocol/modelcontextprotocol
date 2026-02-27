@@ -62,12 +62,27 @@
             "pages": [
               "docs/tools/inspector"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
           },
           {
-            "group": "Extensions",
+            "group": "Authorization Extensions",
             "pages": [
-              "docs/extensions/overview",
-              "docs/extensions/apps"
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
             ]
           }
         ]
@@ -377,6 +392,7 @@
               {
                 "group": "Final",
                 "pages": [
+                  "community/seps/414-request-meta",
                   "community/seps/932-model-context-protocol-governance",
                   "community/seps/973-expose-additional-metadata-for-implementations-res",
                   "community/seps/985-align-oauth-20-protected-resource-metadata-with-rf",
@@ -544,7 +560,15 @@
     },
     {
       "source": "/extensions",
-      "destination": "/docs/extensions/overview"
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/overview",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/apps",
+      "destination": "/extensions/apps/overview"
     }
   ],
   "contextual": {
