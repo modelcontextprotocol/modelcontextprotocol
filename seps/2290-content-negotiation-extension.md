@@ -21,7 +21,7 @@ Feature tags are grounded in the client's actual MCP capabilities (`sampling`,
 precise, verifiable signals for content decisions. Negotiation is session-scoped
 — decided once at handshake with zero per-request overhead — and is fully
 backward compatible. A hard design constraint ensures feature tags control
-*what* the server sends, never *whether* to send it (no access control via
+_what_ the server sends, never _whether_ to send it (no access control via
 tags).
 
 Standard tags cover client type (`agent`, `human`), format (`format=json|text|markdown`),
