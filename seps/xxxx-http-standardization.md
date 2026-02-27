@@ -410,12 +410,13 @@ The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded
 
 #### Client Behavior
 
-When constructing a `tools/call` request via HTTP transport, the client:
+When constructing a `tools/call` request via HTTP transport, the client MUST:
 
-1. Extracts the values for any standard headers from the request body (e.g., `method`, `params.name`, `params.uri`)
-2. Inspects the tool's `inputSchema` for properties marked with `x-mcp-header` and extract the value for each parameter
-3. Encodes the values according to the rules in [Value Encoding](#value-encoding)
-4. Appends a header to the request: `Mcp-Param-{Name}: {Value}`
+1. Extract the values for any standard headers from the request body (e.g., `method`, `params.name`, `params.uri`)
+1. Append the `Mcp-Method` header and, if applicable, `Mcp-Name` header to the request
+1. Inspect the tool's `inputSchema` for properties marked with `x-mcp-header` and extract the value for each parameter
+1. Encode the values according to the rules in [Value Encoding](#value-encoding)
+1. Append a `Mcp-Param-{Name}: {Value}` header to the request:
 
 #### Server Behavior
 
