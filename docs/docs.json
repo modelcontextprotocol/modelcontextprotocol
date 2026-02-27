@@ -505,6 +505,30 @@
       "destination": "/specification/2025-06-18/basic/transports"
     },
     {
+      "source": "/docs/concepts/cancellation",
+      "destination": "/specification/2025-06-18/basic/utilities/cancellation"
+    },
+    {
+      "source": "/docs/concepts/ping",
+      "destination": "/specification/2025-06-18/basic/utilities/ping"
+    },
+    {
+      "source": "/docs/concepts/progress",
+      "destination": "/specification/2025-06-18/basic/utilities/progress"
+    },
+    {
+      "source": "/docs/concepts/completion",
+      "destination": "/specification/2025-06-18/server/utilities/completion"
+    },
+    {
+      "source": "/docs/concepts/logging",
+      "destination": "/specification/2025-06-18/server/utilities/logging"
+    },
+    {
+      "source": "/docs/concepts/pagination",
+      "destination": "/specification/2025-06-18/server/utilities/pagination"
+    },
+    {
       "source": "/docs/tools/debugging",
       "destination": "/legacy/tools/debugging"
     },
