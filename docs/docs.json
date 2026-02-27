@@ -418,6 +418,12 @@
                   "community/seps/2085-governance-succession-and-amendment",
                   "community/seps/2133-extensions"
                 ]
+              },
+              {
+                "group": "Draft",
+                "pages": [
+                  "community/seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+                ]
               }
             ]
           },
