@@ -662,6 +662,14 @@ Tool parameter values designated for headers will be visible to network intermed
 - SHOULD document which parameters are exposed as headers
 - SHOULD consider that Base64 encoding provides no confidentiality—it is merely an encoding, not encryption
 
+### Trusting Header Values
+
+Header values originate from tool call arguments, which may be influenced by an LLM or a malicious client. Intermediaries and servers MUST NOT treat these values as trusted input for security-sensitive decisions. In particular:
+
+- Header values that imply access to specific resources (e.g., tenant IDs, region names) MUST be independently verified against the authenticated user's permissions before granting access to those resources.
+- Header values MUST NOT be used as the sole basis for granting elevated privileges without server-side enforcement of rate limits and quotas.
+- Deployments SHOULD reject requests with oversized or excessive headers early in the pipeline — before performing Base64 decoding or body parsing — to mitigate denial-of-service risks from crafted payloads.
+
 ## Conformance Test Cases
 
 This section defines edge cases that conformance tests MUST cover to ensure interoperability between implementations.
