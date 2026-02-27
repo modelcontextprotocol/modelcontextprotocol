@@ -454,6 +454,8 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
 - A Base64-encoded value cannot be decoded
 - A header value contains invalid characters
 
+> **Note**: Intermediaries MUST return an appropriate HTTP error status (e.g., `400 Bad Request`) for validation failures but are not required to return a JSON-RPC error response.
+
 **Custom Header Handling**:
 
 Custom headers (those defined via `x-mcp-header`) follow the same validation rules as standard headers:
@@ -748,8 +750,8 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Test Case | Header Value | Expected Behavior |
 |-----------|--------------|-------------------|
 | Valid Base64 | `=?base64?SGVsbG8=?=` | Server decodes to `"Hello"` and validates |
-| Invalid Base64 padding | `=?base64?SGVsbG8?=` | Server MUST reject with 400 and error code `-32001` |
-| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001` |
+| Invalid Base64 padding | `=?base64?SGVsbG8?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
 | Missing prefix | `SGVsbG8=` | Server treats as literal value, not Base64 |
 | Missing suffix | `=?base64?SGVsbG8=` | Server treats as literal value, not Base64 |
 | Malformed wrapper | `=?BASE64?SGVsbG8=?=` | Server MUST accept (case-insensitive prefix) |
@@ -766,8 +768,8 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 | Test Case | Header Present | Body Value | Expected Behavior |
 |-----------|----------------|------------|-------------------|
-| Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MUST reject with 400 and error code `-32001` |
-| Standard header omitted, value in body | No `Mcp-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001` |
+| Standard header omitted, value in body | No `Mcp-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
 
 ## Reference Implementation
 
