@@ -36,4 +36,4 @@ implementation, and comparison with related proposals, is maintained at:
 
 **https://github.com/schlpbch/ext-content-negotiation**
 
-Current version: **v0.9.3**
+Current version: **v0.9.4**
