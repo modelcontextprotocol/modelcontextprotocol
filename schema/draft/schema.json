@@ -177,19 +177,19 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "content": {
-                    "description": "A list of content objects that represent the unstructured result of the tool call.",
+                    "description": "A list of content objects that represent the unstructured result of the tool call.\n\nThis is the model-oriented representation. Clients that provide tool results to a model\nSHOULD use `content` when present and only fall back to `structuredContent` if `content`\nis empty or omitted.",
                     "items": {
                         "$ref": "#/$defs/ContentBlock"
                     },
                     "type": "array"
                 },
                 "isError": {
-                    "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
+                    "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nWhen `isError` is true, the actionable error message SHOULD be included in `content`.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
                 },
                 "structuredContent": {
                     "additionalProperties": {},
-                    "description": "An optional JSON object that represents the structured result of the tool call.",
+                    "description": "An optional JSON object that represents the structured result of the tool call.\n\nIntended for programmatic use; when both fields are present, it SHOULD be semantically\nequivalent to `content`.\n\nIf the corresponding tool defines an {@link Tool.outputSchema}, this SHOULD conform to that\nschema when `isError` is absent or false. Error results (`isError: true`) MAY omit\n`structuredContent`, and clients SHOULD NOT validate it against the output schema.",
                     "type": "object"
                 }
             },
@@ -4182,12 +4182,12 @@
                     "type": "array"
                 },
                 "isError": {
-                    "description": "Whether the tool use resulted in an error.\n\nIf true, the content typically describes the error that occurred.\nDefault: false",
+                    "description": "Whether the tool use resulted in an error.\n\nIf true, the actionable error message SHOULD be included in `content`.\nDefault: false",
                     "type": "boolean"
                 },
                 "structuredContent": {
                     "additionalProperties": {},
-                    "description": "An optional structured result object.\n\nIf the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema.",
+                    "description": "An optional structured result object.\n\nIf the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema when\n`isError` is absent or false. Error results (`isError: true`) MAY omit\n`structuredContent`, and clients SHOULD NOT validate it against the output schema.",
                     "type": "object"
                 },
                 "toolUseId": {
