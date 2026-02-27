@@ -35,7 +35,7 @@ For the optional GET SSE Stream [(2025-11-25/basic/transports.mdx:146-L148)](htt
 > - "The server **MAY** send JSON-RPC _requests_ and _notifications_ on the stream."
 > - "These messages **SHOULD** be unrelated to any concurrently-running JSON-RPC _request_ from the client."
 
-Although the GET stream allows "unsolicited" requests, it's use is entirely optional and cannot be relied upon by MCP Server authors.
+Although the GET stream allows "unsolicited" requests, its use is entirely optional and cannot be relied upon by MCP Server authors.
 
 ### Design Intent
 
