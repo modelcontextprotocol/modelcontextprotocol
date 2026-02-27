@@ -78,6 +78,43 @@ what is being completed through a reference type:
 }
 ```
 
+Servers MAY also return rich completion values with display metadata. Each item in `values` can be either a plain string or a `CompletionValue` object:
+
+**Response with rich completion values:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "completion": {
+      "values": [
+        {
+          "value": "py-3.11",
+          "title": "Python 3.11",
+          "description": "Python programming language, version 3.11"
+        },
+        {
+          "value": "torch-2.0",
+          "title": "PyTorch 2.0"
+        },
+        "pyside"
+      ],
+      "total": 3,
+      "hasMore": false
+    }
+  }
+}
+```
+
+When a `CompletionValue` object is returned:
+
+- `value` — the actual string submitted in subsequent `completion/complete` requests (i.e., placed into `argument.value` or `context.arguments`).
+- `title` — a human-readable label that clients **SHOULD** display to users instead of the raw value.
+- `description` _(optional)_ — supplemental text clients **SHOULD** show as a tooltip or help text.
+
+Clients **MUST** use the `value` field (not `title`) when constructing subsequent requests. Plain strings and `CompletionValue` objects MAY be mixed in the same response.
+
 For prompts or URI templates with multiple arguments, clients should include previous completions in the `context.arguments` object to provide context for subsequent requests.
 
 **Request:**
@@ -138,6 +175,16 @@ Servers return an array of completion values ranked by relevance, with:
 - Optional total number of available matches
 - Boolean indicating if additional results exist
 
+Each item in the `values` array is either a plain `string` or a `CompletionValue` object. A `CompletionValue` carries:
+
+| Field         | Type     | Required | Description                                         |
+| ------------- | -------- | -------- | --------------------------------------------------- |
+| `value`       | `string` | Yes      | The actual value used in subsequent requests        |
+| `title`       | `string` | Yes      | Human-readable display label shown to the user      |
+| `description` | `string` | No       | Additional context, shown as a tooltip or help text |
+
+Servers MAY return only plain strings (existing behaviour), only `CompletionValue` objects, or a mix of both in the same response.
+
 ## Message Flow
 
 ```mermaid
@@ -165,10 +212,16 @@ sequenceDiagram
 - `context`: Object containing:
   - `arguments`: A mapping of already-resolved argument names to their values.
 
+### CompletionValue
+
+- `value`: The actual completion value string used in subsequent requests
+- `title`: Human-readable display label for the completion option
+- `description`: _(optional)_ Additional context shown as tooltip or help text
+
 ### CompleteResult
 
 - `completion`: Object containing:
-  - `values`: Array of suggestions (max 100)
+  - `values`: Array of `string | CompletionValue` suggestions (max 100)
   - `total`: Optional total matches
   - `hasMore`: Additional results flag
 
@@ -193,6 +246,8 @@ Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
    - Debounce rapid completion requests
    - Cache completion results where appropriate
    - Handle missing or partial results gracefully
+   - Display `CompletionValue.title` to users and use `CompletionValue.value` for requests
+   - When filtering suggestions client-side, match against both `value` and `title` fields
 
 ## Security
 

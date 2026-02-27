@@ -2609,6 +2609,31 @@ export interface CompleteRequest extends JSONRPCRequest {
 }
 
 /**
+ * A completion value with optional display metadata.
+ *
+ * When a server returns a `CompletionValue` object instead of a plain string, clients
+ * SHOULD display the {@link CompletionValue.title | title} to the user in completion UIs
+ * and MUST use the {@link CompletionValue.value | value} field when constructing
+ * subsequent requests.
+ *
+ * @category `completion/complete`
+ */
+export interface CompletionValue {
+  /**
+   * The actual completion value submitted in subsequent requests.
+   */
+  value: string;
+  /**
+   * Human-readable display label for the completion option.
+   */
+  title: string;
+  /**
+   * Optional additional context shown as tooltip or help text.
+   */
+  description?: string;
+}
+
+/**
  * The result returned by the server for a {@link CompleteRequest | completion/complete} request.
  *
  * @category `completion/complete`
@@ -2618,13 +2643,16 @@ export interface CompleteRequest extends JSONRPCRequest {
  *
  * @example Multiple completion values with more available
  * {@includeCode ./examples/CompleteResult/multiple-completion-values-with-more-available.json}
+ *
+ * @example Rich completion values with metadata
+ * {@includeCode ./examples/CompleteResult/rich-completion-values.json}
  */
 export interface CompleteResult extends Result {
   completion: {
     /**
      * An array of completion values. Must not exceed 100 items.
      */
-    values: string[];
+    values: (string | CompletionValue)[];
     /**
      * The total number of completion options available. This can exceed the number of values actually sent in the response.
      */
