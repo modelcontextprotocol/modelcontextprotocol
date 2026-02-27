@@ -391,7 +391,7 @@ Clients MUST apply the following encoding rules in order:
 
 **Base64 Encoding for Unsafe Values**
 
-When a value cannot be safely represented as a plain ASCII header value, clients MUST use Base64 encoding with the following format:
+When a value cannot be safely represented as a plain ASCII header value, clients MUST use Base64 encoding of the UTF-8 representation of the value with the following format:
 
 ```text
 Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
