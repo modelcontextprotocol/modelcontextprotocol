@@ -550,6 +550,10 @@ The `x-mcp-header` extension is placed directly within the JSON Schema of the pr
 
 5. **Reduced complexity**: A separate metadata structure would require defining a mapping mechanism (e.g., JSON Pointer or property paths) to associate headers with properties, adding implementation complexity and potential for errors.
 
+### Scope: Tools Only
+
+The `x-mcp-header` mechanism currently applies only to `tools/call` requests because tools are the only MCP primitive with an `inputSchema` that supports JSON Schema extension keywords. Resources and prompts lack an equivalent schema structure: `resources/read` takes only a `uri` (already exposed via `Mcp-Name`), and `prompts/get` defines arguments as a simple `{name, description, required}` array without JSON Schema extensibility. Generalizing custom header mapping to these primitives would require adding `inputSchema`-style definitions to resources and prompts, which is a larger specification change. This is noted as a potential future extension.
+
 ### Header Size and Count Limits
 
 This specification currently defines a single limit: individual header values exceeding 8192 bytes MUST be omitted. The following additional limits are under consideration:
