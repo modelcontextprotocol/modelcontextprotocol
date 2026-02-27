@@ -483,8 +483,7 @@ This proposal mirrors request data into headers rather than encoding it in the U
 **Advantages of Path-based Routing**:
 
 1. **Framework simplicity**: Many web frameworks (Flask, Express, Django, Rails) have built-in support for path-based routing with minimal configuration
-2. **Caching**: HTTP caches naturally key on the URL path, making path-based routing cache-friendly
-3. **Logging**: URL paths are typically logged by default, making debugging easier
+2. **Logging**: URL paths are typically logged by default, making debugging easier
 
 **Trade-offs and Framework Considerations**:
 
