@@ -597,6 +597,27 @@ Until specific limits are mandated by a future version of this specification:
 3. **Clients** SHOULD gracefully handle `413 Request Entity Too Large` or `431 Request Header Fields Too Large` responses
 4. **SDKs** SHOULD provide configuration options for header limits to support diverse deployment environments
 
+### Encoding Approach for Unsafe Values
+
+Four approaches were considered for encoding parameter values that cannot be safely represented as plain ASCII header values (non-ASCII characters, leading/trailing whitespace, control characters):
+
+1. **Sentinel wrapping (chosen approach)**: Use the `=?base64?{value}?=` prefix/suffix within the same `Mcp-Param-{Name}` header to signal Base64-encoded values.
+
+2. **Separate header name**: Use a distinct header name for encoded values, e.g. `Mcp-ParamEncoded-{Name}`, so the encoding is indicated by the header name rather than the value format.
+
+3. **Implicit encoding**: Let the parser infer encoding from the tool schema, e.g. via a `"x-mcp-header-encoding": "base64"` annotation in the tool definition.
+
+4. **Always encode**: Base64-encode every `Mcp-Param-{Name}` value unconditionally.
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| Sentinel wrapping | Single header name per parameter; common case (plain ASCII) is human-readable; intermediaries can route on plain values without decoding | In-band signaling can theoretically collide with literal values; every reader must check for the prefix |
+| Separate header name | No in-band ambiguity; encoding is self-documenting from the header name | Doubles the header namespace; every intermediary must check two header names per parameter; needs a conflict rule if both are present |
+| Implicit encoding | Simplest wire format; no sentinels or extra headers | Intermediaries need access to the tool schema to know whether to decode — defeats the purpose of exposing values in headers; static per-parameter decision doesn't handle the mixed case well |
+| Always encode | Simplest rules; no conditional logic or ambiguity | Plain ASCII values become unreadable; intermediaries must decode Base64 to inspect any value, significantly undermining the core motivation of this SEP |
+
+**Conclusion**: The sentinel wrapping approach provides the best trade-off. The primary use case for custom headers is enabling intermediaries to route and filter on simple, readable values like region names and tenant IDs — these are invariably plain ASCII and never trigger Base64 encoding. Option 4 makes all values opaque to intermediaries. Option 3 leaves intermediaries unable to distinguish encoded from literal values without access to the tool schema. Option 2 eliminates in-band ambiguity but doubles the header namespace, requiring intermediaries to check two possible header names per parameter and adding a conflict rule when both are present. The theoretical collision risk of the sentinel in Option 1 is negligible since `=?base64?...?=` is an unlikely literal parameter value in practice.
+
 ## Backward Compatibility
 
 ### Standard Headers
