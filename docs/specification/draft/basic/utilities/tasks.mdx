@@ -402,8 +402,10 @@ These requirements apply to all parties that support receiving task-augmented re
 
 ### Task Status Lifecycle
 
-1. Tasks **MUST** begin in the `working` status when created.
+1. Tasks **MUST** begin in the `pending` status when created.
+1. Tasks **MUST** transition to `working` status as soon as execution begins.
 1. Receivers **MUST** only transition tasks through the following valid paths:
+   1. From `pending`: may move to `working` or `cancelled`
    1. From `working`: may move to `input_required`, `completed`, `failed`, or `cancelled`
    1. From `input_required`: may move to `working`, `completed`, `failed`, or `cancelled`
    1. Tasks with a `completed`, `failed`, or `cancelled` status are in a terminal state and **MUST NOT** transition to any other status
@@ -412,8 +414,8 @@ These requirements apply to all parties that support receiving task-augmented re
 
 ```mermaid
 stateDiagram-v2
-    [*] --> working
-
+    [*] --> pending
+    pending --> working
     working --> input_required
     working --> terminal
 
@@ -717,6 +719,7 @@ A task represents the execution state of a request. The task state includes:
 
 Tasks can be in one of the following states:
 
+- `pending`: The request has been accepted but execution has not yet started.
 - `working`: The request is currently being processed.
 - `input_required`: The receiver needs input from the requestor. The requestor should call `tasks/result` to receive input requests, even though the task has not reached a terminal state.
 - `completed`: The request completed successfully and results are available.
