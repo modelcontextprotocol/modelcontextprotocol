@@ -6,7 +6,7 @@
 - **Created**: 2026-02-22
 - **Author(s)**: Aaron Sempf <sempfa@amazon.com>, Andreas Schlapbach <andreas.schlapbach@sbb.ch> (@schlpbch)
 - **Sponsor**: (Seeking)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2317
 
 ## Abstract
 
