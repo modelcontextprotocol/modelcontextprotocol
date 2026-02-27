@@ -31,12 +31,10 @@ By exposing key fields in HTTP headers, we enable standard network infrastructur
 
 The Streamable HTTP transport will require POST requests to include the following headers mirrored from the request body:
 
-| Header Name       | Source Field   | Required For              |
-| ----------------- | -------------- | ------------------------- |
-| `Mcp-Method`      | `method`       | All requests              |
-| `Mcp-Tool-Name`   | `params.name`  | `tools/call` requests     |
-| `Mcp-Resource`    | `params.uri`   | `resources/read` requests |
-| `Mcp-Prompt-Name` | `params.name`  | `prompts/get` requests    |
+| Header Name  | Source Field               | Required For                                          |
+| ------------ | -------------------------- | ----------------------------------------------------- |
+| `Mcp-Method` | `method`                   | All requests                                          |
+| `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
 
 These headers are **required** for compliance with the MCP version in which they are introduced.
 
@@ -53,7 +51,7 @@ POST /mcp HTTP/1.1
 Content-Type: application/json
 Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
-Mcp-Tool-Name: get_weather
+Mcp-Name: get_weather
 
 {
   "jsonrpc": "2.0",
@@ -75,7 +73,7 @@ POST /mcp HTTP/1.1
 Content-Type: application/json
 Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: resources/read
-Mcp-Resource: file:///projects/myapp/config.json
+Mcp-Name: file:///projects/myapp/config.json
 
 {
   "jsonrpc": "2.0",
@@ -94,7 +92,7 @@ POST /mcp HTTP/1.1
 Content-Type: application/json
 Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: prompts/get
-Mcp-Prompt-Name: code_review
+Mcp-Name: code_review
 
 {
   "jsonrpc": "2.0",
@@ -217,7 +215,7 @@ POST /mcp HTTP/1.1
 Content-Type: application/json
 Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
-Mcp-Tool-Name: execute_sql
+Mcp-Name: execute_sql
 Mcp-Param-Region: us-west1
 
 {
@@ -277,7 +275,7 @@ POST /mcp HTTP/1.1
 Content-Type: application/json
 Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
-Mcp-Tool-Name: query_analytics
+Mcp-Name: query_analytics
 Mcp-Param-TenantId: acme-corp
 
 {
@@ -331,7 +329,7 @@ POST /mcp HTTP/1.1
 Content-Type: application/json
 Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
-Mcp-Tool-Name: generate_report
+Mcp-Name: generate_report
 Mcp-Param-Priority: high
 
 {
@@ -443,14 +441,14 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
   "id": 1,
   "error": {
     "code": -32001,
-    "message": "Header mismatch: Mcp-Tool-Name header value 'foo' does not match body value 'bar'"
+    "message": "Header mismatch: Mcp-Name header value 'foo' does not match body value 'bar'"
   }
 }
 ```
 
 **Validation Failure Conditions**:
 
-- A required standard header (`Mcp-Method`, `Mcp-Tool-Name`, etc.) is missing
+- A required standard header (`Mcp-Method`, `Mcp-Name`, etc.) is missing
 - A header value does not match the request body value
 - A Base64-encoded value cannot be decoded
 - A header value contains invalid characters
@@ -660,9 +658,9 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Test Case | Header Value | Body Value | Expected Behavior |
 |-----------|--------------|------------|-------------------|
 | Method mismatch | `Mcp-Method: tools/call` | `"method": "prompts/get"` | Server MUST reject with 400 and error code `-32001` |
-| Tool name mismatch | `Mcp-Tool-Name: foo` | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32001` |
+| Tool name mismatch | `Mcp-Name: foo` | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32001` |
 | Missing required header | (no `Mcp-Method`) | Valid body | Server MUST reject with 400 and error code `-32001` |
-| Extra whitespace in header | `Mcp-Tool-Name:  foo ` | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec) |
+| Extra whitespace in header | `Mcp-Name:  foo ` | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec) |
 
 #### Special Characters in Values
 
@@ -748,7 +746,7 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Test Case | Header Present | Body Value | Expected Behavior |
 |-----------|----------------|------------|-------------------|
 | Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MUST reject with 400 and error code `-32001` |
-| Standard header omitted, value in body | No `Mcp-Tool-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001` |
+| Standard header omitted, value in body | No `Mcp-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001` |
 
 ## Reference Implementation
 
