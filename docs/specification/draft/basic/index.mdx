@@ -216,6 +216,35 @@ may reserve particular names for purpose-specific metadata, as declared in those
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
 
+**OpenTelemetry trace context:**
+
+As an exception to the prefix requirement above, the keys `traceparent`, `tracestate`, and
+`baggage` are reserved for [OpenTelemetry](https://opentelemetry.io/) trace context propagation.
+When present, their values MUST follow [W3C Trace Context](https://www.w3.org/TR/trace-context/)
+and [W3C Baggage](https://www.w3.org/TR/baggage/) formats respectively.
+
+This exception exists to maintain compatibility with existing implementations and
+[OpenTelemetry semantic conventions for MCP](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/).
+
+Non-normative example of trace context in `_meta`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "_meta": {
+      "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
+    }
+  }
+}
+```
+
 ### `icons`
 
 The `icons` property provides a standardized way for servers to expose visual identifiers for their resources, tools, prompts, and implementations. Icons enhance user interfaces by providing visual context and improving the discoverability of available functionality.

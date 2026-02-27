@@ -392,6 +392,7 @@
               {
                 "group": "Final",
                 "pages": [
+                  "community/seps/414-request-meta",
                   "community/seps/932-model-context-protocol-governance",
                   "community/seps/973-expose-additional-metadata-for-implementations-res",
                   "community/seps/985-align-oauth-20-protected-resource-metadata-with-rf",
@@ -416,13 +417,6 @@
                   "community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
                   "community/seps/2085-governance-succession-and-amendment",
                   "community/seps/2133-extensions"
-                ]
-              },
-              {
-                "group": "Draft",
-                "pages": [
-                  "community/seps/2149-working-group-charter-template",
-                  "community/seps/2293-enhanced-completion-values"
                 ]
               }
             ]
