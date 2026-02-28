@@ -88,19 +88,6 @@ export interface TaskAugmentedRequestParams extends RetryAugmentedRequestParams 
  */
 export interface RequestParams {
   _meta?: RequestMetaObject;
-  /**
-   * Responses to server-initiated input requests from a previous
-   * {@link IncompleteResult}. Present only when retrying a request
-   * after receiving an incomplete result.
-   */
-  inputResponses?: InputResponses;
-  /**
-   * Opaque request state echoed back from a previous {@link IncompleteResult}.
-   * Clients MUST return this value exactly as received. Present only when
-   * retrying a request after receiving an incomplete result that included
-   * a `requestState` field.
-   */
-  requestState?: string;
 }
 
 /** @internal */
@@ -194,18 +181,6 @@ export interface JSONRPCResultResponse {
 }
 
 /**
- * A response to a request that indicates the result is incomplete and
- * additional input is needed.
- *
- * @category JSON-RPC
- */
-export interface JSONRPCIncompleteResultResponse {
-  jsonrpc: typeof JSONRPC_VERSION;
-  id: RequestId;
-  result: IncompleteResult;
-}
-
-/**
  * A response to a request that indicates an error occurred.
  *
  * @category JSON-RPC
@@ -221,7 +196,7 @@ export interface JSONRPCErrorResponse {
  *
  * @category JSON-RPC
  */
-export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse | JSONRPCIncompleteResultResponse;
+export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
 // Standard JSON-RPC error codes
 export const PARSE_ERROR = -32700;
