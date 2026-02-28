@@ -369,11 +369,21 @@ export interface InputResponses {
 }
 
 /**
- * Incomplete response.  May be sent in response to any client-initiated
- * request.
- * At least one of the the inputRequests and requestState fields must be
- * present, since the presence of these fields allow the client to
- * determine that the result is incomplete.
+ * An IncompleteResult sent by the server to indicate that additional input is needed
+ * before the request can be completed. 
+ *
+ * At least one of `inputRequests` or `requestState` MUST be present.
+ *
+ * @example Incomplete result with input requests
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-input-requests.json}
+ *
+ * @example Incomplete result with elicitation and sampling input requests
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-elicitation-and-sampling.json}
+ *
+ * @example Incomplete result with request state only (load shedding)
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-request-state-only.json}
+ *
+ * @category Multi Round-Trip
  */
 export interface IncompleteResult extends Result {
   /* Requests issued by the server that must be complete before the
@@ -613,7 +623,7 @@ export interface ClientCapabilities {
        */
       sampling?: {
         /**
-         * Whether the client supports task-augmented {@link SamplingCreateRequest | sampling/createMessage} requests.
+         * Whether the client supports task-augmented {@link CreateMessageRequest | sampling/createMessage} requests.
          */
         createMessage?: object;
       };
@@ -622,7 +632,7 @@ export interface ClientCapabilities {
        */
       elicitation?: {
         /**
-         * Whether the client supports task-augmented {@link ElicitationCreateRequest | elicitation/create} requests.
+         * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
          */
         create?: object;
       };
@@ -2131,131 +2141,6 @@ export interface TaskStatusNotification extends JSONRPCNotification {
 /* Multi Round-Trip Requests */
 
 /**
- * An elicitation input request that the server wants the client to fulfill
- * as part of a multi round-trip interaction.
- *
- * @example Elicitation input request
- * {@includeCode ./examples/InputRequest/elicitation-input-request.json}
- *
- * @category Multi Round-Trip
- */
-export interface ElicitationCreateRequest {
-  method: "elicitation/create";
-  params: ElicitRequestParams;
-}
-
-/**
- * A sampling input request that the server wants the client to fulfill
- * as part of a multi round-trip interaction.
- *
- * @example Sampling input request
- * {@includeCode ./examples/InputRequest/sampling-input-request.json}
- *
- * @category Multi Round-Trip
- */
-export interface SamplingCreateRequest {
-  method: "sampling/createMessage";
-  params: CreateMessageRequestParams;
-}
-
-/**
- * A request that the server wants the client to fulfill as part of a multi round-trip
- * interaction. The object contains the method name and params of the server-initiated
- * request (e.g., an elicitation or sampling request), but without the JSON-RPC `id` field.
- *
- * @category Multi Round-Trip
- */
-export type InputRequest = ElicitationCreateRequest | SamplingCreateRequest;
-
-/**
- * A map of server-initiated requests that the client must fulfill.
- * Keys are server-assigned identifiers; values are the request objects.
- *
- * @example Elicitation and sampling input requests
- * {@includeCode ./examples/InputRequests/elicitation-and-sampling-input-requests.json}
- *
- * @category Multi Round-Trip
- */
-export interface InputRequests {
-  [key: string]: InputRequest;
-}
-
-/**
- * The client's response to a single server-initiated input request.
- *
- * @example Elicitation input response
- * {@includeCode ./examples/InputResponse/elicitation-input-response.json}
- *
- * @example Sampling input response
- * {@includeCode ./examples/InputResponse/sampling-input-response.json}
- *
- * @category Multi Round-Trip
- */
-export type InputResponse = ElicitResult | CreateMessageResult;
-
-/**
- * A map of client responses to server-initiated requests.
- * Keys correspond to the keys in the {@link InputRequests} map;
- * values are the client's result for each request.
- *
- * @example Elicitation and sampling input responses
- * {@includeCode ./examples/InputResponses/elicitation-and-sampling-input-responses.json}
- *
- * @category Multi Round-Trip
- */
-export interface InputResponses {
-  [key: string]: InputResponse;
-}
-
-/**
- * An IncompleteResult sent by the server to indicate that additional input is needed
- * before the request can be completed. 
- *
- * At least one of `inputRequests` or `requestState` MUST be present.
- *
- * @example Incomplete result with input requests
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-input-requests.json}
- *
- * @example Incomplete result with elicitation and sampling input requests
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-elicitation-and-sampling.json}
- *
- * @example Incomplete result with request state only (load shedding)
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-request-state-only.json}
- *
- * @category Multi Round-Trip
- */
-export interface IncompleteResult extends Result {
-  /**
-   * Requests issued by the server that the client must fulfill before retrying
-   * the original request.
-   */
-  inputRequests?: InputRequests;
-  /**
-   * Opaque state to be passed back to the server when the client retries the
-   * original request. Clients MUST treat this as an opaque blob and MUST NOT
-   * inspect, parse, or modify it.
-   */
-  requestState?: string;
-}
-
-/**
- * Parameters for a `tasks/input_response` request.
- * Used to deliver client responses to server-initiated input requests
- * for a task in the persistent multi round-trip workflow.
- *
- * @example Task input response params
- * {@includeCode ./examples/TaskInputResponseRequestParams/task-input-response-params.json}
- *
- * @category `tasks/input_response`
- */
-export interface TaskInputResponseRequestParams extends TaskAugmentedRequestParams {
-  /**
-   * The client's responses to the server's input requests.
-   */
-  inputResponses: InputResponses;
-}
-
-/**
  * A request from the client to deliver input responses for a task
  * that is in `input_required` status.
  *
@@ -2465,7 +2350,6 @@ export interface CreateMessageRequest {
 
 /**
  * The result returned by the client for a {@link CreateMessageRequest | sampling/createMessage} request.
- * The result returned by the client for a {@link SamplingCreateRequest | sampling/createMessage} request.
  * The client should inform the user before returning the sampled message, to allow them
  * to inspect the response (human in the loop) and decide whether to allow the server to see it.
  *

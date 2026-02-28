@@ -217,7 +217,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/CallToolResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/CallToolResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -421,7 +428,7 @@
                                     "properties": {
                                         "create": {
                                             "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented {@link ElicitationCreateRequestelicitation/create} requests.",
+                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests.",
                                             "properties": {},
                                             "type": "object"
                                         }
@@ -433,7 +440,7 @@
                                     "properties": {
                                         "createMessage": {
                                             "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented {@link SamplingCreateRequestsampling/createMessage} requests.",
+                                            "description": "Whether the client supports task-augmented {@link CreateMessageRequestsampling/createMessage} requests.",
                                             "properties": {},
                                             "type": "object"
                                         }
@@ -510,13 +517,13 @@
                     "$ref": "#/$defs/GetTaskPayloadRequest"
                 },
                 {
+                    "$ref": "#/$defs/TaskInputResponseRequest"
+                },
+                {
                     "$ref": "#/$defs/CancelTaskRequest"
                 },
                 {
                     "$ref": "#/$defs/ListTasksRequest"
-                },
-                {
-                    "$ref": "#/$defs/TaskInputResponseRequest"
                 },
                 {
                     "$ref": "#/$defs/SetLevelRequest"
@@ -532,6 +539,9 @@
                     "$ref": "#/$defs/Result"
                 },
                 {
+                    "$ref": "#/$defs/ListRootsResult"
+                },
+                {
                     "$ref": "#/$defs/GetTaskResult",
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
                 },
@@ -544,9 +554,6 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksResult"
-                },
-                {
-                    "$ref": "#/$defs/ListRootsResult"
                 }
             ]
         },
@@ -713,6 +720,23 @@
                 }
             ]
         },
+        "CreateMessageRequest": {
+            "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
+            "properties": {
+                "method": {
+                    "const": "sampling/createMessage",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/CreateMessageRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
@@ -792,7 +816,7 @@
             "type": "object"
         },
         "CreateMessageResult": {
-            "description": "The result returned by the client for a {@link SamplingCreateRequestsampling/createMessage} request.\nThe client should inform the user before returning the sampled message, to allow them\nto inspect the response (human in the loop) and decide whether to allow the server to see it.",
+            "description": "The result returned by the client for a {@link CreateMessageRequestsampling/createMessage} request.\nThe client should inform the user before returning the sampled message, to allow them\nto inspect the response (human in the loop) and decide whether to allow the server to see it.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -880,6 +904,23 @@
         "Cursor": {
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
+        },
+        "ElicitRequest": {
+            "description": "A request from the server to elicit additional information from the user via the client.",
+            "properties": {
+                "method": {
+                    "const": "elicitation/create",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/ElicitRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
+            ],
+            "type": "object"
         },
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
@@ -1001,11 +1042,8 @@
             "type": "object"
         },
         "ElicitResult": {
-            "description": "The result returned by the client for an {@link ElicitationCreateRequestelicitation/create} request.",
+            "description": "The result returned by the client for an {@link ElicitationCreateRequest elicitation/create} request.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
                 "action": {
                     "description": "The user action in response to the elicitation.\n- `\"accept\"`: User submitted the form/confirmed the action\n- `\"decline\"`: User explicitly declined the action\n- `\"cancel\"`: User dismissed without making an explicit choice",
                     "enum": [
@@ -1068,23 +1106,6 @@
             },
             "required": [
                 "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
-        "ElicitationCreateRequest": {
-            "description": "An elicitation input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
-            "properties": {
-                "method": {
-                    "const": "elicitation/create",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/ElicitRequestParams"
-                }
-            },
-            "required": [
                 "method",
                 "params"
             ],
@@ -1254,7 +1275,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/GetPromptResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/GetPromptResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -1524,11 +1552,9 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "inputRequests": {
-                    "$ref": "#/$defs/InputRequests",
-                    "description": "Requests issued by the server that the client must fulfill before retrying\nthe original request."
+                    "$ref": "#/$defs/InputRequests"
                 },
                 "requestState": {
-                    "description": "Opaque state to be passed back to the server when the client retries the\noriginal request. Clients MUST treat this as an opaque blob and MUST NOT\ninspect, parse, or modify it.",
                     "type": "string"
                 }
             },
@@ -1665,13 +1691,15 @@
         "InputRequest": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitationCreateRequest"
+                    "$ref": "#/$defs/CreateMessageRequest"
                 },
                 {
-                    "$ref": "#/$defs/SamplingCreateRequest"
+                    "$ref": "#/$defs/ListRootsRequest"
+                },
+                {
+                    "$ref": "#/$defs/ElicitRequest"
                 }
-            ],
-            "description": "A request that the server wants the client to fulfill as part of a multi round-trip\ninteraction. The object contains the method name and params of the server-initiated\nrequest (e.g., an elicitation or sampling request), but without the JSON-RPC `id` field."
+            ]
         },
         "InputRequests": {
             "additionalProperties": {
@@ -1683,13 +1711,15 @@
         "InputResponse": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitResult"
+                    "$ref": "#/$defs/CreateMessageResult"
                 },
                 {
-                    "$ref": "#/$defs/CreateMessageResult"
+                    "$ref": "#/$defs/ListRootsResult"
+                },
+                {
+                    "$ref": "#/$defs/ElicitResult"
                 }
-            ],
-            "description": "The client's response to a single server-initiated input request."
+            ]
         },
         "InputResponses": {
             "additionalProperties": {
@@ -2000,7 +2030,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListPromptsResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListPromptsResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2068,7 +2105,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListResourceTemplatesResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListResourceTemplatesResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2136,7 +2180,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListResourcesResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListResourcesResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2149,13 +2200,6 @@
         "ListRootsRequest": {
             "description": "Sent from the server to request a list of root URIs from the client. Roots allow\nservers to ask for specific directories or files to operate on. A common example\nfor roots is providing a set of repositories or directories a server should operate\non.\n\nThis request is typically used when the server needs to understand the file system\nstructure or access specific locations that the client has permission to read from.",
             "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
                 "method": {
                     "const": "roots/list",
                     "type": "string"
@@ -2165,8 +2209,6 @@
                 }
             },
             "required": [
-                "id",
-                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -2174,9 +2216,6 @@
         "ListRootsResult": {
             "description": "The result returned by the client for a {@link ListRootsRequestroots/list} request.\nThis result contains an array of {@link Root} objects, each representing a root directory\nor file that the server can operate on.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
                 "roots": {
                     "items": {
                         "$ref": "#/$defs/Root"
@@ -2186,27 +2225,6 @@
             },
             "required": [
                 "roots"
-            ],
-            "type": "object"
-        },
-        "ListRootsResultResponse": {
-            "description": "A successful response from the client for a {@link ListRootsRequestroots/list} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ListRootsResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
             ],
             "type": "object"
         },
@@ -2336,7 +2354,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListToolsResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListToolsResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2957,7 +2982,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ReadResourceResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ReadResourceResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -3312,6 +3344,22 @@
             },
             "type": "object"
         },
+        "RetryAugmentedRequestParams": {
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "Role": {
             "description": "The sender or recipient of messages and data in a conversation.",
             "enum": [
@@ -3359,23 +3407,6 @@
             "required": [
                 "jsonrpc",
                 "method"
-            ],
-            "type": "object"
-        },
-        "SamplingCreateRequest": {
-            "description": "A sampling input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
-            "properties": {
-                "method": {
-                    "const": "sampling/createMessage",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/CreateMessageRequestParams"
-                }
-            },
-            "required": [
-                "method",
-                "params"
             ],
             "type": "object"
         },
@@ -3579,6 +3610,9 @@
         "ServerRequest": {
             "anyOf": [
                 {
+                    "$ref": "#/$defs/ListRootsRequest"
+                },
+                {
                     "$ref": "#/$defs/PingRequest"
                 },
                 {
@@ -3592,9 +3626,6 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksRequest"
-                },
-                {
-                    "$ref": "#/$defs/ListRootsRequest"
                 }
             ]
         },
