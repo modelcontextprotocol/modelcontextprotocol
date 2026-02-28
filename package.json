@@ -45,7 +45,7 @@
     "prep": "npm run check:schema:ts && npm run generate && npm run check:docs && npm run format"
   },
   "devDependencies": {
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^10.0.1",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
