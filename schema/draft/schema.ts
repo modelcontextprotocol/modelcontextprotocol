@@ -2207,7 +2207,7 @@ export type LoggingLevel =
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageRequestParams extends TaskAugmentedRequestParams {
+export interface CreateMessageRequestParams {
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -2853,7 +2853,7 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
+export interface ElicitRequestFormParams {
   /**
    * The elicitation mode.
    */
@@ -2886,7 +2886,7 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestURLParams extends TaskAugmentedRequestParams {
+export interface ElicitRequestURLParams {
   /**
    * The elicitation mode.
    */
