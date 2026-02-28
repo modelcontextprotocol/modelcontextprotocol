@@ -2,7 +2,7 @@
 
 - **Status**: Draft
 - **Type**: Standards Track
-- **Created**: 2026-20-03
+- **Created**: 2026-02-03
 - **Author(s)**: Mark D. Roth (@markdroth), Caitie McCaffrey (@CaitieM20),
   Gabriel Zimmerman (@gjz22)
 - **Sponsor**: Caitie McCaffrey (@CaitieM20)
@@ -126,7 +126,7 @@ There are two main approaches that can be used to solve this problem today:
 Also, both of these approaches rely on the use of an SSE stream, which
 causes problems in environments that cannot support long-lived
 connections.  They also require an instance of the tool to stay in memory
-in a particular server instance indefinitely.  This is particularly
+in a particular server instance indefinitely. This is particularly
 problematic for elicitation requests specifically, since the result may
 not come from the user for an unbounded amount of time (e.g., it could
 be days or months, or maybe even never).
