@@ -1,0 +1,8 @@
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tasks/result",
+  "params": {
+    "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
+  }
+}

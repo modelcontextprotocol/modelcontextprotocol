@@ -1,0 +1,20 @@
+{
+  "inputRequests": {
+    "github_login": {
+      "method": "elicitation/create",
+      "params": {
+        "message": "Please provide your GitHub username",
+        "requestedSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["name"]
+        }
+      }
+    }
+  },
+  "requestState": "eyJsb2NhdGlvbiI6Ik5ldyBZb3JrIn0"
+}
