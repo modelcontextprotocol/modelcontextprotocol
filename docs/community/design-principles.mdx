@@ -7,9 +7,9 @@ These principles guide how we evaluate protocol proposals, weigh tradeoffs, and 
 
 ## Convergence over choice
 
-MCP favors convergence over optionality. Rather than supporting multiple approaches that fragment the ecosystem, we choose one well-designed path — accepting harder decisions upfront to deliver a more cohesive protocol.
+There should be one way to solve a problem in MCP. Rather than supporting multiple approaches that fragment the ecosystem, we choose a single well-designed path — accepting harder decisions upfront to deliver a more cohesive protocol.
 
-We are careful in considering new features in the MCP specification and lean into experimentation with the help of [extensions](/extensions/overview).
+[Extensions](/extensions/overview) are where convergence gets tested; the specification is where it gets committed.
 
 ## Composability over specificity
 
@@ -17,11 +17,21 @@ MCP provides foundational primitives: resources, tools, prompts, and tasks. We d
 
 When someone asks why MCP doesn't support a feature directly, the answer is usually that it can be built from what MCP already provides. Extensions like [MCP Apps](/extensions/apps/overview) capture the patterns that emerge.
 
+## Interoperability over optimization
+
+MCP runs across clients, servers, and models of widely varying sophistication. We favor features that degrade gracefully over those that only work when every participant is equally capable. Capability negotiation makes this concrete: participants declare what they support, and the protocol adapts rather than assumes.
+
 ## Stability over velocity
 
 Adding to a protocol as widely adopted as MCP is easy. Removing from it is nearly impossible. Every addition is a permanent commitment and a cost for client implementers to support. We move deliberately, knowing that "no" today leaves the door open while "yes" closes it forever.
 
 Contributors accustomed to rapid shipping may find this pace frustrating, but sustainable standards require sustainable decision-making. We optimize for decades, not quarters.
+
+## Capability over compensation
+
+Models improve faster than protocols evolve. We avoid adding permanent structure to work around limitations that are likely temporary — the limitation fades, but the complexity remains.
+
+This is not license to ignore today's reality. Optional context that weaker models lean on and stronger ones ignore costs nothing. But when a proposal exists primarily because current models struggle without it, we ask whether they will outgrow the need before we can shed the weight.
 
 ## Demonstration over deliberation
 
