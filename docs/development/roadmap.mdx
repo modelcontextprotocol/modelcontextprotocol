@@ -3,11 +3,9 @@ title: Roadmap
 description: Our plans for evolving Model Context Protocol
 ---
 
-<Info>Last updated: **2025-10-31**</Info>
+<Info>Last updated: **2026-02-28**</Info>
 
-The Model Context Protocol is rapidly evolving. This page outlines our priorities for **the next release on November 25th, 2025**, with a release candidate available on November 11th, 2025. To see what's changing in the upcoming release, check out the **[specification changelog](/specification/draft/changelog/)**.
-
-For more context on our release timeline and governance process, read our [blog post on the next version update](https://blog.modelcontextprotocol.io/posts/2025-09-26-mcp-next-version-update/).
+This page describes our strategic priorities and what we expect **Working Groups** and **Interest Groups** to deliver against them.
 
 <Note>
 
@@ -15,50 +13,78 @@ The ideas presented here are not commitments—we may solve these challenges dif
 
 </Note>
 
-We value community participation! Each section links to relevant discussions where you can learn more and contribute your thoughts.
+## SEP Prioritization
 
-For a technical view of our standardization process, visit the [Standards Track](https://github.com/orgs/modelcontextprotocol/projects/2/views/2) on GitHub, which tracks how proposals progress toward inclusion in the official [MCP specification](https://modelcontextprotocol.io/specification/).
+**SEPs that fall within the priority areas below will receive expedited review and have the highest chance of acceptance.** SEPs outside these areas are not automatically rejected, but contributors should expect longer review timelines and a higher bar for justification—maintainer capacity is finite, and we direct it toward these priorities first.
 
-## Priority Areas for the Next Release
+If you are considering a SEP, check whether it aligns with one of the areas below, discuss it in the relevant [Working Group or Interest Group](/community/working-interest-groups), and bring that group's backing with you. SEPs with WG support and a clear connection to the roadmap move fastest. See the [SEP guidelines](/community/sep-guidelines) for the full process.
 
-### Asynchronous Operations
+## Priority Areas
 
-Currently, MCP is built around mostly synchronous operations. We're adding async support to allow servers to kick off long-running tasks while clients can check back later for results. This will enable operations that take minutes or hours without blocking.
+### 1. Transport Evolution and Scalability
 
-Follow the progress in [SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686).
+Streamable HTTP gave MCP a production-ready transport, but running it at scale has revealed gaps around horizontal scaling, stateless operation, and middleware patterns.
 
-### Statelessness and Scalability
+**What we want to achieve:**
 
-As organizations deploy MCP servers at enterprise scale, we're addressing challenges around horizontal scaling. While [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) provides some stateless support, we're smoothing out rough edges around server startup and session handling to make it easier to run MCP servers in production.
+- **Next-generation transport**: evolve Streamable HTTP to run statelessly across multiple server instances and behave correctly behind load balancers and proxies.
+- **Scalable session handling**: define how sessions are created, resumed, and migrated so that server restarts and scale-out events are transparent to connected clients.
+- **MCP Server Cards**: a standard for exposing structured server metadata via a `.well-known` URL, so browsers, crawlers, and registries can discover a server's capabilities without connecting to it.
 
-The current focus point for this effort is [SEP-1442](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442).
+**Working Group ownership:**
 
-### Server Identity
+- **Transports WG** owns the transport and session work: a series of SEPs covering the wire format, session model, and resumption protocol, plus conformance guidance for SDK authors.
+- **Server Identity WG** owns the Server Card format and its distribution, coordinating with the broader industry AI-catalog effort.
 
-We're enabling servers to advertise themselves through [`.well-known` URLs](https://en.wikipedia.org/wiki/Well-known_URI)—an established standard for providing metadata. This will allow clients to discover what a server can do without having to connect to it first, making discovery much more intuitive and enabling systems like our registry to automatically catalog capabilities. We are working closely across multiple projects in the industry to rely on a common standard on agent cards.
+We will **not** be introducing additional official transports this cycle. Keeping the set small protects ecosystem compatibility; the community should experiment via Custom Transports.
 
-### Official Extensions
+### 2. Agent Communication
 
-As MCP has grown, valuable patterns have emerged for specific industries and use cases. Rather than leaving everyone to reinvent the wheel, we're officially recognizing and documenting the most popular protocol extensions. This curated collection will give developers building for specialized domains like healthcare, finance, or education a solid starting point.
+The Tasks primitive ([SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686)) gave agents a reliable call-now / fetch-later pattern. Running it in production has surfaced gaps in the lifecycle semantics that the **Agents WG** should close:
 
-### SDK Support Standardization
+- **Retry semantics**: what happens when a task fails transiently, and who decides whether to retry.
+- **Cancellation guarantees**: what state a task is left in when a client cancels, and whether servers must honor cancellation.
+- **Expiry policies**: how long results are retained after completion, and how clients learn a result has expired.
+- **Error reporting**: richer failure information from long-running operations than the current binary success/failure.
 
-We're introducing a clear tiering system for SDKs based on factors like specification compliance speed, maintenance responsiveness, and feature completeness. This will help developers understand exactly what level of support they're getting before committing to a dependency.
+### 3. Governance Maturation
 
-### MCP Registry General Availability
+MCP has grown into a multi-company open standard under the Linux Foundation. [SEP-1302](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1302) formalized Working Groups and Interest Groups, and [SEP-2085](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2085) established succession and amendment procedures. The next step is giving the community a clear path to leadership so the project does not depend on a small set of individuals.
 
-The [MCP Registry](https://github.com/modelcontextprotocol/registry) launched in preview in September 2025 and is progressing toward general availability. We're stabilizing the v0.1 API through real-world integrations and community feedback, with plans to transition from preview to a production-ready service. This will provide developers with a reliable, community-driven platform for discovering and sharing MCP servers.
+The **Governance WG** should deliver:
+
+- **A Contributor Ladder SEP** defining the progression from community participant → WG contributor → WG facilitator → lead maintainer → core maintainer, with explicit nomination and review criteria at each step.
+- **A delegation model** allowing WGs with a proven track record to accept SEPs and publish extension updates within their domain without a full core-maintainer review cycle.
+- **A charter template** that every WG maintains publicly: scope, active deliverables, success criteria, and retirement conditions, reviewed quarterly.
+
+### 4. Triggers and Event-Driven Client Updates
+
+Clients currently learn about server-side state changes by polling or by holding an SSE connection open for notifications—and few servers implement the latter. As servers integrate with external event systems and run long-horizon tasks, they need a way to proactively notify clients that new data is available.
+
+We want a standardized mechanism for clients to register callback endpoints—webhooks or similar—that fire on server state changes. It must define ordering guarantees and work across all transports. We expect a dedicated **Triggers & Events WG** to form around this, coordinating with the Transports WG on delivery and the Agents WG on how triggers interact with Tasks.
+
+## On the Horizon
+
+These areas have real community interest—and in some cases sponsored SEPs—but did not make the top priorities this cycle. We will support a community-formed Working Group in any of them; we are just not standing one up ourselves.
+
+- **Result Type Improvements** — tool calls, resource reads, and task results all arrive complete and inline. Streamed results would let clients receive output incrementally for interactive scenarios (generated text, audio, video frames); reference-based results would let clients decide when to pull large payloads into context rather than polluting it by default. This is cross-cutting: streaming touches transport, references touch the schema.
+- **Security & Authorization** — finer-grained least-privilege scopes, clearer guidance on avoiding OAuth mix-up attacks, secure credential management on both client and server, and a community-driven vulnerability disclosure program routed through the Linux Foundation. Sponsored work is already underway: [SEP-1932 (DPoP)](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932) and [SEP-1933 (Workload Identity Federation)](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1933).
+- **Enterprise Readiness** — enterprises deploying MCP at scale are asking for audit trails, SSO-integrated auth (Cross-App Access), configuration portability across clients, and well-defined gateway/proxy patterns. We expect much of this to land as extensions rather than core specification changes.
+- **Extensions Ecosystem** — the `ext-auth` and `ext-apps` tracks are early proof that the extension mechanism works. Maturing them, investigating a Skills primitive for composed capabilities, and adding first-class extension support to the registry would all strengthen the path from experiment to standard.
 
 ## Validation
 
-To foster a robust developer ecosystem, we plan to invest in:
+A protocol specification is only as good as the implementations that follow it. Alongside the areas above, we continue to invest in:
 
-- **Reference Client Implementations**: demonstrating protocol features with high-quality AI applications
-- **Reference Server Implementation**: showcasing authentication patterns and remote deployment best practices
-- **Compliance Test Suites**: automated verification that clients, servers, and SDKs properly implement the specification
-
-These tools will help developers confidently implement MCP while ensuring consistent behavior across the ecosystem.
+- **Conformance Test Suites**: automated verification that clients, servers, and SDKs correctly implement the specification, with coverage expanding alongside each new feature area.
+- **SDK Tiers**: the tiering system introduced in [SEP-1730](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1730) gives developers a clear signal of which SDKs track the specification most closely.
+- **Reference Implementations**: canonical implementations of new features—including the new transport and trigger mechanisms—to anchor community development and unblock early adopters.
 
 ## Get Involved
 
-We welcome your contributions to MCP's future! Join our [GitHub Discussions](https://github.com/orgs/modelcontextprotocol/discussions) to share ideas, provide feedback, or participate in the development process.
+MCP's roadmap is built by its community:
+
+- **Join a Working Group or Interest Group**: see the [Working Groups & Interest Groups](/community/working-interest-groups) page and the [community communication channels](/community/communication) to connect with the groups active in each area above.
+- **Propose or comment on SEPs**: review the [SEP guidelines](/community/sep-guidelines) and open or weigh in on proposals.
+- **Start an experimental extension**: [SEP-2133](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2133) lets any WG or IG experiment in an `experimental-ext-` repository before a formal SEP is required.
+- **Contribute to the project**: read the [contributing guide](/community/contributing) for how to get involved with the specification, SDKs, and tooling.
