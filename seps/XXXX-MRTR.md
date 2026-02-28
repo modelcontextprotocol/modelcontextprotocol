@@ -125,7 +125,11 @@ There are two main approaches that can be used to solve this problem today:
 
 Also, both of these approaches rely on the use of an SSE stream, which
 causes problems in environments that cannot support long-lived
-connections.
+connections.  They also require an instance of the tool to stay in memory
+in a particular server instance indefinitely.  This is particularly
+problematic for elicitation requests specifically, since the result may
+not come from the user for an unbounded amount of time (e.g., it could
+be days or months, or maybe even never).
 
 The goal of this SEP is to propose a simpler way to handle the pattern
 of server-initiated requests within the context of a client-initiated
@@ -160,11 +164,17 @@ responses, the map values are the responses to those requests.  Here's
 how that would look in the typescript MCP schema:
 
 ```typescript
-export type InputRequest = ElicitationCreateRequest | SamplingCreateRequest;
+export type InputRequest = 
+  | CreateMessageRequest 
+  | ElicitRequest
+  | ListRootsRequest;
 
 export interface InputRequests { [key: string]: InputRequest; }
 
-export type InputResponse = ElicitResult | CreateMessageResult;
+export type InputResponse = 
+  | CreateMessageResponse
+  | | ElicitResult 
+  | ListRootsResult;
 
 export interface InputResponses { [key: string]: InputResponse; }
 ```
@@ -249,8 +259,12 @@ These types will be used in two different workflows, one for ephemeral
 tools and another for persistent tools.
 
 ### Ephemeral Tool Workflow
+For the ephemeral use case, in addition to input requests, we introduce
+the concept of request state.  In cases where the server needs more
+information, the request state is sent to the client which echoes back
+the state to the server, allowing the server to remain stateless.
 
-For ephemeral tools, we will adopt the following workflow:
+We will adopt the following workflow for ephemeral tools:
 
 1. Client sends tool call request.
 2. Server sends back a single response indicating that the request is
@@ -292,18 +306,14 @@ export interface IncompleteResult extends Result {
   requestState?: string;
 }
 
-// New fields added directly to RequestParams so that any client-initiated
-// request can carry input responses and request state when retrying after
-// an IncompleteResult.
-export interface RequestParams {
-  _meta?: RequestMetaObject;
-  // Responses to server-initiated input requests from a previous
-  // IncompleteResult. For each key in the response's inputRequests
+// New request parameter type that includes fields in a retried request.
+// These parameters may be included in any client-initiated request.
+export interface RetryAugmentedRequestParams extends RequestParams {
+  // New field to carry the responses for the server's requests from the
+  // IncompleteResult message. For each key in the response's inputRequests
   // field, the same key must appear here with the associated response.
   inputResponses?: InputResponses;
   // Request state passed back to the server from the client.
-  // The client must treat this as an opaque blob; it must not
-  // interpret it in any way.
   requestState?: string;
 }
 ```
@@ -675,14 +685,14 @@ The workflow here would look like this:
 
 1. **Server Behavior:**
    - Servers MAY respond to any client-initiated request with a
-     `JSONRPCIncompleteResultResponse`.  This message MAY be sent either
+     `IncompleteResult`.  This message MAY be sent either
      as a standalone response or as the final message on an SSE stream,
      although implementations are encouraged to prefer the former.
      If using an SSE stream, servers MUST NOT send any message on the
      stream after the incomplete response message.
-   - The `JSONRPCIncompleteResultResponse` message MAY include an
+   - The `Incomplete` message MAY include an
      `inputRequests` field.
-   - The `JSONRPCIncompleteResultResponse` message MAY include a
+   - The `Incomplete` message MAY include a
      `requestState` field.  If specified, this field is an opaque
      string that is meaningful only to the server.  Servers are free to
      encode the state in any format (e.g., plain JSON, base64-encoded
@@ -704,13 +714,13 @@ The workflow here would look like this:
      validate any client-supplied data.
 
 2. **Client Behavior:**
-   - If a client receives a `JSONRPCIncompleteResultResponse` message,
+   - If a client receives a `IncompleteResult` message,
      if the message contains the `inputRequests` field, then the client
      MUST construct the requested input before retrying the original
      request.  In contrast, if the message does *not* contain the
      `inputRequests` field, then the client MAY retry the original
      request immediately.
-   - If a client receives a `JSONRPCIncompleteResultResponse` message
+   - If a client receives a `IncompleteResult` message
      that contains the `requestState` field, it MUST echo back the
      exact value of that field when retrying the original request.
      Clients MUST NOT inspect, parse, modify, or make any assumptions
@@ -985,14 +995,18 @@ duration of the task, and there is no way to transition back to the
 ephemeral model.  All subsequent interactions must be performed via the
 Tasks API.
 
-## Error Handling Note
-In both the ephemeral & persistent workflows, the client may send back malformed or invalid responses to the server's requests for more information as part of the `inputResponses` object. 
+### Guidance for Error Handling
+This section provides implementation guidance for error handling in scenarios where the client provides unexpected or malformed data in the `inputResponses` object. 
 
-The server should validate the data provided by the client is a valid `inputResponses` object and that the information inside can be correctly parsed. Protocol errors, like malformed JSON, invalid schema, or internal server errors which prevent the processing of the request should return a `JSONRPCErrorResponse` with an appropriate error code and message.
+As with any received request, the server SHOULD validate the data provided by the client is a valid `inputResponses` object and that the information inside can be correctly parsed. Protocol errors, like malformed JSON, invalid schema, or internal server errors which prevent the processing of the request should return a `JSONRPCErrorResponse` with an appropriate error code and message.
 
-If the client provides a well-formed `inputResponses` object but the data provided is unexpected or missing required information, the server MUST treat these as optional parameters. The server should ignore any unexpected information and proceed with processing the request using the information that is present. If required information is missing, the server should not proceed with processing the request and instead should respond with a new incomplete response. 
+If additional parameters are provided in the `inputResponses` object The server SHOULD treat these as optional parameters. Therefore it SHOULD ignore any unexpected information in the `inputResponses` object that it does not recognize or need. 
 
-We discussed having a specific application level error code returned, however the client may not have enough information to recover in all scenarios. For example, if a Server upgrade happens and the new version requires additional information, the client has no knowledge of this and must request the necessary information again. Therefore, we decided to rely on the existing mechanics of epheremal workflows and the existing state machine of `Tasks` to ensure a client can always recover and request the necessary information again. 
+The client may also fail to send all the information requested in previous `inputRequests`. If the missing information requested is necessary for the server to process the request, then it SHOULD respond with a new `IncompleteResult`. 
+
+We discussed having a specific application level error code returned, however the client may not have enough information to recover in all scenarios. Therefore, we decided to rely on the existing mechanics of requesting more input via `IncompleteResult` to ensure a client can always recover by having the server request the necessary information again. 
+
+Malicious clients could intentionally send incorrect information in the `inputResponses` object, and generate load on the server by causing it to repeatedly request the same information. However, this is not a new concern introduced by this workflow, since malicious clients could already generate load by sending malformed requests. Server implementors can use standard techniques like rate limiting and throttling to protect themselves from such attacks.
 
 In the ephemeral workflow, this would look like the following:
 1. The client retries the original tool call, this time including the `inputResponses` object, but the response is missing required information that the server needs to process the request.
