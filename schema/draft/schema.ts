@@ -1994,9 +1994,9 @@ export interface GetTaskPayloadResult extends Result {
  *
  * @category `tasks/result`
  */
-export type GetTaskPayloadResultResponse =
-  | (JSONRPCResultResponse & { result: GetTaskPayloadResult })
-  | JSONRPCIncompleteResultResponse;
+export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
+  result: GetTaskPayloadResult | IncompleteResult;
+}
 
 /**
  * Parameters for a `tasks/input_response` request.
