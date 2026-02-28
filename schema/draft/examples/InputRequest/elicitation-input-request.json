@@ -1,6 +1,7 @@
 {
   "method": "elicitation/create",
   "params": {
+    "mode": "form",
     "message": "Please provide your GitHub username",
     "requestedSchema": {
       "type": "object",
