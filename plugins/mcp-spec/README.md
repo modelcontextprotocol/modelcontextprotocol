@@ -1,12 +1,18 @@
-# MCP Spec Plugin for Claude Code
+# MCP Spec Plugin for Claude
 
 Skills for researching and contributing to the Model Context Protocol specification.
 
 ## Installation
 
+### Claude Code
+
 ```bash
 /plugin marketplace add modelcontextprotocol/modelcontextprotocol
 ```
+
+### Claude Cowork
+
+Navigate to Customize >> Browse Plugins >> Personal >> Plus Button >> Add marketplace from GitHub and add `modelcontextprotocol/modelcontextprotocol`
 
 ## Available Skills
 

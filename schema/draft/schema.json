@@ -156,8 +156,16 @@
                     "description": "Arguments to use for the tool call.",
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "name": {
                     "description": "The name of the tool.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 },
                 "task": {
@@ -413,7 +421,7 @@
                                     "properties": {
                                         "create": {
                                             "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests.",
+                                            "description": "Whether the client supports task-augmented {@link ElicitationCreateRequestelicitation/create} requests.",
                                             "properties": {},
                                             "type": "object"
                                         }
@@ -425,7 +433,7 @@
                                     "properties": {
                                         "createMessage": {
                                             "additionalProperties": true,
-                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests.",
+                                            "description": "Whether the client supports task-augmented {@link SamplingCreateRequestsampling/createMessage} requests.",
                                             "properties": {},
                                             "type": "object"
                                         }
@@ -508,6 +516,9 @@
                     "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
+                    "$ref": "#/$defs/TaskInputResponseRequest"
+                },
+                {
                     "$ref": "#/$defs/SetLevelRequest"
                 },
                 {
@@ -535,13 +546,7 @@
                     "$ref": "#/$defs/ListTasksResult"
                 },
                 {
-                    "$ref": "#/$defs/CreateMessageResult"
-                },
-                {
                     "$ref": "#/$defs/ListRootsResult"
-                },
-                {
-                    "$ref": "#/$defs/ElicitResult"
                 }
             ]
         },
@@ -608,6 +613,10 @@
                     },
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "ref": {
                     "anyOf": [
                         {
@@ -617,6 +626,10 @@
                             "$ref": "#/$defs/ResourceTemplateReference"
                         }
                     ]
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -700,32 +713,6 @@
                 }
             ]
         },
-        "CreateMessageRequest": {
-            "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "sampling/createMessage",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/CreateMessageRequestParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
@@ -740,6 +727,10 @@
                         "thisServer"
                     ],
                     "type": "string"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
                 },
                 "maxTokens": {
                     "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
@@ -760,6 +751,10 @@
                 "modelPreferences": {
                     "$ref": "#/$defs/ModelPreferences",
                     "description": "The server's preferences for which model to select. The client MAY ignore these preferences."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "stopSequences": {
                     "items": {
@@ -797,7 +792,7 @@
             "type": "object"
         },
         "CreateMessageResult": {
-            "description": "The result returned by the client for a {@link CreateMessageRequestsampling/createMessage} request.\nThe client should inform the user before returning the sampled message, to allow them\nto inspect the response (human in the loop) and decide whether to allow the server to see it.",
+            "description": "The result returned by the client for a {@link SamplingCreateRequestsampling/createMessage} request.\nThe client should inform the user before returning the sampled message, to allow them\nto inspect the response (human in the loop) and decide whether to allow the server to see it.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -846,27 +841,6 @@
             ],
             "type": "object"
         },
-        "CreateMessageResultResponse": {
-            "description": "A successful response from the client for a {@link CreateMessageRequestsampling/createMessage} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/CreateMessageResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
         "CreateTaskResult": {
             "description": "The result returned for a task-augmented request.",
             "properties": {
@@ -907,37 +881,15 @@
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
         },
-        "ElicitRequest": {
-            "description": "A request from the server to elicit additional information from the user via the client.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "elicitation/create",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/ElicitRequestParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
                 },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
@@ -946,6 +898,10 @@
                 "mode": {
                     "const": "form",
                     "description": "The elicitation mode.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 },
                 "requestedSchema": {
@@ -991,10 +947,10 @@
         "ElicitRequestParams": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitRequestURLParams"
+                    "$ref": "#/$defs/ElicitRequestFormParams"
                 },
                 {
-                    "$ref": "#/$defs/ElicitRequestFormParams"
+                    "$ref": "#/$defs/ElicitRequestURLParams"
                 }
             ],
             "description": "The parameters for a request to elicit additional information from the user via the client."
@@ -1009,6 +965,10 @@
                     "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
                     "type": "string"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -1016,6 +976,10 @@
                 "mode": {
                     "const": "url",
                     "description": "The elicitation mode.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 },
                 "task": {
@@ -1037,7 +1001,7 @@
             "type": "object"
         },
         "ElicitResult": {
-            "description": "The result returned by the client for an {@link ElicitRequestelicitation/create} request.",
+            "description": "The result returned by the client for an {@link ElicitationCreateRequestelicitation/create} request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -1078,27 +1042,6 @@
             ],
             "type": "object"
         },
-        "ElicitResultResponse": {
-            "description": "A successful response from the client for a {@link ElicitRequestelicitation/create} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ElicitResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
         "ElicitationCompleteNotification": {
             "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.",
             "properties": {
@@ -1125,6 +1068,23 @@
             },
             "required": [
                 "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "ElicitationCreateRequest": {
+            "description": "An elicitation input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
+            "properties": {
+                "method": {
+                    "const": "elicitation/create",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/ElicitRequestParams"
+                }
+            },
+            "required": [
                 "method",
                 "params"
             ],
@@ -1243,8 +1203,16 @@
                     "description": "Arguments to use for templating the prompt.",
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "name": {
                     "description": "The name of the prompt or prompt template.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 }
             },
@@ -1297,7 +1265,7 @@
             "type": "object"
         },
         "GetTaskPayloadRequest": {
-            "description": "A request to retrieve the result of a completed task.",
+            "description": "A request to retrieve the result of a completed task, or to discover\nwhat input is needed for a task in `input_required` status.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -1333,7 +1301,7 @@
         },
         "GetTaskPayloadResult": {
             "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.",
+            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.\n\nWhen the task is in `input_required` status, the server MUST return an\n{@link IncompleteResult} containing `inputRequests` that the client must\nfulfill via a {@link TaskInputResponseRequesttasks/input_response} request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -1342,25 +1310,30 @@
             "type": "object"
         },
         "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/JSONRPCIncompleteResultResponse"
                 },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/JSONRPCResultResponse"
+                        },
+                        {
+                            "properties": {
+                                "result": {
+                                    "$ref": "#/$defs/GetTaskPayloadResult"
+                                }
+                            },
+                            "required": [
+                                "result"
+                            ],
+                            "type": "object"
+                        }
+                    ]
                 }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
             ],
-            "type": "object"
+            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.\nMay be either a complete result or an {@link IncompleteResult} indicating\nthat additional input is needed via {@link TaskInputResponseRequesttasks/input_response}."
         },
         "GetTaskRequest": {
             "description": "A request to retrieve the state of a task.",
@@ -1544,6 +1517,23 @@
             ],
             "type": "object"
         },
+        "IncompleteResult": {
+            "description": "An IncompleteResult sent by the server to indicate that additional input is needed\nbefore the request can be completed. \n\nAt least one of `inputRequests` or `requestState` MUST be present.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "inputRequests": {
+                    "$ref": "#/$defs/InputRequests",
+                    "description": "Requests issued by the server that the client must fulfill before retrying\nthe original request."
+                },
+                "requestState": {
+                    "description": "Opaque state to be passed back to the server when the client retries the\noriginal request. Clients MUST treat this as an opaque blob and MUST NOT\ninspect, parse, or modify it.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
@@ -1582,8 +1572,16 @@
                 "clientInfo": {
                     "$ref": "#/$defs/Implementation"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "protocolVersion": {
                     "description": "The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.",
+                    "type": "string"
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
                     "type": "string"
                 }
             },
@@ -1662,6 +1660,42 @@
                 "jsonrpc",
                 "method"
             ],
+            "type": "object"
+        },
+        "InputRequest": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/ElicitationCreateRequest"
+                },
+                {
+                    "$ref": "#/$defs/SamplingCreateRequest"
+                }
+            ],
+            "description": "A request that the server wants the client to fulfill as part of a multi round-trip\ninteraction. The object contains the method name and params of the server-initiated\nrequest (e.g., an elicitation or sampling request), but without the JSON-RPC `id` field."
+        },
+        "InputRequests": {
+            "additionalProperties": {
+                "$ref": "#/$defs/InputRequest"
+            },
+            "description": "A map of server-initiated requests that the client must fulfill.\nKeys are server-assigned identifiers; values are the request objects.",
+            "type": "object"
+        },
+        "InputResponse": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/ElicitResult"
+                },
+                {
+                    "$ref": "#/$defs/CreateMessageResult"
+                }
+            ],
+            "description": "The client's response to a single server-initiated input request."
+        },
+        "InputResponses": {
+            "additionalProperties": {
+                "$ref": "#/$defs/InputResponse"
+            },
+            "description": "A map of client responses to server-initiated requests.\nKeys correspond to the keys in the {@link InputRequests} map;\nvalues are the client's result for each request.",
             "type": "object"
         },
         "InternalError": {
@@ -1750,6 +1784,27 @@
             ],
             "type": "object"
         },
+        "JSONRPCIncompleteResultResponse": {
+            "description": "A response to a request that indicates the result is incomplete and\nadditional input is needed.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/IncompleteResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
+            "type": "object"
+        },
         "JSONRPCMessage": {
             "anyOf": [
                 {
@@ -1763,6 +1818,9 @@
                 },
                 {
                     "$ref": "#/$defs/JSONRPCErrorResponse"
+                },
+                {
+                    "$ref": "#/$defs/JSONRPCIncompleteResultResponse"
                 }
             ],
             "description": "Refers to any valid JSON-RPC object that can be decoded off the wire, or encoded to be sent."
@@ -1820,6 +1878,9 @@
                 },
                 {
                     "$ref": "#/$defs/JSONRPCErrorResponse"
+                },
+                {
+                    "$ref": "#/$defs/JSONRPCIncompleteResultResponse"
                 }
             ],
             "description": "A response to a request, containing either the result or error."
@@ -2508,6 +2569,14 @@
                 "cursor": {
                     "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
                     "type": "string"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -2833,6 +2902,14 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -2940,6 +3017,14 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -3094,6 +3179,14 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
@@ -3266,6 +3359,23 @@
             "required": [
                 "jsonrpc",
                 "method"
+            ],
+            "type": "object"
+        },
+        "SamplingCreateRequest": {
+            "description": "A sampling input request that the server wants the client to fulfill\nas part of a multi round-trip interaction.",
+            "properties": {
+                "method": {
+                    "const": "sampling/createMessage",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/CreateMessageRequestParams"
+                }
+            },
+            "required": [
+                "method",
+                "params"
             ],
             "type": "object"
         },
@@ -3484,13 +3594,7 @@
                     "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
-                    "$ref": "#/$defs/CreateMessageRequest"
-                },
-                {
                     "$ref": "#/$defs/ListRootsRequest"
-                },
-                {
-                    "$ref": "#/$defs/ElicitRequest"
                 }
             ]
         },
@@ -3498,6 +3602,9 @@
             "anyOf": [
                 {
                     "$ref": "#/$defs/Result"
+                },
+                {
+                    "$ref": "#/$defs/IncompleteResult"
                 },
                 {
                     "$ref": "#/$defs/InitializeResult"
@@ -3577,9 +3684,17 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
                 "level": {
                     "$ref": "#/$defs/LoggingLevel",
                     "description": "The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as {@link LoggingMessageNotificationnotifications/message}."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 }
             },
             "required": [
@@ -3686,6 +3801,14 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3765,11 +3888,90 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
+            "type": "object"
+        },
+        "TaskInputResponseRequest": {
+            "description": "A request from the client to deliver input responses for a task\nthat is in `input_required` status.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "tasks/input_response",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/TaskInputResponseRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "TaskInputResponseRequestParams": {
+            "description": "Parameters for a `tasks/input_response` request.\nUsed to deliver client responses to server-initiated input requests\nfor a task in the persistent multi round-trip workflow.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "The client's responses to the server's input requests."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
+                },
+                "task": {
+                    "$ref": "#/$defs/TaskMetadata",
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                }
+            },
+            "required": [
+                "inputResponses"
+            ],
+            "type": "object"
+        },
+        "TaskInputResponseResultResponse": {
+            "description": "A successful response for a {@link TaskInputResponseRequesttasks/input_response} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/Result"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
             "type": "object"
         },
         "TaskMetadata": {
@@ -4239,58 +4441,6 @@
             ],
             "type": "object"
         },
-        "URLElicitationRequiredError": {
-            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
-            "properties": {
-                "error": {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/Error"
-                        },
-                        {
-                            "properties": {
-                                "code": {
-                                    "const": -32042,
-                                    "type": "integer"
-                                },
-                                "data": {
-                                    "additionalProperties": {},
-                                    "properties": {
-                                        "elicitations": {
-                                            "items": {
-                                                "$ref": "#/$defs/ElicitRequestURLParams"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "elicitations"
-                                    ],
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "code",
-                                "data"
-                            ],
-                            "type": "object"
-                        }
-                    ]
-                },
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "error",
-                "jsonrpc"
-            ],
-            "type": "object"
-        },
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of {@link ResourceUpdatedNotificationresources/updated} notifications from the server. This should follow a previous {@link SubscribeRequestresources/subscribe} request.",
             "properties": {
@@ -4322,6 +4472,14 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "Responses to server-initiated input requests from a previous\n{@link IncompleteResult}. Present only when retrying a request\nafter receiving an incomplete result."
+                },
+                "requestState": {
+                    "description": "Opaque request state echoed back from a previous {@link IncompleteResult}.\nClients MUST return this value exactly as received. Present only when\nretrying a request after receiving an incomplete result that included\na `requestState` field.",
+                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
