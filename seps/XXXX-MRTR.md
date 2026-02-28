@@ -172,8 +172,8 @@ export type InputRequest =
 export interface InputRequests { [key: string]: InputRequest; }
 
 export type InputResponse = 
-  | CreateMessageResponse
-  | | ElicitResult 
+  | CreateMessageResult
+  | ElicitResult 
   | ListRootsResult;
 
 export interface InputResponses { [key: string]: InputResponse; }

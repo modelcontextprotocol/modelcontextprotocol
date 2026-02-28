@@ -1999,23 +1999,6 @@ export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * Parameters for a `tasks/input_response` request.
- * Used to deliver client responses to server-initiated input requests
- * for a task in the persistent multi round-trip workflow.
- *
- * @example Task input response params
- * {@includeCode ./examples/TaskInputResponseRequestParams/task-input-response-params.json}
- *
- * @category `tasks/input_response`
- */
-export interface TaskInputResponseRequestParams extends TaskAugmentedRequestParams {
-  /**
-   * The client's responses to the server's input requests.
-   */
-  inputResponses: InputResponses;
-}
-
-/**
  * A request from the client to deliver input responses for a task
  * that is in `input_required` status.
  *
@@ -2026,7 +2009,7 @@ export interface TaskInputResponseRequestParams extends TaskAugmentedRequestPara
  */
 export interface TaskInputResponseRequest extends JSONRPCRequest {
   method: "tasks/input_response";
-  params: TaskInputResponseRequestParams;
+  params: TaskAugmentedRequestParams;
 }
 
 /**
