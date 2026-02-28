@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "isError": false,
+    "content": [
+      {
+        "type": "text",
+        "text": "Echo: Hello World!"
+      }
+    ],
+    "_meta": {
+      "io.modelcontextprotocol/related-task": {
+        "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
+      }
+    }
+  }
+}
