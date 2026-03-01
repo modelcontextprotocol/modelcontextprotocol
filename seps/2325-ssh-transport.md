@@ -31,6 +31,10 @@ significant infrastructure requirements:
 - Dynamic Client Registration or Client ID Metadata Documents
 - PKCE flows with browser redirects
 
+Bearer tokens are a simpler alternative to full OAuth flows, but still require
+TLS to be secure — a bearer token transmitted in the clear is a credential
+leak. TLS brings back the certificate management overhead.
+
 For many remote MCP use cases — developer tools, internal services, homelab
 automation, CI/CD pipelines, server administration — this is a
 disproportionate amount of machinery. These environments typically already have
