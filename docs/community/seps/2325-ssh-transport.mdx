@@ -1,13 +1,30 @@
-# SEP-0000: SSH Transport
+---
+title: "SEP-2325: SSH Transport"
+sidebarTitle: "SEP-2325: SSH Transport"
+description: "SSH Transport"
+---
 
-- **Status**: Draft
-- **Type**: Informational
-- **Created**: 2026-02-28
-- **Author(s)**: Amy Tobey <tobert@gmail.com> (@tobert)
-- **Sponsor**: None
-- **PR**: TBD
-- **SDK Prototype**: https://github.com/tobert/go-sdk/tree/ssh-transport
-- **App Prototype**: https://github.com/tobert/otlp-mcp/tree/ssh-transport
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Informational
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2325                                                                            |
+| **Title**     | SSH Transport                                                                   |
+| **Status**    | Draft                                                                           |
+| **Type**      | Informational                                                                   |
+| **Created**   | 2026-02-28                                                                      |
+| **Author(s)** | Amy Tobey ([@tobert](https://github.com/tobert))                                |
+| **Sponsor**   | None                                                                            |
+| **PR**        | [#2325](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2325) |
+
+---
 
 ## Abstract
 
@@ -22,7 +39,7 @@ stdio's simplicity and the complexity of HTTPS with OAuth.
 
 Streamable HTTP with OAuth 2.1 is the right choice for multi-tenant web
 services, browser-based clients, and environments with existing identity
-providers. But it's the *only* option for remote MCP, and it carries
+providers. But it's the _only_ option for remote MCP, and it carries
 significant infrastructure requirements:
 
 - TLS certificates (issuance, renewal, trust management)
@@ -333,16 +350,16 @@ unexpected channel closure as session termination.
 }
 ```
 
-| Parameter        | Required | Default     | Description                                                   |
-| :--------------- | :------- | :---------- | :------------------------------------------------------------ |
-| `host`           | Yes      |             | Hostname or IP address                                        |
-| `port`           | No       | 2222        | SSH port                                                      |
-| `subsystem`      | No       | `mcp`       | SSH subsystem name (matches sshd_config `Subsystem` directive)|
-| `sshAgent`       | No       | `true`      | Use SSH agent for authentication                              |
-| `keyFingerprint` | No       |             | Key fingerprint (`SHA256:<base64>`) to select or verify key   |
-| `identityFile`   | No       | SSH default | Path to private key                                           |
+| Parameter        | Required | Default     | Description                                                    |
+| :--------------- | :------- | :---------- | :------------------------------------------------------------- |
+| `host`           | Yes      |             | Hostname or IP address                                         |
+| `port`           | No       | 2222        | SSH port                                                       |
+| `subsystem`      | No       | `mcp`       | SSH subsystem name (matches sshd_config `Subsystem` directive) |
+| `sshAgent`       | No       | `true`      | Use SSH agent for authentication                               |
+| `keyFingerprint` | No       |             | Key fingerprint (`SHA256:<base64>`) to select or verify key    |
+| `identityFile`   | No       | SSH default | Path to private key                                            |
 | `username`       | No       | `mcp`       | SSH username; rarely needed (identity is by key, not username) |
-| `hostKey`        | No       | Known hosts | Server host key fingerprint (`SHA256:<base64>`)               |
+| `hostKey`        | No       | Known hosts | Server host key fingerprint (`SHA256:<base64>`)                |
 
 ### Capability Advertisement
 
@@ -426,12 +443,12 @@ interpretation, no PATH lookup, no argument injection risk.
 
 ### Risks and Mitigations
 
-| Risk                                 | Mitigation                                        |
-| :----------------------------------- | :------------------------------------------------ |
-| Host key compromise                  | Rotate host key, notify clients out of band       |
-| Client key compromise                | Remove from authorized keys; use short-lived certs |
-| Resource exhaustion (DoS)            | Rate limit connections, max concurrent sessions   |
-| Embedded SSH implementation bugs     | Use well-audited libraries; fuzz test             |
+| Risk                             | Mitigation                                         |
+| :------------------------------- | :------------------------------------------------- |
+| Host key compromise              | Rotate host key, notify clients out of band        |
+| Client key compromise            | Remove from authorized keys; use short-lived certs |
+| Resource exhaustion (DoS)        | Rate limit connections, max concurrent sessions    |
+| Embedded SSH implementation bugs | Use well-audited libraries; fuzz test              |
 
 ### Embedded SSH Server Hardening
 

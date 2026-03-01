@@ -1,40 +1,22 @@
----
-title: "SEP-0000: SSH Transport"
-sidebarTitle: "SEP-0000: SSH Transport"
-description: "SSH Transport"
----
+# SEP-2325: SSH Transport
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Informational
-  </Badge>
-</div>
-
-| Field         | Value                                                                                           |
-| ------------- | ----------------------------------------------------------------------------------------------- |
-| **SEP**       | 0000                                                                                            |
-| **Title**     | SSH Transport                                                                                   |
-| **Status**    | Draft                                                                                           |
-| **Type**      | Informational                                                                                   |
-| **Created**   | 2026-02-28                                                                                      |
-| **Author(s)** | Amy Tobey <tobert[@gmail](https://github.com/gmail).com> ([@tobert](https://github.com/tobert)) |
-| **Sponsor**   | None                                                                                            |
-| **PR**        | [#0000](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000)                 |
-
----
+- **Status**: Draft
+- **Type**: Informational
+- **Created**: 2026-02-28
+- **Author(s)**: Amy Tobey (@tobert)
+- **Sponsor**: None
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2325
+- **SDK Prototype**: https://github.com/tobert/go-sdk/tree/ssh-transport
+- **App Prototype**: https://github.com/tobert/otlp-mcp/tree/ssh-transport
 
 ## Abstract
 
 This SEP documents SSH as a custom transport for MCP, as an alternative to
-Streamable HTTP with OAuth for remote connections. The MCP server embeds its
-own SSH server and manages key-based authentication directly — the same model
-that Git hosting services use for SSH access. Clients connect with their SSH
-key, the server maps the key to identity, and JSON-RPC messages flow over the
-SSH channel. No TLS certificates, no OAuth infrastructure, no dependency on
-system sshd.
+Streamable HTTP with OAuth for remote connections. MCP servers can support
+SSH in two ways: as a subsystem under system sshd (any stdio MCP server works
+immediately, no new dependencies) or by embedding their own SSH server for
+persistent, self-contained deployment. SSH transport fills the gap between
+stdio's simplicity and the complexity of HTTPS with OAuth.
 
 ## Motivation
 
@@ -54,9 +36,9 @@ automation, CI/CD pipelines, server administration — this is a
 disproportionate amount of machinery. These environments typically already have
 SSH keys configured and don't need multi-tenant authorization.
 
-Git solved this problem by offering SSH. You can `git clone https://...` with tokens,
-or `git clone git@...:...` with keys. Both work; different trade-offs. MCP could offer
-the same choice.
+Git solved this problem by offering SSH. You can `git clone https://...` with
+tokens, or `git clone git@...:...` with keys. Both work; different trade-offs.
+MCP could offer the same choice.
 
 The SSH transport makes remote MCP as simple as:
 
@@ -64,7 +46,8 @@ The SSH transport makes remote MCP as simple as:
 2. Add the public key to the server's authorized keys (ssh-copy-id)
 3. Connect
 
-No certificates to manage. No OAuth dance. No browser redirects. Just keys.
+Add in ssh-agent support and users get a low-friction way to build secure
+network MCPs.
 
 ### Why Not stdio Over SSH?
 
@@ -82,7 +65,8 @@ subprocess:
 }
 ```
 
-This works for simple cases, but has fundamental limitations:
+This works for short sessions on reliable networks but falls apart quickly in
+the real world:
 
 - **Process lifecycle coupling**: The server process dies when the SSH
   connection drops. Any server-side state — caches, loaded resources,
@@ -97,22 +81,72 @@ This works for simple cases, but has fundamental limitations:
   shell initialization output (MOTD, banners, `.bashrc`) can corrupt the
   JSON-RPC stream. SSH subsystems avoid this entirely.
 
-- **System sshd dependency**: Requires a running sshd, which may not be
-  available (containers, locked-down systems) or may be managed by a
-  different team.
-
-For ephemeral, stateless MCP servers, stdio-over-SSH is reasonable. For
-servers that benefit from persistence or multi-client access, the embedded
-SSH transport described here is a better fit.
+The sshd subsystem deployment model (see [Architecture](#architecture)) shares
+the per-connection process lifecycle but avoids shell contamination and is
+simpler to set up. It is a distinct approach from spawning `ssh` as a client
+subprocess.
 
 ## Specification
 
 ### Architecture
 
-The MCP server embeds an SSH server; the MCP client embeds an SSH client.
-JSON-RPC messages flow over the SSH channel using the same newline-delimited
-framing as the stdio transport. This builds on the SSH protocol as defined in
+SSH transport supports two deployment models. Both use the same wire protocol
+— newline-delimited JSON-RPC over an SSH channel, requested via the `mcp`
+subsystem — and are indistinguishable from the client's perspective. This
+builds on the SSH protocol as defined in
 [RFC 4251–4254](https://www.rfc-editor.org/rfc/rfc4251).
+
+#### sshd Subsystem
+
+The MCP server is a stdio program registered as a subsystem under system sshd.
+Any existing stdio MCP server works with no code changes:
+
+```
+# sshd_config
+Subsystem mcp /usr/local/bin/my-mcp-server
+```
+
+When a client requests the `mcp` subsystem, sshd spawns the server process
+with stdin/stdout connected to the SSH channel. sshd handles all SSH protocol,
+authentication, and encryption. This is the same model used by sftp-server.
+
+Multiple subsystems can be configured to expose different stdio MCP servers
+on a single sshd host — useful for containers, dev environments, or anywhere
+multiple servers share infrastructure:
+
+```
+# sshd_config
+Subsystem mcp       /usr/local/bin/default-mcp-server
+Subsystem mcp-files /usr/local/bin/files-mcp-server
+Subsystem mcp-db    /usr/local/bin/db-mcp-server
+```
+
+```mermaid
+flowchart LR
+    subgraph Client Application
+        MC[MCP Client]
+        SC[SSH Client Library]
+        MC --- SC
+    end
+
+    subgraph Server Host
+        SSHD[sshd]
+        MS[MCP Server — stdio]
+        SSHD ---|spawns, pipes stdio| MS
+    end
+
+    SC <-->|SSH Protocol| SSHD
+
+    UK[User's SSH Key] -.->|authenticates| SC
+    AK[authorized_keys] -.->|identifies| SSHD
+```
+
+#### Embedded SSH Server
+
+The MCP server embeds its own SSH server library, managing connections,
+authentication, and host keys directly. This enables persistent processes with
+shared state across clients and single-binary distribution — the model used by
+GitHub, GitLab, and Gitea for Git over SSH.
 
 ```mermaid
 flowchart LR
@@ -131,7 +165,7 @@ flowchart LR
     SC <-->|SSH Protocol| SS
 
     UK[User's SSH Key] -.->|authenticates| SC
-    AK[Authorized Keys] -.->|authorizes| SS
+    AK[Authorized Keys] -.->|identifies| SS
 ```
 
 ### Connection Establishment
@@ -169,12 +203,16 @@ sequenceDiagram
     Client->>Server: Close channel
 ```
 
-Servers **MUST** use the `mcp` subsystem name. Servers **MAY** additionally
-support named subsystems (e.g., `mcp-files`, `mcp-db`) to expose multiple MCP
-server configurations on a single host.
+Clients **MUST** request the `mcp` subsystem by default. This is the protocol
+identifier, analogous to `sftp`. When the client configuration specifies a
+different `subsystem` value (e.g., `mcp-db`), the client requests that name
+instead.
 
-Servers **MUST** reject the following SSH channel requests — this is the
-critical security boundary for an embedded SSH server:
+For the sshd subsystem model, sshd handles subsystem dispatch and channel
+security. The requirements below apply to embedded SSH server implementations:
+
+Embedded servers **MUST** reject the following SSH channel requests — this is
+the critical security boundary:
 
 - `shell` — interactive shell access
 - `exec` — arbitrary command execution
@@ -183,8 +221,8 @@ critical security boundary for an embedded SSH server:
 - `direct-tcpip` and `tcpip-forward` — port forwarding
 - `auth-agent-req@openssh.com` — agent forwarding
 
-Servers **MUST** accept only `subsystem` requests for configured MCP subsystem
-names. All other channel and global requests **SHOULD** be rejected.
+Embedded servers **MUST** accept only `subsystem` requests for the `mcp`
+subsystem name. All other channel and global requests **SHOULD** be rejected.
 
 ### Message Framing
 
@@ -212,12 +250,16 @@ key. The default username `mcp` is conventional.
 
 Clients verify the server's host key following standard SSH practices
 (trust-on-first-use for interactive clients, pre-provisioned host keys for
-automated environments). Clients should use the local SSH agent and respect
-`~/.ssh/config` when available.
+automated environments). Clients use the SSH agent by default (configurable
+via `sshAgent`). When multiple keys are loaded, `keyFingerprint` selects the
+correct key from the agent; it also serves as a verification check when
+loading a key from `identityFile`. Clients should respect `~/.ssh/config`
+when available.
 
-Servers **MUST** have a persistent host key pair (Ed25519 recommended). The
-host key should be stable across restarts. For load-balanced deployments,
-all instances must share the same host key.
+Embedded servers **MUST** have a persistent host key pair (Ed25519
+recommended). The host key should be stable across restarts. For
+load-balanced deployments, all instances must share the same host key. For
+the sshd model, sshd manages the host key.
 
 ### Authorization
 
@@ -281,22 +323,26 @@ unexpected channel closure as session termination.
     "analytics": {
       "transport": "ssh",
       "host": "analytics.internal",
-      "subsystem": "mcp-query",
-      "username": "readonly",
+      "port": 2223,
+      "subsystem": "mcp-db",
+      "sshAgent": true,
+      "keyFingerprint": "SHA256:abcdef123456...",
       "identityFile": "~/.ssh/analytics_ed25519"
     }
   }
 }
 ```
 
-| Parameter      | Required | Default     | Description                                        |
-| :------------- | :------- | :---------- | :------------------------------------------------- |
-| `host`         | Yes      |             | Hostname or IP address                             |
-| `port`         | No       | 2222        | SSH port                                           |
-| `subsystem`    | No       | `mcp`       | SSH subsystem name                                 |
-| `username`     | No       | `mcp`       | SSH username (conventional, not used for identity) |
-| `identityFile` | No       | SSH default | Path to private key                                |
-| `hostKey`      | No       | Known hosts | Server host key fingerprint (`SHA256:<base64>`)    |
+| Parameter        | Required | Default     | Description                                                    |
+| :--------------- | :------- | :---------- | :------------------------------------------------------------- |
+| `host`           | Yes      |             | Hostname or IP address                                         |
+| `port`           | No       | 2222        | SSH port                                                       |
+| `subsystem`      | No       | `mcp`       | SSH subsystem name (matches sshd_config `Subsystem` directive) |
+| `sshAgent`       | No       | `true`      | Use SSH agent for authentication                               |
+| `keyFingerprint` | No       |             | Key fingerprint (`SHA256:<base64>`) to select or verify key    |
+| `identityFile`   | No       | SSH default | Path to private key                                            |
+| `username`       | No       | `mcp`       | SSH username; rarely needed (identity is by key, not username) |
+| `hostKey`        | No       | Known hosts | Server host key fingerprint (`SHA256:<base64>`)                |
 
 ### Capability Advertisement
 
@@ -325,22 +371,28 @@ need MCP project approval; implementations should use a namespaced key
 
 ## Rationale
 
-### Embedded SSH Server, Not System sshd
+### Deployment Model Tradeoffs
 
-Depending on system sshd creates operational coupling — sshd configuration
-changes can break MCP, MCP security depends on sshd hardening, and deployment
-requires SSH access to configure sshd. An embedded SSH server makes the MCP
-server self-contained, like how HTTPS servers embed TLS rather than depending
-on a system TLS terminator.
+**sshd subsystem** is the fastest path to remote MCP. Any existing stdio MCP
+server works as an sshd subsystem with no code changes — just configure
+`sshd_config`. sshd handles SSH protocol, authentication, host keys, and
+hardening. This is ideal when sshd is already running and managed (developer
+machines, CI/CD hosts, enterprise environments with existing SSH
+infrastructure). It's also a natural fit for containers, where sshd can front
+multiple MCP server binaries without each needing its own SSH stack. The
+tradeoff is per-connection process lifecycle: each client connection spawns a
+server process that exits on disconnect, so there is no shared state across
+clients.
 
-This also enables single-binary distribution: download the server, generate a
-host key, add authorized keys, run it. No root access or system configuration
-needed.
+**Embedded SSH server** makes the MCP server self-contained — it manages its
+own connections, authentication, and host keys. This enables persistent
+processes with shared state, single-binary distribution (no root access or
+system configuration needed), and application-level control over identity and
+authorization. The tradeoff is additional complexity: the server needs an SSH
+library and must manage host keys and authorized keys.
 
-That said, implementations may also work with system sshd by registering
-as a subsystem in `sshd_config`. This is a valid deployment model, especially
-in enterprise environments with existing SSH infrastructure and hardening
-policies.
+The choice depends on the deployment context. Both models use the same wire
+protocol and are interchangeable from the client's perspective.
 
 ### Subsystem, Not Exec
 
@@ -387,7 +439,7 @@ Implementations should follow established SSH hardening practices. Key
 recommendations:
 
 - Disable password authentication (public key only)
-- Reject all channel requests except configured subsystems (see
+- Reject all channel requests except the `mcp` subsystem (see
   [Connection Establishment](#connection-establishment))
 - Enforce a pre-authentication timeout to prevent resource exhaustion
 - Use modern algorithms: Ed25519 keys, curve25519 key exchange, AEAD ciphers
@@ -413,9 +465,11 @@ For comprehensive guidance, see the
    supports the SSH transport? Should the MCP server registry include SSH
    connection details?
 
-4. **Multiple subsystems**: When a server exposes multiple subsystems
-   (`mcp-files`, `mcp-db`), should there be a discovery mechanism to list
-   available subsystems, or is this purely a configuration concern?
+4. **Subsystem naming**: The default subsystem is `mcp`. The sshd model
+   naturally supports additional subsystem names (e.g., `mcp-db`,
+   `mcp-files`) to expose multiple stdio MCP servers on one host. Should
+   there be a naming convention or registry, or is this purely an
+   operator concern?
 
 ## Reference Implementation
 
