@@ -277,6 +277,12 @@ encode identity in the certificate itself, signed by a trusted CA. This
 eliminates per-server key distribution — the same model used by Netflix,
 Facebook, and other large organizations for SSH access.
 
+SDKs should surface the authenticated identity (key fingerprint, certificate
+Key ID, or mapped username) to tool handlers through their standard request
+context, following the same pattern as HTTP transport's token information. The
+transport provides identity, not policy — authorization enforcement is the
+handler's responsibility.
+
 Restricting which tools, resources, or prompts a given key can access is
 valuable but is left to implementations. A future SEP may define
 transport-independent authorization primitives that apply across all MCP
