@@ -12,12 +12,11 @@
 ## Abstract
 
 This SEP documents SSH as a custom transport for MCP, as an alternative to
-Streamable HTTP with OAuth for remote connections. The MCP server embeds its
-own SSH server and manages key-based authentication directly — the same model
-that Git hosting services use for SSH access. Clients connect with their SSH
-key, the server maps the key to identity, and JSON-RPC messages flow over the
-SSH channel. No TLS certificates, no OAuth infrastructure, no dependency on
-system sshd.
+Streamable HTTP with OAuth for remote connections. SSH-enabled MCP servers
+will usually embed their own SSH server and manage key-based authentication
+directly. This is a the familiar model used by Git hosting services. SSH
+transport aims fill the gap between stdio's simplicity and the complexity
+of HTTPS and oauth and bearer tokens.
 
 ## Motivation
 
@@ -37,9 +36,9 @@ automation, CI/CD pipelines, server administration — this is a
 disproportionate amount of machinery. These environments typically already have
 SSH keys configured and don't need multi-tenant authorization.
 
-Git solved this problem by offering SSH. You can `git clone https://...` with tokens,
-or `git clone git@...:...` with keys. Both work; different trade-offs. MCP could offer
-the same choice.
+Git solved this problem by offering SSH. You can `git clone https://...` with
+tokens, or `git clone git@...:...` with keys. Both work; different trade-offs.
+MCP could offer the same choice.
 
 The SSH transport makes remote MCP as simple as:
 
@@ -47,7 +46,8 @@ The SSH transport makes remote MCP as simple as:
 2. Add the public key to the server's authorized keys (ssh-copy-id)
 3. Connect
 
-No certificates to manage. No OAuth dance. No browser redirects. Just keys.
+Add in ssh-agent support and users get a low-friction way to build secure
+network MCPs.
 
 ### Why Not stdio Over SSH?
 
@@ -65,7 +65,8 @@ subprocess:
 }
 ```
 
-This works for simple cases, but has fundamental limitations:
+This works for short sessions on reliable networks but falls apart quickly in
+the real world:
 
 - **Process lifecycle coupling**: The server process dies when the SSH
   connection drops. Any server-side state — caches, loaded resources,
@@ -80,22 +81,15 @@ This works for simple cases, but has fundamental limitations:
   shell initialization output (MOTD, banners, `.bashrc`) can corrupt the
   JSON-RPC stream. SSH subsystems avoid this entirely.
 
-- **System sshd dependency**: Requires a running sshd, which may not be
-  available (containers, locked-down systems) or may be managed by a
-  different team.
-
-For ephemeral, stateless MCP servers, stdio-over-SSH is reasonable. For
-servers that benefit from persistence or multi-client access, the embedded
-SSH transport described here is a better fit.
-
 ## Specification
 
 ### Architecture
 
-The MCP server embeds an SSH server; the MCP client embeds an SSH client.
-JSON-RPC messages flow over the SSH channel using the same newline-delimited
-framing as the stdio transport. This builds on the SSH protocol as defined in
-[RFC 4251–4254](https://www.rfc-editor.org/rfc/rfc4251).
+The MCP server embeds an SSH server; the MCP client embeds an SSH client. They
+communicate using a new ssh subsytem, `mcp`. `mcp` is the only subsystem
+required for operation. JSON-RPC messages flow over the SSH channel using the
+same newline-delimited framing as the stdio transport. This builds on the SSH
+protocol as defined in [RFC 4251–4254](https://www.rfc-editor.org/rfc/rfc4251).
 
 ```mermaid
 flowchart LR
