@@ -86,10 +86,10 @@ the real world:
 ### Architecture
 
 The MCP server embeds an SSH server; the MCP client embeds an SSH client. They
-communicate using a new ssh subsytem, `mcp`. `mcp` is the only subsystem
-required for operation. JSON-RPC messages flow over the SSH channel using the
-same newline-delimited framing as the stdio transport. This builds on the SSH
-protocol as defined in [RFC 4251–4254](https://www.rfc-editor.org/rfc/rfc4251).
+communicate using the `mcp` SSH subsystem. JSON-RPC messages flow over the SSH
+channel using the same newline-delimited framing as the stdio transport. This
+builds on the SSH protocol as defined in
+[RFC 4251–4254](https://www.rfc-editor.org/rfc/rfc4251).
 
 ```mermaid
 flowchart LR
@@ -146,9 +146,8 @@ sequenceDiagram
     Client->>Server: Close channel
 ```
 
-Servers **MUST** use the `mcp` subsystem name. Servers **MAY** additionally
-support named subsystems (e.g., `mcp-files`, `mcp-db`) to expose multiple MCP
-server configurations on a single host.
+Servers **MUST** use the `mcp` subsystem name. This is the protocol identifier,
+analogous to the `sftp` subsystem name for SFTP.
 
 Servers **MUST** reject the following SSH channel requests — this is the
 critical security boundary for an embedded SSH server:
@@ -160,8 +159,8 @@ critical security boundary for an embedded SSH server:
 - `direct-tcpip` and `tcpip-forward` — port forwarding
 - `auth-agent-req@openssh.com` — agent forwarding
 
-Servers **MUST** accept only `subsystem` requests for configured MCP subsystem
-names. All other channel and global requests **SHOULD** be rejected.
+Servers **MUST** accept only `subsystem` requests for the `mcp` subsystem
+name. All other channel and global requests **SHOULD** be rejected.
 
 ### Message Framing
 
@@ -189,8 +188,11 @@ key. The default username `mcp` is conventional.
 
 Clients verify the server's host key following standard SSH practices
 (trust-on-first-use for interactive clients, pre-provisioned host keys for
-automated environments). Clients should use the local SSH agent and respect
-`~/.ssh/config` when available.
+automated environments). Clients use the SSH agent by default (configurable
+via `sshAgent`). When multiple keys are loaded, `keyFingerprint` selects the
+correct key from the agent; it also serves as a verification check when
+loading a key from `identityFile`. Clients should respect `~/.ssh/config`
+when available.
 
 Servers **MUST** have a persistent host key pair (Ed25519 recommended). The
 host key should be stable across restarts. For load-balanced deployments,
@@ -258,22 +260,24 @@ unexpected channel closure as session termination.
     "analytics": {
       "transport": "ssh",
       "host": "analytics.internal",
-      "subsystem": "mcp-query",
-      "username": "readonly",
+      "port": 2223,
+      "sshAgent": true,
+      "keyFingerprint": "SHA256:abcdef123456...",
       "identityFile": "~/.ssh/analytics_ed25519"
     }
   }
 }
 ```
 
-| Parameter      | Required | Default     | Description                                        |
-| :------------- | :------- | :---------- | :------------------------------------------------- |
-| `host`         | Yes      |             | Hostname or IP address                             |
-| `port`         | No       | 2222        | SSH port                                           |
-| `subsystem`    | No       | `mcp`       | SSH subsystem name                                 |
-| `username`     | No       | `mcp`       | SSH username (conventional, not used for identity) |
-| `identityFile` | No       | SSH default | Path to private key                                |
-| `hostKey`      | No       | Known hosts | Server host key fingerprint (`SHA256:<base64>`)    |
+| Parameter        | Required | Default     | Description                                                   |
+| :--------------- | :------- | :---------- | :------------------------------------------------------------ |
+| `host`           | Yes      |             | Hostname or IP address                                        |
+| `port`           | No       | 2222        | SSH port                                                      |
+| `sshAgent`       | No       | `true`      | Use SSH agent for authentication                              |
+| `keyFingerprint` | No       |             | Key fingerprint (`SHA256:<base64>`) to select or verify key   |
+| `identityFile`   | No       | SSH default | Path to private key                                           |
+| `username`       | No       | `mcp`       | SSH username; rarely needed (identity is by key, not username) |
+| `hostKey`        | No       | Known hosts | Server host key fingerprint (`SHA256:<base64>`)               |
 
 ### Capability Advertisement
 
@@ -364,7 +368,7 @@ Implementations should follow established SSH hardening practices. Key
 recommendations:
 
 - Disable password authentication (public key only)
-- Reject all channel requests except configured subsystems (see
+- Reject all channel requests except the `mcp` subsystem (see
   [Connection Establishment](#connection-establishment))
 - Enforce a pre-authentication timeout to prevent resource exhaustion
 - Use modern algorithms: Ed25519 keys, curve25519 key exchange, AEAD ciphers
@@ -390,9 +394,11 @@ For comprehensive guidance, see the
    supports the SSH transport? Should the MCP server registry include SSH
    connection details?
 
-4. **Multiple subsystems**: When a server exposes multiple subsystems
-   (`mcp-files`, `mcp-db`), should there be a discovery mechanism to list
-   available subsystems, or is this purely a configuration concern?
+4. **Named subsystems**: This SEP defines only the `mcp` subsystem. Named
+   subsystems (e.g., `mcp-query`, `mcp-admin`) could allow a single SSH
+   server to expose multiple MCP instances, but the use cases are not yet
+   clear enough to specify. A future SEP could define this if demand
+   emerges — for now, separate ports are the simple answer.
 
 ## Reference Implementation
 
