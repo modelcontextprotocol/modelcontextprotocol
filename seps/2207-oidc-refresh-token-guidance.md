@@ -1,6 +1,6 @@
 # SEP-2207: OIDC-Flavored Refresh Token Guidance
 
-- **Status**: Draft
+- **Status**: In-Review
 - **Type**: Standards Track
 - **Created**: 2026-02-04
 - **Author(s)**: Wils Dawson (@wdawson)

@@ -420,7 +420,7 @@
                 ]
               },
               {
-                "group": "Draft",
+                "group": "In-review",
                 "pages": [
                   "community/seps/2207-oidc-refresh-token-guidance"
                 ]
