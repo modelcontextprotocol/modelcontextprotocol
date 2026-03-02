@@ -107,7 +107,7 @@ export class SEPProcessor {
       results.push(...maintainerResults);
       for (const result of maintainerResults) {
         if (result.success && result.action.targetUser) {
-          const activity = await this.analyzer.checkMaintainerActivity(
+          const activity = await this.analyzer.checkUserActivity(
             sep,
             result.action.targetUser,
           );
@@ -185,7 +185,7 @@ export class SEPProcessor {
         continue;
       }
 
-      const activity = await this.analyzer.checkMaintainerActivity(
+      const activity = await this.analyzer.checkUserActivity(
         sep,
         assignee,
       );
