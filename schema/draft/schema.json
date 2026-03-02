@@ -1855,8 +1855,7 @@
                         "boolean"
                     ]
                 }
-            ],
-            "description": "JSON types"
+            ]
         },
         "LegacyTitledEnumSchema": {
             "description": "Use {@link TitledSingleSelectEnumSchema} instead.\nThis interface will be removed in a future version.",
