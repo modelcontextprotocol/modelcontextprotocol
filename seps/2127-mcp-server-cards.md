@@ -411,6 +411,12 @@ Given this reality, a static primitive list in a server card can at best describ
 
 By excluding primitives, server cards remain a true subset of the information available through protocol initialization. Primitives are always discovered through the protocol's standard list operations (`tools/list`, `resources/list`, `prompts/list`), which reflect the actual surface for the connected user and session. This separation keeps server cards focused on what they do well — identity, transport, and capability discovery — without overreaching into territory where static advertisement is unreliable.
 
+### Why Not Wait for Primitives?
+
+The debate around primitives should not delay server card adoption. Discovery — knowing that a server exists, where to connect, what transports it supports, and what authentication it requires — is enormously valuable on its own. It is the information an end user or IDE needs to install and configure a server, and it is the information a registry needs to index one. None of this depends on knowing the server's tool list in advance.
+
+Server cards without primitives already enable the core use cases that motivate this SEP: autoconfiguration, domain-level discovery, reduced-latency metadata retrieval, and registry integration. Primitives can be added in a future revision once the ecosystem has the right mechanisms to advertise them safely. Shipping discovery now — and shipping it correctly — is more important than shipping a larger surface that risks being wrong.
+
 ## Backward Compatibility
 
 This SEP is fully backward compatible with existing MCP implementations:
