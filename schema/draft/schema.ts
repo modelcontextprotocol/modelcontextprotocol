@@ -1,5 +1,7 @@
+/* JSON types */
+
 /**
- * JSON types
+ * @category Common Types
  */
 export type JSONValue =
   | string
@@ -8,7 +10,15 @@ export type JSONValue =
   | null
   | JSONObject
   | JSONArray;
+
+/**
+ * @category Common Types
+ */
 export type JSONObject = { [key: string]: JSONValue };
+
+/**
+ * @category Common Types
+ */
 export type JSONArray = JSONValue[];
 
 /* JSON-RPC types */
