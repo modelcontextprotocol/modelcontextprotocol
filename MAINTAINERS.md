@@ -111,6 +111,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Cliff Hall](https://github.com/cliffhall)
 - [Konstantin Konstantinov](https://github.com/KKonstantinov)
 - [Ola Hungerford](https://github.com/olaservo)
+- [Bob Dickinson](https://github.com/BobDickinson)
 
 ### Registry
 
@@ -118,6 +119,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Tadas Antanavicius](https://github.com/tadasant)
 - [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
+- [Bob Dickinson](https://github.com/BobDickinson)
 
 ### MCPB (Model Context Protocol Bundle)
 
@@ -196,6 +198,10 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [Liad Yosef](https://github.com/liady)
 - [Ido Salomon](https://github.com/idosal)
+
+### Primitive Grouping Interest Group
+
+- [Tapan Chugh](https://github.com/chughtapan)
 
 ## About This Document
 

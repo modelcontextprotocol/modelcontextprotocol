@@ -4,6 +4,7 @@
 
 import type { Config } from '../config.js';
 import type { GitHubClient } from '../github/client.js';
+import type { GitHubComment, GitHubEvent } from '../github/types.js';
 import type { SEPItem, StaleAnalysis } from '../types.js';
 import { BOT_COMMENT_MARKER } from '../types.js';
 import { daysBetween } from '../utils/index.js';
@@ -22,10 +23,18 @@ export class SEPAnalyzer {
    */
   async analyze(item: SEPItem): Promise<StaleAnalysis> {
     const now = new Date();
-    const daysSinceActivity = daysBetween(item.updatedAt, now);
+
+    // Fetch comments and events once, share across checks
+    const comments = await this.github.getComments(item.number);
+    const events = await this.github.getEvents(item.number);
+
+    // Compute days since the responsible person was last active
+    // (not just any activity, which includes bot pings that reset updated_at)
+    const responsibleLastActive = this.findResponsiblePersonActivity(item, events, comments);
+    const daysSinceActivity = daysBetween(responsibleLastActive, now);
 
     // Check cooldown - don't ping if we pinged recently
-    const lastPingDate = await this.getLastBotPingDate(item.number);
+    const lastPingDate = this.findLastBotPingDate(comments);
     if (lastPingDate) {
       const daysSincePing = daysBetween(lastPingDate, now);
       if (daysSincePing < this.config.pingCooldownDays) {
@@ -151,20 +160,66 @@ export class SEPAnalyzer {
   }
 
   /**
-   * Check maintainer activity on a SEP
+   * Check a specific user's activity on a SEP
    */
-  async checkMaintainerActivity(item: SEPItem, maintainerUsername: string): Promise<{
+  async checkUserActivity(item: SEPItem, username: string): Promise<{
     daysSinceActivity: number;
     shouldPing: boolean;
   }> {
     const events = await this.github.getEvents(item.number);
     const comments = await this.github.getComments(item.number);
 
-    // Find last activity by this maintainer
+    const lastActivity = this.findLastUserActivity(username, events, comments);
+
+    const daysSinceActivity = daysBetween(lastActivity ?? item.createdAt, new Date());
+    const shouldPing = daysSinceActivity >= this.config.maintainerInactivityDays;
+
+    return { daysSinceActivity, shouldPing };
+  }
+
+  /**
+   * Find the last activity date of the person responsible for the SEP.
+   *
+   * For 'proposal' and 'accepted' states, this is the author.
+   * For 'draft' state, this is the first assignee (sponsor), falling back to author.
+   *
+   * Falls back to item.createdAt when no user-specific activity is found.
+   */
+  private findResponsiblePersonActivity(
+    item: SEPItem,
+    events: GitHubEvent[],
+    comments: GitHubComment[],
+  ): Date {
+    const username = this.getResponsibleUsername(item);
+    return this.findLastUserActivity(username, events, comments) ?? item.createdAt;
+  }
+
+  /**
+   * Determine who the responsible person is for staleness tracking.
+   *
+   * For accepted SEPs, this is always the author (awaiting reference implementation).
+   * For all other states, this is the first assignee (typically the sponsor),
+   * falling back to the author if there are no assignees.
+   */
+  private getResponsibleUsername(item: SEPItem): string {
+    if (item.state === 'accepted') {
+      return item.author;
+    }
+    return item.assignees[0] ?? item.author;
+  }
+
+  /**
+   * Find the most recent activity date for a specific user, excluding bot comments.
+   */
+  private findLastUserActivity(
+    username: string,
+    events: GitHubEvent[],
+    comments: GitHubComment[],
+  ): Date | null {
     let lastActivity: Date | null = null;
 
     for (const event of events) {
-      if (event.actor?.login === maintainerUsername) {
+      if (event.actor?.login === username) {
         const eventDate = new Date(event.created_at);
         if (!lastActivity || eventDate > lastActivity) {
           lastActivity = eventDate;
@@ -173,7 +228,10 @@ export class SEPAnalyzer {
     }
 
     for (const comment of comments) {
-      if (comment.user?.login === maintainerUsername) {
+      if (comment?.body.includes(BOT_COMMENT_MARKER)) {
+        continue;
+      }
+      if (comment.user?.login === username) {
         const commentDate = new Date(comment.created_at);
         if (!lastActivity || commentDate > lastActivity) {
           lastActivity = commentDate;
@@ -181,31 +239,19 @@ export class SEPAnalyzer {
       }
     }
 
-    // If no activity found, use assignment date or item update date
-    if (!lastActivity) {
-      lastActivity = item.updatedAt;
-    }
-
-    const daysSinceActivityValue = daysBetween(lastActivity, new Date());
-    const shouldPing = daysSinceActivityValue >= this.config.maintainerInactivityDays;
-
-    return { daysSinceActivity: daysSinceActivityValue, shouldPing };
+    return lastActivity;
   }
 
   /**
-   * Get the date of the last bot ping comment
+   * Find the date of the last bot ping comment from pre-fetched comments.
    */
-  private async getLastBotPingDate(issueNumber: number): Promise<Date | null> {
-    const comments = await this.github.getComments(issueNumber);
-
-    // Find most recent bot comment with our marker
+  private findLastBotPingDate(comments: GitHubComment[]): Date | null {
     for (let i = comments.length - 1; i >= 0; i--) {
       const comment = comments[i];
       if (comment?.body.includes(BOT_COMMENT_MARKER)) {
         return new Date(comment.created_at);
       }
     }
-
     return null;
   }
 }

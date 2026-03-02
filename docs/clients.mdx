@@ -5,7 +5,7 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "Tasks", "Apps"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "CIMD", "DCR", "Tasks", "Apps"];
 
 export const FEATURE_COLORS = {
   Resources: "blue",
@@ -18,6 +18,8 @@ export const FEATURE_COLORS = {
   Elicitation: "green",
   Tasks: "orange",
   Apps: "orange",
+  DCR: "yellow",
+  CIMD: "yellow",
 };
 
 export const FeatureBadge = ({ feature }) => {
@@ -279,18 +281,20 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
 
 This page showcases applications that support the Model Context Protocol (MCP). Each client may support different MCP features:
 
-| Feature                                 | Description                                               |
-| --------------------------------------- | --------------------------------------------------------- |
-| <FeatureBadge feature="Resources" />    | Server-exposed data and content                           |
-| <FeatureBadge feature="Prompts" />      | Pre-defined templates for LLM interactions                |
-| <FeatureBadge feature="Tools" />        | Executable functions that LLMs can invoke                 |
-| <FeatureBadge feature="Discovery" />    | Support for tools/prompts/resources changed notifications |
-| <FeatureBadge feature="Instructions" /> | Server-provided guidance for LLMs                         |
-| <FeatureBadge feature="Sampling" />     | Server-initiated LLM completions                          |
-| <FeatureBadge feature="Roots" />        | Filesystem boundary definitions                           |
-| <FeatureBadge feature="Elicitation" />  | User information requests                                 |
-| <FeatureBadge feature="Tasks" />        | Long-running operation tracking                           |
-| <FeatureBadge feature="Apps" />         | Interactive HTML interfaces                               |
+| Feature                                 | Description                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| <FeatureBadge feature="Resources" />    | Server-exposed data and content                                                                              |
+| <FeatureBadge feature="Prompts" />      | Pre-defined templates for LLM interactions                                                                   |
+| <FeatureBadge feature="Tools" />        | Executable functions that LLMs can invoke                                                                    |
+| <FeatureBadge feature="Discovery" />    | Support for tools/prompts/resources changed notifications                                                    |
+| <FeatureBadge feature="Instructions" /> | Server-provided guidance for LLMs                                                                            |
+| <FeatureBadge feature="Sampling" />     | Server-initiated LLM completions                                                                             |
+| <FeatureBadge feature="Roots" />        | Filesystem boundary definitions                                                                              |
+| <FeatureBadge feature="Elicitation" />  | User information requests                                                                                    |
+| <FeatureBadge feature="CIMD" />         | [Client ID Metadata Document](specification/latest/basic/authorization#client-id-metadata-documents) support |
+| <FeatureBadge feature="DCR" />          | [Dynamic Client Registration](specification/latest/basic/authorization#dynamic-client-registration) support  |
+| <FeatureBadge feature="Tasks" />        | Long-running operation tracking                                                                              |
+| <FeatureBadge feature="Apps" />         | Interactive HTML interfaces                                                                                  |
 
 <Note>
 
@@ -438,6 +442,24 @@ Amp is an agentic coding tool built by Sourcegraph. It runs in VS Code (and comp
 
 - Granular control over enabled tools and permissions
 - Support for MCP servers defined in VS Code `mcp.json`
+
+</McpClient>
+
+<McpClient
+  name="Apidog"
+  homepage="https://apidog.com"
+  supports="Resources, Prompts, Tools"
+  instructions="https://docs.apidog.com/mcp-client-1930835m0"
+>
+
+Apidog, an all-in-one API development and testing platform, features a built-in MCP Client designed for debugging and testing MCP Servers.
+
+**Key features:**
+
+- **Full Feature Support**: Debug Tools, Prompts, and Resources of MCP servers with a user-friendly GUI.
+- **Dual Transport Modes**: Supports both STDIO for local processes and HTTP for remote servers.
+- **Easy Setup**: Automatically parses MCP configuration files and supports direct command or URL input.
+- **Authentication**: Supports OAuth 2.0, API Key, Bearer Token, and other methods for secure connections.
 
 </McpClient>
 
@@ -613,16 +635,17 @@ ChatFrame is a cross-platform desktop chatbot that unifies access to multiple AI
 <McpClient
   name="ChatGPT"
   homepage="https://chatgpt.com"
-  supports="Tools"
+  supports="Tools, Apps, DCR"
   instructions="https://platform.openai.com/docs/guides/developer-mode"
 >
 
-ChatGPT is OpenAI's AI assistant that provides MCP support for remote servers to conduct deep research.
+ChatGPT is OpenAI's AI assistant that provides MCP support for remote servers to conduct deep research and to power MCP-based apps.
 
 **Key features:**
 
 - Support for MCP via connections UI in settings
 - Access to search tools from configured MCP servers for deep research
+- Support for MCP Apps, allowing ChatGPT to connect to MCP-based applications
 - Enterprise-grade security and compliance features
 
 </McpClient>
@@ -663,7 +686,7 @@ Chorus is a native Mac app for chatting with AIs. Chat with multiple models at o
 <McpClient
   name="Claude Code"
   homepage="https://claude.com/product/claude-code"
-  supports="Resources, Prompts, Tools, Roots, Instructions, Discovery"
+  supports="Resources, Prompts, Tools, Roots, Instructions, Discovery, DCR"
   instructions="https://code.claude.com/docs/en/mcp"
 >
 
@@ -679,7 +702,7 @@ Claude Code is an interactive agentic coding tool from Anthropic that helps you 
 <McpClient
   name="Claude Desktop App"
   homepage="https://claude.ai/download"
-  supports="Resources, Prompts, Tools, Apps"
+  supports="Resources, Prompts, Tools, Apps, DCR"
   instructions={[
     ["Local servers", "https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop"],
     ["Remote servers", "https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp"]
@@ -700,7 +723,7 @@ Claude Desktop provides comprehensive support for MCP, enabling deep integration
 <McpClient
   name="Claude.ai"
   homepage="https://claude.ai"
-  supports="Resources, Prompts, Tools"
+  supports="Resources, Prompts, Tools, CIMD, DCR"
 >
 
 Claude.ai is Anthropic's web-based AI assistant that provides MCP support for remote servers.
@@ -807,7 +830,7 @@ Copilot-MCP enables AI coding assistance via MCP.
 <McpClient
   name="Cursor"
   homepage="https://docs.cursor.com/context/mcp#protocol-support"
-  supports="Prompts, Tools, Roots, Elicitation"
+  supports="Prompts, Tools, Roots, Elicitation, DCR"
   instructions="https://docs.cursor.com/context/model-context-protocol"
 >
 
@@ -952,7 +975,7 @@ Think n8n + ChatGPT. FLUJO is a desktop application that integrates with MCP to 
 <McpClient
   name="Gemini CLI"
   homepage="https://github.com/google-gemini/gemini-cli"
-  supports="Prompts, Tools, Instructions"
+  supports="Prompts, Tools, Instructions, DCR"
   instructions="https://geminicli.com/docs/tools/mcp-server/"
 >
 
@@ -997,7 +1020,7 @@ Genkit is a cross-language SDK for building and integrating GenAI features into 
 <McpClient
   name="GitHub Copilot coding agent"
   homepage="https://docs.github.com/en/copilot/concepts/about-copilot-coding-agent"
-  supports="Tools"
+  supports="Tools, DCR"
 >
 
 Delegate tasks to GitHub Copilot coding agent and let it work in the background while you stay focused on the highest-impact and most interesting work
@@ -1080,6 +1103,24 @@ HyperAgent is Playwright supercharged with AI. With HyperAgent, you no longer ne
 - Stealth Mode – Avoid detection with built-in anti-bot patches
 - Cloud Ready – Instantly scale to hundreds of sessions via [Hyperbrowser](https://www.hyperbrowser.ai/)
 - MCP Client – Connect to tools like Composio for full workflows (e.g. writing web data to Google Sheets)
+
+</McpClient>
+
+<McpClient
+  name="Inspector"
+  homepage="https://tryinspector.com"
+  supports="Tools, Prompts, Resources, DCR"
+  instructions="https://tryinspector.com/docs"
+>
+
+Inspector is a visual editor for your codebase. It connects to Cursor, Claude Code, and Codex so you can edit your frontend visually. Move elements, change text, and ship real code without touching CSS.
+
+**Key features:**
+
+- Design Mode: Move elements, edit text, and zoom in to interact with your front-end like Figma.
+- Agent Connect: Plug in Cursor, Claude Code, or Codex.
+- Version Control: Stage changes and open PRs from Inspector.
+- MCP Client: Connect any MCP Server you want!
 
 </McpClient>
 
@@ -1220,7 +1261,7 @@ Langflow is an open-source visual builder that lets developers rapidly prototype
 <McpClient
   name="LibreChat"
   homepage="https://github.com/danny-avila/LibreChat"
-  supports="Tools, Instructions"
+  supports="Tools, Instructions, DCR"
   instructions="https://www.librechat.ai/docs/features/mcp"
 >
 
@@ -1433,7 +1474,7 @@ MCPHub is a powerful Neovim plugin that integrates MCP (Model Context Protocol) 
 <McpClient
   name="MCPJam"
   homepage="https://github.com/MCPJam/inspector"
-  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks, Apps"
+  supports="Resources, Prompts, Tools, Elicitation, Instructions, Tasks, Apps, CIMD, DCR"
   instructions="https://docs.mcpjam.com/getting-started"
 >
 
@@ -1493,7 +1534,7 @@ Memex is the first MCP client and MCP server builder - all-in-one desktop app. U
 <McpClient
   name="Memgraph Lab"
   homepage="https://memgraph.com/lab"
-  supports="Tools, Sampling, Elicitation, Instructions"
+  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions"
   instructions="https://memgraph.com/docs/memgraph-lab/features/graphchat#mcp-servers"
 >
 
@@ -1503,7 +1544,7 @@ Memex is the first MCP client and MCP server builder - all-in-one desktop app. U
 
 - Build GraphRAG workflows powered by knowledge graphs as the data backbone
 - Connect remote MCP servers via `SSE` or `Streamable HTTP`
-- Support for MCP tools, sampling, elicitation, and instructions
+- Support for MCP resources, prompts, tools, sampling, elicitation, and instructions
 - Create multiple agents with different configurations for easy comparison and debugging
 - Works with various LLM providers (OpenAI, Azure OpenAI, Anthropic, Gemini, Ollama, DeepSeek)
 - Available as a Desktop app or Docker container
@@ -1785,7 +1826,7 @@ RecurseChat is a powerful, fast, local-first chat client with MCP support. Recur
 <McpClient
   name="Replit"
   homepage="https://replit.com/products/agent"
-  supports="Tools"
+  supports="Tools, DCR"
 >
 
 Replit Agent is an AI-powered software development tool that builds and deploys applications through natural language. It supports MCP integration, enabling users to extend the agent's capabilities with custom tools and data sources.
@@ -2117,7 +2158,7 @@ v0 turns your ideas into fullstack apps, no code required. Describe what you wan
 <McpClient
   name="VS Code GitHub Copilot"
   homepage="https://code.visualstudio.com/"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps, CIMD, DCR"
   instructions="https://code.visualstudio.com/docs/copilot/customization/mcp-servers"
 >
 
