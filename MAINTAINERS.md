@@ -159,7 +159,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Darin McAdams](https://github.com/D-McAdams)
 - [Paul Carleton](https://github.com/pcarleton)
 
-### Client Implementor Interest Group
+### Client Implementor Working Group
 
 **Note:** These individuals serve as MCP protocol representatives for their respective clients. For client-specific issues, use the official support channels provided by each product.
 
