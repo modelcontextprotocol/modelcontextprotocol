@@ -1,0 +1,57 @@
+.spec-version-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.spec-version-warning-old {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.spec-version-warning-draft {
+  background-color: #dbeafe;
+  border: 1px solid #3b82f6;
+  color: #1e40af;
+}
+
+.dark .spec-version-warning-old {
+  background-color: #451a03;
+  border-color: #f59e0b;
+  color: #fef3c7;
+}
+
+.dark .spec-version-warning-draft {
+  background-color: #1e3a8a;
+  border-color: #3b82f6;
+  color: #dbeafe;
+}
+
+.spec-version-warning-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.spec-version-warning-content {
+  flex: 1;
+}
+
+.spec-version-warning-link {
+  font-weight: 600;
+  text-decoration: underline;
+  color: inherit;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.spec-version-warning-link:hover {
+  text-decoration-thickness: 3px;
+}
