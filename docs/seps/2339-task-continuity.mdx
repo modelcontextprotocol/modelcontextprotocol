@@ -1,0 +1,282 @@
+---
+title: "SEP-2339: Task Continuity"
+sidebarTitle: "SEP-2339: Task Continuity"
+description: "Task Continuity"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2339                                                                            |
+| **Title**     | Task Continuity                                                                 |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-03-02                                                                      |
+| **Author(s)** | Luca Chang ([@LucaButBoring](https://github.com/LucaButBoring))                 |
+| **Sponsor**   | None                                                                            |
+| **PR**        | [#2339](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2339) |
+
+---
+
+## Abstract
+
+To resolve existing ambiguity around the `input_required` and `tasks/result` flows for tasks, and to accommodate [SEP-2322 Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322), this SEP introduces a consolidated `tasks/continue` method that absorbs the responsibilities of the entire task-polling lifecycle into a single method and inlines the final result/error into `tasks/get`. This SEP then removes the associated requirements around `input_required` and removes `tasks/result` to simplify implementations.
+
+## Motivation
+
+**Tasks** were introduced in an experimental state in the `2025-11-25` specification release, serving as an alternate execution mode for certain request types (tool calls, elicitation, and sampling) to enable polling for the result of a task-augmented operation. This is done according to the following process, using tool calls as an example:
+
+1. The client issues a `tools/call` request to the server, declaring the `task` parameter to indicate that the server should create a task to represent that work.
+1. The server returns a `CreateTaskResult` with the task info for the client to look up the result later. This contains a suggested polling interval that the client should follow to avoid overwhelming the server.
+1. The client polls `tasks/get` repeatedly according to the suggested polling interval.
+1. If the task status is ever `input_required` during this phase, the client prematurely issues a `tasks/result` call to the server, which is expected to block until the task result is available:
+   1. The server sends some request message to the client concurrently with this premature request. In stdio, this is effectively meaningless, but in Streamable HTTP, this allows the server to open an SSE side channel to send that pending request on.
+   1. The client receives the request and sends a response, according to the standard conventions of the transport in use. This is completely disconnected from the (still-ongoing) `tasks/result` call.
+   1. Once the server receives the result it needs, it transitions the task back to the `working` status.
+1. Once the task status is `completed`, the client issues a `tasks/result` call to retrieve the final result.
+   1. If the client still has an active `tasks/result` call from a prior `input_required` status, it will receive the result as the result to that open request.
+
+This flow has several problems, most of which are related to the `input_required` status transition:
+
+1. Prematurely invoking `tasks/result` is unintuitive and it only done to accommodate the possibility of no other SSE streams being open in Streamable HTTP.
+1. The fact that `tasks/result` blocks until completion is [even less intuitive](https://github.com/modelcontextprotocol/java-sdk/pull/755#issuecomment-3806079033).
+1. Clients need to issue an additional request after encountering the `completed` status just to retrieve the final task result.
+1. When a task reaches the `completed` status after this point, the server needs to identify all open `tasks/result` requests for that task to appropriately close them with the final task result, introducing unnecessary architectural complexity by mandating some sort of internal push-based messaging, which defies the intent of tasks' polling-based design.
+
+## Specification
+
+The following changes will be made to the tasks specification:
+
+1. We will introduce a consolidated `tasks/continue` method to handle the standard polling lifecycle. This single method will handle retrieving task statuses and results simultaneously, and will additionally act as the eventual carrier for receiver-to-requestor requests for the purposes of [SEP-2322 Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
+1. We will remove the requirement that requestors react to the `input_required` status by prematurely invoking `tasks/result` to side-channel requests on an SSE stream in the Streamable HTTP transport.
+1. We will inline the final task result or error into the `Task` shape, bringing that into `tasks/get` and all notifications by extension.
+1. We will remove `tasks/result`.
+
+### Getting Tasks
+
+We will inline the final result or error into the `Task` shape:
+
+```ts
+export interface Task {
+  // Existing fields...
+  /**
+   * This is the result shape of the original request, e.g. CallToolResult.
+   * This field is only defined when the task status is "completed".
+   */
+  result?: Result;
+  /**
+   * This is the error associated with the original request.
+   * This field is only defined when the task status is "failed". If a task
+   * is "cancelled", its statusMessage field will communicate that information.
+   */
+  error?: Error;
+}
+```
+
+This makes these fields present in the result of `tasks/get` and in all task status notifications.
+
+### Task Continuation
+
+Task continuation represents an evolution to how the task-polling lifecycle is advanced, reducing the flow to just two method calls:
+
+1. The initial task-augmented request (e.g. `tools/call` with the `task` parameter declared).
+1. The new `tasks/continue` request, which is polled continuously until the final task result is available.
+
+Task continuation involves its own request and response types, which are identical to those of `tasks/get`:
+
+**Request Schema**
+
+```ts
+/**
+ * A request to continue a task.
+ *
+ * @category `tasks/continue`
+ */
+export interface ContinueTaskRequest extends JSONRPCRequest {
+  method: "tasks/continue";
+  params: {
+    /**
+     * The task identifier to query.
+     */
+    taskId: string;
+  };
+}
+```
+
+**Response Schema**
+
+```ts
+/**
+ * The response to a tasks/continue request.
+ *
+ * @category `tasks/continue`
+ */
+export interface ContinueTaskResult extends Result, Task {}
+```
+
+**Message Flow**
+
+The basic task lifecycle sequence diagram will be updated as follows:
+
+```diff
+sequenceDiagram
+    participant C as Client (Requestor)
+    participant S as Server (Receiver)
+    Note over C,S: 1. Task Creation
+    C->>S: Request with task field (ttl)
+    activate S
+    S->>C: CreateTaskResult (taskId, status: working, ttl, pollInterval)
+    deactivate S
+    Note over C,S: 2. Task Polling
+-    C->>S: tasks/get (taskId)
++    C->>S: tasks/continue (taskId)
+    activate S
+    S->>C: working
+    deactivate S
+    Note over S: Task processing continues...
+-    C->>S: tasks/get (taskId)
++    C->>S: tasks/continue (taskId)
+    activate S
+    S->>C: working
+    deactivate S
+    Note over S: Task completes
+-    C->>S: tasks/get (taskId)
++    C->>S: tasks/continue (taskId)
+    activate S
+    S->>C: completed
+    deactivate S
+    Note over C,S: 3. Result Retrieval
+-    C->>S: tasks/result (taskId)
++    C->>S: tasks/continue (taskId)
+    activate S
+    S->>C: Result content
+    deactivate S
+    Note over C,S: 4. Cleanup
+    Note over S: After ttl period from creation, task is cleaned up
+```
+
+### Input Required Status
+
+The requirement that requestors invoke `tasks/result` prematurely after encountering `input_required` will be removed:
+
+```diff
+1. When the task receiver has messages for the requestor that are necessary to complete the task, the receiver **SHOULD** move the task to the `input_required` status.
+1. The receiver **MUST** include the `io.modelcontextprotocol/related-task` metadata in the request to associate it with the task.
+- 1. When the requestor encounters the `input_required` status, it **SHOULD** preemptively call `tasks/result`.
+1. When the receiver receives all required input, the task **SHOULD** transition out of `input_required` status (typically back to `working`).
+```
+
+### Result Retrieval
+
+The `tasks/result` operation will be removed in favor of using the inlined values in the result of `tasks/get`.
+
+## Rationale
+
+### Interactions with SEP-2322
+
+Looking forward, there are additional problems the existing flow has when considered in conjunction with [SEP-2322 Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) (MRTR):
+
+1. The SSE side-channeling approach will become inconsistent with MRTR's request-rejection approach. It would be strange for server-to-client message delivery to fundamentally differ between tasks and non-tasks.
+1. If we maintain the existing flow for tasks, we need to determine which request MRTR's `InputRequests` object is rejected with:
+   1. Rejecting the initial task-augmented request leaves the client without knowledge of the task ID to continue polling.
+   1. Rejecting `tasks/get` conflicts with use cases in which we just want to retrieve the task status without answering server-to-client requests.
+   1. Rejecting `tasks/result` makes the most sense and is most similar to the existing flow, but that would be a breaking change that removes the blocking requirement, which deserves its own SEP to evaluate (this is that SEP). Furthermore, it maintains the semantic strangeness of `tasks/result` being invoked to receive server-to-client requests, rather than to actually retrieve the final result.
+
+The suggested flow for MRTR will be to reject `tasks/continue` instead of any of the existing methods; that is, calling `tasks/continue` while the `input_required` status is in effect will return something like this:
+
+```json
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "inputRequests": {
+      "echo_input": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please provide the input string to echo back",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "input": { "type": "string" }
+            },
+            "required": ["input"]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+In response, the client will _continue_ the task by providing appropriate response values in a follow-up request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tasks/continue",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "inputResponses": {
+      "echo_input": {
+        "action": "accept",
+        "content": {
+          "input": "Hello World!"
+        }
+      }
+    }
+  }
+}
+```
+
+And finally, the server will accept that client request with a standard task status response, as would be expected under MRTR:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 60000,
+    "pollInterval": 5000
+  }
+}
+```
+
+### Keeping `tasks/get`
+
+If we're introducing a new method that encapsulates the entire task-polling lifecycle, **why should we keep `tasks/get`**?
+
+While `tasks/continue` owns the full task-polling lifecycle, `tasks/get` still owns single-task state lookups. This is particularly relevant under MRTR (SEP-2322), as this method becomes the only way to fetch the state of a task _without first being expected to handle input requests_.
+
+The alternative would be forcing clients that just want the task status (for e.g. UI displays) to handle the pending requests, first.
+
+### Removing `tasks/result`
+
+Removing methods is not done lightly, but was the logical conclusion of this change after inlining the result/error into `tasks/get`. As an alternative, we could have left `tasks/get` unchanged and left `tasks/result` in solely as a method for late result retrieval. This would have incentivized using `tasks/continue` as a general method of retrieving the task state and result simultaneously, rendering `tasks/result` obsolete regardless.
+
+Furthermore, the greatest flaw of `tasks/result` today is its blocking requirement, and leaving that in place would leave the general implementation headache of dealing with that unsolved. If we chose to instead remove the blocking requirement in favor of an "incomplete" error, we could get away with leaving `tasks/result` in place in a deprecated state, but then we would be making a breaking change to it anyways already.
+
+## Backward Compatibility
+
+This change is not backwards-compatible with the existing implementation of tasks, particularly due to removing `tasks/result`.
+
+## Security Implications
+
+No new security implications.
+
+## Reference Implementation
+
+To be provided.
