@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-03-03
-- **Author(s)**: Varun Sharma <29.varuns@gmail.com> (@varun29ankuS)
+- **Author(s)**: Varun Sharma (29.varuns@gmail.com) (@varun29ankuS)
 - **Sponsor**: None
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2342
 
