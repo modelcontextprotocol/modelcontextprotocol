@@ -487,6 +487,8 @@ For comprehensive guidance, see the
   [tobert/go-sdk@ssh-transport](https://github.com/tobert/go-sdk/tree/ssh-transport)
 - **Example server**: MCP-over-SSH server at
   [tobert/otlp-mcp@ssh-transport](https://github.com/tobert/otlp-mcp/tree/ssh-transport)
+- **stdio shim**: SSH-to-stdio bridge for clients without native SSH transport at
+  [tobert/ssh-mcp-shim](https://github.com/tobert/ssh-mcp-shim)
 
 Additional implementations in Rust and Python are planned to demonstrate
 cross-language interoperability.
