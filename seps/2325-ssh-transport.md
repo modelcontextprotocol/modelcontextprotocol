@@ -11,12 +11,14 @@
 
 ## Abstract
 
-This SEP documents SSH as a custom transport for MCP, as an alternative to
-Streamable HTTP with OAuth for remote connections. MCP servers can support
-SSH in two ways: as a subsystem under system sshd (any stdio MCP server works
-immediately, no new dependencies) or by embedding their own SSH server for
-persistent, self-contained deployment. SSH transport fills the gap between
-stdio's simplicity and the complexity of HTTPS with OAuth.
+This SEP defines SSH as a
+[custom transport extension](https://modelcontextprotocol.io/specification/draft/basic/transports#custom-transports)
+for MCP, as an alternative to Streamable HTTP with OAuth for remote
+connections. MCP servers can support SSH in two ways: as a subsystem under
+system sshd (any stdio MCP server works immediately, no new dependencies) or
+by embedding their own SSH server for persistent, self-contained deployment.
+SSH transport fills the gap between stdio's simplicity and the complexity of
+HTTPS with OAuth.
 
 ## Motivation
 
