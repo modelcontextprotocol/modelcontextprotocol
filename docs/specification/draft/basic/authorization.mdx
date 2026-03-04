@@ -172,12 +172,24 @@ When authorization servers support OpenID Connect (OIDC) and Dynamic Client Regi
 based on the `application_type` parameter as defined in
 [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
 
-MCP clients **SHOULD** specify an appropriate `application_type` during Dynamic Client Registration:
+MCP clients **SHOULD** specify an appropriate `application_type`
+during Dynamic Client Registration:
 
-- **Native applications** (desktop applications, mobile apps, CLI tools) **SHOULD** use `application_type: "native"`
-- **Web applications** (remote browser-based applications) **SHOULD** use `application_type: "web"`
+- **Native applications** (desktop applications, mobile apps,
+  CLI tools, and locally-hosted web applications accessed via
+  `localhost`) **SHOULD** use `application_type: "native"`
+- **Web applications** (remote browser-based applications
+  served from a non-local host) **SHOULD** use
+  `application_type: "web"`
 
-MCP clients **SHOULD** be prepared to handle registration failures due to redirect URI constraints when authorization servers implement OIDC.
+MCP clients **SHOULD** be prepared to handle registration
+failures due to redirect URI constraints when authorization
+servers implement OIDC. When a registration request is rejected,
+clients **SHOULD** surface a meaningful error to the user or
+developer. Clients **MAY** retry registration with an adjusted
+`application_type` or with redirect URIs that conform to the
+authorization server's requirements for the given application
+type.
 
 ### Authorization Flow Steps
 
