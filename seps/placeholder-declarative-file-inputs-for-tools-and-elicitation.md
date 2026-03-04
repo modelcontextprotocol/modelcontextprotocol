@@ -29,34 +29,21 @@ This SEP closes that gap with a small, declarative annotation. It is deliberatel
 
 ### Client Capability
 
-Clients that support rendering file pickers for annotated arguments declare this per surface, nested under the capability of the feature it augments:
+Clients that support rendering file pickers for annotated arguments **MUST** declare the `fileInputs` capability during initialization:
 
 ```json
 {
   "capabilities": {
-    "elicitation": {
-      "form": {
-        "fileInputs": {}
-      }
-    },
     "fileInputs": {}
   }
 }
 ```
 
-| Key                                        | Governs                                   |
-| ------------------------------------------ | ----------------------------------------- |
-| `capabilities.elicitation.form.fileInputs` | `requestedFiles` on form-mode elicitation |
-| `capabilities.fileInputs`                  | `inputFiles` on tools                     |
+The capability object is currently empty but is defined as an object to allow future extension (for example, a client-side global size ceiling).
 
-Both capability objects are currently empty but are defined as objects to allow future extension (for example, a client-side global size ceiling).
+This single capability governs both surfaces. If the client does not declare `fileInputs`, the server **MUST NOT** include `inputFiles` on any `Tool` it lists, and **MUST NOT** include `requestedFiles` on any form-mode elicitation request. This prevents advertising an affordance the client cannot honor.
 
-A client **MAY** declare one without the other. A client that supports elicitation forms but has no tool-calling UI might declare only `elicitation.form.fileInputs`; a client that autonomously calls tools but never surfaces elicitation prompts might declare only the top-level `fileInputs`.
-
-For each surface, if the client does not declare the corresponding capability the server **MUST NOT** emit the associated annotation (`inputFiles` / `requestedFiles`). This prevents advertising an affordance the client cannot honor.
-
-> [!NOTE]
-> `elicitation.form.fileInputs` nests under the existing `elicitation` client capability. The tool-side flag sits at the top level because `ClientCapabilities` has no pre-existing `tools` key to nest under — `tools` is a server capability. See [Open Questions](#open-questions) for an alternative placement.
+A client that declares `fileInputs` but does not declare `elicitation` will simply never receive an elicitation request — so the elicitation surface is already gated by the `elicitation` capability itself, and no separate per-surface flag is needed.
 
 ### Tool File Inputs
 
@@ -261,14 +248,12 @@ For tool calls specifically, servers **MAY** alternatively report these as tool-
 
 ### Capability Interaction Summary
 
-| Client declares capability for surface? | Server behavior                                                  | Client behavior                                                                               |
-| --------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Yes                                     | **MAY** include `inputFiles` / `requestedFiles` on that surface. | **SHOULD** render a file picker for named arguments; **MUST** encode selections as data URIs. |
-| No                                      | **MUST NOT** include the annotation on that surface.             | N/A — client sees ordinary `uri`-format string fields; may still pass a hand-built data URI.  |
+| Client declares `fileInputs`? | Server behavior                                       | Client behavior                                                                               |
+| ----------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Yes                           | **MAY** include `inputFiles` / `requestedFiles`.      | **SHOULD** render a file picker for named arguments; **MUST** encode selections as data URIs. |
+| No                            | **MUST NOT** include `inputFiles` / `requestedFiles`. | N/A — client sees ordinary `uri`-format string fields; may still pass a hand-built data URI.  |
 
-Each surface is gated independently: `capabilities.fileInputs` gates `Tool.inputFiles`, and `capabilities.elicitation.form.fileInputs` gates `requestedFiles`.
-
-Servers **MUST** accept any well-formed data URI value for a `uri`-format argument regardless of whether the client declared the capability or whether the annotation was advertised. The metadata governs _advertising_, not _acceptance_.
+Servers **MUST** accept any well-formed data URI value for a `uri`-format argument regardless of whether the client declared the capability or whether `inputFiles` was advertised. The metadata governs _advertising_, not _acceptance_.
 
 ## Rationale
 
@@ -293,6 +278,15 @@ Data URIs embed base64 in the JSON-RPC envelope, so very large files are impract
 ### Why gate advertising on the client capability?
 
 If a server advertises `inputFiles` to a client that doesn't understand it, no harm is done at the protocol level — the extra field is ignored. But it _is_ misleading: the server author added the annotation expecting a file picker to appear, and silently nothing happens. Requiring the capability makes the failure mode explicit at development time ("why isn't my server sending `inputFiles`? — oh, my client doesn't declare support") rather than a silent no-op in production.
+
+### Why a single capability rather than per-surface flags?
+
+A split design was considered (nesting under `elicitation.form.fileInputs` for elicitation and a separate flag for tools) but rejected in favor of a single top-level `fileInputs`. The reasoning:
+
+- **The underlying capability is singular.** A client either has the machinery to show a file picker and encode the result as a data URI, or it doesn't. That machinery doesn't differ by call site.
+- **Elicitation is already gated.** A client that doesn't declare `elicitation` never receives elicitation requests, so `requestedFiles` is implicitly gated without a dedicated sub-flag. The only case a per-surface split would serve is a client that _does_ support elicitation forms but somehow can't render a file picker inside them while simultaneously _can_ for tool arguments — no such client is expected to exist.
+- **Simpler server logic.** One boolean check instead of two.
+- **No natural home for a tool-side sub-flag anyway.** `ClientCapabilities` has no `tools` key (tool support is a _server_ capability), so nesting would have required either inventing a new wrapper or living with an asymmetric split.
 
 ### Prior art: OpenAI Apps SDK `openai/fileParams`
 
@@ -342,19 +336,6 @@ Because files arrive inline, a malicious or buggy client can attempt to exhaust 
 ### `accept` is a UX filter, not a security boundary
 
 The `accept` list constrains the client's file picker, but a client is free to send any MIME type it likes. Servers **MUST** validate the received type if it matters for correctness or safety, and **MUST NOT** assume `accept` was enforced.
-
-## Open Questions
-
-### Placement of the tool-side client capability
-
-This SEP currently places the tool-side capability at the top level as `ClientCapabilities.fileInputs`, because `ClientCapabilities` has no existing `tools` key (tool support is declared by the _server_). The elicitation-side capability nests naturally under the existing `elicitation.form` key.
-
-Two alternatives are worth considering:
-
-1. **Introduce `ClientCapabilities.tools` as a new namespace.** Placing the flag at `capabilities.tools.fileInputs` would give both surfaces symmetric nesting and create a home for any future client-side tool-calling capabilities (for example, a hypothetical "this client renders tool output schemas as forms"). The cost is introducing a new top-level capability key whose sole initial member is this one flag.
-2. **Keep a single top-level `fileInputs` governing both surfaces.** Simpler for servers (one check instead of two) and arguably correct — the client either has a file picker or it doesn't. The cost is losing the ability to declare support for elicitation file inputs independently of tool file inputs, which matters for clients that surface one primitive but not the other.
-
-The current proposal (split, with the tool side top-level) is a compromise; feedback is sought on whether the symmetry of option 1 or the simplicity of option 2 is preferable.
 
 ## Reference Implementation
 
