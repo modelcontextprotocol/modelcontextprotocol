@@ -356,6 +356,10 @@
                     "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
                     "type": "object"
                 },
+                "fileInputs": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "Present if the client supports declarative file inputs for tools and\nelicitation. When declared, servers MAY include `inputFiles` on {@link Tool}\ndefinitions and `requestedFiles` on {@link ElicitRequestFormParams}."
+                },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
@@ -928,6 +932,13 @@
                     "description": "The elicitation mode.",
                     "type": "string"
                 },
+                "requestedFiles": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/FileInputDescriptor"
+                    },
+                    "description": "Declares which fields in `requestedSchema` are file inputs. Keys MUST match\nproperty names in `requestedSchema.properties`, and the corresponding schema\nproperties MUST be a {@link StringSchema} with `format: \"uri\"` or a\n{@link StringArraySchema} whose `items` has `format: \"uri\"`.\n\nServers MUST NOT include this field unless the client declared the\n`fileInputs` capability during initialization.\n\nClients SHOULD render a native file picker for these fields. Selected files\nare encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,\nwhere the `name=` parameter (percent-encoded) carries the original filename.",
+                    "type": "object"
+                },
                 "requestedSchema": {
                     "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
                     "properties": {
@@ -1182,6 +1193,23 @@
                 "code",
                 "message"
             ],
+            "type": "object"
+        },
+        "FileInputDescriptor": {
+            "description": "Describes a single file input argument for a tool or elicitation form.\nProvides optional hints for client-side file picker filtering and validation.\nAll fields are advisory; servers MUST still validate inputs independently.",
+            "properties": {
+                "accept": {
+                    "description": "MIME type patterns that the server will accept for this input.\nSupports exact types (e.g., `\"image/png\"`) and wildcard subtypes\n(e.g., `\"image/*\"`). If omitted, any file type is accepted.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "maxSize": {
+                    "description": "Maximum file size in bytes (decoded size, per file). Servers SHOULD reject\nlarger files with {@link InvalidParamsError} and the structured reason\n`\"file_too_large\"`.",
+                    "type": "integer"
+                }
+            },
             "type": "object"
         },
         "GetPromptRequest": {
@@ -2629,9 +2657,12 @@
                 },
                 {
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
+                },
+                {
+                    "$ref": "#/$defs/StringArraySchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "Restricted schema definitions that only allow primitive types and\nflat arrays of strings (for multi-file inputs), without nested objects."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -3618,6 +3649,35 @@
                 }
             ]
         },
+        "StringArraySchema": {
+            "description": "Schema for a flat array of strings. Intended primarily for multi-file\ninputs in elicitation forms, where each item is a data URI string with\n`format: \"uri\"`. Items MUST use {@link StringSchema}; nesting is not permitted.",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "items": {
+                    "$ref": "#/$defs/StringSchema"
+                },
+                "maxItems": {
+                    "type": "integer"
+                },
+                "minItems": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "array",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ],
+            "type": "object"
+        },
         "StringSchema": {
             "properties": {
                 "default": {
@@ -4014,6 +4074,13 @@
                         "$ref": "#/$defs/Icon"
                     },
                     "type": "array"
+                },
+                "inputFiles": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/FileInputDescriptor"
+                    },
+                    "description": "Declares which arguments in `inputSchema` are file inputs. Keys MUST match\nproperty names in `inputSchema.properties`, and the corresponding schema\nproperties MUST be `{\"type\": \"string\", \"format\": \"uri\"}` or an array thereof.\n\nServers MUST NOT include this field unless the client declared the\n`fileInputs` capability during initialization.\n\nClients SHOULD render a native file picker for these arguments. Selected files\nare encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,\nwhere the `name=` parameter (percent-encoded) carries the original filename.",
+                    "type": "object"
                 },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
