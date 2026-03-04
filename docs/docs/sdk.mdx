@@ -1,59 +1,26 @@
 ---
 title: SDKs
-description: Official SDKs for building with the Model Context Protocol
+description: Official SDKs for building with Model Context Protocol
 ---
 
-Build MCP servers and clients using our official SDKs. Choose the SDK that matches your technology stack - all SDKs provide the same core functionality and full protocol support.
+Build MCP servers and clients using our official SDKs. SDKs are classified into tiers based on feature completeness, protocol support, and maintenance commitment. Learn more about [SDK tiers](/community/sdk-tiers).
 
 ## Available SDKs
 
-<CardGroup cols={3}>
-  <Card
-    title="TypeScript"
-    icon="square-js"
-    href="https://github.com/modelcontextprotocol/typescript-sdk"
-  />
-  <Card
-    title="Python"
-    icon="python"
-    href="https://github.com/modelcontextprotocol/python-sdk"
-  />
-  <Card
-    title="Go"
-    icon="golang"
-    href="https://github.com/modelcontextprotocol/go-sdk"
-  />
-  <Card
-    title="Kotlin"
-    icon="square-k"
-    href="https://github.com/modelcontextprotocol/kotlin-sdk"
-  />
-  <Card
-    title="Swift"
-    icon="swift"
-    href="https://github.com/modelcontextprotocol/swift-sdk"
-  />
-  <Card
-    title="Java"
-    icon="java"
-    href="https://github.com/modelcontextprotocol/java-sdk"
-  />
-  <Card
-    title="C#"
-    icon="square-c"
-    href="https://github.com/modelcontextprotocol/csharp-sdk"
-  />
-  <Card
-    title="Ruby"
-    icon="gem"
-    href="https://github.com/modelcontextprotocol/ruby-sdk"
-  />
-  <Card
-    title="Rust"
-    icon="rust"
-    href="https://github.com/modelcontextprotocol/rust-sdk"
-  />
-</CardGroup>
+| SDK                                                   | Repository                                                                                    |                                                                             Tier\* |
+| :---------------------------------------------------- | :-------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------: |
+| <Icon icon="square-js" size={24} /> &nbsp; TypeScript | [modelcontextprotocol/typescript-sdk](https://github.com/modelcontextprotocol/typescript-sdk) | [Tier 1](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2271) |
+| <Icon icon="python" size={24} /> &nbsp; Python        | [modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)         | [Tier 1](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2304) |
+| <Icon icon="java" size={24} /> &nbsp; Java            | [modelcontextprotocol/java-sdk](https://github.com/modelcontextprotocol/java-sdk)             | [Tier 2](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2301) |
+| <Icon icon="square-c" size={24} /> &nbsp; C#          | [modelcontextprotocol/csharp-sdk](https://github.com/modelcontextprotocol/csharp-sdk)         | [Tier 1](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2261) |
+| <Icon icon="golang" size={24} /> &nbsp; Go            | [modelcontextprotocol/go-sdk](https://github.com/modelcontextprotocol/go-sdk)                 | [Tier 1](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2279) |
+| <Icon icon="square-k" size={24} /> &nbsp; Kotlin      | [modelcontextprotocol/kotlin-sdk](https://github.com/modelcontextprotocol/kotlin-sdk)         |                                                                                TBD |
+| <Icon icon="swift" size={24} /> &nbsp; Swift          | [modelcontextprotocol/swift-sdk](https://github.com/modelcontextprotocol/swift-sdk)           | [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2309) |
+| <Icon icon="rust" size={24} /> &nbsp; Rust            | [modelcontextprotocol/rust-sdk](https://github.com/modelcontextprotocol/rust-sdk)             |                                                                                TBD |
+| <Icon icon="gem" size={24} /> &nbsp; Ruby             | [modelcontextprotocol/ruby-sdk](https://github.com/modelcontextprotocol/ruby-sdk)             | [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2340) |
+| <Icon icon="php" size={24} /> &nbsp; PHP              | [modelcontextprotocol/php-sdk](https://github.com/modelcontextprotocol/php-sdk)               | [Tier 3](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2305) |
+
+_\*Official tier assignments will be published February 23, 2026. See [SDK Tiering System](/community/sdk-tiers) for details._
 
 ## Getting Started
 
@@ -61,7 +28,7 @@ Each SDK provides the same functionality but follows the idioms and best practic
 
 - Creating MCP servers that expose tools, resources, and prompts
 - Building MCP clients that can connect to any MCP server
-- Local and Remote transport protocols
+- Local and remote transport protocols
 - Protocol compliance with type safety
 
 Visit the SDK page for your chosen language to find installation instructions, documentation, and examples.
@@ -71,24 +38,14 @@ Visit the SDK page for your chosen language to find installation instructions, d
 Ready to start building with MCP? Choose your path:
 
 <CardGroup cols={2}>
-  <Card title="Build a Server" icon="server" href="/quickstart/server">
+  <Card title="Build a Server" icon="server" href="/docs/develop/build-server">
     Learn how to create your first MCP server
   </Card>
-  <Card title="Build a Client" icon="computer" href="/quickstart/client">
+  <Card
+    title="Build a Client"
+    icon="computer"
+    href="/docs/develop/build-client"
+  >
     Create applications that connect to MCP servers
-  </Card>
-  <Card
-    title="Explore Examples"
-    icon="code"
-    href="https://github.com/modelcontextprotocol/servers"
-  >
-    Browse pre-built servers for inspiration
-  </Card>
-  <Card
-    title="Understand the Architecture"
-    icon="book"
-    href="/docs/learn/architecture"
-  >
-    Dive deeper into how MCP works
   </Card>
 </CardGroup>

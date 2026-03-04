@@ -1,41 +1,49 @@
 ---
-title: Introduction
-description: "Get started with the Model Context Protocol (MCP)"
+title: What is the Model Context Protocol (MCP)?
+sidebarTitle: What is MCP?
 ---
 
-MCP is an open protocol that standardizes how applications provide context to large language models (LLMs). Think of MCP like a USB-C port for AI applications. Just as USB-C provides a standardized way to connect your devices to various peripherals and accessories, MCP provides a standardized way to connect AI models to different data sources and tools. MCP enables you to build agents and complex workflows on top of LLMs and connects your models with the world.
+MCP (Model Context Protocol) is an open-source standard for connecting AI applications to external systems.
 
-MCP provides:
+Using MCP, AI applications like Claude or ChatGPT can connect to data sources (e.g. local files, databases), tools (e.g. search engines, calculators) and workflows (e.g. specialized prompts)—enabling them to access key information and perform tasks.
 
-- **A growing list of pre-built integrations** that your LLM can directly plug into
-- **A standardized way** to build custom integrations for AI applications
-- **An open protocol** that everyone is free to implement and use
-- **The flexibility to change** between different apps and take your context with you
+Think of MCP like a USB-C port for AI applications. Just as USB-C provides a standardized way to connect electronic devices, MCP provides a standardized way to connect AI applications to external systems.
 
-## Choose Your Path
+<Frame>
+  <img src="/images/mcp-simple-diagram.png" />
+</Frame>
+
+## What can MCP enable?
+
+- Agents can access your Google Calendar and Notion, acting as a more personalized AI assistant.
+- Claude Code can generate an entire web app using a Figma design.
+- Enterprise chatbots can connect to multiple databases across an organization, empowering users to analyze data using chat.
+- AI models can create 3D designs on Blender and print them out using a 3D printer.
+
+## Why does MCP matter?
+
+Depending on where you sit in the ecosystem, MCP can have a range of benefits.
+
+- **Developers**: MCP reduces development time and complexity when building, or integrating with, an AI application or agent.
+- **AI applications or agents**: MCP provides access to an ecosystem of data sources, tools and apps which will enhance capabilities and improve the end-user experience.
+- **End-users**: MCP results in more capable AI applications or agents which can access your data and take actions on your behalf when necessary.
+
+## Start Building
 
 <CardGroup cols={2}>
-  <Card title="Understand Concepts" icon="book" href="/docs/learn/architecture">
-    Learn the core concepts and architecture of MCP
+  <Card title="Build servers" icon="server" href="/docs/develop/build-server">
+    Create MCP servers to expose your data and tools
   </Card>
 
-{" "}
-
-<Card title="Use MCP" icon="plug" href="/docs/tutorials/use-remote-mcp-server">
-  Connect to existing MCP servers and start using them
-</Card>
-
-{" "}
-
-<Card title="Build Servers" icon="server" href="/quickstart/server">
-  Create MCP servers to expose your data and tools
-</Card>
-
-  <Card title="Build Clients" icon="computer" href="/quickstart/client">
+  <Card title="Build clients" icon="computer" href="/docs/develop/build-client">
     Develop applications that connect to MCP servers
   </Card>
 </CardGroup>
 
-## Ready to Build?
+## Learn more
 
-MCP provides official **SDKs** in multiple languages, see the [SDK documentation](/docs/sdk) to find the right SDK for your project. The SDKs handle the protocol details so you can focus on building your features.
+<CardGroup cols={2}>
+  <Card title="Understand concepts" icon="book" href="/docs/learn/architecture">
+    Learn the core concepts and architecture of MCP
+  </Card>
+</CardGroup>

@@ -1,0 +1,1 @@
+Contact: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/SECURITY.md

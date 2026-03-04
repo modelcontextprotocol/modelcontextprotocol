@@ -73,7 +73,8 @@ Elicitation supports these primitive types:
   "title": "Project Name",
   "description": "Name for your new project",
   "minLength": 3,
-  "maxLength": 50
+  "maxLength": 50,
+  "default": "my-project"
 }
 ```
 
@@ -85,7 +86,8 @@ Elicitation supports these primitive types:
   "title": "Port Number",
   "description": "Port to run the server on",
   "minimum": 1024,
-  "maximum": 65535
+  "maximum": 65535,
+  "default": 3000
 }
 ```
 
@@ -107,7 +109,8 @@ Elicitation supports these primitive types:
   "type": "string",
   "title": "Environment",
   "enum": ["development", "staging", "production"],
-  "enumNames": ["Development", "Staging", "Production"]
+  "enumNames": ["Development", "Staging", "Production"],
+  "default": "development"
 }
 ```
 
@@ -219,6 +222,12 @@ const response = await client.request("elicitation/create", {
         type: "boolean",
         title: "Use TypeScript",
         default: true,
+      },
+      port: {
+        type: "number",
+        title: "Development Port",
+        description: "Port number for the dev server",
+        default: 3000,
       },
     },
     required: ["name", "framework"],
