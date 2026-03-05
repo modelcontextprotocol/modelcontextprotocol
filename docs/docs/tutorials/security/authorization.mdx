@@ -261,7 +261,7 @@ or dynamic registration. Here's what it takes to get this working end-to-end.
 2. In the Stytch Dashboard, go to **Connected Apps** and
    [enable CIMD support](https://stytch.com/docs/connected-apps/oauth-learn-more/client-types#client-id-metadata-documents-beta)
 3. [Register any custom scopes](https://stytch.com/docs/connected-apps/oauth-learn-more/scopes)
-   your MCP server needs (e.g., `read:account`) under **Connected Apps → Scopes**
+   your MCP server needs (e.g., `mcp:tools`) under **Connected Apps → Scopes**
 4. Under **Frontend SDKs → Authorized applications**, add the domain where your
    authorization UI will be hosted
 
@@ -344,7 +344,7 @@ const oauthMetadata = createOAuthMetadata({
   provider,
   issuerUrl: SERVER_URL,
   baseUrl: SERVER_URL,
-  scopesSupported: ["read:account"],
+  scopesSupported: ["mcp:tools"],
 });
 app.get("/.well-known/oauth-authorization-server", (_req, res) => {
   res.json({
@@ -360,7 +360,7 @@ app.use(
     issuerUrl: SERVER_URL,
     baseUrl: SERVER_URL,
     resourceServerUrl: SERVER_URL,
-    scopesSupported: ["read:account"],
+    scopesSupported: ["mcp:tools"],
   }),
 );
 
@@ -368,16 +368,17 @@ app.all("/mcp", async (req, res) => {
   const server = new McpServer({ name: "example-server", version: "1.0.0" });
 
   server.registerTool(
-    "get_balance",
+    "add",
     {
-      title: "Get Account Balance",
-      description: "Returns the account balance. Requires authentication.",
+      title: "Addition Tool",
+      description: "Add two numbers together",
       inputSchema: {
-        account_id: z.string().describe("The account ID to look up"),
+        a: z.number().describe("First number"),
+        b: z.number().describe("Second number"),
       },
     },
-    async ({ account_id }) => ({
-      content: [{ type: "text", text: `Balance for ${account_id}: $1,234.56` }],
+    async ({ a, b }) => ({
+      content: [{ type: "text", text: `${a} + ${b} = ${a + b}` }],
     }),
   );
 
@@ -444,13 +445,13 @@ builder.Services.AddAuthentication(options =>
     options.ResourceMetadata = new()
     {
         AuthorizationServers = { stytchDomain },
-        ScopesSupported = ["read:account"],
+        ScopesSupported = ["mcp:tools"],
     };
 });
 
 builder.Services.AddAuthorization();
 builder.Services.AddMcpServer()
-    .WithTools<BankTools>()
+    .WithTools<MathTools>()
     .WithHttpTransport();
 
 var app = builder.Build();
@@ -463,12 +464,12 @@ app.MapMcp().RequireAuthorization();
 app.Run(serverUrl);
 
 [McpServerToolType]
-public static class BankTools
+public static class MathTools
 {
     [McpServerTool]
-    [Description("Returns the account balance. Requires authentication.")]
-    public static string GetBalance(string accountId)
-        => $"Balance for {accountId}: $1,234.56";
+    [Description("Add two numbers together")]
+    public static string Add(double a, double b)
+        => $"{a} + {b} = {a + b}";
 }
 ```
 
