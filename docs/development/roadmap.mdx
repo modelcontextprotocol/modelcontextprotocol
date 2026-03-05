@@ -43,9 +43,9 @@ We will **not** be introducing additional official transports this cycle. Keepin
 The Tasks primitive ([SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686)) gave agents a reliable call-now / fetch-later pattern. Running it in production has surfaced gaps in the lifecycle semantics that the **Agents WG** should close:
 
 - **Retry semantics**: what happens when a task fails transiently, and who decides whether to retry.
-- **Cancellation guarantees**: what state a task is left in when a client cancels, and whether servers must honor cancellation.
 - **Expiry policies**: how long results are retained after completion, and how clients learn a result has expired.
-- **Error reporting**: richer failure information from long-running operations than the current binary success/failure.
+
+These are the gaps we can point to today. The Agents WG should also collect and triage operational issues from production deployments—this list will grow as more of the ecosystem runs Tasks at scale.
 
 ### 3. Governance Maturation
 
@@ -59,7 +59,7 @@ The **Governance WG** should deliver:
 
 ### 4. Enterprise Readiness
 
-Enterprises are deploying MCP at scale and hitting gaps the protocol does not yet address. 
+Enterprises are deploying MCP at scale and hitting gaps the protocol does not yet address.
 
 Areas where we need clear problem statements and directional proposals:
 
