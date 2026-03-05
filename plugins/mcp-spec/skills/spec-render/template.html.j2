@@ -465,6 +465,48 @@
   .req-status.violated { background: var(--violated-bg); color: var(--violated); }
   .req-status.unclear { background: var(--unclear-bg); color: var(--unclear); }
   .req-status.not-addressed { background: var(--not-addressed-bg); color: var(--not-addressed); }
+
+  /* Mobile: stack columns vertically, annotations together above diff */
+  @media (max-width: 1024px) {
+    .main-layout {
+      grid-template-columns: 1fr;
+    }
+    #left-annotations { order: 1; }
+    #right-annotations { order: 2; }
+    .diff-col { order: 3; }
+    .annotation-col {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow-y: visible;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+    .diff-col {
+      border-left: none;
+      border-right: none;
+    }
+    /* Hide SVG connectors on mobile — they don't make sense in stacked layout */
+    .connector-svg { display: none; }
+    /* Cards don't need directional slide on mobile */
+    .annotation-card:hover,
+    #right-annotations .annotation-card:hover { transform: none; }
+    .annotation-card.active,
+    #right-annotations .annotation-card.active { transform: none; }
+  }
+
+  /* Small mobile: tighter spacing */
+  @media (max-width: 640px) {
+    header { padding: 12px 16px 10px; }
+    header h1 { font-size: 18px; }
+    .summary-bar { height: 26px; font-size: 11px; }
+    .bar-segment { min-width: 40px; }
+    .diff-table { font-size: 11px; }
+    .diff-table .line-no { width: 30px; min-width: 30px; padding: 0 4px; font-size: 10px; }
+    .diff-table .line-content { padding: 0 8px; }
+    .annotation-card { font-size: 11px; padding: 8px 10px; }
+    .req-index { margin: 12px; padding: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -563,14 +605,13 @@
         <span class="ann-status {{ ann.status | replace('_', '-') }}">{{ ann.status | replace('_', ' ') | title }}</span>
       </div>
       {% if ann.req_summary %}<div class="ann-req-text">{{ ann.req_summary }}</div>{% endif %}
-      {% if ann.explanation %}<hr class="ann-divider">
+      <hr class="ann-divider">
       <div class="ann-text-summary">{{ ann.summary_html }}</div>
       {% if ann.has_detail %}
       <details class="ann-text-expand">
         <summary>show full analysis</summary>
         <div class="ann-text-full">{{ ann.explanation_html }}</div>
       </details>
-      {% endif %}
       {% endif %}
       {% if ann.hunk_labels %}
       <details class="ann-hunks-toggle">

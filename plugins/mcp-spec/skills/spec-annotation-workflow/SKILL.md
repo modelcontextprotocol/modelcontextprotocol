@@ -69,15 +69,22 @@ Since the script runs instantly, extraction can begin immediately while the diff
 
 ### Step 4: Annotate the diff (requires steps 2 & 3 complete)
 
-If you saved the diff to a file, parse it with the script first:
+If you saved the diff to a file, parse and scaffold it with the scripts:
 
 ```bash
+# Parse and split hunks
 python3 plugins/mcp-spec/skills/spec-diff/scripts/parse_diff.py \
   .reviews/SEP-{sep_number}/pr-diff.txt \
   .reviews/SEP-{sep_number}/parsed-diff.json
+
+# Build annotation skeleton (all requirements as not_addressed, patch_text included, generated files excluded)
+python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py \
+  .reviews/SEP-{sep_number}/meta-spec.json \
+  .reviews/SEP-{sep_number}/parsed-diff.json \
+  .reviews/SEP-{sep_number}/annotations.json
 ```
 
-Then follow the `spec-diff` skill instructions to annotate each hunk against the requirements. Write `annotations.json` to `.reviews/SEP-{sep_number}/annotations.json`.
+Then read the skeleton `annotations.json` and fill in each requirement's `status`, `summary`, `explanation`, and `hunks` references. Follow the `spec-diff` skill instructions for matching rules and explanation quality. You can either edit annotations.json directly, or write a `matches.json` and re-run the annotate script with `--matches` to have it handle bidirectional linking automatically.
 
 ### Step 5: Render HTML
 

@@ -211,9 +211,9 @@ def main():
     env = Environment(loader=FileSystemLoader(str(template_dir)), autoescape=False)
     template = env.get_template("template.html.j2")
 
-    pr_number = data.get("pr_number", "")
-    pr_url = data.get("pr_url", "")
-    reviewed_commit = data.get("reviewed_commit", "")
+    pr_number = data.get("pr_number") or ""
+    pr_url = data.get("pr_url") or ""
+    reviewed_commit = data.get("reviewed_commit") or ""
 
     rendered = template.render(
         sep_number=meta_spec.get("sep_number", ""),
