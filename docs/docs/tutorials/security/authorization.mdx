@@ -263,6 +263,11 @@ This tells Stytch to accept URL-based `client_id` values and fetch client metada
 URLs during authorization. Without this setting enabled, Stytch will reject URL-based
 `client_id` values with "The Connected App requested could not be found."
 
+While in **Connected Apps → Settings**, also set the **Authorization URL** to the location
+in your web app where the Stytch `<IdentityProvider>` component is hosted (e.g.,
+`http://localhost:3002/authorize`). This URL is served in your project's OpenID Configuration
+endpoint and is where users will be redirected to authenticate.
+
 <Frame>
   <img
     src="/images/tutorial-authorization/stytch-enable-cimd.gif"
