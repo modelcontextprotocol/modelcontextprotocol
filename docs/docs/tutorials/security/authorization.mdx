@@ -275,16 +275,17 @@ endpoint and is where users will be redirected to authenticate.
   />
 </Frame>
 
-Next, [register any custom scopes](https://stytch.com/docs/connected-apps/oauth-learn-more/scopes)
-your MCP server needs. Navigate to **Connected Apps → Scopes** and add a `mcp:tools` scope.
-This scope will be required for clients to access tools on your MCP server.
+Next, [register any custom scopes](https://stytch.com/docs/guides/connected-apps/oauth-scopes)
+your MCP server needs. In Stytch, scopes are built on the
+[RBAC system](https://stytch.com/dashboard/rbac) — each scope is composed of permissions, where
+each permission is an action applied to a resource. To create an `mcp:tools` scope:
 
-<Frame>
-  <img
-    src="/images/tutorial-authorization/stytch-scopes.png"
-    alt="Configuring custom scopes in Stytch."
-  />
-</Frame>
+1. Navigate to the [**RBAC dashboard**](https://stytch.com/dashboard/rbac) and create a new
+   **Resource** with resource ID `mcp` and a single action: `tools`.
+2. Create a new **Scope** named `mcp:tools`. Add a permission that grants the `tools` action on
+   the `mcp` resource.
+
+This scope will be required for clients to access tools on your MCP server.
 
 Finally, go to **Frontend SDKs → Authorized applications** and add the domain where your
 authorization UI will be hosted (e.g., `http://localhost:3002` for local development). This
@@ -296,6 +297,329 @@ allows Stytch to redirect back to your application after the user authenticates.
     alt="Adding authorized application domains in Stytch."
   />
 </Frame>
+
+#### Build the Authorization UI
+
+The MCP server's `authorizationUrl` points to `AUTH_PUBLIC_URL` (`http://localhost:3002/authorize`).
+This is a separate web app where users authenticate with Stytch when an MCP client starts
+the OAuth flow. You need to build this app — without it, the OAuth redirect has nowhere to go.
+
+The authorization UI is a Next.js app with two pieces: a frontend page that shows the Stytch
+login form, and a server-side API route that exchanges the session token for an authorization
+code.
+
+Start by creating the root layout, which loads the Stytch CDN SDK:
+
+```typescript
+// app/layout.tsx
+import type { Metadata } from "next";
+import Script from "next/script";
+
+export const metadata: Metadata = {
+  title: "Authorize",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <Script
+          src="https://js.stytch.com/stytch.js"
+          strategy="beforeInteractive"
+        />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+Next, create the authorize page. This page reads OAuth parameters from the query string,
+mounts the Stytch login form (email OTP), and on successful authentication posts to a
+server-side API route to get an authorization code:
+
+```typescript
+// app/authorize/page.tsx
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
+interface StytchInstance {
+  mount(opts: {
+    elementId: string;
+    loginOrSignupView: Record<string, unknown>;
+    callbacks: Record<string, unknown>;
+  }): void;
+}
+
+interface StytchConstructor {
+  new (publicToken: string): StytchInstance;
+}
+
+declare const Stytch: StytchConstructor | undefined;
+
+// Your Stytch project's public token (safe to embed in client-side code)
+const STYTCH_PUBLIC_TOKEN = process.env.NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN!;
+
+interface OAuthParams {
+  client_id: string;
+  redirect_uri: string;
+  state: string;
+  code_challenge: string;
+  code_challenge_method: string;
+  scope: string;
+}
+
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
+  const mountRef = useRef<HTMLDivElement>(null);
+  const oauthParams = useRef<OAuthParams | null>(null);
+
+  if (!oauthParams.current) {
+    oauthParams.current = {
+      client_id: searchParams.get("client_id") ?? "",
+      redirect_uri: searchParams.get("redirect_uri") ?? "",
+      state: searchParams.get("state") ?? "",
+      code_challenge: searchParams.get("code_challenge") ?? "",
+      code_challenge_method: searchParams.get("code_challenge_method") ?? "",
+      scope: searchParams.get("scope") ?? "",
+    };
+  }
+
+  const completeOAuthFlow = useCallback(async (sessionToken: string) => {
+    const params = oauthParams.current;
+    if (!params) return;
+
+    setRedirecting(true);
+
+    try {
+      // Call the server-side API route that talks to Stytch IDP
+      const resp = await fetch("/api/authorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: sessionToken,
+          client_id: params.client_id,
+          redirect_uri: params.redirect_uri,
+          scope: params.scope,
+          state: params.state,
+          code_challenge: params.code_challenge,
+          code_challenge_method: params.code_challenge_method,
+        }),
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(
+          (errData as { error?: string }).error || "Failed to authorize",
+        );
+      }
+
+      const data = (await resp.json()) as { code: string };
+
+      // Redirect back to the MCP client with the authorization code
+      const url = new URL(params.redirect_uri);
+      url.searchParams.set("code", data.code);
+      if (params.state) {
+        url.searchParams.set("state", params.state);
+      }
+      window.location.href = url.toString();
+    } catch (err) {
+      setRedirecting(false);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof Stytch === "undefined") {
+      setError("Failed to load Stytch SDK.");
+      return;
+    }
+
+    const stytch = new Stytch(STYTCH_PUBLIC_TOKEN);
+
+    stytch.mount({
+      elementId: "#stytch-sdk",
+      loginOrSignupView: {
+        products: ["otp"],
+        otpOptions: {
+          methods: ["email"],
+          expirationMinutes: 10,
+        },
+      },
+      callbacks: {
+        onEvent: async () => {
+          // The CDN SDK stores the session token in a cookie
+          const match = document.cookie.match(
+            /(?:^|;\s*)stytch_session=([^;]+)/,
+          );
+          const sessionToken = match?.[1];
+          if (sessionToken) {
+            await completeOAuthFlow(sessionToken);
+          }
+        },
+        onError: (err: { message?: string }) => {
+          setError(err.message || "Authentication error");
+        },
+      },
+    });
+
+    const el = mountRef.current;
+    return () => {
+      if (el) el.innerHTML = "";
+    };
+  }, [completeOAuthFlow]);
+
+  if (redirecting) return <p>Authenticating...</p>;
+
+  return (
+    <>
+      <div ref={mountRef} id="stytch-sdk" />
+      {error && <p style={{ color: "red" }}>{error}</p>}
+    </>
+  );
+}
+
+export default function AuthorizePage() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+```
+
+This uses the CDN-based Stytch SDK (`https://js.stytch.com/stytch.js`) loaded in the layout.
+The SDK renders its login form into the `#stytch-sdk` DOM element — it is not a React
+component. When the user completes email OTP authentication, the SDK stores a session token
+in a cookie, which the `onEvent` callback reads and forwards to the server-side route.
+
+Now create the API route that exchanges the session token for an authorization code by calling
+the Stytch IDP API:
+
+```typescript
+// app/api/authorize/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
+const STYTCH_PROJECT_ID = process.env.STYTCH_PROJECT_ID!;
+const STYTCH_SECRET = process.env.STYTCH_SECRET!;
+const STYTCH_DOMAIN = process.env.STYTCH_DOMAIN!;
+
+const BASIC_AUTH = Buffer.from(
+  `${STYTCH_PROJECT_ID}:${STYTCH_SECRET}`,
+).toString("base64");
+
+async function stytchPost(path: string, body: Record<string, unknown>) {
+  const resp = await fetch(`${STYTCH_DOMAIN}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${BASIC_AUTH}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(
+      (data as { error_message?: string }).error_message ??
+        `Stytch API error ${resp.status}`,
+    );
+  }
+  return data;
+}
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const {
+    session_token,
+    client_id,
+    redirect_uri,
+    scope,
+    state,
+    code_challenge,
+    code_challenge_method,
+  } = body;
+
+  if (!session_token || !client_id || !redirect_uri) {
+    return NextResponse.json(
+      { error: "session_token, client_id, and redirect_uri are required" },
+      { status: 400 },
+    );
+  }
+
+  try {
+    // Step 1: Validate the OAuth request and check consent
+    await stytchPost("/v1/idp/oauth/authorize/start", {
+      session_token,
+      client_id,
+      redirect_uri,
+      response_type: "code",
+      scopes: scope ? scope.split(" ") : [],
+    });
+
+    // Step 2: Issue the authorization code
+    const authorizeResult = (await stytchPost("/v1/idp/oauth/authorize", {
+      session_token,
+      client_id,
+      redirect_uri,
+      response_type: "code",
+      consent_granted: true,
+      state: state || undefined,
+      code_challenge: code_challenge || undefined,
+      scopes: scope ? scope.split(" ") : [],
+    })) as { authorization_code: string; redirect_uri: string };
+
+    return NextResponse.json({
+      code: authorizeResult.authorization_code,
+      redirect_uri: authorizeResult.redirect_uri,
+    });
+  } catch (err) {
+    console.error("Stytch authorize error:", err);
+    return NextResponse.json(
+      {
+        error:
+          err instanceof Error ? err.message : "Stytch authorization failed",
+      },
+      { status: 500 },
+    );
+  }
+}
+```
+
+The API route makes two calls to the Stytch IDP API. First, `/v1/idp/oauth/authorize/start`
+validates the OAuth request. Then `/v1/idp/oauth/authorize` issues an authorization code that
+the frontend redirects back to the MCP client's `redirect_uri`.
+
+<Warning>
+  **Never embed Stytch project secrets in client-side code.** The
+  `STYTCH_PROJECT_ID` and `STYTCH_SECRET` environment variables are only used in
+  the server-side API route. Only the public token
+  (`NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN`) is safe for client-side use.
+</Warning>
+
+Create a `.env` file with your Stytch credentials:
+
+```bash
+NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN=public-token-test-your-token
+STYTCH_PROJECT_ID=project-test-your-project-id
+STYTCH_SECRET=secret-test-your-secret
+STYTCH_DOMAIN=https://your-project.stytch.dev
+```
+
+Run the authorization app on port 3002 (matching the `AUTH_PUBLIC_URL` configured in the MCP
+server):
+
+```bash
+npx next dev -p 3002
+```
 
 #### Write the MCP Server
 
