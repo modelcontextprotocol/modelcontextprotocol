@@ -417,6 +417,8 @@ server. The `AddMcp()` extension configures Protected Resource Metadata, and the
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.AspNetCore.Authentication;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -459,6 +461,15 @@ app.UseAuthorization();
 app.MapMcp().RequireAuthorization();
 
 app.Run(serverUrl);
+
+[McpServerToolType]
+public static class BankTools
+{
+    [McpServerTool]
+    [Description("Returns the account balance. Requires authentication.")]
+    public static string GetBalance(string accountId)
+        => $"Balance for {accountId}: $1,234.56";
+}
 ```
 
 For more details, see the
@@ -661,8 +672,182 @@ variables or specialized solutions for secret storage.
 
 </Warning>
 
-With Keycloak configured, every time the authorization flow is triggered, your MCP server
-will receive a token like this:
+#### Write the MCP Server
+
+With Keycloak configured, you can now write the MCP server. The server needs the Keycloak
+realm URL as its authorization server and must validate tokens against it. The `mcp:tools`
+scope we created earlier will be required for access.
+
+<Tabs>
+<Tab title="TypeScript">
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
+import {
+  mcpAuthRouter,
+  createOAuthMetadata,
+} from "@modelcontextprotocol/sdk/server/auth/router.js";
+import { ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
+import { z } from "zod";
+
+const KEYCLOAK_URL = "http://localhost:8080/realms/master";
+const SERVER_URL = new URL("http://localhost:3000");
+
+// Server client credentials (from Keycloak client registration)
+const CLIENT_ID = process.env.OAUTH_CLIENT_ID || "mcp-server";
+const CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET || "";
+
+const provider = new ProxyOAuthServerProvider({
+  endpoints: {
+    authorizationUrl: `${KEYCLOAK_URL}/protocol/openid-connect/auth`,
+    tokenUrl: `${KEYCLOAK_URL}/protocol/openid-connect/token`,
+  },
+  verifyAccessToken: async (token: string) => {
+    // Validate token via Keycloak introspection endpoint
+    const response = await fetch(
+      `${KEYCLOAK_URL}/protocol/openid-connect/token/introspect`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          token,
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+        }),
+      },
+    );
+
+    const data = await response.json();
+    if (!data.active) throw new Error("Token is not active");
+
+    return {
+      token,
+      clientId: data.client_id,
+      scopes: data.scope ? data.scope.split(" ") : [],
+      expiresAt: data.exp,
+    };
+  },
+});
+
+const app = createMcpExpressApp();
+
+app.use(
+  mcpAuthRouter({
+    provider,
+    issuerUrl: SERVER_URL,
+    baseUrl: SERVER_URL,
+    resourceServerUrl: SERVER_URL,
+    scopesSupported: ["mcp:tools"],
+  }),
+);
+
+app.all("/mcp", async (req, res) => {
+  const server = new McpServer({ name: "example-server", version: "1.0.0" });
+
+  server.registerTool(
+    "add",
+    {
+      title: "Addition Tool",
+      description: "Add two numbers together",
+      inputSchema: {
+        a: z.number().describe("First number"),
+        b: z.number().describe("Second number"),
+      },
+    },
+    async ({ a, b }) => ({
+      content: [{ type: "text", text: `${a} + ${b} = ${a + b}` }],
+    }),
+  );
+
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+  });
+
+  res.on("close", () => {
+    transport.close().catch(() => {});
+    server.close().catch(() => {});
+  });
+
+  await server.connect(transport);
+  await transport.handleRequest(req, res, req.body);
+});
+
+app.listen(3000, () => {
+  console.log("MCP server listening on http://localhost:3000/mcp");
+});
+```
+
+</Tab>
+<Tab title="C#">
+
+```csharp
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using ModelContextProtocol.AspNetCore.Authentication;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+
+var builder = WebApplication.CreateBuilder(args);
+
+var serverUrl = "http://localhost:3000";
+var keycloakUrl = "http://localhost:8080/realms/master/";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Authority = keycloakUrl;
+    options.RequireHttpsMetadata = false; // Set to true in production
+    var normalizedAudience = serverUrl.TrimEnd('/');
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = keycloakUrl,
+        ValidAudiences = [normalizedAudience, serverUrl],
+    };
+})
+.AddMcp(options =>
+{
+    options.ResourceMetadata = new()
+    {
+        AuthorizationServers = { keycloakUrl },
+        ScopesSupported = ["mcp:tools"],
+    };
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddMcpServer()
+    .WithTools<MathTools>()
+    .WithHttpTransport();
+
+var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapMcp().RequireAuthorization();
+
+app.Run(serverUrl);
+
+[McpServerToolType]
+public static class MathTools
+{
+    [McpServerTool]
+    [Description("Add two numbers together")]
+    public static string Add(double a, double b)
+        => $"{a} + {b} = {a + b}";
+}
+```
+
+</Tab>
+</Tabs>
+
+With Keycloak configured and the server running, the authorization flow will issue tokens
+like this:
 
 ```text
 eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1TjcxMGw1WW5MWk13WGZ1VlJKWGtCS3ZZMzZzb3JnRG5scmlyZ2tlTHlzIn0.eyJleHAiOjE3NTU1NDA4MTcsImlhdCI6MTc1NTU0MDc1NywiYXV0aF90aW1lIjoxNzU1NTM4ODg4LCJqdGkiOiJvbnJ0YWM6YjM0MDgwZmYtODQwNC02ODY3LTgxYmUtMTIzMWI1MDU5M2E4IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9tYXN0ZXIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJzdWIiOiIzM2VkNmM2Yi1jNmUwLTQ5MjgtYTE2MS1mMmY2OWM3YTAzYjkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiI3OTc1YTViNi04YjU5LTRhODUtOWNiYS04ZmFlYmRhYjg5NzQiLCJzaWQiOiI4ZjdlYzI3Ni0zNThmLTRjY2MtYjMxMy1kYjA4MjkwZjM3NmYiLCJzY29wZSI6Im1jcDp0b29scyJ9.P5xCRtXORly0R0EXjyqRCUx-z3J4uAOWNAvYtLPXroykZuVCCJ-K1haiQSwbURqfsVOMbL7jiV-sD6miuPzI1tmKOkN_Yct0Vp-azvj7U5rEj7U6tvPfMkg2Uj_jrIX0KOskyU2pVvGZ-5BgqaSvwTEdsGu_V3_E0xDuSBq2uj_wmhqiyTFm5lJ1WkM3Hnxxx1_AAnTj7iOKMFZ4VCwMmk8hhSC7clnDauORc0sutxiJuYUZzxNiNPkmNeQtMCGqWdP1igcbWbrfnNXhJ6NswBOuRbh97_QraET3hl-CNmyS6C72Xc0aOwR_uJ7xVSBTD02OaQ1JA6kjCATz30kGYg
