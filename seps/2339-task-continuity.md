@@ -236,6 +236,193 @@ And finally, the server will accept that client request with a standard task sta
 }
 ```
 
+A complete example of a task-augmented tool call with an elicitation under MRTR is provided in more detail below:
+
+<details>
+
+Consider a simple task-augmented tool call, `hello_world`, requiring an elicitation for the user to provide their name. The tool itself takes no arguments.
+
+To invoke this tool, the client makes a `CallToolRequest` as follows:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "hello_world",
+    "arguments": {}
+  },
+  "task": {
+    "ttl": 30000
+  }
+}
+```
+
+The server recognizes this as a task-augmented request and immediately returns a `CreateTaskResult`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "task": {
+      "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+      "status": "working",
+      "createdAt": "2025-11-25T10:30:00Z",
+      "lastUpdatedAt": "2025-11-25T10:50:00Z",
+      "ttl": 30000,
+      "pollInterval": 5000
+    }
+  }
+}
+```
+
+Once the client receives the `CreateTaskResult`, it begins polling `tasks/continue`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tasks/continue",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+  }
+}
+```
+
+On each request while the task is in a `"working"` status, the server returns a regular task response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000
+  }
+}
+```
+
+Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this. On the next `tasks/continue` request from the client, the server sends the elicitation payload via an `IncompleteResult`, following standard MRTR semantics. Note that the task info is not present in this response, which conforms to typical behavior under MRTR. If the client were to send a `tasks/get` request during this time, it would see a regular status response with `"input_required"` (without the embedded `inputRequests`).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tasks/continue",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+  }
+}
+```
+
+```json
+{
+  "id": 4,
+  "jsonrpc": "2.0",
+  "result": {
+    "inputRequests": {
+      "name": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please enter your name.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" }
+            },
+            "required": ["name"]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+The user enters their name, and the client repeats the `tasks/continue` request with the satisfied information:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "tasks/continue",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "inputResponses": {
+      "name": {
+        "action": "accept",
+        "content": {
+          "input": "Luca"
+        }
+      }
+    }
+  }
+}
+```
+
+With the elicitation fulfilled and no other outstanding requests to send, the server moves the task back into the `"working"` status:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000
+  }
+}
+```
+
+Eventually, the server completes the request, so it stores the final `CallToolResult` and moves the task into the `"completed"` status. On the next `tasks/continue` request, the server sends the final tool result inlined into the task object:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "method": "tasks/continue",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+  }
+}
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "completed",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Hello, Luca!"
+        }
+      ],
+      "isError": false
+    }
+  }
+}
+```
+
+</details>
+
 ### Keeping `tasks/get`
 
 If we're introducing a new method that encapsulates the entire task-polling lifecycle, **why should we keep `tasks/get`**?
