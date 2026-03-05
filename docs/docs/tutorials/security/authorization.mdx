@@ -242,11 +242,12 @@ Client ID Metadata Documents (CIMD) and Dynamic Client Registration (DCR).
 ### Client ID Metadata Documents with Stytch
 
 <Note>
-This example uses [Stytch](https://stytch.com/) as the identity provider because it supports
-CIMD natively through its [Connected Apps](https://stytch.com/docs/connected-apps) feature.
-The same approach works with any CIMD-capable identity provider — the key requirement is that
-your authorization server advertises `"client_id_metadata_document_supported": true` in its
-metadata.
+  This example uses [Stytch](https://stytch.com/) as the identity provider
+  because it supports CIMD natively through its [Connected
+  Apps](https://stytch.com/docs/connected-apps) feature. The same approach works
+  with any CIMD-capable identity provider — the key requirement is that your
+  authorization server advertises `"client_id_metadata_document_supported":
+  true` in its metadata.
 </Note>
 
 CIMD lets MCP clients use an HTTPS URL as their `client_id`. The authorization server fetches
@@ -303,7 +304,7 @@ const SERVER_URL = new URL("http://localhost:3001");
 const AUTH_PUBLIC_URL = "http://localhost:3002"; // Your authorize UI
 
 const JWKS = createRemoteJWKSet(
-  new URL(`${STYTCH_DOMAIN}/.well-known/jwks.json`)
+  new URL(`${STYTCH_DOMAIN}/.well-known/jwks.json`),
 );
 
 const provider = new ProxyOAuthServerProvider({
@@ -318,9 +319,7 @@ const provider = new ProxyOAuthServerProvider({
     return {
       token,
       clientId: (payload.sub as string) ?? "",
-      scopes: typeof payload.scope === "string"
-        ? payload.scope.split(" ")
-        : [],
+      scopes: typeof payload.scope === "string" ? payload.scope.split(" ") : [],
       expiresAt: payload.exp,
     };
   },
@@ -362,7 +361,7 @@ app.use(
     baseUrl: SERVER_URL,
     resourceServerUrl: SERVER_URL,
     scopesSupported: ["read:account"],
-  })
+  }),
 );
 
 app.all("/mcp", async (req, res) => {
