@@ -314,7 +314,7 @@ body:has(#schema-reference) {
 
     /* Sub-members */
     .tsd-type-declaration {
-      /* Templated heading */
+      /* Templated heading ("Type Declaration") */
       [data-typedoc-h="4"] {
         display: none;
       }
@@ -362,6 +362,25 @@ body:has(#schema-reference) {
 
     svg {
       display: none;
+    }
+  }
+
+  /* Types with only index properties (e.g., `type Foo = { [key: string]: unknown }`) */
+  .type > .tsd-type-declaration {
+    /* Hide property if no doc comments */
+    &:not(:has(.tsd-comment)) {
+      display: none;
+    }
+
+    /* Templated heading ("Type Declaration") */
+    [data-typedoc-h="4"] {
+      display: none;
+    }
+
+    /* Index property */
+    [data-typedoc-h="5"] {
+      font-family: var(--font-mono);
+      font-weight: 700;
     }
   }
 }

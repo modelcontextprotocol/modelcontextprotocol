@@ -72,7 +72,7 @@ npm run format
 
 > [!NOTE]
 > You can run all schema/documentation
-> changes at once with `npm run prep:changes`.
+> changes at once with `npm run prep`.
 
 ## Blog changes
 

@@ -10,3 +10,4 @@
 # Authorization-related files - @auth team should be notified
 /docs/specification/**/authorization.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg
 /docs/specification/**/security_best_practices.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg
+/docs/docs/tutorials/security/security_best_practices.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg

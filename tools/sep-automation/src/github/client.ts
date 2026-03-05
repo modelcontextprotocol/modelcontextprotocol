@@ -5,7 +5,7 @@
 import { Octokit } from '@octokit/rest';
 import { createAppAuth } from '@octokit/auth-app';
 import type { Config } from '../config.js';
-import type { GitHubIssue, GitHubComment, GitHubEvent, GitHubTeamMembership } from './types.js';
+import type { GitHubIssue, GitHubComment, GitHubEvent, GitHubTeamMembership, GitHubTeam } from './types.js';
 import { isHttpError } from '../utils/index.js';
 
 /** Search query constants */
@@ -26,12 +26,15 @@ export class GitHubClient {
     this.owner = config.targetOwner;
     this.repo = config.targetRepo;
 
-    // Start with basic octokit - will be replaced if using App auth
-    if (config.githubToken) {
+    // Prefer App auth over token (App auth has better org-level permissions)
+    if (config.appId && config.appPrivateKey) {
+      // Placeholder - will be initialized in ensureInitialized() with App auth
+      this.octokit = new Octokit();
+    } else if (config.githubToken) {
       this.octokit = new Octokit({ auth: config.githubToken });
       this.initialized = true;
     } else {
-      // Placeholder - will be initialized in ensureInitialized()
+      // Placeholder - should not happen due to config validation
       this.octokit = new Octokit();
     }
   }
@@ -246,38 +249,60 @@ export class GitHubClient {
   }
 
   /**
-   * Get child teams of a parent team
+   * List all teams in an organization.
+   * Only requires "Members" read permission on the org.
    */
-  async getChildTeams(org: string, parentTeamSlug: string): Promise<string[]> {
+  async listOrgTeams(org: string): Promise<GitHubTeam[]> {
     await this.ensureInitialized();
-    const children = await this.octokit.paginate(
-      this.octokit.teams.listChildInOrg,
+    const teams = await this.octokit.paginate(
+      this.octokit.teams.list,
       {
         org,
-        team_slug: parentTeamSlug,
         per_page: 100,
       }
     );
-    return children.map(t => t.slug);
+    return teams as GitHubTeam[];
   }
 
   /**
-   * Recursively get all descendant teams of a parent team (including the parent itself)
+   * Get all teams descended from a root team (including the root itself).
+   * Uses listOrgTeams and follows parent links, avoiding the need for admin
+   * permissions that listChildInOrg requires.
    */
-  async getAllDescendantTeams(org: string, parentTeamSlug: string): Promise<string[]> {
-    const allTeams: string[] = [parentTeamSlug];
-    const queue = [parentTeamSlug];
+  async getAllDescendantTeams(org: string, rootTeamSlug: string): Promise<string[]> {
+    const allTeams = await this.listOrgTeams(org);
 
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-      const children = await this.getChildTeams(org, current);
-      for (const child of children) {
-        allTeams.push(child);
-        queue.push(child);
+    // Build a map of team slug -> team for quick lookup
+    const teamBySlug = new Map<string, GitHubTeam>();
+    for (const team of allTeams) {
+      teamBySlug.set(team.slug, team);
+    }
+
+    // Find the root team
+    const rootTeam = teamBySlug.get(rootTeamSlug);
+    if (!rootTeam) {
+      // Root team not found, return just the slug in case it exists but isn't visible
+      return [rootTeamSlug];
+    }
+
+    // Find all teams that have the root team as an ancestor
+    const descendants: string[] = [rootTeamSlug];
+
+    for (const team of allTeams) {
+      if (team.slug === rootTeamSlug) continue;
+
+      // Walk up the parent chain to see if we reach the root
+      let current: GitHubTeam | undefined = team;
+      while (current?.parent) {
+        if (current.parent.slug === rootTeamSlug) {
+          descendants.push(team.slug);
+          break;
+        }
+        current = teamBySlug.get(current.parent.slug);
       }
     }
 
-    return allTeams;
+    return descendants;
   }
 
   /**
