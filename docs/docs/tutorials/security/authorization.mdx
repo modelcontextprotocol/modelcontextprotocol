@@ -9,10 +9,10 @@ Authorization in the Model Context Protocol (MCP) secures access to sensitive re
 operations exposed by MCP servers. If your MCP server handles user data or administrative
 actions, authorization ensures only permitted users can access its endpoints.
 
-MCP uses standardized authorization flows to build trust between MCP clients and MCP servers.
-Its design doesn't focus on one specific authorization or identity system, but rather follows
-the conventions outlined for [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13).
-For detailed information, see the [Authorization specification](/specification/latest/basic/authorization).
+MCP doesn't require a specific identity provider or auth system. Instead, it builds on
+[OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13) conventions to let clients
+and servers establish trust in a consistent way. For the full details, see the
+[Authorization specification](/specification/latest/basic/authorization).
 
 ## When Should You Use Authorization?
 
