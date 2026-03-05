@@ -60,9 +60,9 @@ WWW-Authenticate: Bearer realm="mcp",
 
 This tells the client that authorization is required for the MCP server, where to get the
 necessary information to kickstart the authorization flow, and which scopes are needed to
-access the resource. When the `scope` parameter is present, clients should use it to determine
-which scopes to request during authorization. If it's absent, clients should fall back to the
-`scopes_supported` field in the Protected Resource Metadata document.
+access the resource. For more on how clients should select scopes, see the
+[Scope Selection Strategy](/specification/latest/basic/authorization#scope-selection-strategy)
+section in the authorization spec.
 
 </Step>
 
