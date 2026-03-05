@@ -52,6 +52,13 @@ If `meta_spec_issues` contains errors:
 ```
 Re-annotate SEP-{sep_number}. Mode: validator. {commit_range if provided, else "PR mode."}
 The meta-spec was updated to fix QA issues. Re-annotate the diff against it and re-render.
+
+Use the pre-built scripts — do NOT write HTML manually or create custom Python scripts:
+- python3 plugins/mcp-spec/skills/spec-diff/scripts/parse_diff.py (parse diff)
+- python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py (build skeleton)
+- python3 plugins/mcp-spec/skills/spec-render/scripts/render.py (render HTML)
+
+Write ONLY meta-spec.json, annotations.json, and annotated-diff.html. No summary.md, README, or other files.
 ```
 
 Save this new reviewer's agent ID (replacing the old one).
@@ -68,7 +75,7 @@ The QA agent found these annotation issues. Fix them in annotations.json and re-
 {paste annotation_issues JSON here}
 ```
 
-After the reviewer finishes, re-run `spec-qa` to verify. Allow up to 2 total QA rounds — if still failing after 2 fix attempts, report remaining issues to the user rather than looping further.
+After the reviewer finishes, re-run `spec-qa` to verify. **Convergence rule:** Track the QA score across attempts. If the score does not improve after one fix round, stop the QA loop and proceed — do not retry the same fixes. Maximum 2 fix rounds total. Report remaining warnings to the user but do not block on them.
 
 ### Step 5: Report
 

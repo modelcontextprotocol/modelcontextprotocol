@@ -155,15 +155,39 @@ python3 plugins/mcp-spec/skills/spec-diff/scripts/parse_diff.py <diff_file> <par
 
 This produces a JSON file with files split into logical hunks (MDX files split on `##` headings, TS files split on declarations). If you received per-file patches from the GitHub API instead of a raw diff file, you can skip this script and split hunks manually following the rules in "Splitting Large Hunks" above.
 
-### Phase 2: Annotate (agent)
+### Phase 2: Build annotation skeleton (script)
 
-1. Read `meta-spec.json` to load all requirements
-2. Read the parsed diff (from the script or from API data)
-3. For each hunk, check relevant requirements and create annotations with full explanations
-4. **Copy the `patch_text` from the parsed diff into each hunk in annotations.json.** The render script needs the patch text to display the diff. If `patch_text` is empty, the HTML will show empty hunks.
-5. Build the requirement coverage summary
-6. Compute summary counts
-7. Write `annotations.json` to the output path
+Generate a skeleton annotations.json with all structure pre-populated:
+
+```bash
+python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py \
+  <meta_spec.json> <parsed_diff.json> <output_annotations.json>
+```
+
+This produces a valid annotations.json with:
+
+- All requirements pre-populated as `not_addressed` with empty summary/explanation
+- Files array with `patch_text` copied from the parsed diff
+- Generated files excluded
+- Bidirectional link infrastructure ready
+
+### Phase 3: Fill annotations (agent)
+
+Read the skeleton annotations.json and for each requirement:
+
+1. Read the hunks in the `files` array to find which ones address this requirement
+2. Update the annotation's `status`, `summary`, and `explanation`
+3. Add hunk references to the annotation's `hunks` array
+4. Add the requirement ID to each referenced hunk's `annotations` list in the `files` array
+
+Alternatively, write a `matches.json` file and re-run the script to apply it:
+
+```bash
+python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py \
+  <meta_spec.json> <parsed_diff.json> <output.json> --matches <matches.json>
+```
+
+The matches file maps requirement IDs to their status, summary, explanation, and hunk references. The script handles all bidirectional linking and summary counting automatically.
 
 ### Deduplication
 

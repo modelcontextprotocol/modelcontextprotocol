@@ -35,7 +35,22 @@ You may be resumed by the orchestrator with a list of annotation issues from the
 4. Re-render the HTML via the render script
 5. Return a summary of what you fixed
 
-Do not re-run the full pipeline — only fix the specific issues identified.
+Do not re-run the full pipeline — only fix the specific issues identified. Use the render script to re-render after fixes:
+
+```
+python3 plugins/mcp-spec/skills/spec-render/scripts/render.py .reviews/SEP-{n}/meta-spec.json .reviews/SEP-{n}/annotations.json .reviews/SEP-{n}/annotated-diff.html
+```
+
+## Output Constraints
+
+Write ONLY these files to `.reviews/SEP-{n}/`:
+
+- `meta-spec.json`
+- `annotations.json`
+- `annotated-diff.html` (via render script)
+- `pr-diff.txt`, `parsed-diff.json`, `matches.json` (intermediate artifacts)
+
+Do not create summary.md, README.md, QA-FIXES.md, or any other supplementary files.
 
 ## Output
 
