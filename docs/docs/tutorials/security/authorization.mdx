@@ -18,11 +18,11 @@ and servers establish trust in a consistent way. For the full details, see the
 
 While authorization for MCP servers is **optional**, it is strongly recommended when:
 
-- Your server accesses user-specific data (emails, documents, databases)
-- You need to audit who performed which actions
-- Your server grants access to its APIs that require user consent
-- You're building for enterprise environments with strict access controls
-- You want to implement rate limiting or usage tracking per user
+- Your server works with user-specific data like emails, documents, or databases
+- You need to track which user performed a given action
+- Your server exposes APIs that require user consent before access
+- You're targeting enterprise environments with strict access controls
+- You want to rate-limit or track usage on a per-user basis
 
 <Tip>
 **Authorization for Local MCP Servers**
