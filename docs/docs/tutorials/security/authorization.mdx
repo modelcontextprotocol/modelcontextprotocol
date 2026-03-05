@@ -54,11 +54,15 @@ to the client in the `resource_metadata` parameter within the `WWW-Authenticate`
 ```http
 HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Bearer realm="mcp",
-  resource_metadata="https://your-server.com/.well-known/oauth-protected-resource"
+  resource_metadata="https://your-server.com/.well-known/oauth-protected-resource",
+  scope="mcp:tools mcp:resources"
 ```
 
-This tells the client that authorization is required for the MCP server and where to get the
-necessary information to kickstart the authorization flow.
+This tells the client that authorization is required for the MCP server, where to get the
+necessary information to kickstart the authorization flow, and which scopes are needed to
+access the resource. When the `scope` parameter is present, clients should use it to determine
+which scopes to request during authorization. If it's absent, clients should fall back to the
+`scopes_supported` field in the Protected Resource Metadata document.
 
 </Step>
 
