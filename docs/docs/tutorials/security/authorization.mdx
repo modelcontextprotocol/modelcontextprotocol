@@ -310,6 +310,21 @@ The authorization UI is a Next.js app with two pieces: a frontend page that show
 login form, and a server-side API route that exchanges the session token for an authorization
 code.
 
+<Tree>
+  <Tree.Folder name="app" defaultOpen>
+    <Tree.File name="layout.tsx" />
+    <Tree.Folder name="authorize" defaultOpen>
+      <Tree.File name="page.tsx" />
+    </Tree.Folder>
+    <Tree.Folder name="api" defaultOpen>
+      <Tree.Folder name="authorize" defaultOpen>
+        <Tree.File name="route.ts" />
+      </Tree.Folder>
+    </Tree.Folder>
+  </Tree.Folder>
+  <Tree.File name=".env" />
+</Tree>
+
 Start by creating the root layout, which loads the Stytch CDN SDK:
 
 ```typescript
