@@ -254,23 +254,54 @@ CIMD lets MCP clients use an HTTPS URL as their `client_id`. The authorization s
 client metadata from that URL at authorization time, so there's no need for pre-registration
 or dynamic registration. Here's what it takes to get this working end-to-end.
 
-<Steps>
-<Step title="Set Up Stytch">
+#### Stytch Setup
 
-1. Create a [Stytch](https://stytch.com/) account and set up a project
-2. In the Stytch Dashboard, go to **Connected Apps** and
-   [enable CIMD support](https://stytch.com/docs/connected-apps/oauth-learn-more/client-types#client-id-metadata-documents-beta)
-3. [Register any custom scopes](https://stytch.com/docs/connected-apps/oauth-learn-more/scopes)
-   your MCP server needs (e.g., `mcp:tools`) under **Connected Apps → Scopes**
-4. Under **Frontend SDKs → Authorized applications**, add the domain where your
-   authorization UI will be hosted
+Start by creating a [Stytch](https://stytch.com/) account and setting up a new project. Once
+you're in the Stytch Dashboard, navigate to **Connected Apps** to configure CIMD support.
 
-Without enabling CIMD in the dashboard, Stytch will reject URL-based `client_id` values with
-"The Connected App requested could not be found."
+<Frame>
+  <img
+    src="/images/tutorial-authorization/stytch-connected-apps.png"
+    alt="Stytch Connected Apps dashboard."
+  />
+</Frame>
 
-</Step>
+[Enable CIMD support](https://stytch.com/docs/connected-apps/oauth-learn-more/client-types#client-id-metadata-documents-beta)
+under **Connected Apps → Settings**. This tells Stytch to accept URL-based `client_id` values
+and fetch client metadata from those URLs during authorization. Without this setting enabled,
+Stytch will reject URL-based `client_id` values with "The Connected App requested could not
+be found."
 
-<Step title="Write the MCP Server">
+<Frame>
+  <img
+    src="/images/tutorial-authorization/stytch-enable-cimd.png"
+    alt="Enabling CIMD support in Stytch Connected Apps settings."
+  />
+</Frame>
+
+Next, [register any custom scopes](https://stytch.com/docs/connected-apps/oauth-learn-more/scopes)
+your MCP server needs. Navigate to **Connected Apps → Scopes** and add a `mcp:tools` scope.
+This scope will be required for clients to access tools on your MCP server.
+
+<Frame>
+  <img
+    src="/images/tutorial-authorization/stytch-scopes.png"
+    alt="Configuring custom scopes in Stytch."
+  />
+</Frame>
+
+Finally, go to **Frontend SDKs → Authorized applications** and add the domain where your
+authorization UI will be hosted (e.g., `http://localhost:3002` for local development). This
+allows Stytch to redirect back to your application after the user authenticates.
+
+<Frame>
+  <img
+    src="/images/tutorial-authorization/stytch-authorized-apps.png"
+    alt="Adding authorized application domains in Stytch."
+  />
+</Frame>
+
+#### Write the MCP Server
 
 Your MCP server acts as an OAuth 2.1 resource server — it validates access tokens and serves
 Protected Resource Metadata so clients know where to authenticate. The SDK handles metadata
@@ -479,12 +510,11 @@ For more details, see the
 </Tab>
 </Tabs>
 
-</Step>
+#### Testing with CIMD
 
-<Step title="Test the Flow">
-
-With the server running, connect an MCP client (like [VS Code](https://code.visualstudio.com/))
-to your MCP server endpoint. When the client calls a protected tool:
+With the server running, connect an MCP client (like
+[Visual Studio Code](https://code.visualstudio.com)) to your MCP server endpoint at
+`http://localhost:3001`. On connection, the authorization flow will proceed as follows:
 
 1. The server returns a `401` with `WWW-Authenticate` pointing to the Protected Resource Metadata
 2. The client fetches the PRM, discovers the AS metadata URL
@@ -493,8 +523,12 @@ to your MCP server endpoint. When the client calls a protected tool:
 5. A browser window opens to your authorization UI with the Stytch login
 6. After authentication, the client receives a token and retries the tool call
 
-</Step>
-</Steps>
+<Frame>
+  <img
+    src="/images/tutorial-authorization/stytch-login.png"
+    alt="Stytch login screen during the OAuth authorization flow."
+  />
+</Frame>
 
 You can also use [client.dev](https://client.dev/) as a reference authorization server that
 supports CIMD out of the box for quick testing and experimentation.
