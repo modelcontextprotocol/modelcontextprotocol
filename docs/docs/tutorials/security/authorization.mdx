@@ -999,76 +999,157 @@ For more details, see the
 </Tab>
 </Tabs>
 
-## Testing with Client ID Metadata Documents
+## Implementing Client Registration
 
-[client.dev](https://client.dev/) is a reference authorization server that supports Client ID
-Metadata Documents out of the box. It's designed for testing and experimentation with the
-CIMD approach.
+The sections below walk through setting up end-to-end authorization using the two most common
+client registration approaches: Client ID Metadata Documents (CIMD) and Dynamic Client
+Registration (DCR).
 
-An authorization server advertises CIMD support by including
-`"client_id_metadata_document_supported": true` in its
-[authorization server metadata](#authorization-server-discovery). MCP clients can check this
-field to determine whether they can use a metadata document URL as their `client_id`.
+### Client ID Metadata Documents with Stytch
+
+<Note>
+This example uses [Stytch](https://stytch.com/) as the identity provider because it supports
+CIMD natively through its [Connected Apps](https://stytch.com/docs/connected-apps) feature.
+The same approach works with any CIMD-capable identity provider — the key requirement is that
+your authorization server advertises `"client_id_metadata_document_supported": true` in its
+metadata.
+</Note>
+
+CIMD lets MCP clients use an HTTPS URL as their `client_id`. The authorization server fetches
+client metadata from that URL at authorization time, so there's no need for pre-registration
+or dynamic registration. Here's what it takes to get this working end-to-end.
 
 <Steps>
-<Step title="Create Your Client Metadata Document">
-Create a JSON file with your client metadata and host it at a publicly accessible HTTPS URL.
-The document must include required fields:
+<Step title="Set Up Stytch">
 
-```json
-{
-  "client_id": "https://your-domain.com/oauth/metadata.json",
-  "client_name": "My MCP Client",
-  "redirect_uris": ["http://localhost:3000/callback"],
-  "grant_types": ["authorization_code"],
-  "response_types": ["code"],
-  "token_endpoint_auth_method": "none"
-}
-```
+1. Create a [Stytch](https://stytch.com/) account and set up a project
+2. In the Stytch Dashboard, go to **Connected Apps** and enable CIMD support
+   ([docs](https://stytch.com/docs/connected-apps/oauth-learn-more/client-types#client-id-metadata-documents-beta))
+3. Register any custom scopes your MCP server needs (e.g., `read:account`) under
+   **Connected Apps → Scopes**
+   ([docs](https://stytch.com/docs/connected-apps/oauth-learn-more/scopes))
+4. Under **Frontend SDKs → Authorized applications**, add the domain where your
+   authorization UI will be hosted
 
-The `client_id` value must exactly match the URL where the document is hosted.
-
-<Warning>
-**Public Reachability**
-
-The `client_id` URL must be publicly reachable by the authorization server at authorization
-time. The AS will fetch this URL to retrieve your client metadata, so it cannot be behind a
-firewall, VPN, or `localhost`. For local development, consider using a tunneling service or
-hosting the metadata document on a public server.
-
-</Warning>
+Without enabling CIMD in the dashboard, Stytch will reject URL-based `client_id` values with
+"The Connected App requested could not be found."
 
 </Step>
 
-<Step title="Configure Your MCP Server">
-Set up your MCP server to use `https://client.dev` as its authorization server. In your
-Protected Resource Metadata, include:
+<Step title="Advertise CIMD Support in Your Server">
+
+Your MCP server needs to serve Authorization Server metadata that includes the CIMD support
+flag. The MCP SDK's default metadata helper doesn't include this field, so you need to serve
+it yourself:
+
+```typescript
+// Serve AS metadata with CIMD support flag before mcpAuthRouter
+const oauthMetadata = createOAuthMetadata({
+  provider,
+  issuerUrl: publicUrl,
+  baseUrl: publicUrl,
+  scopesSupported: ["read:account"],
+});
+
+app.get("/.well-known/oauth-authorization-server", (_req, res) => {
+  res.json({
+    ...oauthMetadata,
+    client_id_metadata_document_supported: true,
+  });
+});
+```
+
+MCP clients (like VS Code) check this field to decide between CIMD and DCR. Without it,
+clients fall back to DCR and fail if no `registration_endpoint` is present.
+
+</Step>
+
+<Step title="Configure Protected Resource Metadata">
+
+Your server also needs to serve Protected Resource Metadata that points to the authorization
+server and advertises supported scopes:
 
 ```json
 {
   "resource": "https://your-mcp-server.com",
-  "authorization_servers": ["https://client.dev"]
+  "authorization_servers": ["https://your-mcp-server.com"],
+  "scopes_supported": ["read:account"]
 }
 ```
 
+The `authorization_servers` entry points to wherever you're serving the AS metadata from.
+If you're proxying authorization endpoints through your MCP server (as shown below), this
+will be your server's own URL.
+
 </Step>
 
-<Step title="Test the Authorization Flow">
-When an MCP client connects to your server, the authorization flow will:
+<Step title="Proxy the Authorization Endpoints">
 
-1. Redirect to `client.dev` with your metadata URL as the `client_id`
-2. `client.dev` fetches and validates your metadata document
-3. The user authenticates and grants consent
-4. The client receives an access token to use with your MCP server
+Since Stytch handles the actual OAuth logic, your MCP server proxies the `/authorize` and
+`/token` endpoints to Stytch. The MCP SDK's `ProxyOAuthServerProvider` handles this:
+
+```typescript
+const provider = new ProxyOAuthServerProvider({
+  endpoints: {
+    authorizationUrl: `${authPublicUrl}/authorize`,
+    tokenUrl: `${STYTCH_DOMAIN}/v1/oauth2/token`,
+  },
+  verifyAccessToken: async (token: string) => {
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: STYTCH_DOMAIN,
+    });
+    return {
+      token,
+      clientId: (payload.sub as string) ?? "",
+      scopes: typeof payload.scope === "string"
+        ? payload.scope.split(" ")
+        : [],
+      expiresAt: payload.exp,
+    };
+  },
+  getClient: async (clientId: string) => {
+    // CIMD: fetch client metadata from the client_id URL
+    try {
+      const resp = await fetch(clientId, {
+        headers: { Accept: "application/json" },
+      });
+      if (!resp.ok) return undefined;
+      return await resp.json();
+    } catch {
+      return undefined;
+    }
+  },
+});
+```
+
+The `getClient` callback is where CIMD happens — when the authorization server receives a
+URL-formatted `client_id`, it fetches the metadata document from that URL and validates it.
+
+</Step>
+
+<Step title="Test the Flow">
+
+With the server running, connect an MCP client (like [VS Code](https://code.visualstudio.com/))
+to your MCP server endpoint. When the client calls a protected tool:
+
+1. The server returns a `401` with `WWW-Authenticate` pointing to the Protected Resource Metadata
+2. The client fetches the PRM, discovers the AS metadata URL
+3. The AS metadata advertises `client_id_metadata_document_supported: true`
+4. The client uses CIMD and initiates the OAuth flow
+5. A browser window opens to your authorization UI with the Stytch login
+6. After authentication, the client receives a token and retries the tool call
 
 </Step>
 </Steps>
 
 <Tip>
-[Visual Studio Code](https://code.visualstudio.com/) supports CIMD as an MCP client, making
-it a convenient tool for testing your CIMD-enabled MCP servers during development.
-
+For a complete working example, see the
+[mcp-app-faux-bank](https://github.com/nichochar/mcp-app-faux-bank) demo, which implements
+this exact pattern with Stytch as the identity provider.
 </Tip>
+
+You can also use [client.dev](https://client.dev/) as a reference authorization server that
+supports CIMD out of the box for quick testing and experimentation.
 
 <Note>
 **Common Issues**
@@ -1083,15 +1164,17 @@ it a convenient tool for testing your CIMD-enabled MCP servers during developmen
   `token_endpoint_auth_method` are present in your metadata document.
 - **HTTPS requirement**: The metadata document URL must use HTTPS (not HTTP) with a path
   component.
+- **Scopes must be registered**: Custom scopes must be registered in your identity provider's
+  dashboard. Without this, the IdP will reject the authorization request.
 
 </Note>
 
-## Testing with Dynamic Client Registration
+### Dynamic Client Registration
 
 <Warning>
   This example uses Dynamic Client Registration (DCR), which is maintained for
   backwards compatibility. For new implementations, prefer [Client ID Metadata
-  Documents](#testing-with-client-id-metadata-documents) when the authorization
+  Documents](#client-id-metadata-documents-with-stytch) when the authorization
   server supports them.
 </Warning>
 
@@ -1103,7 +1186,7 @@ Make sure that you download and install
 [Docker Desktop](https://www.docker.com/products/docker-desktop/). We will need it to deploy
 Keycloak on our development machine.
 
-### Keycloak Setup
+#### Keycloak Setup
 
 From your terminal application, run the following command to start the Keycloak container:
 
@@ -1280,7 +1363,7 @@ important in our implementation to validate.
 
 </Warning>
 
-## Testing the MCP Server
+### Testing the MCP Server
 
 For testing purposes, we will be using [Visual Studio Code](https://code.visualstudio.com),
 but any client that supports MCP and the new authorization specification will fit.
