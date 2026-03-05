@@ -256,21 +256,12 @@ or dynamic registration. Here's what it takes to get this working end-to-end.
 
 #### Stytch Setup
 
-Start by creating a [Stytch](https://stytch.com/) account and setting up a new project. Once
-you're in the Stytch Dashboard, navigate to **Connected Apps** to configure CIMD support.
-
-<Frame>
-  <img
-    src="/images/tutorial-authorization/stytch-connected-apps.png"
-    alt="Stytch Connected Apps dashboard."
-  />
-</Frame>
-
-[Enable CIMD support](https://stytch.com/docs/connected-apps/oauth-learn-more/client-types#client-id-metadata-documents-beta)
-under **Connected Apps → Settings**. This tells Stytch to accept URL-based `client_id` values
-and fetch client metadata from those URLs during authorization. Without this setting enabled,
-Stytch will reject URL-based `client_id` values with "The Connected App requested could not
-be found."
+Create a [Stytch](https://stytch.com/) account and set up a new project. In the Stytch
+Dashboard, navigate to **Connected Apps → Settings** and
+[enable CIMD support](https://stytch.com/docs/connected-apps/oauth-learn-more/client-types#client-id-metadata-documents-beta).
+This tells Stytch to accept URL-based `client_id` values and fetch client metadata from those
+URLs during authorization. Without this setting enabled, Stytch will reject URL-based
+`client_id` values with "The Connected App requested could not be found."
 
 <Frame>
   <img
