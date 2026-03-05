@@ -1035,11 +1035,19 @@ Without enabling CIMD in the dashboard, Stytch will reject URL-based `client_id`
 
 </Step>
 
-<Step title="Advertise CIMD Support in Your Server">
+<Step title="Advertise CIMD Support and Configure Your Server">
 
-Your MCP server needs to serve Authorization Server metadata that includes the CIMD support
-flag. The MCP SDK's default metadata helper doesn't include this field, so you need to serve
-it yourself:
+MCP clients (like VS Code) check the Authorization Server metadata for
+`client_id_metadata_document_supported: true` to decide whether to use CIMD or fall back to
+DCR. Your MCP server needs to ensure this flag is present and serve Protected Resource
+Metadata that points clients to the right authorization server.
+
+<Tabs>
+<Tab title="TypeScript">
+
+In TypeScript, the MCP server typically proxies OAuth endpoints to the external IdP. The
+SDK's default metadata helper doesn't include the CIMD flag, so you need to serve the AS
+metadata yourself:
 
 ```typescript
 // Serve AS metadata with CIMD support flag before mcpAuthRouter
@@ -1058,34 +1066,61 @@ app.get("/.well-known/oauth-authorization-server", (_req, res) => {
 });
 ```
 
-MCP clients (like VS Code) check this field to decide between CIMD and DCR. Without it,
-clients fall back to DCR and fail if no `registration_endpoint` is present.
+The Protected Resource Metadata is handled by `mcpAuthRouter`, which serves it at the
+standard `/.well-known/oauth-protected-resource` path. The `authorization_servers` entry
+points to your MCP server's own URL since it proxies authorization endpoints to Stytch.
 
-</Step>
+</Tab>
+<Tab title="C#">
 
-<Step title="Configure Protected Resource Metadata">
+In C#, the MCP server points clients directly to an external authorization server that
+handles CIMD. The `AddMcp()` extension configures the Protected Resource Metadata, and the
+`McpAuthenticationHandler` automatically serves it and adds `WWW-Authenticate` headers on
+`401` responses:
 
-Your server also needs to serve Protected Resource Metadata that points to the authorization
-server and advertises supported scopes:
-
-```json
+```csharp
+builder.Services.AddAuthentication(options =>
 {
-  "resource": "https://your-mcp-server.com",
-  "authorization_servers": ["https://your-mcp-server.com"],
-  "scopes_supported": ["read:account"]
-}
+    options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Authority = stytchDomain;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = stytchDomain,
+        ValidAudience = serverUrl,
+    };
+})
+.AddMcp(options =>
+{
+    options.ResourceMetadata = new()
+    {
+        AuthorizationServers = { stytchDomain },
+        ScopesSupported = ["read:account"],
+    };
+});
 ```
 
-The `authorization_servers` entry points to wherever you're serving the AS metadata from.
-If you're proxying authorization endpoints through your MCP server (as shown below), this
-will be your server's own URL.
+The CIMD flag (`client_id_metadata_document_supported`) is served by the external
+authorization server (Stytch), not by the MCP server itself. Make sure your authorization
+server advertises this in its metadata.
+
+</Tab>
+</Tabs>
 
 </Step>
 
 <Step title="Proxy the Authorization Endpoints">
 
-Since Stytch handles the actual OAuth logic, your MCP server proxies the `/authorize` and
-`/token` endpoints to Stytch. The MCP SDK's `ProxyOAuthServerProvider` handles this:
+How the MCP server connects to the external IdP depends on your SDK.
+
+<Tabs>
+<Tab title="TypeScript">
+
+In TypeScript, the MCP server proxies the `/authorize` and `/token` endpoints to Stytch using
+`ProxyOAuthServerProvider`:
 
 ```typescript
 const provider = new ProxyOAuthServerProvider({
@@ -1123,6 +1158,34 @@ const provider = new ProxyOAuthServerProvider({
 
 The `getClient` callback is where CIMD happens — when the authorization server receives a
 URL-formatted `client_id`, it fetches the metadata document from that URL and validates it.
+
+</Tab>
+<Tab title="C#">
+
+In C#, no proxying is needed. The MCP server points clients directly to the external
+authorization server through its Protected Resource Metadata, and the AS handles the OAuth
+flow (including CIMD) on its own. The MCP server's role is limited to validating the tokens
+it receives:
+
+```csharp
+builder.Services.AddAuthorization();
+builder.Services.AddMcpServer()
+    .WithTools<MyTools>()
+    .WithHttpTransport();
+
+var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapMcp().RequireAuthorization();
+```
+
+Token validation is handled by ASP.NET Core's JWT Bearer middleware, which you configured
+in the previous step with `AddJwtBearer()`.
+
+</Tab>
+</Tabs>
 
 </Step>
 
