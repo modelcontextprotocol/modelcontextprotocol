@@ -162,7 +162,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link ContinueTaskRequesttasks/continue}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
             "required": [
@@ -479,7 +479,7 @@
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadRequest"
+                    "$ref": "#/$defs/ContinueTaskRequest"
                 },
                 {
                     "$ref": "#/$defs/CancelTaskRequest"
@@ -505,7 +505,7 @@
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                    "$ref": "#/$defs/ContinueTaskResult"
                 },
                 {
                     "$ref": "#/$defs/CancelTaskResult",
@@ -681,6 +681,114 @@
                 }
             ]
         },
+        "ContinueTaskRequest": {
+            "description": "A request to continue a task.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "tasks/continue",
+                    "type": "string"
+                },
+                "params": {
+                    "properties": {
+                        "taskId": {
+                            "description": "The task identifier to query.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "taskId"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "ContinueTaskResult": {
+            "description": "The response to a tasks/continue request.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "createdAt": {
+                    "description": "ISO 8601 timestamp when the task was created.",
+                    "type": "string"
+                },
+                "error": {
+                    "$ref": "#/$defs/Error",
+                    "description": "This is the error associated with the original request.\nThis field is only defined when the task status is \"failed\". If a task\nis \"cancelled\", its statusMessage field will communicate that information."
+                },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
+                "pollInterval": {
+                    "description": "Suggested polling interval in milliseconds.",
+                    "type": "integer"
+                },
+                "result": {
+                    "$ref": "#/$defs/Result",
+                    "description": "This is the result shape of the original request, e.g. CallToolResult.\nThis field is only defined when the task status is \"completed\"."
+                },
+                "status": {
+                    "$ref": "#/$defs/TaskStatus",
+                    "description": "Current task state."
+                },
+                "statusMessage": {
+                    "description": "Optional human-readable message describing the current task state.\nThis can provide context for any status, including:\n- Reasons for \"cancelled\" status\n- Summaries for \"completed\" status\n- Diagnostic information for \"failed\" status (e.g., error details, what went wrong)",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "The task identifier.",
+                    "type": "string"
+                },
+                "ttl": {
+                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "createdAt",
+                "lastUpdatedAt",
+                "status",
+                "taskId",
+                "ttl"
+            ],
+            "type": "object"
+        },
+        "ContinueTaskResultResponse": {
+            "description": "A successful response for a {@link ContinueTaskRequesttasks/continue} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/ContinueTaskResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
+            "type": "object"
+        },
         "CreateMessageRequest": {
             "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
             "properties": {
@@ -752,7 +860,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link ContinueTaskRequesttasks/continue}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 },
                 "temperature": {
                     "type": "number"
@@ -958,7 +1066,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link ContinueTaskRequesttasks/continue}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
             "required": [
@@ -999,7 +1107,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link ContinueTaskRequesttasks/continue}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -1266,72 +1374,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/GetPromptResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
-        "GetTaskPayloadRequest": {
-            "description": "A request to retrieve the result of a completed task.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "tasks/result",
-                    "type": "string"
-                },
-                "params": {
-                    "properties": {
-                        "taskId": {
-                            "description": "The task identifier to retrieve results for.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "taskId"
-                    ],
-                    "type": "object"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
-        "GetTaskPayloadResult": {
-            "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                }
-            },
-            "type": "object"
-        },
-        "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
                 }
             },
             "required": [
@@ -3472,7 +3514,7 @@
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadRequest"
+                    "$ref": "#/$defs/ContinueTaskRequest"
                 },
                 {
                     "$ref": "#/$defs/CancelTaskRequest"
@@ -3528,7 +3570,7 @@
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                    "$ref": "#/$defs/ContinueTaskResult"
                 },
                 {
                     "$ref": "#/$defs/CancelTaskResult",
@@ -3722,6 +3764,10 @@
                     "description": "ISO 8601 timestamp when the task was created.",
                     "type": "string"
                 },
+                "error": {
+                    "$ref": "#/$defs/Error",
+                    "description": "This is the error associated with the original request.\nThis field is only defined when the task status is \"failed\". If a task\nis \"cancelled\", its statusMessage field will communicate that information."
+                },
                 "lastUpdatedAt": {
                     "description": "ISO 8601 timestamp when the task was last updated.",
                     "type": "string"
@@ -3729,6 +3775,10 @@
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
+                },
+                "result": {
+                    "$ref": "#/$defs/Result",
+                    "description": "This is the result shape of the original request, e.g. CallToolResult.\nThis field is only defined when the task status is \"completed\"."
                 },
                 "status": {
                     "$ref": "#/$defs/TaskStatus",
@@ -3767,7 +3817,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link ContinueTaskRequesttasks/continue}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
             "type": "object"
