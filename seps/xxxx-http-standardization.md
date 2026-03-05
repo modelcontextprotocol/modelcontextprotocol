@@ -387,8 +387,6 @@ Clients MUST apply the following encoding rules in order:
 4. **Control character check**: If the string contains any control characters (0x00-0x1F or 0x7F):
    - Apply Base64 encoding (see below)
 
-5. **Length validation**: If the encoded value exceeds 8192 bytes, the client MUST omit the header and MAY log a warning
-
 **Base64 Encoding for Unsafe Values**
 
 When a value cannot be safely represented as a plain ASCII header value, clients MUST use Base64 encoding of the UTF-8 representation of the value with the following format:
@@ -554,54 +552,18 @@ The `x-mcp-header` extension is placed directly within the JSON Schema of the pr
 
 The `x-mcp-header` mechanism currently applies only to `tools/call` requests because tools are the only MCP primitive with an `inputSchema` that supports JSON Schema extension keywords. Resources and prompts lack an equivalent schema structure: `resources/read` takes only a `uri` (already exposed via `Mcp-Name`), and `prompts/get` defines arguments as a simple `{name, description, required}` array without JSON Schema extensibility. Generalizing custom header mapping to these primitives would require adding `inputSchema`-style definitions to resources and prompts, which is a larger specification change. This is noted as a potential future extension.
 
-### Header Size and Count Limits
+### No Specification-Level Header Size Limit
 
-This specification currently defines a single limit: individual header values exceeding 8192 bytes MUST be omitted. The following additional limits are under consideration:
+This specification intentionally does not define limits on individual header value length, total MCP header size, or number of custom headers. Headers are solely an HTTP concept, and HTTP itself ([RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110)) does not specify header size limits. Common HTTP infrastructure imposes its own limits — ranging from 4–8 KB on some servers (e.g., Apache at ~8190 bytes) to 128 KB on others (e.g., Cloudflare) — but the appropriate limit depends on the deployment environment, which only the service operator can determine.
 
-#### Maximum Number of Custom Headers
+Defining a specification-level limit (such as "omit headers exceeding 8192 bytes") would introduce problems:
 
-**Option**: Limit the number of `Mcp-Param-*` headers per request (e.g., 32 or 64).
+1. **Arbitrary threshold**: Any chosen value would be too low for some deployments and irrelevant for others. The "right" limit varies by infrastructure.
+2. **Counterproductive omission**: If a client omits a header because it exceeds a spec-defined limit, servers and intermediaries that rely on that header for routing must either parse the body or reject the request — undermining the core purpose of exposing values in headers.
+3. **Unnecessary SDK burden**: SDK maintainers would need to implement and test limit-checking logic for a constraint that rarely applies in practice.
+4. **Redundant with HTTP**: Servers and intermediaries already reject oversized headers using standard HTTP status codes (`413 Request Entity Too Large`, `431 Request Header Fields Too Large`), which clients must handle regardless.
 
-| Pros | Cons |
-|------|------|
-| Prevents abuse where tools define excessive headers | Artificial constraint that may limit legitimate use cases |
-| Ensures predictable memory usage on servers | Tools with many routable parameters would need workarounds |
-| Simplifies implementation (fixed-size arrays) | Adds complexity for clients to track and enforce |
-
-**Current stance**: Not specified. Implementations SHOULD accept a reasonable number of custom headers (at least 32). Server implementations MAY impose their own limits and reject requests exceeding them with error code `-32001`.
-
-#### Maximum Header Name Length
-
-**Option**: Limit the `{Name}` portion of `Mcp-Param-{Name}` (e.g., 64 or 256 bytes).
-
-| Pros | Cons |
-|------|------|
-| Prevents excessively long header names | x-mcp-header values are already server-controlled |
-| Aligns with common HTTP server limits | May require truncation logic in SDKs |
-| Improves log readability | Adds validation overhead |
-
-**Current stance**: Not specified. The `x-mcp-header` value is defined by the server and SHOULD be kept reasonably short (recommended maximum: 64 characters). HTTP infrastructure typically limits header names to 1-8 KB; staying well under this avoids interoperability issues.
-
-#### Maximum Total MCP Header Size
-
-**Option**: Limit the combined size of all MCP-related headers (e.g., 16 KB or 32 KB).
-
-| Pros | Cons |
-|------|------|
-| Provides a clear upper bound for resource allocation | Complex to calculate across multiple headers |
-| Protects against memory exhaustion attacks | May conflict with infrastructure-imposed limits |
-| Ensures compatibility with restrictive proxies | Requires clients to track cumulative size |
-
-**Current stance**: Not specified. Implementations SHOULD be aware that many HTTP servers and proxies impose total header size limits (commonly 8-16 KB).
-
-#### Recommendations for Implementers
-
-Until specific limits are mandated by a future version of this specification:
-
-1. **Servers** SHOULD document any limits they impose on header count or size
-2. **Tool authors** SHOULD limit the number of `x-mcp-header` annotations to those providing clear infrastructure benefits
-3. **Clients** SHOULD gracefully handle `413 Request Entity Too Large` or `431 Request Header Fields Too Large` responses
-4. **SDKs** SHOULD provide configuration options for header limits to support diverse deployment environments
+> **Note to implementers**: Servers, intermediaries, and clients MAY independently impose limits on individual header size, total MCP header size, or number of custom headers as appropriate for their deployment environment. Servers SHOULD document any limits they impose. Clients SHOULD gracefully handle `413 Request Entity Too Large` or `431 Request Header Fields Too Large` responses. Tool authors SHOULD limit `x-mcp-header` annotations to parameters that provide clear infrastructure benefits.
 
 ### Encoding Approach for Unsafe Values
 
@@ -744,7 +706,6 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | String with carriage return | `"line1\r\nline2"` | `Mcp-Param-Text: =?base64?bGluZTENCmxpbmUy?=` |
 | String with leading tab | `"\tindented"` | `Mcp-Param-Text: =?base64?CWluZGVudGVk?=` |
 | Empty string | `""` | `Mcp-Param-Name: ` (empty value) |
-| String exceeding length limit | 10000 character string | Client MUST omit header |
 
 #### Type Restriction Violations
 
