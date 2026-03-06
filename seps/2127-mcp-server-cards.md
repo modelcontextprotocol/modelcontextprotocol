@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover server capabilities, available transports, authentication requirements, protocol versions and descriptions of primitives before establishing a connection.
+This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover server capabilities, available transports, authentication requirements, and protocol versions before establishing a connection.
 
 ## Motivation
 
@@ -29,12 +29,11 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 - **Autoconfiguration**: IDE extensions can automatically configure themselves when pointed at a domain, eliminating manual setup.
 - **Automated Discovery**: Clients and registries can crawl domains to discover available MCP servers, enabling ecosystem-wide server indexes.
-- **Static Verification**: Clients can validate tool descriptions against security classifiers and cache these validations, improving safety without repeated checks.
 - **Reduced Latency:** Display server information, capabilities, and metadata without waiting for full initialization sequences.
 
 ### Design Philosophy
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what is available, while initialization handles how to communicate.
+The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what capabilities are available, while initialization handles the communication handshake.
 
 ### Discovery
 
@@ -62,7 +61,7 @@ The focus of MCP Server Cards is on expressing _remote_ MCP servers; however the
 
 This alignment is useful for the following reasons:
 
-1. **Cross-cutting concerns**. The two use cases share many cross-cutting concerns, such as static primitive definitions, identity, documentation, and more. By keeping one as a strict subset of the other, we ensure that efforts to improve the shape move in concert and avoid re-inventing the wheel.
+1. **Cross-cutting concerns**. The two use cases share many cross-cutting concerns, such as identity, documentation, and more. By keeping one as a strict subset of the other, we ensure that efforts to improve the shape move in concert and avoid re-inventing the wheel.
 
 2. **Shared tooling**. Only one set of tooling or frameworks needs to exist to parse and generate/modify Server Card files.
 
@@ -97,9 +96,6 @@ This section provides the technical specification for MCP Server Cards.
   "remotes": [ ... ],
   "capabilities":  { ... },
   "requires": { ... },
-  "resources": [ ... ],
-  "tools": [ ... ],
-  "prompts": [ ... ],
   "_meta": { ... }
 }
 ```
@@ -181,67 +177,6 @@ Fleshed out (contrived values) example:
     "sampling": {},
     "roots": {}
   },
-  "resources": [
-    {
-      "uri": "file:///project/src/main.rs",
-      "name": "main.rs",
-      "title": "Rust Software Application Main File",
-      "description": "Primary application entry point",
-      "mimeType": "text/x-rust",
-      "icons": [
-        {
-          "src": "https://example.com/rust-file-icon.png",
-          "mimeType": "image/png",
-          "sizes": ["48x48"]
-        }
-      ]
-    }
-  ],
-  "tools": [
-    {
-      "name": "get_weather",
-      "title": "Weather Information Provider",
-      "description": "Get current weather information for a location",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "City name or zip code"
-          }
-        },
-        "required": ["location"]
-      },
-      "icons": [
-        {
-          "src": "https://example.com/weather-icon.png",
-          "mimeType": "image/png",
-          "sizes": ["48x48"]
-        }
-      ]
-    }
-  ],
-  "prompts": [
-    {
-      "name": "code_review",
-      "title": "Request Code Review",
-      "description": "Asks the LLM to analyze code quality and suggest improvements",
-      "arguments": [
-        {
-          "name": "code",
-          "description": "The code to review",
-          "required": true
-        }
-      ],
-      "icons": [
-        {
-          "src": "https://example.com/review-icon.svg",
-          "mimeType": "image/svg+xml",
-          "sizes": ["any"]
-        }
-      ]
-    }
-  ],
   "_meta": { ... }
 }
 
@@ -281,20 +216,7 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
     2. **roots** (object, optional): Root access requirement
     3. **sampling** (object, optional): LLM sampling requirement
     4. **elicitation** (object, optional): User elicitation requirement
-11. **resources** (string | array, optional): Resource definitions
-    1. If "dynamic": Must be discovered via protocol
-    2. If array: Static list following the `Resource` interface
-12. **tools** (string | array, optional): Tool definitions
-    1. If "dynamic": Must be discovered via protocol
-    2. If array: Static list following the `Tool` interface
-13. **prompts** (string | array, optional): Prompt definitions
-    1. If "dynamic": Must be discovered via protocol
-    2. If array: Static list following the `Prompt` interface
-14. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
-
-### Dynamic Primitives
-
-MCP primitives are dynamic in nature and can change. To indicate that a list of primitives is dynamic in nature, authors can provide the reserved string "dynamic" (as an array with a single element) for the resources, tools, or prompts field. This indicates that the full list of primitives must be discovered through the protocol's standard list operations.
+11. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
 ### `server.json` Schema
 
@@ -456,14 +378,15 @@ MCP Server Cards aim to provide a static representation of server metadata and c
 
 The MCP Registry and its corresponding `server.json` share the same goal but for different consumers. Consequently, keeping both as closely aligned as possible ensures that we don't have to re-invent and diverge, and that developers have to only rely on one parser.
 
-### Why Support Both Static and Dynamic Primitives?
+### Why Exclude Primitives?
 
-Some servers have fixed tool sets that never change, while others generate tools dynamically based on user context or external data. Supporting both patterns:
+This specification intentionally omits primitive definitions (tools, resources, and prompts) from server cards. MCP servers are inherently dynamic: the primitives a server exposes can vary by authenticated user, session, configuration, feature flags, deployment state, and more. A static document cannot reliably represent this surface, and there is currently no viable substitute for runtime listing via the protocol's standard operations (`tools/list`, `resources/list`, `prompts/list`) with the logged-in user's identity. Including primitives prematurely risks disadvantaging dynamic servers and encouraging clients to rely on information that may be incorrect. A follow-on SEP should address the prerequisites, such as variant enumeration and clear consumer contracts, before primitive advertisement is added.
 
-- Allows static servers to fully describe themselves in the server card
-- Enables security scanning of static tool sets before connection
-- Preserves flexibility for dynamic use cases
-- Makes the "dynamic" marker explicit rather than implicit
+### Why Not Wait for Primitives?
+
+The debate around primitives should not delay server card adoption. Discovery (knowing that a server exists, where to connect, what transports it supports, and what authentication it requires) is enormously valuable on its own. It is the information an end user or IDE needs to install and configure a server, and it is the information a registry needs to index one. None of this depends on knowing the server's tool list in advance.
+
+Server cards without primitives already enable the core use cases that motivate this SEP: autoconfiguration, domain-level discovery, reduced-latency metadata retrieval, and registry integration. Primitives can be added in a future revision once the ecosystem has the right mechanisms to advertise them safely. Shipping discovery now, and shipping it correctly, is more important than shipping a larger surface that risks being wrong.
 
 ## Backward Compatibility
 
@@ -491,15 +414,9 @@ Server cards are publicly accessible by design. Servers MUST NOT include sensiti
 - Proprietary business logic or algorithms
 - User-specific or session-specific data
 
-### Tool Description Security
+### Primitive Information
 
-Exposing tool descriptions in server cards before connection establishment creates an opportunity for clients to perform security analysis. This is a security _improvement_ as it enables:
-
-- Offline security scanning of tool capabilities
-- Automated classification before user exposure
-- Cached security validations reducing runtime overhead
-
-However, clients MUST still validate that the actual tools provided during initialization match the advertised tools in the server card. Servers MAY omit sensitive tool descriptions from the server card and mark tools as "dynamic" if pre-connection disclosure is undesirable.
+Server cards intentionally exclude primitive definitions (tools, resources, prompts). This avoids a class of security concerns where clients might trust a static manifest's tool descriptions for access-control or safety decisions, when the actual primitives at runtime may differ due to auth scoping, feature flags, configuration, or other dynamic factors. Primitives SHOULD always be discovered and validated through the protocol's standard list operations after connection establishment.
 
 ### CORS Requirements
 
