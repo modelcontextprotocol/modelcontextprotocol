@@ -33,7 +33,7 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 ### Design Philosophy
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what capabilities are available, while initialization handles the communication handshake and reveals the full server surface including primitives (tools, resources, and prompts).
+The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what capabilities are available, while initialization handles the communication handshake.
 
 ### Discovery
 
@@ -416,7 +416,7 @@ Server cards are publicly accessible by design. Servers MUST NOT include sensiti
 
 ### Primitive Information
 
-Server cards intentionally exclude primitive definitions (tools, resources, prompts). This avoids a class of security concerns where clients might trust a static manifest's tool descriptions for access-control or safety decisions, when the actual primitives at runtime may differ due to auth scoping, feature flags, configuration, or other dynamic factors. Primitives MUST always be discovered and validated through the protocol's standard list operations after connection establishment.
+Server cards intentionally exclude primitive definitions (tools, resources, prompts). This avoids a class of security concerns where clients might trust a static manifest's tool descriptions for access-control or safety decisions, when the actual primitives at runtime may differ due to auth scoping, feature flags, configuration, or other dynamic factors. Primitives SHOULD always be discovered and validated through the protocol's standard list operations after connection establishment.
 
 ### CORS Requirements
 
