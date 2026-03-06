@@ -3,7 +3,7 @@
 **Status:** Proposal  
 **Type:** Standards Track  
 **Created:** 2026-03-05  
-**Author:** [Your Name]  
+**Author:** Ryan Millett  
 **Related:** SEP-1961 (Mandatory Security Headers), SEP-1960 (.well-known Discovery), Transport Working Group Roadmap (2025-12-19)
 
 ---
