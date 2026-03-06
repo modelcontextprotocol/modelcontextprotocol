@@ -112,7 +112,10 @@ The scopes included in the `WWW-Authenticate` challenge **MAY** match `scopes_su
 or superset of it, or an alternative collection that is neither a strict subset nor
 superset. Clients **MUST NOT** assume any particular set relationship between the challenged
 scope set and `scopes_supported`. Clients **MUST** treat the scopes provided in the
-challenge as authoritative for satisfying the current request. Servers **SHOULD** strive for
+challenge as authoritative for the current operation — that is, these scopes are required to
+satisfy the current request. When re-authorizing, clients **SHOULD** include these scopes
+alongside any previously granted scopes to avoid losing permissions needed for other operations
+(see [Step-Up Authorization Flow](#step-up-authorization-flow)). Servers **SHOULD** strive for
 consistency in how they construct scope sets but they are not required to surface every dynamically
 issued scope through `scopes_supported`.
 
@@ -514,14 +517,23 @@ scope during runtime operations, the server **SHOULD** respond with:
   - `error_description` (optional) - human-readable description of the error
 
 **Server Scope Management**: When responding with insufficient scope errors, servers
-**SHOULD** include the scopes needed to satisfy the current request in the `scope`
-parameter.
+**SHOULD** include the scopes needed to satisfy the current operation in the `scope`
+parameter, consistent with
+[RFC 6750 Section 3.1](https://datatracker.ietf.org/doc/html/rfc6750#section-3.1).
+The `scope` attribute describes the scopes necessary to access
+the requested resource — servers are not required to include
+the client's previously granted scopes.
 
 Servers have flexibility in determining which scopes to include:
 
-- **Minimum approach**: Include the newly-required scopes for the specific operation. Include any existing granted scopes as well, if they are required, to prevent clients from losing previously granted permissions.
-- **Recommended approach**: Include both existing relevant scopes and newly required scopes to prevent clients from losing previously granted permissions
-- **Extended approach**: Include existing scopes, newly required scopes, and related scopes that commonly work together
+- **Minimum approach**: Include only the scopes required for the
+  specific operation that triggered the error.
+- **Recommended approach**: Include the scopes required for the
+  current operation along with related scopes that commonly work
+  together, to reduce the number of step-up authorization rounds.
+- **Extended approach**: Include the scopes required for the
+  current operation, related scopes, and any other scopes the
+  server anticipates the client may need in the near future.
 
 The choice depends on the server's assessment of user experience impact and authorization friction.
 
@@ -530,14 +542,23 @@ Servers **SHOULD** be consistent in their scope inclusion strategy to provide pr
 Servers **SHOULD** consider the user experience impact when determining which scopes to include in the
 response, as misconfigured scopes may require frequent user interaction.
 
+<Note>
+  Scope accumulation across operations is a client-side responsibility. Clients
+  **SHOULD** compute the union of previously requested scopes and newly
+  challenged scopes when initiating re-authorization, as described in [Step-Up
+  Authorization Flow](#step-up-authorization-flow). This allows servers to
+  remain stateless with respect to client scope sets while ensuring clients do
+  not lose previously granted permissions.
+</Note>
+
 Example insufficient scope response:
 
 ```http
 HTTP/1.1 403 Forbidden
 WWW-Authenticate: Bearer error="insufficient_scope",
-                         scope="files:read files:write user:profile",
+                         scope="files:write",
                          resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
-                         error_description="Additional file write permission required"
+                         error_description="File write permission required for this operation"
 ```
 
 #### Step-Up Authorization Flow
@@ -550,7 +571,15 @@ Clients acting on behalf of a user **SHOULD** attempt the step-up authorization 
 The flow is as follows:
 
 1. **Parse error information** from the authorization server response or `WWW-Authenticate` header
-2. **Determine required scopes** as outlined in [Scope Selection Strategy](#scope-selection-strategy).
+2. **Determine required scopes** by computing the union of the
+   client's previously requested scope set and the scopes from
+   the current challenge. This ensures previously granted
+   permissions are preserved when servers emit per-operation
+   scope challenges per
+   [RFC 6750 Section 3.1](https://datatracker.ietf.org/doc/html/rfc6750#section-3.1).
+   Clients **MAY** also consult the
+   [Scope Selection Strategy](#scope-selection-strategy) for
+   initial scope selection guidance.
 3. **Initiate (re-)authorization** with the determined scope set
 4. **Retry the original request** with the new authorization no more than a few times and treat this as a permanent authorization failure
 
