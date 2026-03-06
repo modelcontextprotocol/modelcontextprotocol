@@ -103,12 +103,27 @@ def make_hunk_id(file_index: int, hunk_index: int) -> str:
     return f"hunk-{file_index}-{hunk_index}"
 
 
+def _normalize_hunk_header(header: str) -> str:
+    """Extract just the @@ ... @@ numeric portion, stripping trailing context."""
+    m = re.match(r'(@@\s*[^@]+@@)', header)
+    return m.group(1).rstrip() if m else header.strip()
+
+
 def build_hunk_id_map(files: list) -> dict:
-    """Build a map from (file, hunk_header) -> hunk DOM id."""
+    """Build a map from (file, hunk_header) -> hunk DOM id.
+
+    Indexes both the full header and the normalized (numbers-only) form
+    so that annotation hunks missing the trailing context line still match.
+    """
     result = {}
     for fi, f in enumerate(files):
         for hi, h in enumerate(f["hunks"]):
-            result[(f["file"], h["hunk_header"])] = make_hunk_id(fi, hi)
+            hid = make_hunk_id(fi, hi)
+            full_header = h["hunk_header"]
+            result[(f["file"], full_header)] = hid
+            norm = _normalize_hunk_header(full_header)
+            if norm != full_header:
+                result[(f["file"], norm)] = hid
     return result
 
 
@@ -127,10 +142,17 @@ def build_annotation_cards(ann_dict: dict, hunk_id_map: dict, req_lookup: dict, 
             continue
 
         hunk_ids = []
+        hunk_labels = []
         for h in ann.get("hunks", []):
             key = (h["file"], h["hunk_header"])
-            if key in hunk_id_map:
-                hunk_ids.append(hunk_id_map[key])
+            hid = hunk_id_map.get(key)
+            if hid is None:
+                # Try normalized header (strip trailing context after @@)
+                norm_key = (h["file"], _normalize_hunk_header(h["hunk_header"]))
+                hid = hunk_id_map.get(norm_key)
+            if hid is not None:
+                hunk_ids.append(hid)
+                hunk_labels.append(f"{h['file']}:{h['hunk_header'][:40]}")
 
         req = req_lookup.get(req_id, {})
         fmt = format_annotation_text(
@@ -146,7 +168,7 @@ def build_annotation_cards(ann_dict: dict, hunk_id_map: dict, req_lookup: dict, 
             "has_detail": fmt["has_detail"],
             "hunk_ids": hunk_ids,
             "hunk_ids_json": json.dumps(hunk_ids),
-            "hunk_labels": [f"{h['file']}:{h['hunk_header'][:40]}" for h in ann.get("hunks", [])],
+            "hunk_labels": hunk_labels,
         })
 
     return cards
