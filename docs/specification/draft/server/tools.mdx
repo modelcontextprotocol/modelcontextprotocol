@@ -320,15 +320,88 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 **Structured** content is returned as a JSON object in the `structuredContent` field of a result.
 
-For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+The `content` and `structuredContent` fields serve different audiences:
+
+- `content`: model-oriented output optimized for readability and token efficiency. Preferred for conversational agents and when tool responses are fed directly into the model's context window.
+- `structuredContent`: machine-oriented output for programmatic use, code generation, typed orchestration, and UI hydration.
+
+When both fields are present, they SHOULD be semantically equivalent (same information, different presentation). `content` may summarize or textualize the structured data without listing every field verbatim, but it SHOULD NOT contradict it.
+
+For backwards compatibility, tools that return structured content SHOULD also return a `content` representation of the same information. JSON-serialized text is acceptable, but not required and may be suboptimal depending on the use case.
+
+Clients SHOULD choose the appropriate field to expose to the model based on their use case:
+
+- Conversational/agent UX: prefer `content`.
+- Programmatic/code mode: prefer `structuredContent`.
+
+When sending tool results to a model context, clients SHOULD use `content` when present and only
+fall back to `structuredContent` if `content` is empty or omitted. Programmatic/code-mode hosts
+that want structured inputs can omit `content` so the fallback applies.
+
+Clients SHOULD NOT forward both fields verbatim to the model as separate inputs.
+
+<Note>
+  [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) hosts
+  typically pass `content` to the model and use `structuredContent` or `_meta`
+  for UI rendering or host-specific metadata. Apps can update model context
+  explicitly via `ui/update-model-context`.
+
+Implementers SHOULD ensure `content` still includes a semantically equivalent result
+that will be visible to the model, even when the format is more concise or tailored
+than the `structuredContent` response used to populate UI controls.
+
+</Note>
+
+Example MCP Apps-oriented tool result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "DHL Order #123 is currently in transit. Estimated delivery: 2026-02-18, departed sorting facility at 2026-02-15T08:32:00Z"
+      }
+    ],
+    "structuredContent": {
+      "orderId": "123",
+      "status": "in_transit",
+      "estimatedDelivery": "2026-02-18",
+      "carrier": "DHL",
+      "trackingEvents": [
+        {
+          "timestamp": "2026-02-15T08:32:00Z",
+          "event": "Departed sorting facility"
+        }
+      ]
+    },
+    "_meta": {
+      "ui": {
+        "view": "order-details",
+        "selectedTab": "timeline"
+      }
+    }
+  }
+}
+```
+
+This keeps model-relevant facts in `content` while preserving UI-specific detail for hosts.
 
 #### Output Schema
 
 Tools may also provide an output schema for validation of structured results.
 If an output schema is provided:
 
-- Servers **MUST** provide structured results that conform to this schema.
-- Clients **SHOULD** validate structured results against this schema.
+- For non-error results (`isError` absent or `false`), servers **MUST** provide
+  `structuredContent` that conforms to this schema.
+- For error results (`isError: true`), servers **MAY** omit
+  `structuredContent`.
+- Clients **SHOULD** validate `structuredContent` against this schema for
+  non-error results.
+- Clients **SHOULD NOT** validate `structuredContent` against this schema when
+  `isError` is `true`.
 
 Example tool with output schema:
 
@@ -378,7 +451,7 @@ Example valid response for this tool:
     "content": [
       {
         "type": "text",
-        "text": "{\"temperature\": 22.5, \"conditions\": \"Partly cloudy\", \"humidity\": 65}"
+        "text": "Temperature: 22.5 C, conditions: partly cloudy, humidity: 65%."
       }
     ],
     "structuredContent": {
@@ -389,6 +462,9 @@ Example valid response for this tool:
   }
 }
 ```
+
+When returning both fields, `structuredContent` should carry the full structured data required by
+`outputSchema`, while `content` should provide a concise, model-friendly equivalent.
 
 Providing an output schema helps clients and LLMs understand and properly handle structured tool outputs by:
 
@@ -460,6 +536,9 @@ Tools use two error reporting mechanisms:
    - API failures
    - Input validation errors (e.g., date in wrong format, value out of range)
    - Business logic errors
+
+When reporting tool execution errors, servers **SHOULD** return the actionable
+error message in `content`.
 
 **Tool Execution Errors** contain actionable feedback that language models can use to self-correct and retry with adjusted parameters.
 **Protocol Errors** indicate issues with the request structure itself that models are less likely to be able to fix.
