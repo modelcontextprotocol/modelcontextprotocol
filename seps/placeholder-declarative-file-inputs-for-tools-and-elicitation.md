@@ -25,6 +25,106 @@ Meanwhile, the client is the party best positioned to solve this problem. It alr
 
 This SEP closes that gap with a small, declarative annotation. It is deliberately narrower in scope than proposals for streaming large binary transfers: files are passed inline as data URIs within the existing JSON-RPC envelope, which keeps the transport story unchanged at the cost of being practically suited to small-to-medium files (images, config files, short documents) rather than multi-gigabyte archives. A future SEP may define a large-file transport that reuses the same `inputFiles` metadata.
 
+## Overview
+
+This section walks through both surfaces end-to-end with the smallest possible examples. The formal rules follow in **Specification**.
+
+### Tool surface: definition → call
+
+A server declares that the `image` argument is a file by adding `inputFiles` alongside `inputSchema`. The argument's schema type does not change — it is an ordinary `uri`-format string:
+
+```json
+{
+  "name": "describe_image",
+  "description": "Describe the contents of an image.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "image": {
+        "type": "string",
+        "format": "uri",
+        "description": "The image to describe."
+      }
+    },
+    "required": ["image"]
+  },
+  "inputFiles": {
+    "image": {
+      "accept": ["image/png", "image/jpeg"],
+      "maxSize": 5242880
+    }
+  }
+}
+```
+
+A supporting client sees `inputFiles.image`, renders a file picker filtered to PNG/JPEG, encodes the user's selection as a data URI, and invokes the tool. The file travels inline — no separate upload step:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "describe_image",
+    "arguments": {
+      "image": "data:image/png;name=dot.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg=="
+    }
+  }
+}
+```
+
+The payload above is a real 1×1 PNG, not truncated. The `name=dot.png` parameter carries the original filename (percent-encoded if needed); everything after `base64,` is the file's bytes.
+
+### Elicitation surface: request → response
+
+The server asks the user for a file mid-flow. `requestedFiles` mirrors `inputFiles` exactly, keyed against `requestedSchema`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "elicitation/create",
+  "params": {
+    "mode": "form",
+    "message": "Please select a profile photo.",
+    "requestedSchema": {
+      "type": "object",
+      "properties": {
+        "photo": {
+          "type": "string",
+          "format": "uri",
+          "title": "Profile photo"
+        }
+      },
+      "required": ["photo"]
+    },
+    "requestedFiles": {
+      "photo": {
+        "accept": ["image/*"],
+        "maxSize": 2097152
+      }
+    }
+  }
+}
+```
+
+The client renders a form with a file picker for `photo`, the user chooses a file, and the client responds — again, the file travels inline as a data URI in the same string slot the schema already defined:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": {
+    "action": "accept",
+    "content": {
+      "photo": "data:image/png;name=avatar.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg=="
+    }
+  }
+}
+```
+
+That's the entire mechanism. The rest of this document specifies the schema constraints, capability gating, and error handling.
+
 ## Specification
 
 ### Client Capability
@@ -209,10 +309,10 @@ Where:
 
 The `name` parameter is a media-type parameter permitted by RFC 2397's grammar but not defined by it. This SEP standardizes its use within MCP for carrying the original filename. Servers **SHOULD** treat `name` as advisory metadata (useful for display, extension-based heuristics, or round-tripping) and **MUST NOT** rely on it for security decisions.
 
-Example value:
+Example value (a complete, valid 1×1 PNG — not truncated):
 
 ```
-data:image/png;name=screenshot.png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+data:image/png;name=dot.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg==
 ```
 
 ### Error Handling

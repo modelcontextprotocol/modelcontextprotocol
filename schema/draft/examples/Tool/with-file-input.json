@@ -1,0 +1,21 @@
+{
+  "name": "describe_image",
+  "description": "Describe the contents of an image.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "image": {
+        "type": "string",
+        "format": "uri",
+        "description": "The image to describe."
+      }
+    },
+    "required": ["image"]
+  },
+  "inputFiles": {
+    "image": {
+      "accept": ["image/png", "image/jpeg"],
+      "maxSize": 5242880
+    }
+  }
+}

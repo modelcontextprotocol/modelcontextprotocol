@@ -585,6 +585,9 @@ export interface ClientCapabilities {
    * Present if the client supports declarative file inputs for tools and
    * elicitation. When declared, servers MAY include `inputFiles` on {@link Tool}
    * definitions and `requestedFiles` on {@link ElicitRequestFormParams}.
+   *
+   * @example File inputs
+   * {@includeCode ./examples/ClientCapabilities/file-inputs.json}
    */
   fileInputs?: JSONObject;
   /**
@@ -1620,6 +1623,9 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
  * @example Call tool request
  * {@includeCode ./examples/CallToolRequest/call-tool-request.json}
  *
+ * @example Call tool with file input
+ * {@includeCode ./examples/CallToolRequest/call-tool-with-file-input.json}
+ *
  * @category `tools/call`
  */
 export interface CallToolRequest extends JSONRPCRequest {
@@ -1730,6 +1736,9 @@ export interface ToolExecution {
  *
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
+ *
+ * @example With file input
+ * {@includeCode ./examples/Tool/with-file-input.json}
  *
  * @category `tools/list`
  */
@@ -2841,6 +2850,9 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  * @example Elicit multiple fields
  * {@includeCode ./examples/ElicitRequestFormParams/elicit-multiple-fields.json}
  *
+ * @example Elicit file input
+ * {@includeCode ./examples/ElicitRequestFormParams/elicit-file-input.json}
+ *
  * @category `elicitation/create`
  */
 export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
@@ -3223,6 +3235,9 @@ export interface StringArraySchema {
  *
  * @example Accept URL mode (no content)
  * {@includeCode ./examples/ElicitResult/accept-url-mode-no-content.json}
+ *
+ * @example Accept file input
+ * {@includeCode ./examples/ElicitResult/accept-file-input.json}
  *
  * @category `elicitation/create`
  */
