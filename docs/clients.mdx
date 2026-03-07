@@ -635,16 +635,17 @@ ChatFrame is a cross-platform desktop chatbot that unifies access to multiple AI
 <McpClient
   name="ChatGPT"
   homepage="https://chatgpt.com"
-  supports="Tools, DCR"
+  supports="Tools, Apps, DCR"
   instructions="https://platform.openai.com/docs/guides/developer-mode"
 >
 
-ChatGPT is OpenAI's AI assistant that provides MCP support for remote servers to conduct deep research.
+ChatGPT is OpenAI's AI assistant that provides MCP support for remote servers to conduct deep research and to power MCP-based apps.
 
 **Key features:**
 
 - Support for MCP via connections UI in settings
 - Access to search tools from configured MCP servers for deep research
+- Support for MCP Apps, allowing ChatGPT to connect to MCP-based applications
 - Enterprise-grade security and compliance features
 
 </McpClient>
@@ -1176,6 +1177,25 @@ Junie is JetBrains' AI coding agent for JetBrains IDEs and Android Studio.
 - Connects to MCP servers over **stdio** to use external tools and data sources.
 - Per-command approval with an optional allowlist.
 - Config via `mcp.json` (global `~/.junie/mcp.json` or project `.junie/mcp/`).
+
+</McpClient>
+
+<McpClient
+  name="Joey"
+  homepage="https://benkaiser.github.io/joey-mcp-client/"
+  sourceCode="https://github.com/benkaiser/joey-mcp-client"
+  supports="Prompts, Tools, Sampling, Elicitation, Apps"
+>
+
+Joey is a mobile-first MCP client for **iOS and Android** (also available on macOS, Windows, and Linux) that connects to AI models via OpenRouter and remote MCP servers over Streamable HTTP.
+
+**Key features:**
+
+- **Mobile MCP support** — use MCP servers directly from your phone or tablet on iOS and Android.
+- Connects to remote MCP servers over **Streamable HTTP** with OAuth support.
+- Supports multiple MCP servers per conversation with tool calling.
+- MCP sampling and elicitation support for interactive server-initiated workflows.
+- Image and audio attachments with SSE streaming responses.
 
 </McpClient>
 
