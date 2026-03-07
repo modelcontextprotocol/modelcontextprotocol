@@ -586,6 +586,19 @@ The flow is as follows:
 Clients **SHOULD** implement retry limits and **SHOULD** track scope upgrade attempts to avoid
 repeated failures for the same resource and operation combination.
 
+<Note>
+  **Hierarchical scopes**: Some authorization servers define scope hierarchies
+  where a broader scope implies narrower ones (for example, an `admin` scope
+  that subsumes `read`). When accumulating scopes, the client's union may
+  contain semantically redundant entries — for example, a token previously
+  granted a broad scope may be challenged with a narrower one it already
+  implies. Clients need not deduplicate hierarchically; authorization servers
+  typically normalize such redundancy during token issuance. Servers, for their
+  part, must account for hierarchy when deciding whether a token is sufficient
+  for an operation, but this does not affect the scopes they emit in a
+  challenge.
+</Note>
+
 ## Security Considerations
 
 Implementations **MUST** follow OAuth 2.1 security best practices as laid out in [OAuth 2.1 Section 7. "Security Considerations"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#name-security-considerations).
