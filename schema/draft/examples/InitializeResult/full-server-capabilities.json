@@ -1,0 +1,40 @@
+{
+  "protocolVersion": "2024-11-05",
+  "capabilities": {
+    "logging": {},
+    "prompts": {
+      "listChanged": true
+    },
+    "resources": {
+      "subscribe": true,
+      "listChanged": true
+    },
+    "tools": {
+      "listChanged": true
+    },
+    "tasks": {
+      "list": {},
+      "cancel": {},
+      "requests": {
+        "tools": {
+          "call": {}
+        }
+      }
+    }
+  },
+  "serverInfo": {
+    "name": "ExampleServer",
+    "title": "Example Server Display Name",
+    "version": "1.0.0",
+    "description": "An example MCP server providing tools and resources",
+    "icons": [
+      {
+        "src": "https://example.com/server-icon.svg",
+        "mimeType": "image/svg+xml",
+        "sizes": ["any"]
+      }
+    ],
+    "websiteUrl": "https://example.com/server"
+  },
+  "instructions": "Optional instructions for the client"
+}

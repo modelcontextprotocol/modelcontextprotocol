@@ -12,3 +12,8 @@
 .dark .mermaid {
     filter: invert(0.85) hue-rotate(180deg);
 }
+
+/* Prevent awkward wrapping in post metadata. See https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
+.post-meta {
+    display: block !important;
+}

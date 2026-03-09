@@ -1,0 +1,10 @@
+{
+  "jsonrpc": "2.0",
+  "id": "elicitation-example",
+  "result": {
+    "action": "accept",
+    "content": {
+      "name": "octocat"
+    }
+  }
+}

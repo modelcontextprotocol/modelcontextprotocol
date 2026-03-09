@@ -58,9 +58,9 @@ For example, a malicious client could claim to be `Claude Desktop` on the consen
 
 ## Improving Client Registration in MCP
 
-For MCP users, a common pattern is to connect to an MCP server by using its URL directly in a MCP client.
+For MCP users, a common pattern is to connect to an MCP server by using its URL directly in an MCP client.
 
-This goes against the typical OAuth authorization pattern because the user is selecting the resource server to connect to rather than the client developer. This problem is compounded by the fact that there is an unbounded number of authorization servers that a MCP server may use, meaning that clients need to be able to complete the authorization flow regardless of the provider used.
+This goes against the typical OAuth authorization pattern because the user is selecting the resource server to connect to rather than the client developer. This problem is compounded by the fact that there is an unbounded number of authorization servers that an MCP server may use, meaning that clients need to be able to complete the authorization flow regardless of the provider used.
 
 Some client developers have implemented pre-registration with a select few authorization servers. In this scenario, the client doesn't need to rely on DCR when it detects an authorization server it knows. However, this is a solution that doesn't scale given the breadth of the MCP ecosystem - it's impossible to have every client be registered with every authorization server there is.
 To mitigate this challenge, we set out to outline some of the goals that we wanted to achieve with improving the client registration experience:

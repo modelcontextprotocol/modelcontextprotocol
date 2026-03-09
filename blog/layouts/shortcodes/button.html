@@ -1,0 +1,49 @@
+{{- $text := .Get "text" | default "Learn More" -}}
+{{- $url := .Get "url" | default "#" -}}
+{{- $target := .Get "target" | default "_blank" -}}
+
+<a href="{{ $url }}" target="{{ $target }}" rel="noopener noreferrer" class="mcp-button">
+  {{ $text }} <span class="mcp-button-arrow">→</span>
+</a>
+
+<style>
+.mcp-button {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  margin: 12px 0;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid #333;
+}
+
+.mcp-button:hover {
+  background-color: #333;
+  color: #ffffff;
+}
+
+.mcp-button-arrow {
+  margin-left: 6px;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.mcp-button:hover .mcp-button-arrow {
+  transform: translateX(3px);
+}
+
+.dark .mcp-button {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #e5e5e5;
+}
+
+.dark .mcp-button:hover {
+  background-color: #f0f0f0;
+  color: #1a1a1a;
+}
+</style>

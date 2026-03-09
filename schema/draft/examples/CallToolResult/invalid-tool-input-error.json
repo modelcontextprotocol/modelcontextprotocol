@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Invalid departure date: must be in the future. Current date is 08/08/2025."
+    }
+  ],
+  "isError": true
+}
