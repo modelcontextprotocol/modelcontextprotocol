@@ -1,0 +1,422 @@
+# SEP-1330: Elicitation Enum Schema Improvements and Standards Compliance
+
+- **Status**: Final
+- **Type**: Standards Track
+- **Created**: 2025-08-11
+- **Author(s)**: chughtapan
+- **Issue**: #1330
+
+## Abstract
+
+This SEP proposes improvements to enum schema definitions in MCP, deprecating the non-standard `enumNames` property in favor of JSON Schema-compliant patterns, and introducing additional support for multi-select enum schemas in addition to single choice schemas. The new schemas have been validated against the JSON specification.
+
+**Schema Changes:** https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1148
+Typescript SDK Changes: https://github.com/modelcontextprotocol/typescript-sdk/pull/1077
+Python SDK Changes: https://github.com/modelcontextprotocol/python-sdk/pull/1246
+**Client Implementation:** https://github.com/evalstate/fast-agent/pull/324/files
+**Working Demo:** https://asciinema.org/a/anBvJdqEmTjw0JkKYOooQa5Ta
+
+## Motivation
+
+The existing schema for enums uses a non-standard approach to adding titles to enumerated values. It also limits use of enums in Elicitation (and any other schema object that should adopt `EnumSchema` in the future) to a single selection model. It is a common pattern to ask the user to select multiple entries. In the UI, this amounts to the difference between using checkboxes or radio buttons.
+
+For these reasons, we propose the following non-breaking minor improvements to the `EnumSchema` for improving user and developer experience.
+
+- Keep the existing `EnumSchema` as "Legacy"
+  - It uses a non-standard approach for adding titles to enumerated values
+  - Mark it as Legacy but still support it for now.
+  - As per @dsp-ant When we have a proper deprecation strategy, we'll mark it deprecated
+- Introduce the distinction between Untitled and Titled enums.
+  - If the enumerated values are sufficient, no separate title need be specified for each value.
+  - If the enumerated values are not optimal for display, a title may be specified for each value.
+- Introduce the distinction between Single and Multi-select enums.
+  - If only one value can be selected, a Single select schema can be used
+  - If more than one value can be selected, a Multi-select schema can be used
+- In `ElicitResponse`, add array as an `additionalProperty` type
+  - Allows multiple selection of enumerated values to be returned to the server
+
+## Specification
+
+### 1. Mark Current `EnumSchema` with Non-Standard `enumNames` Property as "Legacy"
+
+The current MCP specification uses a non-standard `enumNames` property for providing display names for enum values. We propose to mark `enumNames` property as legacy, suggest using `TitledSingleSelectEnum`, a standards compliant enum type we define below.
+
+```typescript
+// Continue to support the current EnumSchema as Legacy
+
+/**
+ * Legacy: Use TitledSingleSelectEnumSchema instead.
+ * This interface will be removed in a future version.
+ */
+export interface LegacyEnumSchema {
+  type: "string";
+  title?: string;
+  description?: string;
+  enum: string[];
+  enumNames?: string[]; // Titles for enum values (non-standard, legacy)
+}
+```
+
+### 2. Define Single Selection Enums (with Titled and Untitled varieties)
+
+Enums may or may not need titles. The enumerated values may be human readable and fine for display. In which case an untitled implementation using the JSON Schema keyword `enum` is simpler. Adding titles requires the `enum` array to be replaced with an array of objects using `const` and `title`.
+
+```typescript
+// Single select enum without titles
+export type UntitledSingleSelectEnumSchema = {
+  type: "string";
+  title?: string;
+  description?: string;
+  enum: string[]; // Plain enum without titles
+};
+
+// Single select enum with titles
+export type TitledSingleSelectEnumSchema = {
+  type: "string";
+  title?: string;
+  description?: string;
+  oneOf: Array<{
+    const: string; // Enum value
+    title: string; // Display name for enum value
+  }>;
+};
+
+// Combined single selection enumeration
+export type SingleSelectEnumSchema =
+  | UntitledSingleSelectEnumSchema
+  | TitledSingleSelectEnumSchema;
+```
+
+### 3. Introduce Multiple Selection Enums (with Titled and Untitled varieties)
+
+While elicitation does not support arbitrary JSON types like arrays and objects so clients can display the selection choice easily, multiple selection enumerations can be easily implemented.
+
+```typescript
+// Multiple select enums without titles
+export type UntitledMultiSelectEnumSchema = {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number; // Minimum number of items to choose
+  maxItems?: number; // Maximum number of items to choose
+  items: {
+    type: "string";
+    enum: string[]; // Plain enum without titles
+  };
+};
+
+// Multiple select enums with titles
+export type TitledMultiSelectEnumSchema = {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number; // Minimum number of items to choose
+  maxItems?: number; // Maximum number of items to choose
+  items: {
+    oneOf: Array<{
+      const: string; // Enum value
+      title: string; // Display name for enum value
+    }>;
+  };
+};
+
+// Combined Multiple select enumeration
+export type MultiSelectEnumSchema =
+  | UntitledMultiSelectEnumSchema
+  | TitledMultiSelectEnumSchema;
+```
+
+### 4. Combine All Varieties as `EnumSchema`
+
+The final `EnumSchema` rolls up the legacy, multi-select, and single-select schemas as one, defined as:
+
+```typescript
+// Combined legacy, multiple, and single select enumeration
+export type EnumSchema =
+  | SingleSelectEnumSchema
+  | MultiSelectEnumSchema
+  | LegacyEnumSchema;
+```
+
+### 5. Extend ElicitResult
+
+The current elicitation result schema only allows returning primitive types. We extend this to include string arrays for MultiSelectEnums:
+
+```typescript
+export interface ElicitResult extends Result {
+  action: "accept" | "decline" | "cancel";
+  content?: { [key: string]: string | number | boolean | string[] }; // string[] is new
+}
+```
+
+## Instance Schema Examples
+
+### Single-Select Without Titles (No change)
+
+```json
+{
+  "type": "string",
+  "title": "Color Selection",
+  "description": "Choose your favorite color",
+  "enum": ["Red", "Green", "Blue"],
+  "default": "Green"
+}
+```
+
+### Legacy Single Select With Titles
+
+```json
+{
+  "type": "string",
+  "title": "Color Selection",
+  "description": "Choose your favorite color",
+  "enum": ["#FF0000", "#00FF00", "#0000FF"],
+  “enumNames”: ["Red", "Green", "Blue"],
+  "default": "Green"
+}
+```
+
+### Single-Select with Titles
+
+```json
+{
+  "type": "string",
+  "title": "Color Selection",
+  "description": "Choose your favorite color",
+  "oneOf": [
+    { "const": "#FF0000", "title": "Red" },
+    { "const": "#00FF00", "title": "Green" },
+    { "const": "#0000FF", "title": "Blue" }
+  ],
+  "default": "#00FF00"
+}
+```
+
+### Multi-Select Without Titles
+
+```json
+{
+  "type": "array",
+  "title": "Color Selection",
+  "description": "Choose your favorite colors",
+  "minItems": 1,
+  "maxItems": 3,
+  "items": {
+    "type": "string",
+    "enum": ["Red", "Green", "Blue"]
+  },
+  "default": ["Green"]
+}
+```
+
+### Multi-Select with Titles
+
+```json
+{
+  "type": "array",
+  "title": "Color Selection",
+  "description": "Choose your favorite colors",
+  "minItems": 1,
+  "maxItems": 3,
+  "items": {
+    "anyOf": [
+      { "const": "#FF0000", "title": "Red" },
+      { "const": "#00FF00", "title": "Green" },
+      { "const": "#0000FF", "title": "Blue" }
+    ]
+  },
+  "default": ["Green"]
+}
+```
+
+## Rationale
+
+1. **Standards Compliance**: Aligns with official JSON Schema specification. Standard patterns work with existing JSON Schema validators
+2. **Flexibility**: Supports both plain enums and enums with display names for single and multiple choice enums.
+3. **Client Implementation:** shows that the additional overhead of implementing a group of checkboxes v/s a single checkbox is minimal: https://github.com/evalstate/fast-agent/pull/324/files
+
+## Backwards Compatibility
+
+The `LegacyEnumSchema` type maintains backwards compatible during the migration period. Existing implementations using `enumNames` will continue to work until a protocol-wide deprecation strategy is implemented, and this schema is removed.
+
+## Reference Implementation
+
+**Schema Changes:** https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1148
+Typescript SDK Changes: https://github.com/modelcontextprotocol/typescript-sdk/pull/1077
+Python SDK Changes: https://github.com/modelcontextprotocol/python-sdk/pull/1246
+**Client Implementation:** https://github.com/evalstate/fast-agent/pull/324/files
+**Working Demo:** https://asciinema.org/a/anBvJdqEmTjw0JkKYOooQa5Ta
+
+## Security Considerations
+
+No security implications identified. This change is purely about schema structure and standards compliance.
+
+## Appendix
+
+### Validations
+
+Using stored validations in the JSON Schema Validator at https://www.jsonschemavalidator.net/ we validate:
+
+- All of the example instance schemas from this document against the proposed JSON meta-schema `EnumSchema` in the next section.
+- Valid and invalid values against the example instance schemas from this document.
+
+#### Legacy Single Selection
+
+- `EnumSchema` validating a [legacy single select instance schema with titles](https://www.jsonschemavalidator.net/s/lsK7Bn0C)
+- The legacy titled single select instance schema validating [a correct single selection](https://www.jsonschemavalidator.net/s/GSk7rnRe)
+- The legacy titled single select instance schema validating [an incorrect single selection](https://www.jsonschemavalidator.net/s/3kYvxsVP)
+
+#### Single Selection
+
+- `EnumSchema` validating a [single select instance schema without titles](https://www.jsonschemavalidator.net/s/MBlHW5IQ)
+- `EnumSchema` validating a [single select instance schema with titles](https://www.jsonschemavalidator.net/s/s38xt4JV)
+- The untitled single select instance schema validating [a correct single selection](https://www.jsonschemavalidator.net/s/M0hkYoeG)
+- The untitled single select instance schema invalidating [an incorrect single selection](https://www.jsonschemavalidator.net/s/3Try4BCt)
+- The titled single select instance schema validating [a correct single selection](https://www.jsonschemavalidator.net/s/4oDbv9yt)
+- The titled single select instance schema invalidating [an incorrect single selection](https://www.jsonschemavalidator.net/s/A2KlNzLH)
+
+#### Multiple Selection
+
+- `EnumSchema` validating the [multi-select instance schema without titles](https://www.jsonschemavalidator.net/s/4uc3Ndsq)
+- `EnumSchema` validating the [multi-select instance schema with titles](https://www.jsonschemavalidator.net/s/TmkIqqXI)
+- The untitled multi-select instance schema validating [a correct multiple selection](https://www.jsonschemavalidator.net/s/IE8Bkvtg)
+  The untitled multi-select instance schema validating invalidating[ an incorrect multiple selection](https://www.jsonschemavalidator.net/s/8tlqjUgW)
+  The titled multi-select instance schema validating [a correct multiple selection](https://www.jsonschemavalidator.net/s/Nb1Rw1qa)
+  The titled multi-select instance schema validating invalidating [an incorrect multiple selection](https://www.jsonschemavalidator.net/s/MRfyqrVC)
+
+### JSON meta-schema
+
+This is our proposal for the replacement of the current `EnumSchema` in the specification’s `schema.json`.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "definitions": {
+    // New Definitions Follow
+    "UntitledSingleSelectEnumSchema": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "enum": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      },
+      "required": ["type", "enum"],
+      "additionalProperties": false
+    },
+
+    "UntitledMultiSelectEnumSchema": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "array" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "minItems": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maxItems": {
+          "type": "number",
+          "minimum": 0
+        },
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": { "const": "string" },
+            "enum": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
+            }
+          },
+          "required": ["type", "enum"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["type", "items"],
+      "additionalProperties": false
+    },
+
+    "TitledSingleSelectEnumSchema": {
+      "type": "object",
+      "required": ["type", "anyOf"],
+      "properties": {
+        "type": { "const": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "anyOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["const", "title"],
+            "properties": {
+              "const": { "type": "string" },
+              "title": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "TitledMultiSelectEnumSchema": {
+      "type": "object",
+      "required": ["type", "anyOf"],
+      "properties": {
+        "type": { "const": "array" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "anyOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["const", "title"],
+            "properties": {
+              "const": { "type": "string" },
+              "title": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "LegacyEnumSchema": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "string"
+        },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "enum": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "enumNames": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["enum", "type"],
+      "type": "object"
+    },
+
+    "EnumSchema": {
+      "oneOf": [
+        { "$ref": "#/definitions/UntitledSingleSelectEnumSchema" },
+        { "$ref": "#/definitions/UntitledMultiSelectEnumSchema" },
+        { "$ref": "#/definitions/TitledSingleSelectEnumSchema" },
+        { "$ref": "#/definitions/TitledMultiSelectEnumSchema" },
+        { "$ref": "#/definitions/LegacyEnumSchema" }
+      ]
+    }
+  }
+}
+```

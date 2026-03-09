@@ -570,7 +570,7 @@ Most practical uses of elicitation require that the server maintain state about 
 - Whether required information has been collected (e.g., the user's display name via form mode elicitation)
 - Status of resource access (e.g., API keys or a payment flow via URL mode elicitation)
 
-Servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](../basic/security_best_practices) document. Specifically:
+Servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
 
 - State **MUST NOT** be associated with session IDs alone
 - State storage **MUST** be protected against unauthorized access
@@ -620,7 +620,7 @@ Example scenario:
 The critical security requirements are:
 
 1. **The third-party credentials MUST NOT transit through the MCP client**: The client must never see third-party credentials to protect the security boundary
-2. **The MCP server MUST NOT use the client's credentials for the third-party service**: That would be [token passthrough](../basic/security_best_practices#token-passthrough), which is forbidden
+2. **The MCP server MUST NOT use the client's credentials for the third-party service**: That would be [token passthrough](/docs/tutorials/security/security_best_practices#token-passthrough), which is forbidden
 3. **The user MUST authorize the MCP server directly**: The interaction happens outside the MCP protocol, without involving the MCP client
 4. **The MCP server is responsible for tokens**: The MCP server is responsible for storing and managing the third-party tokens obtained through the URL mode elicitation (in other words, the MCP server must be stateful).
 
@@ -628,9 +628,9 @@ Credentials obtained via URL mode elicitation are distinct from the MCP server c
 
 <Note>
   For additional background, refer to the [token passthrough
-  section](../basic/security_best_practices#token-passthrough) of the Security
-  Best Practices document to understand why MCP servers cannot act as
-  pass-through proxies.
+  section](/docs/tutorials/security/security_best_practices#token-passthrough)
+  of the Security Best Practices document to understand why MCP servers cannot
+  act as pass-through proxies.
 </Note>
 
 #### Implementation Pattern
@@ -730,7 +730,7 @@ When handling URL mode elicitation requests, MCP clients:
 ### Identifying the User
 
 Servers **MUST NOT** rely on client-provided user identification without server verification, as this can be forged.
-Instead, servers **SHOULD** follow [security best practices](../basic/security_best_practices).
+Instead, servers **SHOULD** follow [security best practices](/docs/tutorials/security/security_best_practices).
 
 Non-normative examples:
 
@@ -756,7 +756,7 @@ For example, URL mode elicitation may be used to perform OAuth flows where the s
 3. Alice's client displays the URL and asks for consent
 4. Instead of clicking on the link, Alice tricks a victim user (Bob) of the same benign server into clicking it
 5. Bob opens the link and completes the authorization, thinking they are authorizing their own connection to the benign server
-6. The benign server receives a callback/redirect form the third-party authorization server, and assumes it's Alice's request
+6. The benign server receives a callback/redirect from the third-party authorization server, and assumes it's Alice's request
 7. The tokens for the third-party server are bound to Alice's session and identity, instead of Bob's, resulting in an account takeover
 
 To prevent this attack, the server **MUST** ensure that the user who started the elicitation request (the end-user who is accessing the server via the MCP client) is the same user who completes the authorization flow.

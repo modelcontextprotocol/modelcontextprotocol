@@ -1,0 +1,5 @@
+{
+  "jsonrpc": "2.0",
+  "id": "list-resources-example",
+  "method": "resources/list"
+}

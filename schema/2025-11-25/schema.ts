@@ -166,6 +166,8 @@ export interface JSONRPCErrorResponse {
 
 /**
  * A response to a request, containing either the result or error.
+ *
+ * @category JSON-RPC
  */
 export type JSONRPCResponse = JSONRPCResultResponse | JSONRPCErrorResponse;
 
@@ -185,8 +187,10 @@ export const URL_ELICITATION_REQUIRED = -32042;
  *
  * @internal
  */
-export interface URLElicitationRequiredError
-  extends Omit<JSONRPCErrorResponse, "error"> {
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
   error: Error & {
     code: typeof URL_ELICITATION_REQUIRED;
     data: {
@@ -1683,6 +1687,10 @@ export interface SamplingMessage {
    */
   _meta?: { [key: string]: unknown };
 }
+
+/**
+ * @category `sampling/createMessage`
+ */
 export type SamplingMessageContentBlock =
   | TextContent
   | ImageContent

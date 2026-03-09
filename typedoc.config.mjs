@@ -3,6 +3,7 @@
 /** @type {Partial<import("typedoc").TypeDocOptions>} */
 const config = {
   out: "tmp",
+  sort: ["source-order"],
   excludeInternal: true,
   excludeTags: [
     "@format",
@@ -10,6 +11,9 @@ const config = {
     "@minimum",
     "@TJS-type",
   ],
+  jsDocCompatibility: {
+    exampleTag: false,
+  },
   disableSources: true,
   logLevel: "Error",
   plugin: ["./typedoc.plugin.mjs"],

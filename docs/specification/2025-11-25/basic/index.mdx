@@ -143,7 +143,7 @@ The Model Context Protocol uses JSON Schema for validation throughout the protoc
 
 MCP supports JSON Schema with the following rules:
 
-1. **Default dialect**: When a schema does not include a `$schema` field, it defaults to JSON Schema 2020-12 (`https://json-schema.org/2025-11-25/2020-12/schema`)
+1. **Default dialect**: When a schema does not include a `$schema` field, it defaults to [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/schema)
 1. **Explicit dialect**: Schemas MAY include a `$schema` field to specify a different dialect
 1. **Supported dialects**: Implementations MUST support at least 2020-12 and SHOULD document which additional dialects they support
 1. **Recommendation**: Implementors are RECOMMENDED to use JSON Schema 2020-12.
@@ -227,6 +227,7 @@ Icons are represented as an array of `Icon` objects, where each icon includes:
   - A data URI with base64-encoded image data
 - `mimeType`: Optional MIME type if the server's type is missing or generic
 - `sizes`: Optional array of size specifications (e.g., `["48x48"]`, `["any"]` for scalable formats like SVG, or `["48x48", "96x96"]` for multiple sizes)
+- `theme`: Optional theme preference (`light` or `dark`) for the icon background
 
 **Required MIME type support:**
 

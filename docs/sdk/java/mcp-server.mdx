@@ -60,7 +60,7 @@ The server supports both synchronous and asynchronous APIs, allowing for flexibl
     ### Preserving thread-locals in handlers
 
     `McpSyncServer` delegates execution to an underlying `McpAsyncServer`.
-    Execution of handlers for tools, resources, etc, may not happen on the thread calling the method.
+    Execution of handlers for tools, resources, etc., may not happen on the thread calling the method.
     In that case, thread-locals are lost, which may break certain features in frameworks relying on thread-bound work.
     To ensure execution happens on the calling thread, and that thread-locals remain available, set `McpServer.sync(...).immediateExecution(true)`.
 
@@ -534,7 +534,7 @@ var capabilities = ServerCapabilities.builder()
 ### Tool Specification
 
 The Model Context Protocol allows servers to [expose tools](/specification/2024-11-05/server/tools/) that can be invoked by language models.
-The Java SDK allows implementing a Tool Specifications with their handler functions.
+The Java SDK allows implementing Tool Specifications with their handler functions.
 Tools enable AI models to perform calculations, access external APIs, query databases, and manipulate files:
 
 <Tabs>
@@ -644,11 +644,11 @@ var asyncResourceSpecification = new McpServerFeatures.AsyncResourceSpecificatio
   </Tab>
 </Tabs>
 
-The resource specification comprised of resource definitions and resource read handler.
-The resource definition including `name`, `description`, and `MIME type`.
+The resource specification is comprised of resource definitions and a resource read handler.
+The resource definition includes `name`, `description`, and `MIME type`.
 The first argument of the function that handles resource read requests is an `McpAsyncServerExchange` upon which the server can
 interact with the connected client.
-The second arguments is an `McpSchema.ReadResourceRequest`.
+The second argument is an `McpSchema.ReadResourceRequest`.
 
 ### Prompt Specification
 
@@ -725,8 +725,7 @@ var mcpServer = McpServer.sync(mcpServerTransportProvider)
       // ...
     .build())
   // ...
-  .completions(new McpServerFeatures.SyncCompletionSpecification( // register completion specification
-      new McpSchema.PromptReference("code_review"), syncCompletionSpecification))
+  .completions(syncCompletionSpecification) // register completion specification
   .build();
 
 ```
@@ -758,8 +757,7 @@ var mcpServer = McpServer.async(mcpServerTransportProvider)
       // ...
     .build())
   // ...
-  .completions(new McpServerFeatures.AsyncCompletionSpecification( // register completion specification
-      new McpSchema.PromptReference("code_review"), asyncCompletionSpecification))
+  .completions(asyncCompletionSpecification) // register completion specification
   .build();
 
 ```
@@ -890,7 +888,7 @@ To use [Elicitation capabilities](/specification/2025-06-18/client/elicitation),
 No special server configuration is needed, but verify client elicitation support before making requests.
 Learn about [client elicitation support](./mcp-client#elicitation-support).
 
-When a compatible client connects to a stateful server, the server can request language model generations:
+When a compatible client connects to a stateful server, the server can request additional information from the user:
 
 <Tabs>
   <Tab title="Sync API">
@@ -901,7 +899,7 @@ McpSyncServer server = McpServer.sync(transportProvider)
     .serverInfo("my-server", "1.0.0")
     .build();
 
-// Define a tool that uses sampling
+// Define a tool that uses elicitation
 var calculatorTool = new McpServerFeatures.SyncToolSpecification(
     new Tool("ai-calculator", "Performs calculations using AI", schema),
     (exchange, arguments) -> {
@@ -910,14 +908,14 @@ var calculatorTool = new McpServerFeatures.SyncToolSpecification(
             return new CallToolResult("Client does not support elicitation capabilities", false);
         }
 
-        // Create a elicitation request
+        // Create an elicitation request
         McpSchema.ElicitRequest request = McpSchema.ElicitRequest.builder()
 					.message("Test message")
 					.requestedSchema(
 							Map.of("type", "object", "properties", Map.of("message", Map.of("type", "string"))))
 					.build();
 
-        // Request elicitation  from the client
+        // Request elicitation from the client
         McpSchema.ElicitResult result = exchange.createElicitation(request);
 
         // Process the result
@@ -949,7 +947,7 @@ var calculatorTool = new McpServerFeatures.AsyncToolSpecification(
             return Mono.just(new CallToolResult("Client does not support elicitation capabilities", false));
         }
 
-        // Create a elicitation request
+        // Create an elicitation request
         McpSchema.ElicitRequest request = McpSchema.ElicitRequest.builder()
             .message("Test message")
             .requestedSchema(

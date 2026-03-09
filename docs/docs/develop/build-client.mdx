@@ -1120,13 +1120,13 @@ Also, add the following plugins to your build script:
 
 ```kotlin build.gradle.kts
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.9"
 }
 ```
 
 ```groovy build.gradle
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.9'
 }
 ```
 
@@ -1144,7 +1144,7 @@ export ANTHROPIC_API_KEY='your-anthropic-api-key-here'
 
 <Warning>
 
-Make sure your keep your `ANTHROPIC_API_KEY` secure!
+Make sure you keep your `ANTHROPIC_API_KEY` secure!
 
 </Warning>
 
@@ -1530,7 +1530,7 @@ var clientTransport = new StdioClientTransport(new()
     Arguments = arguments,
 });
 
-await using var mcpClient = await McpClientFactory.CreateAsync(clientTransport);
+await using var mcpClient = await McpClient.CreateAsync(clientTransport);
 
 var tools = await mcpClient.ListToolsAsync();
 foreach (var tool in tools)
@@ -1609,7 +1609,7 @@ static void PromptForInput()
 
 ### 1. Client Initialization
 
-- The client is initialized using `McpClientFactory.CreateAsync()`, which sets up the transport type and command to run the server.
+- The client is initialized using `McpClient.CreateAsync()`, which sets up the transport type and command to run the server.
 
 ### 2. Server Connection
 
@@ -1652,7 +1652,7 @@ The client will:
    - Get responses from Claude
 4. Exit the session when done
 
-Here's an example of what it should look like it connected to a weather server quickstart:
+Here's an example of what it should look like if connected to the weather server quickstart:
 
 <Frame>
   <img src="/images/quickstart-dotnet-client.png" />

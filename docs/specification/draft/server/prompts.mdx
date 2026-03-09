@@ -168,8 +168,9 @@ sequenceDiagram
     Server-->>Client: Prompt content
 
     opt listChanged
+      Client->>+Server: GET /mcp<br>(starts background SSE stream)
       Note over Client,Server: Changes
-      Server--)Client: prompts/list_changed
+      Server--)Client: prompts/list_changed<br>(notification on background SSE stream)
       Client->>Server: prompts/list
       Server-->>Client: Updated prompts
     end
@@ -184,6 +185,7 @@ A prompt definition includes:
 - `name`: Unique identifier for the prompt
 - `title`: Optional human-readable name of the prompt for display purposes.
 - `description`: Optional human-readable description
+- `icons`: Optional array of icons for display in user interfaces
 - `arguments`: Optional list of arguments for customization
 
 ### PromptMessage
