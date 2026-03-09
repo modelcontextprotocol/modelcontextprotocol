@@ -1,0 +1,131 @@
+name: Blog Preview
+
+on:
+  pull_request:
+    paths:
+      - "blog/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: blog-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    # Explicitly refuse to run for fork PRs. Blog content is authored by maintainers
+    # pushing to branches in this repo — external contributors do not submit blog posts.
+    # This also prevents a fork from triggering a build that would fail on missing
+    # Cloudflare secrets anyway.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.148.0
+      # Cloudflare Pages project name — must be created in the Cloudflare dashboard first
+      CF_PAGES_PROJECT: mcp-blog-preview
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.24"
+
+      - name: Setup Hugo
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      - name: Build blog preview
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: development
+        run: |
+          cd blog && hugo \
+            --gc \
+            --minify \
+            --buildDrafts \
+            --buildFuture \
+            --baseURL "/"
+
+      # Prevent preview deployments from being indexed by search engines.
+      # Cloudflare Pages serves _headers as HTTP headers for matching paths.
+      # X-Robots-Tag covers all content types (HTML, RSS, sitemaps, etc.)
+      - name: Add noindex headers
+        run: |
+          cat > blog/public/_headers <<'EOF'
+          /*
+            X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+          EOF
+
+      # Also inject a <meta> tag into every HTML page as belt-and-suspenders
+      # in case the site is later served from somewhere that ignores _headers.
+      - name: Inject noindex meta tag
+        run: |
+          find blog/public -name '*.html' -print0 | \
+            xargs -0 sed -i 's|<head>|<head><meta name="robots" content="noindex, nofollow, noarchive, nosnippet">|'
+
+      # Each PR gets its own preview URL via Cloudflare Pages branch aliases.
+      # Using `pr-<number>` as the branch name gives stable, predictable URLs
+      # across force-pushes and keeps concurrent PR previews isolated.
+      #
+      # Secrets are intentionally scoped to *this workflow only*:
+      #   CF_BLOG_PREVIEW_API_TOKEN  — Cloudflare API token with Pages:Edit on the
+      #                                 mcp-blog-preview project and nothing else
+      #   CF_BLOG_PREVIEW_ACCOUNT_ID — Cloudflare account ID (not secret, but kept
+      #                                 as a secret to co-locate with the token)
+      # Do NOT reuse a general-purpose Cloudflare token here.
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_BLOG_PREVIEW_API_TOKEN }}
+          accountId: ${{ secrets.CF_BLOG_PREVIEW_ACCOUNT_ID }}
+          command: pages deploy blog/public --project-name=${{ env.CF_PAGES_PROJECT }} --branch=pr-${{ github.event.pull_request.number }}
+
+      - name: Comment with preview URL
+        uses: actions/github-script@v8
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
+          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const deployUrl = process.env.DEPLOY_URL;
+            const aliasUrl = process.env.ALIAS_URL || deployUrl;
+
+            const marker = '<!-- blog-preview-comment -->';
+            const body = `${marker}
+            ## 📰 Blog Preview Deployed
+
+            | | |
+            |---|---|
+            | **Preview (stable)** | ${aliasUrl} |
+            | **This commit** | ${deployUrl} |
+            | **Commit** | \`${context.sha.slice(0, 7)}\` |
+
+            _Includes drafts and future-dated posts. All pages served with \`noindex, nofollow\` — search engines will not crawl this preview._`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNumber
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: prNumber, body
+              });
+            }
