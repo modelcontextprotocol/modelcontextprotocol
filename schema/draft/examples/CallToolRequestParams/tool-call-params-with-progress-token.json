@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "progressToken": "oivaizmir"
+  },
+  "name": "build_simulation",
+  "arguments": {
+    "city": "Micropolis"
+  }
+}
