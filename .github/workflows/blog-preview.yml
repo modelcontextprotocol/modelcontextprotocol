@@ -2,6 +2,7 @@ name: Blog Preview
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     paths:
       - "blog/**"
 
@@ -13,18 +14,22 @@ concurrency:
   group: blog-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+env:
+  # Cloudflare Pages project name — must be created in the Cloudflare dashboard first
+  CF_PAGES_PROJECT: mcp-blog-preview
+
 jobs:
   build-and-deploy:
     # Explicitly refuse to run for fork PRs. Blog content is authored by maintainers
     # pushing to branches in this repo — external contributors do not submit blog posts.
     # This also prevents a fork from triggering a build that would fail on missing
     # Cloudflare secrets anyway.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: 0.148.0
-      # Cloudflare Pages project name — must be created in the Cloudflare dashboard first
-      CF_PAGES_PROJECT: mcp-blog-preview
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -127,5 +132,66 @@ jobs:
             } else {
               await github.rest.issues.createComment({
                 owner, repo, issue_number: prNumber, body
+              });
+            }
+
+  # When a PR closes (merged or abandoned), delete all Cloudflare Pages
+  # deployments for its branch alias so stale previews don't stay publicly
+  # accessible forever.
+  cleanup:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete preview deployments
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_BLOG_PREVIEW_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_BLOG_PREVIEW_ACCOUNT_ID }}
+          CF_PROJECT: ${{ env.CF_PAGES_PROJECT }}
+          PR_BRANCH: pr-${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT}/deployments"
+
+          echo "Listing deployments for branch alias: ${PR_BRANCH}"
+          # Cloudflare paginates at 25/page. One PR rarely has >25 deploys, but
+          # loop until the branch alias returns empty just in case of a long-
+          # running PR with many pushes.
+          while :; do
+            ids=$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" "${api}?per_page=25" \
+              | jq -r --arg b "$PR_BRANCH" '.result[] | select(.deployment_trigger.metadata.branch == $b) | .id')
+
+            if [ -z "$ids" ]; then
+              echo "No deployments remaining for ${PR_BRANCH}."
+              break
+            fi
+
+            for id in $ids; do
+              echo "Deleting deployment ${id}"
+              curl -sS -X DELETE -H "Authorization: Bearer ${CF_API_TOKEN}" "${api}/${id}?force=true" \
+                | jq -r '"  → success=\(.success) errors=\(.errors // [])"'
+            done
+          done
+
+      - name: Update PR comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const marker = '<!-- blog-preview-comment -->';
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNumber
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id,
+                body: `${marker}\n## 📰 Blog Preview\n\n_Preview deployments for this PR have been cleaned up._`
               });
             }
