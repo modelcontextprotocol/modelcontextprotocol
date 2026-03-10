@@ -193,6 +193,10 @@
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "structuredContent": {
                     "additionalProperties": {},
                     "description": "An optional JSON object that represents the structured result of the tool call.",
@@ -669,6 +673,10 @@
                         "values"
                     ],
                     "type": "object"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -736,9 +744,6 @@
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "includeContext": {
                     "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. Values `\"thisServer\"` and `\"allServers\"` are soft-deprecated. Servers SHOULD only use these values if the client\ndeclares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.",
                     "enum": [
@@ -747,9 +752,6 @@
                         "thisServer"
                     ],
                     "type": "string"
-                },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
                 },
                 "maxTokens": {
                     "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
@@ -771,9 +773,6 @@
                     "$ref": "#/$defs/ModelPreferences",
                     "description": "The server's preferences for which model to select. The client MAY ignore these preferences."
                 },
-                "requestState": {
-                    "type": "string"
-                },
                 "stopSequences": {
                     "items": {
                         "type": "string"
@@ -783,10 +782,6 @@
                 "systemPrompt": {
                     "description": "An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.",
                     "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 },
                 "temperature": {
                     "type": "number"
@@ -865,6 +860,10 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "task": {
                     "$ref": "#/$defs/Task"
                 }
@@ -919,12 +918,6 @@
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
                     "type": "string"
@@ -932,9 +925,6 @@
                 "mode": {
                     "const": "form",
                     "description": "The elicitation mode.",
-                    "type": "string"
-                },
-                "requestState": {
                     "type": "string"
                 },
                 "requestedSchema": {
@@ -965,10 +955,6 @@
                         "type"
                     ],
                     "type": "object"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
             "required": [
@@ -991,15 +977,9 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "elicitationId": {
                     "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
                     "type": "string"
-                },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
                 },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
@@ -1009,13 +989,6 @@
                     "const": "url",
                     "description": "The elicitation mode.",
                     "type": "string"
-                },
-                "requestState": {
-                    "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -1245,6 +1218,10 @@
                         "$ref": "#/$defs/PromptMessage"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -1321,6 +1298,10 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -1546,6 +1527,10 @@
                 },
                 "requestState": {
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -1616,6 +1601,10 @@
                 "protocolVersion": {
                     "description": "The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "serverInfo": {
                     "$ref": "#/$defs/Implementation"
@@ -1967,6 +1956,10 @@
                         "$ref": "#/$defs/Prompt"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2042,6 +2035,10 @@
                         "$ref": "#/$defs/ResourceTemplate"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2117,6 +2114,10 @@
                         "$ref": "#/$defs/Resource"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2218,6 +2219,10 @@
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "tasks": {
                     "items": {
                         "$ref": "#/$defs/Task"
@@ -2285,6 +2290,10 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "tools": {
                     "items": {
@@ -2561,6 +2570,10 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -2909,6 +2922,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -3275,9 +3292,21 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
+        },
+        "ResultType": {
+            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.",
+            "enum": [
+                "complete",
+                "incomplete"
+            ],
+            "type": "string"
         },
         "RetryAugmentedRequestParams": {
             "properties": {
@@ -3870,7 +3899,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/$defs/TaskInputResponseRequestParams"
+                    "$ref": "#/$defs/TaskAugmentedRequestParams"
                 }
             },
             "required": [
@@ -3878,29 +3907,6 @@
                 "jsonrpc",
                 "method",
                 "params"
-            ],
-            "type": "object"
-        },
-        "TaskInputResponseRequestParams": {
-            "description": "Parameters for a `tasks/input_response` request.\nUsed to deliver client responses to server-initiated input requests\nfor a task in the persistent multi round-trip workflow.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses",
-                    "description": "The client's responses to the server's input requests."
-                },
-                "requestState": {
-                    "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
-                }
-            },
-            "required": [
-                "inputResponses"
             ],
             "type": "object"
         },
