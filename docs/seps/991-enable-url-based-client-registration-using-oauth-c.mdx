@@ -61,11 +61,13 @@ Relatedly, there are many more MCP servers than there are clients (similar to ho
 Client ID Metadata Documents enable a unique trust model where:
 
 1. **Servers can trust clients they've never seen before** based on:
+
    - The HTTPS domain hosting the metadata
    - The metadata content itself
    - Domain reputation and security policies
 
 2. **Servers maintain full control** through flexible policies:
+
    - **Open Servers**: Can accept any HTTPS client_id, enabling maximum interoperability
    - **Protected Servers**: Can restrict to trusted domains or specific clients
 

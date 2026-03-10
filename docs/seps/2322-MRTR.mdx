@@ -1,12 +1,30 @@
-# SEP-2322: Multi Round-Trip Requests
+---
+title: "SEP-2322: Multi Round-Trip Requests"
+sidebarTitle: "SEP-2322: Multi Round-Trip Requests"
+description: "Multi Round-Trip Requests"
+---
 
-- **Status**: Draft
-- **Type**: Standards Track
-- **Created**: 2026-02-03
-- **Author(s)**: Mark D. Roth (@markdroth), Caitie McCaffrey (@CaitieM20),
-  Gabriel Zimmerman (@gjz22)
-- **Sponsor**: Caitie McCaffrey (@CaitieM20)
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/{2322}
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **SEP**       | 2322                                                                                                                      |
+| **Title**     | Multi Round-Trip Requests                                                                                                 |
+| **Status**    | Draft                                                                                                                     |
+| **Type**      | Standards Track                                                                                                           |
+| **Created**   | 2026-02-03                                                                                                                |
+| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), |
+| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                             |
+| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                           |
+
+---
 
 ## Abstract
 
@@ -337,7 +355,7 @@ Note that the requests in steps 1 and 3 are completely independent: the
 server that processes the request in step 3 does not need any
 information that is not directly present in the request. To support this decoupling the JsonRPC Id MUST be different between the requests sent in step 1 and step 3.
 
-The schema looks like this:
+The schema would look something like this:
 
 ```typescript
 // Incomplete response.  May be sent in response to any client-initiated
@@ -346,6 +364,7 @@ The schema looks like this:
 // present, since the presence of these fields allow the client to
 // determine that the result is incomplete.
 export interface IncompleteResult extends Result {
+  status: "incomplete";
   // Requests issued by the server that must be complete before the
   // client can retry the original request.
   inputRequests?: InputRequests;
@@ -367,26 +386,6 @@ export interface RetryAugmentedRequestParams extends RequestParams {
   requestState?: string;
 }
 ```
-
-Since this change creates a polymorphic response for method calls like 'tools/call', we are introducing a new field to `Result` which indicate the `ResultType` the client should parse. If this field is not provided the Client should assume a `ResultType` of "complete" for backwards compatibility. The schema change will look like this:
-```typescript
-/**
- * Common result fields.
- *
- * @category Common Types
- */
-export interface Result {
-  _meta?: MetaObject;
-  // New field to indicate the type of the result, which allows the client to determine how to parse the result object. If no result_type is specified "complete" should be assumed. 
-  result_type?: ResultType;
-  [key: string]: unknown;
-}
-
-export type ResultType =
-| "complete" // the request completed successfully and the result contains the final content.
-| "incomplete" // the request is incomplete and the result contains an {@link IncompleteResult} object 
-```
-We anticipate this field will be useful for future extensibility, as it allows us to introduce new types of results and can also apply to `tasks` as well.
 
 Note that both the "inputRequests" and "requestState" fields affect
 only the client's next retry of the original request. They will not
@@ -428,7 +427,6 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "result_type": "incomplete",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
@@ -485,7 +483,6 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
-    "result_type": "complete",
     "content": [
       {
         "type": "text",
@@ -546,7 +543,6 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "result_type": "incomplete",
     "inputRequests": {
       "resolution": {
         "method": "elicitation/create",
@@ -607,7 +603,6 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "result_type": "incomplete",
     "inputRequests": {
       "duplicate_of": {
         "method": "elicitation/create",
@@ -669,7 +664,6 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
-    "result_type": "complete",
     "content": [
       {
         "type": "text",
@@ -905,7 +899,8 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-3. <b>Client Request</b> periodically checks the status of the `Task` using `tasks/get`.
+3. <b>Client Request</b> periodically checks the status of the `Task` using
+   `tasks/get`.
 
 ```json
 {
@@ -936,7 +931,8 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-5. <b>Client Request</b> sends message `tasks/result` to discover what input is required to proceed.
+5. <b>Client Request</b> sends message `tasks/result` to discover what input is
+   required to proceed.
 
 ```json
 {
@@ -953,23 +949,21 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 
 ```json
 {
-    "id": 3,
-    "jsonrpc": "2.0",
-    "result": {
-      "result_type": "incomplete",
-      "inputRequests":{
-        "echo_input":{
-          "method": "elicitation/create",
-          "params":{
-            "mode": "form",
-            "message": "Please provide the input string to echo back",
-            "requestedSchema":{
-              "type": "object",
-              "properties":{
-                "input": { "type": "string"}
-              },
-              "required": ["input"]
-            }
+  "id": 3,
+  "jsonrpc": "2.0",
+  "result": {
+    "inputRequests": {
+      "echo_input": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please provide the input string to echo back",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "input": { "type": "string" }
+            },
+            "required": ["input"]
           }
         }
       }
@@ -983,7 +977,8 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-7. <b>Client Request</b> presents the Elicitation to the user and collects the input, then sends message to the server.
+7. <b>Client Request</b> presents the Elicitation to the user and collects the
+   input, then sends message to the server.
 
 ```json
 {
@@ -1008,7 +1003,12 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-8. <b>Server Response</b> Server should acknowledge the receipt of the 'tasks/input_response' message by sending a 'JSONRPCResponse'. If the message was successfully received a `JSONRPCResultResponse` is sent including the `taskId`. If an error occurs, a `JSONRPCErrorResponse` is sent. The server can now proceed to complete the `Task` using the provided input, and the `Task` status changes to `Working`.
+8. <b>Server Response</b> Server should acknowledge the receipt of the
+   'tasks/input_response' message by sending a 'JSONRPCResponse'. If the message
+   was successfully received a `JSONRPCResultResponse` is sent including the
+   `taskId`. If an error occurs, a `JSONRPCErrorResponse` is sent. The server
+   can now proceed to complete the `Task` using the provided input, and the
+   `Task` status changes to `Working`.
 
 ```json
 {
@@ -1024,8 +1024,8 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-9. <b>Client Request</b> continues to poll the input status using `tasks/get` until server responds with Task Status of `Completed`
-   Client Request
+9. <b>Client Request</b> continues to poll the input status using `tasks/get`
+   until server responds with Task Status of `Completed` Client Request
 
 ```json
 {
@@ -1056,8 +1056,8 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-11. <b>Client Request</b> calls `tasks/result` to get the final result of the `Task` from the server.
-    Client Message
+11. <b>Client Request</b> calls `tasks/result` to get the final result of the
+    `Task` from the server. Client Message
 
 ```json
 {
@@ -1077,7 +1077,6 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
   "id": 6,
   "jsonrpc": "2.0",
   "result": {
-    "result_type": "complete",
     "isError": false,
     "content": [
       {
@@ -1179,7 +1178,6 @@ In the ephemeral workflow, this would look like the following:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "result_type": "incomplete",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
