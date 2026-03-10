@@ -341,8 +341,10 @@ constraints on redirect URIs based on the `application_type`
 parameter as defined in
 [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
 
-MCP clients **SHOULD** specify an appropriate `application_type`
-during Dynamic Client Registration:
+MCP clients **MUST** specify an appropriate `application_type`
+during Dynamic Client Registration. Omitting it defaults to
+`"web"` under OIDC, which can conflict with native-style redirect
+URIs; non-OIDC servers safely ignore the parameter.
 
 - **Native applications** (desktop applications, mobile apps,
   CLI tools, and locally-hosted web applications accessed via
