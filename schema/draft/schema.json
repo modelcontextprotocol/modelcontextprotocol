@@ -3837,6 +3837,10 @@
                     "$ref": "#/$defs/Annotations",
                     "description": "Optional annotations for the client."
                 },
+                "mimeType": {
+                    "description": "Optional MIME type of the text content (e.g. \"text/html\"). Defaults to \"text/plain\".",
+                    "type": "string"
+                },
                 "text": {
                     "description": "The text content of the message.",
                     "type": "string"

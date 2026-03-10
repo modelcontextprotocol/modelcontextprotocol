@@ -2343,6 +2343,11 @@ export interface TextContent {
   text: string;
 
   /**
+   * Optional MIME type of the text content (e.g. "text/html"). Defaults to "text/plain".
+   */
+  mimeType?: string;
+
+  /**
    * Optional annotations for the client.
    */
   annotations?: Annotations;
