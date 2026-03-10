@@ -368,7 +368,7 @@ export interface InputResponses {
 
 /**
  * An IncompleteResult sent by the server to indicate that additional input is needed
- * before the request can be completed. 
+ * before the request can be completed.
  *
  * At least one of `inputRequests` or `requestState` MUST be present.
  *
