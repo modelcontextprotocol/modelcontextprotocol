@@ -137,6 +137,8 @@ export interface Result {
   /**
    * Indicates the type of the result, which allows the client to determine
    * how to parse the result object.
+   *
+   * @default "complete"
    */
   result_type?: ResultType;
   [key: string]: unknown;

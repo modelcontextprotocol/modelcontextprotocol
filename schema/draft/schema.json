@@ -195,6 +195,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "structuredContent": {
@@ -676,6 +677,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -862,6 +864,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "task": {
@@ -1221,6 +1224,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -1301,6 +1305,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -1530,6 +1535,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -1604,6 +1610,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "serverInfo": {
@@ -1959,6 +1966,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -2038,6 +2046,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -2117,6 +2126,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -2221,6 +2231,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "tasks": {
@@ -2293,6 +2304,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "tools": {
@@ -2573,6 +2585,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -2925,6 +2938,7 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
@@ -3295,13 +3309,14 @@
                 },
                 "result_type": {
                     "$ref": "#/$defs/ResultType",
+                    "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
         },
         "ResultType": {
-            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.",
+            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.\n\ncomplete - the request completed successfully and the result contains the final content.\nincomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.",
             "enum": [
                 "complete",
                 "incomplete"
