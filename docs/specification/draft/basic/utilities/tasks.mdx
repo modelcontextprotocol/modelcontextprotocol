@@ -486,13 +486,16 @@ Task-augmented requests support progress notifications as defined in the [progre
 
 ### Basic Task Lifecycle
 
+This diagram shows the standard task flow where the requestor explicitly includes a task parameter with a TTL in their request.
+
 ```mermaid
 sequenceDiagram
     participant C as Client (Requestor)
     participant S as Server (Receiver)
-    Note over C,S: 1. Task Creation
+    Note over C,S: 1. Task Creation (Requestor-Initiated)
     C->>S: Request with task field (ttl)
     activate S
+    Note over S: Receiver accepts task-augmented request
     S->>C: CreateTaskResult (taskId, status: working, ttl, pollInterval)
     deactivate S
     Note over C,S: 2. Task Polling
@@ -514,6 +517,45 @@ sequenceDiagram
     C->>S: tasks/result (taskId)
     activate S
     S->>C: Result content
+    deactivate S
+    Note over C,S: 4. Cleanup
+    Note over S: After ttl period from creation, task is cleaned up
+```
+
+### Unsolicited Task Creation
+
+This diagram shows the unsolicited task flow where the requestor sends a regular request without a task field, and the receiver decides to create a task anyway.
+
+```mermaid
+sequenceDiagram
+    participant C as Client (Requestor)
+    participant S as Server (Receiver)
+    Note over C,S: 1. Regular Request (No Task Field)
+    C->>S: tools/call (no task parameter)
+    activate S
+    Note over S: Receiver decides to create task<br/>(e.g., operation will take too long)
+    S->>C: CreateTaskResult (taskId, status: working, ttl, pollInterval)
+    deactivate S
+    Note over C: Requestor must handle unexpected task
+    Note over C,S: 2. Task Polling (Standard Semantics)
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: working
+    deactivate S
+    Note over S: Task processing continues...
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: working
+    deactivate S
+    Note over S: Task completes
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: completed
+    deactivate S
+    Note over C,S: 3. Result Retrieval
+    C->>S: tasks/result (taskId)
+    activate S
+    S->>C: Result content (CallToolResult)
     deactivate S
     Note over C,S: 4. Cleanup
     Note over S: After ttl period from creation, task is cleaned up
