@@ -45,11 +45,11 @@
     "prep": "npm run check:schema:ts && npm run generate && npm run check:docs && npm run format"
   },
   "devDependencies": {
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^10.0.1",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
-    "eslint": "^9.8.0",
+    "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "glob": "^13.0.6",
     "prettier": "^3.6.2",
@@ -58,8 +58,8 @@
     "tsx": "^4.21.0",
     "typedoc": "^0.28.17",
     "typescript": "^5.6.2",
-    "typescript-eslint": "^8.56.0",
-    "typescript-json-schema": "^0.65.1",
+    "typescript-eslint": "^8.56.1",
+    "typescript-json-schema": "^0.67.1",
     "unified": "^11.0.5"
   },
   "resolutions": {

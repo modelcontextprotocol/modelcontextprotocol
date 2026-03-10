@@ -1,0 +1,79 @@
+name: Blog Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - "blog/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: blog-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    # Explicitly refuse to run for fork PRs. Blog content is authored by maintainers
+    # pushing to branches in this repo — external contributors do not submit blog posts.
+    # This also prevents a fork from triggering a build that would fail on missing
+    # Cloudflare secrets anyway.
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.148.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.24"
+
+      - name: Setup Hugo
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      - name: Build blog preview
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: development
+        run: |
+          cd blog && hugo \
+            --gc \
+            --minify \
+            --buildDrafts \
+            --buildFuture \
+            --baseURL "/"
+
+      - name: Deploy preview
+        uses: modelcontextprotocol/actions/cloudflare-pages-preview/deploy@main
+        with:
+          directory: blog/public
+          project-name: mcp-blog-preview
+          api-token: ${{ secrets.CF_BLOG_PREVIEW_API_TOKEN }}
+          account-id: ${{ secrets.CF_BLOG_PREVIEW_ACCOUNT_ID }}
+          comment-title: "📰 Blog Preview Deployed"
+          comment-marker: "<!-- blog-preview-comment -->"
+
+  cleanup:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: modelcontextprotocol/actions/cloudflare-pages-preview/cleanup@main
+        with:
+          project-name: mcp-blog-preview
+          api-token: ${{ secrets.CF_BLOG_PREVIEW_API_TOKEN }}
+          account-id: ${{ secrets.CF_BLOG_PREVIEW_ACCOUNT_ID }}
+          comment-marker: "<!-- blog-preview-comment -->"
