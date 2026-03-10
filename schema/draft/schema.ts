@@ -582,6 +582,15 @@ export interface ClientCapabilities {
     };
   };
   /**
+   * Present if the client supports declarative file inputs for tools and
+   * elicitation. When declared, servers MAY include `inputFiles` on {@link Tool}
+   * definitions and `requestedFiles` on {@link ElicitRequestFormParams}.
+   *
+   * @example File inputs
+   * {@includeCode ./examples/ClientCapabilities/file-inputs.json}
+   */
+  fileInputs?: JSONObject;
+  /**
    * Optional MCP extensions that the client supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
@@ -1614,6 +1623,9 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
  * @example Call tool request
  * {@includeCode ./examples/CallToolRequest/call-tool-request.json}
  *
+ * @example Call tool with file input
+ * {@includeCode ./examples/CallToolRequest/call-tool-with-file-input.json}
+ *
  * @category `tools/call`
  */
 export interface CallToolRequest extends JSONRPCRequest {
@@ -1725,6 +1737,9 @@ export interface ToolExecution {
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
  *
+ * @example With file input
+ * {@includeCode ./examples/Tool/with-file-input.json}
+ *
  * @category `tools/list`
  */
 export interface Tool extends BaseMetadata, Icons {
@@ -1771,7 +1786,44 @@ export interface Tool extends BaseMetadata, Icons {
    */
   annotations?: ToolAnnotations;
 
+  /**
+   * Declares which arguments in `inputSchema` are file inputs. Keys MUST match
+   * property names in `inputSchema.properties`, and the corresponding schema
+   * properties MUST be `{"type": "string", "format": "uri"}` or an array thereof.
+   *
+   * Servers MUST NOT include this field unless the client declared the
+   * `fileInputs` capability during initialization.
+   *
+   * Clients SHOULD render a native file picker for these arguments. Selected files
+   * are encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,
+   * where the `name=` parameter (percent-encoded) carries the original filename.
+   */
+  inputFiles?: { [argName: string]: FileInputDescriptor };
+
   _meta?: MetaObject;
+}
+
+/**
+ * Describes a single file input argument for a tool or elicitation form.
+ * Provides optional hints for client-side file picker filtering and validation.
+ * All fields are advisory; servers MUST still validate inputs independently.
+ *
+ * @category `tools/list`
+ */
+export interface FileInputDescriptor {
+  /**
+   * MIME type patterns that the server will accept for this input.
+   * Supports exact types (e.g., `"image/png"`) and wildcard subtypes
+   * (e.g., `"image/*"`). If omitted, any file type is accepted.
+   */
+  accept?: string[];
+
+  /**
+   * Maximum file size in bytes (decoded size, per file). Servers SHOULD reject
+   * larger files with {@link InvalidParamsError} and the structured reason
+   * `"file_too_large"`.
+   */
+  maxSize?: number;
 }
 
 /* Tasks */
@@ -2800,6 +2852,9 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  * @example Elicit multiple fields
  * {@includeCode ./examples/ElicitRequestFormParams/elicit-multiple-fields.json}
  *
+ * @example Elicit file input
+ * {@includeCode ./examples/ElicitRequestFormParams/elicit-file-input.json}
+ *
  * @category `elicitation/create`
  */
 export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
@@ -2825,6 +2880,21 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
     };
     required?: string[];
   };
+
+  /**
+   * Declares which fields in `requestedSchema` are file inputs. Keys MUST match
+   * property names in `requestedSchema.properties`, and the corresponding schema
+   * properties MUST be a {@link StringSchema} with `format: "uri"` or a
+   * {@link StringArraySchema} whose `items` has `format: "uri"`.
+   *
+   * Servers MUST NOT include this field unless the client declared the
+   * `fileInputs` capability during initialization.
+   *
+   * Clients SHOULD render a native file picker for these fields. Selected files
+   * are encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,
+   * where the `name=` parameter (percent-encoded) carries the original filename.
+   */
+  requestedFiles?: { [fieldName: string]: FileInputDescriptor };
 }
 
 /**
@@ -2883,8 +2953,8 @@ export interface ElicitRequest extends JSONRPCRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions that only allow primitive types and
+ * flat arrays of strings (for multi-file inputs), without nested objects.
  *
  * @category `elicitation/create`
  */
@@ -2892,7 +2962,8 @@ export type PrimitiveSchemaDefinition =
   | StringSchema
   | NumberSchema
   | BooleanSchema
-  | EnumSchema;
+  | EnumSchema
+  | StringArraySchema;
 
 /**
  * @example Email input schema
@@ -3140,6 +3211,22 @@ export type EnumSchema =
   | LegacyTitledEnumSchema;
 
 /**
+ * Schema for a flat array of strings. Intended primarily for multi-file
+ * inputs in elicitation forms, where each item is a data URI string with
+ * `format: "uri"`. Items MUST use {@link StringSchema}; nesting is not permitted.
+ *
+ * @category `elicitation/create`
+ */
+export interface StringArraySchema {
+  type: "array";
+  items: StringSchema;
+  title?: string;
+  description?: string;
+  minItems?: number;
+  maxItems?: number;
+}
+
+/**
  * The result returned by the client for an {@link ElicitRequest | elicitation/create} request.
  *
  * @example Input single field
@@ -3150,6 +3237,9 @@ export type EnumSchema =
  *
  * @example Accept URL mode (no content)
  * {@includeCode ./examples/ElicitResult/accept-url-mode-no-content.json}
+ *
+ * @example Accept file input
+ * {@includeCode ./examples/ElicitResult/accept-file-input.json}
  *
  * @category `elicitation/create`
  */
