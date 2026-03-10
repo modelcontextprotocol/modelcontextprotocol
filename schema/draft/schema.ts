@@ -96,7 +96,7 @@ export interface TaskAugmentedRequestParams extends RequestParams {
   /**
    * If specified, the caller is requesting task-augmented execution for this request.
    * The request will return a {@link CreateTaskResult} immediately, and the actual result can be
-   * retrieved later via {@link GetTaskPayloadRequest | tasks/result}.
+   * retrieved later via {@link ContinueTaskRequest | tasks/continue}.
    *
    * Task augmentation is subject to capability negotiation - receivers MUST declare support
    * for task augmentation of specific request types in their capabilities.
@@ -1858,6 +1858,19 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
+
+  /**
+   * This is the result shape of the original request, e.g. CallToolResult.
+   * This field is only defined when the task status is "completed".
+   */
+  result?: Result;
+
+  /**
+   * This is the error associated with the original request.
+   * This field is only defined when the task status is "failed". If a task
+   * is "cancelled", its statusMessage field will communicate that information.
+   */
+  error?: Error;
 }
 
 /**
@@ -1910,38 +1923,34 @@ export interface GetTaskResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * A request to retrieve the result of a completed task.
+ * A request to continue a task.
  *
- * @category `tasks/result`
+ * @category `tasks/continue`
  */
-export interface GetTaskPayloadRequest extends JSONRPCRequest {
-  method: "tasks/result";
+export interface ContinueTaskRequest extends JSONRPCRequest {
+  method: "tasks/continue";
   params: {
     /**
-     * The task identifier to retrieve results for.
+     * The task identifier to query.
      */
     taskId: string;
   };
 }
 
 /**
- * The result returned for a {@link GetTaskPayloadRequest | tasks/result} request.
- * The structure matches the result type of the original request.
- * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
+ * The response to a tasks/continue request.
  *
- * @category `tasks/result`
+ * @category `tasks/continue`
  */
-export interface GetTaskPayloadResult extends Result {
-  [key: string]: unknown;
-}
+export interface ContinueTaskResult extends Result, Task {}
 
 /**
- * A successful response for a {@link GetTaskPayloadRequest | tasks/result} request.
+ * A successful response for a {@link ContinueTaskRequest | tasks/continue} request.
  *
- * @category `tasks/result`
+ * @category `tasks/continue`
  */
-export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
-  result: GetTaskPayloadResult;
+export interface ContinueTaskResultResponse extends JSONRPCResultResponse {
+  result: ContinueTaskResult;
 }
 
 /**
@@ -3217,7 +3226,7 @@ export type ClientRequest =
   | CallToolRequest
   | ListToolsRequest
   | GetTaskRequest
-  | GetTaskPayloadRequest
+  | ContinueTaskRequest
   | ListTasksRequest
   | CancelTaskRequest;
 
@@ -3236,7 +3245,7 @@ export type ClientResult =
   | ListRootsResult
   | ElicitResult
   | GetTaskResult
-  | GetTaskPayloadResult
+  | ContinueTaskResult
   | ListTasksResult
   | CancelTaskResult;
 
@@ -3248,7 +3257,7 @@ export type ServerRequest =
   | ListRootsRequest
   | ElicitRequest
   | GetTaskRequest
-  | GetTaskPayloadRequest
+  | ContinueTaskRequest
   | ListTasksRequest
   | CancelTaskRequest;
 
@@ -3278,6 +3287,6 @@ export type ServerResult =
   | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
-  | GetTaskPayloadResult
+  | ContinueTaskResult
   | ListTasksResult
   | CancelTaskResult;
