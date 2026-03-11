@@ -427,6 +427,7 @@
             "group": "Governance",
             "pages": [
               "community/governance",
+              "community/contributor-ladder",
               "community/sep-guidelines",
               "community/sdk-tiers",
               "community/working-interest-groups",
