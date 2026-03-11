@@ -34,7 +34,7 @@ Implementations are free to expose tasks through any interface pattern that suit
 
 ## Capabilities
 
-Servers and clients that support task operations **MUST** declare a `tasks` capability during initialization.
+Servers and clients that support task RPC methods (`tasks/get`, `tasks/result`, `tasks/list`, `tasks/cancel`) **MUST** declare a `tasks` capability during initialization. This capability is not required for handling `CreateTaskResult` responses, which all parties **MUST** support.
 
 ### Server Capabilities
 
