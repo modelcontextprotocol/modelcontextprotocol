@@ -2307,9 +2307,9 @@ Now let's dive into building your server.
 
 ## Building your server
 
-### Imports and constants
+### Importing packages and constants
 
-Add these to the top of your `main.go`. The key import is `github.com/modelcontextprotocol/go-sdk/mcp`, which provides the MCP server, tool registration, and transport:
+Add these to the top of your `main.go`:
 
 ```go
 package main
@@ -2333,13 +2333,9 @@ const (
 )
 ```
 
-### Data types
+### Data structures
 
-Now let's define the types used by our tools. We'll start with the structs that model the NWS API responses, then define the tool input types.
-
-#### API response types
-
-These structs map directly to the JSON returned by the National Weather Service API:
+Next, let's define the data structures used by our tools:
 
 ```go
 type PointsResponse struct {
@@ -2378,13 +2374,7 @@ type AlertProperties struct {
 	Description string `json:"description"`
 	Instruction string `json:"instruction"`
 }
-```
 
-#### Tool input types
-
-The input parameter structs use `json` and `jsonschema` struct tags — the SDK uses these to automatically generate the tool's input schema:
-
-```go
 type ForecastInput struct {
 	Latitude  float64 `json:"latitude" jsonschema:"Latitude of the location"`
 	Longitude float64 `json:"longitude" jsonschema:"Longitude of the location"`
@@ -2397,7 +2387,7 @@ type AlertsInput struct {
 
 ### Helper functions
 
-Next, add the helper functions. `makeNWSRequest` is a generic function that makes an HTTP request and decodes the JSON response into the specified type. `formatAlert` and `formatPeriod` turn API data into readable text:
+Next, let's add our helper functions for querying and formatting the data from the National Weather Service API:
 
 ```go
 func makeNWSRequest[T any](ctx context.Context, url string) (*T, error) {
@@ -2457,11 +2447,9 @@ Forecast: %s
 }
 ```
 
-### Tool functions
+### Implementing tool execution
 
-Each tool function takes a `context.Context`, the raw `*mcp.CallToolRequest`, and the strongly-typed input struct we defined above.
-
-The `getForecast` function first looks up the NWS grid point for the given coordinates, then fetches the detailed forecast:
+The tool execution handler is responsible for actually executing the logic of each tool. Let's add it:
 
 ```go
 func getForecast(ctx context.Context, req *mcp.CallToolRequest, input ForecastInput) (
@@ -2521,11 +2509,7 @@ func getForecast(ctx context.Context, req *mcp.CallToolRequest, input ForecastIn
 		},
 	}, nil, nil
 }
-```
 
-The `getAlerts` function fetches active weather alerts for a US state:
-
-```go
 func getAlerts(ctx context.Context, req *mcp.CallToolRequest, input AlertsInput) (
 	*mcp.CallToolResult, any, error,
 ) {
@@ -2569,7 +2553,7 @@ func getAlerts(ctx context.Context, req *mcp.CallToolRequest, input AlertsInput)
 
 ### Running the server
 
-Finally, implement the `main` function. We create an MCP server, register both tools using `mcp.AddTool`, and start it on stdio transport. The SDK automatically generates the input schema from the struct tags:
+Finally, implement the main function to run the server:
 
 ```go
 func main() {
@@ -2598,13 +2582,13 @@ func main() {
 }
 ```
 
-Your server is complete! Build it with:
+Build your server with:
 
 ```bash
 go build -o weather .
 ```
 
-The compiled binary will be at `./weather`. You can verify it runs by executing `./weather` — it will start listening for JSON-RPC messages on stdin/stdout.
+The compiled binary will be in `./weather`.
 
 Let's now test your server from an existing MCP host, Claude for Desktop.
 
