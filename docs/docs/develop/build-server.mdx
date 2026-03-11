@@ -1797,21 +1797,13 @@ This quickstart assumes you have familiarity with:
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to standard output (stdout). This includes:
-
-- `print()` statements in Python
-- `console.log()` in JavaScript
-- `puts` in Ruby
-- Similar stdout functions in other languages
-
-Writing to stdout will corrupt the JSON-RPC messages and break your server.
+**For STDIO-based servers:** Never use `puts` or `print`, as they write to standard output (stdout) by default. Writing to stdout will corrupt the JSON-RPC messages and break your server.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-1. Use a logging library that writes to stderr or files.
-2. For Ruby, be especially careful - `puts` and `print` write to stdout by default.
+- Use a logging library that writes to stderr or files.
 
 ### Quick Examples
 
@@ -2035,7 +2027,7 @@ transport = MCP::Server::Transports::StdioTransport.new(server)
 transport.open
 ```
 
-Your server is complete! The server will listen for MCP messages on stdin and respond on stdout.
+Your server is complete! Run `bundle exec ruby weather.rb` to start the MCP server, which will listen for messages from MCP hosts.
 
 Let's now test your server from an existing MCP host, Claude for Desktop.
 
