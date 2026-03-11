@@ -4,7 +4,7 @@
 - **Type**: Process
 - **Created**: 2025-01-15
 - **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
-- **Sponsor**: None
+- **Sponsor**: David Soria Parra (@dsp-ant)
 - **PR**: https://github.com/modelcontextprotocol/specification/pull/2148
 
 ## Abstract
