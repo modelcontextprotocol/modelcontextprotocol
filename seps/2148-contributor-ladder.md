@@ -183,6 +183,7 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Can sponsor Reviewers and Maintainers
 - Participate in roadmap and prioritization discussions
 - Listed in `MAINTAINERS.md`
+- Release participation
 
 All pathways can lead to Maintainer, though the specific scope will align with the contribution type.
 
