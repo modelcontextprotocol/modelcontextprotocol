@@ -1,4 +1,4 @@
-# SEP-2229: Task Jumpscares
+# SEP-2229: Unsolicited Tasks
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -29,7 +29,7 @@ In practical terms, these flaws imply that an MCP server cannot make a clean bre
 
 Furthermore, the requirement that task support be declared ahead of time makes task execution predictable, but also prematurely removes the possibility of only dispatching a task when there is real work to be done, along the lines of the .NET [ValueTask](https://learn.microsoft.com/en-us/dotNet/api/system.threading.tasks.valuetask?view=net-10.0). Allowing the requestor to dictate whether or not a task will be created eliminates the possibility of caching results or sending early return values, instead requiring the creation of a task on every request if tasks are supported by the requestor at all.
 
-To both improve the adoption of tasks and to reduce their upfront messaging overhead, this proposal simplifies their execution model by allowing peers to "jumpscare" each other with tasks.
+To both improve the adoption of tasks and to reduce their upfront messaging overhead, this proposal simplifies their execution model by allowing peers to raise unsolicited tasks to each other.
 
 ## Specification
 
@@ -81,7 +81,7 @@ The following statement will be removed:
 
 ## Rationale
 
-### Jumpscares vs. Immediate Results
+### Unsolicited Tasks vs. Immediate Results
 
 An [alternative proposal](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1905) handles the immediate result case individually, and with slightly different preconditions: _If_ tasks are supported, _and_ the client supports immediate task results, _then_ servers may return a regular result in response to a task-augmented request. That version of immediate results looked like a better option at the time, as it implied no breaking changes on top of the initial tasks specification.
 
@@ -98,8 +98,6 @@ In the updated "Task Support and Handling" section under "​Behavior Requiremen
 This addition is intended to avoid speculative `tasks/get` requests from requestors that would otherwise not know if a task has silently been dropped or if it simply has not been created yet. While this does increase latency costs in distributed systems that did not already behave this way, explicitly introducing this requirement simplifies client implementations and eliminates a source of undefined behavior.
 
 ## Backward Compatibility
-
-### Jumpscares
 
 The headline breaking changes of this proposal are:
 
