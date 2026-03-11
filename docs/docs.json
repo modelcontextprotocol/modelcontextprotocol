@@ -407,13 +407,8 @@
           {
             "group": "Accepted",
             "pages": [
+              "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
-            ]
-          },
-          {
-            "group": "In-Review",
-            "pages": [
-              "seps/2207-oidc-refresh-token-guidance"
             ]
           }
         ]
