@@ -26,7 +26,7 @@ Tasks represent parties as either "requestors" or "receivers," defined as follow
 
 ## User Interaction Model
 
-Tasks enable asynchronous request processing where receivers can choose to return task handles for long-running operations. Requestors are responsible for polling for the results of those tasks, while receivers control task creation and manage the lifecycles of those tasks.
+Tasks enable asynchronous request processing where receivers return task handles at their discretion for long-running operations. Requestors are responsible for polling for the results of those tasks, while receivers control task creation and manage the lifecycles of those tasks.
 
 This approach enables sophisticated patterns such as dispatching concurrent requests and handling operations that require persistent work, which only the requestor has sufficient context to orchestrate.
 
@@ -46,8 +46,9 @@ Servers declare if they support task operations.
 | `tasks.cancel` | Server supports the `tasks/cancel` operation |
 
 <Warning>
-  The `tasks.requests` capability is deprecated. Servers MAY return
-  `CreateTaskResult` in response to any request.
+  The `tasks.requests` capability is deprecated and will be removed in a future
+  specification version. Receivers MAY return `CreateTaskResult` in response to
+  any request, regardless of this capability.
 </Warning>
 
 ```json
@@ -71,8 +72,9 @@ Clients declare if they support task operations.
 | `tasks.cancel` | Client supports the `tasks/cancel` operation |
 
 <Warning>
-  The `tasks.requests` capability is deprecated. Clients MAY return
-  `CreateTaskResult` in response to any request.
+  The `tasks.requests` capability is deprecated and will be removed in a future
+  specification version. Receivers MAY return `CreateTaskResult` in response to
+  any request, regardless of this capability.
 </Warning>
 
 ```json
@@ -110,7 +112,9 @@ Task-augmented requests follow a two-phase response pattern that differs from no
 - **Normal requests:** The receiver processes the request and returns the actual operation result directly.
 - **Task-augmented requests:** The receiver accepts the request and immediately returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
 
-Whether a task is created in response to a request is subject to the receiver's implementation; requestors **MUST** be prepared to handle either case. The requestor need not specify that task-augmented execution is expected. Requestors **MAY** include a `task.ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
+Whether a task is created in response to a request is subject to the receiver's implementation; requestors **MUST** be prepared to handle either case. The requestor need not specify that task-augmented execution is expected.
+
+Requestors **MAY** include a `task.ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
 
 **Request:**
 
@@ -370,7 +374,7 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
 
 ## Behavior Requirements
 
-These requirements apply to all parties that support receiving task-augmented requests.
+These requirements apply to all parties involved in task-augmented request handling.
 
 ### Task Support and Handling
 
@@ -494,7 +498,7 @@ This diagram shows the standard task flow where the requestor explicitly include
 sequenceDiagram
     participant C as Client (Requestor)
     participant S as Server (Receiver)
-    Note over C,S: 1. Task Creation (Requestor-Initiated)
+    Note over C,S: 1. Task Creation (With Task Parameter)
     C->>S: Request with task field (ttl)
     activate S
     Note over S: Receiver accepts task-augmented request
