@@ -11,6 +11,7 @@ permissions:
   issues: write
   contents: read
   actions: write
+  statuses: write
 
 jobs:
   # Parse and execute /lgtm, /hold, /unhold, /stageblog comment commands;
@@ -27,23 +28,11 @@ jobs:
           always-allow-teams: core-maintainers,lead-maintainers
           stageblog-workflow: stage-blog.yml
 
-  # Merge-gate status check — make "Slash Commands / status" a required
-  # check in branch protection so the labels become enforceable.
+  # Merge-gate commit status. Mark `slash-commands/approval` as a required
+  # status check in branch protection. Stays pending (yellow) until /lgtm
+  # adds the approved label; goes failure (red) only on /hold.
   status:
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     steps:
-      - name: Require approval, block on hold
-        env:
-          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
-        run: |
-          echo "Labels: $LABELS"
-          if ! jq -e 'contains(["approved"])' <<<"$LABELS" > /dev/null; then
-            echo "::error::Missing 'approved' label — have a maintainer or CODEOWNER comment /lgtm"
-            exit 1
-          fi
-          if jq -e 'contains(["do-not-merge/hold"])' <<<"$LABELS" > /dev/null; then
-            echo "::error::'do-not-merge/hold' present — resolve concerns, then comment /unhold"
-            exit 1
-          fi
-          echo "✅ approved and not held"
+      - uses: modelcontextprotocol/actions/slash-commands/status@main

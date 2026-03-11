@@ -57,3 +57,4 @@ jobs:
           commit-sha: ${{ inputs.head_sha }}
           comment-title: "📰 Blog Preview (staged via /stageblog)"
           comment-marker: "<!-- stage-blog-comment -->"
+          comment-mode: repost
