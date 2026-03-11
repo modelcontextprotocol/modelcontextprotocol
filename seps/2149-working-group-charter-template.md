@@ -11,6 +11,8 @@
 
 This SEP establishes governance rules and a standardized charter template for MCP's two collaborative group types: **Working Groups (WGs)** and **Interest Groups (IGs)**. Working Groups produce concrete deliverables — SEPs, implementations, and code. Interest Groups facilitate discussion and knowledge-sharing to identify problems and gather requirements. The governance rules define the requirements that all groups must follow, with lighter expectations for IGs where appropriate. The charter template defines the structure each group uses to document its specific mission, scope, leadership, and work. Together they address community feedback about unclear authority delegation and inconsistent processes across groups.
 
+This SEP is a companion to [SEP-2148: MCP Contributor Ladder](./2148-contributor-ladder.md), which defines the org-wide contributor roles (Member, Reviewer, Maintainer, Core Maintainer, Lead Maintainer) referenced throughout this document. Group leadership roles intersect with the contributor ladder: WG Leads and IG Facilitators must hold at least Member status on the ladder, and group participation is a recognized pathway to ladder advancement.
+
 ## Motivation
 
 Community interviews and feedback identified several challenges with the current group structure:
@@ -49,18 +51,19 @@ The following rules apply to all MCP Working Groups and Interest Groups. Individ
 
 #### 1.1 Leadership
 
-Each group has one or more **Leads**.
+Each group has one or more **Leads** (referred to as **Facilitators** for Interest Groups).
 
-**Requirements for all Leads:**
+**Requirements for all Leads and Facilitators:**
 
+- Hold at least Member status on the [MCP Contributor Ladder](./2148-contributor-ladder.md) (Reviewer preferred)
+- Demonstrated sustained engagement with the group's scope area
 - Ability to facilitate across organizational boundaries
 - Commitment to running the group's operations
+- Group and its leadership sponsored by at least two Core Maintainers or one Lead Maintainer
 
 **Additional requirements for WG Leads:**
 
-- Demonstrated sustained contribution to the WG's scope area
 - Commitment to 2-3 hours/week for WG activities
-- Sponsored by at least two Core Maintainers or one Lead Core Maintainer
 
 #### 1.2 Leadership Responsibilities
 
@@ -70,12 +73,13 @@ Each group has one or more **Leads**.
 - Set agendas in collaboration with participants and publish them in advance
 - Ensure meeting notes are published within 48 hours
 - Maintain the group's documentation
-- Maintian a members list and respctive access list in https://github.com/modelcontextprotocol/access
+- Maintain a members list and respective access list in https://github.com/modelcontextprotocol/access
 - Proactively recruit and retain broad, representative membership across organizations and perspectives
 
 **WG Leads are additionally responsible for:**
 
 - Drive proposals through the [SEP](https://modelcontextprotocol.io/community/sep-guidelines) (Specification Enhancement Proposal) process to resolution
+- Triage SEPs in the WG's scope area, including closing SEPs that do not fit the roadmap (with documented rationale; authors may appeal to Core Maintainers)
 - Escalate blocked decisions to Core Maintainers with clear context
 - Maintain the working group's roadmap
 - Solicit feedback from one or more Core Maintainers on the general direction of the group on a continuous basis
@@ -83,34 +87,34 @@ Each group has one or more **Leads**.
 
 #### 1.3 Participation Levels
 
-All groups use the following participation tiers:
+All groups use the following participation tiers. Note that **WG Member** is a group-specific participation level distinct from the org-wide **Member** role defined in the [Contributor Ladder](./2148-contributor-ladder.md) — an individual may be a WG Member in a specific group without holding org-wide Member status, and vice versa.
 
 | Level                | Description                                       | Privileges                                                         |
 | -------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
 | **Observer**         | Anyone interested in following the group's work   | Read access, may attend meetings, limited discussion participation |
 | **Participant**      | Active contributor to group discussions           | Can propose agenda items, participate in async votes               |
-| **Member**           | Sustained contributor with demonstrated expertise | Counted for quorum (WGs only)                                      |
+| **WG Member**        | Sustained contributor with demonstrated expertise | Counted for quorum (WGs only)                                      |
 | **Lead/Facilitator** | Operational leadership of the group               | Sets agenda, facilitates, escalates                                |
 
-Interest Groups primarily operate with Observers, Participants, and Facilitators. IGs may adopt the Member tier if their work warrants formal decision-making, but are not required to.
+Interest Groups primarily operate with Observers, Participants, and Facilitators. IGs may adopt the WG Member tier if their work warrants formal decision-making, but are not required to.
 
-**Becoming a Member (WGs, and IGs that adopt the Member tier):**
+**Becoming a WG Member (WGs, and IGs that adopt the WG Member tier):**
 
 - Sustained participation over 3 months
 - Meaningful contributions (code, spec text, reviews, or documentation)
-- Nomination by existing Member or Lead
-- No objections from Leads, Core Maintainers, or Lead Core Maintainers within 7 days
+- Nomination by existing WG Member or Lead
+- No objections from Leads, Core Maintainers, or Lead Maintainers within 7 days
 
-**Member Responsibilities:**
+**WG Member Responsibilities:**
 
 - Continue contributing in good faith
 - Maintain name, organization, and Discord name in the respective group's member list
 
-**Active vs. Emeritus:** Members who do not participate for 3 consecutive months are moved to emeritus status and may return by demonstrating renewed participation.
+**Active vs. Emeritus:** WG Members who do not participate for 3 consecutive months are moved to emeritus status and may return by demonstrating renewed participation.
 
 #### 1.4 Decision-Making Process
 
-This section applies primarily to Working Groups, which make binding decisions (consensus on technical designs, spec changes, etc.). Interest Groups typically operate by rough consensus in discussions and do not make binding decisions — their output is recommendations, problem statements, and use cases. IGs that adopt the Member tier may use this process for internal decisions.
+This section applies primarily to Working Groups, which make binding decisions (consensus on technical designs, spec changes, etc.). Interest Groups typically operate by rough consensus in discussions and do not make binding decisions — their output is recommendations, problem statements, and use cases. IGs that adopt the WG Member tier may use this process for internal decisions.
 
 **WG Consensus** is achieved through the following progression. Each step is attempted before moving to the next:
 
@@ -118,7 +122,7 @@ This section applies primarily to Working Groups, which make binding decisions (
 
 - Proposals announced with clear deadline (5 days minimum for minor items, 10 days for significant items)
 - Silence is consent
-- Any Member may block with documented objection
+- Any WG Member may block with documented objection
 - Blocks must propose alternatives or clear criteria for resolution
 - If no blocks are raised by the deadline, the proposal is accepted
 
@@ -126,12 +130,12 @@ This section applies primarily to Working Groups, which make binding decisions (
 
 A formal vote is triggered when:
 
-- A Member blocks during the lazy consensus period
-- A Lead or three or more Members request a formal vote
+- A WG Member blocks during the lazy consensus period
+- A Lead or three or more WG Members request a formal vote
 
 Voting rules:
 
-- Quorum: 50% of active Members
+- Quorum: 50% of active WG Members
 - Passage: Simple majority for routine matters; 2/3 majority for scope changes
 - Core Maintainer feedback is advisory unless explicitly stated as binding
 - All votes documented with rationale
@@ -171,7 +175,7 @@ Regardless of format or frequency, all group meetings must:
 - Have agendas published at least 24 hours in advance to a [GitHub Discussion in the Meeting Notes category](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/)
 - Have notes published within 48 hours to the same discussion
 
-Leads should actively involve Members and Participants in operational duties such as preparing agendas, taking meeting notes, and facilitating discussions.
+Leads should actively involve WG Members and Participants in operational duties such as preparing agendas, taking meeting notes, and facilitating discussions.
 
 #### 1.7 Communication Channels
 
@@ -208,22 +212,21 @@ In addition to Discord, groups can establish a discussion category in the [GitHu
 **Interest Group Formation:**
 
 - Fill out the creation template in the `#wg-ig-group-creation` channel on [Discord](https://discord.gg/6CSzBmMkjX)
-- A community moderator reviews and calls for a vote in `#community-moderators` (72h period, majority approval)
-- Once approved, the Facilitator(s) organize the IG and create a charter
+- A Core Maintainer reviews the proposal; the IG and its Facilitator(s) must be sponsored by at least two Core Maintainers or one Lead Maintainer
+- Once sponsored, the Facilitator(s) organize the IG and create a charter
 
 **Retirement:**
 
-- **WGs**: WG Lead or Core Maintainer proposes retirement with rationale; Core Maintainer or Lead Core Maintainer approval required. WGs are also retired when they have no active work for a sustained period or have completed all planned deliverables.
-- **IGs**: Community moderators or Core/Lead Maintainers may retire an IG that is no longer active or needed.
+- **WGs**: WG Lead or Core Maintainer proposes retirement with rationale; Core Maintainer or Lead Maintainer approval required. WGs are also retired when they have no active work for a sustained period or have completed all planned deliverables.
+- **IGs**: Core Maintainers or Lead Maintainers may retire an IG that is no longer active or needed.
 - In both cases, documentation is archived and channels are marked inactive.
 
 #### 1.10 Charter Amendments
 
-Changes to a group's charter require:
+Changes to a group's charter (WG or IG) require:
 
 - Proposal by Lead/Facilitator or Core Maintainer
-- For WGs: Approval by Core Maintainers
-- For IGs: Approval by community moderators
+- Approval by Core Maintainers
 
 ---
 
@@ -288,11 +291,12 @@ _Example:_
 | ----------------------------------- | ------------------------------------------------------ |
 | Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
 | Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
 | Technical design within scope       | WG consensus                                           |
 | Spec changes (additive)             | WG consensus → Core Maintainer approval                |
 | Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
 | Scope expansion                     | Core Maintainer approval required                      |
-| Member approval                     | WG Member sponsors                                     |
+| WG Member approval                  | WG Member sponsors                                     |
 
 IGs do not make binding decisions and do not need this section.
 
@@ -357,8 +361,8 @@ The authority table directly addresses the "unclear authority" feedback. By enum
 Different engagement levels serve different community needs:
 
 - **Observers** can learn without commitment
-- **Participants** can contribute without full Member responsibilities
-- **Members** take on accountability and get decision rights (primarily WGs)
+- **Participants** can contribute without full WG Member responsibilities
+- **WG Members** take on accountability and get decision rights (primarily WGs)
 - **Leads/Facilitators** provide operational continuity
 
 ### Why Lazy Consensus as Default?
@@ -386,7 +390,7 @@ However, existing groups must create a charter conforming to the template in Par
 
 - Existing groups continue to operate under their current processes
 - Leads/Facilitators are responsible for drafting the charter
-- Core Maintainers will review and approve WG charters; community moderators will review IG charters
+- Core Maintainers will review and approve both WG and IG charters
 - Groups that do not produce a charter within 8 weeks will be considered inactive and subject to retirement
 
 ## Security Implications
