@@ -1,0 +1,59 @@
+name: Stage Blog (fork PRs)
+
+# Dispatched by the slash-commands workflow when an authorized maintainer
+# comments /stageblog on a PR that touches blog/**. This lets fork PRs get a
+# blog preview without granting them secret access on pull_request events.
+#
+# The head_sha input is pinned at the time the maintainer comments — DO NOT
+# re-fetch the PR head, or a fork author could push malicious code between
+# the maintainer's review and this build.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to comment on
+        required: true
+        type: string
+      head_sha:
+        description: Exact commit SHA to build (pinned at /stageblog time)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: stage-blog-${{ inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pinned SHA
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.head_sha }}
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Build blog
+        uses: modelcontextprotocol/actions/hugo-build@main
+        with:
+          working-directory: blog
+          mode: preview
+
+      - name: Deploy preview
+        uses: modelcontextprotocol/actions/cloudflare-pages-preview/deploy@main
+        with:
+          directory: blog/public
+          project-name: mcp-blog-preview
+          api-token: ${{ secrets.CF_BLOG_PREVIEW_API_TOKEN }}
+          account-id: ${{ secrets.CF_BLOG_PREVIEW_ACCOUNT_ID }}
+          branch: pr-${{ inputs.pr_number }}
+          pr-number: ${{ inputs.pr_number }}
+          commit-sha: ${{ inputs.head_sha }}
+          comment-title: "📰 Blog Preview (staged via /stageblog)"
+          comment-marker: "<!-- stage-blog-comment -->"

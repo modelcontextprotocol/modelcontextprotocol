@@ -1,0 +1,38 @@
+name: Slash Commands
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [synchronize, opened, reopened, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+  actions: write
+  statuses: write
+
+jobs:
+  # Parse and execute /lgtm, /hold, /unhold, /stageblog comment commands;
+  # invalidate approval when new commits are pushed.
+  handle:
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
+      (github.event_name == 'pull_request_target' && github.event.action == 'synchronize')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: modelcontextprotocol/actions/slash-commands@main
+        with:
+          github-token: ${{ secrets.SLASH_COMMANDS_TOKEN }}
+          always-allow-teams: core-maintainers,lead-maintainers
+          stageblog-workflow: stage-blog.yml
+
+  # Merge-gate commit status. Mark `slash-commands/approval` as a required
+  # status check in branch protection. Stays pending (yellow) until /lgtm
+  # adds the approved label; goes failure (red) only on /hold.
+  status:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: modelcontextprotocol/actions/slash-commands/status@main
