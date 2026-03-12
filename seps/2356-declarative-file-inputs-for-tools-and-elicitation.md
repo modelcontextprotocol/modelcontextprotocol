@@ -23,7 +23,7 @@ Many tools conceptually operate on files — image converters, document parsers,
 
 Meanwhile, the client is the party best positioned to solve this problem. It already has native UI, knows the user's filesystem, and can trivially show a file picker — it just doesn't know _which_ arguments should trigger one.
 
-This SEP closes that gap with a small, declarative annotation. It is deliberately narrower in scope than proposals for streaming large binary transfers: files are passed inline as data URIs within the existing JSON-RPC envelope, which keeps the transport story unchanged at the cost of being practically suited to small-to-medium files (images, config files, short documents) rather than multi-gigabyte archives. A future SEP may define a large-file transport that reuses the same `inputFiles` metadata.
+This SEP closes that gap with a small, declarative annotation. It is deliberately narrower in scope than proposals for streaming large binary transfers: files are passed inline as data URIs within the existing JSON-RPC envelope, which keeps the transport story unchanged at the cost of being practically suited to small-to-medium files (images, config files, short documents) rather than multi-gigabyte archives. For larger payloads, servers can use URL-mode elicitation to direct the user to an upload endpoint out of band — see [Why not mandate a hard size limit?](#why-not-mandate-a-hard-size-limit-in-the-spec).
 
 ## Overview
 
@@ -373,7 +373,9 @@ The cost is standardizing the `name=` media-type parameter, which is grammatical
 
 ### Why not mandate a hard size limit in the spec?
 
-Data URIs embed base64 in the JSON-RPC envelope, so very large files are impractical (memory pressure on both sides, ~33% encoding overhead, JSON parser limits in some runtimes). However, "large" is context-dependent — a 50 MB limit is conservative for a local stdio server and generous for a constrained edge deployment. The SEP therefore provides the `maxSize` knob per-argument and leaves the value to server authors, while noting in documentation that this mechanism is best suited to small-to-medium files. Transport-level solutions for large binary transfer are out of scope and may be addressed by a future SEP that reuses `inputFiles` as its declaration layer.
+Data URIs embed base64 in the JSON-RPC envelope, so very large files are impractical (memory pressure on both sides, ~33% encoding overhead, JSON parser limits in some runtimes). However, "large" is context-dependent — a 50 MB limit is conservative for a local stdio server and generous for a constrained edge deployment. The SEP therefore provides the `maxSize` knob per-argument and leaves the value to server authors.
+
+For files too large to embed inline, servers should use URL-mode elicitation instead: send an `elicitation/create` request with `mode: "url"` directing the user to a server-controlled upload endpoint, receive the file out of band, and continue once the upload completes. This keeps large-file handling within the existing protocol — `inputFiles` covers the inline case, URL elicitation covers the large case, and neither requires new transport machinery.
 
 ### Why gate advertising on the client capability?
 
@@ -401,12 +403,12 @@ Standardizing this pattern at the protocol level, rather than leaving it to vend
 
 ### Relationship to other file-handling work
 
-This SEP is complementary to, not in competition with, proposals for pull-model file acquisition (where the server initiates a request for a file mid-execution, possibly via an out-of-band HTTP upload). The two address different interaction patterns:
+This SEP is complementary to URL-mode elicitation. The two address different interaction patterns:
 
-- **This SEP (push model):** The client knows at tool-listing time which arguments are files, gathers them up front, and sends them inline with the call. Suited to tools where "which file" is part of the user's initial intent.
-- **Pull model:** The server decides during execution that it needs a file and asks for it. Suited to conditional or multi-step flows, and better able to accommodate large transfers via dedicated upload endpoints.
+- **This SEP (push, inline):** The client knows at tool-listing time which arguments are files, gathers them up front, and sends them inline with the call. Suited to tools where "which file" is part of the user's initial intent and the payload is small enough to embed.
+- **URL-mode elicitation (pull, out-of-band):** The server decides during execution that it needs a file and directs the user to an upload endpoint. Suited to conditional or multi-step flows, and the natural choice when the payload is too large to embed inline.
 
-A client may reasonably support both. A server may use `inputFiles` for its simple tools and fall back to a pull mechanism for the heavy ones.
+A client may reasonably support both. A server may use `inputFiles` for its simple tools and fall back to URL-mode elicitation for the heavy ones.
 
 ## Backward Compatibility
 
