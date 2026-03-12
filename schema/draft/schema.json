@@ -3650,7 +3650,7 @@
             ]
         },
         "StringArraySchema": {
-            "description": "Schema for a flat array of strings. Intended primarily for multi-file\ninputs in elicitation forms, where each item is a data URI string with\n`format: \"uri\"`. Items MUST use {@link StringSchema}; nesting is not permitted.",
+            "description": "Schema for a flat array of strings. Intended primarily for multi-file\ninputs in elicitation forms, where each item is a data URI string with\n`format: \"uri\"`. Items MUST use {@link StringSchema}; nesting is not permitted.\n\nServers MUST NOT include this shape in an elicitation `requestedSchema` unless\nthe client declared the `fileInputs` capability, since clients predating this\naddition will not recognize it.",
             "properties": {
                 "description": {
                     "type": "string"

@@ -160,7 +160,7 @@ Clients that support rendering file pickers for annotated arguments **MUST** dec
 
 The capability object is currently empty but is defined as an object to allow future extension (for example, a client-side global size ceiling).
 
-This single capability governs both surfaces. If the client does not declare `fileInputs`, the server **MUST NOT** include `inputFiles` on any `Tool` it lists, and **MUST NOT** include `requestedFiles` on any form-mode elicitation request. This prevents advertising an affordance the client cannot honor.
+This single capability governs both surfaces. If the client does not declare `fileInputs`, the server **MUST NOT** include `inputFiles` on any `Tool` it lists, **MUST NOT** include `requestedFiles` on any form-mode elicitation request, and **MUST NOT** use `StringArraySchema` in any elicitation `requestedSchema`. This prevents advertising affordances the client cannot honor. (The `StringArraySchema` gating is conservative: it is technically renderable without file-picker support, but since this SEP introduces it and existing form-mode clients do not recognize it, tying it to `fileInputs` avoids breaking them. A future SEP may unbundle it.)
 
 A client that declares `fileInputs` but does not declare `elicitation` will simply never receive an elicitation request — so the elicitation surface is already gated by the `elicitation` capability itself, and no separate per-surface flag is needed.
 
@@ -194,21 +194,24 @@ interface FileInputDescriptor {
 
   /**
    * Maximum size in bytes of the decoded file content that the server
-   * will accept for this argument. Servers SHOULD set this to avoid
-   * surprising clients with rejection after a large upload.
-   * If omitted, the server imposes no declared limit (but MAY still
-   * reject excessively large payloads).
+   * will accept. For array-typed arguments, this limit applies per file,
+   * not to the aggregate. Servers SHOULD set this to avoid surprising
+   * clients with rejection after a large upload. If omitted, the server
+   * imposes no declared limit (but MAY still reject excessively large
+   * payloads).
    */
   maxSize?: number;
 }
 ```
 
-Each key in `inputFiles` **MUST** name a property that exists in `inputSchema.properties`, and that property's schema **MUST** be one of:
+Each key in `inputFiles` **MUST** name a property that exists in `inputSchema.properties`, and that property's schema **MUST** satisfy one of the following shapes:
 
-- **Single file:** `{ "type": "string", "format": "uri" }`
-- **Multiple files:** `{ "type": "array", "items": { "type": "string", "format": "uri" } }`
+- **Single file:** `type: "string"` with `format: "uri"`
+- **Multiple files:** `type: "array"` with `items` of `type: "string"` and `format: "uri"`
 
-For the array form, the client **SHOULD** respect `minItems` and `maxItems` on the array schema when configuring the file picker (e.g., enforcing a minimum or maximum number of selected files).
+Additional schema properties (`description`, `title`, `maxLength`, `minItems`, `maxItems`, etc.) are permitted alongside the required ones. For the array form, the client **SHOULD** respect `minItems` and `maxItems` when configuring the file picker (e.g., enforcing a minimum or maximum number of selected files).
+
+If a client receives an `inputFiles` entry whose key does not exist in `inputSchema.properties`, or whose referenced property does not satisfy the required shape, the client **SHOULD** ignore that entry and treat the argument as an ordinary field.
 
 The standard `required` array in `inputSchema` governs whether the file argument is mandatory, as with any other argument.
 
@@ -288,7 +291,7 @@ interface ElicitRequestFormParams {
 }
 ```
 
-The same schema constraints apply: each named field in `requestedSchema.properties` **MUST** be a `StringSchema` with `format: "uri"`, or a `StringArraySchema` (defined below).
+The same schema constraints apply: each named field in `requestedSchema.properties` **MUST** be a `StringSchema` with `format: "uri"`, or a `StringArraySchema` whose `items` has `format: "uri"` (defined below). As with tools, additional schema properties (`title`, `description`, etc.) are permitted, and clients **SHOULD** ignore `requestedFiles` entries that reference nonexistent or wrongly-shaped fields.
 
 To support multi-file elicitation fields, `PrimitiveSchemaDefinition` is extended with a new member:
 
@@ -310,7 +313,7 @@ interface StringArraySchema {
 }
 ```
 
-`StringArraySchema` is intentionally narrow — arrays of strings only — to keep elicitation-form rendering tractable. It is most useful for file inputs but is not restricted to them.
+`StringArraySchema` is intentionally narrow — arrays of strings only — to keep elicitation-form rendering tractable. Although it is a general-purpose shape, servers **MUST NOT** send it unless the client declared `fileInputs`, since existing form-mode clients do not recognize it (see [Client Capability](#client-capability)).
 
 ### Wire Encoding
 
@@ -323,10 +326,10 @@ data:<mediatype>;name=<filename>;base64,<data>
 Where:
 
 - `<mediatype>` is the MIME type of the file as reported by the client's platform (e.g., `image/png`). If the platform does not report a type, the client **SHOULD** use `application/octet-stream`.
-- `<filename>` is the file's basename, percent-encoded per RFC 3986 (e.g., `my%20photo.png`). The `name` parameter is **OPTIONAL**; clients **SHOULD** include it when the original filename is known.
+- `<filename>` is the file's basename, percent-encoded per RFC 3986. Characters that would otherwise be parsed as data-URI delimiters — notably `;` and `,` — **MUST** be encoded; for example, the filename `Report (v2); final.pdf` becomes `Report%20%28v2%29%3B%20final.pdf`. The `name` parameter is **OPTIONAL**; clients **SHOULD** include it when the original filename is known.
 - `<data>` is the base64-encoded file content.
 
-The `name` parameter is a media-type parameter permitted by RFC 2397's grammar but not defined by it. This SEP standardizes its use within MCP for carrying the original filename. Servers **SHOULD** treat `name` as advisory metadata (useful for display, extension-based heuristics, or round-tripping) and **MUST NOT** rely on it for security decisions.
+The `name` parameter is a media-type parameter permitted by RFC 2397's grammar but not defined by it. This SEP standardizes its use within MCP for carrying the original filename. Per that grammar, `name=` is part of the `<mediatype>` segment and **MUST** appear before the `;base64` marker; servers **MAY** reject data URIs that place it elsewhere. Servers **SHOULD** treat `name` as advisory metadata (useful for display, extension-based heuristics, or round-tripping) and **MUST NOT** rely on it for security decisions.
 
 Example value (a complete, valid 1×1 PNG — not truncated):
 
@@ -334,9 +337,25 @@ Example value (a complete, valid 1×1 PNG — not truncated):
 data:image/png;name=dot.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg==
 ```
 
-### Error Handling
+### Server-side validation
 
-Servers **MUST** validate received file inputs against their declared constraints. On violation, servers **MUST** return a JSON-RPC error with code `-32602` (Invalid Params). The error's `data` field **SHOULD** be an object identifying the failure:
+Servers **MUST** validate received file inputs against their declared constraints regardless of which surface delivered them.
+
+When validating against `accept`, servers **MUST** compare only the `type/subtype` portion of the data URI's mediatype, ignoring any parameters (including `name=`), and the comparison **MUST** be case-insensitive. For example, `accept: ["image/png"]` matches the data URI `data:image/png;name=photo.png;base64,…`; the `;name=photo.png` parameter is not part of the comparison. A wildcard entry such as `image/*` matches any subtype of `image`.
+
+Values that are well-formed URIs but not `data:` URIs (for example, `https://` URLs) are outside the scope of `inputFiles` validation. Whether a server fetches such a URL, rejects it, or treats it as opaque is server-defined — the `file_uri_malformed` reason below applies only to values that use the `data:` scheme but fail to parse as RFC 2397 base64 data URIs.
+
+Recommended `reason` values for the structured error payloads that follow:
+
+| `reason`             | Meaning                                                                 |
+| -------------------- | ----------------------------------------------------------------------- |
+| `file_too_large`     | Decoded content exceeds `maxSize`.                                      |
+| `file_type_rejected` | `type/subtype` of the data URI does not satisfy `accept`.               |
+| `file_uri_malformed` | Value uses the `data:` scheme but is not a well-formed base64 data URI. |
+
+#### Tool calls
+
+When a file argument received via `tools/call` violates a constraint, the server **MUST** return a JSON-RPC error with code `-32602` (Invalid Params). The error's `data` field **SHOULD** be an object identifying the failure:
 
 ```json
 {
@@ -355,15 +374,16 @@ Servers **MUST** validate received file inputs against their declared constraint
 }
 ```
 
-Recommended `reason` values:
+Servers **MAY** alternatively report these as tool-execution errors (`isError: true` in `CallToolResult`) rather than protocol errors, when the intent is for the model to see and potentially recover from the rejection. Servers **SHOULD** prefer `-32602` when the violation indicates a client-side bug (e.g., the client ignored `maxSize` and should not have sent the request at all).
 
-| `reason`             | Meaning                                                  |
-| -------------------- | -------------------------------------------------------- |
-| `file_too_large`     | Decoded content exceeds `maxSize`.                       |
-| `file_type_rejected` | MIME type does not satisfy `accept`.                     |
-| `file_uri_malformed` | Value is not a well-formed data URI with base64 payload. |
+#### Elicitation results
 
-For tool calls specifically, servers **MAY** alternatively report these as tool-execution errors (`isError: true` in `CallToolResult`) rather than protocol errors, when the intent is for the model to see and potentially recover from the rejection. Servers **SHOULD** prefer `-32602` when the violation indicates a client-side bug (e.g., the client ignored `maxSize` and should not have sent the request at all).
+An `ElicitResult` is a JSON-RPC _response_, so the server cannot reject it with `-32602`. When a file field in `ElicitResult.content` violates a constraint, the server **SHOULD** do one of the following:
+
+- Issue a fresh `elicitation/create` request whose `message` explains the violation (e.g., "The selected file is 12 MB; please choose one under 10 MB."), giving the user a chance to retry.
+- Fail the operation that initiated the elicitation — for an elicitation nested inside a tool call, return a `CallToolResult` with `isError: true` and a textual explanation.
+
+Servers **SHOULD** prefer re-eliciting when the violation is user-correctable and failing the enclosing operation when it is not.
 
 ### Capability Interaction Summary
 

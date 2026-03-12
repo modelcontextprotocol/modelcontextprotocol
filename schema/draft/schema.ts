@@ -3213,6 +3213,10 @@ export type EnumSchema =
  * inputs in elicitation forms, where each item is a data URI string with
  * `format: "uri"`. Items MUST use {@link StringSchema}; nesting is not permitted.
  *
+ * Servers MUST NOT include this shape in an elicitation `requestedSchema` unless
+ * the client declared the `fileInputs` capability, since clients predating this
+ * addition will not recognize it.
+ *
  * @category `elicitation/create`
  */
 export interface StringArraySchema {
