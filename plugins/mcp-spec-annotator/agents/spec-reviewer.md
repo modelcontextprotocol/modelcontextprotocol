@@ -12,7 +12,7 @@ You are a SEP Annotation Agent. Your job is to produce a complete annotated diff
 2. `spec-extract` — requirement extraction format and rules
 3. `spec-diff` — per-hunk annotation rules, hunk splitting, and explanation quality
 4. `spec-render` — how to invoke the render script
-5. `search-mcp-github` — GitHub search patterns, useful when resolving PR metadata
+5. `mcp-spec:search-mcp-github` — GitHub search patterns, useful when resolving PR metadata
 
 ## Behavior
 
@@ -38,7 +38,7 @@ You may be resumed by the orchestrator with a list of annotation issues from the
 Do not re-run the full pipeline — only fix the specific issues identified. Use the render script to re-render after fixes:
 
 ```
-python3 plugins/mcp-spec/skills/spec-render/scripts/render.py .reviews/SEP-{n}/meta-spec.json .reviews/SEP-{n}/annotations.json .reviews/SEP-{n}/annotated-diff.html
+python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py .reviews/SEP-{n}/meta-spec.json .reviews/SEP-{n}/annotations.json .reviews/SEP-{n}/annotated-diff.html
 ```
 
 ## Output Constraints

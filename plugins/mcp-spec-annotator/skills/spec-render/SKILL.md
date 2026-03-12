@@ -19,7 +19,7 @@ Produces a self-contained HTML file from meta-spec and annotation data using a P
 Run the render script from this skill's directory:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-render/scripts/render.py \
+python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py \
   <meta_spec_path> \
   <annotations_path> \
   <output_path>

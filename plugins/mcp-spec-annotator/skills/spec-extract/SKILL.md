@@ -164,7 +164,7 @@ Every requirement MUST include the exact quote from the SEP that establishes it.
 Run the extraction script to produce a baseline meta-spec with all keyword-triggered requirements:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-extract/scripts/extract.py <sep_file.md> <output_dir>
+python3 plugins/mcp-spec-annotator/skills/spec-extract/scripts/extract.py <sep_file.md> <output_dir>
 ```
 
 This scans for bolded RFC 2119 keywords and produces `meta-spec.json` with:

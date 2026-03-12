@@ -54,9 +54,9 @@ Re-annotate SEP-{sep_number}. Mode: validator. {commit_range if provided, else "
 The meta-spec was updated to fix QA issues. Re-annotate the diff against it and re-render.
 
 Use the pre-built scripts — do NOT write HTML manually or create custom Python scripts:
-- python3 plugins/mcp-spec/skills/spec-diff/scripts/parse_diff.py (parse diff)
-- python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py (build skeleton)
-- python3 plugins/mcp-spec/skills/spec-render/scripts/render.py (render HTML)
+- python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/parse_diff.py (parse diff)
+- python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/annotate.py (build skeleton)
+- python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py (render HTML)
 
 Write ONLY meta-spec.json, annotations.json, and annotated-diff.html. No summary.md, README, or other files.
 ```

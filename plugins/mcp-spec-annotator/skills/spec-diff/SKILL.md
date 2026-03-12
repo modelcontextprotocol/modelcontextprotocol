@@ -150,7 +150,7 @@ The `summary` object contains counts of each status across all entries in `annot
 If you have the raw diff as a file, run the parsing script to get structured, section-split hunks:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-diff/scripts/parse_diff.py <diff_file> <parsed_diff.json>
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/parse_diff.py <diff_file> <parsed_diff.json>
 ```
 
 This produces a JSON file with files split into logical hunks (MDX files split on `##` headings, TS files split on declarations). If you received per-file patches from the GitHub API instead of a raw diff file, you can skip this script and split hunks manually following the rules in "Splitting Large Hunks" above.
@@ -160,7 +160,7 @@ This produces a JSON file with files split into logical hunks (MDX files split o
 Generate a skeleton annotations.json with all structure pre-populated:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py \
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/annotate.py \
   <meta_spec.json> <parsed_diff.json> <output_annotations.json>
 ```
 
@@ -183,7 +183,7 @@ Read the skeleton annotations.json and for each requirement:
 Alternatively, write a `matches.json` file and re-run the script to apply it:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py \
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/annotate.py \
   <meta_spec.json> <parsed_diff.json> <output.json> --matches <matches.json>
 ```
 
