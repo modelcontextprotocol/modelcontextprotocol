@@ -58,7 +58,7 @@ Check if `.reviews/SEP-{sep_number}/meta-spec.json` already exists.
 - **Otherwise**: Run the extraction script, then enrich the output:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-extract/scripts/extract.py \
+python3 plugins/mcp-spec-annotator/skills/spec-extract/scripts/extract.py \
   seps/{sep_number}-*.md \
   .reviews/SEP-{sep_number}
 ```
@@ -73,12 +73,12 @@ If you saved the diff to a file, parse and scaffold it with the scripts:
 
 ```bash
 # Parse and split hunks
-python3 plugins/mcp-spec/skills/spec-diff/scripts/parse_diff.py \
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/parse_diff.py \
   .reviews/SEP-{sep_number}/pr-diff.txt \
   .reviews/SEP-{sep_number}/parsed-diff.json
 
 # Build annotation skeleton (all requirements as not_addressed, patch_text included, generated files excluded)
-python3 plugins/mcp-spec/skills/spec-diff/scripts/annotate.py \
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/annotate.py \
   .reviews/SEP-{sep_number}/meta-spec.json \
   .reviews/SEP-{sep_number}/parsed-diff.json \
   .reviews/SEP-{sep_number}/annotations.json
@@ -91,7 +91,7 @@ Then read the skeleton `annotations.json` and fill in each requirement's `status
 Follow the `spec-render` skill instructions — run the render script:
 
 ```bash
-python3 plugins/mcp-spec/skills/spec-render/scripts/render.py \
+python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py \
   .reviews/SEP-{sep_number}/meta-spec.json \
   .reviews/SEP-{sep_number}/annotations.json \
   .reviews/SEP-{sep_number}/annotated-diff.html

@@ -10,7 +10,7 @@ You are a Spec Implementation Agent. Your job is to make edits to the MCP specif
 
 1. `spec-extract` — understand the meta-spec format and requirement categories
 2. `spec-diff` — understand annotation statuses and what "satisfied" means for each requirement
-3. `search-mcp-github` — search for prior PRs and discussions that may inform implementation decisions
+3. `mcp-spec:search-mcp-github` — search for prior PRs and discussions that may inform implementation decisions
 
 ## Input
 
