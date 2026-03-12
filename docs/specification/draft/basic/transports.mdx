@@ -295,6 +295,31 @@ Without this header, proxies may accumulate messages before sending them to the 
 introducing unwanted latency and potentially breaking the real-time nature of SSE
 communication.
 
+### Internationalization
+
+MCP defines several user-facing string fields—such as `title` and `description` on
+tools, resources, prompts, and server metadata—that are intended for display in user
+interfaces. Servers using the Streamable HTTP transport can leverage standard HTTP
+content negotiation to serve localized versions of these strings, without requiring any
+changes to the MCP message schema.
+
+1. Clients **MAY** include an
+   [`Accept-Language`](https://httpwg.org/specs/rfc9110.html#field.accept-language) header
+   on HTTP requests to indicate the user's preferred language, using language tags as
+   defined by [BCP 47](https://www.rfc-editor.org/info/bcp47).
+2. Servers that support multiple languages **MAY** use the `Accept-Language` header to
+   select appropriate translations for user-facing content in their responses, following
+   the content negotiation semantics described in
+   [RFC 9110 §12](https://httpwg.org/specs/rfc9110.html#content.negotiation).
+3. Servers **MAY** include a
+   [`Content-Language`](https://httpwg.org/specs/rfc9110.html#field.content-language)
+   header in their responses to indicate the language of the returned content.
+4. If the server does not support the requested language, it **SHOULD** fall back to a
+   default language rather than returning an error.
+
+This mechanism relies entirely on existing HTTP semantics and does not affect the shape
+of MCP JSON-RPC messages.
+
 ### Backwards Compatibility
 
 Clients and servers can maintain backwards compatibility with the deprecated [HTTP+SSE
