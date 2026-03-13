@@ -1,0 +1,189 @@
+{{- /*
+  Override of PaperMod's header.html: theme toggle moved from .logo-switches
+  (next to the site title) to the end of #menu (top-right, after the nav
+  links). .logo-switches remains for the lang-switch conditional but is
+  empty on this single-language site.
+*/ -}}
+
+{{- /* theme-toggle is enabled */}}
+{{- if (not site.Params.disableThemeToggle) }}
+{{- /* theme is light */}}
+{{- if (eq site.Params.defaultTheme "light") }}
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+{{- /* theme is dark */}}
+{{- else if (eq site.Params.defaultTheme "dark") }}
+<script>
+    if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    }
+
+</script>
+{{- else }}
+{{- /* theme is auto */}}
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+{{- end }}
+{{- /* theme-toggle is disabled and theme is auto */}}
+{{- else if (and (ne site.Params.defaultTheme "light") (ne site.Params.defaultTheme "dark"))}}
+<script>
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+{{- end }}
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            {{- $label_text := (site.Params.label.text | default site.Title) }}
+            {{- if site.Title }}
+            <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)">
+                {{- if site.Params.label.icon }}
+                {{- $img := resources.Get site.Params.label.icon }}
+                {{- if $img }}
+                    {{- $processableFormats := (slice "jpg" "jpeg" "png" "tif" "bmp" "gif") -}}
+                    {{- if hugo.IsExtended -}}
+                        {{- $processableFormats = $processableFormats | append "webp" -}}
+                    {{- end -}}
+                    {{- $prod := (hugo.IsProduction | or (eq site.Params.env "production")) }}
+                    {{- if and (in $processableFormats $img.MediaType.SubType) (eq $prod true)}}
+                        {{- if site.Params.label.iconHeight }}
+                            {{- $img = $img.Resize (printf "x%d" site.Params.label.iconHeight) }}
+                        {{ else }}
+                            {{- $img = $img.Resize "x30" }}
+                        {{- end }}
+                    {{- end }}
+                    <img src="{{ $img.Permalink }}" alt="" aria-label="logo"
+                        height="{{- site.Params.label.iconHeight | default "30" -}}">
+                {{- else }}
+                <img src="{{- site.Params.label.icon | absURL -}}" alt="" aria-label="logo"
+                    height="{{- site.Params.label.iconHeight | default "30" -}}">
+                {{- end -}}
+                {{- else if hasPrefix site.Params.label.iconSVG "<svg" }}
+                    {{ site.Params.label.iconSVG | safeHTML }}
+                {{- end -}}
+                {{- $label_text -}}
+            </a>
+            {{- end }}
+            <div class="logo-switches">
+                {{- $lang := .Lang}}
+                {{- with site.Home.Translations }}
+                <ul class="lang-switch">
+                    {{- if $label_text }}<li>|</li>{{ end }}
+                    {{- range . -}}
+                    {{- if ne $lang .Lang }}
+                    <li>
+                        <a href="{{- .Permalink -}}" title="{{ .Language.Params.languageAltTitle | default (.Language.LanguageName | emojify) | default (.Lang | title) }}"
+                            aria-label="{{ .Language.LanguageName | default (.Lang | title) }}">
+                            {{- if (and site.Params.displayFullLangName (.Language.LanguageName)) }}
+                            {{- .Language.LanguageName | emojify -}}
+                            {{- else }}
+                            {{- .Lang | title -}}
+                            {{- end -}}
+                        </a>
+                    </li>
+                    {{- end -}}
+                    {{- end}}
+                </ul>
+                {{- end }}
+            </div>
+        </div>
+        {{- $currentPage := . }}
+        <ul id="menu">
+            {{- range site.Menus.main }}
+            {{- $menu_item_url := (cond (strings.HasSuffix .URL "/") .URL (printf "%s/" .URL) ) | absLangURL }}
+            {{- $page_url:= $currentPage.Permalink | absLangURL }}
+            {{- $is_search := eq (site.GetPage .KeyName).Layout `search` }}
+            <li>
+                <a href="{{ .URL | absLangURL }}" title="{{ .Title | default .Name }} {{- cond $is_search (" (Alt + /)" | safeHTMLAttr) ("" | safeHTMLAttr ) }}"
+                {{- cond $is_search (" accesskey=/" | safeHTMLAttr) ("" | safeHTMLAttr ) }}>
+                    <span {{- if eq $menu_item_url $page_url }} class="active" {{- end }}>
+                        {{- .Pre }}
+                        {{- .Name -}}
+                        {{ .Post -}}
+                    </span>
+                    {{- if (findRE "://" .URL) }}&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                    {{- end }}
+                </a>
+            </li>
+            {{- end }}
+            {{- if (not site.Params.disableThemeToggle) }}
+            <li>
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </li>
+            {{- end }}
+            {{- with site.Home.OutputFormats.Get "rss" }}
+            <li>
+                <a class="menu-icon" href="{{ .RelPermalink }}" title="RSS" aria-label="RSS">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M4 11a9 9 0 0 1 9 9" />
+                        <path d="M4 4a16 16 0 0 1 16 16" />
+                        <circle cx="5" cy="19" r="1" />
+                    </svg>
+                </a>
+            </li>
+            {{- end }}
+            <li>
+                <a class="menu-icon" href="https://github.com/modelcontextprotocol" title="GitHub" aria-label="GitHub">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a class="menu-icon" href="https://linkedin.com/company/modelcontextprotocol" title="LinkedIn" aria-label="LinkedIn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                        <rect x="2" y="9" width="4" height="12" />
+                        <circle cx="4" cy="4" r="2" />
+                    </svg>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
