@@ -596,6 +596,12 @@ Servers implementing elicitation **MUST** securely associate this state with ind
 - State storage **MUST** be protected against unauthorized access
 - For remote MCP servers, user identification **MUST** be derived from credentials acquired via [MCP authorization](../basic/authorization) when possible (e.g. `sub` claim)
 
+<Warning>
+
+These requirements mean that remote MCP servers implementing elicitation **SHOULD** implement [MCP authorization](../basic/authorization). Without authorization, there is no reliable mechanism to bind elicitation state to individual users, making the above requirements unsatisfiable.
+
+</Warning>
+
 <Note>
   The examples in this section are non-normative and illustrate potential uses
   of elicitation. Implementers should adapt these patterns to their specific
@@ -717,7 +723,7 @@ Clients **MUST** return standard JSON-RPC errors for common failure cases:
 
 ## Security Considerations
 
-1. Servers **MUST** bind elicitation requests to the client and user identity
+1. Servers **MUST** bind elicitation requests to the client and user identity. For remote servers, this binding requires [MCP authorization](../basic/authorization) to establish user identity (see [Statefulness](#statefulness)).
 1. Clients **MUST** provide clear indication of which server is requesting information
 1. Clients **SHOULD** implement user approval controls
 1. Clients **SHOULD** allow users to decline elicitation requests at any time
