@@ -3,9 +3,9 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-03-13
-- **Author(s)**: Raza Sharif <contact@agentsign.dev> (@razashariff)
-- **Sponsor**: None (seeking sponsor — cc @pcarleton @dsp-ant @nickcoai)
-- **PR**: (to be updated)
+- **Author(s)**: Raza Sharif (@razashariff)
+- **Sponsor**: None (seeking sponsor)
+- **PR**: #2395
 
 ## Abstract
 
