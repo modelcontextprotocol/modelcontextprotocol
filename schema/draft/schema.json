@@ -193,6 +193,11 @@
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "structuredContent": {
                     "additionalProperties": {},
                     "description": "An optional JSON object that represents the structured result of the tool call.",
@@ -652,6 +657,11 @@
                         "values"
                     ],
                     "type": "object"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -832,6 +842,11 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "task": {
                     "$ref": "#/$defs/Task"
@@ -1187,6 +1202,11 @@
                         "$ref": "#/$defs/PromptMessage"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -1263,6 +1283,11 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -1488,6 +1513,11 @@
                 },
                 "requestState": {
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -1558,6 +1588,11 @@
                 "protocolVersion": {
                     "description": "The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "serverInfo": {
                     "$ref": "#/$defs/Implementation"
@@ -1941,6 +1976,11 @@
                         "$ref": "#/$defs/Prompt"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2016,6 +2056,11 @@
                         "$ref": "#/$defs/ResourceTemplate"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2091,6 +2136,11 @@
                         "$ref": "#/$defs/Resource"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2192,6 +2242,11 @@
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "tasks": {
                     "items": {
                         "$ref": "#/$defs/Task"
@@ -2259,6 +2314,11 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "tools": {
                     "items": {
@@ -2535,6 +2595,11 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -2883,6 +2948,11 @@
                         ]
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -3249,9 +3319,22 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
+        },
+        "ResultType": {
+            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.\n\ncomplete - the request completed successfully and the result contains the final content.\nincomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.",
+            "enum": [
+                "complete",
+                "incomplete"
+            ],
+            "type": "string"
         },
         "RetryAugmentedRequestParams": {
             "properties": {

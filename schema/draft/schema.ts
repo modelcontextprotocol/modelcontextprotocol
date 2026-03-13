@@ -139,12 +139,31 @@ export interface Notification {
 }
 
 /**
+ * Indicates the type of a {@link Result} object, allowing the client to
+ * determine how to parse the response.
+ *
+ * complete - the request completed successfully and the result contains the final content.
+ * incomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.
+ * @category Common Types
+ */
+export type ResultType =
+  | "complete" 
+  | "incomplete"; 
+
+/**
  * Common result fields.
  *
  * @category Common Types
  */
 export interface Result {
   _meta?: MetaObject;
+  /**
+   * Indicates the type of the result, which allows the client to determine
+   * how to parse the result object.
+   *
+   * @default "complete"
+   */
+  result_type?: ResultType;
   [key: string]: unknown;
 }
 
