@@ -1,6 +1,6 @@
 # MCP Spec Plugin for Claude
 
-Skills for researching and contributing to the Model Context Protocol specification.
+Skills for researching the Model Context Protocol specification via GitHub.
 
 ## Installation
 
@@ -34,3 +34,13 @@ Search across MCP GitHub discussions, issues, and pull requests to find relevant
 ```
 
 **Note:** The skill searches both open AND closed issues/PRs, which is important for understanding past decisions and historical context.
+
+## MCP Servers
+
+This plugin includes an MCP server for searching the MCP documentation:
+
+- **mcp-docs** — Search the Model Context Protocol documentation at modelcontextprotocol.io
+
+## Related Plugins
+
+For SEP annotation and review workflows, see [mcp-spec-annotator](../mcp-spec-annotator/).
