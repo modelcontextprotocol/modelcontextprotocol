@@ -1,11 +1,17 @@
-+++
-date = '2025-11-03T00:00:00+00:00'
-publishDate = '2025-11-03T00:00:00+00:00'
-draft = false
-title = 'Server Instructions: Giving LLMs a user manual for your server'
-author = 'Ola Hungerford (Maintainer)'
-tags = ['automation', 'mcp', 'server instructions', 'tools']
-+++
+---
+title: "Server Instructions: Giving LLMs a user manual for your server"
+date: "2025-11-03T00:00:00+00:00"
+publishDate: "2025-11-03T00:00:00+00:00"
+draft: false
+description: How server instructions give LLMs the context they need to use your MCP server's tools effectively — an underused protocol feature with outsized impact.
+author:
+  - Ola Hungerford (Maintainer)
+tags:
+  - automation
+  - mcp
+  - server instructions
+  - tools
+---
 
 Many of us are still exploring the nooks and crannies of MCP and learning how to best use the building blocks of the protocol to enhance agents and applications. Some features, like [Prompts](https://blog.modelcontextprotocol.io/posts/2025-07-29-prompts-for-automation/), are frequently implemented and used within the MCP ecosystem. Others may appear a bit more obscure but have a lot of influence on how well an agent can interact with an MCP server. **Server instructions** fall in the latter category.
 
