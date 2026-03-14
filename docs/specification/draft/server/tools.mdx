@@ -207,7 +207,7 @@ A tool definition includes:
   - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: Optional properties describing tool behavior
 - `execution`: Optional object describing execution-related properties
-  - `taskSupport`: Indicates whether this tool supports [task-augmented execution](/specification/draft/basic/utilities/tasks#tool-level-negotiation). Values: `"forbidden"` (default), `"optional"`, or `"required"`
+  - `taskSupport`: Values: `"forbidden"` (default), `"optional"`, or `"required"`. **Deprecated:** this field will be removed in a future specification version; receivers MAY return `CreateTaskResult` regardless of this field.
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to

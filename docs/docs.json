@@ -409,6 +409,12 @@
             "pages": [
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2229-unsolicited-tasks"
+            ]
           }
         ]
       },
