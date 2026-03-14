@@ -409,6 +409,12 @@
             "pages": [
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2148-contributor-ladder"
+            ]
           }
         ]
       },
@@ -427,6 +433,7 @@
             "group": "Governance",
             "pages": [
               "community/governance",
+              "community/contributor-ladder",
               "community/sep-guidelines",
               "community/sdk-tiers",
               "community/working-interest-groups",
