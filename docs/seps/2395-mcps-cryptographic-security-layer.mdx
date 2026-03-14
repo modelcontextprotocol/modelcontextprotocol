@@ -1,21 +1,40 @@
-# SEP-0000: MCPS — Cryptographic Security Layer for MCP
+---
+title: "SEP-2395: Cryptographic Security Layer for MCP"
+sidebarTitle: "SEP-2395: Cryptographic Security Layer for MCP"
+description: "Cryptographic Security Layer for MCP"
+---
 
-- **Status**: Draft
-- **Type**: Standards Track
-- **Created**: 2026-03-13
-- **Author(s)**: Raza Sharif (@razashariff)
-- **Sponsor**: None (seeking sponsor)
-- **PR**: #2395
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2395                                                                            |
+| **Title**     | Cryptographic Security Layer for MCP                                            |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-03-13                                                                      |
+| **Author(s)** | Raza Sharif ([@razashariff](https://github.com/razashariff))                    |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#2395](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2395) |
+
+---
 
 ## Abstract
 
-This SEP proposes MCPS (MCP Secure), a cryptographic security layer for the Model Context Protocol. MCPS adds agent identity verification, per-message signing, tool definition integrity, and replay protection to MCP communications — without modifying the core protocol.
+This SEP proposes a cryptographic security layer for the Model Context Protocol that adds agent identity verification, per-message signing, tool definition integrity, and replay protection -- without modifying the core protocol.
 
-MCPS operates as an envelope around existing JSON-RPC messages, similar to how TLS wraps HTTP. It introduces four primitives: (1) Agent Passports for cryptographic identity, (2) signed message envelopes for integrity and non-repudiation, (3) tool definition signatures for detecting poisoning and tampering, and (4) nonce-plus-timestamp replay protection.
+The security layer operates as an envelope around existing JSON-RPC messages, similar to how TLS wraps HTTP. It introduces four primitives: (1) Agent Passports for cryptographic identity, (2) signed message envelopes for integrity and non-repudiation, (3) tool definition signatures for detecting poisoning and tampering, and (4) nonce-plus-timestamp replay protection.
 
-The design is fully backward-compatible. MCPS-unaware clients and servers continue to function normally. MCPS-aware endpoints progressively negotiate security capabilities through trust levels L0 (no verification) through L4 (full mutual authentication with revocation checking).
+The design is fully backward-compatible. Unaware clients and servers continue to function normally. Security-aware endpoints progressively negotiate capabilities through trust levels L0 (no verification) through L4 (full mutual authentication with revocation checking).
 
-All cryptographic operations use ECDSA P-256 (NIST FIPS 186-4). The Trust Authority component is self-hostable with no external service dependency. Reference implementations exist for both Node.js and Python with zero additional dependencies (Node.js) or one dependency (Python: `cryptography`).
+All cryptographic operations use ECDSA P-256 (NIST FIPS 186-4). The Trust Authority component is self-hostable with no external service dependency.
 
 ## Motivation
 
@@ -27,45 +46,45 @@ MCP defines a powerful protocol for connecting AI agents to external tools and d
 
 2. **Integrity**: JSON-RPC messages between client and server are unsigned. There is no way for a recipient to verify that a message has not been tampered with in transit, or to prove after the fact that a particular message was sent by a particular party (non-repudiation).
 
-3. **Tool Authenticity**: Tool definitions (name, description, input schema) are served unsigned. A compromised or malicious server can modify tool descriptions to inject instructions into agent prompts (tool poisoning), or silently change tool behavior between sessions (rug pulls).
+3. **Tool Authenticity**: Tool definitions (name, description, input schema) are served unsigned. A compromised or malicious server can modify tool descriptions to inject instructions into agent prompts (tool poisoning), or silently change tool behavior between sessions.
 
 ### Evidence of Real-World Risk
 
 These are not theoretical concerns:
 
-- **41% of MCP servers have zero authentication** ([TapAuth research](https://tapauth.ai/blog/518-mcp-servers-scanned-41-percent-no-auth), scanning 518 production servers).
+- **41% of MCP servers have zero authentication** (TapAuth research, scanning 518 production servers).
 - **CVE-2025-6514** (CVSS 9.6) demonstrated remote code execution via MCP tool poisoning.
 - **CVE-2025-49596** (CVSS 9.4) demonstrated RCE in MCP Inspector via malicious tool descriptions.
-- An independent scan of 39 AI agent frameworks against the OWASP Top 10 for Agentic Applications found that **13 frameworks had no MCP security controls**, 17 had partial controls, and only 9 implemented adequate protections.
+- An independent scan of 39 AI agent frameworks against the OWASP Top 10 for Agentic Applications found that 13 frameworks had no MCP security controls, 17 had partial controls, and only 9 implemented adequate protections.
 
 ### Why Existing MCP Auth is Insufficient
 
-The current MCP authorization work (OAuth 2.1 via SEP-1046, SEP-1299, SEP-985) addresses **session-level** authentication — establishing that a client is authorized to connect to a server. This is necessary but not sufficient.
+The current MCP authorization work (OAuth 2.1 via SEP-1046, SEP-1299, SEP-985) addresses **session-level** authentication -- establishing that a client is authorized to connect to a server. This is necessary but not sufficient.
 
-MCPS addresses a different layer: **message-level** and **artifact-level** cryptographic guarantees. The distinction is analogous to:
+This SEP addresses a different layer: **message-level** and **artifact-level** cryptographic guarantees. The distinction is analogous to:
 
 | Layer              | HTTP Analogy               | MCP Analogy        | Addressed By        |
 | ------------------ | -------------------------- | ------------------ | ------------------- |
 | Session auth       | OAuth bearer token         | Client credentials | Existing OAuth SEPs |
-| Transport security | TLS                        | (missing)          | **MCPS (this SEP)** |
-| Message integrity  | HTTP Signatures (RFC 9421) | (missing)          | **MCPS (this SEP)** |
-| Artifact signing   | Code signing               | (missing)          | **MCPS (this SEP)** |
+| Transport security | TLS                        | (missing)          | **This SEP**        |
+| Message integrity  | HTTP Signatures (RFC 9421) | (missing)          | **This SEP**        |
+| Artifact signing   | Code signing               | (missing)          | **This SEP**        |
 
-MCPS complements existing OAuth-based authorization. A server may require both OAuth credentials (for access control) and MCPS signatures (for integrity and non-repudiation).
+This proposal complements existing OAuth-based authorization. A server may require both OAuth credentials (for access control) and cryptographic signatures (for integrity and non-repudiation).
 
 ### Alignment with MCP 2026 Roadmap
 
-The [2026 MCP Roadmap](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/) identifies "deeper security and authorization work" as a priority. MCPS provides the cryptographic foundation for this work.
+The [2026 MCP Roadmap](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/) identifies "deeper security and authorization work" as a priority. This SEP provides the cryptographic foundation for that work.
 
 ## Specification
 
 ### 1. Cryptographic Primitives
 
-All MCPS operations use:
+All operations use:
 
 - **Key Algorithm**: ECDSA with P-256 curve (NIST FIPS 186-4, RFC 6979)
 - **Hash Algorithm**: SHA-256
-- **Signature Encoding**: Base64url (RFC 4648 §5), no padding
+- **Signature Encoding**: Base64url (RFC 4648 section 5), no padding
 - **Key Format**: JSON Web Key (JWK, RFC 7517)
 - **Canonical Serialization**: JSON with lexicographically sorted keys, no whitespace
 
@@ -127,7 +146,7 @@ An Agent Passport is a signed credential that binds a cryptographic key pair to 
 
 ### 3. Signed Message Envelopes
 
-Every JSON-RPC message exchanged between MCPS-aware endpoints is wrapped in a signed envelope.
+Every JSON-RPC message exchanged between security-aware endpoints is wrapped in a signed envelope.
 
 #### 3.1 Envelope Structure
 
@@ -142,7 +161,7 @@ Every JSON-RPC message exchanged between MCPS-aware endpoints is wrapped in a si
   },
   "jsonrpc": "2.0",
   "method": "tools/call",
-  "params": { ... },
+  "params": {},
   "id": 1
 }
 ```
@@ -220,11 +239,11 @@ Clients SHOULD maintain a local pin store mapping `(server_id, tool_name)` to th
 2. Compare `schema_hash` against the pinned value.
 3. If the hash has changed, alert the user or reject the tool (configurable policy).
 
-This detects "rug pull" attacks where a tool's behavior silently changes between sessions.
+This detects attacks where a tool's behavior silently changes between sessions.
 
 ### 5. Replay Protection
 
-MCPS uses a dual mechanism for replay protection:
+A dual mechanism is used for replay protection:
 
 1. **Nonce Uniqueness**: Each message includes a UUID v4 nonce. Recipients MUST maintain a nonce store and reject any previously seen nonce.
 2. **Timestamp Window**: Messages with timestamps older than the configurable window (default: 300 seconds) MUST be rejected.
@@ -237,11 +256,11 @@ MCPS uses a dual mechanism for replay protection:
 
 ### 6. Trust Levels
 
-MCPS defines five trust levels for progressive security adoption:
+Five trust levels are defined for progressive security adoption:
 
 | Level | Name     | Requirements                                                             |
 | ----- | -------- | ------------------------------------------------------------------------ |
-| L0    | None     | No MCPS verification. Equivalent to current MCP behavior.                |
+| L0    | None     | No verification. Equivalent to current MCP behavior.                     |
 | L1    | Signed   | Messages are signed. Passport may be self-signed.                        |
 | L2    | Verified | Messages are signed. Passport is signed by a recognized Trust Authority. |
 | L3    | Strict   | L2 plus tool definition signatures required.                             |
@@ -278,7 +297,7 @@ Trust Authorities MAY publish revocation information via:
    ```json
    {
      "passport_id": "ap_<uuid>",
-     "status": "active" | "revoked" | "expired",
+     "status": "active | revoked | expired",
      "checked_at": "string (ISO 8601 UTC)"
    }
    ```
@@ -289,7 +308,7 @@ If the revocation endpoint is unreachable, implementations SHOULD default to **f
 
 ### 8. Error Codes
 
-MCPS defines the following JSON-RPC error codes:
+The following JSON-RPC error codes are defined:
 
 | Code   | Name                            | Description                                          |
 | ------ | ------------------------------- | ---------------------------------------------------- |
@@ -320,9 +339,9 @@ Error responses MUST include the standard JSON-RPC error format:
 
 ### 9. Capability Negotiation
 
-MCPS capabilities are negotiated during the MCP `initialize` handshake.
+Security capabilities are negotiated during the MCP `initialize` handshake.
 
-#### 9.1 Client Announces MCPS Support
+#### 9.1 Client Announces Support
 
 ```json
 {
@@ -334,7 +353,7 @@ MCPS capabilities are negotiated during the MCP `initialize` handshake.
       "mcps": {
         "version": "1.0",
         "trust_level": 2,
-        "passport": { ... }
+        "passport": {}
       }
     },
     "clientInfo": { "name": "my-agent", "version": "1.0.0" }
@@ -343,7 +362,7 @@ MCPS capabilities are negotiated during the MCP `initialize` handshake.
 }
 ```
 
-#### 9.2 Server Responds with MCPS Requirements
+#### 9.2 Server Responds with Requirements
 
 ```json
 {
@@ -354,7 +373,7 @@ MCPS capabilities are negotiated during the MCP `initialize` handshake.
       "mcps": {
         "version": "1.0",
         "min_trust_level": 2,
-        "passport": { ... },
+        "passport": {},
         "revocation_endpoint": "https://ta.example.com/revocation"
       }
     },
@@ -366,30 +385,15 @@ MCPS capabilities are negotiated during the MCP `initialize` handshake.
 
 If the client's trust level is below the server's `min_trust_level`, the server MUST reject the connection with error code `-32002`.
 
-### 10. OWASP Risk Mitigation
-
-MCPS addresses the following risks from the OWASP Top 10 for Agentic Applications (2026) and the OWASP MCP Top 10:
-
-| Risk                               | Mitigation                                           |
-| ---------------------------------- | ---------------------------------------------------- |
-| Inadequate Agent Identity (ASI02)  | Agent Passports provide cryptographic identity       |
-| Inadequate Tool Validation (ASI03) | Tool definition signing prevents poisoning           |
-| Delegated Trust Boundaries (ASI04) | Trust levels enforce minimum security per connection |
-| Tool Poisoning (MCP03)             | Signed tool definitions with change detection        |
-| Server Impersonation               | Passport-based mutual authentication                 |
-| Message Tampering                  | Per-message ECDSA signatures                         |
-| Replay Attacks                     | Nonce + timestamp window                             |
-| Insufficient Authorization (MCP07) | Trust level gating with capability lists             |
-
 ## Rationale
 
 ### Why a Separate Envelope (Not Modifying JSON-RPC)
 
-MCPS wraps existing JSON-RPC messages rather than modifying the protocol schema. This ensures:
+The security layer wraps existing JSON-RPC messages rather than modifying the protocol schema. This ensures:
 
-1. **Backward compatibility**: Non-MCPS endpoints ignore the `mcps` field.
+1. **Backward compatibility**: Non-aware endpoints ignore the `mcps` field.
 2. **Transport independence**: Works over stdio, HTTP SSE, WebSocket, or any future transport.
-3. **Composability**: MCPS can be layered with existing OAuth authorization.
+3. **Composability**: Can be layered with existing OAuth authorization.
 
 This approach follows the precedent of HTTP Signatures (RFC 9421), which add signatures alongside existing HTTP headers rather than modifying the HTTP message format.
 
@@ -407,7 +411,7 @@ Implementations MAY support additional algorithms in future versions via algorit
 A centralized Trust Authority would create a single point of failure and a trust dependency that many organizations cannot accept. The self-hostable design ensures:
 
 1. **No vendor lock-in**: Any organization can operate its own TA.
-2. **Air-gapped deployments**: Enterprises can run MCPS in isolated environments.
+2. **Air-gapped deployments**: Enterprises can run the security layer in isolated environments.
 3. **Regulatory compliance**: Data sovereignty requirements are met when the TA runs on-premises.
 4. **Resilience**: No dependency on external service availability.
 
@@ -417,16 +421,16 @@ This follows the precedent of TLS Certificate Authorities: the protocol defines 
 
 1. **Extend OAuth SEPs with message signing**: OAuth operates at the session level. Adding per-message signing to OAuth would conflate authorization (who can access) with integrity (has this message been tampered with). These are distinct concerns.
 
-2. **Use JWS (RFC 7515) for message signing**: JWS adds significant overhead (headers, protected/unprotected distinction) that is unnecessary for the MCP use case. MCPS uses a minimal envelope optimized for JSON-RPC.
+2. **Use JWS (RFC 7515) for message signing**: JWS adds significant overhead (headers, protected/unprotected distinction) that is unnecessary for the MCP use case. The proposed envelope is a minimal format optimized for JSON-RPC.
 
 3. **Rely on transport-layer security (TLS) alone**: TLS provides confidentiality and integrity at the transport level but does not provide non-repudiation or artifact signing. A malicious server operator can still serve poisoned tool definitions over a valid TLS connection.
 
 ## Backward Compatibility
 
-MCPS is fully backward-compatible with existing MCP implementations.
+This proposal is fully backward-compatible with existing MCP implementations.
 
-- **Non-MCPS clients connecting to MCPS servers**: The server operates at Trust Level L0 (no verification). The `mcps` capability is not present in the `initialize` handshake, so no MCPS processing occurs.
-- **MCPS clients connecting to non-MCPS servers**: The client detects the absence of `mcps` capability in the server's `initialize` response and operates without MCPS verification.
+- **Non-aware clients connecting to aware servers**: The server operates at Trust Level L0 (no verification). The `mcps` capability is not present in the `initialize` handshake, so no security processing occurs.
+- **Aware clients connecting to non-aware servers**: The client detects the absence of `mcps` capability in the server's `initialize` response and operates without verification.
 - **Mixed deployments**: Trust levels allow gradual adoption. Organizations can start at L1 (signed but self-issued) and progressively move to L4 (full mutual auth with revocation).
 
 No changes to existing MCP message schemas, methods, or transport mechanisms are required.
@@ -435,7 +439,7 @@ No changes to existing MCP message schemas, methods, or transport mechanisms are
 
 ### New Attack Surfaces
 
-1. **Trust Authority compromise**: If a TA's signing key is compromised, an attacker can issue fraudulent passports. Mitigation: TA key rotation, revocation lists, and key ceremony procedures (documented in reference implementation).
+1. **Trust Authority compromise**: If a TA's signing key is compromised, an attacker can issue fraudulent passports. Mitigation: TA key rotation, revocation lists, and key ceremony procedures.
 2. **Nonce store exhaustion**: An attacker could flood a server with unique nonces to exhaust memory. Mitigation: nonce store garbage collection based on timestamp window, and rate limiting.
 3. **Clock skew attacks**: Manipulating system clocks could bypass timestamp windows. Mitigation: configurable skew tolerance, NTP synchronization requirements for L3+ deployments.
 
@@ -447,33 +451,14 @@ No changes to existing MCP message schemas, methods, or transport mechanisms are
 
 ### Authentication and Authorization Changes
 
-MCPS does not replace existing MCP authorization mechanisms. It adds a cryptographic identity and integrity layer that operates independently. Servers MAY require both OAuth tokens (authorization) and MCPS signatures (integrity) for defense in depth.
+This proposal does not replace existing MCP authorization mechanisms. It adds a cryptographic identity and integrity layer that operates independently. Servers MAY require both OAuth tokens (authorization) and cryptographic signatures (integrity) for defense in depth.
 
 ## Reference Implementation
 
-Working implementations are available in two languages:
+Reference implementations demonstrating the specification are available in Node.js and Python:
 
-### Node.js
-
-- **Package**: [`mcp-secure`](https://www.npmjs.com/package/mcp-secure) (v1.0.1)
-- **Source**: [github.com/razashariff/mcps](https://github.com/razashariff/mcps)
-- **Dependencies**: Zero (uses Node.js built-in `crypto` module)
-- **Tests**: 28 passing (key generation, passport signing/verification, message signing/verification, tool signing, replay protection)
-
-### Python
-
-- **Package**: [`mcp-secure`](https://pypi.org/project/mcp-secure/) (v1.0.0)
-- **Source**: [github.com/razashariff/mcp-secure-python](https://github.com/razashariff/mcp-secure-python)
-- **Dependencies**: `cryptography>=41.0.0`
-- **Tests**: 15 passing
-
-### Full Specification
-
-The complete 2,603-line specification is available at [SPEC.md](https://github.com/razashariff/mcps/blob/main/SPEC.md).
-
-### Interactive Demo
-
-A live registry showing OWASP scan results for 39 agent frameworks is available at [mcp-secure.dev](https://mcp-secure.dev).
+- **Node.js**: [github.com/razashariff/mcps](https://github.com/razashariff/mcps) -- zero dependencies, uses built-in `crypto` module. 28 tests covering key generation, passport lifecycle, message signing/verification, tool signing, and replay protection.
+- **Python**: [github.com/razashariff/mcp-secure-python](https://github.com/razashariff/mcp-secure-python) -- single dependency (`cryptography`). 15 tests.
 
 ## Acknowledgments
 
