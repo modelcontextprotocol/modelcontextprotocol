@@ -156,8 +156,14 @@
                     "description": "Arguments to use for the tool call.",
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
                 "name": {
                     "description": "The name of the tool.",
+                    "type": "string"
+                },
+                "requestState": {
                     "type": "string"
                 },
                 "task": {
@@ -187,6 +193,11 @@
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "structuredContent": {
                     "additionalProperties": {},
                     "description": "An optional JSON object that represents the structured result of the tool call.",
@@ -209,7 +220,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/CallToolResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/CallToolResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -409,7 +427,7 @@
                                     "properties": {
                                         "createMessage": {
                                             "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
+                                            "description": "Whether the client supports task-augmented {@link CreateMessageRequestsampling/createMessage} requests."
                                         }
                                     },
                                     "type": "object"
@@ -484,6 +502,9 @@
                     "$ref": "#/$defs/GetTaskPayloadRequest"
                 },
                 {
+                    "$ref": "#/$defs/TaskInputResponseRequest"
+                },
+                {
                     "$ref": "#/$defs/CancelTaskRequest"
                 },
                 {
@@ -503,6 +524,9 @@
                     "$ref": "#/$defs/Result"
                 },
                 {
+                    "$ref": "#/$defs/ListRootsResult"
+                },
+                {
                     "$ref": "#/$defs/GetTaskResult",
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
                 },
@@ -515,15 +539,6 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksResult"
-                },
-                {
-                    "$ref": "#/$defs/CreateMessageResult"
-                },
-                {
-                    "$ref": "#/$defs/ListRootsResult"
-                },
-                {
-                    "$ref": "#/$defs/ElicitResult"
                 }
             ]
         },
@@ -590,6 +605,9 @@
                     },
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
                 "ref": {
                     "anyOf": [
                         {
@@ -599,6 +617,9 @@
                             "$ref": "#/$defs/ResourceTemplateReference"
                         }
                     ]
+                },
+                "requestState": {
+                    "type": "string"
                 }
             },
             "required": [
@@ -636,6 +657,11 @@
                         "values"
                     ],
                     "type": "object"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -686,13 +712,6 @@
         "CreateMessageRequest": {
             "description": "A request from the server to sample an LLM via the client. The client has full discretion over which model to select. The client should also inform the user before beginning sampling, to allow them to inspect the request (human in the loop) and decide whether to approve it.",
             "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
                 "method": {
                     "const": "sampling/createMessage",
                     "type": "string"
@@ -702,8 +721,6 @@
                 }
             },
             "required": [
-                "id",
-                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -712,9 +729,6 @@
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "includeContext": {
                     "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. Values `\"thisServer\"` and `\"allServers\"` are soft-deprecated. Servers SHOULD only use these values if the client\ndeclares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.",
                     "enum": [
@@ -751,10 +765,6 @@
                 "systemPrompt": {
                     "description": "An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.",
                     "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 },
                 "temperature": {
                     "type": "number"
@@ -827,32 +837,16 @@
             ],
             "type": "object"
         },
-        "CreateMessageResultResponse": {
-            "description": "A successful response from the client for a {@link CreateMessageRequestsampling/createMessage} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/CreateMessageResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
         "CreateTaskResult": {
             "description": "The result returned for a task-augmented request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "task": {
                     "$ref": "#/$defs/Task"
@@ -891,13 +885,6 @@
         "ElicitRequest": {
             "description": "A request from the server to elicit additional information from the user via the client.",
             "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
                 "method": {
                     "const": "elicitation/create",
                     "type": "string"
@@ -907,8 +894,6 @@
                 }
             },
             "required": [
-                "id",
-                "jsonrpc",
                 "method",
                 "params"
             ],
@@ -917,9 +902,6 @@
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
                     "type": "string"
@@ -957,10 +939,6 @@
                         "type"
                     ],
                     "type": "object"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
             "required": [
@@ -972,10 +950,10 @@
         "ElicitRequestParams": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitRequestURLParams"
+                    "$ref": "#/$defs/ElicitRequestFormParams"
                 },
                 {
-                    "$ref": "#/$defs/ElicitRequestFormParams"
+                    "$ref": "#/$defs/ElicitRequestURLParams"
                 }
             ],
             "description": "The parameters for a request to elicit additional information from the user via the client."
@@ -983,9 +961,6 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "elicitationId": {
                     "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
                     "type": "string"
@@ -998,10 +973,6 @@
                     "const": "url",
                     "description": "The elicitation mode.",
                     "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -1018,11 +989,8 @@
             "type": "object"
         },
         "ElicitResult": {
-            "description": "The result returned by the client for an {@link ElicitRequestelicitation/create} request.",
+            "description": "The result returned by the client for an {@link ElicitationCreateRequest elicitation/create} request.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
                 "action": {
                     "description": "The user action in response to the elicitation.\n- `\"accept\"`: User submitted the form/confirmed the action\n- `\"decline\"`: User explicitly declined the action\n- `\"cancel\"`: User dismissed without making an explicit choice",
                     "enum": [
@@ -1056,27 +1024,6 @@
             },
             "required": [
                 "action"
-            ],
-            "type": "object"
-        },
-        "ElicitResultResponse": {
-            "description": "A successful response from the client for a {@link ElicitRequestelicitation/create} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ElicitResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
             ],
             "type": "object"
         },
@@ -1224,8 +1171,14 @@
                     "description": "Arguments to use for templating the prompt.",
                     "type": "object"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
                 "name": {
                     "description": "The name of the prompt or prompt template.",
+                    "type": "string"
+                },
+                "requestState": {
                     "type": "string"
                 }
             },
@@ -1249,6 +1202,11 @@
                         "$ref": "#/$defs/PromptMessage"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -1267,7 +1225,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/GetPromptResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/GetPromptResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -1278,7 +1243,7 @@
             "type": "object"
         },
         "GetTaskPayloadRequest": {
-            "description": "A request to retrieve the result of a completed task.",
+            "description": "A request to retrieve the result of a completed task, or to discover\nwhat input is needed for a task in `input_required` status.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -1314,16 +1279,21 @@
         },
         "GetTaskPayloadResult": {
             "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.",
+            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.\n\nWhen the task is in `input_required` status, the server MUST return an\n{@link IncompleteResult} containing `inputRequests` that the client must\nfulfill via a {@link TaskInputResponseRequesttasks/input_response} request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
         },
         "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.",
+            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.\nMay be either a complete result or an {@link IncompleteResult} indicating\nthat additional input is needed via {@link TaskInputResponseRequesttasks/input_response}.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -1333,7 +1303,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/GetTaskPayloadResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -1525,6 +1502,26 @@
             ],
             "type": "object"
         },
+        "IncompleteResult": {
+            "description": "An IncompleteResult sent by the server to indicate that additional input is needed\nbefore the request can be completed.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "inputRequests": {
+                    "$ref": "#/$defs/InputRequests"
+                },
+                "requestState": {
+                    "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                }
+            },
+            "type": "object"
+        },
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
@@ -1592,6 +1589,11 @@
                     "description": "The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.",
                     "type": "string"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "serverInfo": {
                     "$ref": "#/$defs/Implementation"
                 }
@@ -1643,6 +1645,46 @@
                 "jsonrpc",
                 "method"
             ],
+            "type": "object"
+        },
+        "InputRequest": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/CreateMessageRequest"
+                },
+                {
+                    "$ref": "#/$defs/ListRootsRequest"
+                },
+                {
+                    "$ref": "#/$defs/ElicitRequest"
+                }
+            ]
+        },
+        "InputRequests": {
+            "additionalProperties": {
+                "$ref": "#/$defs/InputRequest"
+            },
+            "description": "A map of server-initiated requests that the client must fulfill.\nKeys are server-assigned identifiers; values are the request objects.",
+            "type": "object"
+        },
+        "InputResponse": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/CreateMessageResult"
+                },
+                {
+                    "$ref": "#/$defs/ListRootsResult"
+                },
+                {
+                    "$ref": "#/$defs/ElicitResult"
+                }
+            ]
+        },
+        "InputResponses": {
+            "additionalProperties": {
+                "$ref": "#/$defs/InputResponse"
+            },
+            "description": "A map of client responses to server-initiated requests.\nKeys correspond to the keys in the {@link InputRequests} map;\nvalues are the client's result for each request.",
             "type": "object"
         },
         "InternalError": {
@@ -1934,6 +1976,11 @@
                         "$ref": "#/$defs/Prompt"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -1952,7 +1999,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListPromptsResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListPromptsResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2002,6 +2056,11 @@
                         "$ref": "#/$defs/ResourceTemplate"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2020,7 +2079,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListResourceTemplatesResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListResourceTemplatesResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2070,6 +2136,11 @@
                         "$ref": "#/$defs/Resource"
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2088,7 +2159,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListResourcesResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListResourcesResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2101,13 +2179,6 @@
         "ListRootsRequest": {
             "description": "Sent from the server to request a list of root URIs from the client. Roots allow\nservers to ask for specific directories or files to operate on. A common example\nfor roots is providing a set of repositories or directories a server should operate\non.\n\nThis request is typically used when the server needs to understand the file system\nstructure or access specific locations that the client has permission to read from.",
             "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
                 "method": {
                     "const": "roots/list",
                     "type": "string"
@@ -2117,8 +2188,6 @@
                 }
             },
             "required": [
-                "id",
-                "jsonrpc",
                 "method"
             ],
             "type": "object"
@@ -2126,9 +2195,6 @@
         "ListRootsResult": {
             "description": "The result returned by the client for a {@link ListRootsRequestroots/list} request.\nThis result contains an array of {@link Root} objects, each representing a root directory\nor file that the server can operate on.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
                 "roots": {
                     "items": {
                         "$ref": "#/$defs/Root"
@@ -2138,27 +2204,6 @@
             },
             "required": [
                 "roots"
-            ],
-            "type": "object"
-        },
-        "ListRootsResultResponse": {
-            "description": "A successful response from the client for a {@link ListRootsRequestroots/list} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ListRootsResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
             ],
             "type": "object"
         },
@@ -2196,6 +2241,11 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
                 "tasks": {
                     "items": {
@@ -2265,6 +2315,11 @@
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
                 },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
                 "tools": {
                     "items": {
                         "$ref": "#/$defs/Tool"
@@ -2288,7 +2343,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ListToolsResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ListToolsResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -2533,6 +2595,11 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "type": "object"
@@ -2846,6 +2913,12 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -2875,6 +2948,11 @@
                         ]
                     },
                     "type": "array"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
             "required": [
@@ -2893,7 +2971,14 @@
                     "type": "string"
                 },
                 "result": {
-                    "$ref": "#/$defs/ReadResourceResult"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/IncompleteResult"
+                        },
+                        {
+                            "$ref": "#/$defs/ReadResourceResult"
+                        }
+                    ]
                 }
             },
             "required": [
@@ -3108,6 +3193,12 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3228,6 +3319,33 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "result_type": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                }
+            },
+            "type": "object"
+        },
+        "ResultType": {
+            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.\n\ncomplete - the request completed successfully and the result contains the final content.\nincomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.",
+            "enum": [
+                "complete",
+                "incomplete"
+            ],
+            "type": "string"
+        },
+        "RetryAugmentedRequestParams": {
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -3470,6 +3588,9 @@
         "ServerRequest": {
             "anyOf": [
                 {
+                    "$ref": "#/$defs/ListRootsRequest"
+                },
+                {
                     "$ref": "#/$defs/PingRequest"
                 },
                 {
@@ -3483,15 +3604,6 @@
                 },
                 {
                     "$ref": "#/$defs/ListTasksRequest"
-                },
-                {
-                    "$ref": "#/$defs/CreateMessageRequest"
-                },
-                {
-                    "$ref": "#/$defs/ListRootsRequest"
-                },
-                {
-                    "$ref": "#/$defs/ElicitRequest"
                 }
             ]
         },
@@ -3499,6 +3611,9 @@
             "anyOf": [
                 {
                     "$ref": "#/$defs/Result"
+                },
+                {
+                    "$ref": "#/$defs/IncompleteResult"
                 },
                 {
                     "$ref": "#/$defs/InitializeResult"
@@ -3687,6 +3802,12 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
+                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3766,11 +3887,64 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
+                },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
+            "type": "object"
+        },
+        "TaskInputResponseRequest": {
+            "description": "A request from the client to deliver input responses for a task\nthat is in `input_required` status.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "tasks/input_response",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/TaskAugmentedRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "TaskInputResponseResultResponse": {
+            "description": "A successful response for a {@link TaskInputResponseRequesttasks/input_response} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/Result"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
             "type": "object"
         },
         "TaskMetadata": {
@@ -4236,58 +4410,6 @@
             ],
             "type": "object"
         },
-        "URLElicitationRequiredError": {
-            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
-            "properties": {
-                "error": {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/Error"
-                        },
-                        {
-                            "properties": {
-                                "code": {
-                                    "const": -32042,
-                                    "type": "integer"
-                                },
-                                "data": {
-                                    "additionalProperties": {},
-                                    "properties": {
-                                        "elicitations": {
-                                            "items": {
-                                                "$ref": "#/$defs/ElicitRequestURLParams"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "elicitations"
-                                    ],
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "code",
-                                "data"
-                            ],
-                            "type": "object"
-                        }
-                    ]
-                },
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "error",
-                "jsonrpc"
-            ],
-            "type": "object"
-        },
         "UnsubscribeRequest": {
             "description": "Sent from the client to request cancellation of {@link ResourceUpdatedNotificationresources/updated} notifications from the server. This should follow a previous {@link SubscribeRequestresources/subscribe} request.",
             "properties": {
@@ -4319,6 +4441,12 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
