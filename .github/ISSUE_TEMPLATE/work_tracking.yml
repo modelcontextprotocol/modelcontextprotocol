@@ -1,16 +1,16 @@
 name: Work tracking
 description: >
-  Track a task that's already been discussed and agreed on — not a new
+  Track work that's already been discussed and agreed on — not a new
   proposal.
 labels: [tracking]
 body:
   - type: markdown
     attributes:
       value: |
-        This template is for work that's **already been discussed** in a
-        SEP, a working group, a maintainer meeting, or a prior issue. It
-        gives that work a place to be assigned, linked from PRs, and
-        closed when shipped.
+        This template is for work that's **already been discussed and
+        agreed on** — in a SEP, a working group, a maintainer sync,
+        a prior issue, wherever. It gives that work a place to be assigned,
+        linked from PRs, and closed.
 
         If you're proposing something **new**, this is the wrong template.
         Open a [SEP](https://modelcontextprotocol.io/community/sep-guidelines)
@@ -21,42 +21,18 @@ body:
     attributes:
       label: Where was this agreed?
       description: >
-        Link to the discussion — the SEP, GitHub Discussion, issue, or PR
-        comment thread where this work was scoped.
+        Link to the discussion. If it was a synchronous conversation
+        without a link, say where and when.
       placeholder: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/...
     validations:
       required: true
 
   - type: textarea
-    id: summary
+    id: description
     attributes:
-      label: What's the work?
+      label: Description
       description: >
-        One or two paragraphs. Assume the reader hasn't read the linked
-        discussion — give enough that they'd know whether a PR addresses
-        this.
-    validations:
-      required: true
-
-  - type: textarea
-    id: tasks
-    attributes:
-      label: Tasks
-      description: >
-        Break the work into checkboxes. PRs can reference this issue and
-        tick items off as they land.
-      value: |
-        - [ ]
-        - [ ]
+        Whatever's useful. Summary, task list, acceptance criteria, open
+        questions — structure it however fits the work.
     validations:
       required: false
-
-  - type: textarea
-    id: done
-    attributes:
-      label: When is this done?
-      description: >
-        What has to be true to close this issue? Merged PRs, shipped docs,
-        a spec version cut — be specific.
-    validations:
-      required: true
