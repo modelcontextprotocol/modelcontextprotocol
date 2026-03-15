@@ -18,7 +18,7 @@ This skill guides an author through producing a SEP that conforms to `docs/commu
 
 Ask the user these four questions before touching any files. The answers feed directly into the draft.
 
-1. **SEP type?** Standards Track (new protocol feature), Informational (guidelines/design notes), or Process (governance/workflow change). Most SEPs are Standards Track.
+1. **SEP type?** Standards Track (core protocol feature), Extensions Track (extension rather than core — see SEP-2133), Informational (guidelines/design notes), or Process (governance/workflow change). Most SEPs are Standards Track. Note: `seps/TEMPLATE.md` and the SEP guidelines list only three types; Extensions Track was added by SEP-2133 and has not yet been backfilled into those docs.
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** A reference implementation is required before a SEP can reach `Final` status. Does one exist, is one in progress, or is it still TBD?
 4. **Where was this discussed?** Discord thread, Working Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
@@ -59,7 +59,7 @@ Read `docs/community/design-principles.mdx`. Identify which principles the propo
 grep -n "{affected-type}" schema/draft/schema.ts
 ```
 
-For Standards Track SEPs, find the concrete types the spec change would add or modify. Reference these by name in the Specification section.
+For Standards Track and Extensions Track SEPs, find the concrete types the spec change would add or modify. Reference these by name in the Specification section.
 
 ### 6. Exemplar SEPs
 
@@ -122,7 +122,7 @@ Feed in the Phase 2 step 1 findings: what the spec says today and why that is in
 
 ### Specification
 
-For **Standards Track**: new message formats, methods, behavioral requirements, error handling. Reference the `schema/draft/schema.ts` types found in Phase 2 step 5 by name.
+For **Standards Track** / **Extensions Track**: new message formats, methods, behavioral requirements, error handling. Reference the `schema/draft/schema.ts` types found in Phase 2 step 5 by name.
 
 For **Process**: step-by-step procedures, roles, timelines.
 
