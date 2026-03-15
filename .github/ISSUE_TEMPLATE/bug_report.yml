@@ -26,6 +26,10 @@ body:
       options:
         - The spec defines behavior that doesn't work in practice
         - The spec is ambiguous or self-contradictory
+        - The spec doesn't cover a case it clearly should
+        - The JSON schema disagrees with the spec prose
+        - The spec conflicts with an RFC or standard it references
+        - An example in the spec is wrong or won't run
         - The documentation is wrong or misleading
         - A docs page is missing or a link is broken
     validations:
