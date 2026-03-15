@@ -13,6 +13,8 @@ body:
         - If the bug is in a specific SDK (TypeScript, Python, etc.), file
           it in [that SDK's repository](https://modelcontextprotocol.io/docs/sdk)
           instead.
+        - If the bug is in how **Claude** (Claude Desktop, claude.ai) uses
+          MCP, file it at [anthropics/claude-ai-mcp](https://github.com/anthropics/claude-ai-mcp).
         - If you want to propose a new feature or a breaking change, that's
           a [SEP](https://modelcontextprotocol.io/community/sep-guidelines),
           not a bug.
