@@ -27,6 +27,7 @@ body:
         - The spec defines behavior that doesn't work in practice
         - The spec is ambiguous or self-contradictory
         - The spec doesn't cover a case it clearly should
+        - The JSON schema is wrong (incorrect type, constraint, or field)
         - The JSON schema disagrees with the spec prose
         - The spec conflicts with an RFC or standard it references
         - An example in the spec is wrong or won't run
