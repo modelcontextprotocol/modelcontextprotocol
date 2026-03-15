@@ -24,8 +24,6 @@ jobs:
       github.event.action != 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    env:
-      HUGO_VERSION: 0.148.0
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -33,27 +31,11 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Setup Go
-        uses: actions/setup-go@v6
+      - name: Build blog
+        uses: modelcontextprotocol/actions/hugo-build@main
         with:
-          go-version: "1.24"
-
-      - name: Setup Hugo
-        run: |
-          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
-          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
-
-      - name: Build blog preview
-        env:
-          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
-          HUGO_ENVIRONMENT: development
-        run: |
-          cd blog && hugo \
-            --gc \
-            --minify \
-            --buildDrafts \
-            --buildFuture \
-            --baseURL "/"
+          working-directory: blog
+          mode: preview
 
       - name: Deploy preview
         uses: modelcontextprotocol/actions/cloudflare-pages-preview/deploy@main
