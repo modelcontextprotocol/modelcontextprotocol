@@ -204,7 +204,7 @@ In addition to Discord, groups can establish a discussion category in the [GitHu
 
 **Working Group Formation:**
 
-- There must be a cross-cutting concern requiring coordination
+- There must be a widely acknowledged concern requiring coordination
 - PR for creation of WG into `docs/community/<name>/overview.mdx`, gated by CODEOWNERS requiring approval by Maintainers
 - PR for charter into `docs/community/<name>/charter.mdx`, gated by CODEOWNERS requiring approval from Core Maintainers
 - Initial member list approved by WG Lead
