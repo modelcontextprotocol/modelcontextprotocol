@@ -16,7 +16,7 @@
 /docs/docs/tutorials/security/security_best_practices.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg
 
 # GitHub configuration (workflows, issue templates, etc.)
-/.github/ @modelcontextprotocol/core-maintainers
+/.github/ @modelcontextprotocol/core-maintainers @modelcontextprotocol/docs-maintainers
 
 # Agent documentation
-/AGENTS.md @modelcontextprotocol/core-maintainers
+/AGENTS.md @modelcontextprotocol/core-maintainers @modelcontextprotocol/docs-maintainers
