@@ -198,6 +198,9 @@ In addition to Discord, groups can establish a discussion category in the [GitHu
 - Upcoming priorities
 - Resource needs
 
+The quarterly updates are provided as a document posted in the [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/) category of the Working Group. They are optionally discussed
+with the Core Maintainers in a core maintainer meeting.
+
 **Interest Groups** do not have formal reporting requirements but should keep their charter and member list current.
 
 #### 1.9 Lifecycle
@@ -306,7 +309,8 @@ IGs do not make binding decisions and do not need this section.
 
 #### 6. Membership
 
-List current group members and their participation levels. Participation tiers and membership criteria are defined in the governance rules (Section 1.3).
+List current group members and their participation levels, if any. Leave out if no members exist yet.
+Participation tiers and membership criteria are defined in the governance rules (Section 1.3).
 
 #### 7. Operations
 
