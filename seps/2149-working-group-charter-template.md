@@ -181,10 +181,10 @@ Leads should actively involve WG Members and Participants in operational duties 
 
 All groups use the following channels:
 
-| Channel                      | Purpose                        | Response Expectation |
-| ---------------------------- | ------------------------------ | -------------------- |
-| Discord #name-wg or #name-ig | Quick questions, coordination  | Best effort          |
-| GitHub Discussions           | Long-form technical discussion | Weekly triage        |
+| Channel                              | Purpose                        | Response Expectation |
+| ------------------------------------ | ------------------------------ | -------------------- |
+| Discord `#{name}-wg` or `#{name}-ig` | Quick questions, coordination  | Best effort          |
+| GitHub Discussions                   | Long-form technical discussion | Weekly triage        |
 
 In addition to Discord, groups can establish a discussion category in the [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/). Leads will be granted the appropriate roles to manage and moderate discussions.
 
@@ -205,8 +205,8 @@ In addition to Discord, groups can establish a discussion category in the [GitHu
 **Working Group Formation:**
 
 - There must be a cross-cutting concern requiring coordination
-- PR for creation of WG into `community/<name>/overview.mdx`, gated by CODEOWNERS requiring approval by Maintainers
-- PR for charter into `community/<name>/charter.mdx`, gated by CODEOWNERS requiring approval from Core Maintainers
+- PR for creation of WG into `docs/community/<name>/overview.mdx`, gated by CODEOWNERS requiring approval by Maintainers
+- PR for charter into `docs/community/<name>/charter.mdx`, gated by CODEOWNERS requiring approval from Core Maintainers
 - Initial member list approved by WG Lead
 
 **Interest Group Formation:**
@@ -232,7 +232,7 @@ Changes to a group's charter (WG or IG) require:
 
 ### Part 2: Charter Template
 
-Every MCP Working Group and Interest Group must maintain a charter document following this template structure. Charters are stored as MDX files in `docs/community/` in the modelcontextprotocol repository and added to the `docs.json` file.
+Every MCP Working Group and Interest Group must maintain a charter document following this template structure. Charters are stored as MDX files at `docs/community/<group-name>/charter.mdx` in the modelcontextprotocol repository and added to the `docs/docs.json` file. A copyable version of this template is published at [`docs/community/charter-template.mdx`](/community/charter-template).
 
 The charter captures information specific to each group. Governance rules from Part 1 apply automatically and do not need to be repeated in the charter. Sections marked **(WG only)** are required for Working Groups but optional for Interest Groups.
 
@@ -249,9 +249,13 @@ A 2-3 sentence summary of the group's purpose, articulating:
 - For WGs: what concrete deliverables the group will produce
 - For IGs: what discussions and knowledge-sharing the group will facilitate
 
-_WG Example: "The Transport Working Group exists to evolve MCP's transport mechanisms to support diverse deployment scenarios—from local subprocess communication to horizontally-scaled cloud deployments—while maintaining protocol coherence and backward compatibility."_
+_WG Example:_
 
-_IG Example: "The Enterprise IG explores the challenges of deploying MCP in enterprise environments, gathering use cases and requirements to inform future specification work."_
+> The Transport Working Group exists to evolve MCP's transport mechanisms to support diverse deployment scenarios—from local subprocess communication to horizontally-scaled cloud deployments—while maintaining protocol coherence and backward compatibility.
+
+_IG Example:_
+
+> The Enterprise IG explores the challenges of deploying MCP in enterprise environments, gathering use cases and requirements to inform future specification work.
 
 #### 3. Scope
 
@@ -399,10 +403,9 @@ No direct security implications. However, clear authority delegation and decisio
 
 ## Reference Implementation
 
-Upon acceptance, this SEP will be implemented by:
+This SEP is implemented by:
 
-1. Publishing the governance rules at `docs/community/governance.mdx`
-2. Publishing the charter template at `docs/community/charter-template.mdx`
-3. Adding governance and template guidance to the Working and Interest Groups section of modelcontextprotocol.io
-4. Existing WGs and IGs updating their charters to conform within 8 weeks
-5. Adding governance and charter documents to `docs.json` for website display
+1. `docs/community/working-interest-groups.mdx` — governance rules (Part 1) published as the Working and Interest Groups page on modelcontextprotocol.io
+2. `docs/community/charter-template.mdx` — copyable charter template (Part 2) linked from the above
+3. Both pages added to `docs/docs.json` under the Community → Governance navigation group
+4. Existing WGs and IGs must create conforming charters at `docs/community/<name>/charter.mdx` within 8 weeks of acceptance
