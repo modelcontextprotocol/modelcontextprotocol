@@ -24,37 +24,37 @@ Tasks represent parties as either "requestors" or "receivers," defined as follow
 
 ## User Interaction Model
 
-Tasks are designed to be **requestor-driven** - requestors are responsible for augmenting requests with tasks and for polling for the results of those tasks; meanwhile, receivers tightly control which requests (if any) support task-based execution and manages the lifecycles of those tasks.
+Tasks enable asynchronous request processing where receivers return task handles at their discretion for long-running operations. Requestors are responsible for polling for the results of those tasks, while receivers control task creation and manage the lifecycles of those tasks.
 
-This requestor-driven approach ensures deterministic response handling and enables sophisticated patterns such as dispatching concurrent requests, which only the requestor has sufficient context to orchestrate.
+This approach enables sophisticated patterns such as dispatching concurrent requests and handling operations that require persistent work, which only the requestor has sufficient context to orchestrate.
 
 Implementations are free to expose tasks through any interface pattern that suits their needs — the protocol itself does not mandate any specific user interaction model.
 
 ## Capabilities
 
-Servers and clients that support task-augmented requests **MUST** declare a `tasks` capability during initialization. The `tasks` capability is structured by request category, with boolean properties indicating which specific request types support task augmentation.
+Servers and clients that support task RPC methods (`tasks/get`, `tasks/result`, `tasks/list`, `tasks/cancel`) **MUST** declare a `tasks` capability during initialization. This capability is not required for handling `CreateTaskResult` responses, which all parties **MUST** support.
 
 ### Server Capabilities
 
-Servers declare if they support tasks, and if so, which server-side requests can be augmented with tasks.
+Servers declare which task methods they support.
 
-| Capability                  | Description                                          |
-| --------------------------- | ---------------------------------------------------- |
-| `tasks.list`                | Server supports the `tasks/list` operation           |
-| `tasks.cancel`              | Server supports the `tasks/cancel` operation         |
-| `tasks.requests.tools.call` | Server supports task-augmented `tools/call` requests |
+| Capability     | Description                                  |
+| -------------- | -------------------------------------------- |
+| `tasks.list`   | Server supports the `tasks/list` operation   |
+| `tasks.cancel` | Server supports the `tasks/cancel` operation |
+
+<Warning>
+  The `tasks.requests` capability is deprecated and will be removed in a future
+  specification version. Receivers MAY return `CreateTaskResult` in response to
+  any request, regardless of this capability.
+</Warning>
 
 ```json
 {
   "capabilities": {
     "tasks": {
       "list": {},
-      "cancel": {},
-      "requests": {
-        "tools": {
-          "call": {}
-        }
-      }
+      "cancel": {}
     }
   }
 }
@@ -62,29 +62,25 @@ Servers declare if they support tasks, and if so, which server-side requests can
 
 ### Client Capabilities
 
-Clients declare if they support tasks, and if so, which client-side requests can be augmented with tasks.
+Clients declare which task methods they support.
 
-| Capability                              | Description                                                      |
-| --------------------------------------- | ---------------------------------------------------------------- |
-| `tasks.list`                            | Client supports the `tasks/list` operation                       |
-| `tasks.cancel`                          | Client supports the `tasks/cancel` operation                     |
-| `tasks.requests.sampling.createMessage` | Client supports task-augmented `sampling/createMessage` requests |
-| `tasks.requests.elicitation.create`     | Client supports task-augmented `elicitation/create` requests     |
+| Capability     | Description                                  |
+| -------------- | -------------------------------------------- |
+| `tasks.list`   | Client supports the `tasks/list` operation   |
+| `tasks.cancel` | Client supports the `tasks/cancel` operation |
+
+<Warning>
+  The `tasks.requests` capability is deprecated and will be removed in a future
+  specification version. Receivers MAY return `CreateTaskResult` in response to
+  any request, regardless of this capability.
+</Warning>
 
 ```json
 {
   "capabilities": {
     "tasks": {
       "list": {},
-      "cancel": {},
-      "requests": {
-        "sampling": {
-          "createMessage": {}
-        },
-        "elicitation": {
-          "create": {}
-        }
-      }
+      "cancel": {}
     }
   }
 }
@@ -92,29 +88,18 @@ Clients declare if they support tasks, and if so, which client-side requests can
 
 ### Capability Negotiation
 
-During the initialization phase, both parties exchange their `tasks` capabilities to establish which operations support task-based execution. Requestors **SHOULD** only augment requests with a task if the corresponding capability has been declared by the receiver.
+<Warning>
+  The `capabilities.tasks.requests` field is deprecated and will be removed in a
+  future specification version. Receivers MAY return `CreateTaskResult` in
+  response to any request, regardless of whether the corresponding capability
+  has been declared.
+</Warning>
 
-For example, if a server's capabilities include `tasks.requests.tools.call: {}`, then clients may augment `tools/call` requests with a task. If a client's capabilities include `tasks.requests.sampling.createMessage: {}`, then servers may augment `sampling/createMessage` requests with a task.
-
-If `capabilities.tasks` is not defined, the peer **SHOULD NOT** attempt to create tasks during requests.
-
-The set of capabilities in `capabilities.tasks.requests` is exhaustive. If a request type is not present, it does not support task-augmentation.
+During the initialization phase, both parties exchange their `tasks` capabilities.
 
 `capabilities.tasks.list` controls if the `tasks/list` operation is supported by the party.
 
 `capabilities.tasks.cancel` controls if the `tasks/cancel` operation is supported by the party.
-
-### Tool-Level Negotiation
-
-Tool calls are given special consideration for the purpose of task augmentation. In the result of `tools/list`, tools declare support for tasks via `execution.taskSupport`, which if present can have a value of `"required"`, `"optional"`, or `"forbidden"`.
-
-This is to be interpreted as a fine-grained layer in addition to capabilities, following these rules:
-
-1. If a server's capabilities do not include `tasks.requests.tools.call`, then clients **MUST NOT** attempt to use task augmentation on that server's tools, regardless of the `execution.taskSupport` value.
-1. If a server's capabilities include `tasks.requests.tools.call`, then clients consider the value of `execution.taskSupport`, and handle it accordingly:
-   1. If `execution.taskSupport` is not present or `"forbidden"`, clients **MUST NOT** attempt to invoke the tool as a task. Servers **SHOULD** return a `-32601` (Method not found) error if a client attempts to do so. This is the default behavior.
-   1. If `execution.taskSupport` is `"optional"`, clients **MAY** invoke the tool as a task or as a normal request.
-   1. If `execution.taskSupport` is `"required"`, clients **MUST** invoke the tool as a task. Servers **MUST** return a `-32601` (Method not found) error if a client does not attempt to do so.
 
 ## Protocol Messages
 
@@ -122,10 +107,12 @@ This is to be interpreted as a fine-grained layer in addition to capabilities, f
 
 Task-augmented requests follow a two-phase response pattern that differs from normal requests:
 
-- **Normal requests**: The server processes the request and returns the actual operation result directly.
-- **Task-augmented requests**: The server accepts the request and immediately returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
+- **Normal requests:** The receiver processes the request and returns the actual operation result directly.
+- **Task-augmented requests:** The receiver accepts the request and immediately returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
 
-To create a task, requestors send a request with the `task` field included in the request params. Requestors **MAY** include a `ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
+Whether a task is created in response to a request is subject to the receiver's implementation; requestors **MUST** be prepared to handle either case. The requestor need not specify that task-augmented execution is expected.
+
+Requestors **MAY** include a `task.ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
 
 **Request:**
 
@@ -385,12 +372,14 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
 
 ## Behavior Requirements
 
-These requirements apply to all parties that support receiving task-augmented requests.
+These requirements apply to all parties involved in task-augmented request handling.
 
 ### Task Support and Handling
 
-1. Receivers that do not declare the task capability for a request type **MUST** process requests of that type normally, ignoring any task-augmentation metadata if present.
-1. Receivers that declare the task capability for a request type **MAY** return an error for non-task-augmented requests, requiring requestors to use task augmentation.
+1. Requestors **MUST** be prepared for a `CreateTaskResult` to be returned in response to any request, whether or not the `task` parameter is present in the request.
+1. Receivers **MAY** return a `CreateTaskResult` in response to any request, whether or not the `task` parameter is present in the request.
+1. Receivers that receive a `task` parameter in a request and do not wish to create a task **MUST** ignore the parameter.
+1. Receivers **MUST NOT** return a `CreateTaskResult` unless and until a `tasks/get` request would return that task; that is, in eventually-consistent systems, receivers **MUST** wait for consistency.
 
 ### Task ID Requirements
 
@@ -501,13 +490,16 @@ Task-augmented requests support progress notifications as defined in the [progre
 
 ### Basic Task Lifecycle
 
+This diagram shows the standard task flow where the requestor explicitly includes a task parameter with a TTL in their request.
+
 ```mermaid
 sequenceDiagram
     participant C as Client (Requestor)
     participant S as Server (Receiver)
-    Note over C,S: 1. Task Creation
+    Note over C,S: 1. Task Creation (With Task Parameter)
     C->>S: Request with task field (ttl)
     activate S
+    Note over S: Receiver accepts task-augmented request
     S->>C: CreateTaskResult (taskId, status: working, ttl, pollInterval)
     deactivate S
     Note over C,S: 2. Task Polling
@@ -529,6 +521,45 @@ sequenceDiagram
     C->>S: tasks/result (taskId)
     activate S
     S->>C: Result content
+    deactivate S
+    Note over C,S: 4. Cleanup
+    Note over S: After ttl period from creation, task is cleaned up
+```
+
+### Unsolicited Task Creation
+
+This diagram shows the unsolicited task flow where the requestor sends a regular request without a task field, and the receiver decides to create a task anyway.
+
+```mermaid
+sequenceDiagram
+    participant C as Client (Requestor)
+    participant S as Server (Receiver)
+    Note over C,S: 1. Regular Request (No Task Field)
+    C->>S: tools/call (no task parameter)
+    activate S
+    Note over S: Receiver decides to create task<br/>(e.g., operation will take too long)
+    S->>C: CreateTaskResult (taskId, status: working, ttl, pollInterval)
+    deactivate S
+    Note over C: Requestor must handle unexpected task
+    Note over C,S: 2. Task Polling (Standard Semantics)
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: working
+    deactivate S
+    Note over S: Task processing continues...
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: working
+    deactivate S
+    Note over S: Task completes
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: completed
+    deactivate S
+    Note over C,S: 3. Result Retrieval
+    C->>S: tasks/result (taskId)
+    activate S
+    S->>C: Result content (CallToolResult)
     deactivate S
     Note over C,S: 4. Cleanup
     Note over S: After ttl period from creation, task is cleaned up
@@ -770,24 +801,7 @@ Receivers **MUST** return standard JSON-RPC errors for the following protocol er
 - Attempt to cancel a task already in a terminal status: `-32602` (Invalid params)
 - Internal errors: `-32603` (Internal error)
 
-Additionally, receivers **MAY** return the following errors:
-
-- Non-task-augmented request when receiver requires task augmentation for that request type: `-32600` (Invalid request)
-
 Receivers **SHOULD** provide informative error messages to describe the cause of errors.
-
-**Example: Task augmentation required**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32600,
-    "message": "Task augmentation required for tools/call requests"
-  }
-}
-```
 
 **Example: Task not found**
 

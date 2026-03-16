@@ -162,7 +162,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, indicates the requestor's desired task execution parameters.\nReceivers MAY return a {@link CreateTaskResult} for any request, whether or not this field is present.\nThe actual result can be retrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nReceivers that receive a `task` parameter in a request and do not wish to create a task\nMUST ignore the parameter."
                 }
             },
             "required": [
@@ -392,7 +392,6 @@
                             "description": "Whether this client supports {@link ListTasksRequesttasks/list}."
                         },
                         "requests": {
-                            "description": "Specifies which request types can be augmented with tasks.",
                             "properties": {
                                 "elicitation": {
                                     "description": "Task support for elicitation-related requests.",
@@ -754,7 +753,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, indicates the requestor's desired task execution parameters.\nReceivers MAY return a {@link CreateTaskResult} for any request, whether or not this field is present.\nThe actual result can be retrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nReceivers that receive a `task` parameter in a request and do not wish to create a task\nMUST ignore the parameter."
                 },
                 "temperature": {
                     "type": "number"
@@ -960,7 +959,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, indicates the requestor's desired task execution parameters.\nReceivers MAY return a {@link CreateTaskResult} for any request, whether or not this field is present.\nThe actual result can be retrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nReceivers that receive a `task` parameter in a request and do not wish to create a task\nMUST ignore the parameter."
                 }
             },
             "required": [
@@ -1001,7 +1000,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, indicates the requestor's desired task execution parameters.\nReceivers MAY return a {@link CreateTaskResult} for any request, whether or not this field is present.\nThe actual result can be retrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nReceivers that receive a `task` parameter in a request and do not wish to create a task\nMUST ignore the parameter."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -3405,7 +3404,6 @@
                             "description": "Whether this server supports {@link ListTasksRequesttasks/list}."
                         },
                         "requests": {
-                            "description": "Specifies which request types can be augmented with tasks.",
                             "properties": {
                                 "tools": {
                                     "description": "Task support for tool-related requests.",
@@ -3768,7 +3766,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, indicates the requestor's desired task execution parameters.\nReceivers MAY return a {@link CreateTaskResult} for any request, whether or not this field is present.\nThe actual result can be retrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nReceivers that receive a `task` parameter in a request and do not wish to create a task\nMUST ignore the parameter."
                 }
             },
             "type": "object"
@@ -4132,7 +4130,6 @@
             "description": "Execution-related properties for a tool.",
             "properties": {
                 "taskSupport": {
-                    "description": "Indicates whether this tool supports task-augmented execution.\nThis allows clients to handle long-running operations through polling\nthe task system.\n\n- `\"forbidden\"`: Tool does not support task-augmented execution (default when absent)\n- `\"optional\"`: Tool may support task-augmented execution\n- `\"required\"`: Tool requires task-augmented execution\n\nDefault: `\"forbidden\"`",
                     "enum": [
                         "forbidden",
                         "optional",

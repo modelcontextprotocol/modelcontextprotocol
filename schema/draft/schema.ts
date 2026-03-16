@@ -94,12 +94,12 @@ export type Cursor = string;
  */
 export interface TaskAugmentedRequestParams extends RequestParams {
   /**
-   * If specified, the caller is requesting task-augmented execution for this request.
-   * The request will return a {@link CreateTaskResult} immediately, and the actual result can be
-   * retrieved later via {@link GetTaskPayloadRequest | tasks/result}.
+   * If specified, indicates the requestor's desired task execution parameters.
+   * Receivers MAY return a {@link CreateTaskResult} for any request, whether or not this field is present.
+   * The actual result can be retrieved later via {@link GetTaskPayloadRequest | tasks/result}.
    *
-   * Task augmentation is subject to capability negotiation - receivers MUST declare support
-   * for task augmentation of specific request types in their capabilities.
+   * Receivers that receive a `task` parameter in a request and do not wish to create a task
+   * MUST ignore the parameter.
    */
   task?: TaskMetadata;
 }
@@ -558,6 +558,9 @@ export interface ClientCapabilities {
      */
     cancel?: JSONObject;
     /**
+     * @deprecated This field is deprecated and will be removed in a future version.
+     * Receivers MAY return CreateTaskResult in response to any request, regardless of this capability.
+     *
      * Specifies which request types can be augmented with tasks.
      */
     requests?: {
@@ -684,6 +687,9 @@ export interface ServerCapabilities {
      */
     cancel?: JSONObject;
     /**
+     * @deprecated This field is deprecated and will be removed in a future version.
+     * Receivers MAY return CreateTaskResult in response to any request, regardless of this capability.
+     *
      * Specifies which request types can be augmented with tasks.
      */
     requests?: {
@@ -1697,6 +1703,9 @@ export interface ToolAnnotations {
  */
 export interface ToolExecution {
   /**
+   * @deprecated This field is deprecated and will be removed in a future version.
+   * Receivers MAY return CreateTaskResult in response to any request, regardless of this field.
+   *
    * Indicates whether this tool supports task-augmented execution.
    * This allows clients to handle long-running operations through polling
    * the task system.
