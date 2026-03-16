@@ -224,8 +224,8 @@ Clients supporting all options **SHOULD** follow the following priority order:
 
 ### Authorization Server Binding
 
-Clients that persist client credentials obtained via Dynamic Client
-Registration or pre-registration **MUST** associate those
+Clients that use pre-registered credentials, or persist client credentials obtained via Dynamic Client
+Registration, **MUST** associate those
 credentials with the specific authorization server that issued them,
 keyed by the authorization server's `issuer` identifier. When the
 authorization server changes (detected via updated protected
