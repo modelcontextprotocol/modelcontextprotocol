@@ -46,7 +46,6 @@ The contributor ladder operates under these principles:
 | ------------------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- |
 | [**Contributor**](#contributor)                  | Anyone who contributes to MCP                 | Submit issues, PRs, participate in discussions                            | Immediate                                             |
 | [**Member**](#member)                            | Established, active contributor               | GitHub org membership, triage rights, eligible for WG/IG leadership       | 2-3 months of meaningful contributions                |
-| [**Reviewer**](#reviewer)                        | Recognized for technical judgment             | Review and approve PRs in scope area                                      | 3 months as Member                                    |
 | [**Maintainer**](#maintainer)                    | Area steward with operational responsibility  | Merge rights, release participation                                       | 6+ months as Member                                   |
 | [**Core Maintainer**](#core-maintainer)          | Technical leadership and protocol stewardship | Final decision authority, governance participation                        | By invitation after sustained Maintainer contribution |
 | [**Lead Maintainer**](#lead-maintainer)          | Ultimate project authority (founders)         | All Core Maintainer privileges, veto authority, appoints Core Maintainers | Reserved for project founders — succession only       |
@@ -87,7 +86,7 @@ Members are established contributors who have demonstrated ongoing commitment to
 
 **Sponsorship:**
 
-- Sponsored by two existing Members, Reviewers, or Maintainers from different organizations
+- Sponsored by two existing Members or Maintainers from different organizations
 - or sponsored by one Core Maintainer or Lead Maintainer
 
 **Minimum timeline:** 2-3 months of active participation
@@ -109,43 +108,6 @@ Members are established contributors who have demonstrated ongoing commitment to
 - Eligible for Working Group Lead or Interest Group Facilitator roles
 
 **Inactivity:** Members with no contributions for 3 months may be moved to emeritus status. Re-engagement follows a simplified re-familiarization process.
-
-### Reviewer
-
-Reviewers have demonstrated technical competence and good judgment in a specific scope area.
-
-**Requirements:**
-
-- Member for at least 3 months
-- Primary reviewer for at least 5 substantial PRs in scope area
-- Reviewed at least 15 PRs total in scope area
-- Demonstrates working understanding of how MCP integrates with AI systems and model capabilities
-- Demonstrates knowledge of code quality, testing standards, and design patterns
-- Demonstrated good judgment and constructive feedback in reviews
-
-**Sponsorship:**
-
-- Sponsored by an existing Maintainer in the scope area
-- or sponsored by a Core Maintainer or Lead Maintainer
-
-**Responsibilities:**
-
-- Provide timely, constructive reviews when requested
-- Focus on code quality, correctness, testing, and style
-- Help contributors improve their submissions
-- Escalate concerns about design or architecture to Maintainers
-- Be responsive within community SLO (typically 48-72 hours for initial response)
-
-**Privileges:**
-
-- Listed in `REVIEWERS.md` for scope area
-- Officially requested for reviews via automation
-- Input weighted more heavily in discussions
-- Can block PRs with substantive concerns
-
-**Inactivity:** Reviewers with no contributions for 3 months may be moved to emeritus status. Re-engagement follows a simplified re-familiarization process.
-
-All pathways can lead to Reviewer, though the specific scope will align with the contribution type.
 
 ### Maintainer
 
@@ -171,7 +133,7 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 - Responsible for the release processes and milestone planning of their respective scope
 - Provide timely review of escalated decisions
 - Active participation in governance discussions
-- Mentor Reviewers and develop future Maintainers
+- Mentor Members and develop future Maintainers
 - Represent MCP in external contexts when appropriate
 - Engage with the area ecosystem and stakeholders, understanding real-world usage, and representing community needs
 - Ensure proposals reaching Core Maintainers are refined, well-considered, and account for ecosystem-wide impact
@@ -180,7 +142,7 @@ Maintainers are trusted stewards who take operational responsibility for specifi
 **Privileges:**
 
 - Merge privileges for owned areas
-- Can sponsor Reviewers and Maintainers
+- Can sponsor new Maintainers
 - Participate in roadmap and prioritization discussions
 - Listed in `MAINTAINERS.md`
 - Release participation
@@ -278,7 +240,6 @@ Both paths are equally valid. Self-nomination is encouraged and preferred, as it
 | Advancement To      | Approved By                                                                     |
 | ------------------- | ------------------------------------------------------------------------------- |
 | Member              | 2 existing Members+ from different organizations, **or** 1 Core/Lead Maintainer |
-| Reviewer            | 1 Maintainer in scope area, **or** 1 Core/Lead Maintainer                       |
 | Maintainer          | 1 Maintainer or Core Maintainer sponsor + Core Maintainer approval              |
 | Core Maintainer     | Lead Maintainers                                                                |
 | Community Moderator | 1 Core Maintainer or Lead Maintainer                                            |
@@ -362,7 +323,7 @@ Working Group (WG) Leads and Interest Group (IG) Facilitators are a special form
 
 **Requirements:**
 
-- Member status minimum (Reviewer preferred)
+- Member status minimum
 - Demonstrated sustained engagement with the WG/IG's scope
 - Good facilitation and communication skills
 - Ability to represent multiple perspectives fairly
@@ -412,7 +373,7 @@ Community Moderators are trusted individuals who help keep the MCP community hea
 
 - Community Moderator is a parallel track, not a prerequisite for technical advancement
 - Moderator experience is valued for advancement to any role, particularly where community judgment is important
-- Moderators may simultaneously hold other roles (Reviewer, Maintainer, etc.)
+- Moderators may simultaneously hold other roles (Member, Maintainer, etc.)
 
 **Removal:** Community Moderators may be removed by Core Maintainers for failure to uphold moderation standards or Code of Conduct violations. Moderators may step down voluntarily at any time.
 
@@ -420,7 +381,7 @@ Community Moderators are trusted individuals who help keep the MCP community hea
 
 The community recognizes contributors through:
 
-- **Contributor lists** such as `REVIEWERS.md` and `MAINTAINERS.md`
+- **Contributor lists** such as `MAINTAINERS.md`
 - **GitHub teams** for appropriate access
 - **Public acknowledgment** in release notes
 - **Speaking opportunities** at community events
@@ -497,8 +458,7 @@ Upon acceptance, this SEP will be implemented by:
 
 1. Adding the contributor ladder to `docs/community/contributor-ladder.mdx`
 2. Creating nomination issue templates in `.github/ISSUE_TEMPLATE/` (see Appendix for checklist templates)
-3. Creating `REVIEWERS.md` template for scope areas
-4. Updating `MAINTAINERS.md` format to reflect role distinctions
+3. Updating `MAINTAINERS.md` format to reflect role distinctions
 
 ## Appendix: Checklist Templates
 
@@ -519,20 +479,6 @@ Upon acceptance, this SEP will be implemented by:
 Sponsors confirm
 - [ ] Sponsors confirm nominee demonstrates community values
 - [ ] Sponsors confirm nominee demonstrates sustained engagement
-```
-
-### Reviewer Nomination Checklist
-
-```
-**Nominee:** [GitHub handle]
-**Scope:** [Specific area]
-**Sponsor:** [GitHub handle, must be Maintainer in scope]
-
-**Requirements:**
-- [ ] Member for 3+ months
-- [ ] Links to 5+ PRs reviewed as primary reviewer
-- [ ] Links to 15+ total PR reviews in scope
-- [ ] Evidence of constructive feedback
 ```
 
 ### Maintainer Nomination Checklist
