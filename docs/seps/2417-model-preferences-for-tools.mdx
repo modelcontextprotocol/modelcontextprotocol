@@ -1,0 +1,242 @@
+---
+title: "SEP-2417: Model Preferences for Tools"
+sidebarTitle: "SEP-2417: Model Preferences for Tools"
+description: "Model Preferences for Tools"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2417                                                                            |
+| **Title**     | Model Preferences for Tools                                                     |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-03-17                                                                      |
+| **Author(s)** | [@ProductOfAmerica](https://github.com/ProductOfAmerica)                        |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#2417](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2417) |
+
+---
+
+## Abstract
+
+This SEP proposes adding an optional `modelPreferences` field to `ToolAnnotations`, allowing MCP servers to signal the model capability level that would produce the best results for each tool. The field reuses the existing `ModelPreferences` schema from the sampling capability (`intelligencePriority`, `costPriority`, `speedPriority`) to maintain consistency within the protocol. Clients that support this annotation can use it as a hint for model routing; clients that don't can safely ignore it.
+
+## Motivation
+
+MCP servers expose tools with wildly different complexity profiles. A tool that lists organization names returns simple structured data any model can interpret. A tool that returns multi-dimensional agronomic analysis - soil composition, yield history, weather correlations, equipment telemetry - needs a model that can actually reason about the relationships in that data.
+
+Right now the client picks the model with zero input from the server, even though the server knows its own tools best. This is a global setting with no per-tool granularity. The result is predictable: users either waste Opus on `list_organizations` (a flat list of names) or run Haiku against `diagnose_field` and get a shallow interpretation of dense agronomic data. The tool did its job - the model couldn't keep up.
+
+The spec already has the right primitive for this. The `sampling` capability includes `ModelPreferences` with `intelligencePriority`, `costPriority`, and `speedPriority` fields (0.0-1.0). But it only applies to server-initiated completions, not to the client's own model selection when processing tool results.
+
+Server developers know what their tools return. Giving them a way to express what reasoning capability is needed to interpret it - as a hint, not a mandate - closes an information gap that currently has no workaround.
+
+### Real-World Example
+
+An agricultural MCP server exposes 11 tools:
+
+| Tool                   | Output Complexity                               | Ideal Model        |
+| ---------------------- | ----------------------------------------------- | ------------------ |
+| `list_organizations`   | Flat list of names/IDs                          | Any (Haiku)        |
+| `list_fields`          | Simple field metadata                           | Any (Haiku)        |
+| `get_field_boundary`   | GeoJSON coordinates                             | Low (Haiku/Sonnet) |
+| `get_equipment_status` | Telemetry readings                              | Medium (Sonnet)    |
+| `search_operations`    | Multi-field operation records                   | Medium (Sonnet)    |
+| `diagnose_field`       | Multi-dimensional agronomic analysis            | High (Opus)        |
+| `yield_analysis`       | Statistical yield modeling with evidence chains | High (Opus)        |
+
+Without model preferences, a client must either use the same model for all 11 tools (wasteful or insufficient) or implement server-specific routing logic (defeats the purpose of a protocol).
+
+## Specification
+
+### Schema Changes
+
+Add an optional `modelPreferences` field to `ToolAnnotations`:
+
+```typescript
+export interface ToolAnnotations {
+  /**
+   * If true, the tool does not modify its environment.
+   */
+  readOnlyHint?: boolean;
+
+  /**
+   * If true, the tool may perform destructive updates.
+   */
+  destructiveHint?: boolean;
+
+  /**
+   * If true, calling the tool repeatedly with the same arguments
+   * has no additional effect.
+   */
+  idempotentHint?: boolean;
+
+  /**
+   * If true, the tool interacts with external entities.
+   */
+  openWorldHint?: boolean;
+
+  /**
+   * A human-readable title for the tool.
+   */
+  title?: string;
+
+  /**
+   * Hints to the client about what model capabilities would best
+   * serve interpreting this tool's output. Clients MAY use these
+   * hints for model routing decisions but are not required to.
+   *
+   * Reuses the existing ModelPreferences schema from the sampling
+   * capability for consistency.
+   */
+  modelPreferences?: ModelPreferences;
+}
+```
+
+The `ModelPreferences` type already exists in the MCP schema:
+
+```typescript
+export interface ModelPreferences {
+  /**
+   * How much to prioritize intelligence and capabilities (0.0-1.0).
+   * Higher values prefer more capable models.
+   */
+  intelligencePriority?: number;
+
+  /**
+   * How much to prioritize cost efficiency (0.0-1.0).
+   * Higher values prefer cheaper models.
+   */
+  costPriority?: number;
+
+  /**
+   * How much to prioritize low latency (0.0-1.0).
+   * Higher values prefer faster models.
+   */
+  speedPriority?: number;
+
+  /**
+   * Optional hints for model selection. If multiple hints are
+   * specified, the client SHOULD pick the first model matching
+   * a hint.
+   */
+  hints?: ModelHint[];
+}
+```
+
+### Wire Format Example
+
+Server returns tools/list:
+
+```json
+{
+  "tools": [
+    {
+      "name": "list_organizations",
+      "description": "List all organizations the farmer belongs to.",
+      "inputSchema": { ... },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "title": "List Organizations",
+        "modelPreferences": {
+          "costPriority": 0.9,
+          "speedPriority": 0.8,
+          "intelligencePriority": 0.1
+        }
+      }
+    },
+    {
+      "name": "diagnose_field",
+      "description": "Diagnose field health issues using agronomic analysis.",
+      "inputSchema": { ... },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "title": "Diagnose Field",
+        "modelPreferences": {
+          "intelligencePriority": 0.9,
+          "costPriority": 0.2,
+          "speedPriority": 0.3
+        }
+      }
+    }
+  ]
+}
+```
+
+### Client Behavior
+
+- Clients that support this annotation SHOULD use it as one input to model routing decisions, alongside user preferences, budget constraints, and other factors.
+- Clients MUST NOT treat `modelPreferences` as a binding requirement. The user's explicit model selection always takes precedence.
+- Clients that do not support this annotation MUST ignore the field. Since `ToolAnnotations` fields are optional hints by design, this requires no special handling.
+- When `modelPreferences` is absent, clients SHOULD behave as they do today (no change in default behavior).
+
+### Server Behavior
+
+- Servers SHOULD set `modelPreferences` based on the complexity of the tool's _output_, not its input. The annotation describes what reasoning capability is needed to interpret the result.
+- Servers SHOULD NOT set `intelligencePriority` to 1.0 for all tools. The signal is only useful if it differentiates between tools.
+- Servers MAY omit `modelPreferences` for tools where any model capability level is adequate.
+
+## Rationale
+
+### Why reuse `ModelPreferences` instead of a new type?
+
+The type already exists. It captures the right dimensions. Reusing it means less schema surface area, and client implementers already know the shape. Same priorities apply whether the server is requesting a completion or hinting about tool output.
+
+### Why put it in `ToolAnnotations` instead of `_meta`?
+
+`ToolAnnotations` is the designated location for tool-level hints that inform client behavior. `_meta` is for opaque extension data. Model preferences are a client behavior hint - they belong in annotations alongside `readOnlyHint` and `destructiveHint`.
+
+### Why not a simple enum (low/medium/high)?
+
+An enum collapses three dimensions into one. A batch analysis tool might need high intelligence but tolerate high latency. A real-time monitoring tool might need moderate intelligence but low latency. The priority model already exists in the spec and handles this.
+
+### Why hints instead of requirements?
+
+Every field in `ToolAnnotations` is a hint. Model preferences should be no different - the server doesn't know the user's budget or what models the client even has available. The server knows what its tools return; the client knows what resources exist. Hints bridge that gap.
+
+### Alternatives considered
+
+1. **Tool description text** ("This tool benefits from a capable model"): Works today but isn't machine-readable, and every server would phrase it differently.
+
+2. **Extension via `_meta`**: Semantically wrong. `_meta` is for opaque extension data, not client behavior hints. Also leads to fragmented schemas across servers.
+
+3. **Output schema complexity scoring**: Doesn't work. A tool can return `{text: string}` that contains deeply complex agronomic analysis. Output schema tells you nothing about reasoning difficulty.
+
+## Backward Compatibility
+
+Fully backward compatible. `modelPreferences` is an optional field on `ToolAnnotations`. Existing clients ignore unknown annotation fields. Existing servers don't need to change.
+
+## Security Implications
+
+**Minimal.** Model preferences are advisory hints with no security authority.
+
+One risk: a malicious server could set `intelligencePriority: 1.0` on all tools to push users toward expensive models. Clients SHOULD apply reasonable limits and respect user-configured preferences over server hints. Same problem as `destructiveHint` - a server can lie about that too. The hint system relies on good faith, and clients are free to override.
+
+## Reference Implementation
+
+A demo MCP server is available at [mcp-server-model-preferences-demo](https://github.com/ProductOfAmerica/mcp-server-model-preferences-demo). It registers three tools with different `modelPreferences` values via `_meta` (forward-compatible with the proposed `annotations` location):
+
+- `list_items` — simple list output, `intelligencePriority: 0.1, costPriority: 0.9, speedPriority: 0.8`
+- `summarize_data` — moderate analysis, balanced `0.5/0.5/0.5`
+- `deep_analysis` — complex multi-dimensional analysis, `intelligencePriority: 0.9, costPriority: 0.2, speedPriority: 0.3`
+
+The demo uses `_meta` with vendor prefix `com.example/model-preferences` because the SDK does not yet support `modelPreferences` in `ToolAnnotations`. The README includes a side-by-side comparison of the current `_meta` format and the proposed `annotations` format.
+
+## Open Questions
+
+1. **Should `ModelHint.name` be used?** The existing `ModelPreferences` type includes `hints: ModelHint[]` which allows specifying model names (e.g., "claude-sonnet-4-5"). For tool annotations, the priority-based approach (`intelligencePriority`, etc.) is more appropriate than naming specific models. Should `hints` be excluded from the tool annotation context?
+
+2. **Per-tool or per-category?** Should servers be able to set preferences at the tool category level (e.g., all read-only tools default to low intelligence priority) or only per-tool? Per-tool is simpler and proposed here; category-level could be a future extension.
+
+3. **Client UI implications.** Should clients surface model preference information to users? For example, showing "This tool works best with a more capable model" when the user has selected a fast/cheap model. This is a client UX decision, not a protocol concern, but guidance may be helpful.
