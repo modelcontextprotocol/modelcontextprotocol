@@ -1,0 +1,18 @@
+{
+  "completion": {
+    "values": [
+      {
+        "value": "py-3.11",
+        "title": "Python 3.11",
+        "description": "Python programming language, version 3.11"
+      },
+      {
+        "value": "torch-2.0",
+        "title": "PyTorch 2.0"
+      },
+      "pyside"
+    ],
+    "total": 3,
+    "hasMore": false
+  }
+}

@@ -13,7 +13,6 @@ author:
   - ""
 
 tags: []
-
 # Optional per-post image for JSON-LD and OpenGraph (falls back to site
 # og-image.png). Place under static/posts/<slug>/ and reference relative to
 # static/.
