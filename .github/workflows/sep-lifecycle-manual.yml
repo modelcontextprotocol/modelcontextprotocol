@@ -72,7 +72,7 @@ jobs:
           LOG_LEVEL: info
 
       - name: Upload logs
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: automation-logs-manual-${{ github.run_id }}
