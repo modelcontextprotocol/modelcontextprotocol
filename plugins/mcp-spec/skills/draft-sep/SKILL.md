@@ -16,12 +16,13 @@ This skill guides an author through producing a SEP that conforms to `docs/commu
 
 ## Phase 1 — Interview
 
-Ask the user these four questions before touching any files. The answers feed directly into the draft.
+Ask the user these five questions before touching any files. The answers feed directly into the draft.
 
 1. **SEP type?** Standards Track (core protocol feature), Extensions Track (extension rather than core — see SEP-2133), Informational (guidelines/design notes), or Process (governance/workflow change). Most SEPs are Standards Track. Note: `seps/TEMPLATE.md` and the SEP guidelines list only three types; Extensions Track was added by SEP-2133 and has not yet been backfilled into those docs.
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** A reference implementation is required before a SEP can reach `Final` status. Does one exist, is one in progress, or is it still TBD?
 4. **Where was this discussed?** Discord thread, Working Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
+5. **Sponsor?** A SEP needs a Core Maintainer or Maintainer sponsor to move past `draft`. If the user has one lined up, capture their `@github-username`. If not, note the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx`: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
 
 ## Phase 2 — Research
 
@@ -104,7 +105,7 @@ Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/SEP-DRAFT
 - **Type**: {from Phase 1 Q1}
 - **Created**: {today, YYYY-MM-DD}
 - **Author(s)**: {from `git config user.name` / `git config user.email`}
-- **Sponsor**: None
+- **Sponsor**: {from Phase 1 Q5 — @github-username, or "None (seeking sponsor)"}
 - **PR**: {leave blank — filled after the PR is opened}
 ```
 
