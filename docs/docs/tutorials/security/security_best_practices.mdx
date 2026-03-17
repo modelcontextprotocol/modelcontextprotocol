@@ -537,6 +537,7 @@ the following attack vectors are possible:
 1. The client connects to **Server A** and receives a session ID.
 1. The attacker obtains an existing session ID and sends a malicious
    event to **Server B** with said session ID.
+
    - When a server supports
      [redelivery/resumable streams](/specification/latest/basic/transports#resumability-and-redelivery),
      deliberately terminating the request before receiving the response
