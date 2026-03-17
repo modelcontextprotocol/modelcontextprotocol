@@ -300,14 +300,12 @@ Servers must verify that the user completing a URL elicitation is the same user 
 ### Implementation Requirements
 
 1. **Clients must**:
-
    - Use secure browser contexts that prevent inspection of user inputs
    - Validate URLs for SSRF protection
    - Obtain explicit user consent before opening URLs
    - Clearly display target domains
 
 2. **Servers must**:
-
    - Bind elicitation state to authenticated user sessions
    - Verify user identity at the beginning and end of a URL elicitation flow
    - Implement appropriate rate limiting

@@ -319,13 +319,11 @@ You can find the complete `client.py` file [here](https://github.com/modelcontex
 ## Common Customization Points
 
 1. **Tool Handling**
-
    - Modify `process_query()` to handle specific tool types
    - Add custom error handling for tool calls
    - Implement tool-specific response formatting
 
 2. **Response Processing**
-
    - Customize how tool results are formatted
    - Add response filtering or transformation
    - Implement custom logging
@@ -380,19 +378,16 @@ When you submit a query:
 ## Best practices
 
 1. **Error Handling**
-
    - Always wrap tool calls in try-catch blocks
    - Provide meaningful error messages
    - Gracefully handle connection issues
 
 2. **Resource Management**
-
    - Use `AsyncExitStack` for proper cleanup
    - Close connections when done
    - Handle server disconnections
 
 3. **Security**
-
    - Store API keys securely in `.env`
    - Validate server responses
    - Be cautious with tool permissions
@@ -799,7 +794,6 @@ When you submit a query:
 ## Best practices
 
 1. **Error Handling**
-
    - Use TypeScript's type system for better error detection
    - Wrap tool calls in try-catch blocks
    - Provide meaningful error messages
@@ -1408,7 +1402,6 @@ When you submit a query:
 ## Best practices
 
 1. **Error Handling**
-
    - Leverage Kotlin's type system to model errors explicitly
    - Wrap external tool and API calls in `try-catch` blocks when exceptions are possible
    - Provide clear and meaningful error messages
