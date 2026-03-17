@@ -11,7 +11,7 @@
 
 This SEP establishes governance rules and a standardized charter template for MCP's two collaborative group types: **Working Groups (WGs)** and **Interest Groups (IGs)**. Working Groups produce concrete deliverables — SEPs, implementations, and code. Interest Groups facilitate discussion and knowledge-sharing to identify problems and gather requirements. The governance rules define the requirements that all groups must follow, with lighter expectations for IGs where appropriate. The charter template defines the structure each group uses to document its specific mission, scope, leadership, and work. Together they address community feedback about unclear authority delegation and inconsistent processes across groups.
 
-This SEP is a companion to [SEP-2148: MCP Contributor Ladder](./2148-contributor-ladder.md), which defines the org-wide contributor roles (Member, Reviewer, Maintainer, Core Maintainer, Lead Maintainer) referenced throughout this document. Group leadership roles intersect with the contributor ladder: WG Leads and IG Facilitators must hold at least Member status on the ladder, and group participation is a recognized pathway to ladder advancement.
+This SEP is a companion to [SEP-2148: MCP Contributor Ladder](./2148-contributor-ladder.md), which defines the org-wide contributor roles (Member, Maintainer, Core Maintainer, Lead Maintainer) referenced throughout this document. Group leadership roles intersect with the contributor ladder: WG Leads and IG Facilitators must hold at least Member status on the ladder, and group participation is a recognized pathway to ladder advancement.
 
 ## Motivation
 
@@ -55,7 +55,7 @@ Each group has one or more **Leads** (referred to as **Facilitators** for Intere
 
 **Requirements for all Leads and Facilitators:**
 
-- Hold at least Member status on the [MCP Contributor Ladder](./2148-contributor-ladder.md) (Reviewer preferred)
+- Hold at least Member status on the [MCP Contributor Ladder](./2148-contributor-ladder.md)
 - Demonstrated sustained engagement with the group's scope area
 - Ability to facilitate across organizational boundaries
 - Commitment to running the group's operations
