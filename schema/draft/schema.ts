@@ -1037,7 +1037,7 @@ export interface ListResourcesResult extends PaginatedResult {
  * @category `resources/list`
  */
 export interface ListResourcesResultResponse extends JSONRPCResultResponse {
-  result: ListResourcesResult | IncompleteResult;
+  result: ListResourcesResult;
 }
 
 /**
@@ -1073,7 +1073,7 @@ export interface ListResourceTemplatesResult extends PaginatedResult {
  * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesResultResponse extends JSONRPCResultResponse {
-  result: ListResourceTemplatesResult | IncompleteResult;
+  result: ListResourceTemplatesResult;
 }
 
 /**
@@ -1405,7 +1405,7 @@ export interface ListPromptsResult extends PaginatedResult {
  * @category `prompts/list`
  */
 export interface ListPromptsResultResponse extends JSONRPCResultResponse {
-  result: ListPromptsResult | IncompleteResult;
+  result: ListPromptsResult;
 }
 
 /**
@@ -1606,7 +1606,7 @@ export interface ListToolsResult extends PaginatedResult {
  * @category `tools/list`
  */
 export interface ListToolsResultResponse extends JSONRPCResultResponse {
-  result: ListToolsResult | IncompleteResult;
+  result: ListToolsResult;
 }
 
 /**
@@ -2016,9 +2016,6 @@ export interface GetTaskPayloadRequest extends JSONRPCRequest {
  *
  * @example Completed task payload
  * {@includeCode ./examples/GetTaskPayloadResult/completed-task-payload.json}
- *
- * @example Input required task payload
- * {@includeCode ./examples/GetTaskPayloadResult/input-required-task-payload.json}
  *
  * @category `tasks/result`
  */

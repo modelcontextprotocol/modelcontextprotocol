@@ -1999,14 +1999,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListPromptsResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListPromptsResult"
                 }
             },
             "required": [
@@ -2079,14 +2072,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListResourceTemplatesResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListResourceTemplatesResult"
                 }
             },
             "required": [
@@ -2159,14 +2145,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListResourcesResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListResourcesResult"
                 }
             },
             "required": [
@@ -2343,14 +2322,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListToolsResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListToolsResult"
                 }
             },
             "required": [

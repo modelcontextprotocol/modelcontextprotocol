@@ -6,7 +6,7 @@ description: "Multi Round-Trip Requests"
 
 <div className="flex items-center gap-2 mb-4">
   <Badge color="gray" shape="pill">
-    Draft
+    Approved With Changes
   </Badge>
   <Badge color="gray" shape="pill">
     Standards Track
@@ -17,7 +17,7 @@ description: "Multi Round-Trip Requests"
 | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | **SEP**       | 2322                                                                                                                      |
 | **Title**     | Multi Round-Trip Requests                                                                                                 |
-| **Status**    | Draft                                                                                                                     |
+| **Status**    | Approved With Changes                                                                                                     |
 | **Type**      | Standards Track                                                                                                           |
 | **Created**   | 2026-02-03                                                                                                                |
 | **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), |
@@ -36,6 +36,13 @@ load balancing, which will significantly reduce the cost of operating
 MCP servers at scale in the common case. It also reduces the HTTP
 transport's dependence on SSE streams, which cause problems in a lot of
 environments that cannot support long-lived connections.
+
+This proposed way of handling server-initiated requests will replace the current approach of sending server-initiated requests. This is a breaking change.
+
+This SEP also specifies the subset of client requests that a server can
+send a server-initiated request on. This is a reduced scope compared to the current spec and is also a breaking change.
+
+Making a breaking change here is necessary since adoption of server-initiated request features like Elicitation, Sampling and ListRoots is very low or blocked for many Remote MCP servers or Server Hosted Clients due to the operational complextity of supporting the SSE streams and server-side state.
 
 ## Motivation
 
@@ -355,7 +362,7 @@ Note that the requests in steps 1 and 3 are completely independent: the
 server that processes the request in step 3 does not need any
 information that is not directly present in the request. To support this decoupling the JsonRPC Id MUST be different between the requests sent in step 1 and step 3.
 
-The schema would look something like this:
+The schema looks like this:
 
 ```typescript
 // Incomplete response.  May be sent in response to any client-initiated
@@ -364,7 +371,6 @@ The schema would look something like this:
 // present, since the presence of these fields allow the client to
 // determine that the result is incomplete.
 export interface IncompleteResult extends Result {
-  status: "incomplete";
   // Requests issued by the server that must be complete before the
   // client can retry the original request.
   inputRequests?: InputRequests;
@@ -375,7 +381,7 @@ export interface IncompleteResult extends Result {
   requestState?: string;
 }
 
-// New request parameter type that includes fields in a retried request.
+// New RequestParams type includes fields for retried requests.
 // These parameters may be included in any client-initiated request.
 export interface RetryAugmentedRequestParams extends RequestParams {
   // New field to carry the responses for the server's requests from the
@@ -386,6 +392,28 @@ export interface RetryAugmentedRequestParams extends RequestParams {
   requestState?: string;
 }
 ```
+
+Since this change creates a polymorphic response for method calls like 'tools/call', we are introducing a new field to `Result` which indicate the `ResultType` the client should parse. If this field is not provided the Client should assume a `ResultType` of "complete" for backwards compatibility. The schema change will look like this:
+
+```typescript
+/**
+ * Common result fields.
+ *
+ * @category Common Types
+ */
+export interface Result {
+  _meta?: MetaObject;
+  // New field to indicate the type of the result, which allows the client to determine how to parse the result object. If no result_type is specified "complete" should be assumed.
+  result_type?: ResultType;
+  [key: string]: unknown;
+}
+
+export type ResultType =
+  | "complete" // the request completed successfully and the result contains the final content.
+  | "incomplete"; // the request is incomplete and the result contains an {@link IncompleteResult} object
+```
+
+We anticipate this field will be useful for future extensibility, as it allows us to introduce new types of results and can also apply to `tasks` as well.
 
 Note that both the "inputRequests" and "requestState" fields affect
 only the client's next retry of the original request. They will not
@@ -427,6 +455,7 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "result_type": "incomplete",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
@@ -483,6 +512,7 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
+    "result_type": "complete",
     "content": [
       {
         "type": "text",
@@ -543,6 +573,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "result_type": "incomplete",
     "inputRequests": {
       "resolution": {
         "method": "elicitation/create",
@@ -603,6 +634,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "result_type": "incomplete",
     "inputRequests": {
       "duplicate_of": {
         "method": "elicitation/create",
@@ -664,6 +696,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
+    "result_type": "complete",
     "content": [
       {
         "type": "text",
@@ -952,6 +985,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
   "id": 3,
   "jsonrpc": "2.0",
   "result": {
+    "result_type": "incomplete",
     "inputRequests": {
       "echo_input": {
         "method": "elicitation/create",
@@ -967,11 +1001,11 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
           }
         }
       }
-    },
-    "_meta": {
-      "io.modelcontextprotocol/related-task": {
-        "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
-      }
+    }
+  },
+  "_meta": {
+    "io.modelcontextprotocol/related-task": {
+      "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
     }
   }
 }
@@ -1077,6 +1111,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
   "id": 6,
   "jsonrpc": "2.0",
   "result": {
+    "result_type": "complete",
     "isError": false,
     "content": [
       {
@@ -1131,6 +1166,40 @@ duration of the task, and there is no way to transition back to the
 ephemeral model. All subsequent interactions must be performed via the
 Tasks API.
 
+### Server-Initiated Request Support for Client Requests
+
+Many `ClientRequest` don't have clear use cases where a Server would need to
+request more information from the Client. This SEP builds upon [SEP-2260](https://modelcontextprotocol.io/seps/2260-Require-Server-requests-to-be-associated-with-Client-requests) and further restricts when a Server can send a Server-Initiated Request to the Client.
+
+Servers MAY send `IncompleteResult` responses on the following Client Requests:
+
+| ClientRequest           | ServerResult           | IncompleteResult Supported |
+| ----------------------- | ---------------------- | -------------------------- |
+| `GetPromptRequest`      | `GetPromptResult`      | Yes                        |
+| `ReadResourceRequest`   | `ReadResourceResult`   | Yes                        |
+| `CallToolRequest`       | `CallToolResult`       | Yes                        |
+| `GetTaskPayloadRequest` | `GetTaskPayloadResult` | Yes                        |
+
+Servers MUST NOT send `IncompleteResult` responses on any other Client Requests. The below table represents what `ClientRequest`s this excludes at the writing of this SEP.
+
+| ClientRequest                  | IncompleteResult Supported |
+| ------------------------------ | -------------------------- |
+| `PingRequest`                  | No                         |
+| `InitializeRequest`            | No                         |
+| `CompleteRequest`              | No                         |
+| `SetLevelRequest`              | No                         |
+| `ListPromptsRequest`           | No                         |
+| `ListResourcesRequest`         | No                         |
+| `ListResourceTemplatesRequest` | No                         |
+| `SubscribeRequest`             | No                         |
+| `UnsubscribeRequest`           | No                         |
+| `ListToolsRequest`             | No                         |
+| `GetTaskRequest`               | No                         |
+| `ListTasksRequest`             | No                         |
+| `CancelTaskRequest`            | No                         |
+| `TaskInputResponseRequest`     | No                         |
+| `GetTaskPayloadRequest`        | No                         |
+
 ### Guidance for Error Handling
 
 This section provides implementation guidance for error handling in scenarios where the client provides unexpected or malformed data in the `inputResponses` object.
@@ -1178,6 +1247,7 @@ In the ephemeral workflow, this would look like the following:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "result_type": "incomplete",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
