@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "predictCropDisease",
+    "arguments": {
+      "crop": "rice"
+    },
+    "_meta": {
+      "mcp.dev/retry": {
+        "maxAttempts": 3,
+        "backoffMs": 200
+      },
+      "mcp.dev/timeout": 5000
+    }
+  }
+}

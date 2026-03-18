@@ -149,7 +149,14 @@
             "description": "Parameters for a `tools/call` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "arguments": {
                     "additionalProperties": {},
@@ -557,7 +564,14 @@
             "description": "Parameters for a `completion/complete` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "argument": {
                     "description": "The argument's information",
@@ -713,7 +727,14 @@
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "includeContext": {
                     "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. Values `\"thisServer\"` and `\"allServers\"` are soft-deprecated. Servers SHOULD only use these values if the client\ndeclares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.",
@@ -918,7 +939,14 @@
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
@@ -984,7 +1012,14 @@
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "elicitationId": {
                     "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
@@ -1185,6 +1220,28 @@
             ],
             "type": "object"
         },
+        "ExtendedMeta": {
+            "description": "Extended metadata keys for MCP community usage.\n\nNOTE:\nThese keys follow MCP naming conventions and are safe for extension.",
+            "properties": {
+                "mcp.dev/retry": {
+                    "$ref": "#/$defs/RetryPolicyMeta",
+                    "description": "Retry configuration"
+                },
+                "mcp.dev/timeout": {
+                    "description": "Timeout in milliseconds",
+                    "type": "integer"
+                },
+                "mcp.dev/trace": {
+                    "$ref": "#/$defs/TraceMeta",
+                    "description": "Distributed tracing metadata"
+                },
+                "mcp.dev/usage": {
+                    "$ref": "#/$defs/UsageMeta",
+                    "description": "Token usage tracking"
+                }
+            },
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
@@ -1215,7 +1272,14 @@
             "description": "Parameters for a `prompts/get` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "arguments": {
                     "additionalProperties": {
@@ -1555,7 +1619,14 @@
             "description": "Parameters for an `initialize` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "capabilities": {
                     "$ref": "#/$defs/ClientCapabilities"
@@ -2516,7 +2587,14 @@
             "description": "Common params for paginated requests.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "cursor": {
                     "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
@@ -2844,7 +2922,14 @@
             "description": "Parameters for a `resources/read` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
@@ -2952,7 +3037,14 @@
             "description": "Common params for any request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 }
             },
             "type": "object"
@@ -3106,7 +3198,14 @@
             "description": "Common params for resource-related requests.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
@@ -3230,6 +3329,27 @@
                     "$ref": "#/$defs/MetaObject"
                 }
             },
+            "type": "object"
+        },
+        "RetryPolicyMeta": {
+            "description": "Retry policy configuration for request execution.\n\nThis metadata allows clients and servers to specify retry behavior\nfor transient failures (e.g., network issues, temporary unavailability).",
+            "properties": {
+                "backoffMs": {
+                    "description": "Initial delay between retries in milliseconds.",
+                    "type": "integer"
+                },
+                "backoffMultiplier": {
+                    "description": "Multiplier applied to backoff delay after each attempt.",
+                    "type": "integer"
+                },
+                "maxAttempts": {
+                    "description": "Maximum number of retry attempts.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "maxAttempts"
+            ],
             "type": "object"
         },
         "Role": {
@@ -3576,7 +3696,14 @@
             "description": "Parameters for a `logging/setLevel` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "level": {
                     "$ref": "#/$defs/LoggingLevel",
@@ -3685,7 +3812,14 @@
             "description": "Parameters for a `resources/subscribe` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
@@ -3764,7 +3898,14 @@
             "description": "Common params for any task-augmented request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
@@ -3876,6 +4017,10 @@
                 "uri"
             ],
             "type": "object"
+        },
+        "TimeoutMeta": {
+            "description": "Timeout configuration for request execution.\n\nSpecifies the maximum duration a request is allowed to run\nbefore being aborted.",
+            "type": "integer"
         },
         "TitledMultiSelectEnumSchema": {
             "description": "Schema for multiple-selection enumeration with display titles for each option.",
@@ -4236,6 +4381,23 @@
             ],
             "type": "object"
         },
+        "TraceMeta": {
+            "description": "Trace metadata for distributed request tracking.\n\nEnables observability across services and tools.",
+            "properties": {
+                "spanId": {
+                    "description": "Optional span identifier for sub-operations.",
+                    "type": "string"
+                },
+                "traceId": {
+                    "description": "Unique identifier for the request trace.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "traceId"
+            ],
+            "type": "object"
+        },
         "URLElicitationRequiredError": {
             "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
             "properties": {
@@ -4318,7 +4480,14 @@
             "description": "Parameters for a `resources/unsubscribe` request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/RequestMetaObject"
+                        },
+                        {
+                            "$ref": "#/$defs/ExtendedMeta"
+                        }
+                    ]
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
@@ -4441,6 +4610,24 @@
                 "enum",
                 "type"
             ],
+            "type": "object"
+        },
+        "UsageMeta": {
+            "description": "Token usage metadata for AI/LLM-based responses.\n\nUseful for tracking usage, billing, and optimization.",
+            "properties": {
+                "completionTokens": {
+                    "description": "Number of tokens generated in the response.",
+                    "type": "integer"
+                },
+                "promptTokens": {
+                    "description": "Number of tokens used in the input prompt.",
+                    "type": "integer"
+                },
+                "totalTokens": {
+                    "description": "Total tokens consumed.",
+                    "type": "integer"
+                }
+            },
             "type": "object"
         }
     }

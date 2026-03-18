@@ -110,7 +110,158 @@ export interface TaskAugmentedRequestParams extends RequestParams {
  * @category Common Types
  */
 export interface RequestParams {
-  _meta?: RequestMetaObject;
+  _meta?: RequestMetaObject & ExtendedMeta;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                        Extended Metadata (Community)                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Retry policy configuration for request execution.
+ *
+ * This metadata allows clients and servers to specify retry behavior
+ * for transient failures (e.g., network issues, temporary unavailability).
+ *
+ * @example Retry configuration
+ * {
+ *   "_meta": {
+ *     "mcp.dev/retry": {
+ *       "maxAttempts": 3,
+ *       "backoffMs": 200,
+ *       "backoffMultiplier": 2
+ *     }
+ *   }
+ * }
+ *
+ * @category Metadata Extensions
+ */
+export interface RetryPolicyMeta {
+  /**
+   * Maximum number of retry attempts.
+   */
+  maxAttempts: number;
+
+  /**
+   * Initial delay between retries in milliseconds.
+   */
+  backoffMs?: number;
+
+  /**
+   * Multiplier applied to backoff delay after each attempt.
+   */
+  backoffMultiplier?: number;
+}
+
+/**
+ * Timeout configuration for request execution.
+ *
+ * Specifies the maximum duration a request is allowed to run
+ * before being aborted.
+ *
+ * @example Timeout configuration
+ * {
+ *   "_meta": {
+ *     "mcp.dev/timeout": 5000
+ *   }
+ * }
+ *
+ * @category ./examples/MetaExtensions/retry-timeout-usage.json
+ */
+export type TimeoutMeta = number;
+
+/**
+ * Token usage metadata for AI/LLM-based responses.
+ *
+ * Useful for tracking usage, billing, and optimization.
+ *
+ * @example Usage metadata
+ * {
+ *   "_meta": {
+ *     "mcp.dev/usage": {
+ *       "promptTokens": 120,
+ *       "completionTokens": 45,
+ *       "totalTokens": 165
+ *     }
+ *   }
+ * }
+ *
+ * @category Metadata Extensions
+ */
+export interface UsageMeta {
+  /**
+   * Number of tokens used in the input prompt.
+   */
+  promptTokens?: number;
+
+  /**
+   * Number of tokens generated in the response.
+   */
+  completionTokens?: number;
+
+  /**
+   * Total tokens consumed.
+   */
+  totalTokens?: number;
+}
+
+/**
+ * Trace metadata for distributed request tracking.
+ *
+ * Enables observability across services and tools.
+ *
+ * @example Trace metadata
+ * {
+ *   "_meta": {
+ *     "mcp.dev/trace": {
+ *       "traceId": "abc-123",
+ *       "spanId": "span-456"
+ *     }
+ *   }
+ * }
+ *
+ * @category Metadata Extensions
+ */
+export interface TraceMeta {
+  /**
+   * Unique identifier for the request trace.
+   */
+  traceId: string;
+
+  /**
+   * Optional span identifier for sub-operations.
+   */
+  spanId?: string;
+}
+
+/**
+ * Extended metadata keys for MCP community usage.
+ *
+ * NOTE:
+ * These keys follow MCP naming conventions and are safe for extension.
+ *
+ * @category Metadata Extensions
+ */
+export interface ExtendedMeta {
+  /**
+   * Retry configuration
+   */
+  "mcp.dev/retry"?: RetryPolicyMeta;
+
+  /**
+   * Timeout in milliseconds
+   */
+  "mcp.dev/timeout"?: TimeoutMeta;
+
+  /**
+   * Token usage tracking
+   */
+  "mcp.dev/usage"?: UsageMeta;
+
+  /**
+   * Distributed tracing metadata
+   */
+  "mcp.dev/trace"?: TraceMeta;
 }
 
 /** @internal */
