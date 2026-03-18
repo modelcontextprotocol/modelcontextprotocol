@@ -769,7 +769,7 @@ Web-based MCP clients **SHOULD** implement Content Security Policy headers to pr
 MCP clients **MUST** sanitize and validate all URLs received from MCP servers:
 
 - Implement strict URL parsing and validation
-- Escape or remove special characters that could be interpreted by shells
+- Reject URLs with special characters that could be interpreted by shells
 - Consider using dedicated URL sanitization libraries
 - Log suspicious authorization URLs for security monitoring
 
