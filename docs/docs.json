@@ -401,7 +401,8 @@
               "seps/1850-pr-based-sep-workflow",
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
-              "seps/2133-extensions"
+              "seps/2133-extensions",
+              "seps/2148-contributor-ladder"
             ]
           },
           {
