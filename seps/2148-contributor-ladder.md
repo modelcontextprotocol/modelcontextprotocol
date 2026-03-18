@@ -196,8 +196,6 @@ When evaluating candidates, Core Maintainers should consider whether the current
 
 Lead Maintainers hold ultimate authority over MCP's direction and governance. This is a lifetime appointment reserved for project founders. There is no defined advancement path to this role; it is only assumed through succession when necessary (see [Succession](#succession)).
 
-**Current Lead Maintainer:** David Soria Parra
-
 **Responsibilities:**
 
 - All Core Maintainer responsibilities
