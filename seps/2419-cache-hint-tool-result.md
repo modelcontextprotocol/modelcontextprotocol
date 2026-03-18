@@ -1,4 +1,4 @@
-# SEP-0000: Standardize `cache_hint` as a Well-Known Key in `CallToolResult._meta`
+# SEP-2419: Standardize `cache_hint` as a Well-Known Key in `CallToolResult._meta`
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -6,7 +6,7 @@
 - **Author(s)**: Hugues Clouatre (@clouatre)
 - **Sponsor**: None (seeking sponsor)
 - **Issue**: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2400
-- **PR**: (assigned on open)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2419
 
 ## Abstract
 
