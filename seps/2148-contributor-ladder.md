@@ -1,30 +1,11 @@
----
-title: "SEP-2148: MCP Contributor Ladder"
-sidebarTitle: "SEP-2148: MCP Contributor Ladder"
-description: "MCP Contributor Ladder"
----
+# SEP-2148: MCP Contributor Ladder
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="green" shape="pill">
-    Final
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Process
-  </Badge>
-</div>
-
-| Field         | Value                                                                                                                        |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2148                                                                                                                         |
-| **Title**     | MCP Contributor Ladder                                                                                                       |
-| **Status**    | Final                                                                                                                        |
-| **Type**      | Process                                                                                                                      |
-| **Created**   | 2026-01-15                                                                                                                   |
-| **Author(s)** | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant)), Sarah Novotny ([@sarahnovotny](https://github.com/sarahnovotny)) |
-| **Sponsor**   | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant))                                                                   |
-| **PR**        | [#2148](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2148)                                              |
-
----
+- **Status**: Final
+- **Type**: Process
+- **Created**: 2026-01-15
+- **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
+- **Sponsor**: David Soria Parra (@dsp-ant)
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2148
 
 ## Abstract
 
