@@ -134,7 +134,7 @@ export interface RequestParams {
  *   }
  * }
  *
- * @category Metadata Extensions
+ * @category Common Types
  */
 export interface RetryPolicyMeta {
   /**
@@ -166,7 +166,7 @@ export interface RetryPolicyMeta {
  *   }
  * }
  *
- * @category ./examples/MetaExtensions/retry-timeout-usage.json
+ * @category Common Types
  */
 export type TimeoutMeta = number;
 
@@ -186,7 +186,7 @@ export type TimeoutMeta = number;
  *   }
  * }
  *
- * @category Metadata Extensions
+ * @category Common Types
  */
 export interface UsageMeta {
   /**
@@ -220,7 +220,7 @@ export interface UsageMeta {
  *   }
  * }
  *
- * @category Metadata Extensions
+ * @category Common Types
  */
 export interface TraceMeta {
   /**
@@ -240,7 +240,7 @@ export interface TraceMeta {
  * NOTE:
  * These keys follow MCP naming conventions and are safe for extension.
  *
- * @category Metadata Extensions
+ * @category Common Types
  */
 export interface ExtendedMeta {
   /**
