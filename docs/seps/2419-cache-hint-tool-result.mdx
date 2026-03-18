@@ -30,10 +30,11 @@ description: "Standardize `cache_hint` as a Well-Known Key in `CallToolResult._m
 
 This SEP standardizes `cache_hint` as a well-known key in `CallToolResult._meta`, with values
 `"no-cache"` and `"cache"`. The key allows a server to advise MCP clients whether to cache or
-skip caching a particular tool result. This follows the existing hint-style, non-mandatory
-pattern established by `progressToken` and the well-known `_meta` key pattern established by
-SEP-1686 and SEP-414. No schema interface changes are required; the key is declared in
-specification prose and is backward-compatible.
+skip caching a particular tool result. This is the first well-known key defined for
+`CallToolResult._meta` on the server-to-client side. It follows the hint-style, non-mandatory
+pattern established by `progressToken` (on request `_meta`) and the well-known `_meta` key
+convention established by SEP-414. No schema interface changes are required; the key is declared
+in specification prose and is backward-compatible.
 
 ## Motivation
 
@@ -82,8 +83,9 @@ caching policy.
 ### Semantics
 
 `cache_hint` is a hint. The receiver is not obligated to honor it. This matches the precedent
-established by `progressToken` (spec: "The receiver is not obligated to provide these
-notifications").
+established by `progressToken` -- a hint-style key on request `_meta` where the spec states
+"The receiver is not obligated to provide these notifications." `cache_hint` applies the same
+non-mandatory semantics on the result side.
 
 A server SHOULD set `cache_hint: "no-cache"` on results that are expensive to cache without
 benefit -- for example, large read-only results returned in single-pass contexts where the cache
@@ -141,8 +143,9 @@ existing plain-name key in the spec and is already in `_meta`.
 
 `cache_hint` is proposed as a plain name for two reasons:
 
-1. The draft `MetaObject` (from #1788) explicitly places bare keys in the free-use zone. Adopting
-   the prefix now, before #1788 is settled, would lock in a naming decision that #1788 may revise.
+1. The #1788 draft proposes a `MetaObject` that would place bare keys in a free-use zone, but
+   #1788 is not yet adopted. Adopting the prefix now would lock in a naming decision that
+   #1788 may revise once ratified.
 2. A plain name is simpler to set, read, and document. The HTTP ecosystem uses `Cache-Control`
    (plain) rather than a namespaced equivalent.
 
