@@ -1,25 +1,28 @@
 baseURL = 'https://blog.modelcontextprotocol.io/'
 languageCode = 'en-us'
 title = 'Model Context Protocol Blog'
-copyright = 'Copyright © 2025 Model Context Protocol Project. All rights reserved.'
+copyright = 'Copyright © Model Context Protocol a Series of LF Projects, LLC.<br>For web site terms of use, trademark policy and other project policies please see [https://lfprojects.org](https://lfprojects.org).'
+enableGitInfo = true
+enableRobotsTXT = true
 theme = 'github.com/adityatelange/hugo-PaperMod'
 [pagination]
-  pagerSize = 5
+  pagerSize = 10
+
+# JSON output enables PaperMod's Fuse.js client-side search.
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
 
 [params]
   author = "The MCP project"
   description = "Updates from the Model Context Protocol project"
   images = ["og-image.png"]
 
-  [params.homeInfoParams]
-    Content = "Get the latest updates from protocol maintainers and contributors about new developments, upcoming features, and real-world MCP implementations."
-
   # PaperMod specific settings
   # defaultTheme = "dark" # MCP uses a dark theme
   disableThemeToggle = false
   ShowShareButtons = false
   ShowReadingTime = true
-  ShowPostNavLinks = true
+  ShowPostNavLinks = false
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
   ShowWordCount = false
@@ -32,8 +35,23 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   hideSummary = false
   ShowFullTextinRSS = true
 
+  # Sub-tables must come after all scalar keys in TOML. Everything between
+  # [params.homeInfoParams] and the next [section] belongs to the sub-table.
+  [params.homeInfoParams]
+    Title = "Model Context Protocol Blog"
+    Content = "Get the latest updates from protocol maintainers and contributors about new developments, upcoming features, and real-world MCP implementations."
+
   [params.assets]
     favicon = "favicon.svg"
+    favicon16x16 = "favicon.svg"
+    favicon32x32 = "favicon.svg"
+    apple_touch_icon = "favicon.svg"
+    safari_pinned_tab = "favicon.svg"
+
+  # Header glyph: the MCP connector mark from favicon.svg with the background
+  # rect stripped and stroke set to currentColor so it inverts with the theme.
+  [params.label]
+    iconSVG = '''<svg class="logo-svg" width="28" height="28" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M23.5996 85.2532L86.2021 22.6507C94.8457 14.0071 108.86 14.0071 117.503 22.6507C126.147 31.2942 126.147 45.3083 117.503 53.9519L70.2254 101.23" stroke="currentColor" stroke-width="12" stroke-linecap="round"/><path d="M70.8789 100.578L117.504 53.952C126.148 45.3083 140.163 45.3083 148.806 53.952L149.132 54.278C157.776 62.9216 157.776 76.9357 149.132 85.5792L92.5139 142.198C89.6327 145.079 89.6327 149.75 92.5139 152.631L104.14 164.257" stroke="currentColor" stroke-width="12" stroke-linecap="round"/><path d="M101.853 38.3013L55.553 84.6011C46.9094 93.2447 46.9094 107.258 55.553 115.902C64.1966 124.546 78.2106 124.546 86.8543 115.902L133.154 69.6025" stroke="currentColor" stroke-width="12" stroke-linecap="round"/></svg>'''
 
   [[params.socialIcons]]
     name = "github"
@@ -51,10 +69,22 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   weight = 10
 
 [[menu.main]]
-  identifier = "github"
-  name = "GitHub"
-  url = "https://github.com/modelcontextprotocol"
+  identifier = "posts"
+  name = "Posts"
+  url = "/posts/"
+  weight = 15
+
+[[menu.main]]
+  identifier = "archives"
+  name = "Archives"
+  url = "/archives/"
   weight = 20
+
+[[menu.main]]
+  identifier = "search"
+  name = "Search"
+  url = "/search/"
+  weight = 30
 
 # Markup configuration for syntax highlighting
 [markup]
@@ -64,6 +94,11 @@ theme = 'github.com/adityatelange/hugo-PaperMod'
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+
+# Derive .Lastmod from git commit history (enableGitInfo) so JSON-LD
+# dateModified reflects actual edits, not just frontmatter.
+[frontmatter]
+  lastmod = [':git', 'lastmod', 'date', 'publishDate']
 
 [module]
   [[module.imports]]

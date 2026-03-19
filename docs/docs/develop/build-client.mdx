@@ -1044,7 +1044,7 @@ This provides similar functionality but uses a WebFlux-based SSE transport imple
 
 Before starting, ensure your system meets these requirements:
 
-- Java 17 or higher
+- JDK 11 or higher
 - Anthropic API key (Claude)
 
 ## Setting up your environment
@@ -1080,57 +1080,42 @@ gradle init
 
 </CodeGroup>
 
-After running `gradle init`, you will be presented with options for creating your project.
-Select **Application** as the project type, **Kotlin** as the programming language, and **Java 17** as the Java version.
+After running `gradle init`, select **Application** as the project type, **Kotlin** as the programming language.
 
 Alternatively, you can create a Kotlin application using the [IntelliJ IDEA project wizard](https://kotlinlang.org/docs/jvm-get-started.html).
 
-After creating the project, add the following dependencies:
-
-<CodeGroup>
+After creating the project, replace the contents of your `build.gradle.kts` with:
 
 ```kotlin build.gradle.kts
-val mcpVersion = "0.4.0"
-val slf4jVersion = "2.0.9"
-val anthropicVersion = "0.8.0"
+// Check latest versions at https://github.com/modelcontextprotocol/kotlin-sdk/releases
+val mcpVersion = "0.9.0"
+val ktorVersion = "3.2.3"
+val anthropicVersion = "2.15.0"
+val slf4jVersion = "2.0.17"
+
+plugins {
+    kotlin("jvm") version "2.3.20"
+    id("com.gradleup.shadow") version "8.3.9"
+    application
+}
+
+application {
+    mainClass.set("MainKt")
+}
 
 dependencies {
     implementation("io.modelcontextprotocol:kotlin-sdk:$mcpVersion")
-    implementation("org.slf4j:slf4j-nop:$slf4jVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("com.anthropic:anthropic-java:$anthropicVersion")
+    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
 }
 ```
 
-```groovy build.gradle
-def mcpVersion = '0.3.0'
-def slf4jVersion = '2.0.9'
-def anthropicVersion = '0.8.0'
-dependencies {
-    implementation "io.modelcontextprotocol:kotlin-sdk:$mcpVersion"
-    implementation "org.slf4j:slf4j-nop:$slf4jVersion"
-    implementation "com.anthropic:anthropic-java:$anthropicVersion"
-}
+Verify that everything is set up correctly:
+
+```bash
+./gradlew build
 ```
-
-</CodeGroup>
-
-Also, add the following plugins to your build script:
-
-<CodeGroup>
-
-```kotlin build.gradle.kts
-plugins {
-    id("com.gradleup.shadow") version "8.3.9"
-}
-```
-
-```groovy build.gradle
-plugins {
-    id 'com.gradleup.shadow' version '8.3.9'
-}
-```
-
-</CodeGroup>
 
 ## Setting up your API key
 
@@ -1155,9 +1140,15 @@ Make sure you keep your `ANTHROPIC_API_KEY` secure!
 First, let's create the basic client class:
 
 ```kotlin
-class MCPClient : AutoCloseable {
-    private val anthropic = AnthropicOkHttpClient.fromEnv()
-    private val mcp: Client = Client(clientInfo = Implementation(name = "mcp-client-cli", version = "1.0.0"))
+class MCPClient(apiKey: String) : AutoCloseable {
+    private val anthropic = AnthropicOkHttpClient.builder()
+        .apiKey(apiKey)
+        .build()
+
+  private val mcp: Client = Client(
+        clientInfo = Implementation(name = "mcp-client-cli", version = "1.0.0")
+  )
+    private var serverProcess: Process? = null
     private lateinit var tools: List<ToolUnion>
 
     // methods will go here
@@ -1165,9 +1156,11 @@ class MCPClient : AutoCloseable {
     override fun close() {
         runBlocking {
             mcp.close()
-            anthropic.close()
         }
+        serverProcess?.destroy()
+        anthropic.close()
     }
+}
 ```
 
 ### Server connection management
@@ -1176,50 +1169,49 @@ Next, we'll implement the method to connect to an MCP server:
 
 ```kotlin
 suspend fun connectToServer(serverScriptPath: String) {
-    try {
-        val command = buildList {
-            when (serverScriptPath.substringAfterLast(".")) {
-                "js" -> add("node")
-                "py" -> add(if (System.getProperty("os.name").lowercase().contains("win")) "python" else "python3")
-                "jar" -> addAll(listOf("java", "-jar"))
-                else -> throw IllegalArgumentException("Server script must be a .js, .py or .jar file")
-            }
-            add(serverScriptPath)
+    val command = buildList {
+        when (serverScriptPath.substringAfterLast(".")) {
+            "js" -> add("node")
+            "py" -> add(if (System.getProperty("os.name").lowercase().contains("win")) "python" else "python3")
+            "jar" -> addAll(listOf("java", "-jar"))
+            else -> throw IllegalArgumentException("Server script must be a .js, .py or .jar file")
         }
-
-        val process = ProcessBuilder(command).start()
-        val transport = StdioClientTransport(
-            input = process.inputStream.asSource().buffered(),
-            output = process.outputStream.asSink().buffered()
-        )
-
-        mcp.connect(transport)
-
-        val toolsResult = mcp.listTools()
-        tools = toolsResult?.tools?.map { tool ->
-            ToolUnion.ofTool(
-                Tool.builder()
-                    .name(tool.name)
-                    .description(tool.description ?: "")
-                    .inputSchema(
-                        Tool.InputSchema.builder()
-                            .type(JsonValue.from(tool.inputSchema.type))
-                            .properties(tool.inputSchema.properties.toJsonValue())
-                            .putAdditionalProperty("required", JsonValue.from(tool.inputSchema.required))
-                            .build()
-                    )
-                    .build()
-            )
-        } ?: emptyList()
-        println("Connected to server with tools: ${tools.joinToString(", ") { it.tool().get().name() }}")
-    } catch (e: Exception) {
-        println("Failed to connect to MCP server: $e")
-        throw e
+        add(serverScriptPath)
     }
+
+    val process = ProcessBuilder(command).start()
+    serverProcess = process
+
+    val transport = StdioClientTransport(
+        input = process.inputStream.asSource().buffered(),
+        output = process.outputStream.asSink().buffered(),
+    )
+
+    mcp.connect(transport)
+
+    val toolsResult = mcp.listTools()
+    tools = toolsResult.tools.map { tool ->
+        ToolUnion.ofTool(
+            Tool.builder()
+                .name(tool.name)
+                .description(tool.description ?: "")
+                .inputSchema(
+                    Tool.InputSchema.builder()
+                        .type(JsonValue.from(tool.inputSchema.type))
+                        .properties(tool.inputSchema.properties?.toJsonValue() ?: EmptyJsonObject.toJsonValue())
+                        .putAdditionalProperty("required", JsonValue.from(tool.inputSchema.required))
+                        .build(),
+                )
+                .build(),
+        )
+    }
+    println("Connected to server with tools: ${tools.joinToString(", ") { it.tool().get().name() }}")
 }
 ```
 
-Also create a helper function to convert from `JsonObject` to `JsonValue` for Anthropic:
+<Accordion title="JsonObject.toJsonValue() helper">
+
+This helper converts a kotlinx.serialization `JsonObject` to an Anthropic SDK `JsonValue` using Jackson:
 
 ```kotlin
 private fun JsonObject.toJsonValue(): JsonValue {
@@ -1229,34 +1221,34 @@ private fun JsonObject.toJsonValue(): JsonValue {
 }
 ```
 
+</Accordion>
+
 ### Query processing logic
 
 Now let's add the core functionality for processing queries and handling tool calls:
 
 ```kotlin
-private val messageParamsBuilder: MessageCreateParams.Builder = MessageCreateParams.builder()
-    .model(Model.CLAUDE_SONNET_4_20250514)
-    .maxTokens(1024)
-
 suspend fun processQuery(query: String): String {
     val messages = mutableListOf(
         MessageParam.builder()
             .role(MessageParam.Role.USER)
             .content(query)
-            .build()
+            .build(),
     )
 
     val response = anthropic.messages().create(
-        messageParamsBuilder
+        MessageCreateParams.builder()
+            .model("claude-sonnet-4-20250514")
+            .maxTokens(1024)
             .messages(messages)
             .tools(tools)
-            .build()
+            .build(),
     )
 
     val finalText = mutableListOf<String>()
     response.content().forEach { content ->
         when {
-            content.isText() -> finalText.add(content.text().getOrNull()?.text() ?: "")
+            content.isText() -> finalText.add(content.text().get().text())
 
             content.isToolUse() -> {
                 val toolName = content.toolUse().get().name()
@@ -1265,7 +1257,7 @@ suspend fun processQuery(query: String): String {
 
                 val result = mcp.callTool(
                     name = toolName,
-                    arguments = toolArgs ?: emptyMap()
+                    arguments = toolArgs ?: emptyMap(),
                 )
                 finalText.add("[Calling tool $toolName with args $toolArgs]")
 
@@ -1273,27 +1265,27 @@ suspend fun processQuery(query: String): String {
                     MessageParam.builder()
                         .role(MessageParam.Role.USER)
                         .content(
-                            """
-                                "type": "tool_result",
-                                "tool_name": $toolName,
-                                "result": ${result?.content?.joinToString("\n") { (it as TextContent).text ?: "" }}
-                            """.trimIndent()
+                            result.content
+                                .filterIsInstance<TextContent>()
+                                .joinToString("\n") { it.text }
                         )
-                        .build()
+                        .build(),
                 )
 
                 val aiResponse = anthropic.messages().create(
-                    messageParamsBuilder
+                    MessageCreateParams.builder()
+                        .model("claude-sonnet-4-20250514")
+                        .maxTokens(1024)
                         .messages(messages)
-                        .build()
+                        .build(),
                 )
 
-                finalText.add(aiResponse.content().first().text().getOrNull()?.text() ?: "")
+                finalText.add(aiResponse.content().first().text().get().text())
             }
         }
     }
 
-    return finalText.joinToString("\n", prefix = "", postfix = "")
+    return finalText.joinToString("\n")
 }
 ```
 
@@ -1308,10 +1300,15 @@ suspend fun chatLoop() {
 
     while (true) {
         print("\nQuery: ")
-        val message = readLine() ?: break
-        if (message.lowercase() == "quit") break
-        val response = processQuery(message)
-        println("\n$response")
+        val message = readlnOrNull() ?: break
+        if (message.trim().lowercase() == "quit") break
+
+        try {
+            val response = processQuery(message)
+            println("\n$response")
+        } catch (e: Exception) {
+            println("\nError: ${e.message}")
+        }
     }
 }
 ```
@@ -1322,11 +1319,14 @@ Finally, we'll add the main execution function:
 
 ```kotlin
 fun main(args: Array<String>) = runBlocking {
-    if (args.isEmpty()) throw IllegalArgumentException("Usage: java -jar <your_path>/build/libs/kotlin-mcp-client-0.1.0-all.jar <path_to_server_script>")
-    val serverPath = args.first()
-    val client = MCPClient()
+    require(args.isNotEmpty()) { "Usage: java -jar <path> <path_to_server_script>" }
+
+    val apiKey = System.getenv("ANTHROPIC_API_KEY")
+    require(!apiKey.isNullOrBlank()) { "ANTHROPIC_API_KEY environment variable is not set" }
+
+    val client = MCPClient(apiKey)
     client.use {
-        client.connectToServer(serverPath)
+        client.connectToServer(args.first())
         client.chatLoop()
     }
 }
@@ -1340,9 +1340,15 @@ To run your client with any MCP server:
 ./gradlew build
 
 # Run the client
-java -jar build/libs/<your-jar-name>.jar path/to/server.jar # jvm server
-java -jar build/libs/<your-jar-name>.jar path/to/server.py # python server
-java -jar build/libs/<your-jar-name>.jar path/to/build/index.js # node server
+java -jar build/libs/kotlin-mcp-client-0.1.0-all.jar path/to/server.jar # JVM server
+java -jar build/libs/kotlin-mcp-client-0.1.0-all.jar path/to/server.py  # Python server
+java -jar build/libs/kotlin-mcp-client-0.1.0-all.jar path/to/build/index.js # Node server
+```
+
+Alternatively, you can run directly with Gradle:
+
+```bash
+./gradlew run --args="path/to/server.jar"
 ```
 
 <Note>
@@ -1412,6 +1418,10 @@ When you submit a query:
    - Validate all external responses to avoid unexpected or unsafe data usage
    - Be cautious with permissions and trust boundaries when using tools
 
+3. **Environment**
+   - Set `ANTHROPIC_API_KEY` through environment variables rather than hardcoding
+   - Use `.env` files with appropriate `.gitignore` rules for local development
+
 ## Troubleshooting
 
 ### Server Path Issues
@@ -1435,6 +1445,11 @@ java -jar build/libs/client.jar /Users/username/projects/mcp-server/build/libs/s
 java -jar build/libs/client.jar C:/projects/mcp-server/build/libs/server.jar
 java -jar build/libs/client.jar C:\\projects\\mcp-server\\build\\libs\\server.jar
 ```
+
+### Build Issues
+
+- Use `./gradlew build` or `./gradlew shadowJar` (not `./gradlew jar`) to create the shadow JAR with all dependencies
+- If you get JDK version errors, ensure your installed JDK version matches or exceeds the `jvmToolchain` setting in `build.gradle.kts`
 
 ### Response Timing
 

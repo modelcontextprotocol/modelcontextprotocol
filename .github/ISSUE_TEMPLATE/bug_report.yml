@@ -1,0 +1,75 @@
+name: Report a bug
+description: >
+  An aspect of the MCP specification doesn't work as expected, or our
+  documentation is wrong.
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for problems with the **MCP specification itself** or
+        with the **documentation on modelcontextprotocol.io**.
+
+        - If the bug is in a specific SDK (TypeScript, Python, etc.), file
+          it in [that SDK's repository](https://modelcontextprotocol.io/docs/sdk)
+          instead.
+        - If the bug is in how **Claude** (Claude Desktop, claude.ai) uses
+          MCP, file it at [anthropics/claude-ai-mcp](https://github.com/anthropics/claude-ai-mcp).
+        - If you want to propose a new feature or a breaking change, that's
+          a [SEP](https://modelcontextprotocol.io/community/sep-guidelines),
+          not a bug.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What's broken?
+      options:
+        - The spec defines behavior that doesn't work in practice
+        - The spec is ambiguous or self-contradictory
+        - The spec doesn't cover a case it clearly should
+        - The JSON schema is wrong (incorrect type, constraint, or field)
+        - The JSON schema disagrees with the spec prose
+        - The spec conflicts with an RFC or standard it references
+        - An example in the spec is wrong or won't run
+        - The documentation is wrong or misleading
+        - A docs page is missing or a link is broken
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Where in the spec or docs?
+      description: >
+        Link to the spec section, schema file, or docs page. Include a
+        version tag or permalink if the content might change.
+      placeholder: https://modelcontextprotocol.io/specification/2025-06-18/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen?
+      description: What you expected the spec to say, or what behavior you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happens?
+      description: >
+        Quote the spec text, describe the broken behavior, or paste the
+        error. If two implementations disagree, say which ones and how.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: >
+        Relevant SDK versions, related issues, or workarounds you've found.
+    validations:
+      required: false
