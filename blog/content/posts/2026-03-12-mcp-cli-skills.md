@@ -160,6 +160,6 @@ MCP gives you a typed contract, discovery, and real auth. Those are valuable whe
 
 ## The boring answer
 
-Use what's already there. When you need to teach the agent a process, write a Skill. When you need the integration to travel — across hosts, across users, with real auth and a real contract — reach for MCP.
+Use what's already there. When you need to teach the agent a process, write a Skill. When you need the integration to travel — across hosts, across users, with real auth and a real contract — reach for MCP. When you need your agent to do something that a well-known CLI can already do on your system — use the CLI.
 
 Most of the time you'll end up with a mix, and that's the system working as intended.
