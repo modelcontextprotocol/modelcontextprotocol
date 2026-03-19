@@ -61,7 +61,10 @@ A CLI is a capability. An MCP server is a capability with a contract on the fron
 | Argument schema          | None (free-form argv)       | N/A — no execution surface  | JSON Schema per tool            |
 | Discovery                | None — agent must know      | Agent reads a manifest      | `tools/list`, `resources/list`  |
 | Auth                     | Whatever the binary does    | None — inherits the session | OAuth, per-user scoping         |
+| Isolation / trust        | Foreign code, your machine  | Same, if it bundles scripts | Process or network boundary     |
 | Cross-client portability | High (if binary is present) | Low today (format varies)   | High — that's the point         |
+| Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent                |
+| Host requirements        | Shell + filesystem          | Usually shell + filesystem  | Just an MCP client              |
 | Distribution             | Package manager, `$PATH`    | Copy a folder               | Registry, remote URL, stdio     |
 | Authoring cost           | Zero — it exists            | Low — write markdown        | Medium — build and run a server |
 | Output structure         | Text, exit code             | N/A                         | Typed results, resource content |
@@ -90,46 +93,29 @@ The framing that breaks most often is "pick one." In practice the interesting sy
 
 ### MCP server wrapping a CLI
 
-A common and underrated pattern. You get a typed schema that the model can target reliably, and underneath you're shelling out to a binary that's been hardened by years of production use.
+This pattern earns its keep when the CLI is something the model _hasn't_ seen — an internal tool, a bespoke script, something with a gnarly argument surface. You get a typed schema the model can target reliably, and underneath you're shelling out to a binary that already works.
 
 ```typescript
 server.tool(
-  "open_pull_request",
+  "promote_build",
   {
-    title: z.string(),
-    body: z.string(),
-    base: z.string().default("main"),
-    draft: z.boolean().default(false),
+    build_id: z.string(),
+    environment: z.enum(["staging", "canary", "production"]),
+    skip_smoke_tests: z.boolean().default(false),
   },
-  async ({ title, body, base, draft }) => {
-    const args = [
-      "pr",
-      "create",
-      "--title",
-      title,
-      "--body",
-      body,
-      "--base",
-      base,
-    ];
-    if (draft) args.push("--draft");
+  async ({ build_id, environment, skip_smoke_tests }) => {
+    const args = ["promote", "--build", build_id, "--env", environment];
+    if (skip_smoke_tests) args.push("--skip-smoke");
 
-    const { stdout } = await execFile("gh", args);
+    const { stdout } = await execFile("deployctl", args);
     return { content: [{ type: "text", text: stdout }] };
   },
 );
 ```
 
-On the wire this looks like any other MCP tool. The model gets a real schema — it knows `draft` is a boolean, not a string, and it won't invent a `--flag` that doesn't exist. Inside, it's the same `gh` the agent could have called directly. The MCP layer buys you discoverability and structure without reimplementing what GitHub already ships.
+The model gets a real schema — it knows `environment` is one of three strings, and it won't invent a `--flag` that doesn't exist on a tool it's never heard of. You also get one place to put auth and audit logging, rather than scattering credentials across every machine the agent runs on.
 
-Compare that to the raw CLI path:
-
-```text
-> gh pr create --title "Fix auth timeout" --body "Closes #412" --base main
-https://github.com/acme/widget/pull/732
-```
-
-Works fine. But the agent has to know `gh pr create` exists, guess at the flags, and parse a URL out of free-form text. Sometimes that's enough. Sometimes it isn't.
+For something like `gh`, this is usually more ceremony than it's worth — the model already knows the flags, and the binary is everywhere. For your internal tooling, the calculus flips.
 
 ### Skill that leans on an MCP server
 
