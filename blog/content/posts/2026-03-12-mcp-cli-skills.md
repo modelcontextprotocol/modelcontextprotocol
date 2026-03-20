@@ -51,8 +51,6 @@ graph TD
 
 Skills sit at the top — they don't execute anything themselves, they tell the agent which tools to call and how. MCP servers and CLIs are both things the agent calls: MCP with a typed contract in front, CLI through the shell. An MCP server can wrap a CLI when you want that contract in front of a binary that already works. Underneath, both reach the same places — remote APIs, databases, the local system.
 
-That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP Interest Group](https://github.com/modelcontextprotocol/experimental-ext-skills) is working on exposing Skills as MCP resources, so a server can ship its tools and the workflow instructions for using them as a single integration. The layers compose in both directions.
-
 ## Side by side
 
 | Dimension                | CLI                         | Agent Skill                 | MCP Server                      |
@@ -88,6 +86,8 @@ In practice the choice usually turns on a few things: whether the capability exi
 **You're shipping an integration as part of a product.** Customers don't want to install a binary and manage its config file. They want to paste a URL or click a button. Use MCP — a remote server install is just a URL, and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
 
 **The job is a one-off script for your own machine.** The shell is the fastest path from intent to result. If nothing needs to travel, persist, or be handed to another team, there's no reason to reach past it.
+
+**You're still finding the shape of the problem.** A typed schema pays off once the interface has stopped moving. Before that — while you're still poking at what the tool should even do — a shell and a binary iterate faster than a server and a contract. Build the MCP server once you know what you're building.
 
 ## Composing the layers
 
@@ -136,18 +136,10 @@ The model gets a real schema — it knows `environment` is one of three strings,
 
 For something like `gh`, this is usually more ceremony than it's worth — the model already knows the flags, and the binary is everywhere. For your internal tooling, the calculus flips.
 
-## Where MCP is more than you need
+## Putting it together
 
-MCP gives you a typed contract, discovery, and real auth. Those are valuable when you're distributing an integration — and they're overhead when you aren't.
+Use what's already there. When you need to teach the agent a process, write a Skill. When you need the integration to travel — across hosts, across users, with a real security boundary and a real contract — reach for MCP. When the job is something a well-known CLI can already do, use the CLI. Most systems end up a mix, and that's the system working as intended.
 
-**A server is something to run.** A stdio process, or hosted infrastructure. When the alternative is a binary in `$PATH`, make sure the contract is actually buying you something before you take on the operational cost.
+A protocol gives you a contract; it doesn't teach the agent your workflow. A CLI gives you a capability; it doesn't make it discoverable. A Skill teaches the workflow; it doesn't execute anything on its own. Each layer does one thing well, and the boundary between them is getting more permeable by design — the [Skills Over MCP Interest Group](https://github.com/modelcontextprotocol/experimental-ext-skills) is working on exposing Skills as MCP resources, so a server can ship its tools and the workflow instructions for using them together.
 
-**Schema rewards a settled shape.** Typed arguments pay off once you know what you're building. Earlier than that — when you're still poking at a problem to find its edges — a shell and a binary iterate faster. Build the server once the interface has stopped moving.
-
-**A protocol doesn't encode a process.** If the agent doesn't know that your deploys need a migration check first, schema won't teach it. That's what Skills and [server instructions](https://blog.modelcontextprotocol.io/posts/2025-11-03-using-server-instructions/) are for — and why the layers matter.
-
-## The boring answer
-
-Use what's already there. When you need to teach the agent a process, write a Skill. When you need the integration to travel — across hosts, across users, with real auth and a real contract — reach for MCP. When you need your agent to do something that a well-known CLI can already do on your system — use the CLI.
-
-Most of the time you'll end up with a mix, and that's the system working as intended.
+To get started: the [MCP specification](https://modelcontextprotocol.io/specification/latest), the [Agent Skills spec](https://agentskills.io), the [Registry](https://modelcontextprotocol.io/registry/about) (in preview), and the [server instructions guide](https://blog.modelcontextprotocol.io/posts/2025-11-03-using-server-instructions/) for bridging the contract and the workflow.
