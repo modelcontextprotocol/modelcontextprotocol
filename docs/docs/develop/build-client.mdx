@@ -1675,6 +1675,414 @@ Here's an example of what it should look like if connected to the weather server
 
 </Tab>
 
+<Tab title="Ruby">
+
+[You can find the complete code for this tutorial here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/mcp-client-ruby)
+
+## System Requirements
+
+Before starting, ensure your system meets these requirements:
+
+- Mac or Windows computer
+- Ruby 3.2.0 or higher installed (required by the [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-ruby))
+- Anthropic API key (Claude)
+
+## Setting Up Your Environment
+
+First, create a new Ruby project:
+
+<CodeGroup>
+
+```bash macOS/Linux
+# Create project directory
+mkdir mcp-client
+cd mcp-client
+
+# Create a Gemfile
+bundle init
+
+# Add required dependencies
+bundle add anthropic base64 dotenv mcp
+
+# Create our main file
+touch client.rb
+```
+
+```powershell Windows
+# Create project directory
+mkdir mcp-client
+cd mcp-client
+
+# Create a Gemfile
+bundle init
+
+# Add required dependencies
+bundle add anthropic base64 dotenv mcp
+
+# Create our main file
+new-item client.rb
+```
+
+</CodeGroup>
+
+## Setting Up Your API Key
+
+You'll need an Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+
+Create a `.env` file to store it:
+
+```bash
+echo "ANTHROPIC_API_KEY=your-api-key-goes-here" > .env
+```
+
+Add `.env` to your `.gitignore`:
+
+```bash
+echo ".env" >> .gitignore
+```
+
+<Warning>
+
+Make sure you keep your `ANTHROPIC_API_KEY` secure!
+
+</Warning>
+
+## Creating the Client
+
+### Basic Client Structure
+
+First, let's set up our requires and create the basic client class:
+
+```ruby
+require "anthropic"
+require "dotenv/load"
+require "json"
+require "mcp"
+
+class MCPClient
+  ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+
+  def initialize
+    @mcp_client = nil
+    @transport = nil
+    @anthropic_client = nil
+  end
+
+  # methods will go here
+end
+```
+
+### Server Connection Management
+
+Next, we'll implement the method to connect to an MCP server:
+
+```ruby
+def connect_to_server(server_script_path)
+  command = case File.extname(server_script_path)
+  when ".rb"
+    "ruby"
+  when ".py"
+    "python3"
+  when ".js"
+    "node"
+  else
+    raise ArgumentError, "Server script must be a .rb, .py, or .js file."
+  end
+
+  @transport = MCP::Client::Stdio.new(command: command, args: [server_script_path])
+  @mcp_client = MCP::Client.new(transport: @transport)
+
+  tool_names = @mcp_client.tools.map(&:name)
+  puts "\nConnected to server with tools: #{tool_names}"
+end
+```
+
+### Query Processing Logic
+
+Now let's add the core functionality for processing queries and handling tool calls:
+
+```ruby
+private
+
+def process_query(query)
+  messages = [{ role: "user", content: query }]
+
+  available_tools = @mcp_client.tools.map do |tool|
+    { name: tool.name, description: tool.description, input_schema: tool.input_schema }
+  end
+
+  # Initial Claude API call.
+  response = chat(messages, tools: available_tools)
+
+  # Process response and handle tool calls.
+  if response.content.any?(Anthropic::Models::ToolUseBlock)
+    assistant_content = response.content.filter_map do |content_block|
+      case content_block
+      when Anthropic::Models::TextBlock
+        { type: "text", text: content_block.text }
+      when Anthropic::Models::ToolUseBlock
+        { type: "tool_use", id: content_block.id, name: content_block.name, input: content_block.input }
+      end
+    end
+    messages << { role: "assistant", content: assistant_content }
+  end
+
+  response.content.each_with_object([]) do |content, response_parts|
+    case content
+    when Anthropic::Models::TextBlock
+      response_parts << content.text
+    when Anthropic::Models::ToolUseBlock
+      # Execute tool call via MCP.
+      result = @mcp_client.call_tool(name: content.name, arguments: content.input)
+      response_parts << "[Calling tool #{content.name} with args #{content.input.to_json}]"
+
+      tool_result_content = result.dig("result", "content")
+      result_text = if tool_result_content.is_a?(Array)
+        tool_result_content.filter_map { |content_item| content_item["text"] }.join("\n")
+      else
+        tool_result_content.to_s
+      end
+
+      messages << {
+        role: "user",
+        content: [{
+          type: "tool_result",
+          tool_use_id: content.id,
+          content: result_text
+        }]
+      }
+
+      # Get next response from Claude.
+      response = chat(messages)
+
+      response.content.each do |content_block|
+        response_parts << content_block.text if content_block.is_a?(Anthropic::Models::TextBlock)
+      end
+    end
+  end.join("\n")
+end
+
+def chat(messages, tools: nil)
+  params = { model: ANTHROPIC_MODEL, max_tokens: 1000, messages: messages }
+  params[:tools] = tools if tools
+
+  anthropic_client.messages.create(**params)
+end
+
+def anthropic_client
+  @anthropic_client ||= Anthropic::Client.new(api_key: ENV["ANTHROPIC_API_KEY"])
+end
+```
+
+### Interactive Chat Interface
+
+Now we'll add the chat loop and cleanup functionality:
+
+```ruby
+def chat_loop
+  puts <<~MESSAGE
+    MCP Client Started!
+    Type your queries or 'quit' to exit.
+  MESSAGE
+
+  loop do
+    print "\nQuery: "
+    line = $stdin.gets
+    break if line.nil?
+
+    query = line.chomp.strip
+    break if query.downcase == "quit"
+    next if query.empty?
+
+    begin
+      response = process_query(query)
+      puts "\n#{response}"
+    rescue => e
+      puts "\nError: #{e.message}"
+    end
+  end
+end
+
+def cleanup
+  @transport&.close
+end
+```
+
+### Main Entry Point
+
+Finally, we'll add the main execution logic:
+
+```ruby
+if ARGV.empty?
+  puts "Usage: ruby client.rb <path_to_server_script>"
+  exit 1
+end
+
+client = MCPClient.new
+
+begin
+  client.connect_to_server(ARGV[0])
+
+  api_key = ENV["ANTHROPIC_API_KEY"]
+  if api_key.nil? || api_key.empty?
+    puts <<~MESSAGE
+      No ANTHROPIC_API_KEY found. To query these tools with Claude, set your API key:
+        export ANTHROPIC_API_KEY=your-api-key-here
+    MESSAGE
+    exit
+  end
+
+  client.chat_loop
+rescue => e
+  puts "Error: #{e.message}"
+  exit 1
+ensure
+  client.cleanup
+end
+```
+
+You can find the complete `client.rb` file [here](https://github.com/modelcontextprotocol/quickstart-resources/blob/main/mcp-client-ruby/client.rb).
+
+## Key Components Explained
+
+### 1. Client Initialization
+
+- The `MCPClient` class initializes with nil references for lazy setup
+- The Anthropic client is lazily initialized via the `anthropic_client` method
+- Uses `dotenv` to load environment variables from `.env`
+
+### 2. Server Connection
+
+- Supports Ruby, Python, and Node.js servers
+- Uses `File.extname` to determine the server script type
+- Uses `MCP::Client::Stdio` for stdio transport
+- Initializes the MCP client and lists available tools
+
+### 3. Query Processing
+
+- Maps MCP tools to Anthropic tool format (`name`, `description`, `input_schema`)
+- Uses `Anthropic::Models::TextBlock` and `Anthropic::Models::ToolUseBlock` for pattern matching
+- Builds assistant content once before iterating tool calls
+- Executes tool calls via `@mcp_client.call_tool`
+- Uses `chat` helper method to wrap Anthropic API calls
+- Extracts tool result content with `result.dig("result", "content")`
+- Passes tool results back to Claude for a final response
+
+### 4. Interactive Interface
+
+- Provides a simple command-line interface
+- Handles user input and displays responses
+- Skips empty queries
+- Includes basic error handling
+
+### 5. Resource Management
+
+- Proper cleanup of the transport via `begin`...`ensure`
+- Top-level `rescue` for error handling
+- API key validation after server connection
+
+## Running the Client
+
+To run your client with any MCP server:
+
+```bash
+bundle exec ruby client.rb path/to/server.rb # ruby server
+bundle exec ruby client.rb path/to/server.py # python server
+bundle exec ruby client.rb path/to/build/index.js # node server
+```
+
+<Note>
+
+If you're continuing [the weather tutorial from the server quickstart](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-ruby), your command might look something like this: `bundle exec ruby client.rb /path/to/weather-server-ruby/weather.rb`
+
+</Note>
+
+The client will:
+
+1. Connect to the specified server
+2. List available tools
+3. Start an interactive chat session where you can:
+   - Enter queries
+   - See tool executions
+   - Get responses from Claude
+
+## How It Works
+
+When you submit a query:
+
+1. The client gets the list of available tools from the server
+2. Your query is sent to Claude along with tool descriptions
+3. Claude decides which tools (if any) to use
+4. The client executes any requested tool calls through the server
+5. Results are sent back to Claude
+6. Claude provides a natural language response
+7. The response is displayed to you
+
+## Best practices
+
+1. **Error Handling**
+   - Wrap tool calls in `begin`...`rescue` blocks
+   - Provide meaningful error messages
+   - Gracefully handle connection issues
+
+2. **Resource Management**
+   - Always close the transport when done
+   - Use `begin`...`ensure` for proper cleanup
+   - Handle server disconnections
+
+3. **Security**
+   - Store API keys securely in `.env`
+   - Validate server responses
+   - Be cautious with tool permissions
+
+4. **Tool Names**
+   - Tool names can be validated according to the format specified [here](/specification/draft/server/tools#tool-names)
+   - If a tool name conforms to the specified format, it should not fail validation by an MCP client
+
+## Troubleshooting
+
+### Server Path Issues
+
+- Double-check the path to your server script is correct
+- Use the absolute path if the relative path isn't working
+- For Windows users, make sure to use forward slashes (/) or escaped backslashes (\\) in the path
+- Verify the server file has the correct extension (.py for Python, .js for Node.js, or .rb for Ruby)
+
+Example of correct path usage:
+
+```bash
+# Relative path
+bundle exec ruby client.rb ./server/weather.rb
+
+# Absolute path
+bundle exec ruby client.rb /Users/username/projects/mcp-server/weather.rb
+
+# Windows path (either format works)
+bundle exec ruby client.rb C:/projects/mcp-server/weather.rb
+bundle exec ruby client.rb C:\\projects\\mcp-server\\weather.rb
+```
+
+### Response Timing
+
+- The first response might take up to 30 seconds to return
+- This is normal and happens while:
+  - The server initializes
+  - Claude processes the query
+  - Tools are being executed
+- Subsequent responses are typically faster
+- Don't interrupt the process during this initial waiting period
+
+### Common Error Messages
+
+If you see:
+
+- `Errno::ENOENT`: Check your server path and ensure the command (`ruby`, `python3`, `node`) is available
+- `Connection refused`: Ensure the server is running and the path is correct
+- `Tool execution failed`: Verify the tool's required environment variables are set
+- `Anthropic::Errors::AuthenticationError`: Check your `.env` file has a valid `ANTHROPIC_API_KEY`
+
+</Tab>
+
 </Tabs>
 
 ## Next steps
