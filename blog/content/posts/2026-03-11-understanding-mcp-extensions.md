@@ -1,9 +1,13 @@
-+++
-date = '2026-03-11T00:00:00Z'
-title = 'Understanding MCP Extensions'
-author = 'MCP Community Maintainers'
-tags = ['announcement', 'community']
-+++
+---
+title: Understanding MCP Extensions
+date: "2026-03-11T00:00:00Z"
+description: "A practical guide to MCP extensions: how they layer new capabilities on top of the core protocol, and patterns the community is already using."
+author:
+  - MCP Community Maintainers
+tags:
+  - announcement
+  - community
+---
 
 You've built an MCP server that works quite well, but now you're wondering: _How do I add richer UI elements? Custom auth flows? What about domain-specific conventions, like those for finance or healthcare?_
 

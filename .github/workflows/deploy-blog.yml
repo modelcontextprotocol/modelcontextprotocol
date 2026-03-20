@@ -37,7 +37,7 @@ jobs:
         with:
           working-directory: blog
           mode: production
-          base-url: ${{ steps.pages.outputs.base_url }}/
+          base-url: https://blog.modelcontextprotocol.io/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

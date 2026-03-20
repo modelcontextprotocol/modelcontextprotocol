@@ -1,11 +1,16 @@
 ---
+title: The 2026 MCP Roadmap
 date: "2026-03-09T09:00:00+00:00"
 publishDate: "2026-03-09T09:00:00+00:00"
-title: "The 2026 MCP Roadmap"
-slug: "2026-mcp-roadmap"
+slug: 2026-mcp-roadmap
 description: "The updated Model Context Protocol roadmap for 2026: transport scalability, agent communication, governance maturation, and enterprise readiness, plus guidance on SEP prioritization and how to get involved."
-author: "David Soria Parra (Lead Maintainer)"
-tags: ["mcp", "roadmap", "governance", "community"]
+author:
+  - David Soria Parra (Lead Maintainer)
+tags:
+  - mcp
+  - roadmap
+  - governance
+  - community
 ShowToc: true
 ---
 
