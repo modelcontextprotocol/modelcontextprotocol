@@ -83,7 +83,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 **You need a real security boundary.** OAuth flows, per-user tokens, scoped permissions — MCP's HTTP transport has these built in, and even a stdio server gives you a process boundary to hang policy on. Beyond auth, the server is the one place to enforce access rules, log what the model touched, and scope what it can reach. CLIs run as the agent with whatever privileges the agent has. Skills inherit the session wholesale.
 
-**Your users aren't engineers.** CLIs assume someone who can install binaries, manage `$PATH`, and accept that every new tool runs with their local privileges. That works in a developer workflow. It's a non-starter for product users who aren't going to grant a local process full machine access every time they need new functionality. A remote MCP server is a URL — no install, no local trust surface — and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
+**Your users aren't engineers.** CLIs assume someone who can install binaries, manage `$PATH`, and accept that every new tool runs with their local privileges. That works in a developer workflow. It's a non-starter for product users who aren't going to grant a local process full machine access every time they need new functionality. A remote MCP server is a URL — no install, no local trust surface — and the [Registry](https://modelcontextprotocol.io/registry/about) gives that URL somewhere to live.
 
 **The job is a one-off script for your own machine.** The shell is the fastest path from intent to result. If nothing needs to travel, persist, or be handed to another team, there's no reason to reach past it.
 
