@@ -69,7 +69,7 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 | Authoring cost           | Zero — it exists            | Low — write Markdown        | Medium — build and run a server |
 | Output structure         | Text, exit code             | N/A                         | Typed results, resource content |
 
-Scan down each column and the trade-offs are clear enough. CLIs are the low-friction option — a package install away, zero authoring, no contract in front. Skills are the easiest thing to write and the only one that carries workflow knowledge. MCP brings the typed interface, the auth story, the cross-host contract — and the most work to stand up. None of this is a trump card. Each column is the right answer to a different question.
+Scan down each column and the trade-offs are clear enough. CLIs are the low-friction option — a package install away, zero authoring, no contract in front. Skills are the easiest thing to write and the only one that carries workflow knowledge. MCP brings the typed interface, the auth story, the cross-host contract — and the most work to stand up. Each is the right answer to a different question.
 
 ## When to reach for which
 
