@@ -51,6 +51,8 @@ graph TD
 
 Skills sit at the top — they don't execute anything themselves, they tell the agent which tools to call and how. MCP servers and CLIs are both things the agent calls: MCP with a typed contract in front, CLI through the shell. An MCP server can wrap a CLI when you want that contract in front of a binary that already works. Underneath, both reach the same places — remote APIs, databases, the local system.
 
+That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP Interest Group](https://github.com/modelcontextprotocol/experimental-ext-skills) is working on exposing Skills as MCP resources, so a server can ship its tools and the workflow instructions for using them as a single integration. The layers compose in both directions.
+
 ## Side by side
 
 | Dimension                | CLI                         | Agent Skill                 | MCP Server                      |
