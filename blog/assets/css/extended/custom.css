@@ -116,6 +116,29 @@
 
 .post-title {
     letter-spacing: -0.02em;
+    margin-bottom: 0;
+}
+
+/* PaperMod's spacing in the post header is uneven: title→description is 12px
+   (margin-bottom:2px + margin-top:10px), description→meta is 5px, meta→content
+   is --content-gap (20px). Normalize the intra-header gaps to the same 20px. */
+.post-description {
+    margin: var(--content-gap) 0 0;
+}
+
+.post-header .post-meta {
+    margin-top: var(--content-gap);
+}
+
+/* PaperMod's .toc has margin: 0 2px 40px 2px — zero top (so byline→TOC is
+   already --content-gap via .post-header's margin-bottom) but 40px bottom. */
+.toc {
+    margin-bottom: var(--content-gap);
+}
+
+/* PaperMod's .post-footer (the tags row) has margin-top: 56px. */
+.post-footer {
+    margin-top: var(--content-gap);
 }
 
 /* ─── Card hover ─────────────────────────────────────────────────────────── */
@@ -213,9 +236,13 @@
 /* PaperMod's .footer is max-width constrained to the content column. The
    ::before rule escapes that box via the 100vw-centered trick so the
    separator spans the full viewport like the header's does. */
+/* width:100% — same flex-item fix as .main below. PaperMod's margin:auto +
+   max-width shrinks to content as a flex item; explicit width restores the
+   block-flow "cap at max-width, center" behavior. */
 .footer {
     position: relative;
     padding-top: 24px;
+    width: 100%;
 }
 
 .footer::before {
@@ -229,11 +256,13 @@
     background: var(--hairline);
 }
 
-/* PaperMod sets white-space:nowrap on span:last-child for its short
-   "Powered by Hugo" line. Our copyright is two sentences — let it wrap. */
-.footer > span {
+/* PaperMod sets white-space:nowrap on .footer span:last-child for its short
+   "Powered by Hugo" line. Our copyright is two sentences — let it wrap.
+   Selector matches PaperMod's specificity (0,2,1) to actually override it. */
+.footer > span:last-child {
     display: block;
     white-space: normal;
+    overflow-wrap: break-word;
 }
 
 .footer-nav {
@@ -269,20 +298,38 @@
         vertical-align: -6px;
     }
 
+    /* .nav inherits the 60px desktop header-height as line-height. With three
+       stacked rows (logo, text nav, icons) that's 180px of header before any
+       padding. Tighten everything. */
+    .nav {
+        line-height: 40px;
+        padding-bottom: 8px;
+    }
+
     /* PaperMod's #menu is white-space:nowrap + overflow-x:auto — a horizontal
        scroller. With four nav items plus RSS/GitHub/LinkedIn icons plus the
-       theme toggle, it's wider than most phones. Let it wrap instead. */
+       theme toggle, it's wider than most phones. Let it wrap instead.
+       PaperMod spaces items with li+li margin-inline-start, which leaves the
+       visually-first item on a wrapped row indented — gap doesn't. */
     #menu {
         white-space: normal;
         flex-wrap: wrap;
-        row-gap: 4px;
+        gap: 0 var(--gap);
         overflow-x: visible;
+        line-height: 32px;
     }
 
-    /* Footer: eight links + separators wrap across 2–3 lines at phone width.
-       Taller line-height keeps wrapped rows from touching; inline-block
-       groups each separator with the link after it so a row never starts
-       with a bare " · ". Extra padding-top since the nav row now stacks. */
+    #menu li + li {
+        margin-inline-start: 0;
+    }
+
+    /* Text nav (Docs/Posts/Archives/Search) on one row, icon row below. */
+    .menu-break {
+        flex-basis: 100%;
+        height: 0;
+    }
+
+    /* Footer: eight links + separators wrap across 2–3 lines at phone width. */
     .footer {
         padding-top: 20px;
     }
@@ -291,9 +338,16 @@
         line-height: 2;
         margin-bottom: 12px;
     }
+}
 
-    .footer-sep {
-        display: inline-block;
+/* Hidden at desktop — icons sit inline after the text nav. */
+.menu-break {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    .menu-break {
+        display: block;
     }
 }
 
@@ -308,10 +362,6 @@ body {
     flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
-    /* The footer's full-bleed ::before is width:100vw, which on some mobile
-       browsers exceeds the layout viewport (scrollbar, safe-area inset).
-       clip prevents the horizontal scroll without breaking position:sticky. */
-    overflow-x: clip;
 }
 
 /* .main has margin:auto + max-width. As a flex item, margin:auto makes it

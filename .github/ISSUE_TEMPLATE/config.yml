@@ -1,0 +1,15 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Submit a Spec Enhancement Proposal (SEP)
+    url: https://modelcontextprotocol.io/community/sep-guidelines
+    about: >
+      SEPs are the mechanism for proposing new protocol features, breaking
+      changes, or governance changes. They are submitted as pull requests
+      adding a file to the seps/ directory — not as issues. Read the SEP
+      guidelines before opening your PR.
+  - name: Report an SDK bug
+    url: https://modelcontextprotocol.io/docs/sdk
+    about: >
+      Bugs in a specific SDK (TypeScript, Python, Go, etc.) should be filed
+      in that SDK's own repository. The SDK documentation lists every
+      official SDK with a link to its issue tracker.

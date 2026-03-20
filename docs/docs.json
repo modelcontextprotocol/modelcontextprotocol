@@ -62,6 +62,13 @@
             "pages": [
               "docs/tools/inspector"
             ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
+            ]
           }
         ]
       },
@@ -401,7 +408,8 @@
               "seps/1850-pr-based-sep-workflow",
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
-              "seps/2133-extensions"
+              "seps/2133-extensions",
+              "seps/2148-contributor-ladder"
             ]
           },
           {
@@ -421,21 +429,27 @@
       {
         "tab": "Community",
         "pages": [
-          "community/contributing",
-          "community/communication",
           {
-            "group": "Principles & Direction",
+            "group": "Get Involved",
             "pages": [
-              "community/design-principles"
+              "community/contributing",
+              "community/communication",
+              "community/working-interest-groups"
+            ]
+          },
+          {
+            "group": "Propose Changes",
+            "pages": [
+              "community/design-principles",
+              "community/sep-guidelines"
             ]
           },
           {
             "group": "Governance",
             "pages": [
               "community/governance",
-              "community/sep-guidelines",
+              "community/contributor-ladder",
               "community/sdk-tiers",
-              "community/working-interest-groups",
               "community/antitrust"
             ]
           },
@@ -443,13 +457,6 @@
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
-            ]
-          },
-          {
-            "group": "Examples",
-            "pages": [
-              "clients",
-              "examples"
             ]
           }
         ]
