@@ -25,7 +25,7 @@ Skills are workflow knowledge, packaged in a form an agent can load on demand. T
 
 **MCP** is an integration protocol. A server exposes typed tools, resources, prompts, and other primitives over JSON-RPC; a client negotiates protocol capabilities at initialize, then discovers available tools and resources at runtime and presents them to the model. The [specification](https://modelcontextprotocol.io/specification/latest) covers structured arguments, OAuth-based authorization, subscriptions, progress notifications, and a handful of other things you need when the thing on the other end of the wire is software rather than a person.
 
-The obvious cost is that someone has to build and run the server.
+The price is a server — something to build, something to run.
 
 ## They sit at different layers
 
