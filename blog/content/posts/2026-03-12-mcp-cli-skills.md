@@ -71,6 +71,8 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 
 Scan down each column and the trade-offs are clear enough. CLIs are the low-friction option — a package install away, zero authoring, no contract in front. Skills are the easiest thing to write and the only one that carries workflow knowledge. MCP brings the typed interface, the auth story, the cross-host contract — and the most work to stand up. Each is the right answer to a different question.
 
+Worth saying plainly: the table is a feature matrix, not a decision tree. Which rows matter depends on what you're building and who needs to use it. Prototyping alone on a laptop, authoring cost dominates. Shipping an integration to customers, auth and distribution do. Encoding a team's workflow, the instructions matter more than the interface.
+
 ## When to reach for which
 
 Some heuristics that have held up for me.
