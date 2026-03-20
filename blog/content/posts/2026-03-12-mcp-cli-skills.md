@@ -91,7 +91,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 ## They compose — that's the useful part
 
-The framing that breaks most often is "pick one." In practice the interesting systems use all three.
+Most real systems don't stay on one layer. A Skill ends up orchestrating MCP tools alongside shell commands; an MCP server puts a typed contract in front of a CLI that already works. Here's what each of those looks like.
 
 ### MCP server wrapping a CLI
 
