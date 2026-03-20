@@ -7,9 +7,9 @@ tags: ["mcp", "tools", "community"]
 ShowToc: true
 ---
 
-I get this question constantly — in Discord, on GitHub, over bad conference coffee: _does my agent actually need an MCP server if it can just run `gh`?_
+The best agent systems I've seen use CLIs, MCP, and Agent Skills together. All three, stacked.
 
-Fair question, wrong framing. MCP, command-line tools, and Agent Skills aren't competing for the same slot — they're different layers of the same stack, and most real systems use all three. Sometimes the CLI is right. Sometimes MCP is. The useful part isn't picking a winner; it's knowing which layer you're working at.
+That's not the framing most people start with. The usual question is _does my agent need an MCP server if it can just run `gh`?_ — and it treats them as alternatives. They're not. They're layers, each right for a different job.
 
 Here's the map.
 
