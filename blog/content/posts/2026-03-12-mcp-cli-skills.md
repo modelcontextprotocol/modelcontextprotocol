@@ -62,7 +62,7 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 | Discovery                | None — agent must know      | Agent reads a manifest      | `tools/list`, `resources/list`  |
 | Auth                     | Whatever the binary does    | None — inherits the session | OAuth, per-user scoping         |
 | Isolation / trust        | Foreign code, your machine  | Trusted as operator input   | Process or network boundary     |
-| Cross-client portability | High (if binary is present) | Low today (format varies)   | High — that's the point         |
+| Cross-client portability | High (if binary is present) | High — cross-vendor spec    | High — that's the point         |
 | Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent                |
 | Host requirements        | Shell + filesystem          | Usually shell + filesystem  | Just an MCP client              |
 | Distribution             | Package manager, `$PATH`    | Copy a folder               | Registry, remote URL, stdio     |
