@@ -75,7 +75,7 @@ Worth saying plainly: the table is a feature matrix, not a decision tree. Which 
 
 ## When to reach for which
 
-In practice the choice usually turns on a few things: whether the capability exists already, who else needs to use it, whether it needs real auth, and how far it needs to travel. The scenarios below each start from one of those.
+In practice the choice usually turns on a few things: whether the capability exists already, who else needs to use it, what security boundary you need, and how far it has to travel. The scenarios below each start from one of those.
 
 **The tool already exists as a CLI, and you're the only one using it, in one environment.** Don't build anything. Let the agent call the binary. You are not obligated to put a protocol in front of `grep`.
 
@@ -83,7 +83,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 **You need the same integration to work across multiple AI hosts.** You want Linear in Claude, in VS Code, in Cursor, in the internal tool your platform team built. MCP is the only one of the three that was designed for this. Write it once, any compliant host picks it up.
 
-**You need real auth.** OAuth flows, per-user tokens, scoped permissions — MCP's HTTP transport has this built in. Stdio servers pull credentials from the environment, same as a CLI. CLIs handle auth in a hundred different ways and none of them were designed with a model in the loop. Skills don't handle auth at all; they inherit whatever the session has.
+**You need a real security boundary.** OAuth flows, per-user tokens, scoped permissions — MCP's HTTP transport has these built in, and even a stdio server gives you a process boundary to hang policy on. Beyond auth, the server is the one place to enforce access rules, log what the model touched, and scope what it can reach. CLIs run as the agent with whatever privileges the agent has. Skills inherit the session wholesale.
 
 **You're shipping an integration as part of a product.** Customers don't want to install a binary and manage its config file. They want to paste a URL or click a button. Use MCP — a remote server install is just a URL, and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
 
