@@ -15,9 +15,9 @@ Here's where each one fits.
 
 ## What each of these actually is
 
-**CLIs** are what's already on the machine. `git`, `gh`, `curl`, `jq`, `kubectl`, your company's internal tooling. The agent invokes them through a shell, reads whatever text comes back, and tries to make sense of it. There's no schema, no typed arguments, no capability negotiation. The tool doesn't know an agent is calling it, and the agent doesn't know what the tool can do until it tries.
+**CLIs** are what's already on the machine — `git`, `gh`, `curl`, `jq`, `kubectl`, your company's internal tooling. Decades of battle-tested software, zero integration cost. If the agent has a shell, it has access to all of it.
 
-That sounds like a criticism. It isn't. CLIs are everywhere, they're battle-tested, and they cost nothing to integrate. If the agent has a shell, it has access to decades of tooling that already works.
+The interface is the shell itself. The agent invokes a binary, reads whatever text comes back, and makes sense of it. There's no schema, no typed arguments, no capability negotiation — the tool doesn't know an agent is calling it, and the agent doesn't know what the tool can do until it tries.
 
 **[Agent Skills](https://agentskills.io)** are folders of instructions and resources that an agent loads when they're relevant. A Skill doesn't give the agent a new capability — it teaches the agent how to use capabilities it already has. The contents are usually markdown files, maybe some reference scripts, maybe some example outputs. "When the user asks for a design document, use this template and put it in `docs/rfcs/`." "To cut a release, run these four commands in this order and check for this output between steps two and three."
 
