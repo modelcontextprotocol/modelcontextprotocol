@@ -60,10 +60,10 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 | What it provides         | Capability                  | Workflow knowledge          | Capability + contract           |
 | Argument schema          | None (free-form argv)       | N/A                         | JSON Schema per tool            |
 | Discovery                | None — agent must know      | Agent reads a manifest      | `tools/list`, `resources/list`  |
-| Auth                     | Whatever the binary does    | None — inherits the session | OAuth, per-user scoping         |
+| Auth                     | Whatever the binary does    | None — inherits the session | OAuth, per-user scoping (HTTP)  |
 | Isolation / trust        | Foreign code, your machine  | Trusted as operator input   | Process or network boundary     |
 | Cross-client portability | High (if binary is present) | High — cross-vendor spec    | High — protocol contract        |
-| Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent                |
+| Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent (HTTP)         |
 | Host requirements        | Shell + filesystem          | Usually shell + filesystem  | An MCP client                   |
 | Distribution             | Package manager, `$PATH`    | Copy a folder               | Registry, URL, package manager  |
 | Authoring cost           | Zero — it exists            | Low — write Markdown        | Medium — build and run a server |
@@ -81,7 +81,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 **You're encoding _how_ to do something, not _what can be done_.** That's a Skill. "Deploy to staging" isn't a new capability — the agent already has `kubectl` and `gh`. What it lacks is the knowledge of which manifests to apply, what order, what to check between steps. Write it down.
 
-**You need the same integration to work across multiple AI hosts.** You want Linear in Claude, in VS Code, in Cursor, in the internal tool your platform team built. MCP is the only one of the three that was designed for this. Write it once, any compliant host picks it up.
+**You need the same integration to work across multiple AI hosts.** You want Linear in Claude, in VS Code, in Cursor, in the internal tool your platform team built. Build an MCP server once and any compliant host picks it up — the server is the integration, nothing host-specific to write.
 
 **You need a real security boundary.** OAuth flows, per-user tokens, scoped permissions — MCP's HTTP transport has these built in, and even a stdio server gives you a process boundary to hang policy on. Beyond auth, the server is the one place to enforce access rules, log what the model touched, and scope what it can reach. CLIs run as the agent with whatever privileges the agent has. Skills inherit the session wholesale.
 
@@ -140,7 +140,7 @@ For something like `gh`, this is usually more ceremony than it's worth — the m
 
 MCP gives you a typed contract, discovery, and real auth. Those are valuable when you're distributing an integration — and they're overhead when you aren't.
 
-**A server is something to run.** A stdio process, or hosted infrastructure. When the alternative is a binary already sitting in `$PATH`, make sure the contract is actually buying you something before you take on the operational cost.
+**A server is something to run.** A stdio process, or hosted infrastructure. When the alternative is a binary in `$PATH`, make sure the contract is actually buying you something before you take on the operational cost.
 
 **Schema rewards a settled shape.** Typed arguments pay off once you know what you're building. Earlier than that — when you're still poking at a problem to find its edges — a shell and a binary iterate faster. Build the server once the interface has stopped moving.
 
