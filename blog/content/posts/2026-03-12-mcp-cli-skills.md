@@ -87,7 +87,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 **You're shipping an integration as part of a product.** Customers don't want to install a binary and manage its config file. They want to paste a URL or click a button. Use MCP — a remote server install is just a URL, and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
 
-**The job is a one-off script for your own machine.** Shell. You're done. Move on.
+**The job is a one-off script for your own machine.** The shell is the fastest path from intent to result. If nothing needs to travel, persist, or be handed to another team, there's no reason to reach past it.
 
 ## They compose — that's the useful part
 
