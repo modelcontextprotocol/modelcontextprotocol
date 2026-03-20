@@ -19,11 +19,11 @@ This post tries to draw the lines clearly.
 
 That sounds like a criticism. It isn't. CLIs are everywhere, they're battle-tested, and they cost nothing to integrate. If the agent has a shell, it has access to decades of tooling that already works.
 
-**Agent Skills** are folders of instructions and resources that an agent loads when they're relevant. A Skill doesn't give the agent a new capability — it teaches the agent how to use capabilities it already has. The contents are usually markdown files, maybe some reference scripts, maybe some example outputs. "When the user asks for a design document, use this template and put it in `docs/rfcs/`." "To cut a release, run these four commands in this order and check for this output between steps two and three."
+**[Agent Skills](https://agentskills.io)** are folders of instructions and resources that an agent loads when they're relevant. A Skill doesn't give the agent a new capability — it teaches the agent how to use capabilities it already has. The contents are usually markdown files, maybe some reference scripts, maybe some example outputs. "When the user asks for a design document, use this template and put it in `docs/rfcs/`." "To cut a release, run these four commands in this order and check for this output between steps two and three."
 
-Skills are workflow knowledge, packaged in a form an agent can load on demand. They're close to documentation, except the audience is a model rather than a person.
+Skills are workflow knowledge, packaged in a form an agent can load on demand. They're close to documentation, except the audience is a model rather than a person — which also means they're trusted like operator instructions, not read like inert docs. A Skill pulled from outside your organization carries the same supply-chain weight as an unvetted shell script, even if it's pure markdown.
 
-**MCP** is an integration protocol. A server exposes typed tools, resources, and prompts over JSON-RPC; a client discovers what's available through a capability handshake and presents it to the model. The [specification](https://modelcontextprotocol.io/specification/latest) covers structured arguments, OAuth-based authorization, subscriptions, progress notifications, and a handful of other things you need when the thing on the other end of the wire is software rather than a person.
+**MCP** is an integration protocol. A server exposes typed tools, resources, and prompts over JSON-RPC; a client negotiates protocol capabilities at initialize, then discovers available tools and resources at runtime and presents them to the model. The [specification](https://modelcontextprotocol.io/specification/latest) covers structured arguments, OAuth-based authorization, subscriptions, progress notifications, and a handful of other things you need when the thing on the other end of the wire is software rather than a person.
 
 The obvious cost is that someone has to build and run the server.
 
@@ -61,7 +61,7 @@ A CLI is a capability. An MCP server is a capability with a contract on the fron
 | Argument schema          | None (free-form argv)       | N/A — no execution surface  | JSON Schema per tool            |
 | Discovery                | None — agent must know      | Agent reads a manifest      | `tools/list`, `resources/list`  |
 | Auth                     | Whatever the binary does    | None — inherits the session | OAuth, per-user scoping         |
-| Isolation / trust        | Foreign code, your machine  | Same, if it bundles scripts | Process or network boundary     |
+| Isolation / trust        | Foreign code, your machine  | Trusted as operator input   | Process or network boundary     |
 | Cross-client portability | High (if binary is present) | Low today (format varies)   | High — that's the point         |
 | Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent                |
 | Host requirements        | Shell + filesystem          | Usually shell + filesystem  | Just an MCP client              |
@@ -81,9 +81,9 @@ Some heuristics that have held up for me.
 
 **You need the same integration to work across multiple AI hosts.** You want Linear in Claude, in VS Code, in Cursor, in the internal tool your platform team built. MCP is the only one of the three that was designed for this. Write it once, any compliant host picks it up.
 
-**You need real auth.** OAuth flows, per-user tokens, scoped permissions — MCP has this built into the protocol. CLIs handle auth in a hundred different ways and none of them were designed with a model in the loop. Skills don't handle auth at all; they inherit whatever the session has.
+**You need real auth.** OAuth flows, per-user tokens, scoped permissions — MCP's HTTP transport has this built in. Stdio servers pull credentials from the environment, same as a CLI. CLIs handle auth in a hundred different ways and none of them were designed with a model in the loop. Skills don't handle auth at all; they inherit whatever the session has.
 
-**You're shipping an integration as part of a product.** Customers don't want to install a binary and manage its config file. They want to paste a URL or click a button. MCP, especially now that [remote servers and the Registry](https://modelcontextprotocol.io/docs/concepts/registry) are stable.
+**You're shipping an integration as part of a product.** Customers don't want to install a binary and manage its config file. They want to paste a URL or click a button. Use MCP — a remote server install is just a URL, and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
 
 **The job is a one-off script for your own machine.** Shell. You're done. Move on.
 
@@ -107,8 +107,8 @@ server.tool(
     const args = ["promote", "--build", build_id, "--env", environment];
     if (skip_smoke_tests) args.push("--skip-smoke");
 
-    const { stdout } = await execFile("deployctl", args);
-    return { content: [{ type: "text", text: stdout }] };
+    const { stdout, stderr } = await execFile("deployctl", args);
+    return { content: [{ type: "text", text: stdout + stderr }] };
   },
 );
 ```
