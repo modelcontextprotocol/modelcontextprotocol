@@ -7,9 +7,9 @@ tags: ["mcp", "tools", "community"]
 ShowToc: true
 ---
 
-The best agent systems I've seen use CLIs, MCP, and Agent Skills together. All three, stacked.
+A bug report comes in from Slack. The agent files a Linear issue through an MCP tool, greps the source tree for the stack trace with a shell command, and follows the team's triage runbook from a Skill that tells it which labels to apply and who to page. The team that built it didn't pick between MCP, CLIs, and Agent Skills — they used whichever fit each step.
 
-That's not the framing most people start with. The usual question is _does my agent need an MCP server if it can just run `gh`?_ — and it treats them as alternatives. They're not. They're layers, each right for a different job.
+That's the normal shape of a working agent system. The question people often start with — _does my agent need an MCP server if it can just run `gh`?_ — treats them as alternatives. They're not. They're layers, and the work is knowing which layer fits which problem.
 
 Here's what each one is, when to reach for which, and how they stack in practice.
 
