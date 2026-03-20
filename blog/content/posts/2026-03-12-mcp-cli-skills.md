@@ -83,7 +83,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 **You need a real security boundary.** OAuth flows, per-user tokens, scoped permissions — MCP's HTTP transport has these built in, and even a stdio server gives you a process boundary to hang policy on. Beyond auth, the server is the one place to enforce access rules, log what the model touched, and scope what it can reach. CLIs run as the agent with whatever privileges the agent has. Skills inherit the session wholesale.
 
-**You're shipping an integration as part of a product.** Customers don't want to install a binary and manage its config file. They want to paste a URL or click a button. Use MCP — a remote server install is just a URL, and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
+**Your users aren't engineers.** CLIs assume someone who can install binaries, manage `$PATH`, and accept that every new tool runs with their local privileges. That works in a developer workflow. It's a non-starter for product users who aren't going to grant a local process full machine access every time they need new functionality. A remote MCP server is a URL — no install, no local trust surface — and the [Registry](https://modelcontextprotocol.io/registry/about) (in preview) gives that URL somewhere to live.
 
 **The job is a one-off script for your own machine.** The shell is the fastest path from intent to result. If nothing needs to travel, persist, or be handed to another team, there's no reason to reach past it.
 
@@ -142,4 +142,4 @@ Use what's already there. When you need to teach the agent a process, write a Sk
 
 A protocol gives you a contract; it doesn't teach the agent your workflow. A CLI gives you a capability; it doesn't make it discoverable. A Skill teaches the workflow; it doesn't execute anything on its own. Each layer does one thing well, and the boundary between them is getting more permeable by design — the [Skills Over MCP Interest Group](https://github.com/modelcontextprotocol/experimental-ext-skills) is working on exposing Skills as MCP resources, so a server can ship its tools and the workflow instructions for using them together.
 
-To get started: the [MCP specification](https://modelcontextprotocol.io/specification/latest), the [Agent Skills spec](https://agentskills.io), the [Registry](https://modelcontextprotocol.io/registry/about) (in preview), and the [server instructions guide](https://blog.modelcontextprotocol.io/posts/2025-11-03-using-server-instructions/) for bridging the contract and the workflow.
+To get started building, head to the [MCP documentation](https://modelcontextprotocol.io).
