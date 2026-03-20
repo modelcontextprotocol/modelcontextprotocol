@@ -19,9 +19,9 @@ Here's what each one is, when to reach for which, and how they stack in practice
 
 The interface is the shell. The agent runs a command, reads whatever text comes back, and figures it out. No schema, no typed arguments — the tool has no idea an agent is calling it, and the agent has no idea what the tool can do until it tries.
 
-**[Agent Skills](https://agentskills.io)** are folders of instructions and resources that an agent loads when they're relevant. A Skill doesn't give the agent a new capability — it teaches the agent how to use capabilities it already has. The contents are usually markdown files, maybe some reference scripts, maybe some example outputs. "When the user asks for a design document, use this template and put it in `docs/rfcs/`." "To cut a release, run these four commands in this order and check for this output between steps two and three."
+**[Agent Skills](https://agentskills.io)** are folders of instructions and resources that an agent loads when they're relevant. A Skill doesn't give the agent a new capability — it teaches the agent how to use capabilities it already has. The contents are usually Markdown files, maybe some reference scripts, maybe some example outputs. "When the user asks for a design document, use this template and put it in `docs/rfcs/`." "To cut a release, run these four commands in this order and check for this output between steps two and three."
 
-Skills are workflow knowledge, packaged in a form an agent can load on demand. They're close to documentation, except the audience is a model rather than a person — which also means they're trusted like operator instructions, not read like inert docs. A Skill pulled from outside your organization carries the same supply-chain weight as an unvetted shell script, even if it's pure markdown.
+Skills are workflow knowledge, packaged in a form an agent can load on demand. They're close to documentation, except the audience is a model rather than a person — which also means they're trusted like operator instructions, not read like inert docs. A Skill pulled from outside your organization carries the same supply-chain weight as an unvetted shell script, even if it's pure Markdown.
 
 **MCP** is an integration protocol. A server exposes typed tools, resources, and prompts over JSON-RPC; a client negotiates protocol capabilities at initialize, then discovers available tools and resources at runtime and presents them to the model. The [specification](https://modelcontextprotocol.io/specification/latest) covers structured arguments, OAuth-based authorization, subscriptions, progress notifications, and a handful of other things you need when the thing on the other end of the wire is software rather than a person.
 
@@ -66,7 +66,7 @@ A CLI is a capability. An MCP server is a capability with a contract on the fron
 | Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent                |
 | Host requirements        | Shell + filesystem          | Usually shell + filesystem  | Just an MCP client              |
 | Distribution             | Package manager, `$PATH`    | Copy a folder               | Registry, remote URL, stdio     |
-| Authoring cost           | Zero — it exists            | Low — write markdown        | Medium — build and run a server |
+| Authoring cost           | Zero — it exists            | Low — write Markdown        | Medium — build and run a server |
 | Output structure         | Text, exit code             | N/A                         | Typed results, resource content |
 
 No column wins. They're answering different questions. The useful exercise is figuring out which question you're actually asking.
