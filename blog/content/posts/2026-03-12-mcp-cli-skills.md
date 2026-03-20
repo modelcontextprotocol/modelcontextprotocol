@@ -64,7 +64,7 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 | Isolation / trust        | Foreign code, your machine  | Trusted as operator input   | Process or network boundary     |
 | Cross-client portability | High (if binary is present) | High — cross-vendor spec    | High — protocol contract        |
 | Cross-OS portability     | OS- and env-dependent       | Often OS-dependent          | Host-independent                |
-| Host requirements        | Shell + filesystem          | Usually shell + filesystem  | Just an MCP client              |
+| Host requirements        | Shell + filesystem          | Usually shell + filesystem  | An MCP client                   |
 | Distribution             | Package manager, `$PATH`    | Copy a folder               | Registry, remote URL, stdio     |
 | Authoring cost           | Zero — it exists            | Low — write Markdown        | Medium — build and run a server |
 | Output structure         | Text, exit code             | N/A                         | Typed results, resource content |
