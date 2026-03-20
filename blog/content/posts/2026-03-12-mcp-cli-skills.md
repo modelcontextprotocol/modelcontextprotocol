@@ -93,6 +93,23 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 Most real systems don't stay on one layer. A Skill ends up orchestrating MCP tools alongside shell commands; an MCP server puts a typed contract in front of a CLI that already works. Here's what each of those looks like.
 
+### Skill that leans on an MCP server
+
+A Skill doesn't care whether the tools it references are CLIs, MCP tools, or a mix. It's describing a workflow, and workflows span layers.
+
+```markdown
+# Bug triage
+
+When the user reports a bug from Slack:
+
+1. Use the Linear MCP server's `create_issue` tool. Team is `ENG`, label is `triage`.
+2. Paste the Slack permalink into the issue description.
+3. If there's a stack trace, grep `src/` for the top frame and link the file in the issue.
+4. Post the issue URL back to the Slack thread.
+```
+
+Step 1 is an MCP tool. Step 3 is a shell command. Step 4 might be either. The Skill is the glue that says "here's the shape of this task in this organization."
+
 ### MCP server wrapping a CLI
 
 This pattern earns its keep when the CLI is something the model _hasn't_ seen — an internal tool, a bespoke script, something with a gnarly argument surface. You get a typed schema the model can target reliably, and underneath you're shelling out to a binary that already works.
@@ -118,23 +135,6 @@ server.tool(
 The model gets a real schema — it knows `environment` is one of three strings, and it won't invent a `--flag` that doesn't exist on a tool it's never heard of. You also get one place to put auth and audit logging, rather than scattering credentials across every machine the agent runs on.
 
 For something like `gh`, this is usually more ceremony than it's worth — the model already knows the flags, and the binary is everywhere. For your internal tooling, the calculus flips.
-
-### Skill that leans on an MCP server
-
-A Skill doesn't care whether the tools it references are CLIs, MCP tools, or a mix. It's describing a workflow, and workflows span layers.
-
-```markdown
-# Bug triage
-
-When the user reports a bug from Slack:
-
-1. Use the Linear MCP server's `create_issue` tool. Team is `ENG`, label is `triage`.
-2. Paste the Slack permalink into the issue description.
-3. If there's a stack trace, grep `src/` for the top frame and link the file in the issue.
-4. Post the issue URL back to the Slack thread.
-```
-
-Step 1 is an MCP tool. Step 3 is a shell command. Step 4 might be either. The Skill is the glue that says "here's the shape of this task in this organization."
 
 ## Where MCP is more than you need
 
