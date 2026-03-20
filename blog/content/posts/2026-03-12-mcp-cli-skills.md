@@ -89,7 +89,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 **The job is a one-off script for your own machine.** The shell is the fastest path from intent to result. If nothing needs to travel, persist, or be handed to another team, there's no reason to reach past it.
 
-## They compose — that's the useful part
+## Composing the layers
 
 Most real systems don't stay on one layer. A Skill ends up orchestrating MCP tools alongside shell commands; an MCP server puts a typed contract in front of a CLI that already works. Here's what each of those looks like.
 
