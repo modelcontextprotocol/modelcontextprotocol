@@ -58,7 +58,7 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 | Dimension                | CLI                         | Agent Skill                 | MCP Server                      |
 | ------------------------ | --------------------------- | --------------------------- | ------------------------------- |
 | What it provides         | Capability                  | Workflow knowledge          | Capability + contract           |
-| Argument schema          | None (free-form argv)       | N/A — no execution surface  | JSON Schema per tool            |
+| Argument schema          | None (free-form argv)       | N/A                         | JSON Schema per tool            |
 | Discovery                | None — agent must know      | Agent reads a manifest      | `tools/list`, `resources/list`  |
 | Auth                     | Whatever the binary does    | None — inherits the session | OAuth, per-user scoping         |
 | Isolation / trust        | Foreign code, your machine  | Trusted as operator input   | Process or network boundary     |
@@ -69,7 +69,7 @@ That arrow from Skill to MCP increasingly runs both ways. The [Skills Over MCP I
 | Authoring cost           | Zero — it exists            | Low — write Markdown        | Medium — build and run a server |
 | Output structure         | Text, exit code             | N/A                         | Typed results, resource content |
 
-No column wins. They're answering different questions. The useful exercise is figuring out which question you're actually asking.
+Scan down each column and the trade-offs are clear enough. CLIs are the low-friction option — a package install away, zero authoring, no contract in front. Skills are the easiest thing to write and the only one that carries workflow knowledge. MCP brings the typed interface, the auth story, the cross-host contract — and the most work to stand up. None of this is a trump card. Each column is the right answer to a different question.
 
 ## When to reach for which
 
