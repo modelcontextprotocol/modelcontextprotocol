@@ -11,7 +11,7 @@ The best agent systems I've seen use CLIs, MCP, and Agent Skills together. All t
 
 That's not the framing most people start with. The usual question is _does my agent need an MCP server if it can just run `gh`?_ — and it treats them as alternatives. They're not. They're layers, each right for a different job.
 
-Here's the map.
+Here's what each one is, when to reach for which, and how they stack in practice.
 
 ## What each of these actually is
 
