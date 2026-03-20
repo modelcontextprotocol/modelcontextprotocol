@@ -15,7 +15,7 @@ Here's where each one fits.
 
 ## What each of these actually is
 
-**CLIs** are what's already on the machine — `git`, `gh`, `curl`, `jq`, `kubectl`, your company's internal tooling. Decades of battle-tested software, zero integration cost. If the agent has a shell, it has access to all of it.
+**CLIs** are programs with a command-line interface — `git`, `gh`, `curl`, `jq`, `kubectl`, your company's internal tooling. Decades of battle-tested software; the integration cost is putting the binary in `$PATH`. If the agent has a shell, it can call anything the shell can call.
 
 The interface is the shell itself. The agent invokes a binary, reads whatever text comes back, and makes sense of it. There's no schema, no typed arguments, no capability negotiation — the tool doesn't know an agent is calling it, and the agent doesn't know what the tool can do until it tries.
 
