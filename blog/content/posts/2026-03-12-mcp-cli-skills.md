@@ -75,7 +75,7 @@ Worth saying plainly: the table is a feature matrix, not a decision tree. Which 
 
 ## When to reach for which
 
-Some heuristics that have held up for me.
+These are the patterns I see recur when a team is deciding where to put an integration. Each one starts from a situation — what you're building, who's using it, how far it needs to travel — rather than from the feature matrix above.
 
 **The tool already exists as a CLI, and you're the only one using it, in one environment.** Don't build anything. Let the agent call the binary. You are not obligated to put a protocol in front of `grep`.
 
