@@ -23,9 +23,9 @@ The interface is the shell. The agent runs a command, reads whatever text comes 
 
 Skills are workflow knowledge, packaged in a form an agent can load on demand. They're close to documentation, except the audience is a model rather than a person — which also means they're trusted like operator instructions, not read like inert docs. A Skill pulled from outside your organization carries the same supply-chain weight as an unvetted shell script, even if it's pure Markdown.
 
-**MCP** is an integration protocol. A server exposes typed tools, resources, prompts, and other primitives over JSON-RPC; a client negotiates protocol capabilities at initialize, then discovers available tools and resources at runtime and presents them to the model. The [specification](https://modelcontextprotocol.io/specification/latest) covers structured arguments, OAuth-based authorization, subscriptions, progress notifications, and a handful of other things you need when the thing on the other end of the wire is software rather than a person.
+**MCP** is an integration protocol. A server exposes typed tools, resources, prompts, and other primitives over JSON-RPC — and a client exposes capabilities back: the server can ask the host's model for an inference (sampling), ask the user a question mid-call (elicitation), or ask the client what filesystem scope is in play (roots). It's a bidirectional session, not a one-way call. The [specification](https://modelcontextprotocol.io/specification/latest) covers structured arguments, OAuth-based authorization, subscriptions, progress notifications — the contract you need when both sides of the wire are software.
 
-That means building and running a server. Locally, a stdio process the host spawns per session; remotely, infrastructure you deploy and maintain. It's more work than writing Markdown or putting a binary in `$PATH` — and the return is an integration that travels to every MCP-aware host without being rewritten for each one.
+That means building and running a server. Locally, a stdio process the host spawns per session; remotely, infrastructure you deploy and maintain. It's more work than writing Markdown or putting a binary in `$PATH` — and the return is an integration that works in every host that speaks the protocol, including the ones that ship next quarter. The server is the integration; the protocol is the contract.
 
 ## How they connect
 
@@ -50,6 +50,16 @@ graph TD
 ```
 
 Skills sit at the top — they don't execute anything themselves, they tell the agent which tools to call and how. MCP servers and CLIs are both things the agent calls: MCP with a typed contract in front, CLI through the shell. An MCP server can wrap a CLI when you want that contract in front of a binary that already works. Underneath, both reach the same places — remote APIs, databases, the local system.
+
+## What about just calling the API?
+
+The other version of the question: _I already have an OpenAPI spec. Why not hand it to the model and let it call the endpoints directly?_
+
+It works for a dozen stateless endpoints. OpenAPI-to-tool converters exist, and the teams who've shipped with them converge on the same lesson: generate the scaffolding from the spec, then curate it for a caller that doesn't read docs. A model can't fill in the tribal knowledge a human integrator would. That curation layer is most of the work, and it's the work an MCP server does explicitly.
+
+The deeper answer is architectural. An OpenAPI document describes an HTTP surface — a static contract, one direction. MCP is a session where both sides offer something: the server exposes tools and resources, the client exposes sampling, elicitation, roots. That bidirectional shape is the same slot LSP fills between an IDE and a language server. Nobody asks why `gopls` doesn't ship an OpenAPI spec — a language server isn't an API, it's a conversation partner for the editor. MCP sits in the same architectural slot for AI hosts.
+
+A related concern: doesn't connecting to an MCP server flood the context window with tool definitions? In practice, the opposite. A raw OpenAPI spec in context is hundreds of flat endpoints competing for attention. MCP's primitive split — tools, resources, prompts each in their own namespace — and paginated runtime discovery mean the host filters to what the task needs. Hosts ship tool search for exactly this reason. The protocol is the answer to context bloat, not the cause.
 
 ## Side by side
 
@@ -91,7 +101,7 @@ In practice the choice usually turns on a few things: whether the capability exi
 
 ## Composing the layers
 
-Most real systems don't stay on one layer. A Skill ends up orchestrating MCP tools alongside shell commands; an MCP server puts a typed contract in front of a CLI that already works. Here's what each of those looks like.
+Most real systems don't stay on one layer — and they don't stay still, either. A Skill orchestrates MCP tools alongside shell commands; an MCP server puts a typed contract in front of a CLI that already works; and projects graduate from one layer to another as they grow. Here's each of those.
 
 ### Skill that leans on an MCP server
 
@@ -135,6 +145,12 @@ server.tool(
 The model gets a real schema — it knows `environment` is one of three strings, and it won't invent a `--flag` that doesn't exist on a tool it's never heard of. You also get one place to put auth and audit logging, rather than scattering credentials across every machine the agent runs on.
 
 For something like `gh`, this is usually more ceremony than it's worth — the model already knows the flags, and the binary is everywhere. For your internal tooling, the calculus flips.
+
+### Moving between layers
+
+Projects don't start as MCP servers. They start as a CLI the agent calls, or a Skill that encodes a workflow. The signals that it's time to graduate tend to arrive together: a second team wants to run it, someone asks for audit logs, and the interface has stopped changing under you. Before that, the server cost outpaces the return. After, the transition looks like the `deployctl` wrapper above — a thin layer over the same binary, with the work going into schema and deciding where auth lives. Nothing underneath rewrites.
+
+The same logic runs the other direction. A Skill that's started holding access control — which environments a user can promote to, who can merge what — is carrying policy that belongs in the server. Push it down. Let the Skill stay at "run these steps in this order" and let the server enforce who's allowed to.
 
 ## Putting it together
 
