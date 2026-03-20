@@ -11,7 +11,7 @@ A question that comes up a lot, in Discord and in GitHub threads and in hallway 
 
 It's a fair question — but it treats MCP, command-line tools, and Agent Skills as three horses in the same race. They aren't. They solve different problems at different layers, and in most real systems you use all three at once. Sometimes the CLI is the right call. Sometimes MCP is. Those aren't competing answers — they're answers to different questions, and the job is knowing which question you're asking.
 
-This post tries to draw the lines clearly.
+Here's where each one fits.
 
 ## What each of these actually is
 
