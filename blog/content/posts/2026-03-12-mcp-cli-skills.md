@@ -27,16 +27,14 @@ Skills are workflow knowledge, packaged in a form an agent can load on demand. T
 
 That means building and running a server. Locally, a stdio process the host spawns per session; remotely, infrastructure you deploy and maintain. It's more work than writing Markdown or putting a binary in `$PATH` — and the return is an integration that travels to every MCP-aware host without being rewritten for each one.
 
-## They sit at different layers
-
-If you arrange these three by what question they answer, the picture gets clearer:
+## How they connect
 
 ```mermaid
 graph TD
     Skill["Agent Skill<br/><i>how to do the work</i>"]
 
     MCP["MCP Server<br/><i>typed, discoverable capability</i>"]
-    CLI["CLI<br/><i>capability that already exists</i>"]
+    CLI["CLI<br/><i>capability via the shell</i>"]
 
     API[Remote API]
     DB[Database]
@@ -51,7 +49,7 @@ graph TD
     CLI --> API
 ```
 
-A CLI is a capability. An MCP server is a capability with a contract on the front — schema, discovery, auth — so any MCP-aware host can use it without bespoke glue. A Skill is instructions layered on top of either one. They stack; they don't compete.
+Skills sit at the top — they don't execute anything themselves, they tell the agent which tools to call and how. MCP servers and CLIs are both things the agent calls: MCP with a typed contract in front, CLI through the shell. An MCP server can wrap a CLI when you want that contract in front of a binary that already works. Underneath, both reach the same places — remote APIs, databases, the local system.
 
 ## Side by side
 
