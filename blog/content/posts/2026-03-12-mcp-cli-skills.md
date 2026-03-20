@@ -9,7 +9,7 @@ ShowToc: true
 
 A question that comes up a lot, in Discord and in GitHub threads and in hallway conversations at conferences: _does my agent really need an MCP server if it can just run `gh`?_
 
-It's a fair question. The answer is often "no, it doesn't" — and I say that as someone who spends most of his time on this protocol. But the question usually gets asked as though MCP, command-line tools, and Agent Skills are three horses in the same race. They aren't. They solve different problems, they sit at different layers, and in a lot of real systems you end up using all three at once.
+It's a fair question — but it treats MCP, command-line tools, and Agent Skills as three horses in the same race. They aren't. They solve different problems at different layers, and in most real systems you use all three at once. Sometimes the CLI is the right call. Sometimes MCP is. Those aren't competing answers — they're answers to different questions, and the job is knowing which question you're asking.
 
 This post tries to draw the lines clearly.
 
