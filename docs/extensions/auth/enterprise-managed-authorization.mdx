@@ -41,7 +41,7 @@ Use Enterprise-Managed Authorization when:
 
 The extension establishes a delegated authorization flow where the enterprise IdP acts as an intermediary between the MCP client and the MCP server:
 
-````mermaid
+```mermaid
 sequenceDiagram
     participant Employee
     participant MCP Client
@@ -62,6 +62,7 @@ sequenceDiagram
     Enterprise IdP->>MCP Server: Validation response
 
     MCP Server->>MCP Client: MCP response
+```
 
 Key aspects of the flow:
 
@@ -89,15 +90,7 @@ To support Enterprise-Managed Authorization, your client must:
     }
   }
 }
-    ```json
-    {
-      "capabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/enterprise-managed-authorization": {}
-        }
-      }
-    }
-    ```
+```
 
 2. **Handle IdP-initiated authorization** — when the server indicates that enterprise-managed auth is required, redirect the user to the enterprise IdP's authorization endpoint rather than the MCP server's default authorization endpoint.
 
@@ -159,4 +152,3 @@ Check the [client matrix](/extensions/client-matrix) for current implementation 
     Core MCP authorization specification
   </Card>
 </CardGroup>
-````
