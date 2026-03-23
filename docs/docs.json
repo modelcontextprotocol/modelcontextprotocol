@@ -64,10 +64,32 @@
             ]
           },
           {
-            "group": "Extensions",
+            "group": "Examples",
             "pages": [
-              "docs/extensions/overview",
-              "docs/extensions/apps"
+              "clients",
+              "examples"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
+          },
+          {
+            "group": "Authorization Extensions",
+            "pages": [
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
             ]
           }
         ]
@@ -402,16 +424,28 @@
       {
         "tab": "Community",
         "pages": [
-          "community/contributing",
-          "community/communication",
+          {
+            "group": "Get Involved",
+            "pages": [
+              "community/contributing",
+              "community/communication",
+              "community/working-interest-groups",
+              "community/charter-template"
+            ]
+          },
+          {
+            "group": "Propose Changes",
+            "pages": [
+              "community/design-principles",
+              "community/sep-guidelines"
+            ]
+          },
           {
             "group": "Governance",
             "pages": [
               "community/governance",
-              "community/sep-guidelines",
+              "community/contributor-ladder",
               "community/sdk-tiers",
-              "community/working-interest-groups",
-              "community/charter-template",
               "community/antitrust"
             ]
           },
@@ -419,13 +453,6 @@
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
-            ]
-          },
-          {
-            "group": "Examples",
-            "pages": [
-              "clients",
-              "examples"
             ]
           }
         ]
@@ -548,7 +575,23 @@
     },
     {
       "source": "/extensions",
-      "destination": "/docs/extensions/overview"
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/overview",
+      "destination": "/extensions/overview"
+    },
+    {
+      "source": "/docs/extensions/apps",
+      "destination": "/extensions/apps/overview"
+    },
+    {
+      "source": "/community/seps",
+      "destination": "/seps"
+    },
+    {
+      "source": "/community/seps/:slug*",
+      "destination": "/seps/:slug*"
     }
   ],
   "contextual": {
