@@ -64,32 +64,10 @@
             ]
           },
           {
-            "group": "Examples",
+            "group": "Extensions",
             "pages": [
-              "clients",
-              "examples"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Extensions",
-        "pages": [
-          "extensions/overview",
-          "extensions/client-matrix",
-          {
-            "group": "MCP Apps",
-            "pages": [
-              "extensions/apps/overview",
-              "extensions/apps/build"
-            ]
-          },
-          {
-            "group": "Authorization Extensions",
-            "pages": [
-              "extensions/auth/overview",
-              "extensions/auth/oauth-client-credentials",
-              "extensions/auth/enterprise-managed-authorization"
+              "docs/extensions/overview",
+              "docs/extensions/apps"
             ]
           }
         ]
@@ -409,7 +387,8 @@
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
               "seps/2133-extensions",
-              "seps/2148-contributor-ladder"
+              "seps/2148-contributor-ladder",
+              "seps/2149-working-group-charter-template"
             ]
           },
           {
@@ -423,27 +402,16 @@
       {
         "tab": "Community",
         "pages": [
-          {
-            "group": "Get Involved",
-            "pages": [
-              "community/contributing",
-              "community/communication",
-              "community/working-interest-groups"
-            ]
-          },
-          {
-            "group": "Propose Changes",
-            "pages": [
-              "community/design-principles",
-              "community/sep-guidelines"
-            ]
-          },
+          "community/contributing",
+          "community/communication",
           {
             "group": "Governance",
             "pages": [
               "community/governance",
-              "community/contributor-ladder",
+              "community/sep-guidelines",
               "community/sdk-tiers",
+              "community/working-interest-groups",
+              "community/charter-template",
               "community/antitrust"
             ]
           },
@@ -451,6 +419,13 @@
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
             ]
           }
         ]
@@ -573,23 +548,7 @@
     },
     {
       "source": "/extensions",
-      "destination": "/extensions/overview"
-    },
-    {
-      "source": "/docs/extensions/overview",
-      "destination": "/extensions/overview"
-    },
-    {
-      "source": "/docs/extensions/apps",
-      "destination": "/extensions/apps/overview"
-    },
-    {
-      "source": "/community/seps",
-      "destination": "/seps"
-    },
-    {
-      "source": "/community/seps/:slug*",
-      "destination": "/seps/:slug*"
+      "destination": "/docs/extensions/overview"
     }
   ],
   "contextual": {
