@@ -537,6 +537,15 @@ Servers have flexibility in determining which scopes to include:
 
 The choice depends on the server's assessment of user experience impact and authorization friction.
 
+Regardless of the approach chosen, servers **SHOULD** include all
+scopes required for the current operation in a single challenge.
+Challenging incrementally (returning one missing scope, then another
+on the subsequent retry) forces multiple authorization round-trips
+for a single operation and degrades user experience. The required
+scopes may be determined dynamically based on the specific request
+arguments and context, but once determined, they should be emitted
+together.
+
 Servers **SHOULD** be consistent in their scope inclusion strategy to provide predictable behavior for clients.
 
 Servers **SHOULD** consider the user experience impact when determining which scopes to include in the
