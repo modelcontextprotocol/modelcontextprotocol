@@ -285,6 +285,36 @@ Client                         MCP Server
   │<── inline data ───────────────│   (server falls back)
 ```
 
+#### 3.5 Protocol Selection Hierarchy
+
+When a server can offer multiple protocols for the same transfer (e.g., via `negotiate` with multiple candidates), it MUST rank candidates using the following priority order:
+
+**1. Security (highest priority)**
+
+- Prefer encrypted transports over unencrypted: `https` over `http`, `wss` over `ws`, `sftp` over `ftp`.
+- Prefer protocols with built-in integrity verification: BitTorrent (piece hashes), S3 presigned (server-side checksums) over raw HTTP.
+- Prefer short-lived, scoped credentials over long-lived tokens.
+- MUST NOT offer `http` or `ws` (unencrypted) unless the endpoint is `localhost` or a private network address AND the client has explicitly opted in.
+
+**2. Efficiency (second priority)**
+
+- Match the protocol to the data pattern:
+  - Streaming data → `wss`, `sse` (not repeated HTTP polls)
+  - Fan-out (N agents, same data) → `webtorrent` (P2P, O(1) server cost)
+  - Large single file → `s3-presigned`, `https` with range requests
+  - Real-time bidirectional → `wss`, `grpc`
+- Prefer protocols that minimize total transfer time for the expected payload size.
+- Prefer protocols the client supports natively (Level 1) over those requiring Level 2 code generation.
+
+**3. Overhead (third priority)**
+
+- Prefer binary formats over text when the data is binary (avoid base64 encoding overhead).
+- Prefer compressed transfers (`gzip`, `zstd`) for payloads above 1MB.
+- Prefer protocols with lower connection setup cost (reuse existing connections when possible).
+- Prefer Level 1 (0 tokens) > Level 1.5 (0 tokens, cached) > Level 2 (one-time LLM cost).
+
+When building a negotiation offer with multiple candidates, the server SHOULD order candidates by this hierarchy — first candidate is the most preferred. The client selects the first candidate it can handle.
+
 ### 4. Transfer Confirmation
 
 After completing a transfer, the client SHOULD send a confirmation:
