@@ -39,29 +39,39 @@ Use Enterprise-Managed Authorization when:
 
 ## How it works
 
-The extension establishes a delegated authorization flow where the enterprise IdP acts as an intermediary between the MCP client and the MCP server:
+The extension establishes a delegated authorization flow where the enterprise IdP acts as an intermediary between the MCP client and the MCP server. The MCP Client requests a special type of token from the enterprise IdP called an Identity Assertion JWT Authorization Grant, or ID-JAG. The MCP Client then exchanges the ID-JAG for an access token from the MCP server's Authorization Server:
 
-````mermaid
+```mermaid
 sequenceDiagram
-    participant Employee
-    participant MCP Client
-    participant Enterprise IdP
-    participant MCP Server
+    participant UA as Browser
+    participant C as MCP Client
+    participant IdP as Enterprise IdP
+    participant MAS as MCP Authorization Server
+    participant MRS as MCP Resource Server
 
-    Employee->>MCP Client: Open MCP tool
-    MCP Client->>Enterprise IdP: Redirect to IdP
-    Enterprise IdP->>Employee: SSO login page
-    Employee->>Enterprise IdP: Corporate credentials
-    Enterprise IdP->>MCP Client: Auth code
-    MCP Client->>Enterprise IdP: Exchange code
-    Enterprise IdP->>MCP Client: Access token
+    C-->>UA: Redirect to IdP
+    UA->>IdP: Redirect to IdP
+    Note over IdP: User Logs In
+    IdP-->>UA: IdP Authorization Code
+    UA->>C: IdP Authorization Code
+    C->>IdP: Token Request with IdP Authorization Code
+    IdP-->>C: ID Token
 
-    MCP Client->>MCP Server: MCP request (token)
+    note over C: User is logged<br/>in to MCP Client.<br/>Client stores ID Token.
 
-    MCP Server->>Enterprise IdP: Token validation
-    Enterprise IdP->>MCP Server: Validation response
+    C->>IdP: Exchange ID Token for ID-JAG
+    note over IdP: Evaluate Policy
+    IdP-->>C: Responds with ID-JAG
+    C->>MAS: Token Request with ID-JAG
+    note over MAS: Validate ID-JAG
+    MAS-->>C: MCP Access Token
 
-    MCP Server->>MCP Client: MCP response
+    loop
+    C->>MRS: Call MCP API with Access Token
+    MRS-->>C: MCP Response with Data
+    end
+
+```
 
 Key aspects of the flow:
 
@@ -89,21 +99,15 @@ To support Enterprise-Managed Authorization, your client must:
     }
   }
 }
-    ```json
-    {
-      "capabilities": {
-        "extensions": {
-          "io.modelcontextprotocol/enterprise-managed-authorization": {}
-        }
-      }
-    }
-    ```
+```
 
-2. **Handle IdP-initiated authorization** — when the server indicates that enterprise-managed auth is required, redirect the user to the enterprise IdP's authorization endpoint rather than the MCP server's default authorization endpoint.
+2. **Support SSO** — users should authenticate to the MCP Client using the enterprise IdP. Save the Identity Assertion (either an OpenID ID Token or SAML assertion) issued during login for later use.
 
-3. **Support organization configuration** — allow administrators to configure the enterprise IdP endpoint, typically via organization-level settings rather than per-user settings.
+3. **Handle ID-JAGs** — when the server indicates that enterprise-managed auth is required, request an ID-JAG token from the enterprise IdP's authorization endpoint using the previously obtained Identity Assertion. Exchange this ID-JAG for an access token from the MCP Authorization Server. Do not redirect the user to the MCP Authorization Server's authorization endpoint.
 
-4. **Respect token scopes** — tokens issued by enterprise IdPs may have scope restrictions that differ from standard MCP authorization. Handle scope errors gracefully.
+4. **Support organization configuration** — allow administrators to configure the enterprise IdP's endpoints, typically via organization-level settings rather than per-user settings.
+
+5. **Respect token scopes** — tokens issued by enterprise IdPs may have scope restrictions that differ from standard MCP authorization. Handle scope errors gracefully.
 
 ### For MCP servers
 
@@ -111,11 +115,15 @@ To require enterprise-managed authorization:
 
 1. **Declare the extension** in your server's authorization metadata, indicating that clients must use the enterprise-managed flow.
 
-2. **Validate tokens** issued by the enterprise IdP. This typically means validating JWT signatures against the IdP's JWKS endpoint and checking the token's audience, issuer, and expiration.
+2. **Integrate with IdP admin APIs** (optional) — publish your server's resource descriptor so enterprise administrators can configure access policies in their IdP admin console.
 
-3. **Map IdP claims to permissions** — enterprise tokens carry claims (groups, roles, departments) that your server uses to determine what the employee can access. Define your authorization logic based on these claims.
+### For MCP Authorization Servers
 
-4. **Integrate with IdP admin APIs** (optional) — publish your server's resource descriptor so enterprise administrators can configure access policies in their IdP admin console.
+1. **Validate ID-JAGs** issued by the enterprise IdP. This typically means validating JWT signatures against the IdP's JWKS endpoint and checking the token's audience, issuer, and expiration.
+
+2. **Map IdP claims to permissions** — ID-JAG tokens carry claims (scope and resource information) that your server uses to determine who the employee is and what the employee can access. Define your authorization logic based on these claims.
+
+3. **Handle Account Linking** - ID-JAG tokens will always contain a subject claim and may additionally contain an email claim that can be used to
 
 ## Client support
 
@@ -147,7 +155,7 @@ Check the [client matrix](/extensions/client-matrix) for current implementation 
   <Card
     title="SEP-990"
     icon="file-lines"
-    href="/community/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o"
+    href="/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o"
   >
     Original proposal: Enable Enterprise IdP Policy Controls
   </Card>
@@ -159,4 +167,3 @@ Check the [client matrix](/extensions/client-matrix) for current implementation 
     Core MCP authorization specification
   </Card>
 </CardGroup>
-````
