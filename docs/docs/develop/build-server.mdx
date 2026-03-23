@@ -1147,7 +1147,7 @@ When implementing MCP servers, be careful about how you handle logging:
 
 ### System requirements
 
-- Java 17 or higher installed.
+- JDK 11 or higher installed.
 
 ### Set up your environment
 
@@ -1183,64 +1183,45 @@ gradle init
 
 </CodeGroup>
 
-After running `gradle init`, you will be presented with options for creating your project.
-Select **Application** as the project type, **Kotlin** as the programming language, and **Java 17** as the Java version.
+After running `gradle init`, select **Application** as the project type, **Kotlin** as the programming language.
 
 Alternatively, you can create a Kotlin application using the [IntelliJ IDEA project wizard](https://kotlinlang.org/docs/jvm-get-started.html).
 
-After creating the project, add the following dependencies:
-
-<CodeGroup>
+After creating the project, replace the contents of your `build.gradle.kts` with:
 
 ```kotlin build.gradle.kts
-val mcpVersion = "0.4.0"
-val slf4jVersion = "2.0.9"
-val ktorVersion = "3.1.1"
+// Check latest versions at https://github.com/modelcontextprotocol/kotlin-sdk/releases
+val mcpVersion = "0.9.0"
+val ktorVersion = "3.2.3"
+val slf4jVersion = "2.0.17"
+
+plugins {
+    kotlin("jvm") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.20"
+    id("com.gradleup.shadow") version "8.3.9"
+    application
+}
+
+application {
+    mainClass.set("MainKt")
+}
 
 dependencies {
     implementation("io.modelcontextprotocol:kotlin-sdk:$mcpVersion")
-    implementation("org.slf4j:slf4j-nop:$slf4jVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("org.slf4j:slf4j-simple:$slf4jVersion")
 }
 ```
 
-```groovy build.gradle
-def mcpVersion = '0.3.0'
-def slf4jVersion = '2.0.9'
-def ktorVersion = '3.1.1'
+Verify that everything is set up correctly:
 
-dependencies {
-    implementation "io.modelcontextprotocol:kotlin-sdk:$mcpVersion"
-    implementation "org.slf4j:slf4j-nop:$slf4jVersion"
-    implementation "io.ktor:ktor-client-content-negotiation:$ktorVersion"
-    implementation "io.ktor:ktor-serialization-kotlinx-json:$ktorVersion"
-}
+```bash
+./gradlew build
 ```
 
-</CodeGroup>
-
-Also, add the following plugins to your build script:
-
-<CodeGroup>
-
-```kotlin build.gradle.kts
-plugins {
-    kotlin("plugin.serialization") version "your_version_of_kotlin"
-    id("com.gradleup.shadow") version "8.3.9"
-}
-```
-
-```groovy build.gradle
-plugins {
-    id 'org.jetbrains.kotlin.plugin.serialization' version 'your_version_of_kotlin'
-    id 'com.gradleup.shadow' version '8.3.9'
-}
-```
-
-</CodeGroup>
-
-Now let’s dive into building your server.
+Now let's dive into building your server.
 
 ## Building your server
 
@@ -1249,29 +1230,28 @@ Now let’s dive into building your server.
 Add a server initialization function:
 
 ```kotlin
-// Main function to run the MCP server
-fun `run mcp server`() {
-    // Create the MCP Server instance with a basic implementation
+fun runMcpServer() {
     val server = Server(
         Implementation(
-            name = "weather", // Tool name is "weather"
-            version = "1.0.0" // Version of the implementation
+            name = "weather",
+            version = "1.0.0",
         ),
         ServerOptions(
-            capabilities = ServerCapabilities(tools = ServerCapabilities.Tools(listChanged = true))
-        )
+            capabilities = ServerCapabilities(tools = ServerCapabilities.Tools(listChanged = true)),
+        ),
     )
 
-    // Create a transport using standard IO for server communication
+    // register tools on server here
+
     val transport = StdioServerTransport(
         System.`in`.asInput(),
-        System.out.asSink().buffered()
+        System.out.asSink().buffered(),
     )
 
     runBlocking {
-        server.connect(transport)
+        val session = server.createSession(transport)
         val done = Job()
-        server.onClose {
+        session.onClose {
             done.complete()
         }
         done.join()
@@ -1284,83 +1264,7 @@ fun `run mcp server`() {
 Next, let's add functions and data classes for querying and converting responses from the National Weather Service API:
 
 ```kotlin
-// Extension function to fetch forecast information for given latitude and longitude
-suspend fun HttpClient.getForecast(latitude: Double, longitude: Double): List<String> {
-    val points = this.get("/points/$latitude,$longitude").body<Points>()
-    val forecast = this.get(points.properties.forecast).body<Forecast>()
-    return forecast.properties.periods.map { period ->
-        """
-            ${period.name}:
-            Temperature: ${period.temperature} ${period.temperatureUnit}
-            Wind: ${period.windSpeed} ${period.windDirection}
-            Forecast: ${period.detailedForecast}
-        """.trimIndent()
-    }
-}
-
-// Extension function to fetch weather alerts for a given state
-suspend fun HttpClient.getAlerts(state: String): List<String> {
-    val alerts = this.get("/alerts/active/area/$state").body<Alert>()
-    return alerts.features.map { feature ->
-        """
-            Event: ${feature.properties.event}
-            Area: ${feature.properties.areaDesc}
-            Severity: ${feature.properties.severity}
-            Description: ${feature.properties.description}
-            Instruction: ${feature.properties.instruction}
-        """.trimIndent()
-    }
-}
-
-@Serializable
-data class Points(
-    val properties: Properties
-) {
-    @Serializable
-    data class Properties(val forecast: String)
-}
-
-@Serializable
-data class Forecast(
-    val properties: Properties
-) {
-    @Serializable
-    data class Properties(val periods: List<Period>)
-
-    @Serializable
-    data class Period(
-        val number: Int, val name: String, val startTime: String, val endTime: String,
-        val isDaytime: Boolean, val temperature: Int, val temperatureUnit: String,
-        val temperatureTrend: String, val probabilityOfPrecipitation: JsonObject,
-        val windSpeed: String, val windDirection: String,
-        val shortForecast: String, val detailedForecast: String,
-    )
-}
-
-@Serializable
-data class Alert(
-    val features: List<Feature>
-) {
-    @Serializable
-    data class Feature(
-        val properties: Properties
-    )
-
-    @Serializable
-    data class Properties(
-        val event: String, val areaDesc: String, val severity: String,
-        val description: String, val instruction: String?,
-    )
-}
-```
-
-### Implementing tool execution
-
-The tool execution handler is responsible for actually executing the logic of each tool. Let's add it:
-
-```kotlin
-// Create an HTTP client with a default request configuration and JSON content negotiation
-val httpClient = HttpClient {
+val httpClient = HttpClient(CIO) {
     defaultRequest {
         url("https://api.weather.gov")
         headers {
@@ -1369,62 +1273,133 @@ val httpClient = HttpClient {
         }
         contentType(ContentType.Application.Json)
     }
-    // Install content negotiation plugin for JSON serialization/deserialization
-    install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+    install(ContentNegotiation) {
+        json(Json { ignoreUnknownKeys = true })
+    }
 }
 
-// Register a tool to fetch weather alerts by state
+// Extension function to fetch weather alerts for a given state
+suspend fun HttpClient.getAlerts(state: String): List<String> {
+    val alerts = this.get("/alerts/active/area/$state").body<AlertsResponse>()
+    return alerts.features.map { feature ->
+        """
+            Event: ${feature.properties.event}
+            Area: ${feature.properties.areaDesc}
+            Severity: ${feature.properties.severity}
+            Status: ${feature.properties.status}
+            Headline: ${feature.properties.headline}
+        """.trimIndent()
+    }
+}
+
+// Extension function to fetch forecast information for given latitude and longitude
+suspend fun HttpClient.getForecast(latitude: Double, longitude: Double): List<String> {
+    val points = this.get("/points/$latitude,$longitude").body<PointsResponse>()
+    val forecastUrl = points.properties.forecast ?: error("No forecast URL available")
+    val forecast = this.get(forecastUrl).body<ForecastResponse>()
+    return forecast.properties.periods.map { period ->
+        """
+            ${period.name}:
+            Temperature: ${period.temperature}°${period.temperatureUnit}
+            Wind: ${period.windSpeed} ${period.windDirection}
+            ${period.shortForecast}
+        """.trimIndent()
+    }
+}
+
+@Serializable
+data class PointsResponse(val properties: PointsProperties)
+
+@Serializable
+data class PointsProperties(val forecast: String? = null)
+
+@Serializable
+data class ForecastResponse(val properties: ForecastProperties)
+
+@Serializable
+data class ForecastProperties(val periods: List<ForecastPeriod> = emptyList())
+
+@Serializable
+data class ForecastPeriod(
+    val name: String? = null,
+    val temperature: Int? = null,
+    val temperatureUnit: String? = null,
+    val windSpeed: String? = null,
+    val windDirection: String? = null,
+    val shortForecast: String? = null,
+)
+
+@Serializable
+data class AlertsResponse(val features: List<AlertFeature> = emptyList())
+
+@Serializable
+data class AlertFeature(val properties: AlertProperties)
+
+@Serializable
+data class AlertProperties(
+    val event: String? = null,
+    val areaDesc: String? = null,
+    val severity: String? = null,
+    val status: String? = null,
+    val headline: String? = null,
+)
+```
+
+### Implementing tool execution
+
+The tool execution handler is responsible for actually executing the logic of each tool. Let's add it:
+
+```kotlin
+// Register weather tools
+
 server.addTool(
     name = "get_alerts",
-    description = """
-        Get weather alerts for a US state. Input is Two-letter US state code (e.g. CA, NY)
-    """.trimIndent(),
-    inputSchema = Tool.Input(
+    description = "Get weather alerts for a US state. Input is a two-letter US state code (e.g. CA, NY)",
+    inputSchema = ToolSchema(
         properties = buildJsonObject {
             putJsonObject("state") {
                 put("type", "string")
                 put("description", "Two-letter US state code (e.g. CA, NY)")
             }
         },
-        required = listOf("state")
-    )
+        required = listOf("state"),
+    ),
 ) { request ->
-    val state = request.arguments["state"]?.jsonPrimitive?.content
-    if (state == null) {
-        return@addTool CallToolResult(
-            content = listOf(TextContent("The 'state' parameter is required."))
+    val state = request.arguments?.get("state")?.jsonPrimitive?.content
+        ?: return@addTool CallToolResult(
+            content = listOf(TextContent("The 'state' parameter is required.")),
         )
-    }
 
     val alerts = httpClient.getAlerts(state)
-
     CallToolResult(content = alerts.map { TextContent(it) })
 }
 
-// Register a tool to fetch weather forecast by latitude and longitude
 server.addTool(
     name = "get_forecast",
-    description = """
-        Get weather forecast for a specific latitude/longitude
-    """.trimIndent(),
-    inputSchema = Tool.Input(
+    description = "Get weather forecast for a location. Note: only US locations are supported by the NWS API.",
+    inputSchema = ToolSchema(
         properties = buildJsonObject {
-            putJsonObject("latitude") { put("type", "number") }
-            putJsonObject("longitude") { put("type", "number") }
+            putJsonObject("latitude") {
+                put("type", "number")
+                put("description", "Latitude of the location")
+            }
+            putJsonObject("longitude") {
+                put("type", "number")
+                put("description", "Longitude of the location")
+            }
         },
-        required = listOf("latitude", "longitude")
-    )
+        required = listOf("latitude", "longitude"),
+    ),
 ) { request ->
-    val latitude = request.arguments["latitude"]?.jsonPrimitive?.doubleOrNull
-    val longitude = request.arguments["longitude"]?.jsonPrimitive?.doubleOrNull
+    val latitude = request.arguments?.get("latitude")?.jsonPrimitive?.doubleOrNull
+    val longitude = request.arguments?.get("longitude")?.jsonPrimitive?.doubleOrNull
     if (latitude == null || longitude == null) {
         return@addTool CallToolResult(
-            content = listOf(TextContent("The 'latitude' and 'longitude' parameters are required."))
+            content = listOf(TextContent("The 'latitude' and 'longitude' parameters are required.")),
         )
     }
 
     val forecast = httpClient.getForecast(latitude, longitude)
-
     CallToolResult(content = forecast.map { TextContent(it) })
 }
 ```
@@ -1434,10 +1409,21 @@ server.addTool(
 Finally, implement the main function to run the server:
 
 ```kotlin
-fun main() = `run mcp server`()
+fun main() = runMcpServer()
 ```
 
-Make sure to run `./gradlew build` to build your server. This is a very important step in getting your server to connect.
+You can run the server directly during development:
+
+```bash
+./gradlew run
+```
+
+For production use, build the shadow JAR:
+
+```bash
+./gradlew build
+java -jar build/libs/weather-0.1.0-all.jar
+```
 
 Let's now test your server from an existing MCP host, Claude for Desktop.
 
@@ -1779,6 +1765,328 @@ This tells Claude for Desktop:
 1. There's an MCP server named "weather"
 2. Launch it by running `dotnet run /ABSOLUTE/PATH/TO/PROJECT`
    Save the file, and restart **Claude for Desktop**.
+
+</Tab>
+
+<Tab title='Ruby'>
+
+Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-ruby)
+
+### Prerequisite knowledge
+
+This quickstart assumes you have familiarity with:
+
+- Ruby
+- LLMs like Claude
+
+### Logging in MCP Servers
+
+When implementing MCP servers, be careful about how you handle logging:
+
+**For STDIO-based servers:** Never use `puts` or `print`, as they write to standard output (stdout) by default. Writing to stdout will corrupt the JSON-RPC messages and break your server.
+
+**For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
+
+### Best Practices
+
+- Use a logging library that writes to stderr or files.
+
+### Quick Examples
+
+```ruby
+# ❌ Bad (STDIO)
+puts "Processing request"
+
+# ✅ Good (STDIO)
+require "logger"
+logger = Logger.new($stderr)
+logger.info("Processing request")
+```
+
+### System requirements
+
+- Ruby 2.7 or higher installed.
+
+### Set up your environment
+
+First, let's make sure you have Ruby installed. You can check by running:
+
+```bash
+ruby --version
+```
+
+Now, let's create and set up our project:
+
+<CodeGroup>
+
+```bash macOS/Linux
+# Create a new directory for our project
+mkdir weather
+cd weather
+
+# Create a Gemfile
+bundle init
+
+# Add the MCP SDK dependency
+bundle add mcp
+
+# Install dependencies
+bundle install
+
+# Create our server file
+touch weather.rb
+```
+
+```powershell Windows
+# Create a new directory for our project
+mkdir weather
+cd weather
+
+# Create a Gemfile
+bundle init
+
+# Add the MCP SDK dependency
+bundle add mcp
+
+# Install dependencies
+bundle install
+
+# Create our server file
+new-item weather.rb
+```
+
+</CodeGroup>
+
+Now let's dive into building your server.
+
+## Building your server
+
+### Importing packages and setting up constants
+
+Open `weather.rb` and add these requires and constants at the top:
+
+```ruby
+require "json"
+require "mcp"
+require "net/http"
+require "uri"
+
+NWS_API_BASE = "https://api.weather.gov"
+USER_AGENT = "weather-app/1.0"
+```
+
+The `mcp` gem provides the Model Context Protocol SDK for Ruby, with classes for server implementation and stdio transport.
+
+### Helper methods
+
+Next, let's add helper methods for querying and formatting data from the National Weather Service API:
+
+```ruby
+module HelperMethods
+  def make_nws_request(url)
+    uri = URI(url)
+    request = Net::HTTP::Get.new(uri)
+    request["User-Agent"] = USER_AGENT
+    request["Accept"] = "application/geo+json"
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(request)
+    end
+
+    raise "HTTP #{response.code}: #{response.message}" unless response.is_a?(Net::HTTPSuccess)
+
+    JSON.parse(response.body)
+  end
+
+  def format_alert(feature)
+    properties = feature["properties"]
+
+    <<~ALERT
+      Event: #{properties["event"] || "Unknown"}
+      Area: #{properties["areaDesc"] || "Unknown"}
+      Severity: #{properties["severity"] || "Unknown"}
+      Description: #{properties["description"] || "No description available"}
+      Instructions: #{properties["instruction"] || "No specific instructions provided"}
+    ALERT
+  end
+end
+```
+
+### Implementing tool execution
+
+Now let's define our tool classes. Each tool subclasses `MCP::Tool` and implements the tool logic:
+
+```ruby
+class GetAlerts < MCP::Tool
+  extend HelperMethods
+
+  tool_name "get_alerts"
+  description "Get weather alerts for a US state"
+  input_schema(
+    properties: {
+      state: {
+        type: "string",
+        description: "Two-letter US state code (e.g. CA, NY)"
+      }
+    },
+    required: ["state"]
+  )
+
+  def self.call(state:)
+    url = "#{NWS_API_BASE}/alerts/active/area/#{state.upcase}"
+    data = make_nws_request(url)
+
+    if data["features"].empty?
+      return MCP::Tool::Response.new([{
+        type: "text",
+        text: "No active alerts for this state."
+      }])
+    end
+
+    alerts = data["features"].map { |feature| format_alert(feature) }
+    MCP::Tool::Response.new([{
+      type: "text",
+      text: alerts.join("\n---\n")
+    }])
+  end
+end
+
+class GetForecast < MCP::Tool
+  extend HelperMethods
+
+  tool_name "get_forecast"
+  description "Get weather forecast for a location"
+  input_schema(
+    properties: {
+      latitude: {
+        type: "number",
+        description: "Latitude of the location"
+      },
+      longitude: {
+        type: "number",
+        description: "Longitude of the location"
+      }
+    },
+    required: ["latitude", "longitude"]
+  )
+
+  def self.call(latitude:, longitude:)
+    # First get the forecast grid endpoint.
+    points_url = "#{NWS_API_BASE}/points/#{latitude},#{longitude}"
+    points_data = make_nws_request(points_url)
+
+    # Get the forecast URL from the points response.
+    forecast_url = points_data["properties"]["forecast"]
+    forecast_data = make_nws_request(forecast_url)
+
+    # Format the periods into a readable forecast.
+    periods = forecast_data["properties"]["periods"]
+    forecasts = periods.first(5).map do |period|
+      <<~FORECAST
+        #{period["name"]}:
+        Temperature: #{period["temperature"]}°#{period["temperatureUnit"]}
+        Wind: #{period["windSpeed"]} #{period["windDirection"]}
+        Forecast: #{period["detailedForecast"]}
+      FORECAST
+    end
+
+    MCP::Tool::Response.new([{
+      type: "text",
+      text: forecasts.join("\n---\n")
+    }])
+  end
+end
+```
+
+### Running the server
+
+Finally, initialize and run the server:
+
+```ruby
+server = MCP::Server.new(
+  name: "weather",
+  version: "1.0.0",
+  tools: [GetAlerts, GetForecast]
+)
+
+transport = MCP::Server::Transports::StdioTransport.new(server)
+transport.open
+```
+
+Your server is complete! Run `bundle exec ruby weather.rb` to start the MCP server, which will listen for messages from MCP hosts.
+
+Let's now test your server from an existing MCP host, Claude for Desktop.
+
+## Testing your server with Claude for Desktop
+
+<Note>
+
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+
+</Note>
+
+First, make sure you have Claude for Desktop installed. [You can install the latest version here.](https://claude.ai/download) If you already have Claude for Desktop, **make sure it's updated to the latest version.**
+
+We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
+
+For example, if you have [VS Code](https://code.visualstudio.com/) installed:
+
+<CodeGroup>
+
+```bash macOS/Linux
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+```powershell Windows
+code $env:AppData\Claude\claude_desktop_config.json
+```
+
+</CodeGroup>
+
+You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
+
+In this case, we'll add our single weather server like so:
+
+<CodeGroup>
+
+```json macOS/Linux
+{
+  "mcpServers": {
+    "weather": {
+      "command": "bundle",
+      "args": ["exec", "ruby", "weather.rb"],
+      "cwd": "/ABSOLUTE/PATH/TO/PARENT/FOLDER/weather"
+    }
+  }
+}
+```
+
+```json Windows
+{
+  "mcpServers": {
+    "weather": {
+      "command": "bundle",
+      "args": ["exec", "ruby", "weather.rb"],
+      "cwd": "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather"
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+
+Make sure you pass in the absolute path to your project directory in the `cwd` field. You can get this by running `pwd` on macOS/Linux or `cd` on Windows Command Prompt from your project directory. On Windows, remember to use double backslashes (`\\`) or forward slashes (`/`) in the JSON path.
+
+</Note>
+
+This tells Claude for Desktop:
+
+1. There's an MCP server named "weather"
+2. Launch it by running `bundle exec ruby weather.rb` in the specified directory
+
+Save the file, and restart **Claude for Desktop**.
 
 </Tab>
 
@@ -2194,6 +2502,451 @@ In this case, we'll add our single weather server like so:
   "mcpServers": {
     "weather": {
       "command": "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather\\target\\release\\weather.exe"
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+
+Make sure you pass in the absolute path to your compiled binary. You can get this by running `pwd` on macOS/Linux or `cd` on Windows Command Prompt from your project directory. On Windows, remember to use double backslashes (`\\`) or forward slashes (`/`) in the JSON path, and add the `.exe` extension.
+
+</Note>
+
+This tells Claude for Desktop:
+
+1. There's an MCP server named "weather"
+2. Launch it by running the compiled binary at the specified path
+
+Save the file, and restart **Claude for Desktop**.
+
+</Tab>
+
+<Tab title='Go'>
+
+Let's get started with building our weather server! [You can find the complete code for what we'll be building here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-go)
+
+### Prerequisite knowledge
+
+This quickstart assumes you have familiarity with:
+
+- Go
+- LLMs like Claude
+
+### Logging in MCP Servers
+
+When implementing MCP servers, be careful about how you handle logging:
+
+**For STDIO-based servers:** Never use `fmt.Println()` or `fmt.Printf()`, as they write to standard output (stdout). Writing to stdout will corrupt the JSON-RPC messages and break your server.
+
+**For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
+
+### Best Practices
+
+- Use `log.Println()` (which defaults to stderr) or a logging library that writes to stderr or files.
+- Use `fmt.Fprintf(os.Stderr, ...)` to write to stderr explicitly.
+
+### Quick Examples
+
+```go
+// ❌ Bad (STDIO)
+fmt.Println("Processing request")
+
+// ✅ Good (STDIO)
+log.Println("Processing request") // defaults to stderr
+
+// ✅ Good (STDIO)
+fmt.Fprintln(os.Stderr, "Processing request")
+```
+
+### System requirements
+
+- Go 1.24 or higher installed.
+
+### Set up your environment
+
+First, let's install Go if you haven't already. You can download and install Go from [go.dev](https://go.dev/dl/).
+
+Verify your Go installation:
+
+```bash
+go version
+```
+
+Now, let's create and set up our project:
+
+<CodeGroup>
+
+```bash macOS/Linux
+# Create a new directory for our project
+mkdir weather
+cd weather
+
+# Initialize Go module
+go mod init weather
+
+# Install dependencies
+go get github.com/modelcontextprotocol/go-sdk/mcp
+
+# Create our server file
+touch main.go
+```
+
+```powershell Windows
+# Create a new directory for our project
+md weather
+cd weather
+
+# Initialize Go module
+go mod init weather
+
+# Install dependencies
+go get github.com/modelcontextprotocol/go-sdk/mcp
+
+# Create our server file
+new-item main.go
+```
+
+</CodeGroup>
+
+Now let's dive into building your server.
+
+## Building your server
+
+### Importing packages and constants
+
+Add these to the top of your `main.go`:
+
+```go
+package main
+
+import (
+	"cmp"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
+
+const (
+	NWSAPIBase = "https://api.weather.gov"
+	UserAgent  = "weather-app/1.0"
+)
+```
+
+### Data structures
+
+Next, let's define the data structures used by our tools:
+
+```go
+type PointsResponse struct {
+	Properties struct {
+		Forecast string `json:"forecast"`
+	} `json:"properties"`
+}
+
+type ForecastResponse struct {
+	Properties struct {
+		Periods []ForecastPeriod `json:"periods"`
+	} `json:"properties"`
+}
+
+type ForecastPeriod struct {
+	Name             string `json:"name"`
+	Temperature      int    `json:"temperature"`
+	TemperatureUnit  string `json:"temperatureUnit"`
+	WindSpeed        string `json:"windSpeed"`
+	WindDirection    string `json:"windDirection"`
+	DetailedForecast string `json:"detailedForecast"`
+}
+
+type AlertsResponse struct {
+	Features []AlertFeature `json:"features"`
+}
+
+type AlertFeature struct {
+	Properties AlertProperties `json:"properties"`
+}
+
+type AlertProperties struct {
+	Event       string `json:"event"`
+	AreaDesc    string `json:"areaDesc"`
+	Severity    string `json:"severity"`
+	Description string `json:"description"`
+	Instruction string `json:"instruction"`
+}
+
+type ForecastInput struct {
+	Latitude  float64 `json:"latitude" jsonschema:"Latitude of the location"`
+	Longitude float64 `json:"longitude" jsonschema:"Longitude of the location"`
+}
+
+type AlertsInput struct {
+	State string `json:"state" jsonschema:"Two-letter US state code (e.g. CA, NY)"`
+}
+```
+
+### Helper functions
+
+Next, let's add our helper functions for querying and formatting the data from the National Weather Service API:
+
+```go
+func makeNWSRequest[T any](ctx context.Context, url string) (*T, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("Accept", "application/geo+json")
+
+	client := http.DefaultClient
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request to %s: %w", url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result T
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &result, nil
+}
+
+func formatAlert(alert AlertFeature) string {
+	props := alert.Properties
+	event := cmp.Or(props.Event, "Unknown")
+	areaDesc := cmp.Or(props.AreaDesc, "Unknown")
+	severity := cmp.Or(props.Severity, "Unknown")
+	description := cmp.Or(props.Description, "No description available")
+	instruction := cmp.Or(props.Instruction, "No specific instructions provided")
+
+	return fmt.Sprintf(`
+Event: %s
+Area: %s
+Severity: %s
+Description: %s
+Instructions: %s
+`, event, areaDesc, severity, description, instruction)
+}
+
+func formatPeriod(period ForecastPeriod) string {
+	return fmt.Sprintf(`
+%s:
+Temperature: %d°%s
+Wind: %s %s
+Forecast: %s
+`, period.Name, period.Temperature, period.TemperatureUnit,
+		period.WindSpeed, period.WindDirection, period.DetailedForecast)
+}
+```
+
+### Implementing tool execution
+
+The tool execution handler is responsible for actually executing the logic of each tool. Let's add it:
+
+```go
+func getForecast(ctx context.Context, req *mcp.CallToolRequest, input ForecastInput) (
+	*mcp.CallToolResult, any, error,
+) {
+	// Get points data
+	pointsURL := fmt.Sprintf("%s/points/%f,%f", NWSAPIBase, input.Latitude, input.Longitude)
+	pointsData, err := makeNWSRequest[PointsResponse](ctx, pointsURL)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "Unable to fetch forecast data for this location."},
+			},
+		}, nil, nil
+	}
+
+	// Get forecast data
+	forecastURL := pointsData.Properties.Forecast
+	if forecastURL == "" {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "Unable to fetch forecast URL."},
+			},
+		}, nil, nil
+	}
+
+	forecastData, err := makeNWSRequest[ForecastResponse](ctx, forecastURL)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "Unable to fetch detailed forecast."},
+			},
+		}, nil, nil
+	}
+
+	// Format the periods
+	periods := forecastData.Properties.Periods
+	if len(periods) == 0 {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "No forecast periods available."},
+			},
+		}, nil, nil
+	}
+
+	// Show next 5 periods
+	var forecasts []string
+	for i := range min(5, len(periods)) {
+		forecasts = append(forecasts, formatPeriod(periods[i]))
+	}
+
+	result := strings.Join(forecasts, "\n---\n")
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: result},
+		},
+	}, nil, nil
+}
+
+func getAlerts(ctx context.Context, req *mcp.CallToolRequest, input AlertsInput) (
+	*mcp.CallToolResult, any, error,
+) {
+	// Build alerts URL
+	stateCode := strings.ToUpper(input.State)
+	alertsURL := fmt.Sprintf("%s/alerts/active/area/%s", NWSAPIBase, stateCode)
+
+	alertsData, err := makeNWSRequest[AlertsResponse](ctx, alertsURL)
+	if err != nil {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "Unable to fetch alerts or no alerts found."},
+			},
+		}, nil, nil
+	}
+
+	// Check if there are any alerts
+	if len(alertsData.Features) == 0 {
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: "No active alerts for this state."},
+			},
+		}, nil, nil
+	}
+
+	// Format alerts
+	var alerts []string
+	for _, feature := range alertsData.Features {
+		alerts = append(alerts, formatAlert(feature))
+	}
+
+	result := strings.Join(alerts, "\n---\n")
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: result},
+		},
+	}, nil, nil
+}
+```
+
+### Running the server
+
+Finally, implement the main function to run the server:
+
+```go
+func main() {
+	// Create MCP server
+	server := mcp.NewServer(&mcp.Implementation{
+		Name:    "weather",
+		Version: "1.0.0",
+	}, nil)
+
+	// Add get_forecast tool
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_forecast",
+		Description: "Get weather forecast for a location",
+	}, getForecast)
+
+	// Add get_alerts tool
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_alerts",
+		Description: "Get weather alerts for a US state",
+	}, getAlerts)
+
+	// Run server on stdio transport
+	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+Build your server with:
+
+```bash
+go build -o weather .
+```
+
+The compiled binary will be in `./weather`.
+
+Let's now test your server from an existing MCP host, Claude for Desktop.
+
+## Testing your server with Claude for Desktop
+
+<Note>
+
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+
+</Note>
+
+First, make sure you have Claude for Desktop installed. [You can install the latest version here.](https://claude.ai/download) If you already have Claude for Desktop, **make sure it's updated to the latest version.**
+
+We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
+
+For example, if you have [VS Code](https://code.visualstudio.com/) installed:
+
+<CodeGroup>
+
+```bash macOS/Linux
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+```powershell Windows
+code $env:AppData\Claude\claude_desktop_config.json
+```
+
+</CodeGroup>
+
+You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
+
+In this case, we'll add our single weather server like so:
+
+<CodeGroup>
+
+```json macOS/Linux
+{
+  "mcpServers": {
+    "weather": {
+      "command": "/ABSOLUTE/PATH/TO/PARENT/FOLDER/weather/weather"
+    }
+  }
+}
+```
+
+```json Windows
+{
+  "mcpServers": {
+    "weather": {
+      "command": "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather\\weather.exe"
     }
   }
 }
