@@ -30,10 +30,11 @@ description: "Untitled"
 
 This SEP proposes **Transfer Descriptors**, a structured mechanism for MCP servers to negotiate out-of-band data transfers instead of passing large payloads inline through JSON-RPC. When a tool call would produce (or consume) a large payload, the server returns a Transfer Descriptor — a JSON object specifying the protocol, endpoint, authentication, format, and optionally a human-readable protocol description — and the actual data flows through the optimal channel (HTTP, S3 presigned URL, WebSocket, SSE, gRPC, filesystem, etc.).
 
-The proposal defines two levels of operation:
+The proposal defines three levels of operation:
 
 - **Level 1 (Descriptor)**: structured routing to a protocol the client already supports — deterministic, ~100 tokens.
-- **Level 2 (Description)**: the server describes the protocol in sufficient detail for a client LLM to generate and execute transfer code on the fly — enabling interoperability with protocols the client has never seen before.
+- **Level 1.5 (Cached Code)**: when a Level 2 transfer succeeds, the generated code is cached (keyed by a hash of the protocol description). Subsequent transfers with the same description replay the cached code — 0 tokens, deterministic, no LLM invocation.
+- **Level 2 (Description)**: the server describes the protocol in sufficient detail for a client LLM to generate and execute transfer code on the fly — enabling interoperability with protocols the client has never seen before. This is a one-time cost: the generated code is cached for future Level 1.5 replay.
 
 The analogy is **SDP in WebRTC**: SDP negotiates codecs, transport, and endpoints; media then flows peer-to-peer. Transfer Descriptors do the same for agent data transfer.
 
@@ -225,7 +226,28 @@ Client                         MCP Server                    Data Source
   │   { transfer_id, status: ok } │                              │
 ```
 
-#### 3.2 Level 2 Flow (Description)
+#### 3.2 Level 1.5 Flow (Cached Code)
+
+```
+Client                         Code Cache              Data Source
+  │                               │                        │
+  │── hash(description.text) ────>│                        │
+  │<── cached code ───────────────│  (cache hit)           │
+  │                               │                        │
+  │── execute in sandbox ─────────────────────────────────>│
+  │<── data ──────────────────────────────────────────────│
+```
+
+When a Level 2 transfer succeeds, the client SHOULD cache the generated code keyed by a hash (e.g., SHA-256 truncated to 16 chars) of `description.text`. On subsequent transfers with the same description:
+
+1. The client computes the hash of `description.text`.
+2. If a cache entry exists, the cached code is executed in the sandbox.
+3. If execution succeeds, the transfer is complete — no LLM invocation.
+4. If execution fails (e.g., the API has changed), the cache entry is invalidated and the client falls through to Level 2.
+
+Cache implementations MAY use in-memory storage (per-process) or shared storage (e.g., Redis with TTL) for cross-process cache sharing between agents.
+
+#### 3.3 Level 2 Flow (Description)
 
 ```
 Client                         MCP Server           LLM Engine         Data Source
@@ -244,7 +266,7 @@ Client                         MCP Server           LLM Engine         Data Sour
   │── tools/call (confirm) ──────>│                     │                   │
 ```
 
-#### 3.3 Negotiation with Fallback
+#### 3.4 Negotiation with Fallback
 
 When the client cannot handle the descriptor:
 
@@ -336,16 +358,19 @@ Transfer Descriptors could be implemented as a convention on tool result text (r
 3. **Fallback semantics**: the `inline`/`error` fallback mechanism requires protocol-level support.
 4. **Standardized confirmation**: `transfer/confirm` and `transfer/unable` as protocol methods enable proper lifecycle management.
 
-### Why Two Levels
+### Why Three Levels
 
-Level 1 is sufficient for well-known protocols — it's deterministic, cheap, and reliable. But the agent ecosystem has a long tail of APIs, custom protocols, and internal systems that no client can anticipate. Level 2 turns the LLM into a universal protocol adapter, trading determinism for universality.
+Level 1 is sufficient for well-known protocols — it's deterministic, cheap, and reliable. But the agent ecosystem has a long tail of APIs, custom protocols, and internal systems that no client can anticipate. Level 2 turns the LLM into a universal protocol adapter, trading determinism for universality. Level 1.5 bridges the gap: after a single Level 2 invocation, the generated code is cached and replayed for all subsequent transfers with the same protocol description — amortizing the LLM cost to zero over time.
 
-The two levels form a natural fallback chain:
+The three levels form a natural fallback chain:
 
-1. Try Level 1 — if the client supports the protocol, done.
-2. Try Level 2 high-level — "use library X".
-3. Try Level 2 full — teach from scratch.
-4. Fall back to inline.
+1. Try Level 1 — if the client natively supports the protocol, done. 0 tokens.
+2. Try Level 1.5 — if cached code exists for this description, replay it. 0 tokens.
+3. Try Level 2 high-level — "use library X". ~2K tokens, one-time cost.
+4. Try Level 2 full — teach from scratch. ~5–10K tokens, one-time cost.
+5. Fall back to inline.
+
+The cost curve is steep at first (Level 2 generates code) then flat (Level 1.5 replays it). In practice, most transfers after the first invocation cost 0 tokens.
 
 ### Why Not Use ANP's Approach
 
@@ -468,15 +493,17 @@ All three scenarios complete successfully, producing correct data with zero pre-
 
 1. **Capability negotiation granularity**: Should protocol support be declared per-protocol (`"https": true`) or as a simple list? Should the server be able to query client capabilities per-request?
 
-2. **Descriptor caching**: For Level 2, should the client cache generated code keyed by a hash of the description? This would avoid re-generating code for repeated transfers to the same protocol.
+2. **Code cache invalidation**: Level 1.5 caches generated code keyed by a hash of `description.text`. When should cached code be invalidated? Options: TTL-based (e.g., 7 days), on execution failure (current approach), or explicit invalidation via a new `transfer/invalidate_cache` method.
 
-3. **Multi-step transfers**: Some transfers require multiple round-trips (OAuth token exchange → signed request → paginated fetch). Should the descriptor support a `steps` array, or is the description text sufficient?
+3. **Cross-agent cache sharing**: Should Level 1.5 cache be shareable between agents? A shared cache (e.g., Redis) means Agent B benefits from Agent A's Level 2 generation without any LLM cost. The reference implementation supports this via `RedisCodeCache`. Should the spec recommend shared caching?
 
-4. **Bidirectional negotiation**: This SEP is server-driven. Should there be a client-initiated flow where the client describes its preferred receive channels?
+4. **Multi-step transfers**: Some transfers require multiple round-trips (OAuth token exchange → signed request → paginated fetch). Should the descriptor support a `steps` array, or is the description text sufficient?
 
-5. **Relation to Tasks (SEP-1686)**: How should Transfer Descriptors interact with the Tasks primitive? Should a Task be able to emit Transfer Descriptors as progress events?
+5. **Bidirectional negotiation**: This SEP is server-driven. Should there be a client-initiated flow where the client describes its preferred receive channels?
 
-6. **Level 2 conformance**: What are the minimum sandbox requirements for a client to claim Level 2 support? Should there be a conformance test suite?
+6. **Relation to Tasks (SEP-1686)**: How should Transfer Descriptors interact with the Tasks primitive? Should a Task be able to emit Transfer Descriptors as progress events?
+
+7. **Level 2 conformance**: What are the minimum sandbox requirements for a client to claim Level 2 support? Should there be a conformance test suite?
 
 ## Acknowledgments
 
