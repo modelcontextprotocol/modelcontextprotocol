@@ -233,16 +233,16 @@ resource metadata), clients **MUST NOT** reuse client credentials
 from a different authorization server and **MUST** re-register
 with the new authorization server.
 
-Client IDs based on Client ID Metadata Documents are portable
-across authorization servers, since they are self-hosted HTTPS URLs
-resolved by the authorization server on demand. No re-registration
-is needed when the authorization server changes.
-
 Pre-registered credentials are inherently specific to a particular
 authorization server. If the authorization server indicated by
 protected resource metadata no longer matches the one the
 credentials were registered with, clients **SHOULD** surface an
 error rather than silently attempting to use mismatched credentials.
+
+Client IDs based on Client ID Metadata Documents are portable
+across authorization servers, since they are self-hosted HTTPS URLs
+resolved by the authorization server on demand. No re-registration
+is needed when the authorization server changes.
 
 ### Client ID Metadata Documents
 
