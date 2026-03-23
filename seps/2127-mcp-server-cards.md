@@ -189,7 +189,7 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
 0. **$schema** (string, required): The Server Card JSON schema URI that evolves in-place per major version iteration
 1. **name** (string, required): Server name in reverse-DNS format. Must contain exactly one forward slash separating namespace from server name.
 2. **version** (string, required): Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.\*').
-3. **description** (string, optional): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
+3. **description** (string, required): Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
 4. **title** (string, optional): Optional human-readable title or display name for the MCP server.
 5. **websiteUrl** (string, optional): Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
 6. **repository** (object, optional): Repository metadata for the MCP server source code. [See details](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/server.schema.json#L371).
@@ -200,7 +200,7 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
       1. **required** (boolean, required): Whether authentication is mandatory
       2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
    3. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
-9. **capabilities** (object, required): Server capabilities following `ServerCapabilities`
+9. **capabilities** (object, optional): Server capabilities following `ServerCapabilities`
    1. **experimental** (object, optional): Experimental capabilities
    2. **logging** (object, optional): Log message support
    3. **completions** (object, optional): Argument autocompletion support
@@ -301,20 +301,9 @@ See above for the rest.
 
 ### Endpoints
 
-MCP Server Cards can be provided through multiple endpoints. All endpoints are optional, but at least one endpoint is recommended for servers that wish to support discovery.
+MCP Server Cards supporting HTTP-based transports (including Streamable HTTP and SSE) _SHOULD_ provide a server card via a .well-known URI.
 
-- All MCP Servers _SHOULD_ provide server cards via an MCP resource.
-- MCP servers supporting HTTP-based transports (including Streamable HTTP and SSE) _SHOULD_ provide a server card via a .well-known URI.
-
-#### MCP Resource
-
-Servers SHOULD provide their server card as an MCP resource with:
-
-- **URI**: `mcp://server-card.json`
-- **MIME type**: `application/json`
-- **Resource type**: Static resource containing the server card JSON
-
-This enables clients to discover server metadata after establishing an MCP connection, without requiring HTTP access.
+Local, stdio-based servers should plan to distribute via `server.json` and the MCP Registry.
 
 #### .well-known URI
 
@@ -350,10 +339,6 @@ Servers MAY include cache headers for the discovery document:
 ```
 Cache-Control: public, max-age=3600
 ```
-
-#### Registry
-
-The registry should expose the MCP Server Card for a given registry entry.
 
 ### Other Considered Endpoints
 
