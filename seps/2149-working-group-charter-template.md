@@ -1,6 +1,6 @@
 # SEP-2149: MCP Group Governance and Charter Template
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Process
 - **Created**: 2025-01-15
 - **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
