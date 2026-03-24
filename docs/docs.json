@@ -446,7 +446,8 @@
               "community/governance",
               "community/contributor-ladder",
               "community/sdk-tiers",
-              "community/antitrust"
+              "community/antitrust",
+              "community/triggers-events/charter"
             ]
           },
           {
