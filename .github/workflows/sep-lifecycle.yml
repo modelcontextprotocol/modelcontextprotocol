@@ -32,6 +32,7 @@ jobs:
       contains(github.event.issue.title, 'SEP') ||
       contains(github.event.pull_request.title, 'SEP')
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
       issue_number: ${{ steps.check.outputs.issue_number }}
@@ -103,7 +104,7 @@ jobs:
           LOG_LEVEL: info
 
       - name: Upload logs
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: automation-logs-${{ github.run_id }}

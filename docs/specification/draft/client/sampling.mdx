@@ -4,8 +4,6 @@ title: Sampling
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: draft</Info>
-
 The Model Context Protocol (MCP) provides a standardized way for servers to request LLM
 sampling ("completions" or "generations") from language models via clients. This flow
 allows clients to maintain control over model access, selection, and permissions while
@@ -32,6 +30,20 @@ Applications **SHOULD**:
 - Provide UI that makes it easy and intuitive to review sampling requests
 - Allow users to view and edit prompts before sending
 - Present generated responses for review before delivery
+
+</Warning>
+
+<Warning>
+
+**Request Association Requirement**
+
+Servers **MUST** send `sampling/createMessage` requests only in association with an
+originating client request (e.g., during `tools/call`, `resources/read`, or
+`prompts/get` processing).
+
+Standalone server-initiated sampling on independent communication streams (unrelated
+to any client request) is not supported and **MUST NOT** be implemented. Future
+transport implementations are not required to support this pattern.
 
 </Warning>
 
@@ -659,6 +671,7 @@ Clients **SHOULD** return errors for common failure cases:
 - User rejected sampling request: `-1`
 - Tool result missing in request: `-32602` (Invalid params)
 - Tool results mixed with other content: `-32602` (Invalid params)
+- Sampling request not associated with a client-to-server request: `-32602` (Invalid params)
 
 Example errors:
 

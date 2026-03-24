@@ -686,7 +686,7 @@ Chorus is a native Mac app for chatting with AIs. Chat with multiple models at o
 <McpClient
   name="Claude Code"
   homepage="https://claude.com/product/claude-code"
-  supports="Resources, Prompts, Tools, Roots, Instructions, Discovery, DCR"
+  supports="Resources, Prompts, Tools, Roots, Elicitation, Instructions, Discovery, DCR"
   instructions="https://code.claude.com/docs/en/mcp"
 >
 
@@ -702,7 +702,7 @@ Claude Code is an interactive agentic coding tool from Anthropic that helps you 
 <McpClient
   name="Claude Desktop App"
   homepage="https://claude.ai/download"
-  supports="Resources, Prompts, Tools, Apps, DCR"
+  supports="Resources, Prompts, Tools, Roots, Apps, DCR"
   instructions={[
     ["Local servers", "https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop"],
     ["Remote servers", "https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp"]
@@ -723,7 +723,7 @@ Claude Desktop provides comprehensive support for MCP, enabling deep integration
 <McpClient
   name="Claude.ai"
   homepage="https://claude.ai"
-  supports="Resources, Prompts, Tools, CIMD, DCR"
+  supports="Resources, Prompts, Tools, Apps, CIMD, DCR"
 >
 
 Claude.ai is Anthropic's web-based AI assistant that provides MCP support for remote servers.
@@ -796,17 +796,18 @@ Codex is a lightweight AI-powered coding agent from OpenAI that runs in your ter
 <McpClient
   name="Continue"
   homepage="https://github.com/continuedev/continue"
-  supports="Resources, Prompts, Tools"
+  supports="Resources, Prompts, Tools, Apps"
   instructions="https://docs.continue.dev/customize/deep-dives/mcp"
 >
 
-Continue is an open-source AI code assistant, with built-in support for all MCP features.
+Continue is an open-source AI code assistant, with built-in support for MCP Tools, Resource, Prompts, and Apps
 
 **Key features:**
 
 - Type "@" to mention MCP resources
 - Prompt templates surface as slash commands
 - Use both built-in and MCP tools directly in chat
+- Limited MCP Apps support for displaying MCP UIs
 - Supports VS Code and JetBrains IDEs, with any LLM
 
 </McpClient>
@@ -1055,7 +1056,7 @@ Glama is a comprehensive AI workspace and integration platform that offers a uni
 <McpClient
   name="goose"
   homepage="https://github.com/block/goose"
-  supports="Resources, Prompts, Tools, Sampling, Elicitation, Instructions, Apps"
+  supports="Apps, DCR, Discovery, Elicitation, Instructions, Prompts, Resources, Roots, Sampling, Tools"
   instructions="https://block.github.io/goose/docs/getting-started/using-extensions/"
 >
 
@@ -1177,6 +1178,25 @@ Junie is JetBrains' AI coding agent for JetBrains IDEs and Android Studio.
 - Connects to MCP servers over **stdio** to use external tools and data sources.
 - Per-command approval with an optional allowlist.
 - Config via `mcp.json` (global `~/.junie/mcp.json` or project `.junie/mcp/`).
+
+</McpClient>
+
+<McpClient
+  name="Joey"
+  homepage="https://benkaiser.github.io/joey-mcp-client/"
+  sourceCode="https://github.com/benkaiser/joey-mcp-client"
+  supports="Prompts, Tools, Sampling, Elicitation, Apps"
+>
+
+Joey is a mobile-first MCP client for **iOS and Android** (also available on macOS, Windows, and Linux) that connects to AI models via OpenRouter and remote MCP servers over Streamable HTTP.
+
+**Key features:**
+
+- **Mobile MCP support** — use MCP servers directly from your phone or tablet on iOS and Android.
+- Connects to remote MCP servers over **Streamable HTTP** with OAuth support.
+- Supports multiple MCP servers per conversation with tool calling.
+- MCP sampling and elicitation support for interactive server-initiated workflows.
+- Image and audio attachments with SSE streaming responses.
 
 </McpClient>
 

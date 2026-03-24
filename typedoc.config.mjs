@@ -10,6 +10,7 @@ const config = {
     "@maximum",
     "@minimum",
     "@TJS-type",
+    "@maxItems",
   ],
   jsDocCompatibility: {
     exampleTag: false,
