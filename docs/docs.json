@@ -27,7 +27,9 @@
         "pages": [
           {
             "group": "Get started",
-            "pages": ["docs/getting-started/intro"]
+            "pages": [
+              "docs/getting-started/intro"
+            ]
           },
           {
             "group": "About MCP",
@@ -57,11 +59,16 @@
           },
           {
             "group": "Developer tools",
-            "pages": ["docs/tools/inspector"]
+            "pages": [
+              "docs/tools/inspector"
+            ]
           },
           {
             "group": "Examples",
-            "pages": ["clients", "examples"]
+            "pages": [
+              "clients",
+              "examples"
+            ]
           }
         ]
       },
@@ -72,7 +79,10 @@
           "extensions/client-matrix",
           {
             "group": "MCP Apps",
-            "pages": ["extensions/apps/overview", "extensions/apps/build"]
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
           },
           {
             "group": "Authorization Extensions",
@@ -360,7 +370,9 @@
           },
           {
             "group": "Consuming",
-            "pages": ["registry/registry-aggregators"]
+            "pages": [
+              "registry/registry-aggregators"
+            ]
           },
           "registry/terms-of-service"
         ]
@@ -409,7 +421,9 @@
           },
           {
             "group": "Draft",
-            "pages": ["seps/2028-meta-http-header-forwarding"]
+            "pages": [
+              "seps/2028-meta-http-header-forwarding"
+            ]
           }
         ]
       },
@@ -427,7 +441,10 @@
           },
           {
             "group": "Propose Changes",
-            "pages": ["community/design-principles", "community/sep-guidelines"]
+            "pages": [
+              "community/design-principles",
+              "community/sep-guidelines"
+            ]
           },
           {
             "group": "Governance",
@@ -440,7 +457,9 @@
           },
           {
             "group": "Roadmap",
-            "pages": ["development/roadmap"]
+            "pages": [
+              "development/roadmap"
+            ]
           }
         ]
       }
@@ -582,6 +601,9 @@
     }
   ],
   "contextual": {
-    "options": ["copy", "view"]
+    "options": [
+      "copy",
+      "view"
+    ]
   }
 }
