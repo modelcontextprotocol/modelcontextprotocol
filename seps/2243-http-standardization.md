@@ -31,9 +31,9 @@ By exposing key fields in HTTP headers, we enable standard network infrastructur
 
 The Streamable HTTP transport will require POST requests to include the following headers mirrored from the request body:
 
-| Header Name  | Source Field               | Required For                                          |
-| ------------ | -------------------------- | ----------------------------------------------------- |
-| `Mcp-Method` | `method`                   | All requests                                          |
+| Header Name  | Source Field                  | Required For                                           |
+| ------------ | ----------------------------- | ------------------------------------------------------ |
+| `Mcp-Method` | `method`                      | All requests                                           |
 | `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
 
 These headers are **required** for compliance with the MCP version in which they are introduced.
@@ -399,12 +399,12 @@ The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded
 
 **Examples**:
 
-| Original Value | Reason | Encoded Header Value |
-|----------------|--------|---------------------|
-| `"us-west1"` | Plain ASCII | `Mcp-Param-Region: us-west1` |
-| `"Hello, 世界"` | Contains non-ASCII | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
-| `" padded "` | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=` |
-| `"line1\nline2"` | Contains newline | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=` |
+| Original Value   | Reason                  | Encoded Header Value                                  |
+| ---------------- | ----------------------- | ----------------------------------------------------- |
+| `"us-west1"`     | Plain ASCII             | `Mcp-Param-Region: us-west1`                          |
+| `"Hello, 世界"`  | Contains non-ASCII      | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "`     | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
+| `"line1\nline2"` | Contains newline        | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
 
 #### Client Behavior
 
@@ -426,8 +426,8 @@ Any server that processes the message body (not simply forwarding it) MUST valid
 
 When rejecting a request due to header validation failure, servers MUST return a JSON-RPC error response with the following error code:
 
-| Code | Name | Description |
-|------|------|-------------|
+| Code     | Name             | Description                                                                                                            |
+| -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
 
 This error code is in the JSON-RPC implementation-defined server error range (`-32000` to `-32099`).
@@ -458,12 +458,12 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
 
 Custom headers (those defined via `x-mcp-header`) follow the same validation rules as standard headers:
 
-| Scenario | Client Behavior | Server Behavior |
-|----------|-----------------|-----------------|
-| Parameter value provided | Client MUST include the header | Server MUST validate header matches body |
-| Parameter value is `null` | Client MUST omit the header | Server MUST NOT expect the header |
-| Parameter not in arguments | Client MUST omit the header | Server MUST NOT expect the header |
-| Client omits header but value is in body | Non-conforming client | Server MUST reject the request |
+| Scenario                                 | Client Behavior                | Server Behavior                          |
+| ---------------------------------------- | ------------------------------ | ---------------------------------------- |
+| Parameter value provided                 | Client MUST include the header | Server MUST validate header matches body |
+| Parameter value is `null`                | Client MUST omit the header    | Server MUST NOT expect the header        |
+| Parameter not in arguments               | Client MUST omit the header    | Server MUST NOT expect the header        |
+| Client omits header but value is in body | Non-conforming client          | Server MUST reject the request           |
 
 When rejecting requests due to missing or invalid custom headers, the server MUST return HTTP status `400 Bad Request` with JSON-RPC error code `-32001` (`HeaderMismatch`).
 
@@ -488,13 +488,13 @@ This proposal mirrors request data into headers rather than encoding it in the U
 
 **Trade-offs and Framework Considerations**:
 
-| Framework | Header-based Routing | Path-based Routing |
-|-----------|---------------------|-------------------|
-| Flask (Python) | Requires middleware or decorators to extract headers before routing | Native support via `@app.route('/mcp/<method>')` |
-| Express (Node.js) | Easy via `req.headers` but requires custom routing logic | Native support via `app.post('/mcp/:method')` |
-| Django (Python) | Requires custom middleware | Native URL patterns |
-| Go (net/http) | Easy via `r.Header.Get()` | Native via path patterns |
-| ASP.NET Core | Easy via `[FromHeader]` attribute | Native via route templates |
+| Framework         | Header-based Routing                                                | Path-based Routing                               |
+| ----------------- | ------------------------------------------------------------------- | ------------------------------------------------ |
+| Flask (Python)    | Requires middleware or decorators to extract headers before routing | Native support via `@app.route('/mcp/<method>')` |
+| Express (Node.js) | Easy via `req.headers` but requires custom routing logic            | Native support via `app.post('/mcp/:method')`    |
+| Django (Python)   | Requires custom middleware                                          | Native URL patterns                              |
+| Go (net/http)     | Easy via `r.Header.Get()`                                           | Native via path patterns                         |
+| ASP.NET Core      | Easy via `[FromHeader]` attribute                                   | Native via route templates                       |
 
 For frameworks like Flask that strongly favor path-based routing, implementing header-based routing requires additional code:
 
@@ -577,12 +577,12 @@ Four approaches were considered for encoding parameter values that cannot be saf
 
 4. **Always encode**: Base64-encode every `Mcp-Param-{Name}` value unconditionally.
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| Sentinel wrapping | Single header name per parameter; common case (plain ASCII) is human-readable; intermediaries can route on plain values without decoding | In-band signaling can theoretically collide with literal values; every reader must check for the prefix |
-| Separate header name | No in-band ambiguity; encoding is self-documenting from the header name | Doubles the header namespace; every intermediary must check two header names per parameter; needs a conflict rule if both are present |
-| Implicit encoding | Simplest wire format; no sentinels or extra headers | Intermediaries need access to the tool schema to know whether to decode — defeats the purpose of exposing values in headers; static per-parameter decision doesn't handle the mixed case well |
-| Always encode | Simplest rules; no conditional logic or ambiguity | Plain ASCII values become unreadable; intermediaries must decode Base64 to inspect any value, significantly undermining the core motivation of this SEP |
+| Approach             | Pros                                                                                                                                     | Cons                                                                                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sentinel wrapping    | Single header name per parameter; common case (plain ASCII) is human-readable; intermediaries can route on plain values without decoding | In-band signaling can theoretically collide with literal values; every reader must check for the prefix                                                                                       |
+| Separate header name | No in-band ambiguity; encoding is self-documenting from the header name                                                                  | Doubles the header namespace; every intermediary must check two header names per parameter; needs a conflict rule if both are present                                                         |
+| Implicit encoding    | Simplest wire format; no sentinels or extra headers                                                                                      | Intermediaries need access to the tool schema to know whether to decode — defeats the purpose of exposing values in headers; static per-parameter decision doesn't handle the mixed case well |
+| Always encode        | Simplest rules; no conditional logic or ambiguity                                                                                        | Plain ASCII values become unreadable; intermediaries must decode Base64 to inspect any value, significantly undermining the core motivation of this SEP                                       |
 
 **Conclusion**: The sentinel wrapping approach provides the best trade-off. The primary use case for custom headers is enabling intermediaries to route and filter on simple, readable values like region names and tenant IDs — these are invariably plain ASCII and never trigger Base64 encoding. Option 4 makes all values opaque to intermediaries. Option 3 leaves intermediaries unable to distinguish encoded from literal values without access to the tool schema. Option 2 eliminates in-band ambiguity but doubles the header namespace, requiring intermediaries to check two possible header names per parameter and adding a conflict rule when both are present. The theoretical collision risk of the sentinel in Option 1 is negligible since `=?base64?...?=` is an unlikely literal parameter value in practice.
 
@@ -644,105 +644,105 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 #### Case Sensitivity
 
-| Test Case | Input | Expected Behavior |
-|-----------|-------|-------------------|
+| Test Case                  | Input                    | Expected Behavior                                      |
+| -------------------------- | ------------------------ | ------------------------------------------------------ |
 | Header name case variation | `mcp-method: tools/call` | Server MUST accept (header names are case-insensitive) |
-| Header name mixed case | `MCP-METHOD: tools/call` | Server MUST accept |
-| Method value case | `Mcp-Method: TOOLS/CALL` | Server MUST reject (method values are case-sensitive) |
+| Header name mixed case     | `MCP-METHOD: tools/call` | Server MUST accept                                     |
+| Method value case          | `Mcp-Method: TOOLS/CALL` | Server MUST reject (method values are case-sensitive)  |
 
 #### Header/Body Mismatch
 
-| Test Case | Header Value | Body Value | Expected Behavior |
-|-----------|--------------|------------|-------------------|
-| Method mismatch | `Mcp-Method: tools/call` | `"method": "prompts/get"` | Server MUST reject with 400 and error code `-32001` |
-| Tool name mismatch | `Mcp-Name: foo` | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32001` |
-| Missing required header | (no `Mcp-Method`) | Valid body | Server MUST reject with 400 and error code `-32001` |
-| Extra whitespace in header | `Mcp-Name:  foo ` | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec) |
+| Test Case                  | Header Value             | Body Value                  | Expected Behavior                                   |
+| -------------------------- | ------------------------ | --------------------------- | --------------------------------------------------- |
+| Method mismatch            | `Mcp-Method: tools/call` | `"method": "prompts/get"`   | Server MUST reject with 400 and error code `-32001` |
+| Tool name mismatch         | `Mcp-Name: foo`          | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32001` |
+| Missing required header    | (no `Mcp-Method`)        | Valid body                  | Server MUST reject with 400 and error code `-32001` |
+| Extra whitespace in header | `Mcp-Name:  foo `        | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec)  |
 
 #### Special Characters in Values
 
-| Test Case | Value | Expected Behavior |
-|-----------|-------|-------------------|
-| Tool name with hyphen | `my-tool-name` | Client sends as-is; server accepts |
-| Tool name with underscore | `my_tool_name` | Client sends as-is; server accepts |
-| Resource URI with special chars | `file:///path/to/file%20name.txt` | Client sends as-is; server accepts |
-| Resource URI with query string | `https://example.com/resource?id=123` | Client sends as-is; server accepts |
+| Test Case                       | Value                                 | Expected Behavior                  |
+| ------------------------------- | ------------------------------------- | ---------------------------------- |
+| Tool name with hyphen           | `my-tool-name`                        | Client sends as-is; server accepts |
+| Tool name with underscore       | `my_tool_name`                        | Client sends as-is; server accepts |
+| Resource URI with special chars | `file:///path/to/file%20name.txt`     | Client sends as-is; server accepts |
+| Resource URI with query string  | `https://example.com/resource?id=123` | Client sends as-is; server accepts |
 
 ### Custom Header Edge Cases
 
 #### x-mcp-header Name Conflicts
 
-| Test Case | Schema | Expected Behavior |
-|-----------|--------|-------------------|
-| Duplicate header names (same case) | Two properties with `"x-mcp-header": "Region"` | Client MUST reject tool definition |
+| Test Case                               | Schema                                                    | Expected Behavior                                                |
+| --------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| Duplicate header names (same case)      | Two properties with `"x-mcp-header": "Region"`            | Client MUST reject tool definition                               |
 | Duplicate header names (different case) | `"x-mcp-header": "Region"` and `"x-mcp-header": "REGION"` | Client MUST reject tool definition (case-insensitive uniqueness) |
-| Header name matches standard header | `"x-mcp-header": "Method"` | Allowed (produces `Mcp-Param-Method`, not `Mcp-Method`) |
-| Empty header name | `"x-mcp-header": ""` | Client MUST reject tool definition |
+| Header name matches standard header     | `"x-mcp-header": "Method"`                                | Allowed (produces `Mcp-Param-Method`, not `Mcp-Method`)          |
+| Empty header name                       | `"x-mcp-header": ""`                                      | Client MUST reject tool definition                               |
 
 #### Invalid x-mcp-header Values
 
-| Test Case | x-mcp-header Value | Expected Behavior |
-|-----------|-------------------|-------------------|
-| Contains space | `"x-mcp-header": "My Region"` | Client MUST reject tool definition |
-| Contains colon | `"x-mcp-header": "Region:Primary"` | Client MUST reject tool definition |
-| Contains non-ASCII | `"x-mcp-header": "Région"` | Client MUST reject tool definition |
-| Contains control character | `"x-mcp-header": "Region\t1"` | Client MUST reject tool definition |
+| Test Case                  | x-mcp-header Value                 | Expected Behavior                  |
+| -------------------------- | ---------------------------------- | ---------------------------------- |
+| Contains space             | `"x-mcp-header": "My Region"`      | Client MUST reject tool definition |
+| Contains colon             | `"x-mcp-header": "Region:Primary"` | Client MUST reject tool definition |
+| Contains non-ASCII         | `"x-mcp-header": "Région"`         | Client MUST reject tool definition |
+| Contains control character | `"x-mcp-header": "Region\t1"`      | Client MUST reject tool definition |
 
 #### Value Encoding Edge Cases
 
-| Test Case | Parameter Value | Expected Header Value |
-|-----------|-----------------|----------------------|
-| Plain ASCII string | `"us-west1"` | `Mcp-Param-Region: us-west1` |
-| String with leading space | `" us-west1"` | `Mcp-Param-Region: =?base64?IHVzLXdlc3Qx?=` |
-| String with trailing space | `"us-west1 "` | `Mcp-Param-Region: =?base64?dXMtd2VzdDEg?=` |
-| String with leading/trailing spaces | `" us-west1 "` | `Mcp-Param-Region: =?base64?IHVzLXdlc3QxIA==?=` |
-| String with internal spaces only | `"us west 1"` | `Mcp-Param-Region: us west 1` |
-| Boolean true | `true` | `Mcp-Param-Flag: true` |
-| Boolean false | `false` | `Mcp-Param-Flag: false` |
-| Integer | `42` | `Mcp-Param-Count: 42` |
-| Floating point | `3.14159` | `Mcp-Param-Value: 3.14159` |
-| Non-ASCII characters | `"日本語"` | `Mcp-Param-Text: =?base64?5pel5pys6Kqe?=` |
-| String with newline | `"line1\nline2"` | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=` |
-| String with carriage return | `"line1\r\nline2"` | `Mcp-Param-Text: =?base64?bGluZTENCmxpbmUy?=` |
-| String with leading tab | `"\tindented"` | `Mcp-Param-Text: =?base64?CWluZGVudGVk?=` |
-| Empty string | `""` | `Mcp-Param-Name: ` (empty value) |
+| Test Case                           | Parameter Value    | Expected Header Value                           |
+| ----------------------------------- | ------------------ | ----------------------------------------------- |
+| Plain ASCII string                  | `"us-west1"`       | `Mcp-Param-Region: us-west1`                    |
+| String with leading space           | `" us-west1"`      | `Mcp-Param-Region: =?base64?IHVzLXdlc3Qx?=`     |
+| String with trailing space          | `"us-west1 "`      | `Mcp-Param-Region: =?base64?dXMtd2VzdDEg?=`     |
+| String with leading/trailing spaces | `" us-west1 "`     | `Mcp-Param-Region: =?base64?IHVzLXdlc3QxIA==?=` |
+| String with internal spaces only    | `"us west 1"`      | `Mcp-Param-Region: us west 1`                   |
+| Boolean true                        | `true`             | `Mcp-Param-Flag: true`                          |
+| Boolean false                       | `false`            | `Mcp-Param-Flag: false`                         |
+| Integer                             | `42`               | `Mcp-Param-Count: 42`                           |
+| Floating point                      | `3.14159`          | `Mcp-Param-Value: 3.14159`                      |
+| Non-ASCII characters                | `"日本語"`         | `Mcp-Param-Text: =?base64?5pel5pys6Kqe?=`       |
+| String with newline                 | `"line1\nline2"`   | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`   |
+| String with carriage return         | `"line1\r\nline2"` | `Mcp-Param-Text: =?base64?bGluZTENCmxpbmUy?=`   |
+| String with leading tab             | `"\tindented"`     | `Mcp-Param-Text: =?base64?CWluZGVudGVk?=`       |
+| Empty string                        | `""`               | `Mcp-Param-Name: ` (empty value)                |
 
 #### Type Restriction Violations
 
-| Test Case | Property Type | x-mcp-header Present | Expected Behavior |
-|-----------|---------------|---------------------|-------------------|
-| Array type | `"type": "array"` | Yes | Server MUST reject tool definition |
-| Object type | `"type": "object"` | Yes | Server MUST reject tool definition |
-| Null type | `"type": "null"` | Yes | Server MUST reject tool definition |
-| Nested property | Property inside object | Yes | Server MUST reject tool definition |
+| Test Case       | Property Type          | x-mcp-header Present | Expected Behavior                  |
+| --------------- | ---------------------- | -------------------- | ---------------------------------- |
+| Array type      | `"type": "array"`      | Yes                  | Server MUST reject tool definition |
+| Object type     | `"type": "object"`     | Yes                  | Server MUST reject tool definition |
+| Null type       | `"type": "null"`       | Yes                  | Server MUST reject tool definition |
+| Nested property | Property inside object | Yes                  | Server MUST reject tool definition |
 
 ### Server Validation Edge Cases
 
 #### Base64 Decoding
 
-| Test Case | Header Value | Expected Behavior |
-|-----------|--------------|-------------------|
-| Valid Base64 | `=?base64?SGVsbG8=?=` | Server decodes to `"Hello"` and validates |
-| Invalid Base64 padding | `=?base64?SGVsbG8?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Test Case                 | Header Value             | Expected Behavior                                                                                 |
+| ------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------- |
+| Valid Base64              | `=?base64?SGVsbG8=?=`    | Server decodes to `"Hello"` and validates                                                         |
+| Invalid Base64 padding    | `=?base64?SGVsbG8?=`     | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
 | Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
-| Missing prefix | `SGVsbG8=` | Server treats as literal value, not Base64 |
-| Missing suffix | `=?base64?SGVsbG8=` | Server treats as literal value, not Base64 |
-| Malformed wrapper | `=?BASE64?SGVsbG8=?=` | Server MUST accept (case-insensitive prefix) |
+| Missing prefix            | `SGVsbG8=`               | Server treats as literal value, not Base64                                                        |
+| Missing suffix            | `=?base64?SGVsbG8=`      | Server treats as literal value, not Base64                                                        |
+| Malformed wrapper         | `=?BASE64?SGVsbG8=?=`    | Server MUST accept (case-insensitive prefix)                                                      |
 
 #### Null and Missing Values
 
-| Test Case | Scenario | Expected Behavior |
-|-----------|----------|-------------------|
-| Parameter with x-mcp-header is null | `"region": null` | Client MUST omit header |
-| Parameter with x-mcp-header is missing | Parameter not in arguments | Client MUST omit header |
-| Optional parameter present | Optional parameter provided | Client MUST include header |
+| Test Case                              | Scenario                    | Expected Behavior          |
+| -------------------------------------- | --------------------------- | -------------------------- |
+| Parameter with x-mcp-header is null    | `"region": null`            | Client MUST omit header    |
+| Parameter with x-mcp-header is missing | Parameter not in arguments  | Client MUST omit header    |
+| Optional parameter present             | Optional parameter provided | Client MUST include header |
 
 #### Missing Custom Header with Value in Body
 
-| Test Case | Header Present | Body Value | Expected Behavior |
-|-----------|----------------|------------|-------------------|
-| Standard header omitted, value in body | No `Mcp-Name` | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
-| Custom header omitted, value in body | No `Mcp-Param-Region` | `"region": "us-west1"` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Test Case                              | Header Present        | Body Value                  | Expected Behavior                                                                                 |
+| -------------------------------------- | --------------------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
+| Standard header omitted, value in body | No `Mcp-Name`         | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Custom header omitted, value in body   | No `Mcp-Param-Region` | `"region": "us-west1"`      | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
 
 ## Reference Implementation
 
