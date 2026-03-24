@@ -5,7 +5,7 @@
 - **Created**: 2026-03-23
 - **Author(s)**: Sankara Avula (@savula15), Evan Tahler (@evantahler), Yash Sheth (@yashsheth46) and Guru Sattanathan (@avoguru)
 - **Sponsor**: TBD
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2448
 
 ## Abstract
 
