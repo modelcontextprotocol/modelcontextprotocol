@@ -709,7 +709,7 @@ During the OAuth authorization flow, MCP servers provide authorization URLs that
 
 **stdio Transport Privilege Escalation**
 
-When XSS vulnerabilities are combined with `stdio` transport capabilities, attackers can escalate web-based attacks to full system compromise. See [stdio Transport Security](#stdio-transport-security) for detailed attack vectors and mitigations.
+When XSS vulnerabilities are combined with `stdio` transport capabilities, attackers can escalate web-based attacks to full system compromise. See [stdio Transport Security in Proxy Scenarios](#stdio-transport-security-in-proxy-scenarios) for detailed attack vectors and mitigations.
 
 ```mermaid
 sequenceDiagram
@@ -745,7 +745,10 @@ OAuth authorization URL vulnerabilities introduce several critical security risk
 
 MCP clients **MUST** validate authorization URLs and reject dangerous schemes:
 
-- **MUST** only allow `http://` and `https://` schemes for authorization URLs
+- **MUST** only allow `http://` and `https://` schemes for authorization URLs.
+  The `http://` scheme is acceptable only for loopback addresses (such as
+  `localhost`, `127.0.0.1`, or `::1`) during local development; authorization
+  servers in production **MUST** use `https://`.
 - **MUST** reject `javascript:`, `data:`, `file:`, `vbscript:`, and other potentially dangerous schemes
 - **SHOULD** use allowlist-based validation rather than blocklist-based approaches
 
