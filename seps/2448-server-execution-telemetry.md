@@ -1,4 +1,4 @@
-# SEP-0000: Server Execution Telemetry
+# SEP-2448: Server Execution Telemetry
 
 - **Status**: TBD
 - **Type**: Standards Track
