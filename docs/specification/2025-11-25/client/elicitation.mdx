@@ -27,8 +27,10 @@ model.
 
 For trust & safety and security:
 
-- Servers **MUST NOT** use form mode elicitation to request sensitive information
-- Servers **MUST** use URL mode for interactions involving sensitive information, such as credentials
+- Servers **MUST NOT** use form mode elicitation to request sensitive information such as passwords, API keys, access tokens, or payment credentials
+- Servers **MUST** use URL mode for interactions involving such sensitive information
+
+"Sensitive information" in this context refers to secrets and credentials that grant access or authorize transactions. General contact or profile information (such as a name, email address, or username) is not categorically prohibited; whether to request such data via form mode is at the discretion of the server and subject to the user's ability to review and decline.
 
 MCP clients **MUST**:
 
