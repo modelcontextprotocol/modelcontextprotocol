@@ -13,7 +13,7 @@ This SEP defines a standard MCP capability that allows servers to return OpenTel
 
 This SEP defines a delivery mechanism for a client visible trace slice, a server-selected subset of trace data that the server determines is appropriate to disclose to the requesting client. It complements SEP-414 by enabling the response-side return of execution spans. Together, these SEPs enable distributed trace stitching across organizational boundaries without requiring shared collectors or federated observability infrastructure.
 
-Servers advertise the **serverExecutionTelemetry** capability during initialization. Clients request span data via **_meta.otel** in tools/call and resources/read requests, and servers return spans under the same `_meta.otel` key in responses.
+Servers advertise the **serverExecutionTelemetry** capability during initialization. Clients request span data via **\_meta.otel** in tools/call and resources/read requests, and servers return spans under the same `_meta.otel` key in responses.
 
 ## Motivation
 
@@ -21,7 +21,7 @@ MCP enables agents to call tools hosted by MCP servers operated by different org
 
 In cross-organization MCP scenarios, this creates a one-way observability gap:
 
-1. Tool execution appears as a black box: the client sees a single `mcp.call_tool` span,  everything the server does (auth checks, API calls, cache operations etc..) is invisible.
+1. Tool execution appears as a black box: the client sees a single `mcp.call_tool` span, everything the server does (auth checks, API calls, cache operations etc..) is invisible.
 2. Resource reads are equally opaque: `resources/read` can involve expensive server-side I/O, ACL checks, remote API lookups, and format conversion. When a resource read is denied or slow, the client has no visibility into why.
 3. Guardrail or runtime control decisions are not observable: when a server blocks a tool call due to policy denial or auth failure, the client has no structured visibility into which processing stage failed or why.
 4. Server-side latency breakdown cannot be stitched into client traces: clients cannot debug server-side bottlenecks or accurately attribute latency across the call boundary.
@@ -54,21 +54,21 @@ In the initialize response, an MCP server that supports span passback **MUST** a
 
 ```json
 {
- "capabilities": {
-   "serverExecutionTelemetry": {
-     "version": "2026-03-01",
-     "signals": {
-       "traces": { "supported": true }
-     }
-   }
- }
+  "capabilities": {
+    "serverExecutionTelemetry": {
+      "version": "2026-03-01",
+      "signals": {
+        "traces": { "supported": true }
+      }
+    }
+  }
 }
 ```
 
-| Field                      | Type    | Description                                                             |
-|---------------------------|---------|-------------------------------------------------------------------------|
-| `version`                 | string  | Schema version (date based)                                             |
-| `signals.traces.supported`| boolean | Whether span passback is available (metrics may be supported too in future) |
+| Field                      | Type    | Description                                                                 |
+| -------------------------- | ------- | --------------------------------------------------------------------------- |
+| `version`                  | string  | Schema version (date based)                                                 |
+| `signals.traces.supported` | boolean | Whether span passback is available (metrics may be supported too in future) |
 
 ### Client Request
 
@@ -76,39 +76,39 @@ Clients **MAY** explicitly request span passback by setting `_meta.otel` on a `t
 
 ```json
 {
- "_meta": {
-   "traceparent": "00-abcdef1234567890abcdef1234567890-1234567890abcdef-01",
-   "otel": {
-     "traces": {
-       "request": true,
-       "detailed": false
-     }
-   }
- }
+  "_meta": {
+    "traceparent": "00-abcdef1234567890abcdef1234567890-1234567890abcdef-01",
+    "otel": {
+      "traces": {
+        "request": true,
+        "detailed": false
+      }
+    }
+  }
 }
 ```
 
 ```json
 {
- "method": "resources/read",
- "params": {
-   "uri": "file:///data/report.csv",
-   "_meta": {
-     "traceparent": "00-abcdef1234567890abcdef1234567890-fedcba0987654321-01",
-     "otel": {
-       "traces": {
-         "request": true,
-         "detailed": false
-       }
-     }
-   }
- }
+  "method": "resources/read",
+  "params": {
+    "uri": "file:///data/report.csv",
+    "_meta": {
+      "traceparent": "00-abcdef1234567890abcdef1234567890-fedcba0987654321-01",
+      "otel": {
+        "traces": {
+          "request": true,
+          "detailed": false
+        }
+      }
+    }
+  }
 }
 ```
 
-| Field                   | Type    | Description |
-|------------------------|---------|-------------|
-| `otel.traces.request`  | boolean | `true` to opt into receiving spans in the response |
+| Field                  | Type    | Description                                                    |
+| ---------------------- | ------- | -------------------------------------------------------------- |
+| `otel.traces.request`  | boolean | `true` to opt into receiving spans in the response             |
 | `otel.traces.detailed` | boolean | `false` = root + direct children only; `true` = full span tree |
 
 The traceparent field ([W3C Trace Context](https://www.w3.org/TR/trace-context/)) is passed alongside but outside the otel key. Trace context propagation via traceparent in MCP requests follows the mechanism defined in SEP-414.
@@ -178,13 +178,14 @@ When span passback is requested, servers **MUST** return spans under `_meta.otel
 }
 ```
 
-| Field                   | Type  | Description |
-|------------------------|-------|-------------|
+| Field                  | Type  | Description                                                                                                                        |
+| ---------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `traces.resourceSpans` | array | Verbatim [OTLP JSON](https://opentelemetry.io/docs/specs/otlp/) `resourceSpans`; the client can POST this directly to `/v1/traces` |
 
 ### Span Ownership Model
 
 This SEP establishes the following ownership model for spans in a passback exchange:
+
 - The MCP client creates a span for the tool call or resources read and passes its context via traceparent to the server.
 - The MCP server creates a server span parented to that client span.
 - The server returns the server span (and optional child spans) via `_meta.otel`.
@@ -193,7 +194,7 @@ This SEP establishes the following ownership model for spans in a passback excha
 This ensures a single client → server relationship in the distributed trace, no duplicate or phantom spans are introduced.
 
 **Scope note:** This specification addresses single-hop telemetry passback between an MCP client and its directly connected MCP server. Multi-hop chain propagation, where an MCP server acts as a client to another MCP server is anticipated but deferred to a future SEP. To preserve trace continuity in multi-hop scenarios, servers that call external MCP tools **SHOULD** forward
- _meta.traceparent even if they do not support telemetry passback themselves.
+\_meta.traceparent even if they do not support telemetry passback themselves.
 
 ### Public Span Model - Best Practices
 
@@ -202,7 +203,7 @@ The server determines which spans to return. The following best practices guide 
 1. The response SHOULD contain a root server span representing the tool call or resources read, parented to the client's traceparent. This gives the client a single entry point to anchor the returned spans in its trace.
 2. Servers SHOULD surface spans for major execution stages such as authentication, policy evaluation, and tool handler invocation as direct children of the root span. These provide a top-level breakdown of where time was spent and what decisions were made, without requiring the client to understand internal implementation details.
 3. Span names and attributes SHOULD use generic labels rather than exposing internal service names, credentials, policy definitions, or business payloads. Servers SHOULD sanitize spans before returning them.
-4.  When the tool is not executed (due to policy denial, authentication failure, or other pre-execution checks), servers MAY still return spans for the processing stages that did execute. Servers MAY include `_meta` span data in JSON-RPC error responses. Span status MAY be set independently of JSON-RPC error semantics.
+4. When the tool is not executed (due to policy denial, authentication failure, or other pre-execution checks), servers MAY still return spans for the processing stages that did execute. Servers MAY include `_meta` span data in JSON-RPC error responses. Span status MAY be set independently of JSON-RPC error semantics.
 
 ## Rationale
 
@@ -238,11 +239,12 @@ Explainer video: TBD
 Telemetry passback crosses organizational trust boundaries and therefore **MUST** be treated as potentially sensitive and untrusted.
 
 **MCP servers**
+
 - MUST NOT include secrets, credentials, tokens, or other sensitive data in returned telemetry.
 - SHOULD apply the same data handling and redaction standards used for any other externally visible telemetry.
 
 **MCP clients**
+
 - MUST validate trace lineage against the originating request context, including the parent trace ID where applicable.
 - SHOULD treat returned spans as untrusted external telemetry.
 - SHOULD validate, sanitize, and apply appropriate storage or forwarding controls before exporting returned telemetry to downstream systems.
-
