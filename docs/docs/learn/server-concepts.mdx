@@ -230,6 +230,65 @@ Applications typically expose prompts through various UI patterns such as:
 - Dedicated UI buttons for frequently used prompts
 - Context menus that suggest relevant prompts
 
+## Server Description and Instructions
+
+During initialization, servers can provide two fields that help clients and models understand how to work with them effectively.
+
+### Server description
+
+The `description` field in `serverInfo` is a short, human-readable summary of what the server does. It is surfaced to users in client UIs and helps them decide whether to connect to the server.
+
+```json
+{
+  "serverInfo": {
+    "name": "travel-agent",
+    "version": "1.0.0",
+    "description": "A travel planning server for searching flights, booking hotels, and building itineraries."
+  }
+}
+```
+
+Keep descriptions concise — one or two sentences covering the server's core purpose and primary capabilities is sufficient.
+
+### Server instructions
+
+The `instructions` field in the `InitializeResult` response provides guidance directed at the model rather than the user. Clients include these instructions in the system prompt so the model knows how to use the server effectively.
+
+```json
+{
+  "protocolVersion": "2024-11-05",
+  "capabilities": { "tools": {} },
+  "serverInfo": {
+    "name": "travel-agent",
+    "version": "1.0.0"
+  },
+  "instructions": "Always call 'searchFlights' before 'bookFlight' to confirm availability. For multi-city trips, use the 'plan-vacation' prompt which combines all tools automatically."
+}
+```
+
+Instructions should focus on information that helps the model use the server effectively — such as cross-tool dependencies, required call sequences, and workflow patterns. Avoid duplicating information already present in individual tool descriptions.
+
+**Best practices:**
+
+- **Describe cross-tool relationships** — e.g., which tools must be called before others
+- **Highlight non-obvious constraints** — rate limits, required preconditions, or error-prone patterns
+- **Reference prompts** for complex workflows users can invoke directly
+- **Keep it concise** — models have limited context windows; prefer specific guidance over exhaustive documentation
+
+### Session affinity for stateful deployments
+
+When deploying MCP servers with the [Streamable HTTP transport](/specification/draft/basic/transports#streamable-http), the server may assign a session ID during initialization via the `MCP-Session-Id` response header. Clients must include this header on all subsequent requests, allowing the server to associate requests with the correct session state.
+
+In multi-worker deployments (e.g., behind a load balancer), requests carrying the same `MCP-Session-Id` must reach the same server instance. If they do not, the server will return HTTP 404 — which the client interprets as a terminated session and responds to by starting a new one.
+
+To avoid this, consider one of these approaches:
+
+- **Sticky sessions (session affinity)** — configure the load balancer to route requests with the same `MCP-Session-Id` to the same backend instance
+- **Externalized session state** — store session state in a shared layer (e.g., Redis) so any instance can serve any request, removing the need for affinity
+- **Stateless design** — avoid keeping per-session state in process memory where possible
+
+See the [transports specification](/specification/draft/basic/transports#session-management) for the full protocol-level definition of session management.
+
 ## Bringing Servers Together
 
 The real power of MCP emerges when multiple servers work together, combining their specialized capabilities through a unified interface.
