@@ -45,6 +45,7 @@
             "pages": [
               "docs/develop/connect-local-servers",
               "docs/develop/connect-remote-servers",
+              "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
               "docs/develop/build-client",
               "docs/sdk",
@@ -60,7 +61,8 @@
           {
             "group": "Developer tools",
             "pages": [
-              "docs/tools/inspector"
+              "docs/tools/inspector",
+              "docs/tools/debugging"
             ]
           },
           {
@@ -491,6 +493,22 @@
       "destination": "/docs/develop/build-client"
     },
     {
+      "source": "/tutorials/building-a-client-node",
+      "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-mcp-with-llms",
+      "destination": "/docs/develop/build-with-agent-skills"
+    },
+    {
+      "source": "/faqs",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/tutorials/use-local-mcp-server",
+      "destination": "/docs/develop/connect-local-servers"
+    },
+    {
       "source": "/quickstart",
       "destination": "/docs/develop/build-server"
     },
@@ -527,8 +545,40 @@
       "destination": "/specification/2025-06-18/basic/transports"
     },
     {
-      "source": "/docs/tools/debugging",
-      "destination": "/legacy/tools/debugging"
+      "source": "/legacy/tools/debugging",
+      "destination": "/docs/tools/debugging"
+    },
+    {
+      "source": "/legacy/concepts/architecture",
+      "destination": "/specification/latest/architecture"
+    },
+    {
+      "source": "/legacy/concepts/elicitation",
+      "destination": "/specification/latest/client/elicitation"
+    },
+    {
+      "source": "/legacy/concepts/prompts",
+      "destination": "/specification/latest/server/prompts"
+    },
+    {
+      "source": "/legacy/concepts/resources",
+      "destination": "/specification/latest/server/resources"
+    },
+    {
+      "source": "/legacy/concepts/roots",
+      "destination": "/specification/latest/client/roots"
+    },
+    {
+      "source": "/legacy/concepts/sampling",
+      "destination": "/specification/latest/client/sampling"
+    },
+    {
+      "source": "/legacy/concepts/tools",
+      "destination": "/specification/latest/server/tools"
+    },
+    {
+      "source": "/legacy/concepts/transports",
+      "destination": "/specification/latest/basic/transports"
     },
     {
       "source": "/legacy/tools/inspector",

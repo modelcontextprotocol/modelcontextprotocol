@@ -163,6 +163,10 @@ To retrieve resource contents, clients send a `resources/read` request:
 }
 ```
 
+Servers **MAY** return multiple resource contents in response to a single
+`resources/read` request. For example, a server could return the contents of
+several files when a directory resource is read.
+
 Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
 
 ### Resource Templates
@@ -255,6 +259,22 @@ to specific resources and receive notifications when they change:
 }
 ```
 
+**Unsubscribe Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "resources/unsubscribe",
+  "params": {
+    "uri": "file:///project/src/main.rs"
+  }
+}
+```
+
+Clients **SHOULD** send `resources/unsubscribe` when they no longer need updates
+for a resource.
+
 ## Message Flow
 
 ```mermaid
@@ -282,6 +302,10 @@ sequenceDiagram
     Server--)Client: notifications/resources/updated
     Client->>Server: resources/read
     Server-->>Client: Updated contents
+
+    Note over Client,Server: Unsubscribe
+    Client->>Server: resources/unsubscribe
+    Server-->>Client: Unsubscribe confirmed
 ```
 
 ## Data Types
@@ -417,3 +441,5 @@ Example error:
 2. Access controls **SHOULD** be implemented for sensitive resources
 3. Binary data **MUST** be properly encoded
 4. Resource permissions **SHOULD** be checked before operations
+5. Servers **MUST** sanitize file paths to prevent directory traversal attacks
+   when serving `file://` resources
