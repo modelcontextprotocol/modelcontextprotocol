@@ -45,8 +45,8 @@
             "pages": [
               "docs/develop/connect-local-servers",
               "docs/develop/connect-remote-servers",
-              "docs/develop/build-server",
               "docs/develop/build-with-agent-skills",
+              "docs/develop/build-server",
               "docs/develop/build-client",
               "docs/sdk",
               {

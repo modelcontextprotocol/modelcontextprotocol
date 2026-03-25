@@ -59,10 +59,11 @@ recommendation.
 Based on discovery, the skill recommends one of four paths and scaffolds
 accordingly:
 
-**Remote streamable-HTTP** is the default for anything wrapping a cloud API. Zero
-install friction, one deployment serves all users, and OAuth flows work properly
-because the server can handle redirects and token storage. The reference skill
-includes scaffolds for Cloudflare Workers and portable Express/FastMCP setups.
+**Remote [Streamable HTTP](/specification/draft/basic/transports#streamable-http)**
+is the default for anything wrapping a cloud API. Zero install friction, one
+deployment serves all users, and OAuth flows work properly because the server
+can handle redirects and token storage. The reference skill includes scaffolds
+for Cloudflare Workers and portable Express/FastMCP setups.
 
 **[MCP apps](/extensions/apps/overview)** extend a server with interactive
 widgets rendered in chat, such as searchable pickers, charts, and live
@@ -70,14 +71,15 @@ dashboards. The skill hands off to `build-mcp-app` when
 [elicitation's](/specification/draft/client/elicitation) flat-form constraints
 don't fit.
 
-**MCP Bundles (MCPB)** package a local server together with its runtime as a
-single `.mcpb` archive, so users can install it without setting up Node or
-Python. Use this path when the server must touch the user's machine: reading
-local files, driving desktop apps, or talking to localhost services. The skill
-hands off to `build-mcpb`.
+**[MCP Bundles (MCPB)](https://github.com/modelcontextprotocol/mcpb)** package a
+local server together with its runtime as a single `.mcpb` archive, so users
+can install it without setting up Node or Python. Use this path when the server
+must touch the user's machine: reading local files, driving desktop apps, or
+talking to localhost services. The skill hands off to `build-mcpb`.
 
-**Local stdio** remains available for prototyping, with a noted upgrade path to
-MCPB when you're ready to distribute.
+**Local [stdio](/specification/draft/basic/transports#stdio)** remains available
+for prototyping, with a noted upgrade path to MCPB when you're ready to
+distribute.
 
 ## Next steps
 
