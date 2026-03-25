@@ -61,7 +61,8 @@
           {
             "group": "Developer tools",
             "pages": [
-              "docs/tools/inspector"
+              "docs/tools/inspector",
+              "docs/tools/debugging"
             ]
           },
           {
@@ -544,8 +545,8 @@
       "destination": "/specification/2025-06-18/basic/transports"
     },
     {
-      "source": "/docs/tools/debugging",
-      "destination": "/legacy/tools/debugging"
+      "source": "/legacy/tools/debugging",
+      "destination": "/docs/tools/debugging"
     },
     {
       "source": "/legacy/tools/inspector",
