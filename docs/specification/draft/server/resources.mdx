@@ -80,6 +80,11 @@ either, or both:
 }
 ```
 
+Servers that declare the `resources` capability **MUST** respond to `resources/list`
+requests with the set of resources currently available to the requesting client. This set
+**MAY** be empty and **MAY** change over the lifetime of the connection (see
+[List Changed Notification](#list-changed-notification)).
+
 ## Protocol Messages
 
 ### Listing Resources

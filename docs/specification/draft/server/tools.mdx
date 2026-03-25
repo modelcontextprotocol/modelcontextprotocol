@@ -50,6 +50,11 @@ Servers that support tools **MUST** declare the `tools` capability:
 `listChanged` indicates whether the server will emit notifications when the list of
 available tools changes.
 
+Servers that declare the `tools` capability **MUST** respond to `tools/list` requests
+with the set of tools currently available to the requesting client. This set **MAY** be
+empty and **MAY** change over the lifetime of the connection (see
+[List Changed Notification](#list-changed-notification)).
+
 ## Protocol Messages
 
 ### Listing Tools
