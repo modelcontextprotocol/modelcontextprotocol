@@ -3,36 +3,16 @@ title: "Build with Agent Skills"
 description: "Use agent skills to guide AI coding assistants through MCP server design and implementation"
 ---
 
-Agent skills are structured, reusable instruction sets that give AI coding
-assistants domain-specific knowledge for a task. Rather than pasting
-documentation into a chat and hoping the model infers the right patterns, a
-skill encodes the decision tree up front: what questions to ask, which path to
-recommend, and what reference material to pull in along the way.
-
-The skill format is an [open standard](https://agentskills.io/home) supported across
-a growing set of coding agents. A skill is a directory containing a `SKILL.md`
-file with instructions and optional reference files the agent loads on demand.
-Because the format is portable, skills written for one agent generally work in
-others that implement the standard.
-
-For MCP server development, a well-designed skill can walk an agent through the
-full design space: what the server connects to, who will use it, how large the
-action surface is, and whether it needs in-chat UI. From those answers, the
-agent recommends a deployment path and scaffolds the server.
+[Agent skills](https://agentskills.io/home) are portable instruction sets that
+give AI coding assistants domain knowledge for a task. For MCP development,
+they encode the design decisions (deployment model, tool patterns, auth) so
+your agent can interrogate your use case and scaffold a server that fits.
 
 ## Available skills
 
-Anthropic maintains a reference set of MCP development skills in the
+A reference set of MCP development skills is available as the
 [`mcp-server-dev` plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev).
-The skills follow the open format and can be adapted for other agents, but the
-plugin packaging targets Claude Code:
-
-```bash
-/plugin marketplace add anthropics/claude-plugins-official
-/plugin install mcp-server-dev
-```
-
-The plugin provides three composing skills:
+It provides three composing skills:
 
 | Skill              | Purpose                                                                                                                     |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
@@ -40,8 +20,9 @@ The plugin provides three composing skills:
 | `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat. Works on remote servers and MCPB bundles. |
 | `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                              |
 
-If you use a different coding agent, check its skills or extensions catalog for
-MCP-specific entries, or adapt the `SKILL.md` files from the reference set.
+The `SKILL.md` files follow the open format, so you can install the plugin in a
+supporting agent or adapt the source files for your own tooling. Check your
+agent's skills or extensions catalog for installation details.
 
 ## Start a build
 
