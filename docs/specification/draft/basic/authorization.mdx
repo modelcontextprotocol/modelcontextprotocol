@@ -91,13 +91,12 @@ selecting which authorization server to use lies with the MCP client,
 following the guidelines specified in
 [RFC9728 Section 7.6 "Authorization Servers"](https://datatracker.ietf.org/doc/html/rfc9728#name-authorization-servers).
 
-When multiple authorization servers are listed in
-`authorization_servers`, clients **MUST** maintain separate
-registration state (client credentials, tokens) per authorization
-server. Authorization servers listed in `authorization_servers`
-are considered independent and do not necessarily share client
-registrations or tokens. Clients **MUST NOT** assume that client
-credentials valid for one authorization server will be accepted by
+When multiple authorization servers are listed in `authorization_servers`, each is an
+independent OAuth 2.0 authorization server. Consistent with
+[RFC 6749 Section 2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-2.2), client
+identifiers are unique to the authorization server that issued them. Clients **MUST** maintain
+separate registration state (client credentials, tokens) per authorization server and
+**MUST NOT** assume that credentials valid for one authorization server will be accepted by
 another.
 
 ### Protected Resource Metadata Discovery Requirements
