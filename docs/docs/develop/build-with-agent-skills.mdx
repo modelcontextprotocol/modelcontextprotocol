@@ -1,22 +1,31 @@
 ---
 title: "Build with Agent Skills"
-description: "Use Claude Code's MCP development skills to scaffold, design, and ship MCP servers"
+description: "Use agent skills to guide AI coding assistants through MCP server design and implementation"
 ---
 
-[Agent Skills](https://code.claude.com/docs/en/skills) give Claude Code structured,
-reusable knowledge for specific tasks. Anthropic maintains a set of official skills for
-MCP server development that encode best practices for deployment models, tool design,
-authentication, and interactive UI.
+Agent skills are structured, reusable instruction sets that give AI coding
+assistants domain-specific knowledge for a task. Rather than pasting
+documentation into a chat and hoping the model infers the right patterns, a
+skill encodes the decision tree up front: what questions to ask, which path to
+recommend, and what reference material to pull in along the way.
 
-Rather than pasting documentation into a chat and hoping the model infers the right
-patterns, these skills guide Claude through a discovery process: what you're connecting
-to, who will use it, how large the action surface is, and whether you need in-chat UI.
-From those answers, Claude recommends a deployment path and scaffolds the server.
+The skill format is an [open standard](https://agentskills.io) supported across
+a growing set of coding agents. A skill is a directory containing a `SKILL.md`
+file with instructions and optional reference files the agent loads on demand.
+Because the format is portable, skills written for one agent generally work in
+others that implement the standard.
 
-## Install the plugin
+For MCP server development, a well-designed skill can walk an agent through the
+full design space: what the server connects to, who will use it, how large the
+action surface is, and whether it needs in-chat UI. From those answers, the
+agent recommends a deployment path and scaffolds the server.
 
-The MCP development skills ship as a Claude Code plugin in the
-[official plugin marketplace](https://github.com/anthropics/claude-plugins-official).
+## Available skills
+
+Anthropic maintains a reference set of MCP development skills in the
+[`mcp-server-dev` plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev).
+The skills follow the open format and can be adapted for other agents, but the
+plugin packaging targets Claude Code:
 
 ```bash
 /plugin marketplace add anthropics/claude-plugins-official
@@ -31,16 +40,17 @@ The plugin provides three composing skills:
 | `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat. Works on remote servers and MCPB bundles. |
 | `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                              |
 
+If you use a different coding agent, check its skills or extensions catalog for
+MCP-specific entries, or adapt the `SKILL.md` files from the reference set.
+
 ## Start a build
 
-Ask Claude to help you build an MCP server and the entry skill triggers
-automatically. You can also invoke it directly:
+With the skills installed, ask your agent to help you build an MCP server. The
+entry skill triggers on natural-language requests, or you can invoke it
+directly using your agent's skill-invocation syntax.
 
-```
-/mcp-server-dev:build-mcp-server
-```
-
-The skill runs a short discovery phase before writing any code. Expect questions about:
+The skill runs a short discovery phase before writing any code. Expect
+questions about:
 
 - **What it connects to** — a cloud API, a local process, the filesystem, hardware
 - **Who will use it** — just you, your team, or anyone who installs it
@@ -49,7 +59,7 @@ The skill runs a short discovery phase before writing any code. Expect questions
   [elicitation](/specification/draft/client/elicitation), or rich UI widgets
 - **Upstream auth** — API keys, OAuth 2.0, or none
 
-If your opening message already covers these, Claude skips ahead to the
+If your opening message already covers these, the agent skips ahead to the
 recommendation.
 
 ## Deployment paths
@@ -59,9 +69,8 @@ accordingly:
 
 **Remote streamable-HTTP** is the default for anything wrapping a cloud API. Zero
 install friction, one deployment serves all users, and OAuth flows work properly
-because the server can handle redirects and token storage. The skill includes
-scaffolds for Cloudflare Workers (fastest deploy) and portable Express/FastMCP
-setups.
+because the server can handle redirects and token storage. The reference skill
+includes scaffolds for Cloudflare Workers and portable Express/FastMCP setups.
 
 **[MCP apps](/extensions/apps/overview)** extend a remote server with interactive
 widgets rendered in chat—searchable pickers, charts, live dashboards. The skill
@@ -77,8 +86,8 @@ MCPB when you're ready to distribute.
 
 ## What the skills encode
 
-Beyond scaffolding, the skills carry reference material that Claude pulls in as
-needed:
+Beyond scaffolding, the skills carry reference material that the agent pulls in
+as needed:
 
 - Tool description and schema writing guidance, including the one-tool-per-action
   versus search-and-execute pattern split
@@ -91,11 +100,11 @@ needed:
 
 ## Next steps
 
-Once Claude scaffolds your server:
+Once your agent scaffolds the server:
 
 1. Test it with the [MCP Inspector](/docs/tools/inspector)
-2. Connect it to Claude Desktop or Claude Code via
+2. Connect it to an MCP client via
    [local](/docs/develop/connect-local-servers) or
    [remote](/docs/develop/connect-remote-servers) configuration
-3. Iterate with Claude on tool descriptions, error handling, and edge cases
+3. Iterate on tool descriptions, error handling, and edge cases
 4. Publish to the [MCP Registry](/registry/quickstart) when ready
