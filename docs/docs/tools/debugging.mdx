@@ -12,11 +12,14 @@ available in the MCP ecosystem.
 MCP provides several tools for debugging at different levels:
 
 1. **[MCP Inspector](/docs/tools/inspector)**: interactive, transport-agnostic
-   testing UI. Connect to stdio or Streamable HTTP servers, invoke tools,
-   prompts, and resources, and watch the notification stream. This should be
-   your first stop.
+   testing UI. Connect to stdio or Streamable HTTP servers, invoke
+   [tools](/specification/latest/server/tools),
+   [prompts](/specification/latest/server/prompts), and
+   [resources](/specification/latest/server/resources), and watch the
+   notification stream. This should be your first stop.
 2. **Server logging**: structured logs to stderr (stdio transport) or via
-   `notifications/message` (all transports).
+   [`notifications/message`](/specification/latest/server/utilities/logging#log-message-notifications)
+   (all transports).
 3. **Client developer tools**: most MCP clients expose logs and connection
    state. See [Debugging in Claude Desktop](#debugging-in-claude-desktop)
    below for one example, or consult your client's documentation.
@@ -41,8 +44,9 @@ For servers using the
 [Streamable HTTP transport](/specification/latest/basic/transports#streamable-http),
 stderr is not captured by the client. Use the log message notifications below,
 your own server-side log aggregation, or standard HTTP tooling (curl, browser
-DevTools Network panel) to inspect requests, `Mcp-Session-Id` headers, and SSE
-streams.
+DevTools Network panel) to inspect requests,
+[`Mcp-Session-Id` headers](/specification/latest/basic/transports#session-management),
+and SSE streams.
 
 For all [transports](/specification/latest/basic/transports), you can also
 provide logging to the client by sending a log message notification:
@@ -50,11 +54,13 @@ provide logging to the client by sending a log message notification:
 <CodeGroup>
 
 ```python Python
-# Inside a request handler
-await ctx.session.send_log_message(
-    level="info",
-    data="Server started successfully",
-)
+@server.tool()
+async def my_tool(ctx: Context) -> str:
+    await ctx.session.send_log_message(
+        level="info",
+        data="Server started successfully",
+    )
+    return "done"
 ```
 
 ```typescript TypeScript
@@ -81,18 +87,10 @@ Important events to log:
 - Error conditions
 - Performance metrics
 
-### Client-side logging
-
-In client applications:
-
-1. Enable debug logging
-2. Monitor network traffic
-3. Track message exchanges
-4. Record error states
-
 ## Common issues
 
-The examples below use Claude Desktop's `claude_desktop_config.json`; the same
+The examples below use Claude Desktop's
+[`claude_desktop_config.json`](/docs/develop/connect-local-servers); the same
 principles apply to any stdio-based MCP client.
 
 ### Working directory
@@ -174,11 +172,18 @@ When servers fail to connect:
 1. Check client logs
 2. Verify server process is running
 3. Test standalone with [Inspector](/docs/tools/inspector)
-4. Verify protocol compatibility
-5. Check capability negotiation: if a server sends sampling or elicitation
-   requests to a client that hasn't declared that capability, the client
-   returns error `-32602`; inspect the `initialize` exchange to verify both
-   sides declared what you expect
+4. Verify
+   [protocol compatibility](/specification/latest/basic/lifecycle#version-negotiation)
+5. Check
+   [capability negotiation](/specification/latest/basic/lifecycle#capability-negotiation):
+   error [`-32602`](/specification/latest/basic/lifecycle#error-handling) is
+   the standard JSON-RPC "Invalid params" code and is returned in many
+   contexts. One common cause is a server sending
+   [sampling](/specification/latest/client/sampling) or
+   [elicitation](/specification/latest/client/elicitation) requests to a
+   client that hasn't declared that capability. Inspect the
+   [`initialize` exchange](/specification/latest/basic/lifecycle#initialization)
+   to verify both sides declared what you expect
 
 ## Debugging in Claude Desktop
 
@@ -238,7 +243,7 @@ echo '{"allowDevTools": true}' > ~/Library/Application\ Support/Claude/developer
 
 </CodeGroup>
 
-2. Open DevTools: `Command-Option-I` (macOS) or `Ctrl+Alt+I` (Windows)
+2. Open DevTools: `Command-Option-Shift-I` (macOS) or `Ctrl+Shift+Alt+I` (Windows)
 
 Note: You'll see two DevTools windows:
 
@@ -312,6 +317,9 @@ When debugging:
    - Check authentication
    - Monitor access patterns
 
+For a full treatment of MCP attack vectors and mitigations, see
+[Security Best Practices](/docs/tutorials/security/security_best_practices).
+
 ## Getting help
 
 When encountering issues:
@@ -323,8 +331,8 @@ When encountering issues:
    - Verify environment
 
 2. **Support Channels**
-   - GitHub issues
-   - GitHub discussions
+   - [GitHub issues](https://github.com/modelcontextprotocol/modelcontextprotocol/issues)
+   - [GitHub discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions)
 
 3. **Providing Information**
    - Log excerpts
@@ -341,5 +349,19 @@ When encountering issues:
     href="/docs/tools/inspector"
   >
     Learn to use the MCP Inspector
+  </Card>
+  <Card
+    title="Build an MCP server"
+    icon="code"
+    href="/docs/develop/build-server"
+  >
+    Walk through building a server from scratch
+  </Card>
+  <Card
+    title="Connect local servers"
+    icon="plug"
+    href="/docs/develop/connect-local-servers"
+  >
+    Full claude_desktop_config.json reference and troubleshooting
   </Card>
 </CardGroup>
