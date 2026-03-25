@@ -14,22 +14,26 @@ A reference set of MCP development skills is available as the
 [`mcp-server-dev` plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev).
 It provides three composing skills:
 
-| Skill              | Purpose                                                                                                                     |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `build-mcp-server` | Entry point. Interrogates the use case, picks a deployment model and tool-design pattern, routes to specialized skills.     |
-| `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat. Works on remote servers and MCPB bundles. |
-| `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                              |
+| Skill              | Purpose                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `build-mcp-server` | Entry point. Interrogates the use case, picks a deployment model and tool-design pattern, routes to specialized skills. |
+| `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat.                                       |
+| `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                          |
 
-The `SKILL.md` files follow the open format and work with any agent that
-implements the standard. For example, to install them in Claude Code:
+Each skill ships a `SKILL.md` file plus a `references/` folder of supporting
+material (auth flows, tool-design patterns, widget templates, manifest schemas)
+that the agent reads on demand. The files follow the open format and work with
+any agent that implements the standard. For example, to install them in Claude
+Code:
 
 ```bash
 /plugin marketplace add anthropics/claude-plugins-official
 /plugin install mcp-server-dev
 ```
 
-For other agents, check your skills or extensions catalog, or copy the
-`SKILL.md` sources directly into your agent's skills directory.
+For other agents, check your skills or extensions catalog, or clone the
+[skill directories](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev/skills)
+(`SKILL.md` plus `references/`) into your agent's skills location.
 
 ## Start a build
 
@@ -60,39 +64,42 @@ install friction, one deployment serves all users, and OAuth flows work properly
 because the server can handle redirects and token storage. The reference skill
 includes scaffolds for Cloudflare Workers and portable Express/FastMCP setups.
 
-**[MCP apps](/extensions/apps/overview)** extend a remote server with interactive
-widgets rendered in chat—searchable pickers, charts, live dashboards. The skill
-hands off to `build-mcp-app` when [elicitation's](/specification/draft/client/elicitation)
-flat-form constraints don't fit.
+**[MCP apps](/extensions/apps/overview)** extend a server with interactive
+widgets rendered in chat, such as searchable pickers, charts, and live
+dashboards. The skill hands off to `build-mcp-app` when
+[elicitation's](/specification/draft/client/elicitation) flat-form constraints
+don't fit.
 
-**MCPB bundles** package a local server with its runtime for servers that must
-touch the user's machine—reading local files, driving desktop apps, or talking
-to localhost services. The skill hands off to `build-mcpb`.
+**MCP Bundles (MCPB)** package a local server together with its runtime as a
+single `.mcpb` archive, so users can install it without setting up Node or
+Python. Use this path when the server must touch the user's machine: reading
+local files, driving desktop apps, or talking to localhost services. The skill
+hands off to `build-mcpb`.
 
 **Local stdio** remains available for prototyping, with a noted upgrade path to
 MCPB when you're ready to distribute.
 
-## What the skills encode
-
-Beyond scaffolding, the skills carry reference material that the agent pulls in
-as needed:
-
-- Tool description and schema writing guidance, including the one-tool-per-action
-  versus search-and-execute pattern split
-- Authentication flows: Client ID Metadata Documents (CIMD), Dynamic Client
-  Registration (DCR), and token storage
-- Server capabilities: [resources](/specification/draft/server/resources),
-  [prompts](/specification/draft/server/prompts), sampling, progress, cancellation
-- Widget templates and the MCP apps messaging protocol
-- MCPB manifest schema and local security hardening
-
 ## Next steps
 
-Once your agent scaffolds the server:
+Once your agent scaffolds the server, iterate on tool descriptions and error
+handling, then test and ship:
 
-1. Test it with the [MCP Inspector](/docs/tools/inspector)
-2. Connect it to an MCP client via
-   [local](/docs/develop/connect-local-servers) or
-   [remote](/docs/develop/connect-remote-servers) configuration
-3. Iterate on tool descriptions, error handling, and edge cases
-4. Publish to the [MCP Registry](/registry/quickstart) when ready
+<CardGroup cols={2}>
+  <Card
+    title="MCP Inspector"
+    icon="magnifying-glass"
+    href="/docs/tools/inspector"
+  >
+    Test your server's tools, resources, and prompts interactively
+  </Card>
+  <Card
+    title="Connect to a client"
+    icon="plug"
+    href="/docs/develop/connect-local-servers"
+  >
+    Wire your server into an MCP client via local or remote configuration
+  </Card>
+  <Card title="Publish to the Registry" icon="box" href="/registry/quickstart">
+    Make your server discoverable in the MCP Registry
+  </Card>
+</CardGroup>
