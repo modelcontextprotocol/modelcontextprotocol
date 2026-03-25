@@ -20,9 +20,16 @@ It provides three composing skills:
 | `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat. Works on remote servers and MCPB bundles. |
 | `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                              |
 
-The `SKILL.md` files follow the open format, so you can install the plugin in a
-supporting agent or adapt the source files for your own tooling. Check your
-agent's skills or extensions catalog for installation details.
+The `SKILL.md` files follow the open format and work with any agent that
+implements the standard. For example, to install them in Claude Code:
+
+```bash
+/plugin marketplace add anthropics/claude-plugins-official
+/plugin install mcp-server-dev
+```
+
+For other agents, check your skills or extensions catalog, or copy the
+`SKILL.md` sources directly into your agent's skills directory.
 
 ## Start a build
 
