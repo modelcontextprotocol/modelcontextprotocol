@@ -549,6 +549,38 @@
       "destination": "/docs/tools/debugging"
     },
     {
+      "source": "/legacy/concepts/architecture",
+      "destination": "/specification/latest/architecture"
+    },
+    {
+      "source": "/legacy/concepts/elicitation",
+      "destination": "/specification/latest/client/elicitation"
+    },
+    {
+      "source": "/legacy/concepts/prompts",
+      "destination": "/specification/latest/server/prompts"
+    },
+    {
+      "source": "/legacy/concepts/resources",
+      "destination": "/specification/latest/server/resources"
+    },
+    {
+      "source": "/legacy/concepts/roots",
+      "destination": "/specification/latest/client/roots"
+    },
+    {
+      "source": "/legacy/concepts/sampling",
+      "destination": "/specification/latest/client/sampling"
+    },
+    {
+      "source": "/legacy/concepts/tools",
+      "destination": "/specification/latest/server/tools"
+    },
+    {
+      "source": "/legacy/concepts/transports",
+      "destination": "/specification/latest/basic/transports"
+    },
+    {
       "source": "/legacy/tools/inspector",
       "destination": "/docs/tools/inspector"
     },
