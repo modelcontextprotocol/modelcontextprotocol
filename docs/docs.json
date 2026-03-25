@@ -46,6 +46,7 @@
               "docs/develop/connect-local-servers",
               "docs/develop/connect-remote-servers",
               "docs/develop/build-server",
+              "docs/develop/build-with-agent-skills",
               "docs/develop/build-client",
               "docs/sdk",
               {
@@ -489,6 +490,22 @@
     {
       "source": "/tutorials/building-a-client",
       "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-a-client-node",
+      "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-mcp-with-llms",
+      "destination": "/docs/develop/build-with-agent-skills"
+    },
+    {
+      "source": "/faqs",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/tutorials/use-local-mcp-server",
+      "destination": "/docs/develop/connect-local-servers"
     },
     {
       "source": "/quickstart",

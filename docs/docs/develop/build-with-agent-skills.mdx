@@ -1,0 +1,101 @@
+---
+title: "Build with Agent Skills"
+description: "Use Claude Code's MCP development skills to scaffold, design, and ship MCP servers"
+---
+
+[Agent Skills](https://code.claude.com/docs/en/skills) give Claude Code structured,
+reusable knowledge for specific tasks. Anthropic maintains a set of official skills for
+MCP server development that encode best practices for deployment models, tool design,
+authentication, and interactive UI.
+
+Rather than pasting documentation into a chat and hoping the model infers the right
+patterns, these skills guide Claude through a discovery process: what you're connecting
+to, who will use it, how large the action surface is, and whether you need in-chat UI.
+From those answers, Claude recommends a deployment path and scaffolds the server.
+
+## Install the plugin
+
+The MCP development skills ship as a Claude Code plugin in the
+[official plugin marketplace](https://github.com/anthropics/claude-plugins-official).
+
+```bash
+/plugin marketplace add anthropics/claude-plugins-official
+/plugin install mcp-server-dev
+```
+
+The plugin provides three composing skills:
+
+| Skill              | Purpose                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `build-mcp-server` | Entry point. Interrogates the use case, picks a deployment model and tool-design pattern, routes to specialized skills.     |
+| `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat. Works on remote servers and MCPB bundles. |
+| `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                              |
+
+## Start a build
+
+Ask Claude to help you build an MCP server and the entry skill triggers
+automatically. You can also invoke it directly:
+
+```
+/mcp-server-dev:build-mcp-server
+```
+
+The skill runs a short discovery phase before writing any code. Expect questions about:
+
+- **What it connects to** — a cloud API, a local process, the filesystem, hardware
+- **Who will use it** — just you, your team, or anyone who installs it
+- **Action surface size** — a handful of operations versus wrapping a large API
+- **User interaction needs** — plain text results, structured input via
+  [elicitation](/specification/draft/client/elicitation), or rich UI widgets
+- **Upstream auth** — API keys, OAuth 2.0, or none
+
+If your opening message already covers these, Claude skips ahead to the
+recommendation.
+
+## Deployment paths
+
+Based on discovery, the skill recommends one of four paths and scaffolds
+accordingly:
+
+**Remote streamable-HTTP** is the default for anything wrapping a cloud API. Zero
+install friction, one deployment serves all users, and OAuth flows work properly
+because the server can handle redirects and token storage. The skill includes
+scaffolds for Cloudflare Workers (fastest deploy) and portable Express/FastMCP
+setups.
+
+**[MCP apps](/extensions/apps/overview)** extend a remote server with interactive
+widgets rendered in chat—searchable pickers, charts, live dashboards. The skill
+hands off to `build-mcp-app` when [elicitation's](/specification/draft/client/elicitation)
+flat-form constraints don't fit.
+
+**MCPB bundles** package a local server with its runtime for servers that must
+touch the user's machine—reading local files, driving desktop apps, or talking
+to localhost services. The skill hands off to `build-mcpb`.
+
+**Local stdio** remains available for prototyping, with a noted upgrade path to
+MCPB when you're ready to distribute.
+
+## What the skills encode
+
+Beyond scaffolding, the skills carry reference material that Claude pulls in as
+needed:
+
+- Tool description and schema writing guidance, including the one-tool-per-action
+  versus search-and-execute pattern split
+- Authentication flows: Client ID Metadata Documents (CIMD), Dynamic Client
+  Registration (DCR), and token storage
+- Server capabilities: [resources](/specification/draft/server/resources),
+  [prompts](/specification/draft/server/prompts), sampling, progress, cancellation
+- Widget templates and the MCP apps messaging protocol
+- MCPB manifest schema and local security hardening
+
+## Next steps
+
+Once Claude scaffolds your server:
+
+1. Test it with the [MCP Inspector](/docs/tools/inspector)
+2. Connect it to Claude Desktop or Claude Code via
+   [local](/docs/develop/connect-local-servers) or
+   [remote](/docs/develop/connect-remote-servers) configuration
+3. Iterate with Claude on tool descriptions, error handling, and edge cases
+4. Publish to the [MCP Registry](/registry/quickstart) when ready
