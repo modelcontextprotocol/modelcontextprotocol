@@ -45,6 +45,11 @@ Servers that support prompts **MUST** declare the `prompts` capability during
 `listChanged` indicates whether the server will emit notifications when the list of
 available prompts changes.
 
+Servers that declare the `prompts` capability **MUST** respond to `prompts/list` requests
+with the set of prompts currently available to the requesting client. This set **MAY** be
+empty and **MAY** change over the lifetime of the connection (see
+[List Changed Notification](#list-changed-notification)).
+
 ## Protocol Messages
 
 ### Listing Prompts
