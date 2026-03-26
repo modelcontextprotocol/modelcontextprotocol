@@ -269,9 +269,20 @@ For the stdio [transport](/specification/draft/basic/transports), the client **S
 shutdown by:
 
 1. First, closing the input stream to the child process (the server)
-2. Waiting for the server to exit, or sending `SIGTERM` if the server does not exit
-   within a reasonable time
-3. Sending `SIGKILL` if the server does not exit within a reasonable time after `SIGTERM`
+2. Waiting for the server to exit
+3. If the server does not exit within a reasonable time, forcibly terminating the
+   process using the mechanism appropriate for the operating system
+
+On POSIX systems, forced termination typically escalates from
+[`SIGTERM`](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html) to
+`SIGKILL`. On Windows, where POSIX signals are not available, clients can use
+[`TerminateProcess`](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess)
+or
+[Job Objects](https://learn.microsoft.com/windows/win32/procthread/job-objects).
+
+Servers **SHOULD** exit promptly when their standard input is closed or reads return
+end-of-file. This is the primary graceful-shutdown signal and the only portable one, so
+honoring it reduces the need for forced termination.
 
 The server **MAY** initiate shutdown by closing its output stream to the client and
 exiting.
