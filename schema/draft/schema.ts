@@ -582,15 +582,6 @@ export interface ClientCapabilities {
     };
   };
   /**
-   * Present if the client supports declarative file inputs for tools and
-   * elicitation. When declared, servers MAY include `inputFiles` on {@link Tool}
-   * definitions and `requestedFiles` on {@link ElicitRequestFormParams}.
-   *
-   * @example File inputs
-   * {@includeCode ./examples/ClientCapabilities/file-inputs.json}
-   */
-  fileInputs?: JSONObject;
-  /**
    * Optional MCP extensions that the client supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
@@ -1786,27 +1777,21 @@ export interface Tool extends BaseMetadata, Icons {
    */
   annotations?: ToolAnnotations;
 
-  /**
-   * Declares which arguments in `inputSchema` are file inputs. Keys MUST match
-   * property names in `inputSchema.properties`, and the corresponding schema
-   * properties MUST be `{"type": "string", "format": "uri"}` or an array thereof.
-   *
-   * Servers MUST NOT include this field unless the client declared the
-   * `fileInputs` capability during initialization.
-   *
-   * Clients SHOULD render a native file picker for these arguments. Selected files
-   * are encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,
-   * where the `name=` parameter (percent-encoded) carries the original filename.
-   */
-  inputFiles?: { [argName: string]: FileInputDescriptor };
-
   _meta?: MetaObject;
 }
 
 /**
- * Describes a single file input argument for a tool or elicitation form.
- * Provides optional hints for client-side file picker filtering and validation.
+ * Value of the `mcpFile` JSON Schema extension keyword. When present on a
+ * `{"type": "string", "format": "uri"}` property (or an array thereof), it
+ * marks the property as a file input that clients SHOULD render as a native
+ * file picker. Selected files are encoded as URIs, defaulting to RFC 2397
+ * data URIs.
+ *
  * All fields are advisory; servers MUST still validate inputs independently.
+ *
+ * For {@link Tool.inputSchema} properties, `mcpFile` is added directly inside
+ * the JSON Schema property definition. For elicitation forms, it appears on
+ * {@link StringSchema} or {@link ArraySchema}.
  *
  * @category `tools/list`
  */
@@ -2880,21 +2865,6 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
     };
     required?: string[];
   };
-
-  /**
-   * Declares which fields in `requestedSchema` are file inputs. Keys MUST match
-   * property names in `requestedSchema.properties`, and the corresponding schema
-   * properties MUST be a {@link StringSchema} with `format: "uri"` or a
-   * {@link StringArraySchema} whose `items` has `format: "uri"`.
-   *
-   * Servers MUST NOT include this field unless the client declared the
-   * `fileInputs` capability during initialization.
-   *
-   * Clients SHOULD render a native file picker for these fields. Selected files
-   * are encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,
-   * where the `name=` parameter (percent-encoded) carries the original filename.
-   */
-  requestedFiles?: { [fieldName: string]: FileInputDescriptor };
 }
 
 /**
@@ -2954,7 +2924,7 @@ export interface ElicitRequest extends JSONRPCRequest {
 
 /**
  * Restricted schema definitions that only allow primitive types and
- * flat arrays of strings (for multi-file inputs), without nested objects.
+ * flat arrays of primitives, without nested objects.
  *
  * @category `elicitation/create`
  */
@@ -2963,7 +2933,7 @@ export type PrimitiveSchemaDefinition =
   | NumberSchema
   | BooleanSchema
   | EnumSchema
-  | StringArraySchema;
+  | ArraySchema;
 
 /**
  * @example Email input schema
@@ -2979,6 +2949,12 @@ export interface StringSchema {
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
   default?: string;
+  /**
+   * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
+   * render a native file picker and populate the field with a URI (data URI by
+   * default) pointing to the selected file. See {@link FileInputDescriptor}.
+   */
+  mcpFile?: FileInputDescriptor;
 }
 
 /**
@@ -3211,23 +3187,26 @@ export type EnumSchema =
   | LegacyTitledEnumSchema;
 
 /**
- * Schema for a flat array of strings. Intended primarily for multi-file
- * inputs in elicitation forms, where each item is a data URI string with
- * `format: "uri"`. Items MUST use {@link StringSchema}; nesting is not permitted.
+ * Schema for a flat array of primitive values. Items may use any scalar
+ * primitive schema; nesting (arrays of arrays) is not permitted.
  *
- * Servers MUST NOT include this shape in an elicitation `requestedSchema` unless
- * the client declared the `fileInputs` capability, since clients predating this
- * addition will not recognize it.
+ * When `mcpFile` is present, `items` MUST be a {@link StringSchema} with
+ * `format: "uri"`, and the field is rendered as a multi-file picker.
  *
  * @category `elicitation/create`
  */
-export interface StringArraySchema {
+export interface ArraySchema {
   type: "array";
-  items: StringSchema;
+  items: StringSchema | NumberSchema | BooleanSchema | EnumSchema;
   title?: string;
   description?: string;
   minItems?: number;
   maxItems?: number;
+  /**
+   * Marks this array as a multi-file input. Clients SHOULD render a native
+   * file picker allowing multiple selections. See {@link FileInputDescriptor}.
+   */
+  mcpFile?: FileInputDescriptor;
 }
 
 /**

@@ -24,6 +24,64 @@
             },
             "type": "object"
         },
+        "ArraySchema": {
+            "description": "Schema for a flat array of primitive values. Items may use any scalar\nprimitive schema; nesting (arrays of arrays) is not permitted.\n\nWhen `mcpFile` is present, `items` MUST be a {@link StringSchema} with\n`format: \"uri\"`, and the field is rendered as a multi-file picker.",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "items": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/StringSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/NumberSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/BooleanSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/UntitledSingleSelectEnumSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/TitledSingleSelectEnumSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/UntitledMultiSelectEnumSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/TitledMultiSelectEnumSchema"
+                        },
+                        {
+                            "$ref": "#/$defs/LegacyTitledEnumSchema"
+                        }
+                    ]
+                },
+                "maxItems": {
+                    "type": "integer"
+                },
+                "mcpFile": {
+                    "$ref": "#/$defs/FileInputDescriptor",
+                    "description": "Marks this array as a multi-file input. Clients SHOULD render a native\nfile picker allowing multiple selections. See {@link FileInputDescriptor}."
+                },
+                "minItems": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "array",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ],
+            "type": "object"
+        },
         "AudioContent": {
             "description": "Audio provided to or from an LLM.",
             "properties": {
@@ -355,10 +413,6 @@
                     },
                     "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
                     "type": "object"
-                },
-                "fileInputs": {
-                    "$ref": "#/$defs/JSONObject",
-                    "description": "Present if the client supports declarative file inputs for tools and\nelicitation. When declared, servers MAY include `inputFiles` on {@link Tool}\ndefinitions and `requestedFiles` on {@link ElicitRequestFormParams}."
                 },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
@@ -933,13 +987,6 @@
                     "description": "The elicitation mode.",
                     "type": "string"
                 },
-                "requestedFiles": {
-                    "additionalProperties": {
-                        "$ref": "#/$defs/FileInputDescriptor"
-                    },
-                    "description": "Declares which fields in `requestedSchema` are file inputs. Keys MUST match\nproperty names in `requestedSchema.properties`, and the corresponding schema\nproperties MUST be a {@link StringSchema} with `format: \"uri\"` or a\n{@link StringArraySchema} whose `items` has `format: \"uri\"`.\n\nServers MUST NOT include this field unless the client declared the\n`fileInputs` capability during initialization.\n\nClients SHOULD render a native file picker for these fields. Selected files\nare encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,\nwhere the `name=` parameter (percent-encoded) carries the original filename.",
-                    "type": "object"
-                },
                 "requestedSchema": {
                     "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
                     "properties": {
@@ -1197,7 +1244,7 @@
             "type": "object"
         },
         "FileInputDescriptor": {
-            "description": "Describes a single file input argument for a tool or elicitation form.\nProvides optional hints for client-side file picker filtering and validation.\nAll fields are advisory; servers MUST still validate inputs independently.",
+            "description": "Value of the `mcpFile` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property (or an array thereof), it\nmarks the property as a file input that clients SHOULD render as a native\nfile picker. Selected files are encoded as URIs, defaulting to RFC 2397\ndata URIs.\n\nAll fields are advisory; servers MUST still validate inputs independently.\n\nFor {@link Tool.inputSchema} properties, `mcpFile` is added directly inside\nthe JSON Schema property definition. For elicitation forms, it appears on\n{@link StringSchema} or {@link ArraySchema}.",
             "properties": {
                 "accept": {
                     "description": "MIME type patterns that the server will accept for this input.\nSupports exact types (e.g., `\"image/png\"`) and wildcard subtypes\n(e.g., `\"image/*\"`). If omitted, any file type is accepted.",
@@ -2660,10 +2707,10 @@
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
                 },
                 {
-                    "$ref": "#/$defs/StringArraySchema"
+                    "$ref": "#/$defs/ArraySchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types and\nflat arrays of strings (for multi-file inputs), without nested objects."
+            "description": "Restricted schema definitions that only allow primitive types and\nflat arrays of primitives, without nested objects."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -3650,35 +3697,6 @@
                 }
             ]
         },
-        "StringArraySchema": {
-            "description": "Schema for a flat array of strings. Intended primarily for multi-file\ninputs in elicitation forms, where each item is a data URI string with\n`format: \"uri\"`. Items MUST use {@link StringSchema}; nesting is not permitted.\n\nServers MUST NOT include this shape in an elicitation `requestedSchema` unless\nthe client declared the `fileInputs` capability, since clients predating this\naddition will not recognize it.",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "items": {
-                    "$ref": "#/$defs/StringSchema"
-                },
-                "maxItems": {
-                    "type": "integer"
-                },
-                "minItems": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "const": "array",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "items",
-                "type"
-            ],
-            "type": "object"
-        },
         "StringSchema": {
             "properties": {
                 "default": {
@@ -3698,6 +3716,10 @@
                 },
                 "maxLength": {
                     "type": "integer"
+                },
+                "mcpFile": {
+                    "$ref": "#/$defs/FileInputDescriptor",
+                    "description": "Marks this string as a file input when `format` is `\"uri\"`. Clients SHOULD\nrender a native file picker and populate the field with a URI (data URI by\ndefault) pointing to the selected file. See {@link FileInputDescriptor}."
                 },
                 "minLength": {
                     "type": "integer"
@@ -4075,13 +4097,6 @@
                         "$ref": "#/$defs/Icon"
                     },
                     "type": "array"
-                },
-                "inputFiles": {
-                    "additionalProperties": {
-                        "$ref": "#/$defs/FileInputDescriptor"
-                    },
-                    "description": "Declares which arguments in `inputSchema` are file inputs. Keys MUST match\nproperty names in `inputSchema.properties`, and the corresponding schema\nproperties MUST be `{\"type\": \"string\", \"format\": \"uri\"}` or an array thereof.\n\nServers MUST NOT include this field unless the client declared the\n`fileInputs` capability during initialization.\n\nClients SHOULD render a native file picker for these arguments. Selected files\nare encoded as RFC 2397 data URIs: `data:<mediatype>;name=<filename>;base64,<data>`,\nwhere the `name=` parameter (percent-encoded) carries the original filename.",
-                    "type": "object"
                 },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",

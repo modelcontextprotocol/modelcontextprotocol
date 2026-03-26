@@ -7,15 +7,13 @@
       "photo": {
         "type": "string",
         "format": "uri",
-        "title": "Profile photo"
+        "title": "Profile photo",
+        "mcpFile": {
+          "accept": ["image/*"],
+          "maxSize": 2097152
+        }
       }
     },
     "required": ["photo"]
-  },
-  "requestedFiles": {
-    "photo": {
-      "accept": ["image/*"],
-      "maxSize": 2097152
-    }
   }
 }

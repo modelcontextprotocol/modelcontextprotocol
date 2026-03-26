@@ -7,15 +7,13 @@
       "image": {
         "type": "string",
         "format": "uri",
-        "description": "The image to describe."
+        "description": "The image to describe.",
+        "mcpFile": {
+          "accept": ["image/png", "image/jpeg"],
+          "maxSize": 5242880
+        }
       }
     },
     "required": ["image"]
-  },
-  "inputFiles": {
-    "image": {
-      "accept": ["image/png", "image/jpeg"],
-      "maxSize": 5242880
-    }
   }
 }
