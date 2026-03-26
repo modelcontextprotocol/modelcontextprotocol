@@ -448,7 +448,12 @@
               "community/governance",
               "community/contributor-ladder",
               "community/sdk-tiers",
-              "community/antitrust",
+              "community/antitrust"
+            ]
+          },
+          {
+            "group": "Working Group Charters",
+            "pages": [
               "community/triggers-events/charter"
             ]
           },
