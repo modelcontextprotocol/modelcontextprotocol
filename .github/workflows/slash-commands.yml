@@ -27,6 +27,5 @@ jobs:
       - uses: modelcontextprotocol/actions/slash-commands@main
         with:
           github-token: ${{ steps.app-token.outputs.token }}
-          bot-token: ${{ steps.app-token.outputs.token }}
           always-allow-teams: core-maintainers,lead-maintainers
           stageblog-workflow: stage-blog.yml
