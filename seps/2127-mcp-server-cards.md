@@ -43,15 +43,15 @@ The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path t
 
 #### MCP Connection Details
 
-MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp/server-card`.
+MCP Server Cards will provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. We will store these values at `.well-known/mcp-server-card`.
 
 Example:
 
 - "Restaurant A" works with platform "Restaurant Reservations SaaS" to provide MCP-powered bookings for their restaurant
 - Restaurant A also works with platform "Jobs SaaS" to provide MCP-powered job listings to prospective job seekers
 - Restaurant A would advertise the two relevant AI Cards at `restaurant-a.com/.well-known/ai-catalog.json`
-- Restaurant Reservations SaaS would have many Server Cards at `restaurant-reservations-saas.com/.well-known/mcp/server-card/*`, including entries for each of Restaurant A (`restaurant-reservations-saas.com/.well-known/mcp/server-card/restaurant-a`), Restaurant B (`restaurant-reservations-saas.com/.well-known/mcp/server-card/restaurant-b`), etc.
-- Jobs Saas would have many Server Cards at `jobs-saas.com/.well-known/mcp/server-card/*`, including entries for each of Restaurant A (`jobs-saas.com/.well-known/mcp/server-card/restaurant-a`), Coffee Shop B (`jobs-saas.com/.well-known/mcp/server-card/coffee-shop-b`), etc.
+- Restaurant Reservations SaaS would have many Server Cards at `restaurant-reservations-saas.com/.well-known/mcp-server-card/*`, including entries for each of Restaurant A (`restaurant-reservations-saas.com/.well-known/mcp-server-card/restaurant-a`), Restaurant B (`restaurant-reservations-saas.com/.well-known/mcp-server-card/restaurant-b`), etc.
+- Jobs Saas would have many Server Cards at `jobs-saas.com/.well-known/mcp-server-card/*`, including entries for each of Restaurant A (`jobs-saas.com/.well-known/mcp-server-card/restaurant-a`), Coffee Shop B (`jobs-saas.com/.well-known/mcp-server-card/coffee-shop-b`), etc.
 
 We can develop and iterate on MCP Server Cards largely independently from the broader effort to integrate with AI Cards, as long as we maintain some integration point so it is possible to understand when an entry in an AI Card references an MCP Server Card that is hosted and maintained elsewhere.
 
@@ -310,10 +310,18 @@ Local, stdio-based servers should plan to distribute via `server.json` and the M
 Servers using HTTP-based transports SHOULD provide their server card at:
 
 ```
-/.well-known/mcp/server-card
+/.well-known/mcp-server-card
 ```
 
-This endpoint:
+Hosts that serve multiple MCP servers from the same origin SHOULD expose each server's card under a named sub-path:
+
+```
+/.well-known/mcp-server-card/{server-name}
+```
+
+where `{server-name}` matches the `name` field of the server card. The unsuffixed path returns the default or primary server card for the host.
+
+These endpoints:
 
 - MUST be accessible via HTTPS (HTTP MAY be supported for local/development use)
 - MUST return `Content-Type: application/json`
@@ -413,7 +421,7 @@ Server cards MUST be served with appropriate CORS headers to enable browser-base
 
 ### Denial of Service
 
-Servers SHOULD implement rate limiting on `.well-known/mcp/server-card` endpoints to prevent abuse. Clients SHOULD respect cache headers and avoid excessive polling.
+Servers SHOULD implement rate limiting on `.well-known/mcp-server-card` endpoints to prevent abuse. Clients SHOULD respect cache headers and avoid excessive polling.
 
 ### Man-in-the-Middle Attacks
 
@@ -425,11 +433,11 @@ _To be added. A reference implementation is required before this SEP can be give
 
 ## IETF Registration
 
-`.well-known/` URIs must be registered with the IETF per RFC 8615. The SEP authors are responsible for submitting a registration request to IANA for the `.well-known/mcp/` URI suffix once this SEP is approved.
+`.well-known/` URIs must be registered with the IETF per RFC 8615. The SEP authors are responsible for submitting a registration request to IANA for the `mcp-server-card` URI suffix once this SEP is approved.
 
 The registration will include:
 
-- URI suffix: `mcp`
+- URI suffix: `mcp-server-card`
 - Change controller: Model Context Protocol Steering Committee
 - Specification document: This SEP
 - Related information: Link to MCP specification
