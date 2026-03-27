@@ -49,7 +49,7 @@ The Streamable HTTP transport will require POST requests to include the followin
 
 | Header Name  | Source Field                  | Required For                                           |
 | ------------ | ----------------------------- | ------------------------------------------------------ |
-| `Mcp-Method` | `method`                      | All requests                                           |
+| `Mcp-Method` | `method`                      | All requests and notifications                         |
 | `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
 
 These headers are **required** for compliance with the MCP version in which they are introduced.
@@ -144,6 +144,22 @@ Mcp-Method: initialize
       "version": "1.0.0"
     }
   }
+}
+```
+
+#### Example: Notification
+
+Notifications also require the `Mcp-Method` header:
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: notifications/initialized
+
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized"
 }
 ```
 
