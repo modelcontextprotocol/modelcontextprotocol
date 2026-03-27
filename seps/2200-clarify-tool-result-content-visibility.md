@@ -159,8 +159,11 @@ updates are expected to follow but are not required for adoption.
 
 ## Alternatives Considered
 
-- **Audience annotations or explicit visibility flags**: would require new protocol fields and
-  capability negotiation.
+- **Extending audience annotations**: the existing audience annotation on content blocks provides
+  per-item visibility hints, but does not address the top-level distinction between `content` and
+  `structuredContent` as fields with different intended consumers. Extending audience annotations
+  to cover that distinction was considered but would add complexity without resolving the
+  fundamental question of which field clients should prefer for model context.
 - **Deprecating one field**: would break existing implementations.
 - **Treating `structuredContent` as a purely host-only side channel**: would conflict with
   programmatic/code-mode use cases that benefit from structured model inputs.
