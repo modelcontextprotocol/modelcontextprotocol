@@ -64,7 +64,7 @@ flowchart TD
     InReview --> Decision
     Decision --> Accepted
     Decision --> Rejected
-    Accepted -->|"Reference implementation complete"| Final
+    Accepted -->|"Reference implementation +<br/>conformance test complete"| Final
 ```
 
 ### Step-by-Step Process
@@ -97,7 +97,7 @@ flowchart TD
 
 8. **Resolution**: The SEP may be `accepted`, `rejected`, or returned for revision. The sponsor updates the status.
 
-9. **Finalization**: Once accepted, the reference implementation must be completed. When complete and incorporated into the specification, the sponsor updates the status to `final`.
+9. **Finalization**: Once accepted, the reference implementation must be completed. For Standards Track SEPs with observable protocol behavior, a [conformance test](#conformance-test-requirement) must also be merged. When complete and incorporated into the specification, the sponsor updates the status to `final`.
 
 ### SEP Statuses
 
@@ -105,10 +105,10 @@ flowchart TD
 | ------------ | ------------------------------------------------ |
 | `draft`      | Has a sponsor, undergoing informal review        |
 | `in-review`  | Ready for formal Core Maintainer review          |
-| `accepted`   | Approved, awaiting reference implementation      |
+| `accepted`   | Approved, awaiting implementation + conformance  |
 | `rejected`   | Declined by Core Maintainers                     |
 | `withdrawn`  | Author withdrew the proposal                     |
-| `final`      | Complete with reference implementation           |
+| `final`      | Complete with implementation and conformance     |
 | `superseded` | Replaced by a newer SEP                          |
 | `dormant`    | No sponsor found within 6 months; can be revived |
 
@@ -213,6 +213,31 @@ For a SEP to be accepted it must meet these criteria:
 - Community support and consensus
 
 Once a SEP has been accepted, the reference implementation must be completed. When complete and incorporated into the main repository, the status changes to "Final".
+
+## Conformance Test Requirement
+
+For **Standards Track SEPs** that introduce or modify observable protocol behavior, a conformance scenario must be merged into the [conformance repository](https://github.com/modelcontextprotocol/conformance) before the SEP can reach `Final` status.
+
+**What's required:**
+
+- A conformance scenario tagged with the SEP number, targeting the `draft` spec version
+- A structured traceability file (`sep-NNNN.yaml`) mapping each MUST/MUST NOT in the SEP's Specification section to either a check ID or a documented exclusion with a linked tracking issue
+- The scenario passes against the SEP's reference implementation
+
+**What's exempt:**
+
+- Process and Informational SEPs
+- Standards Track SEPs with no observable protocol behavior (documentation clarifications, non-validating schema annotations, implementation-hardening recommendations)
+
+**Who does what:**
+
+- The **sponsor** ensures a conformance scenario is written and verifies the traceability file covers every MUST/MUST NOT in the SEP
+- The **conformance repository maintainers** review the scenario PR for technical correctness
+- The test **author** can be anyone: the SEP author, an SDK maintainer, a community contributor
+
+Writing a conformance scenario during SEP drafting (before Core Maintainer review) is encouraged but not required, since it often surfaces ambiguities in normative language that are cheaper to fix early.
+
+See [SEP-2484](/seps/2484-conformance-tests-required-for-final-seps) for the full specification including the traceability file format and dispute process.
 
 ## After Rejection
 
