@@ -454,6 +454,7 @@
           {
             "group": "Working Group Charters",
             "pages": [
+              "community/server-card/charter",
               "community/triggers-events/charter"
             ]
           },
