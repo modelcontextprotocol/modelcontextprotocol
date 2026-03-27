@@ -1,11 +1,11 @@
-# SEP-0000: Require Conformance Tests for Standards Track SEPs to Reach Final Status
+# SEP-2484: Require Conformance Tests for Standards Track SEPs to Reach Final Status
 
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2026-03-27
 - **Author(s)**: Paul Carleton (@pcarleton)
 - **Sponsor**: None
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2484
 - **Supersedes**: SEP-1627 (Conformance Testing)
 
 ## Abstract
