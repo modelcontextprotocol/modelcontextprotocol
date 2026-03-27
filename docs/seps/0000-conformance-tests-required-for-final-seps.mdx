@@ -42,7 +42,7 @@ A **reference implementation** proves the feature can be built: one valid interp
 
 ### Keeping the conformance suite alive
 
-The conformance suite is the yardstick SEP-1730's tier percentages measure against. If it falls behind, an SDK could be "100% compliant" while missing the last three spec releases. Tying tests to the SEP lifecycle creates a forcing function: the suite grows exactly as fast as the spec does.
+The conformance suite is the yardstick SEP-1730's tier percentages measure against. If it falls behind, an SDK could be "100% compliant" while missing major specification features. Tying tests to the SEP lifecycle creates a forcing function: the suite grows exactly as fast as the spec does.
 
 ## Specification
 
@@ -96,11 +96,11 @@ Structured data lets tooling link check failures back to spec sections and lets 
 
 Exclusions come in two flavors. **Framework gaps** (the behavior is observable but the framework can't express it yet) should link a tracking `issue`. **Not protocol-observable** (the requirement governs client rendering, implementation internals, or similar) needs only the `excluded` reason. A SEP whose requirements are all the second kind is exempt and doesn't need a scenario at all.
 
-The sponsor verifies the traceability file is complete: every MUST and MUST NOT (and RFC 2119 equivalents: SHALL, REQUIRED) in the SEP's Specification section has a row. SHOULD and MAY requirements do not need rows. The sponsor does not review test code; that is the conformance repository's normal PR review. What counts as a normative requirement is the sponsor's call.
+The sponsor verifies the traceability file is complete: every MUST and MUST NOT (and RFC 2119 equivalents: SHALL, REQUIRED) in the SEP's Specification section has a row. SHOULD and MAY requirements do not need rows, although it is recommended to include SHOULD's a WARNING check. The sponsor does not review test code; that is the conformance repository's normal PR review. What counts as a normative requirement is the sponsor's call.
 
 ### Who writes the tests
 
-The **sponsor** is responsible for ensuring a conformance scenario is written. The author may be the SEP author, an SDK maintainer, a conformance contributor, or anyone else. Scenarios are authored in TypeScript; contributors unfamiliar with the conformance repository should start with its [CONTRIBUTING guide](https://github.com/modelcontextprotocol/conformance/blob/main/CONTRIBUTING.md) and the scaffolding tool. In practice the SEP author is often best positioned, since writing the test surfaces ambiguities in the normative language that are cheaper to fix before `Final` than after.
+The **sponsor** is responsible for ensuring a conformance scenario is written. Scenarios are authored in TypeScript; contributors unfamiliar with the conformance repository should start with its [CONTRIBUTING guide](https://github.com/modelcontextprotocol/conformance/blob/main/CONTRIBUTING.md). In practice the SEP author is often best positioned, since writing the test surfaces ambiguities in the normative language that are cheaper to fix before `Final` than after.
 
 ### Specification text is authoritative
 
