@@ -124,7 +124,7 @@
                 ]
               },
               {
-                "group": "Client Features",
+                "group": "Client Capabilities",
                 "pages": [
                   "specification/2025-11-25/client/roots",
                   "specification/2025-11-25/client/sampling",
@@ -132,7 +132,7 @@
                 ]
               },
               {
-                "group": "Server Features",
+                "group": "Server Capabilities",
                 "pages": [
                   "specification/2025-11-25/server/index",
                   "specification/2025-11-25/server/prompts",
@@ -175,7 +175,7 @@
                 ]
               },
               {
-                "group": "Client Features",
+                "group": "Client Capabilities",
                 "pages": [
                   "specification/2025-06-18/client/roots",
                   "specification/2025-06-18/client/sampling",
@@ -183,7 +183,7 @@
                 ]
               },
               {
-                "group": "Server Features",
+                "group": "Server Capabilities",
                 "pages": [
                   "specification/2025-06-18/server/index",
                   "specification/2025-06-18/server/prompts",
@@ -226,14 +226,14 @@
                 ]
               },
               {
-                "group": "Client Features",
+                "group": "Client Capabilities",
                 "pages": [
                   "specification/2025-03-26/client/roots",
                   "specification/2025-03-26/client/sampling"
                 ]
               },
               {
-                "group": "Server Features",
+                "group": "Server Capabilities",
                 "pages": [
                   "specification/2025-03-26/server/index",
                   "specification/2025-03-26/server/prompts",
@@ -274,14 +274,14 @@
                 ]
               },
               {
-                "group": "Client Features",
+                "group": "Client Capabilities",
                 "pages": [
                   "specification/2024-11-05/client/roots",
                   "specification/2024-11-05/client/sampling"
                 ]
               },
               {
-                "group": "Server Features",
+                "group": "Server Capabilities",
                 "pages": [
                   "specification/2024-11-05/server/index",
                   "specification/2024-11-05/server/prompts",
@@ -324,7 +324,7 @@
                 ]
               },
               {
-                "group": "Client Features",
+                "group": "Client Capabilities",
                 "pages": [
                   "specification/draft/client/roots",
                   "specification/draft/client/sampling",
@@ -332,7 +332,7 @@
                 ]
               },
               {
-                "group": "Server Features",
+                "group": "Server Capabilities",
                 "pages": [
                   "specification/draft/server/index",
                   "specification/draft/server/prompts",

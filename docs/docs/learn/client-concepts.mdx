@@ -7,11 +7,11 @@ MCP clients are instantiated by host applications to communicate with particular
 
 Understanding the distinction is important: the _host_ is the application users interact with, while _clients_ are the protocol-level components that enable server connections.
 
-## Core Client Features
+## Core Client Capabilities
 
-In addition to making use of context provided by servers, clients may provide several features to servers. These client features allow server authors to build richer interactions.
+In addition to making use of context provided by servers, clients may provide several capabilities to servers. These client capabilities allow server authors to build richer interactions.
 
-| Feature         | Explanation                                                                                                                                                                                       | Example                                                                                                                                |
+| Capability      | Explanation                                                                                                                                                                                       | Example                                                                                                                                |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | **Elicitation** | Elicitation enables servers to request specific information from users during interactions, providing a structured way for servers to gather information on demand.                               | A server booking travel may ask for the user's preferences on airplane seats, room type or their contact number to finalise a booking. |
 | **Roots**       | Roots allow clients to specify which directories servers should focus on, communicating intended scope through a coordination mechanism.                                                          | A server for booking travel may be given access to a specific directory, from which it can read a user's calendar.                     |

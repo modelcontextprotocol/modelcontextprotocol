@@ -74,7 +74,7 @@ referred to as a "remote" MCP server.
 
 MCP consists of two layers:
 
-- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including lifecycle management, and core primitives, such as tools, resources, prompts and notifications.
+- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including lifecycle management, and core capabilities, such as tools, resources, prompts and notifications.
 - **Transport layer**: Defines the communication mechanisms and channels that enable data exchange between clients and servers, including transport-specific connection establishment, message framing, and authorization.
 
 Conceptually the data layer is the inner layer, while the transport layer is the outer layer.
@@ -85,9 +85,9 @@ The data layer implements a [JSON-RPC 2.0](https://www.jsonrpc.org/) based excha
 This layer includes:
 
 - **Lifecycle management**: Handles connection initialization, capability negotiation, and connection termination between clients and servers
-- **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
-- **Client features**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
-- **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
+- **Server capabilities**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
+- **Client capabilities**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
+- **Utility capabilities**: Supports additional functionality like notifications for real-time updates and progress tracking for long-running operations
 
 #### Transport layer
 
@@ -102,40 +102,40 @@ The transport layer abstracts communication details from the protocol layer, ena
 
 ### Data Layer Protocol
 
-A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
+A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [capabilities](#capabilities) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
 
 MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Client and servers send requests to each other and respond accordingly. Notifications can be used when no response is required.
 
 #### Lifecycle management
 
-MCP is a <Tooltip tip="A subset of MCP can be made stateless using the Streamable HTTP transport">stateful protocol</Tooltip> that requires lifecycle management. The purpose of lifecycle management is to negotiate the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> that both client and server support. Detailed information can be found in the [specification](/specification/latest/basic/lifecycle), and the [example](#example) showcases the initialization sequence.
+MCP is a <Tooltip tip="A subset of MCP can be made stateless using the Streamable HTTP transport">stateful protocol</Tooltip> that requires lifecycle management. The purpose of lifecycle management is to negotiate the <Tooltip tip="Capabilities that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> that both client and server support. Detailed information can be found in the [specification](/specification/latest/basic/lifecycle), and the [example](#example) showcases the initialization sequence.
 
-#### Primitives
+#### Capabilities
 
-MCP primitives are the most important concept within MCP. They define what clients and servers can offer each other. These primitives specify the types of contextual information that can be shared with AI applications and the range of actions that can be performed.
+MCP capabilities are the most important concept within MCP. They define what clients and servers can offer each other. These capabilities specify the types of contextual information that can be shared with AI applications and the range of actions that can be performed.
 
-MCP defines three core primitives that _servers_ can expose:
+MCP defines three core capabilities that _servers_ can expose:
 
 - **Tools**: Executable functions that AI applications can invoke to perform actions (e.g., file operations, API calls, database queries)
 - **Resources**: Data sources that provide contextual information to AI applications (e.g., file contents, database records, API responses)
 - **Prompts**: Reusable templates that help structure interactions with language models (e.g., system prompts, few-shot examples)
 
-Each primitive type has associated methods for discovery (`*/list`), retrieval (`*/get`), and in some cases, execution (`tools/call`).
-MCP clients will use the `*/list` methods to discover available primitives. For example, a client can first list all available tools (`tools/list`) and then execute them. This design allows listings to be dynamic.
+Each capability type has associated methods for discovery (`*/list`), retrieval (`*/get`), and in some cases, execution (`tools/call`).
+MCP clients will use the `*/list` methods to discover available capabilities. For example, a client can first list all available tools (`tools/list`) and then execute them. This design allows listings to be dynamic.
 
 As a concrete example, consider an MCP server that provides context about a database. It can expose tools for querying the database, a resource that contains the schema of the database, and a prompt that includes few-shot examples for interacting with the tools.
 
-For more details about server primitives see [server concepts](./server-concepts).
+For more details about server capabilities see [server concepts](./server-concepts).
 
-MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
+MCP also defines capabilities that _clients_ can expose. These capabilities allow MCP server authors to build richer interactions.
 
 - **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. They can use the `sampling/complete` method to request a language model completion from the client's AI application.
 - **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/request` method to request additional information from the user.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
 
-For more details about client primitives see [client concepts](./client-concepts).
+For more details about client capabilities see [client concepts](./client-concepts).
 
-Besides server and client primitives, the protocol offers cross-cutting utility primitives that augment how requests are executed:
+Besides server and client capabilities, the protocol offers cross-cutting utility capabilities that augment how requests are executed:
 
 - **Tasks (Experimental)**: Durable execution wrappers that enable deferred result retrieval and status tracking for MCP requests (e.g., expensive computations, workflow automation, batch processing, multi-step operations)
 
@@ -199,11 +199,11 @@ The initialization process is a key part of MCP's lifecycle management and serve
 
 1. **Protocol Version Negotiation**: The `protocolVersion` field (e.g., "2025-06-18") ensures both client and server are using compatible protocol versions. This prevents communication errors that could occur when different versions attempt to interact. If a mutually compatible version is not negotiated, the connection should be terminated.
 
-2. **Capability Discovery**: The `capabilities` object allows each party to declare what features they support, including which [primitives](#primitives) they can handle (tools, resources, prompts) and whether they support features like [notifications](#notifications). This enables efficient communication by avoiding unsupported operations.
+2. **Capability Discovery**: The `capabilities` object allows each party to declare what [capabilities](#capabilities) they support (tools, resources, prompts) and whether they support [notifications](#notifications). This enables efficient communication by avoiding unsupported operations.
 
 3. **Identity Exchange**: The `clientInfo` and `serverInfo` objects provide identification and versioning information for debugging and compatibility purposes.
 
-In this example, the capability negotiation demonstrates how MCP primitives are declared:
+In this example, the capability negotiation demonstrates how MCP capabilities are declared:
 
 **Client Capabilities**:
 
@@ -211,8 +211,8 @@ In this example, the capability negotiation demonstrates how MCP primitives are 
 
 **Server Capabilities**:
 
-- `"tools": {"listChanged": true}` - The server supports the tools primitive AND can send `tools/list_changed` notifications when its tool list changes
-- `"resources": {}` - The server also supports the resources primitive (can handle `resources/list` and `resources/read` methods)
+- `"tools": {"listChanged": true}` - The server supports the tools capability AND can send `tools/list_changed` notifications when its tool list changes
+- `"resources": {}` - The server also supports the resources capability (can handle `resources/list` and `resources/read` methods)
 
 After successful initialization, the client sends a notification to indicate it's ready:
 
@@ -239,7 +239,7 @@ async with stdio_client(server_config) as (read, write):
 
 </Step>
 
-<Step title="Tool Discovery (Primitives)">
+<Step title="Tool Discovery (Capabilities)">
 Now that the connection is established, the client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism — it allows clients to understand what tools are available on the server before attempting to use them.
 
 <CodeGroup>
@@ -328,8 +328,8 @@ conversation.register_available_tools(available_tools)
 
 </Step>
 
-<Step title="Tool Execution (Primitives)">
-The client can now execute a tool using the `tools/call` method. This demonstrates how MCP primitives are used in practice: after discovering available tools, the client can invoke them with appropriate arguments.
+<Step title="Tool Execution (Capabilities)">
+The client can now execute a tool using the `tools/call` method. This demonstrates how MCP capabilities are used in practice: after discovering available tools, the client can invoke them with appropriate arguments.
 
 #### Understanding the Tool Execution Request
 
@@ -447,7 +447,7 @@ This notification system is crucial for several reasons:
 3. **Consistency**: Ensures clients always have accurate information about available server capabilities
 4. **Real-time Collaboration**: Enables responsive AI applications that can adapt to changing contexts
 
-This notification pattern extends beyond tools to other MCP primitives, enabling comprehensive real-time synchronization between clients and servers.
+This notification pattern extends beyond tools to other MCP capabilities, enabling comprehensive real-time synchronization between clients and servers.
 
 #### How This Works in AI Applications
 
