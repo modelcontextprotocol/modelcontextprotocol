@@ -31,3 +31,4 @@ jobs:
           stageblog-workflow: stage-blog.yml
           remove-labels-on-accept: in-review,draft,proposal
           project-number: 12
+          project-gate-label: SEP
