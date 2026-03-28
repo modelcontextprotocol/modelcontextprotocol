@@ -86,8 +86,19 @@ The specific use of `authorization_servers` is beyond the scope of this specific
 OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)) for
 guidance on implementation details.
 
-Implementors should note that Protected Resource Metadata documents can define multiple authorization servers. The responsibility for selecting which authorization server to use lies with the MCP client, following the guidelines specified in
+Implementors should note that Protected Resource Metadata documents
+can define multiple authorization servers. The responsibility for
+selecting which authorization server to use lies with the MCP client,
+following the guidelines specified in
 [RFC9728 Section 7.6 "Authorization Servers"](https://datatracker.ietf.org/doc/html/rfc9728#name-authorization-servers).
+
+When multiple authorization servers are listed in `authorization_servers`, each is an
+independent OAuth 2.0 authorization server. Consistent with
+[RFC 6749 Section 2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-2.2), client
+identifiers are unique to the authorization server that issued them. Clients **MUST** maintain
+separate registration state (client credentials, tokens) per authorization server and
+**MUST NOT** assume that credentials valid for one authorization server will be accepted by
+another.
 
 ### Protected Resource Metadata Discovery Requirements
 
@@ -208,6 +219,28 @@ Clients supporting all options **SHOULD** follow the following priority order:
 2. Use Client ID Metadata Documents if the Authorization Server indicates if the server supports it (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
 3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
 4. Prompt the user to enter the client information if no other option is available
+
+### Authorization Server Binding
+
+Clients that use pre-registered credentials, or persist client credentials obtained via Dynamic Client
+Registration, **MUST** associate those
+credentials with the specific authorization server that issued them,
+keyed by the authorization server's `issuer` identifier. When the
+authorization server changes (detected via updated protected
+resource metadata), clients **MUST NOT** reuse client credentials
+from a different authorization server and **MUST** re-register
+with the new authorization server.
+
+Pre-registered credentials are inherently specific to a particular
+authorization server. If the authorization server indicated by
+protected resource metadata no longer matches the one the
+credentials were registered with, clients **SHOULD** surface an
+error rather than silently attempting to use mismatched credentials.
+
+Client IDs based on Client ID Metadata Documents are portable
+across authorization servers, since they are self-hosted HTTPS URLs
+resolved by the authorization server on demand. No re-registration
+is needed when the authorization server changes.
 
 ### Client ID Metadata Documents
 
