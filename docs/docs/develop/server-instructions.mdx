@@ -1,0 +1,90 @@
+---
+title: "Server instructions"
+description: "Guide LLMs on how to use your server effectively with server instructions."
+---
+
+Server instructions let an MCP server provide global guidance that a host application can inject into the LLM's system prompt. Unlike tool descriptions (which document individual tools) or prompts (which require user selection), instructions give the server a single place to describe cross-tool workflows, constraints, and operational context that the LLM should always be aware of.
+
+Instructions are returned in the server's `initialize` response:
+
+```json
+{
+  "serverInfo": {
+    "name": "example-server",
+    "version": "1.0.0"
+  },
+  "instructions": "Use 'search' before 'read' to validate file paths. Search results expire after 10 minutes."
+}
+```
+
+## When to use instructions
+
+Instructions are most valuable for information that individual tool descriptions cannot convey:
+
+- **Cross-tool relationships**: "Always call `authenticate` before any `fetch_*` tools. The `cache_clear` tool invalidates all `fetch_*` results."
+- **Workflow ordering**: "For safe database migrations, use `validate_schema` -> `create_backup` -> `migrate_schema`."
+- **Operational constraints**: "File operations are limited to the workspace directory. Rate limit: 100 requests/minute across all tools."
+- **Conditional behavior**: "Only use `request_preferences` to ask the user for settings if elicitation is supported. Otherwise, fall back to default configuration."
+
+## Writing effective instructions
+
+Good instructions are concise, factual, and focused on what tool descriptions alone cannot communicate.
+
+### Best practices
+
+1. **Focus on relationships between tools** rather than repeating what each tool does individually.
+2. **Be concise and actionable.** Models follow short, structured instructions more reliably than long paragraphs.
+3. **Write model-agnostic instructions.** Don't assume a specific model or model capabilities.
+4. **Load only relevant instructions.** If your server supports toolsets or feature flags, generate instructions dynamically based on what is enabled.
+
+### Anti-patterns
+
+**Don't repeat tool descriptions:**
+
+```json
+// Bad - duplicates what's already in each tool's description
+{ "instructions": "The search tool searches for files. The read tool reads files." }
+
+// Good - adds context that tool descriptions can't capture
+{ "instructions": "Use 'search' before 'read' to validate file paths. Search results expire after 10 minutes." }
+```
+
+**Don't include marketing or unrelated content:**
+
+```json
+// Bad
+{ "instructions": "This is the best server for all your needs!" }
+
+// Good
+{ "instructions": "Specialized for Python AST analysis. Not suitable for binary file processing." }
+```
+
+**Don't write excessively long instructions:**
+
+```json
+// Bad - a wall of text that models may not follow reliably
+{ "instructions": "This server provides comprehensive functionality for... [500 words]" }
+
+// Good - concise and scannable
+{ "instructions": "GitHub integration server. Workflow: 1) 'auth_github', 2) 'list_repos', 3) 'clone_repo'. Check 'rate_status' before bulk operations." }
+```
+
+## Limitations
+
+- **Instructions don't guarantee behavior.** Like all LLM guidance, instructions influence but do not deterministically control what the model does. Reliability varies by model, sampling parameters, and other context in the conversation.
+- **Instructions can't fix poor tool design.** Well-designed tool schemas and descriptions remain the primary way models understand how to use your tools.
+- **Don't use instructions for critical safety logic.** Security-critical invariants (e.g., authentication checks, input validation) should be enforced deterministically in your server code, not delegated to the LLM.
+
+## Guidance for client implementers
+
+If your MCP client supports server instructions:
+
+- **Give users visibility.** Expose instructions so users can review what servers are injecting into context.
+- **Give users control.** Allow enabling, disabling, or editing server instructions.
+- **Document your approach.** Be clear about how your client handles and applies server instructions.
+
+<Note>
+
+For more background on measuring the effectiveness of server instructions, including quantitative evaluation results, see the [Server Instructions blog post](https://blog.modelcontextprotocol.io/posts/2025-11-03-using-server-instructions/).
+
+</Note>

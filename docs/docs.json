@@ -47,6 +47,7 @@
               "docs/develop/connect-remote-servers",
               "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
+              "docs/develop/server-instructions",
               "docs/develop/build-client",
               "docs/sdk",
               {
