@@ -96,62 +96,6 @@ When unsure, err toward proceeding. A thin SEP redirected during review is cheap
 
 Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/SEP-DRAFT-{slug}.md` where `{slug}` is a lowercase, hyphenated version of the idea trimmed to ~50 characters (match the pattern of existing `seps/*.md` filenames).
 
-### Preamble
-
-```markdown
-# SEP-{NUMBER}: {Title}
-
-- **Status**: Draft
-- **Type**: {from Phase 1 Q1}
-- **Created**: {today, YYYY-MM-DD}
-- **Author(s)**: {from `git config user.name` / `git config user.email`}
-- **Sponsor**: {from Phase 1 Q5 — @github-username, or "None (seeking sponsor)"}
-- **PR**: {leave blank — filled after the PR is opened}
-```
-
-Leave `{NUMBER}` as a literal placeholder — it is backfilled in Phase 6.
-
-### Abstract
-
-~200 words. What the proposal does, not why. Readers should be able to stop here and know what is being proposed.
-
-### Motivation
-
-The make-or-break section. Per the SEP guidelines: **"SEPs without sufficient motivation may be rejected outright."**
-
-Feed in the Phase 2 step 1 findings: what the spec says today and why that is insufficient. Be concrete about the gap.
-
-### Specification
-
-For **Standards Track** / **Extensions Track**: new message formats, methods, behavioral requirements, error handling. Reference the `schema/draft/schema.ts` types found in Phase 2 step 5 by name.
-
-For **Process**: step-by-step procedures, roles, timelines.
-
-### Rationale
-
-- Alternatives considered — draw from Phase 2 research
-- Why the chosen approach won
-- Design-principle fit from Phase 2 step 4
-- Link to the discussion thread from Phase 1 Q4 — this is where "evidence of consensus within the community" lives
-
-### Backward Compatibility
-
-If Phase 1 Q2 answered "breaking": severity, scope, migration path. This section is load-bearing.
-
-If not breaking: state that explicitly. One sentence is fine.
-
-### Security Implications
-
-Attack surface, privacy, authentication/authorization changes, data validation requirements.
-
-If none: state that explicitly.
-
-### Reference Implementation
-
-If Phase 1 Q3 produced a prototype link, put it here with a one-line summary of what it demonstrates.
-
-If not: `TBD — required before Final status.`
-
 ## Phase 5 — Checkpoint
 
 Tell the user:
