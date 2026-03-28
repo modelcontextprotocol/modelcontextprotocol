@@ -1,0 +1,155 @@
+---
+title: Group Charter Template
+description: Template for MCP Working Group and Interest Group charters.
+---
+
+Every MCP Working Group and Interest Group must maintain a charter document following this structure. Charters are stored at `docs/community/<group-name>/charter.mdx` in the [modelcontextprotocol repository](https://github.com/modelcontextprotocol/modelcontextprotocol) and added to `docs/docs.json`.
+
+The charter captures information specific to your group. Governance rules — leadership requirements, decision-making process, meeting requirements, escalation paths — are defined in the [Working and Interest Groups](/community/working-interest-groups) documentation and apply automatically. Do not repeat them here.
+
+Sections marked **(WG only)** are required for Working Groups and optional for Interest Groups.
+
+<Note>
+  Copy the markdown below into `docs/community/<group-name>/charter.mdx` and replace the placeholder text.
+</Note>
+
+---
+
+```markdown
+---
+title: <Group Name> Charter
+description: Charter for the MCP <Group Name> <Working Group | Interest Group>.
+---
+
+## Group Type
+
+<!-- State whether this is a Working Group or an Interest Group. -->
+
+**Working Group** | **Interest Group**
+
+## Mission Statement
+
+<!--
+A 2-3 sentence summary of the group's purpose.
+- The problem space being addressed
+- Why cross-cutting collaboration is needed
+- For WGs: what concrete deliverables the group will produce
+- For IGs: what discussions and knowledge-sharing the group will facilitate
+-->
+
+## Scope
+
+### In Scope
+
+<!--
+For WGs:
+- Specification Work: Specific spec sections or SEPs owned
+- Reference Implementations: SDK components or reference implementations
+- Cross-Cutting Concerns: Areas requiring coordination with other groups
+- Documentation: Documentation responsibilities
+
+For IGs:
+- Topic areas for discussion
+- Types of output (problem statements, use cases, recommendations)
+-->
+
+### Out of Scope
+
+<!-- Explicit statements of what is NOT within the group's purview to prevent mission creep. -->
+
+### Related Groups
+
+<!-- List of other WGs or IGs with intersecting work and the nature of overlap. -->
+
+## Leadership
+
+<!--
+Leadership requirements and responsibilities are defined in the governance rules.
+List current Leads (WG) or Facilitators (IG).
+-->
+
+| Role | Name | Organization | GitHub | Term |
+| ---- | ---- | ------------ | ------ | ---- |
+|      |      |              |        |      |
+
+## Authority & Decision Rights (WG only)
+
+<!--
+The decision-making process (lazy consensus → vote → escalation) is defined in
+the governance rules. This table documents which decisions this WG can make at
+which authority level.
+
+IGs do not make binding decisions and do not need this section.
+-->
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+<!--
+List current group members and their participation levels, if any.
+Leave out if no members exist yet. Participation tiers and membership
+criteria are defined in the governance rules.
+-->
+
+| Name | Organization | GitHub | Discord | Level |
+| ---- | ------------ | ------ | ------- | ----- |
+|      |              |        |         |       |
+
+## Operations
+
+<!--
+Document the group's current meeting approach. Meeting requirements (open,
+published 7 days ahead, agendas/notes to GitHub Discussions) and communication
+channels are defined in the governance rules.
+-->
+
+| Meeting         | Frequency | Duration | Purpose                               |
+| --------------- | --------- | -------- | ------------------------------------- |
+| Working Session |           |          | Technical discussion, proposal review |
+| Office Hours    |           |          | Open Q&A for newcomers and observers  |
+
+## Deliverables & Success Metrics (WG only)
+
+<!--
+Track active work items with status and ownership.
+IGs may optionally list current discussion topics or planned outputs here.
+-->
+
+### Active Work Items
+
+| Item          | Status                    | Target Date | Champion |
+| ------------- | ------------------------- | ----------- | -------- |
+| SEP-XXX: Name | Draft / Review / Approved |             |          |
+
+### Success Criteria
+
+<!-- Measurable outcomes for WG success. -->
+
+## Changelog
+
+| Date | Change |
+| ---- | ------ |
+|      |        |
+```
+
+---
+
+## Example Mission Statements
+
+**Working Group:**
+
+> The Transport Working Group exists to evolve MCP's transport mechanisms to support diverse deployment scenarios—from local subprocess communication to horizontally-scaled cloud deployments—while maintaining protocol coherence and backward compatibility.
+
+**Interest Group:**
+
+> The Enterprise IG explores the challenges of deploying MCP in enterprise environments, gathering use cases and requirements to inform future specification work.

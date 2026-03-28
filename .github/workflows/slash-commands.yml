@@ -1,0 +1,31 @@
+name: Slash Commands
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  # Parse and execute /lgtm, /hold, /unhold, /stageblog comment commands;
+  # invalidate approval when new commits are pushed.
+  handle:
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
+      github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.MCP_COMMANDER_APP_ID }}
+          private-key: ${{ secrets.MCP_COMMANDER_APP_KEY }}
+
+      - uses: modelcontextprotocol/actions/slash-commands@main
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          always-allow-teams: core-maintainers,lead-maintainers
+          stageblog-workflow: stage-blog.yml
