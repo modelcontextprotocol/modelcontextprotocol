@@ -35,6 +35,7 @@ while maintaining simplicity:
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
 - OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
+- OpenID Connect Dynamic Client Registration 1.0 ([OpenID Connect Registration](https://openid.net/specs/openid-connect-registration-1_0.html))
 
 ## Roles
 
@@ -329,6 +330,35 @@ MCP clients and authorization servers **MAY** support the
 OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)
 to allow MCP clients to obtain OAuth client IDs without user interaction.
 This option is included for backwards compatibility with earlier versions of the MCP authorization spec.
+
+#### Application Type and Redirect URI Constraints
+
+When authorization servers support OpenID Connect (OIDC) and
+Dynamic Client Registration, they may enforce additional
+constraints on redirect URIs based on the `application_type`
+parameter as defined in
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
+
+MCP clients **MUST** specify an appropriate `application_type`
+during Dynamic Client Registration. Omitting it defaults to
+`"web"` under OIDC, which can conflict with native-style redirect
+URIs; non-OIDC servers safely ignore the parameter.
+
+- **Native applications** (desktop applications, mobile apps,
+  CLI tools, and locally-hosted web applications accessed via
+  `localhost`) **SHOULD** use `application_type: "native"`
+- **Web applications** (remote browser-based applications
+  served from a non-local host) **SHOULD** use
+  `application_type: "web"`
+
+MCP clients **MUST** be prepared to handle registration
+failures due to redirect URI constraints when authorization
+servers implement OIDC. When a registration request is rejected,
+clients **SHOULD** surface a meaningful error to the user or
+developer. Clients **MAY** retry registration with an adjusted
+`application_type` or with redirect URIs that conform to the
+authorization server's requirements for the given application
+type.
 
 ## Scope Selection Strategy
 
