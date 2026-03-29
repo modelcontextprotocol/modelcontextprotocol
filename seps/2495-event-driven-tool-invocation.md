@@ -1,15 +1,11 @@
-# SEP: Event-Driven Tool Invocation (Server-Push → LLM Re-entry)
+# SEP-2495: Event-Driven Tool Invocation (Server-Push to LLM Re-entry)
 
-| Field    | Value                                                    |
-|----------|----------------------------------------------------------|
-| SEP      | 2495                                                     |
-| Title    | Event-Driven Tool Invocation (Server-Push → LLM Re-entry) |
-| Status   | Draft                                                    |
-| Type     | Standards Track                                          |
-| Created  | 2026-03-29                                               |
-| Author   | Heiko Friedrich (heikofriedrich75@gmail.com)             |
-| Sponsor  | *TBD*                                                    |
-| PR       | [#2495](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2495)                                                    |
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-03-29
+- **Author(s)**: Heiko Friedrich (heikofriedrich75@gmail.com)
+- **Sponsor**: _TBD_
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2495
 
 ## Abstract
 
@@ -44,7 +40,7 @@ This limitation affects a wide range of use cases:
 
 ### Current Workarounds (All Suboptimal)
 
-| Workaround | Problem |
-|---|---|
-| User manually messages the LLM to poll | Breaks interactivity, poor UX |
-| Build all logic into the app itself | Defeats the purpose of LLM orchestration |
+| Workaround                             | Problem                                  |
+| -------------------------------------- | ---------------------------------------- |
+| User manually messages the LLM to poll | Breaks interactivity, poor UX            |
+| Build all logic into the app itself    | Defeats the purpose of LLM orchestration |
