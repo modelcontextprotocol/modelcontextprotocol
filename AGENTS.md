@@ -68,6 +68,19 @@ npm run check:seps       # Check SEP documents
 npm run prep             # Full prep before committing (check, generate, format)
 ```
 
+## Issue Creation
+
+Blank issues are disabled. `gh issue create` and the API bypass the template
+chooser, so when filing via CLI or API you **must** use one of the forms in
+`.github/ISSUE_TEMPLATE/` and fill in its required fields.
+
+Before filing, check `.github/ISSUE_TEMPLATE/config.yml` — some categories
+are redirected out of this repo entirely:
+
+- **SEPs** are pull requests adding a file to `seps/`, not issues
+- **SDK bugs** belong in the individual SDK repository
+- **Claude MCP behavior** belongs in `anthropics/claude-ai-mcp`
+
 ## Commit Guidelines
 
 - Do not include model names or details (e.g., "Claude", "Opus") in commit messages

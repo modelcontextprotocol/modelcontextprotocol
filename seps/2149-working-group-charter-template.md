@@ -1,30 +1,11 @@
----
-title: "SEP-2149: MCP Group Governance and Charter Template"
-sidebarTitle: "SEP-2149: MCP Group Governance and Charter Templa…"
-description: "MCP Group Governance and Charter Template"
----
+# SEP-2149: MCP Group Governance and Charter Template
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="green" shape="pill">
-    Final
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Process
-  </Badge>
-</div>
-
-| Field         | Value                                                                                                                        |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2149                                                                                                                         |
-| **Title**     | MCP Group Governance and Charter Template                                                                                    |
-| **Status**    | Final                                                                                                                        |
-| **Type**      | Process                                                                                                                      |
-| **Created**   | 2025-01-15                                                                                                                   |
-| **Author(s)** | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant)), Sarah Novotny ([@sarahnovotny](https://github.com/sarahnovotny)) |
-| **Sponsor**   | David Soria Parra ([@dsp-ant](https://github.com/dsp-ant))                                                                   |
-| **PR**        | [#2149](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2149)                                              |
-
----
+- **Status**: Final
+- **Type**: Process
+- **Created**: 2025-01-15
+- **Author(s)**: David Soria Parra (@dsp-ant), Sarah Novotny (@sarahnovotny)
+- **Sponsor**: David Soria Parra (@dsp-ant)
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2149
 
 ## Abstract
 
