@@ -1,4 +1,4 @@
-# SEP-0000: Task Output Snapshots
+# SEP-2509: Task Output Snapshots
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -6,7 +6,7 @@
 - **Author(s)**: Shinzo
 - **Sponsor**: None
 - **Issue**: #2452
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2509
 
 ## Abstract
 
