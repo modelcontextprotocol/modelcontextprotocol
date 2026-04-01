@@ -30,7 +30,7 @@ jobs:
 
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Build blog
         uses: modelcontextprotocol/actions/hugo-build@main
