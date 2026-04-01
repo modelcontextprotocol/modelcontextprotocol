@@ -650,6 +650,10 @@
     {
       "source": "/community/seps/:slug*",
       "destination": "/seps/:slug*"
+    },
+    {
+      "source": "/specification/versioning",
+      "destination": "/docs/learn/versioning"
     }
   ],
   "contextual": {
