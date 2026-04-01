@@ -411,6 +411,74 @@ stateDiagram-v2
 1. Receivers **MAY** choose not to support deletion at all, or only support deletion for tasks in certain statuses (e.g., only terminal statuses).
 1. Requestors **SHOULD** delete tasks containing sensitive data promptly rather than relying solely on `keepAlive` expiration for cleanup.
 
+#### 4.11. Task-Associated Notifications
+
+Receivers MUST include the `modelcontextprotocol.io/related-task` key in the
+`_meta` of any notification emitted during task execution where the notification
+is causally related to that task.
+
+##### 4.11.1. Progress Notifications
+
+1. When a task-augmented request includes a `progressToken` in its `_meta`,
+   receivers MAY emit `notifications/progress` referencing that token during
+   task execution, including after the initial JSON-RPC response has been sent.
+2. Receivers that do so MUST also include `modelcontextprotocol.io/related-task`
+   in the notification's `_meta`.
+3. Once a task reaches a terminal status, receivers MUST NOT emit further
+   `notifications/progress` for that task's `progressToken`.
+4. Receivers SHOULD treat the `progressToken` as scoped to the task lifetime
+   rather than the request/response pair lifetime when task augmentation is present.
+5. If a client reconnects and resumes polling via `tasks/get`, receivers SHOULD NOT
+   replay missed progress notifications. The authoritative state is always the
+   `status` field returned by `tasks/get`.
+
+##### 4.11.2. Log Notifications
+
+1. Receivers MAY emit `notifications/message` during task execution.
+2. Because `notifications/message` does not define a `_meta` field in the base
+   MCP specification, receivers SHOULD include a top-level `_meta` key in the
+   notification params when emitting log messages related to a task:
+```json
+   {
+     "jsonrpc": "2.0",
+     "method": "notifications/message",
+     "params": {
+       "level": "info",
+       "logger": "my-tool",
+       "data": "Processing step 2 of 5",
+       "_meta": {
+         "modelcontextprotocol.io/related-task": {
+           "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+         }
+       }
+     }
+   }
+```
+
+3. Clients that receive `notifications/message` with `modelcontextprotocol.io/related-task`
+   SHOULD associate those log messages with the identified task.
+4. Clients that do not support task-associated log messages MUST ignore the `_meta`
+   field and process the notification normally.
+
+##### 4.11.3. Other Notification Types
+
+For any notification type not covered above, receivers MUST include
+`modelcontextprotocol.io/related-task` in `_meta` if the notification is causally
+related to a task, and MUST NOT include it if unrelated.
+```
+
+**6. Also update the top of the file** — change the Status line from:
+```
+- **Status**: Final
+```
+to:
+```
+- **Status**: Final (amended)
+```
+And add below it:
+```
+- **Amended**: 2026-04-01
+
 ### 5. Message Flow
 
 https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686#issuecomment-3452378176
