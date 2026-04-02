@@ -207,6 +207,8 @@ A tool definition includes:
   - For tools with no parameters, use one of these valid approaches:
     - `{ "type": "object", "additionalProperties": false }` - **Recommended**: explicitly accepts only empty objects
     - `{ "type": "object" }` - accepts any object (including with properties)
+  - Properties **MAY** include an [`x-mcp-header`](#x-mcp-header) annotation to expose
+    parameter values as HTTP headers
 - `outputSchema`: Optional JSON Schema defining expected output structure
   - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
@@ -232,19 +234,65 @@ A tool definition includes:
   - `DATA_EXPORT_v2`
   - `admin.tools.list`
 
-<Note>
+#### x-mcp-header
 
-Tool name uniqueness is scoped to a single server. Clients or proxies that
-aggregate tools from multiple servers **MAY** encounter naming collisions (for
-example, two servers each exposing a `search` tool) and **SHOULD** implement a
-disambiguation strategy such as prefixing tool names with a server identifier.
+The `x-mcp-header` extension property allows servers to designate specific tool
+parameters to be mirrored into HTTP headers when using the
+[Streamable HTTP transport](/specification/draft/basic/transports#custom-headers-from-tool-parameters).
+This enables network intermediaries (load balancers, proxies, WAFs) to route and process
+requests based on parameter values without parsing the request body.
 
-The server `name` returned during
-[initialization](/specification/draft/basic/lifecycle#initialization) is not
-guaranteed to be unique across servers and **SHOULD NOT** be relied upon for
-disambiguation.
+The `x-mcp-header` property is placed directly within the JSON Schema of the property to
+be mirrored. Its value specifies the name portion of the resulting `Mcp-Param-{name}`
+HTTP header.
 
-</Note>
+**Constraints on `x-mcp-header` values:**
+
+- **MUST NOT** be empty
+- **MUST** contain only ASCII characters, excluding space and `:`
+- **MUST** be case-insensitively unique among all `x-mcp-header` values in the
+  `inputSchema`
+- **MUST** only be applied to parameters with primitive types (number, string, boolean)
+
+Clients **MUST** reject tool definitions where any `x-mcp-header` value violates these
+constraints. Rejection means the client **MUST** exclude the invalid tool from the result
+of `tools/list`. Clients **SHOULD** log a warning when rejecting a tool definition,
+including the tool name and the reason for rejection. This ensures that a single
+malformed tool definition does not prevent other valid tools from being used.
+
+**Example tool definition with `x-mcp-header`:**
+
+```json
+{
+  "name": "execute_sql",
+  "description": "Execute SQL on Google Cloud Spanner",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "region": {
+        "type": "string",
+        "description": "The region to execute the query in",
+        "x-mcp-header": "Region"
+      },
+      "query": {
+        "type": "string",
+        "description": "The SQL query to execute"
+      }
+    },
+    "required": ["region", "query"]
+  }
+}
+```
+
+In this example, when the tool is called with `"region": "us-west1"`, the client adds
+the header `Mcp-Param-Region: us-west1` to the HTTP request.
+
+<Warning>
+
+Server developers **SHOULD NOT** mark sensitive parameters (passwords, API keys, tokens,
+PII) with `x-mcp-header`, as header values are visible to network intermediaries.
+
+</Warning>
 
 ### Tool Result
 
