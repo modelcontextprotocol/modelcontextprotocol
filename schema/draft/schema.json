@@ -380,6 +380,10 @@
                     },
                     "type": "object"
                 },
+                "streams": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "Present if the client supports streams.\n\nWhen declared, the client can open input streams and receive output streams\nduring tool execution."
+                },
                 "tasks": {
                     "description": "Present if the client supports task-augmented requests.",
                     "properties": {
@@ -435,6 +439,12 @@
                     "$ref": "#/$defs/ProgressNotification"
                 },
                 {
+                    "$ref": "#/$defs/StreamDataNotification"
+                },
+                {
+                    "$ref": "#/$defs/StreamCloseNotification"
+                },
+                {
                     "$ref": "#/$defs/TaskStatusNotification"
                 },
                 {
@@ -478,6 +488,9 @@
                     "$ref": "#/$defs/CallToolRequest"
                 },
                 {
+                    "$ref": "#/$defs/StreamOpenRequest"
+                },
+                {
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
@@ -501,6 +514,9 @@
             "anyOf": [
                 {
                     "$ref": "#/$defs/Result"
+                },
+                {
+                    "$ref": "#/$defs/StreamOpenResult"
                 },
                 {
                     "$ref": "#/$defs/GetTaskResult",
@@ -3393,6 +3409,10 @@
                     },
                     "type": "object"
                 },
+                "streams": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "Present if the server supports streams.\n\nWhen declared, the server can open output streams and accept input streams\nduring tool execution."
+                },
                 "tasks": {
                     "description": "Present if the server supports task-augmented requests.",
                     "properties": {
@@ -3457,6 +3477,12 @@
                     "$ref": "#/$defs/ToolListChangedNotification"
                 },
                 {
+                    "$ref": "#/$defs/StreamDataNotification"
+                },
+                {
+                    "$ref": "#/$defs/StreamCloseNotification"
+                },
+                {
                     "$ref": "#/$defs/TaskStatusNotification"
                 },
                 {
@@ -3471,6 +3497,9 @@
             "anyOf": [
                 {
                     "$ref": "#/$defs/PingRequest"
+                },
+                {
+                    "$ref": "#/$defs/StreamOpenRequest"
                 },
                 {
                     "$ref": "#/$defs/GetTaskRequest"
@@ -3523,6 +3552,9 @@
                 },
                 {
                     "$ref": "#/$defs/CallToolResult"
+                },
+                {
+                    "$ref": "#/$defs/StreamOpenResult"
                 },
                 {
                     "$ref": "#/$defs/CreateTaskResult"
@@ -3618,6 +3650,225 @@
                     "$ref": "#/$defs/TitledSingleSelectEnumSchema"
                 }
             ]
+        },
+        "StreamCloseNotification": {
+            "description": "A notification signalling that a stream has been closed.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/streams/close",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/StreamCloseNotificationParams"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "StreamCloseNotificationParams": {
+            "description": "Parameters for a `notifications/streams/close` notification.\n\nSignals that a stream has ended. No further data notifications will be sent\nfor this `streamId`.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "message": {
+                    "description": "An optional human-readable message providing more detail about the close.",
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "An optional reason for closing the stream.\n\nStandard values:\n- `\"complete\"`: Normal end-of-stream (default when absent)\n- `\"error\"`: The stream terminated due to an error\n- `\"cancelled\"`: The stream was cancelled by the sender or receiver",
+                    "enum": [
+                        "cancelled",
+                        "complete",
+                        "error"
+                    ],
+                    "type": "string"
+                },
+                "streamId": {
+                    "description": "The identifier of the stream that is being closed.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "streamId"
+            ],
+            "type": "object"
+        },
+        "StreamDataNotification": {
+            "description": "A notification carrying stream data.",
+            "properties": {
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "notifications/streams/data",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/StreamDataNotificationParams"
+                }
+            },
+            "required": [
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "StreamDataNotificationParams": {
+            "description": "Parameters for a `notifications/streams/data` notification.\n\nCarries an ordered batch of packets for a previously-opened stream.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "offset": {
+                    "description": "The zero-based byte (or packet) offset of the first packet in this batch.\nReceivers can use this to detect gaps or reorder out-of-order deliveries.",
+                    "type": "integer"
+                },
+                "packets": {
+                    "description": "An ordered array of packets. Receivers MUST process them in order.",
+                    "items": {
+                        "$ref": "#/$defs/StreamPacket"
+                    },
+                    "type": "array"
+                },
+                "streamId": {
+                    "description": "The identifier of the stream this data belongs to.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "offset",
+                "packets",
+                "streamId"
+            ],
+            "type": "object"
+        },
+        "StreamDescriptor": {
+            "description": "Describes a named stream channel that a tool can declare as part of its\ninput or output interface. Each descriptor maps to a logical channel that\nwill be realized as a unidirectional stream during tool execution.",
+            "properties": {
+                "description": {
+                    "description": "A human-readable description of what this stream channel carries.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "The expected MIME type of the data carried on this stream.\nWhen absent the stream carries arbitrary binary data (`application/octet-stream`).",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The logical name of this stream channel. For input streams this corresponds\nto a field name in the tool's `inputSchema`; for output streams this is a\nserver-chosen identifier that will appear in `StreamDataNotification`.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "type": "object"
+        },
+        "StreamId": {
+            "description": "An opaque identifier for a stream.\n\nStream IDs are assigned by the party that opens the stream (the sender).\nThey MUST be unique within the scope of a single MCP session.",
+            "type": "string"
+        },
+        "StreamOpenRequest": {
+            "description": "A request to open a new stream.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "streams/open",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/StreamOpenRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "StreamOpenRequestParams": {
+            "description": "Parameters for a `streams/open` request.\n\nEither side (client or server) may open a stream by sending this request.\nThe receiver confirms by returning a `StreamOpenResult`.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "channelName": {
+                    "description": "If the stream is associated with a tool call, the name of the stream\nchannel on that tool (matching a `StreamDescriptor.name`).",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "An optional human-readable label for the stream.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "The MIME type of the data that will be sent on this stream.",
+                    "type": "string"
+                },
+                "streamId": {
+                    "description": "A unique identifier for the stream being opened.\nAssigned by the opener (sender of the request).",
+                    "type": "string"
+                },
+                "toolName": {
+                    "description": "If the stream is associated with a tool call, the name of the tool.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "streamId"
+            ],
+            "type": "object"
+        },
+        "StreamOpenResult": {
+            "description": "The result of a `streams/open` request.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "streamId": {
+                    "description": "The stream identifier, echoed back for confirmation.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "streamId"
+            ],
+            "type": "object"
+        },
+        "StreamPacket": {
+            "description": "A single packet of data within a stream.",
+            "properties": {
+                "data": {
+                    "description": "The payload of the packet, encoded as a UTF-8 string.\nFor binary data, the sender SHOULD base64-encode the bytes and set\n`encoding` to `\"base64\"`.",
+                    "type": "string"
+                },
+                "encoding": {
+                    "const": "base64",
+                    "description": "The encoding of `data`. If omitted the data is plain UTF-8 text.\n\nStandard values:\n- `\"base64\"`: data is base64-encoded binary",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "data"
+            ],
+            "type": "object"
         },
         "StringSchema": {
             "properties": {
@@ -4047,6 +4298,13 @@
                     ],
                     "type": "object"
                 },
+                "inputStreams": {
+                    "description": "Declares named input stream channels that the tool accepts.\n\nWhen present, the client SHOULD open the declared streams (via `streams/open`)\nafter invoking the tool and send data with `notifications/streams/data`.\nThis allows the tool to receive unbounded or real-time input beyond its\nJSON `inputSchema`.\n\nA bidirectional (websocket-like) channel is created when a tool declares\nboth an input stream and a corresponding output stream with the same\n`name`.",
+                    "items": {
+                        "$ref": "#/$defs/StreamDescriptor"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
@@ -4078,6 +4336,13 @@
                         "type"
                     ],
                     "type": "object"
+                },
+                "outputStreams": {
+                    "description": "Declares named output stream channels that the tool produces.\n\nWhen present, the server will open these streams (via `streams/open`)\nduring tool execution and push data to the client with\n`notifications/streams/data`.\n\nA bidirectional (websocket-like) channel is created when a tool declares\nboth an input stream and a corresponding output stream with the same\n`name`.",
+                    "items": {
+                        "$ref": "#/$defs/StreamDescriptor"
+                    },
+                    "type": "array"
                 },
                 "title": {
                     "description": "Intended for UI and end-user contexts — optimized to be human-readable and easily understood,\neven by those unfamiliar with domain-specific terminology.\n\nIf not provided, the name should be used for display (except for {@link Tool},\nwhere `annotations.title` should be given precedence over using `name`,\nif present).",

@@ -343,14 +343,6 @@ export interface ClientCapabilities {
   elicitation?: { form?: object; url?: object };
 
   /**
-   * Present if the client supports streams.
-   *
-   * When declared, the client can open input streams and receive output streams
-   * during tool execution.
-   */
-  streams?: object;
-
-  /**
    * Present if the client supports task-augmented requests.
    */
   tasks?: {
@@ -437,14 +429,6 @@ export interface ServerCapabilities {
      */
     listChanged?: boolean;
   };
-  /**
-   * Present if the server supports streams.
-   *
-   * When declared, the server can open output streams and accept input streams
-   * during tool execution.
-   */
-  streams?: object;
-
   /**
    * Present if the server supports task-augmented requests.
    */
@@ -1309,231 +1293,9 @@ export interface Tool extends BaseMetadata, Icons {
   annotations?: ToolAnnotations;
 
   /**
-   * Declares named input stream channels that the tool accepts.
-   *
-   * When present, the client SHOULD open the declared streams (via `streams/open`)
-   * after invoking the tool and send data with `notifications/streams/data`.
-   * This allows the tool to receive unbounded or real-time input beyond its
-   * JSON `inputSchema`.
-   *
-   * A bidirectional (websocket-like) channel is created when a tool declares
-   * both an input stream and a corresponding output stream with the same
-   * `name`.
-   */
-  inputStreams?: StreamDescriptor[];
-
-  /**
-   * Declares named output stream channels that the tool produces.
-   *
-   * When present, the server will open these streams (via `streams/open`)
-   * during tool execution and push data to the client with
-   * `notifications/streams/data`.
-   *
-   * A bidirectional (websocket-like) channel is created when a tool declares
-   * both an input stream and a corresponding output stream with the same
-   * `name`.
-   */
-  outputStreams?: StreamDescriptor[];
-
-  /**
    * See [General fields: `_meta`](/specification/2025-11-25/basic/index#meta) for notes on `_meta` usage.
    */
   _meta?: { [key: string]: unknown };
-}
-
-/* Streams */
-
-/**
- * An opaque identifier for a stream.
- *
- * Stream IDs are assigned by the party that opens the stream (the sender).
- * They MUST be unique within the scope of a single MCP session.
- *
- * @category Streams
- */
-export type StreamId = string;
-
-/**
- * Describes a named stream channel that a tool can declare as part of its
- * input or output interface. Each descriptor maps to a logical channel that
- * will be realized as a unidirectional stream during tool execution.
- *
- * @category Streams
- */
-export interface StreamDescriptor {
-  /**
-   * The logical name of this stream channel. For input streams this corresponds
-   * to a field name in the tool's `inputSchema`; for output streams this is a
-   * server-chosen identifier that will appear in `StreamDataNotification`.
-   */
-  name: string;
-
-  /**
-   * The expected MIME type of the data carried on this stream.
-   * When absent the stream carries arbitrary binary data (`application/octet-stream`).
-   */
-  mimeType?: string;
-
-  /**
-   * A human-readable description of what this stream channel carries.
-   */
-  description?: string;
-}
-
-/**
- * A single packet of data within a stream.
- *
- * @category Streams
- */
-export interface StreamPacket {
-  /**
-   * The payload of the packet, encoded as a UTF-8 string.
-   * For binary data, the sender SHOULD base64-encode the bytes and set
-   * `encoding` to `"base64"`.
-   */
-  data: string;
-
-  /**
-   * The encoding of `data`. If omitted the data is plain UTF-8 text.
-   *
-   * Standard values:
-   * - `"base64"`: data is base64-encoded binary
-   */
-  encoding?: "base64";
-}
-
-/**
- * Parameters for a `streams/open` request.
- *
- * Either side (client or server) may open a stream by sending this request.
- * The receiver confirms by returning a `StreamOpenResult`.
- *
- * @category `streams/open`
- */
-export interface StreamOpenRequestParams extends RequestParams {
-  /**
-   * A unique identifier for the stream being opened.
-   * Assigned by the opener (sender of the request).
-   */
-  streamId: StreamId;
-
-  /**
-   * The MIME type of the data that will be sent on this stream.
-   */
-  mimeType?: string;
-
-  /**
-   * An optional human-readable label for the stream.
-   */
-  label?: string;
-
-  /**
-   * If the stream is associated with a tool call, the name of the tool.
-   */
-  toolName?: string;
-
-  /**
-   * If the stream is associated with a tool call, the name of the stream
-   * channel on that tool (matching a `StreamDescriptor.name`).
-   */
-  channelName?: string;
-}
-
-/**
- * A request to open a new stream.
- *
- * @category `streams/open`
- */
-export interface StreamOpenRequest extends JSONRPCRequest {
-  method: "streams/open";
-  params: StreamOpenRequestParams;
-}
-
-/**
- * The result of a `streams/open` request.
- *
- * @category `streams/open`
- */
-export interface StreamOpenResult extends Result {
-  /**
-   * The stream identifier, echoed back for confirmation.
-   */
-  streamId: StreamId;
-}
-
-/**
- * Parameters for a `notifications/streams/data` notification.
- *
- * Carries an ordered batch of packets for a previously-opened stream.
- *
- * @category `notifications/streams/data`
- */
-export interface StreamDataNotificationParams extends NotificationParams {
-  /**
-   * The identifier of the stream this data belongs to.
-   */
-  streamId: StreamId;
-
-  /**
-   * The zero-based byte (or packet) offset of the first packet in this batch.
-   * Receivers can use this to detect gaps or reorder out-of-order deliveries.
-   */
-  offset: number;
-
-  /**
-   * An ordered array of packets. Receivers MUST process them in order.
-   */
-  packets: StreamPacket[];
-}
-
-/**
- * A notification carrying stream data.
- *
- * @category `notifications/streams/data`
- */
-export interface StreamDataNotification extends JSONRPCNotification {
-  method: "notifications/streams/data";
-  params: StreamDataNotificationParams;
-}
-
-/**
- * Parameters for a `notifications/streams/close` notification.
- *
- * Signals that a stream has ended. No further data notifications will be sent
- * for this `streamId`.
- *
- * @category `notifications/streams/close`
- */
-export interface StreamCloseNotificationParams extends NotificationParams {
-  /**
-   * The identifier of the stream that is being closed.
-   */
-  streamId: StreamId;
-
-  /**
-   * An optional reason for closing the stream.
-   *
-   * Standard values:
-   * - `"complete"`: Normal end-of-stream (default when absent)
-   * - `"error"`: The stream terminated due to an error
-   * - `"cancelled"`: The stream was cancelled by the sender or receiver
-   */
-  reason?: "complete" | "error" | "cancelled";
-
-  /**
-   * An optional human-readable message providing more detail about the close.
-   */
-  message?: string;
-}
-
-/**
- * A notification signalling that a stream has been closed.
- *
- * @category `notifications/streams/close`
- */
-export interface StreamCloseNotification extends JSONRPCNotification {
-  method: "notifications/streams/close";
-  params: StreamCloseNotificationParams;
 }
 
 /* Tasks */
@@ -2759,7 +2521,6 @@ export type ClientRequest =
   | UnsubscribeRequest
   | CallToolRequest
   | ListToolsRequest
-  | StreamOpenRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -2771,8 +2532,6 @@ export type ClientNotification =
   | ProgressNotification
   | InitializedNotification
   | RootsListChangedNotification
-  | StreamDataNotification
-  | StreamCloseNotification
   | TaskStatusNotification;
 
 /** @internal */
@@ -2781,7 +2540,6 @@ export type ClientResult =
   | CreateMessageResult
   | ListRootsResult
   | ElicitResult
-  | StreamOpenResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
@@ -2794,7 +2552,6 @@ export type ServerRequest =
   | CreateMessageRequest
   | ListRootsRequest
   | ElicitRequest
-  | StreamOpenRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -2810,8 +2567,6 @@ export type ServerNotification =
   | ToolListChangedNotification
   | PromptListChangedNotification
   | ElicitationCompleteNotification
-  | StreamDataNotification
-  | StreamCloseNotification
   | TaskStatusNotification;
 
 /** @internal */
@@ -2826,7 +2581,6 @@ export type ServerResult =
   | ReadResourceResult
   | CallToolResult
   | ListToolsResult
-  | StreamOpenResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
