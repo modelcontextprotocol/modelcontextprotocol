@@ -1,0 +1,23 @@
+{
+  "name": "launch_rocket",
+  "description": "Initiates a rocket launch sequence. Only available to authorized mission control personnel when weather conditions are clear and the launch window is open.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "to": { "type": "string" },
+      "subject": { "type": "string" },
+      "body": { "type": "string" }
+    },
+    "required": ["to", "subject", "body"]
+  },
+  "execution": {
+    "requirements": [
+      "auth:oauth2",
+      "auth:claim:role:mission_control",
+      "capability:rocket.launch",
+      "env:production",
+      "state:weather.clear",
+      "feature:launch_window.open"
+    ]
+  }
+}
