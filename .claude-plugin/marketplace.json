@@ -10,7 +10,12 @@
     {
       "name": "mcp-spec",
       "source": "./plugins/mcp-spec",
-      "description": "Skills for researching and contributing to the MCP specification"
+      "description": "Skills for researching the MCP specification via GitHub"
+    },
+    {
+      "name": "mcp-spec-annotator",
+      "source": "./plugins/mcp-spec-annotator",
+      "description": "Annotates MCP SEP diffs against extracted requirements, producing structured review artifacts"
     }
   ]
 }

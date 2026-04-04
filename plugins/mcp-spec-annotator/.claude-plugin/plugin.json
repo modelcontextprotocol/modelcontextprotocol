@@ -1,0 +1,11 @@
+{
+  "name": "mcp-spec-annotator",
+  "version": "0.1.0",
+  "description": "Claude Code plugin for annotating MCP SEP diffs against extracted requirements",
+  "author": {
+    "name": "Model Context Protocol"
+  },
+  "repository": "https://github.com/modelcontextprotocol/modelcontextprotocol",
+  "license": "Apache-2.0",
+  "keywords": ["mcp", "model-context-protocol", "specification", "annotation", "review"]
+}
