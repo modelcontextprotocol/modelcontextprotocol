@@ -72,15 +72,15 @@ If there are no security implications, state that explicitly.
 
 ## Reference Implementation
 
-Link to or describe a reference implementation. A reference implementation is required before any SEP can be given "Final" status.
+For Standards Track SEPs, the reference implementation is the set of specification changes added to this pull request before the SEP reaches "Final" status:
 
-The principle of "rough consensus and running code" is useful when resolving discussions of protocol details.
+- Schema changes in `schema/draft/schema.ts` (regenerated with `npm run generate:schema`)
+- Specification text in `docs/specification/draft/`
+- A changelog entry in `docs/specification/draft/changelog.mdx`
 
-Include:
+SDK implementations are **not** required for Final status — the prototype demonstrates feasibility, and SDKs implement the feature after the specification is released. Link to the prototype here.
 
-- Links to prototype code or pull requests
-- Pointers to example usage
-- Test results or validation
+For Process and Informational SEPs, the reference implementation is the corresponding documentation or process change included in this PR.
 
 ---
 

@@ -64,7 +64,7 @@ flowchart TD
     InReview --> Decision
     Decision --> Accepted
     Decision --> Rejected
-    Accepted -->|"Reference implementation complete"| Final
+    Accepted -->|"Specification changes complete"| Final
 ```
 
 ### Step-by-Step Process
@@ -97,20 +97,20 @@ flowchart TD
 
 8. **Resolution**: The SEP may be `accepted`, `rejected`, or returned for revision. The sponsor updates the status.
 
-9. **Finalization**: Once accepted, the reference implementation must be completed. When complete and incorporated into the specification, the sponsor updates the status to `final`.
+9. **Finalization**: Once accepted, the author adds the specification changes (schema, specification text, and changelog entry) to the same PR. When those changes are complete, the sponsor updates the status to `final` and the PR can be merged.
 
 ### SEP Statuses
 
-| Status       | Meaning                                          |
-| ------------ | ------------------------------------------------ |
-| `draft`      | Has a sponsor, undergoing informal review        |
-| `in-review`  | Ready for formal Core Maintainer review          |
-| `accepted`   | Approved, awaiting reference implementation      |
-| `rejected`   | Declined by Core Maintainers                     |
-| `withdrawn`  | Author withdrew the proposal                     |
-| `final`      | Complete with reference implementation           |
-| `superseded` | Replaced by a newer SEP                          |
-| `dormant`    | No sponsor found within 6 months; can be revived |
+| Status       | Meaning                                           |
+| ------------ | ------------------------------------------------- |
+| `draft`      | Has a sponsor, undergoing informal review         |
+| `in-review`  | Ready for formal Core Maintainer review           |
+| `accepted`   | Approved, awaiting specification changes          |
+| `rejected`   | Declined by Core Maintainers                      |
+| `withdrawn`  | Author withdrew the proposal                      |
+| `final`      | Specification changes complete; PR ready to merge |
+| `superseded` | Replaced by a newer SEP                           |
+| `dormant`    | No sponsor found within 6 months; can be revived  |
 
 **Important distinction**: `dormant` is not the same as `rejected`. A dormant SEP simply didn't find a sponsor - the idea may still be valid. If circumstances change (new community interest, new use cases), a dormant SEP can be revived by finding a sponsor and reopening the PR.
 
@@ -144,7 +144,9 @@ All SEPs introducing backward incompatibilities must describe these incompatibil
 
 ### 7. Reference Implementation
 
-Must be completed before the SEP reaches "Final" status, but need not be complete before acceptance.
+For Standards Track SEPs, the reference implementation is the set of specification changes — schema updates, specification text, and a changelog entry — added to the SEP's pull request. These must be complete before the SEP reaches "Final" status, but need not be present before acceptance. SDK implementations are **not** required beyond the [prototype](#prototype-requirements); SDKs implement the feature after the specification is released.
+
+For Process and Informational SEPs, the reference implementation is the corresponding documentation or process change.
 
 ### 8. Security Implications
 
@@ -212,7 +214,7 @@ For a SEP to be accepted it must meet these criteria:
 - Clear benefit to the MCP ecosystem
 - Community support and consensus
 
-Once a SEP has been accepted, the reference implementation must be completed. When complete and incorporated into the main repository, the status changes to "Final".
+Once a SEP has been accepted, the author adds the specification changes — schema updates, specification text, and a changelog entry — to the SEP's pull request. SDK implementations are not required at this stage; the prototype is sufficient. When the specification changes are complete, the status changes to "Final" and the PR can be merged.
 
 ## After Rejection
 
