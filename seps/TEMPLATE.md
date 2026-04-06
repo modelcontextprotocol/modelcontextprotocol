@@ -70,17 +70,11 @@ Describe any security concerns related to this proposal, including:
 
 If there are no security implications, state that explicitly.
 
-## Specification Changes
+## Prototype Implementation
 
-For Standards Track SEPs, add the specification changes to this pull request before the SEP reaches "Final" status:
+Link to a prototype demonstrating the proposal — for example, a branch or fork of an official SDK, a standalone proof-of-concept, or a reference server/client. A prototype is required before a SEP can be accepted; it does not need to be production-ready.
 
-- Schema changes in `schema/draft/schema.ts` (regenerated with `npm run generate:schema`)
-- Specification text in `docs/specification/draft/`
-- A changelog entry in `docs/specification/draft/changelog.mdx`
-
-SDK implementations are **not** required for Final status — the prototype demonstrates feasibility, and SDKs can begin implementing once the SEP is merged. Link to the prototype here.
-
-For Process and Informational SEPs, include the corresponding documentation or process change in this PR.
+SDK implementations are **not** required for Final status. SDKs can begin implementing once the SEP is merged.
 
 ---
 
