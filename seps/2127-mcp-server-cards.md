@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover server capabilities, available transports, authentication requirements, and protocol versions before establishing a connection.
+This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover available transports, protocol versions, and connection guidance before establishing a connection.
 
 ## Motivation
 
@@ -29,11 +29,11 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 - **Autoconfiguration**: IDE extensions can automatically configure themselves when pointed at a domain, eliminating manual setup.
 - **Automated Discovery**: Clients and registries can crawl domains to discover available MCP servers, enabling ecosystem-wide server indexes.
-- **Reduced Latency:** Display server information, capabilities, and metadata without waiting for full initialization sequences.
+- **Reduced Latency:** Display server information and metadata without waiting for full initialization sequences.
 
 ### Design Philosophy
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what capabilities are available, while initialization handles the communication handshake.
+The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what transports and protocol versions are available, while initialization handles the communication handshake.
 
 ### Discovery
 
@@ -94,8 +94,6 @@ This section provides the technical specification for MCP Server Cards.
   },
   "icons": [ ... ],
   "remotes": [ ... ],
-  "capabilities":  { ... },
-  "requires": { ... },
   "_meta": { ... }
 }
 ```
@@ -145,38 +143,14 @@ Fleshed out (contrived values) example:
             "ap-southeast-1"
           ]
         }
-      ],
-      "authentication": {
-        "required": true,
-        "schemes": ["bearer", "oauth2"]
-      },
+      ]
     },
     {
       "type": "sse",
       "url": "https://mcp.anonymous.modelcontextprotocol.io/sse",
-      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ],
-      "authentication": {
-        "required": true,
-        "schemes": ["bearer", "oauth2"]
-      },
+      "supportedProtocolVersions": [ "2025-03-12", "2025-06-15" ]
     }
   ],
-  "capabilities": {
-    "tools": {
-      "listChanged": true
-    },
-    "prompts": {
-      "listChanged": true
-    },
-    "resources": {
-      "subscribe": true,
-      "listChanged": true
-    }
-  },
-  "requires": {
-    "sampling": {},
-    "roots": {}
-  },
   "_meta": { ... }
 }
 
@@ -196,27 +170,8 @@ Most fields follow the current MCP Registry `server.json` standard: https://gith
 7. **icons** (array of object, optional): Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L18).
 8. **remotes** (array of object, optional): Metadata helpful for making HTTP-based connections to this MCP server.
    1. **supportedProtocolVersions** (array of string, optional): list of MCP protocol versions actively supported by this Remote.
-   2. **authentication** (object, optional): Authentication requirements
-      1. **required** (boolean, required): Whether authentication is mandatory
-      2. **schemes** (array, required): Supported schemes (e.g., ["bearer", "oauth2"])
-   3. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
-9. **capabilities** (object, optional): Server capabilities following `ServerCapabilities`
-   1. **experimental** (object, optional): Experimental capabilities
-   2. **logging** (object, optional): Log message support
-   3. **completions** (object, optional): Argument autocompletion support
-   4. **prompts** (object, optional): Prompt template support
-      1. **listChanged** (boolean, optional): Change notification support
-   5. **resources** (object, optional): Resource support
-      1. **subscribe** (boolean, optional): Subscription support
-      2. **listChanged** (boolean, optional): Change notification support
-   6. **tools** (object, optional): Tool support
-      1. **listChanged** (boolean, optional): Change notification support
-10. **requires** (object, optional): Required client capabilities following `ClientCapabilities`
-    1. **experimental** (object, optional): Required experimental capabilities
-    2. **roots** (object, optional): Root access requirement
-    3. **sampling** (object, optional): LLM sampling requirement
-    4. **elicitation** (object, optional): User elicitation requirement
-11. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
+   2. [See details](https://github.com/modelcontextprotocol/registry/blob/3f3383bb6199990c853ae8be3715e150af5e8bcb/docs/reference/server-json/server.schema.json#L344) for other fields.
+9. **\_meta** (object, optional): Additional metadata following [\_meta definition](https://modelcontextprotocol.io/specification/2025-06-18/basic/index#meta)
 
 ### `server.json` Schema
 
@@ -377,7 +332,7 @@ This specification intentionally omits primitive definitions (tools, resources, 
 
 ### Why Not Wait for Primitives?
 
-The debate around primitives should not delay server card adoption. Discovery (knowing that a server exists, where to connect, what transports it supports, and what authentication it requires) is enormously valuable on its own. It is the information an end user or IDE needs to install and configure a server, and it is the information a registry needs to index one. None of this depends on knowing the server's tool list in advance.
+The debate around primitives should not delay server card adoption. Discovery (knowing that a server exists, where to connect, and what transports and protocol versions it supports) is enormously valuable on its own. It is the information an end user or IDE needs to install and configure a server, and it is the information a registry needs to index one. None of this depends on knowing the server's tool list in advance.
 
 Server cards without primitives already enable the core use cases that motivate this SEP: autoconfiguration, domain-level discovery, reduced-latency metadata retrieval, and registry integration. Primitives can be added in a future revision once the ecosystem has the right mechanisms to advertise them safely. Shipping discovery now, and shipping it correctly, is more important than shipping a larger surface that risks being wrong.
 
