@@ -554,7 +554,10 @@ When constructing a `tools/call` request via HTTP transport, the client **MUST**
 
 #### Server Behavior for Custom Headers
 
-Servers **MUST** reject requests with `Mcp-Param-{Name}` headers that contain invalid
+
+Intermediate servers that do not recognize an `Mcp-Param-{Name}` header must forward it and otherwise ignore it, as required by the [HTTP Semantics RFC](https://www.rfc-editor.org/rfc/rfc9110.html#name-field-names).
+
+Servers **MUST** reject requests with a recognized `Mcp-Param-{Name}` headers that contain invalid
 characters (see [Value Encoding](#value-encoding)).
 
 Any server that processes the message body **MUST** validate that encoded header values,

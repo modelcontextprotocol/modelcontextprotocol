@@ -608,7 +608,9 @@ Four approaches were considered for encoding parameter values that cannot be saf
 
 Existing clients and SDKs will be required to include the standard headers when using the new MCP version. This is a minor addition since clients already include headers like `Mcp-Protocol-Version`, adding only one or two new headers per message.
 
-Servers implementing the new version MUST reject requests missing required headers. Servers MAY support older clients by accepting requests without headers when negotiating an older protocol version.
+Servers implementing the new version MUST reject requests using the new or later version that are missing required headers. Servers MAY support older clients by accepting requests without headers when negotiating an older protocol version.
+
+Intermediate servers can only rely on header values when the `Mcp-Protool-Version` header is present and set the new protocol version or later.
 
 ### Custom Headers from Tool Parameters
 
