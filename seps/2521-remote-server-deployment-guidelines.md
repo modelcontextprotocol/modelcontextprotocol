@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Informational
 - **Created**: 2026-04-05
-- **Author(s)**: Jeff Yaw <jeff@yaw.sh> (@jeffyaw)
+- **Author(s)**: Jeff Yaw jeff@yaw.sh (@jeffyaw)
 - **Sponsor**: None (seeking sponsor)
 - **PR**: #0000
 
