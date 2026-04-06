@@ -1,11 +1,11 @@
-# SEP-0000: Remote Server Deployment Guidelines
+# SEP-2521: Remote Server Deployment Guidelines
 
 - **Status**: Draft
 - **Type**: Informational
 - **Created**: 2026-04-05
-- **Author(s)**: Jeff Yaw jeff@yaw.sh (@jeffyaw)
+- **Author(s)**: Jeff Yaw (@jeffyaw)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: #0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2521
 
 ## Abstract
 
