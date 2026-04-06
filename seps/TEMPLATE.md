@@ -74,8 +74,6 @@ If there are no security implications, state that explicitly.
 
 Link to a prototype demonstrating the proposal — for example, a branch or fork of an official SDK, a standalone proof-of-concept, or a reference server/client. A prototype is required before a SEP can be accepted; it does not need to be production-ready.
 
-SDK implementations are **not** required for Final status. SDKs can begin implementing once the SEP is merged.
-
 ---
 
 ## Additional Optional Sections
