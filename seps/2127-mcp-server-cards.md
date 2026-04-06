@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover available transports and protocol versions before establishing a connection.
+This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover available transports, protocol versions, and connection guidance before establishing a connection.
 
 ## Motivation
 
