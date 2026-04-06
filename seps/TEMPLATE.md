@@ -70,17 +70,17 @@ Describe any security concerns related to this proposal, including:
 
 If there are no security implications, state that explicitly.
 
-## Reference Implementation
+## Specification Changes
 
-For Standards Track SEPs, the reference implementation is the set of specification changes added to this pull request before the SEP reaches "Final" status:
+For Standards Track SEPs, add the specification changes to this pull request before the SEP reaches "Final" status:
 
 - Schema changes in `schema/draft/schema.ts` (regenerated with `npm run generate:schema`)
 - Specification text in `docs/specification/draft/`
 - A changelog entry in `docs/specification/draft/changelog.mdx`
 
-SDK implementations are **not** required for Final status — the prototype demonstrates feasibility, and SDKs implement the feature after the specification is released. Link to the prototype here.
+SDK implementations are **not** required for Final status — the prototype demonstrates feasibility, and SDKs can begin implementing once the SEP is merged. Link to the prototype here.
 
-For Process and Informational SEPs, the reference implementation is the corresponding documentation or process change included in this PR.
+For Process and Informational SEPs, include the corresponding documentation or process change in this PR.
 
 ---
 
