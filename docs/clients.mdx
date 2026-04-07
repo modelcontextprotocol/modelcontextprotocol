@@ -510,16 +510,19 @@ Apigene MCP Client is an AI-powered conversational interface that enables seamle
 <McpClient
   name="Archestra"
   homepage="https://archestra.ai"
-  supports="Apps, Enterprise-Managed Authorization"
+  supports="Tools, Apps, CIMD, DCR, Enterprise-Managed Authorization"
 >
 
-Archestra is an agentic AI workspace and MCP gateway for building, orchestrating, and securing AI workflows across internal and external tools.
+Archestra is an enterprise AI platform that combines an LLM proxy, MCP gateway, agent runtime, and chat UI into a single control plane for building, routing, and securing AI workflows.
 
 **Key features:**
 
+- Unified MCP gateway that exposes a single endpoint for orchestrating tools across remote and self-hosted MCP servers.
 - Supports MCP Apps for inline, interactive tool UIs in chat.
+- Supports DCR and CIMD for MCP-native OAuth 2.1 client registration.
 - Supports the Enterprise-Managed Authorization extension for centrally managed enterprise identity flows.
-- Brokers downstream credentials for upstream MCP servers through its gateway architecture.
+- Includes an LLM proxy with deterministic, context-aware tool guardrails to reduce prompt-injection and data-exfiltration risk.
+- Adds per-team cost tracking, usage limits, and optimization controls for model traffic.
 
 </McpClient>
 
