@@ -1,4 +1,4 @@
-# SEP-0000: Resource Streaming for Binary Content Delivery
+# SEP-2532: Resource Streaming for Binary Content Delivery
 
 - **Status**: Draft
 - **Type**: Standards Track
