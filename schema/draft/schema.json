@@ -524,9 +524,6 @@
                     "$ref": "#/$defs/Result"
                 },
                 {
-                    "$ref": "#/$defs/ListRootsResult"
-                },
-                {
                     "$ref": "#/$defs/GetTaskResult",
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
                 },
@@ -605,9 +602,6 @@
                     },
                     "type": "object"
                 },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
                 "ref": {
                     "anyOf": [
                         {
@@ -617,9 +611,6 @@
                             "$ref": "#/$defs/ResourceTemplateReference"
                         }
                     ]
-                },
-                "requestState": {
-                    "type": "string"
                 }
             },
             "required": [
@@ -1999,14 +1990,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListPromptsResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListPromptsResult"
                 }
             },
             "required": [
@@ -2079,14 +2063,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListResourceTemplatesResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListResourceTemplatesResult"
                 }
             },
             "required": [
@@ -2159,14 +2136,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListResourcesResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListResourcesResult"
                 }
             },
             "required": [
@@ -2343,14 +2313,7 @@
                     "type": "string"
                 },
                 "result": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/IncompleteResult"
-                        },
-                        {
-                            "$ref": "#/$defs/ListToolsResult"
-                        }
-                    ]
+                    "$ref": "#/$defs/ListToolsResult"
                 }
             },
             "required": [
@@ -3193,12 +3156,6 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
-                "requestState": {
-                    "type": "string"
-                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3588,9 +3545,6 @@
         "ServerRequest": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ListRootsRequest"
-                },
-                {
                     "$ref": "#/$defs/PingRequest"
                 },
                 {
@@ -3802,12 +3756,6 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
-                "requestState": {
-                    "type": "string"
-                },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
                     "format": "uri",
@@ -3887,12 +3835,6 @@
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
                 },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
-                "requestState": {
-                    "type": "string"
-                },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
@@ -3915,7 +3857,7 @@
                     "type": "string"
                 },
                 "params": {
-                    "$ref": "#/$defs/TaskAugmentedRequestParams"
+                    "$ref": "#/$defs/TaskInputResponseRequestParams"
                 }
             },
             "required": [
@@ -3923,6 +3865,22 @@
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "TaskInputResponseRequestParams": {
+            "description": "Parameters for a `tasks/input_response` request.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses",
+                    "description": "The client's responses to the server's input requests from\nthe {@link IncompleteResult} returned by {@link GetTaskPayloadRequesttasks/result}."
+                }
+            },
+            "required": [
+                "inputResponses"
             ],
             "type": "object"
         },
@@ -4441,12 +4399,6 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/RequestMetaObject"
-                },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
-                "requestState": {
-                    "type": "string"
                 },
                 "uri": {
                     "description": "The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.",
