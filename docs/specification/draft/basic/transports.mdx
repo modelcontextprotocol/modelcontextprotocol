@@ -554,7 +554,6 @@ When constructing a `tools/call` request via HTTP transport, the client **MUST**
 
 #### Server Behavior for Custom Headers
 
-
 Intermediate servers that do not recognize an `Mcp-Param-{Name}` header **MUST** forward it and otherwise ignore it, as required by the [HTTP Semantics RFC](https://www.rfc-editor.org/rfc/rfc9110.html#name-field-names).
 
 Servers **MUST** reject requests with a recognized `Mcp-Param-{Name}` headers that contain invalid

@@ -1,4 +1,4 @@
-# SEP-xxxx: HTTP Header Standardization for Streamable HTTP Transport
+# SEP-2243: HTTP Header Standardization for Streamable HTTP Transport
 
 <!-- cspell:ignore streamable -->
 <!-- markdownlint-disable MD036 MD060 -->
@@ -8,7 +8,7 @@
 - **Created**: 2026-02-04
 - **Author(s)**: MCP Transports Working Group
 - **Sponsor**: None
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/xxxx
+- **PR**: https://github.com/modelcontextprotocol/specification/pull/2243
 
 ## Abstract
 
