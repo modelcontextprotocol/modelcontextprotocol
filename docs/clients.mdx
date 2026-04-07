@@ -5,7 +5,7 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "CIMD", "DCR", "Tasks", "Apps"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "CIMD", "DCR", "OAuth Client Credentials", "Enterprise-Managed Authorization", "Tasks", "Apps"];
 
 export const FEATURE_COLORS = {
   Resources: "blue",
@@ -20,6 +20,8 @@ export const FEATURE_COLORS = {
   Apps: "orange",
   DCR: "yellow",
   CIMD: "yellow",
+  "OAuth Client Credentials": "yellow",
+  "Enterprise-Managed Authorization": "yellow",
 };
 
 export const FeatureBadge = ({ feature }) => {
@@ -281,20 +283,22 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
 
 This page showcases applications that support the Model Context Protocol (MCP). Each client may support different MCP features:
 
-| Feature                                 | Description                                                                                                  |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| <FeatureBadge feature="Resources" />    | Server-exposed data and content                                                                              |
-| <FeatureBadge feature="Prompts" />      | Pre-defined templates for LLM interactions                                                                   |
-| <FeatureBadge feature="Tools" />        | Executable functions that LLMs can invoke                                                                    |
-| <FeatureBadge feature="Discovery" />    | Support for tools/prompts/resources changed notifications                                                    |
-| <FeatureBadge feature="Instructions" /> | Server-provided guidance for LLMs                                                                            |
-| <FeatureBadge feature="Sampling" />     | Server-initiated LLM completions                                                                             |
-| <FeatureBadge feature="Roots" />        | Filesystem boundary definitions                                                                              |
-| <FeatureBadge feature="Elicitation" />  | User information requests                                                                                    |
-| <FeatureBadge feature="CIMD" />         | [Client ID Metadata Document](specification/latest/basic/authorization#client-id-metadata-documents) support |
-| <FeatureBadge feature="DCR" />          | [Dynamic Client Registration](specification/latest/basic/authorization#dynamic-client-registration) support  |
-| <FeatureBadge feature="Tasks" />        | Long-running operation tracking                                                                              |
-| <FeatureBadge feature="Apps" />         | Interactive HTML interfaces                                                                                  |
+| Feature                                                     | Description                                                                                                  |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| <FeatureBadge feature="Resources" />                        | Server-exposed data and content                                                                              |
+| <FeatureBadge feature="Prompts" />                          | Pre-defined templates for LLM interactions                                                                   |
+| <FeatureBadge feature="Tools" />                            | Executable functions that LLMs can invoke                                                                    |
+| <FeatureBadge feature="Discovery" />                        | Support for tools/prompts/resources changed notifications                                                    |
+| <FeatureBadge feature="Instructions" />                     | Server-provided guidance for LLMs                                                                            |
+| <FeatureBadge feature="Sampling" />                         | Server-initiated LLM completions                                                                             |
+| <FeatureBadge feature="Roots" />                            | Filesystem boundary definitions                                                                              |
+| <FeatureBadge feature="Elicitation" />                      | User information requests                                                                                    |
+| <FeatureBadge feature="CIMD" />                             | [Client ID Metadata Document](specification/latest/basic/authorization#client-id-metadata-documents) support |
+| <FeatureBadge feature="DCR" />                              | [Dynamic Client Registration](specification/latest/basic/authorization#dynamic-client-registration) support  |
+| <FeatureBadge feature="OAuth Client Credentials" />         | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) extension support                      |
+| <FeatureBadge feature="Enterprise-Managed Authorization" /> | [Enterprise-Managed Authorization](/extensions/auth/enterprise-managed-authorization) extension support      |
+| <FeatureBadge feature="Tasks" />                            | Long-running operation tracking                                                                              |
+| <FeatureBadge feature="Apps" />                             | Interactive HTML interfaces                                                                                  |
 
 <Note>
 
@@ -500,6 +504,25 @@ Apigene MCP Client is an AI-powered conversational interface that enables seamle
 **Learn more:**
 
 - [Apigene Copilot Documentation](https://docs.apigene.ai/user-guide/copilot)
+
+</McpClient>
+
+<McpClient
+  name="Archestra"
+  homepage="https://archestra.ai"
+  supports="Tools, Apps, CIMD, DCR, Enterprise-Managed Authorization"
+>
+
+Archestra is an enterprise AI platform that combines an LLM proxy, MCP registry/orchestrator, MCP gateway, agent runtime, and chat UI into a single control plane for building, routing, and securing AI workflows.
+
+**Key features:**
+
+- Unified MCP gateway that exposes a single endpoint for orchestrating tools across remote and self-hosted MCP servers.
+- Supports MCP Apps for inline, interactive tool UIs in chat.
+- Supports DCR and CIMD for MCP-native OAuth 2.1 client registration.
+- Supports the Enterprise-Managed Authorization extension for centrally managed enterprise identity flows.
+- Includes an LLM proxy with deterministic, context-aware tool guardrails to reduce prompt-injection and data-exfiltration risk.
+- Adds per-team cost tracking, usage limits, and optimization controls for model traffic.
 
 </McpClient>
 
