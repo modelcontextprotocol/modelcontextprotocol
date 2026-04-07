@@ -1342,33 +1342,37 @@ if becomes a problem.
 
 ## Backward Compatibility
 
-Today there may be ephemeral tools written in an in-line but async
-fashion to wait for the elicitation response before sending the tool
-call response on the original SSE stream:
+Today many sdks support elicitation via an in-line but async fashion which waits for
+the elicitation response before sending the tool call response on the original SSE stream, this works for MCP Servers that are a single-process or can ensure sticky routing of requests.
 
 ```python
 def my_tool():
-  do_mutation1()
+  do_work()
   await elicit_more_info()
-  do_mutation2()
+  do_more_work()
+  return tool_result
 ```
 
-For new tools, we want to instead suggest that they be written like
-this:
+SDKs MAY continue to support this style of elicitation for existing tools and for backwards compatibility, however, they SHOULD mark this pattern as legacy/deprecated.
+
+Moving forward examples and SDKs need to support the new style of elicitation where the code can not assume the same process is handling both tool calls. This programming model is less appealing, however it ensures that MCP Servers can go from a single process Stdio MCP server to a multi-process remote MCP Server without major rewrites, and ensures we have a single recommended way to do elicitation moving forward.
 
 ```python
 def my_tool(request):
-  github_login = request.inputResponses().get('github_login', None)
-  if github_login is None:
-    return IncompleteResponse({'github_login': elicitation_request})
-  result = GetResult(github_login)
-  return Result(result)
+  if(request.requestState):
+      state = decode(request.requestState)
+  if(request.inputResponses):
+      additionalInfo = decode(request.inputResponses)
+
+  do_work(state, additionalInfo)
+  if(more_info_needed):
+    return IncompleteResponse();
+  else
+    do_more_work()
+    return tool_result
 ```
 
-However, we need to consider how to avoid breaking things for existing
-tools that are written the old way. Ideally, we will be able to modify
-the SDKs to support the old tool implementations via some sort of
-backward compatibility layer.
+Other options considered here were to have two separate programming models that developers could choose between based on their MCP Server deployment single-process or multi-process to continue to support the await semantics, however this would have added complexity to the developer experience, and would have made it more difficult for developers to switch between single-process and multi-process deployments.
 
 ## Security Implications
 
