@@ -92,7 +92,7 @@ export type Cursor = string;
  *
  * @internal
  */
-export interface TaskAugmentedRequestParams extends RetryAugmentedRequestParams {
+export interface TaskAugmentedRequestParams extends RequestParams {
   /**
    * If specified, the caller is requesting task-augmented execution for this request.
    * The request will return a {@link CreateTaskResult} immediately, and the actual result can be
@@ -146,9 +146,7 @@ export interface Notification {
  * incomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.
  * @category Common Types
  */
-export type ResultType =
-  | "complete" 
-  | "incomplete"; 
+export type ResultType = "complete" | "incomplete";
 
 /**
  * Common result fields.
@@ -1081,7 +1079,7 @@ export interface ListResourceTemplatesResultResponse extends JSONRPCResultRespon
  *
  * @internal
  */
-export interface ResourceRequestParams extends RetryAugmentedRequestParams {
+export interface ResourceRequestParams extends RequestParams {
   /**
    * The URI of the resource. The URI can use any protocol; it is up to the server how to interpret it.
    *
@@ -1095,8 +1093,8 @@ export interface ResourceRequestParams extends RetryAugmentedRequestParams {
  *
  * @category `resources/read`
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ReadResourceRequestParams extends ResourceRequestParams {}
+export interface ReadResourceRequestParams
+  extends ResourceRequestParams, RetryAugmentedRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -1674,7 +1672,8 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
  *
  * @category `tools/call`
  */
-export interface CallToolRequestParams extends TaskAugmentedRequestParams {
+export interface CallToolRequestParams
+  extends RetryAugmentedRequestParams, TaskAugmentedRequestParams {
   /**
    * The name of the tool.
    */
@@ -2051,7 +2050,20 @@ export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
  */
 export interface TaskInputResponseRequest extends JSONRPCRequest {
   method: "tasks/input_response";
-  params: TaskAugmentedRequestParams;
+  params: TaskInputResponseRequestParams;
+}
+
+/**
+ * Parameters for a `tasks/input_response` request.
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequestParams extends RequestParams {
+  /**
+   * The client's responses to the server's input requests from
+   * the {@link IncompleteResult} returned by {@link GetTaskPayloadRequest | tasks/result}.
+   */
+  inputResponses: InputResponses;
 }
 
 /**
@@ -2701,7 +2713,7 @@ export interface ModelHint {
  * @example Prompt argument completion with context
  * {@includeCode ./examples/CompleteRequestParams/prompt-argument-completion-with-context.json}
  */
-export interface CompleteRequestParams extends RetryAugmentedRequestParams {
+export interface CompleteRequestParams extends RequestParams {
   ref: PromptReference | ResourceTemplateReference;
   /**
    * The argument's information
@@ -3316,7 +3328,6 @@ export type ClientNotification =
 /** @internal */
 export type ClientResult =
   | EmptyResult
-  | ListRootsResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
@@ -3326,7 +3337,6 @@ export type ClientResult =
 /** @internal */
 export type ServerRequest =
   | PingRequest
-  | ListRootsRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
