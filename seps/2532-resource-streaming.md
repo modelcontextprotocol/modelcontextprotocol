@@ -33,7 +33,7 @@ The current `resources/read` method returns content as either `text` (UTF-8 stri
 
 The following scenarios are impractical or broken with `resources/read` alone:
 
-- **Cloud file storage** (OneDrive, SharePoint, Google Drive, S3): Files range from kilobytes to gigabytes. Encoding a 100MB PowerPoint as base64 in a JSON-RPC response is not viable for remote servers at scale. (See [#527](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/527) — *"Base64 in JSON RPC will not scale for file content"*)
+- **Cloud file storage** (OneDrive, SharePoint, Google Drive, S3): Files range from kilobytes to gigabytes. Encoding a 100MB PowerPoint as base64 in a JSON-RPC response is not viable for remote servers at scale. (See [#527](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/527) — _"Base64 in JSON RPC will not scale for file content"_)
 
 - **Repository content** (GitHub, GitLab): Repository archives, large binaries, and media assets need to be delivered to clients for local caching or forwarding. GitHub's MCP server team has identified this as a scaling concern for remote servers at high concurrency. ([#527 comments](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/527#issuecomment-2923386315))
 
@@ -53,7 +53,7 @@ Previous proposals (PR [#607](https://github.com/modelcontextprotocol/modelconte
 
 4. **Loss of protocol guarantees**: Progress reporting, cancellation, error handling, and subscription semantics all exist within MCP. Fully out-of-band downloads lose these.
 
-`resources/stream` addresses these concerns by keeping the *negotiation* within the protocol (capabilities, auth, error handling) while delegating *byte delivery* to HTTP — the transport that already does this well. The server provides a `downloadUrl` scoped to the MCP session; the client fetches it with the session's credentials. Auth stays unified, the server controls the URL lifecycle, and protocol-level error handling covers the negotiation phase.
+`resources/stream` addresses these concerns by keeping the _negotiation_ within the protocol (capabilities, auth, error handling) while delegating _byte delivery_ to HTTP — the transport that already does this well. The server provides a `downloadUrl` scoped to the MCP session; the client fetches it with the session's credentials. Auth stays unified, the server controls the URL lifecycle, and protocol-level error handling covers the negotiation phase.
 
 ### Scope
 
@@ -63,17 +63,17 @@ This SEP is scoped to **HTTP-based remote transports** (Streamable HTTP, and fut
 
 This problem has been raised repeatedly across the MCP specification repository:
 
-| Issue | Title | Signal |
-|---|---|---|
-| [#527](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/527) | Base64 in JSON RPC will not scale for file content | Core issue; 15+ comments, GitHub + OneDrive contributors |
-| [#117](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/117) | Streaming tool use results | 49 upvotes, opened by MCP co-creator |
-| [#155](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/155) | Passing attachments (resources) to MCP servers | Foundational use case, led to SEP-1306 → SEP-2356 |
-| [PR #607](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/607) | Add Resource.uriScope to enable direct reads | Closed, "needs a SEP" |
-| [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356) | File input support for tools and elicitation | Covers client→server; this SEP covers server→client |
+| Issue                                                                              | Title                                              | Signal                                                   |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------- |
+| [#527](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/527)    | Base64 in JSON RPC will not scale for file content | Core issue; 15+ comments, GitHub + OneDrive contributors |
+| [#117](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/117)    | Streaming tool use results                         | 49 upvotes, opened by MCP co-creator                     |
+| [#155](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/155)    | Passing attachments (resources) to MCP servers     | Foundational use case, led to SEP-1306 → SEP-2356        |
+| [PR #607](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/607)   | Add Resource.uriScope to enable direct reads       | Closed, "needs a SEP"                                    |
+| [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356) | File input support for tools and elicitation       | Covers client→server; this SEP covers server→client      |
 
 connor4312 (VS Code MCP) noted on PR #607:
 
-> *"The main concern just becomes memory usage, which I think could be better solved with **streamed reads**."*
+> _"The main concern just becomes memory usage, which I think could be better solved with **streamed reads**."_
 
 This SEP is the formal proposal for that streamed read mechanism.
 
@@ -108,7 +108,11 @@ The `stream` capability is independent of and additive to existing resource capa
 ```
 
 ```json
-{ "capabilities": { "resources": { "stream": true, "subscribe": true, "listChanged": true } } }
+{
+  "capabilities": {
+    "resources": { "stream": true, "subscribe": true, "listChanged": true }
+  }
+}
 ```
 
 #### Client Capability
@@ -194,12 +198,12 @@ This is the same content negotiation pattern used broadly in HTTP APIs — the c
 
 **Required response headers for binary streams:**
 
-| Header | Requirement | Purpose |
-|---|---|---|
-| `Content-Type` | MUST | The resource's MIME type. Clients use this to determine file handling. |
-| `Content-Length` | SHOULD | Total size in bytes. Enables progress display and `maxStreamSize` enforcement before streaming begins. |
-| `Content-Disposition` | SHOULD | Suggested filename via `attachment; filename="..."`. |
-| `MCP-Resource-Uri` | MUST | The canonical MCP resource URI. Allows the client to correlate the stream to the original request. |
+| Header                | Requirement | Purpose                                                                                                |
+| --------------------- | ----------- | ------------------------------------------------------------------------------------------------------ |
+| `Content-Type`        | MUST        | The resource's MIME type. Clients use this to determine file handling.                                 |
+| `Content-Length`      | SHOULD      | Total size in bytes. Enables progress display and `maxStreamSize` enforcement before streaming begins. |
+| `Content-Disposition` | SHOULD      | Suggested filename via `attachment; filename="..."`.                                                   |
+| `MCP-Resource-Uri`    | MUST        | The canonical MCP resource URI. Allows the client to correlate the stream to the original request.     |
 
 **Client behavior for direct binary streams:**
 
@@ -223,6 +227,7 @@ MCP-Resource-Uri: onedrive:///documents/quarterly-report.pptx
 The client follows the redirect transparently and receives the raw binary stream from the storage endpoint.
 
 This enables a pattern identical to Microsoft Graph:
+
 - `GET /me/drive/items/{id}/content` → `302` → presigned blob URL → raw bytes
 
 **Requirements for redirect mode:**
@@ -265,12 +270,12 @@ This mode adds a round trip but may be necessary for servers that share a single
 
 The client handles all three modes through a simple Content-Type check on the response to its `resources/stream` POST:
 
-| Response Content-Type | Body | Client Action |
-|---|---|---|
-| Resource MIME type (e.g., `application/pdf`) | Raw binary bytes | Stream to disk / consumer |
-| Redirect (302/307) | Empty (Location header) | Follow redirect, stream the target |
-| `application/json` with `error` | JSON-RPC error | Handle error (not found, not streamable, etc.) |
-| `application/json` with `result.downloadUrl` | JSON-RPC metadata | GET the `downloadUrl`, stream the result |
+| Response Content-Type                        | Body                    | Client Action                                  |
+| -------------------------------------------- | ----------------------- | ---------------------------------------------- |
+| Resource MIME type (e.g., `application/pdf`) | Raw binary bytes        | Stream to disk / consumer                      |
+| Redirect (302/307)                           | Empty (Location header) | Follow redirect, stream the target             |
+| `application/json` with `error`              | JSON-RPC error          | Handle error (not found, not streamable, etc.) |
+| `application/json` with `result.downloadUrl` | JSON-RPC metadata       | GET the `downloadUrl`, stream the result       |
 
 Servers SHOULD prefer direct binary streaming or redirect mode for simplicity and efficiency. The `downloadUrl` mode exists as a fallback for constrained server architectures.
 
@@ -338,12 +343,12 @@ sequenceDiagram
 
 Errors during the `resources/stream` request use standard JSON-RPC errors returned as `Content-Type: application/json`:
 
-| Code | Message | Meaning |
-|---|---|---|
-| `-32002` | Resource not found | The requested URI does not exist |
+| Code     | Message              | Meaning                                            |
+| -------- | -------------------- | -------------------------------------------------- |
+| `-32002` | Resource not found   | The requested URI does not exist                   |
 | `-32003` | Stream not supported | Server doesn't support streaming for this resource |
-| `-32004` | Resource too large | Resource exceeds client's `maxStreamSize` |
-| `-32603` | Internal error | Server-side failure preparing the stream |
+| `-32004` | Resource too large   | Resource exceeds client's `maxStreamSize`          |
+| `-32603` | Internal error       | Server-side failure preparing the stream           |
 
 Example:
 
@@ -363,19 +368,20 @@ Example:
 ```
 
 Errors during the binary stream itself (after bytes have started flowing) manifest as HTTP-level failures:
+
 - The connection may drop (client treats as incomplete transfer)
 - The server may send fewer bytes than `Content-Length` promised (client detects and retries or discards)
 
 For download URL mode, errors at the download endpoint use standard HTTP status codes:
 
-| HTTP Status | Meaning |
-|---|---|
-| `200` | Success — binary stream follows |
-| `206` | Partial content (range request) |
-| `401` | Session credentials invalid or expired |
-| `404` | Download URL not found or already consumed |
-| `410` | Download URL expired |
-| `500` | Server error during content delivery |
+| HTTP Status | Meaning                                    |
+| ----------- | ------------------------------------------ |
+| `200`       | Success — binary stream follows            |
+| `206`       | Partial content (range request)            |
+| `401`       | Session credentials invalid or expired     |
+| `404`       | Download URL not found or already consumed |
+| `410`       | Download URL expired                       |
+| `500`       | Server error during content delivery       |
 
 Clients SHOULD treat download failures as retriable. If the URL returns `410 Gone`, the client MAY re-issue the `resources/stream` JSON-RPC request to obtain a fresh URL.
 
@@ -385,7 +391,7 @@ Clients SHOULD treat download failures as retriable. If the URL returns `410 Gon
 
 This SEP proposes a targeted extension to the Streamable HTTP transport specification. Currently, the spec states:
 
-> *"If the body is a JSON-RPC request, the server MUST either return `Content-Type: text/event-stream`, to initiate an SSE stream, or `Content-Type: application/json`, to return one JSON object."*
+> _"If the body is a JSON-RPC request, the server MUST either return `Content-Type: text/event-stream`, to initiate an SSE stream, or `Content-Type: application/json`, to return one JSON object."_
 
 For `resources/stream` requests **only**, this SEP adds a third permitted response type:
 
@@ -394,6 +400,7 @@ For `resources/stream` requests **only**, this SEP adds a third permitted respon
 This extension is narrowly scoped — it applies only to `resources/stream`, not to any other JSON-RPC method. All other MCP methods continue to use `application/json` or `text/event-stream` exclusively.
 
 **Why this is safe:**
+
 - The client explicitly called `resources/stream`, so it already expects non-JSON responses.
 - The client checks `Content-Type` before parsing the body — `application/json` means error/metadata, anything else means binary.
 - Existing MCP methods are unaffected.
@@ -417,6 +424,7 @@ The server's MCP endpoint and any redirect targets MAY be on different origins. 
 For WebSocket-based MCP connections, the JSON-RPC request and response flow over the WebSocket. Since WebSocket frames cannot carry HTTP-style headers, `resources/stream` over WebSocket MUST use the download URL mode: the server returns a JSON-RPC result with a `downloadUrl`, and the client performs a separate HTTP GET.
 
 This is deliberate — using a separate HTTP request:
+
 - Avoids blocking the WebSocket connection for the duration of a large download
 - Allows the server to delegate to CDN/storage without proxying through the WebSocket
 - Keeps the WebSocket free for concurrent JSON-RPC messages
@@ -433,14 +441,14 @@ A future SEP may propose binary framing for stdio if demand warrants it. Servers
 
 `resources/stream` does NOT replace `resources/read`. The two methods serve different purposes:
 
-| Aspect | `resources/read` | `resources/stream` |
-|---|---|---|
-| **Primary use** | Content for LLM context window | Raw bytes for files, processing, storage |
-| **Response** | JSON-RPC with inline `text`/`blob` | Direct binary HTTP response (or redirect/downloadUrl) |
-| **Content encoding** | UTF-8 text or base64 blob | Raw binary — no encoding overhead |
-| **Content size** | Small to medium (fits in memory) | Any size (streamed to disk) |
-| **Client intent** | "Give me content to reason about" | "Give me bytes to save/forward" |
-| **Transport** | Always JSON-RPC | HTTP binary response on same MCP endpoint |
+| Aspect               | `resources/read`                   | `resources/stream`                                    |
+| -------------------- | ---------------------------------- | ----------------------------------------------------- |
+| **Primary use**      | Content for LLM context window     | Raw bytes for files, processing, storage              |
+| **Response**         | JSON-RPC with inline `text`/`blob` | Direct binary HTTP response (or redirect/downloadUrl) |
+| **Content encoding** | UTF-8 text or base64 blob          | Raw binary — no encoding overhead                     |
+| **Content size**     | Small to medium (fits in memory)   | Any size (streamed to disk)                           |
+| **Client intent**    | "Give me content to reason about"  | "Give me bytes to save/forward"                       |
+| **Transport**        | Always JSON-RPC                    | HTTP binary response on same MCP endpoint             |
 
 Servers that support both MUST continue responding to `resources/read` for all resources. A client MAY use either method for any `streamable` resource — for example, a client might `resources/read` a PDF to extract text for the LLM, or `resources/stream` the same PDF to save it to disk.
 
@@ -567,15 +575,16 @@ Migration path: Implementations adopt streaming incrementally. A server can star
 
 ## Performance Implications
 
-| Scenario | `resources/read` | `resources/stream` (direct) | `resources/stream` (redirect) |
-|---|---|---|---|
-| 1MB text file | ~1.33MB JSON payload | ~1MB raw HTTP response | ~1MB from storage |
-| 50MB binary file | ~67MB JSON, full buffer | ~50MB chunked HTTP | ~50MB from CDN |
-| 500MB archive | Likely OOM or timeout | ~500MB chunked HTTP | ~500MB from storage |
-| Server memory (per request) | Full payload in memory | Constant (pipe-through) | Near zero (redirect) |
-| Round trips | 1 | 1 | 1 (POST) + 1 (redirect follow) |
+| Scenario                    | `resources/read`        | `resources/stream` (direct) | `resources/stream` (redirect)  |
+| --------------------------- | ----------------------- | --------------------------- | ------------------------------ |
+| 1MB text file               | ~1.33MB JSON payload    | ~1MB raw HTTP response      | ~1MB from storage              |
+| 50MB binary file            | ~67MB JSON, full buffer | ~50MB chunked HTTP          | ~50MB from CDN                 |
+| 500MB archive               | Likely OOM or timeout   | ~500MB chunked HTTP         | ~500MB from storage            |
+| Server memory (per request) | Full payload in memory  | Constant (pipe-through)     | Near zero (redirect)           |
+| Round trips                 | 1                       | 1                           | 1 (POST) + 1 (redirect follow) |
 
 Key wins:
+
 - **Peak memory**: From O(file_size) to O(chunk_size) for the server
 - **Time to first byte**: Immediate (no need to buffer entire file)
 - **Transport efficiency**: Raw binary over HTTP avoids 33% base64 overhead
@@ -596,7 +605,7 @@ Key wins:
 
 - **@SamMorrowDrums** — Original issue [#527](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/527) identifying the base64 scaling problem from the GitHub MCP server perspective
 - **@jonathanhefner** — `supportsDirectRead` / `uriScope` proposal in [PR #607](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/607), which shaped the out-of-band download approach incorporated here
-- **@connor4312** — Key insight that *"memory usage could be better solved with streamed reads"* and critical review of network topology assumptions
+- **@connor4312** — Key insight that _"memory usage could be better solved with streamed reads"_ and critical review of network topology assumptions
 - **@LucaButBoring** — Sequence diagram and dual-path (in-protocol + direct download) architecture thinking
 - **@jspahrsummers** — Original streaming tool results issue [#117](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/117)
 - **@localden** — Binary elicitation work ([SEP-1306](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1306)) exploring upload patterns that inform the bidirectional story
