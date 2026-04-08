@@ -1,6 +1,6 @@
 ---
 name: draft-sep
-description: Research and draft a Spec Enhancement Proposal following the MCP SEP governance process
+description: Research and draft a Specification Enhancement Proposal following the MCP SEP governance process
 user_invocable: true
 arguments:
   - name: idea
@@ -8,21 +8,23 @@ arguments:
     required: true
 ---
 
-# Drafting a Spec Enhancement Proposal
+# Drafting a Specification Enhancement Proposal
 
 This skill guides an author through producing a SEP that conforms to `docs/community/sep-guidelines.mdx` and `seps/TEMPLATE.md`. Work through the phases **in order** — do not start writing the draft until the interview and research are complete.
 
-**Discuss before drafting.** The SEP guidelines strongly recommend raising an idea in Discord or a Working Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall.
+**Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, it moves to `dormant`.
 
 ## Phase 1 — Interview
 
-Ask the user these five questions before touching any files. The answers feed directly into the draft.
+Ask the user these six questions before touching any files. The answers feed directly into the draft.
 
 1. **SEP type?** Standards Track (core protocol feature), Extensions Track (extension rather than core — see SEP-2133), Informational (guidelines/design notes), or Process (governance/workflow change). Most SEPs are Standards Track. Note: `seps/TEMPLATE.md` and the SEP guidelines list only three types; Extensions Track was added by SEP-2133 and has not yet been backfilled into those docs.
+   - **If Extensions Track:** also ask which Working Group and Extension Maintainers will be responsible for the extension — SEP-2133 makes this a hard requirement, and an Extensions Track SEP MUST have at least one reference implementation in an official SDK prior to review.
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
-3. **Prototype status?** A reference implementation is required before a SEP can reach `Final` status. Does one exist, is one in progress, or is it still TBD?
+3. **Prototype status?** There are two distinct gates: a working prototype is required before a SEP can be **accepted**, and a complete reference implementation is required before it can reach **Final**. The prototype proves feasibility — it doesn't need to be production-ready, but it must be runnable, not pseudocode. Does one exist, is one in progress, or is it still TBD?
 4. **Where was this discussed?** Discord thread, Working Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
-5. **Sponsor?** A SEP needs a Core Maintainer or Maintainer sponsor to move past `draft`. If the user has one lined up, capture their `@github-username`. If not, note the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx`: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
+5. **Sponsor?** A SEP needs a Core Maintainer or Maintainer sponsor to **enter** `draft` status — the sponsor is what grants it. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (up to 6 months, then `dormant`). If the user has one lined up, capture their `@github-username`. If not, the preamble should read `Sponsor: None` and the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx` applies: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
+6. **Security implications?** Does this proposal touch the attack surface — new transports, auth flows, data exposure, trust boundaries? The Security Implications section is required in `seps/TEMPLATE.md`; even "none identified" needs to be stated explicitly with reasoning.
 
 ## Phase 2 — Research
 
@@ -94,7 +96,15 @@ When unsure, err toward proceeding. A thin SEP redirected during review is cheap
 
 ## Phase 4 — Draft
 
-Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/SEP-DRAFT-{slug}.md` where `{slug}` is a lowercase, hyphenated version of the idea trimmed to ~50 characters (match the pattern of existing `seps/*.md` filenames).
+Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/0000-{slug}.md` where `{slug}` is a lowercase, hyphenated version of the idea trimmed to ~50 characters (match the pattern of existing `seps/*.md` filenames). The `0000` placeholder is the documented convention — the build's `render-seps.ts` deliberately skips files matching `^0000-`, so CI stays green until the rename in Phase 6.
+
+**Required sections:** Abstract, Motivation, Specification, Rationale, Backward Compatibility, Security Implications, Reference Implementation. **Optional sections** (use them if Phase 2 produced material): Alternatives Considered, Open Questions, Performance Implications, Testing Plan.
+
+**Preamble notes:**
+
+- `Status:` — leave blank or omit. Authors should request status changes through their sponsor rather than setting the field themselves.
+- `Sponsor:` — use the `@github-username` from Q5, or the literal `None`.
+- `PR:` — `seps/TEMPLATE.md` has a stale URL pointing at the wrong repo. Replace the entire URL with `https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}` (the `{NUMBER}` placeholder gets filled in Phase 6).
 
 ## Phase 5 — Checkpoint
 
@@ -111,20 +121,22 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 ```bash
 git checkout -b sep/{slug}
-git add seps/SEP-DRAFT-{slug}.md
+git add seps/0000-{slug}.md
 git commit -m "SEP: {title}"
 git push -u origin sep/{slug}
-gh pr create --title "SEP: {title}" --body "{one-paragraph summary}" --draft
+gh pr create --title "SEP: {title}" --body "{one-paragraph summary}" --draft --reviewer {sponsor-username}
 ```
 
-Capture the PR number from `gh pr create` output. Then backfill it:
+Omit `--reviewer` if Q5 answered `None`. Capture the PR number from `gh pr create` output. Then backfill it:
 
 ```bash
-git mv seps/SEP-DRAFT-{slug}.md seps/{N}-{slug}.md
+git mv seps/0000-{slug}.md seps/{N}-{slug}.md
 # edit the file: replace SEP-{NUMBER} with SEP-{N} in the title line,
 # fill the PR link in the preamble
-git commit -am "SEP-{N}: fill in PR number"
+npm run generate:seps
+git add seps/{N}-{slug}.md docs/seps/ docs/docs.json
+git commit -m "SEP-{N}: fill in PR number"
 git push
 ```
 
-Two commits, not amend+force. The PR is opened as `--draft` so it is clearly not yet ready for sponsor review.
+The `npm run generate:seps` step renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` — without it, the `render-seps.yml` CI check fails on the second push. SEP-1850 documents the rename as an amend+force; a second commit also works and is shown here since it avoids a force-push to an open PR. The PR is opened as `--draft` so it is clearly not yet ready for sponsor review.
