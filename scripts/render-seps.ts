@@ -38,18 +38,14 @@ interface SEPMetadata {
  * Parse SEP metadata from markdown content
  */
 function parseSEPMetadata(content: string, filename: string): SEPMetadata | null {
-  // Skip template and README files
-  if (filename === "TEMPLATE.md" || filename === "README.md") {
+  // Skip template, README, and 0000- placeholder drafts
+  if (filename === "TEMPLATE.md" || filename === "README.md" || filename.startsWith("0000-")) {
     return null;
   }
 
   // Extract SEP number and slug from filename (e.g., "1850-pr-based-sep-workflow.md")
   const filenameMatch = filename.match(/^(\d+)-(.+)\.md$/);
   if (!filenameMatch) {
-    // Skip files that don't match SEP naming convention (like 0000-*.md drafts)
-    if (filename.match(/^0000-/)) {
-      return null;
-    }
     console.warn(`Warning: Skipping ${filename} - doesn't match SEP naming convention`);
     return null;
   }
