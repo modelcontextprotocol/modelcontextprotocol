@@ -12,7 +12,9 @@ arguments:
 
 This skill guides an author through producing a SEP that conforms to `docs/community/sep-guidelines.mdx` and `seps/TEMPLATE.md`. Work through the phases **in order** — do not start writing the draft until the interview and research are complete.
 
-**Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, it moves to `dormant`.
+**Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`.
+
+The SEP author is responsible for building consensus within the community and documenting dissenting opinions — capture both as you go.
 
 ## Phase 1 — Interview
 
@@ -23,7 +25,7 @@ Ask the user these six questions before touching any files. The answers feed dir
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** There are two distinct gates: a working prototype is required before a SEP can be **accepted**, and a complete reference implementation is required before it can reach **Final**. The prototype proves feasibility — it doesn't need to be production-ready, but it must be runnable, not pseudocode. Does one exist, is one in progress, or is it still TBD?
 4. **Where was this discussed?** Discord thread, Working Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
-5. **Sponsor?** A SEP needs a Core Maintainer or Maintainer sponsor to **enter** `draft` status — the sponsor is what grants it. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (up to 6 months, then `dormant`). If the user has one lined up, capture their `@github-username`. If not, the preamble should read `Sponsor: None` and the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx` applies: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
+5. **Author and sponsor?** Capture the author's name, email, and GitHub username for the `Author(s)` preamble field. Then ask about a sponsor: a SEP needs a Core Maintainer or Maintainer sponsor to **enter** `draft` status — the sponsor is what grants it. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (Core Maintainers may close it as `dormant` after 6 months). If the user has a sponsor lined up, capture their GitHub username (without the `@` — `gh pr create --reviewer` expects a bare handle). If not, the preamble should read `Sponsor: None` and the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx` applies: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
 6. **Security implications?** Does this proposal touch the attack surface — new transports, auth flows, data exposure, trust boundaries? The Security Implications section is required in `seps/TEMPLATE.md`; even "none identified" needs to be stated explicitly with reasoning.
 
 ## Phase 2 — Research
@@ -52,9 +54,9 @@ grep -l -i "{keyword}" seps/*.md
 
 Pick one or two keywords from the idea. If an existing SEP covers this area, the right move is usually to extend or supersede it rather than file a parallel proposal. Read any matches before continuing.
 
-### 4. Design-principle fit
+### 4. Design-principle and roadmap fit
 
-Read `docs/community/design-principles.mdx`. Identify which principles the proposal serves and which it is in tension with. Both go in the Rationale section.
+Read `docs/community/design-principles.mdx` and `docs/development/roadmap.mdx`. Identify which principles the proposal serves and which it is in tension with. Check whether the proposal aligns with current Core Maintainer priorities reflected in the roadmap — proposals outside current priorities are more likely to face delays in review. Both findings go in the Rationale section.
 
 ### 5. Schema touch-points
 
@@ -78,7 +80,7 @@ With the interview and research in hand, decide whether this is actually SEP-wor
 
 **Redirect** (do not proceed) if the idea is:
 
-- A bug fix — the spec is wrong, not incomplete
+- A bug fix or typo correction
 - A documentation clarification
 - Adding examples to an existing feature
 - A minor schema fix that does not change behavior
@@ -92,18 +94,20 @@ For these, point the user at a regular pull request or the bug-report issue form
 - A governance or process change
 - Anything controversial enough to need a design document and historical record
 
-When unsure, err toward proceeding. A thin SEP redirected during review is cheaper than a missing one.
+When unsure, the guidelines say to ask in Discord before starting significant work — point the user there rather than burning time on a draft that may not be SEP-worthy.
 
 ## Phase 4 — Draft
 
-Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/0000-{slug}.md` where `{slug}` is a lowercase, hyphenated version of the idea trimmed to ~50 characters (match the pattern of existing `seps/*.md` filenames). The `0000` placeholder is the documented convention — the build's `render-seps.ts` deliberately skips files matching `^0000-`, so CI stays green until the rename in Phase 6.
+Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/0000-{slug}.md` where `{slug}` is a lowercase, hyphenated version of the idea trimmed to ~50 characters (match the pattern of existing `seps/*.md` filenames). The `0000` placeholder is the documented convention from the SEP guidelines.
 
-**Required sections:** Abstract, Motivation, Specification, Rationale, Backward Compatibility, Security Implications, Reference Implementation. **Optional sections** (use them if Phase 2 produced material): Alternatives Considered, Open Questions, Performance Implications, Testing Plan.
+**Required sections:** Abstract, Motivation, Specification, Rationale, Backward Compatibility, Security Implications, Reference Implementation. **Optional sections:** Alternatives Considered, Open Questions, Performance Implications, Testing Plan, Acknowledgments.
 
 **Preamble notes:**
 
 - `Status:` — leave blank or omit. Authors should request status changes through their sponsor rather than setting the field themselves.
-- `Sponsor:` — use the `@github-username` from Q5, or the literal `None`.
+- `Created:` — today's date in `YYYY-MM-DD` format.
+- `Author(s):` — `Name <email> (@github-username)` from Q5.
+- `Sponsor:` — `@github-username` from Q5, or the literal `None`.
 - `PR:` — `seps/TEMPLATE.md` has a stale URL pointing at the wrong repo. Replace the entire URL with `https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}` (the `{NUMBER}` placeholder gets filled in Phase 6).
 
 ## Phase 5 — Checkpoint
@@ -119,6 +123,8 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 ## Phase 6 — Open PR (only if the user says yes)
 
+SEP-1850 documents an amend-based flow: open the PR with the `0000-` placeholder, then immediately rename, generate docs, and amend — so CI only ever sees the final state.
+
 ```bash
 git checkout -b sep/{slug}
 git add seps/0000-{slug}.md
@@ -127,7 +133,7 @@ git push -u origin sep/{slug}
 gh pr create --title "SEP: {title}" --body "{one-paragraph summary}" --draft --reviewer {sponsor-username}
 ```
 
-Omit `--reviewer` if Q5 answered `None`. Capture the PR number from `gh pr create` output. Then backfill it:
+Omit `--reviewer` if Q5 answered `None`. Capture the PR number `{N}` from `gh pr create` output, then backfill:
 
 ```bash
 git mv seps/0000-{slug}.md seps/{N}-{slug}.md
@@ -135,8 +141,8 @@ git mv seps/0000-{slug}.md seps/{N}-{slug}.md
 # fill the PR link in the preamble
 npm run generate:seps
 git add seps/{N}-{slug}.md docs/seps/ docs/docs.json
-git commit -m "SEP-{N}: fill in PR number"
-git push
+git commit --amend --no-edit
+git push --force-with-lease
 ```
 
-The `npm run generate:seps` step renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` — without it, the `render-seps.yml` CI check fails on the second push. SEP-1850 documents the rename as an amend+force; a second commit also works and is shown here since it avoids a force-push to an open PR. The PR is opened as `--draft` so it is clearly not yet ready for sponsor review.
+The `npm run generate:seps` step renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` — required for the `render-seps.yml` CI check. The amend collapses everything into one commit so CI never runs against the intermediate `0000-` state, which `check:seps` would otherwise reject. The PR is opened as `--draft` so it is clearly not yet ready for sponsor review.
