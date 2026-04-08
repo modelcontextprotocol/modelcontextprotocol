@@ -20,7 +20,7 @@ When we [introduced the MCP governance model](/posts/2025-07-31-governance-for-m
 
 <img src="/posts/images/maintainer-update-2026-04/clare.webp" alt="Clare Liguori" width="400" />
 
-I'm pleased to welcome **[Clare Liguori](https://github.com/clareliguori)** to the [Core Maintainer](https://modelcontextprotocol.io/community/governance#current-core-maintainers) team.
+I'm pleased to welcome [Clare Liguori](https://github.com/clareliguori) to the [Core Maintainer](https://modelcontextprotocol.io/community/governance#current-core-maintainers) team.
 
 Clare is a Senior Principal Engineer at Amazon Web Services, where she works on agentic AI developer tooling. Her current focus is [Kiro](https://kiro.dev/) and the Strands Agents SDK, and over more than a decade at AWS she has also worked on AWS Proton, Amazon ECS, the AWS Code Suite, and several open source projects.
 
@@ -32,7 +32,7 @@ Welcome, Clare!
 
 <img src="/posts/images/maintainer-update-2026-04/den.jpeg" alt="Den Delimarsky" width="400" />
 
-**[Den Delimarsky](https://github.com/localden)** is stepping up from Core Maintainer to Lead Maintainer, joining me in that role.
+[Den Delimarsky](https://github.com/localden) is stepping up from Core Maintainer to Lead Maintainer, joining me in that role.
 
 Den is a Member of Technical Staff at Anthropic, where he works across the MCP ecosystem: the specification, the SDKs, governance, and the developer experience around all of it. Before Anthropic he was a Principal Product Engineer in Microsoft's CoreAI division, and he brings a wealth of experience across developer tools, SDKs, and security tooling.
 
