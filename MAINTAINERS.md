@@ -143,6 +143,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Shaun Smith](https://github.com/evalstate)
 - [Jonathan Hefner](https://github.com/jonathanhefner)
 - [Tadas Antanavicius](https://github.com/tadasant)
+- [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
 ## Working Group & Interest Group Maintainers
 
