@@ -12,7 +12,7 @@ arguments:
 
 This skill guides an author through producing a SEP that conforms to `docs/community/sep-guidelines.mdx` and `seps/TEMPLATE.md`. Work through the phases **in order** — do not start writing the draft until the interview and research are complete.
 
-**Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`.
+**Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group or Interest Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`.
 
 The SEP author is responsible for building consensus within the community and documenting dissenting opinions — capture both as you go.
 
@@ -24,7 +24,7 @@ Ask the user these six questions before touching any files. The answers feed dir
    - **If Extensions Track:** also ask which Working Group and Extension Maintainers will be responsible for the extension — SEP-2133 makes this a hard requirement, and an Extensions Track SEP MUST have at least one reference implementation in an official SDK prior to review.
 2. **Is this a breaking change?** Determines how much weight the Backward Compatibility section carries.
 3. **Prototype status?** There are two distinct gates: a working prototype is required before a SEP can be **accepted**, and a complete reference implementation is required before it can reach **Final**. The prototype proves feasibility — it doesn't need to be production-ready, but it must be runnable, not pseudocode. Does one exist, is one in progress, or is it still TBD?
-4. **Where was this discussed?** Discord thread, Working Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
+4. **Where was this discussed?** Discord thread, Working Group or Interest Group meeting, GitHub Discussion — the link becomes the consensus evidence in the Rationale section. If the answer is "nowhere," flag it (see above).
 5. **Author and sponsor?** Capture the author's name, email, and GitHub username for the `Author(s)` preamble field. Then ask about a sponsor: a SEP needs a Core Maintainer or Maintainer sponsor to **enter** `draft` status — the sponsor is what grants it. Until a sponsor signs on, the SEP sits in an "awaiting sponsor" state (Core Maintainers may close it as `dormant` after 6 months). If the user has a sponsor lined up, capture their GitHub username (without the `@` — `gh pr create --reviewer` expects a bare handle). If not, the preamble should read `Sponsor: None` and the finding-a-sponsor guidance from `docs/community/sep-guidelines.mdx` applies: tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR, share in the relevant Discord channel, and if there's no response in two weeks ask in `#general`.
 6. **Security implications?** Does this proposal touch the attack surface — new transports, auth flows, data exposure, trust boundaries? The Security Implications section is required in `seps/TEMPLATE.md`; even "none identified" needs to be stated explicitly with reasoning.
 
@@ -124,7 +124,7 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 
 ## Phase 6 — Open PR (only if the user says yes)
 
-SEP-1850 documents an amend-based flow: open the PR with the `0000-` placeholder, then immediately rename, generate docs, and amend — so CI only ever sees the final state.
+SEP-1850 documents an amend-based flow: open the PR with the `0000-` placeholder, then immediately rename, generate docs, and amend into a single commit.
 
 ```bash
 git checkout -b sep/{slug}
