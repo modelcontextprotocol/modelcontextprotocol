@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEP-{{ sep_number }}: {{ sep_title }} — Annotated Diff</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --satisfied: #22c55e;
+    --satisfied-bg: rgba(34, 197, 94, 0.1);
+    --violated: #ef4444;
+    --violated-bg: rgba(239, 68, 68, 0.1);
+    --unclear: #eab308;
+    --unclear-bg: rgba(234, 179, 8, 0.1);
+    --not-addressed: #9ca3af;
+    --not-addressed-bg: rgba(156, 163, 175, 0.1);
+    --add-bg: rgba(46, 160, 67, 0.15);
+    --add-text: #3fb950;
+    --remove-bg: rgba(248, 81, 73, 0.15);
+    --remove-text: #f85149;
+    --connector: rgba(56, 139, 253, 0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  header {
+    background: linear-gradient(to bottom, var(--bg-secondary), var(--bg));
+    padding: 20px 24px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  header .meta {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .summary-bar {
+    display: flex;
+    gap: 4px;
+    height: 32px;
+    margin: 14px 0 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .bar-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    min-width: 60px;
+    border-radius: 6px;
+    transition: transform 0.15s, opacity 0.15s;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .bar-segment:hover { transform: scaleY(1.1); opacity: 0.9; }
+  .bar-segment.satisfied { background: var(--satisfied); }
+  .bar-segment.violated { background: var(--violated); }
+  .bar-segment.unclear { background: var(--unclear); color: #000; text-shadow: none; }
+  .bar-segment.not-addressed { background: var(--not-addressed); color: #000; text-shadow: none; }
+
+  /* Requirements reference — nested by category */
+  .requirements-ref {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 12px;
+  }
+  .requirements-ref > summary {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    list-style: none;
+  }
+  .requirements-ref > summary::-webkit-details-marker { display: none; }
+  .requirements-ref > summary::before { content: "▶ "; font-size: 10px; }
+  .requirements-ref[open] > summary::before { content: "▼ "; }
+
+  .req-ref-category {
+    margin: 0 16px 12px;
+  }
+  .req-ref-category > summary {
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text);
+    list-style: none;
+  }
+  .req-ref-category > summary::-webkit-details-marker { display: none; }
+  .req-ref-category > summary::before { content: "▶ "; font-size: 9px; color: var(--text-muted); }
+  .req-ref-category[open] > summary::before { content: "▼ "; }
+  .req-ref-category > summary:hover { background: var(--bg-tertiary); }
+  .req-ref-category > summary .cat-count {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 12px;
+  }
+
+  .req-ref-list { padding: 4px 0 4px 20px; }
+
+  .req-ref-item {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border-left: 3px solid var(--border);
+    background: var(--bg-tertiary);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .req-ref-item.satisfied { border-left-color: var(--satisfied); }
+  .req-ref-item.violated { border-left-color: var(--violated); }
+  .req-ref-item.unclear { border-left-color: var(--unclear); }
+  .req-ref-item.not-addressed { border-left-color: var(--not-addressed); }
+
+  .req-ref-item .req-id { font-weight: 600; margin-right: 6px; }
+  .req-ref-item .req-priority {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--text-muted);
+    float: right;
+  }
+  .req-ref-item .req-desc { color: var(--text-muted); margin-top: 2px; }
+
+  /* Main three-column layout */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 25% 50% 25%;
+    min-height: calc(100vh - 200px);
+  }
+
+  .annotation-col {
+    padding: 12px;
+    overflow-y: auto;
+    height: calc(100vh - var(--header-height, 100px));
+    position: sticky;
+    top: var(--header-height, 100px);
+  }
+
+  .annotation-col h3 {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .annotation-col h3 .count-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  #left-annotations h3 .count-badge { background: var(--satisfied); color: #000; }
+  #right-annotations h3 .count-badge { background: var(--violated); color: #fff; }
+
+  .diff-col {
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  /* Annotation cards */
+  .annotation-card {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border-left: 3px solid;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.2s, transform 0.15s;
+    font-size: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .annotation-card:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  #right-annotations .annotation-card:hover { transform: translateX(-2px); }
+  .annotation-card.active {
+    box-shadow: 0 0 0 2px var(--connector), 0 4px 12px rgba(0,0,0,0.4);
+    transform: translateX(4px);
+  }
+  #right-annotations .annotation-card.active { transform: translateX(-4px); }
+  .annotation-card.satisfied { border-color: var(--satisfied); background: var(--satisfied-bg); }
+  .annotation-card.violated { border-color: var(--violated); background: var(--violated-bg); }
+  .annotation-card.unclear { border-color: var(--unclear); background: var(--unclear-bg); }
+  .annotation-card.not-addressed { border-color: var(--not-addressed); background: var(--not-addressed-bg); }
+
+  /* Right column: border on right edge, mirroring left column */
+  #right-annotations .annotation-card { border-left: none; }
+  #right-annotations .annotation-card.satisfied { border-right: 3px solid var(--satisfied); }
+  #right-annotations .annotation-card.violated { border-right: 3px solid var(--violated); }
+  #right-annotations .annotation-card.unclear { border-right: 3px solid var(--unclear); }
+  #right-annotations .annotation-card.not-addressed { border-right: 3px solid var(--not-addressed); }
+
+  .annotation-card .ann-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .annotation-card .ann-id { font-weight: 600; }
+  .annotation-card .ann-status {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .ann-status.satisfied { background: var(--satisfied); color: #000; }
+  .ann-status.violated { background: var(--violated); color: #fff; }
+  .ann-status.unclear { background: var(--unclear); color: #000; }
+  .ann-status.not-addressed { background: var(--not-addressed); color: #000; }
+
+  .annotation-card .ann-file { color: var(--text-muted); font-size: 11px; margin-bottom: 2px; }
+  .annotation-card .ann-files { margin-bottom: 4px; }
+  .annotation-card .ann-hunk-link {
+    display: inline-block;
+    font-size: 10px;
+    color: #539bf5;
+    background: rgba(56, 139, 253, 0.1);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin: 1px 2px 1px 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .annotation-card .ann-hunk-link:hover { background: rgba(56, 139, 253, 0.25); }
+
+  .annotation-card .ann-req-text {
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.3;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .annotation-card .ann-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 6px 0;
+  }
+
+  /* Annotation text */
+  .annotation-card .ann-text {
+    color: var(--text);
+    line-height: 1.55;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+  .annotation-card .ann-text-summary {
+    color: var(--text);
+    line-height: 1.55;
+    overflow-wrap: break-word;
+  }
+  .annotation-card .ann-text-expand {
+    margin-top: 4px;
+  }
+  .annotation-card .ann-text-expand > summary {
+    font-size: 11px;
+    color: #539bf5;
+    cursor: pointer;
+    list-style: none;
+  }
+  .annotation-card .ann-text-expand > summary::-webkit-details-marker { display: none; }
+  .annotation-card .ann-text-expand > summary:hover { text-decoration: underline; }
+  .annotation-card .ann-text-full {
+    color: var(--text);
+    line-height: 1.55;
+    margin-top: 6px;
+    overflow-wrap: break-word;
+  }
+
+  /* Inline quotes */
+  .annotation-card .ann-text q,
+  .annotation-card .ann-text-summary q,
+  .annotation-card .ann-text-full q {
+    quotes: none;
+    font-style: italic;
+    color: #a5d6ff;
+    background: rgba(56, 139, 253, 0.08);
+    padding: 0 4px;
+    border-radius: 2px;
+  }
+
+  /* RFC 2119 keywords — bold but same color as surrounding text */
+  .rfc-keyword {
+    font-weight: 700;
+  }
+
+  .annotation-card .ann-hunks-toggle {
+    margin-top: 6px;
+  }
+  .annotation-card .ann-hunks-toggle > summary {
+    font-size: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    list-style: none;
+  }
+  .annotation-card .ann-hunks-toggle > summary::-webkit-details-marker { display: none; }
+  .annotation-card .ann-hunks-toggle > summary::before { content: "▶ "; font-size: 8px; }
+  .annotation-card .ann-hunks-toggle[open] > summary::before { content: "▼ "; }
+  .annotation-card .ann-hunks-toggle .ann-hunk-links {
+    padding-top: 4px;
+  }
+
+  /* Diff table */
+  .diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 12px;
+  }
+
+  .diff-table .file-header td {
+    background: var(--bg-secondary);
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    border-top: 2px solid var(--border);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .diff-table .file-header td::before {
+    content: "📄 ";
+    font-size: 12px;
+  }
+
+  .diff-table .hunk-header td {
+    background: rgba(56, 139, 253, 0.08);
+    color: #539bf5;
+    padding: 6px 12px;
+    font-size: 11px;
+    border-top: 1px solid rgba(56, 139, 253, 0.15);
+  }
+  .diff-table .hunk-header.highlighted td {
+    background: rgba(56, 139, 253, 0.3);
+    transition: background 0.4s;
+  }
+
+  /* Connector highlight — colored left border on hunk rows when annotation is active */
+  .diff-table tr.connected-satisfied td:first-child { box-shadow: inset 4px 0 0 var(--satisfied); }
+  .diff-table tr.connected-violated td:first-child { box-shadow: inset 4px 0 0 var(--violated); }
+  .diff-table tr.connected-unclear td:first-child { box-shadow: inset 4px 0 0 var(--unclear); }
+
+  .diff-table .line-no {
+    width: 40px;
+    min-width: 40px;
+    text-align: right;
+    padding: 0 8px;
+    color: rgba(139, 148, 158, 0.5);
+    user-select: none;
+    border-right: 1px solid var(--border);
+    font-size: 11px;
+  }
+
+  .diff-table .line-content {
+    padding: 0 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .diff-table tr:hover td { background-blend-mode: lighten; }
+  .diff-table .line-add { background: var(--add-bg); }
+  .diff-table .line-add:hover { background: rgba(46, 160, 67, 0.25); }
+  .diff-table .line-add .line-content { color: var(--add-text); }
+  .diff-table .line-remove { background: var(--remove-bg); }
+  .diff-table .line-remove:hover { background: rgba(248, 81, 73, 0.25); }
+  .diff-table .line-remove .line-content { color: var(--remove-text); }
+  .diff-table .line-context { background: var(--bg); }
+  .diff-table .line-context:hover { background: var(--bg-tertiary); }
+
+  /* SVG connector overlay */
+  .connector-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .connector-svg path {
+    fill: none;
+    stroke-width: 2;
+    stroke-dasharray: 6 3;
+    opacity: 0.7;
+  }
+
+  /* Requirement index */
+  .req-index {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 24px;
+    padding: 16px;
+  }
+  .req-index h2 { font-size: 16px; margin-bottom: 12px; }
+
+  .req-category { margin-bottom: 8px; }
+  .req-category > summary {
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .req-category > summary:hover { background: var(--bg-tertiary); }
+
+  .req-item {
+    padding: 4px 8px 4px 24px;
+    font-size: 12px;
+    border-left: 2px solid transparent;
+    margin: 2px 0;
+  }
+  .req-item.satisfied { border-left-color: var(--satisfied); }
+  .req-item.violated { border-left-color: var(--violated); }
+  .req-item.unclear { border-left-color: var(--unclear); }
+  .req-item.not-addressed { border-left-color: var(--not-addressed); }
+
+  .req-item .req-status {
+    font-size: 10px;
+    padding: 0 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+  }
+  .req-status.satisfied { background: var(--satisfied-bg); color: var(--satisfied); }
+  .req-status.violated { background: var(--violated-bg); color: var(--violated); }
+  .req-status.unclear { background: var(--unclear-bg); color: var(--unclear); }
+  .req-status.not-addressed { background: var(--not-addressed-bg); color: var(--not-addressed); }
+
+  /* Mobile: stack columns vertically, annotations together above diff */
+  @media (max-width: 1024px) {
+    .main-layout {
+      grid-template-columns: 1fr;
+    }
+    #left-annotations { order: 1; }
+    #right-annotations { order: 2; }
+    .diff-col { order: 3; }
+    .annotation-col {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow-y: visible;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+    .diff-col {
+      border-left: none;
+      border-right: none;
+    }
+    /* Hide SVG connectors on mobile — they don't make sense in stacked layout */
+    .connector-svg { display: none; }
+    /* Cards don't need directional slide on mobile */
+    .annotation-card:hover,
+    #right-annotations .annotation-card:hover { transform: none; }
+    .annotation-card.active,
+    #right-annotations .annotation-card.active { transform: none; }
+  }
+
+  /* Small mobile: tighter spacing */
+  @media (max-width: 640px) {
+    header { padding: 12px 16px 10px; }
+    header h1 { font-size: 18px; }
+    .summary-bar { height: 26px; font-size: 11px; }
+    .bar-segment { min-width: 40px; }
+    .diff-table { font-size: 11px; }
+    .diff-table .line-no { width: 30px; min-width: 30px; padding: 0 4px; font-size: 10px; }
+    .diff-table .line-content { padding: 0 8px; }
+    .annotation-card { font-size: 11px; padding: 8px 10px; }
+    .req-index { margin: 12px; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SEP-{{ sep_number }}: {{ sep_title }}</h1>
+  <div class="meta">
+    Generated {{ generated_at }} | {{ total_requirements }} requirements
+    {% if pr_url %} | <a href="{{ pr_url }}" style="color: #539bf5; text-decoration: none;">PR #{{ pr_number }}</a>{% endif %}
+    {% if reviewed_commit %} | commit <code style="font-size: 11px; background: var(--bg-tertiary); padding: 1px 4px; border-radius: 3px;">{{ reviewed_commit[:12] }}</code>{% endif %}
+  </div>
+  <div class="summary-bar">
+    {% for status, count in summary.items() %}
+    {% if count > 0 %}
+    <div class="bar-segment {{ status | replace('_', '-') }}" style="width: {{ (count / total_requirements * 100) | round(1) }}%" title="{{ count }} {{ status | replace('_', ' ') }}">{{ count }} {{ status | replace('_', ' ') }}</div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</header>
+
+<svg class="connector-svg" id="connector-svg"></svg>
+
+<div class="main-layout">
+  <div class="annotation-col" id="left-annotations">
+    <h3>Satisfied <span class="count-badge">{{ summary.satisfied }}</span></h3>
+    {% for ann in left_annotations %}
+    <div class="annotation-card satisfied" data-hunks='{{ ann.hunk_ids_json }}' data-status="satisfied">
+      <div class="ann-header">
+        <span class="ann-id">{{ ann.requirement_id }}</span>
+        <span class="ann-status satisfied">Satisfied</span>
+      </div>
+      {% if ann.req_summary %}<div class="ann-req-text">{{ ann.req_summary }}</div>{% endif %}
+      <hr class="ann-divider">
+      <div class="ann-text-summary">{{ ann.summary_html }}</div>
+      {% if ann.has_detail %}
+      <details class="ann-text-expand">
+        <summary>show full analysis</summary>
+        <div class="ann-text-full">{{ ann.explanation_html }}</div>
+      </details>
+      {% endif %}
+      {% if ann.hunk_labels %}
+      <details class="ann-hunks-toggle">
+        <summary>{{ ann.hunk_labels | length }} location{{ 's' if ann.hunk_labels | length > 1 }}</summary>
+        <div class="ann-hunk-links">
+          {% for label in ann.hunk_labels %}<a class="ann-hunk-link" data-target="{{ ann.hunk_ids[loop.index0] }}">{{ label }}</a>{% endfor %}
+        </div>
+      </details>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="diff-col">
+    <details class="requirements-ref">
+      <summary>Requirements Reference ({{ total_requirements }} total)</summary>
+      {% for category, reqs in requirements_by_category.items() %}
+      <details class="req-ref-category">
+        <summary>{{ category }} <span class="cat-count">({{ reqs | length }})</span></summary>
+        <div class="req-ref-list">
+          {% for req in reqs %}
+          <div class="req-ref-item {{ coverage_map.get(req.id, 'not-addressed') | replace('_', '-') }}">
+            <span class="req-id">{{ req.id }}</span>
+            <span class="req-priority">{{ req.get('priority', '') }}</span>
+            <div class="req-desc">{{ req.summary }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+    </details>
+    <table class="diff-table">
+    {% for file_ann in file_annotations %}
+      <tr class="file-header"><td colspan="3">{{ file_ann.file }}</td></tr>
+      {% for hunk in file_ann.hunks %}
+      <tr class="hunk-header" id="hunk-{{ file_ann.file_index }}-{{ hunk.hunk_index }}">
+        <td colspan="3">{{ hunk.hunk_header }}</td>
+      </tr>
+      {% for line in hunk.lines %}
+      <tr class="{{ line.cls }}" data-hunk="hunk-{{ file_ann.file_index }}-{{ hunk.hunk_index }}">
+        <td class="line-no">{{ line.old_no }}</td>
+        <td class="line-no">{{ line.new_no }}</td>
+        <td class="line-content">{{ line.content }}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+    {% endfor %}
+    </table>
+  </div>
+
+  <div class="annotation-col" id="right-annotations">
+    <h3>Issues &amp; Gaps <span class="count-badge">{{ summary.violated + summary.unclear + summary.get('not_addressed', 0) }}</span></h3>
+    {% for ann in right_annotations %}
+    <div class="annotation-card {{ ann.status | replace('_', '-') }}" data-hunks='{{ ann.hunk_ids_json }}' data-status="{{ ann.status }}">
+      <div class="ann-header">
+        <span class="ann-id">{{ ann.requirement_id }}</span>
+        <span class="ann-status {{ ann.status | replace('_', '-') }}">{{ ann.status | replace('_', ' ') | title }}</span>
+      </div>
+      {% if ann.req_summary %}<div class="ann-req-text">{{ ann.req_summary }}</div>{% endif %}
+      <hr class="ann-divider">
+      <div class="ann-text-summary">{{ ann.summary_html }}</div>
+      {% if ann.has_detail %}
+      <details class="ann-text-expand">
+        <summary>show full analysis</summary>
+        <div class="ann-text-full">{{ ann.explanation_html }}</div>
+      </details>
+      {% endif %}
+      {% if ann.hunk_labels %}
+      <details class="ann-hunks-toggle">
+        <summary>{{ ann.hunk_labels | length }} location{{ 's' if ann.hunk_labels | length > 1 }}</summary>
+        <div class="ann-hunk-links">
+          {% for label in ann.hunk_labels %}<a class="ann-hunk-link" data-target="{{ ann.hunk_ids[loop.index0] }}">{{ label }}</a>{% endfor %}
+        </div>
+      </details>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="req-index">
+  <h2>Requirement Index</h2>
+  {% for category, reqs in requirements_by_category.items() %}
+  <details class="req-category" open>
+    <summary>{{ category }} ({{ reqs | length }})</summary>
+    {% for req in reqs %}
+    <div class="req-item {{ coverage_map.get(req.id, 'not-addressed') | replace('_', '-') }}" id="req-{{ req.id }}">
+      <strong>{{ req.id }}</strong>: {{ req.summary }}
+      <span class="req-status {{ coverage_map.get(req.id, 'not-addressed') | replace('_', '-') }}">{{ coverage_map.get(req.id, 'not_addressed') | replace('_', ' ') }}</span>
+    </div>
+    {% endfor %}
+  </details>
+  {% endfor %}
+</div>
+
+<script>
+// Measure header and set CSS variable so sticky columns sit below it
+function updateHeaderHeight() {
+  const h = document.querySelector('header').getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--header-height', h + 'px');
+}
+updateHeaderHeight();
+window.addEventListener('resize', updateHeaderHeight);
+
+const svg = document.getElementById('connector-svg');
+let activeCard = null;
+
+function clearConnections() {
+  svg.innerHTML = '';
+  document.querySelectorAll('.annotation-card.active').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('tr[class*="connected-"]').forEach(r => {
+    r.classList.remove('connected-satisfied', 'connected-violated', 'connected-unclear');
+  });
+  document.querySelectorAll('.hunk-header.highlighted').forEach(h => h.classList.remove('highlighted'));
+}
+
+function getHunkIds(card) {
+  try { return JSON.parse(card.dataset.hunks || '[]'); }
+  catch { return []; }
+}
+
+function drawConnector(card, hunkEl) {
+  const cardRect = card.getBoundingClientRect();
+  const hunkRect = hunkEl.getBoundingClientRect();
+  const cardIsLeft = card.closest('#left-annotations');
+
+  const x1 = cardIsLeft ? cardRect.right : cardRect.left;
+  const x2 = cardIsLeft ? hunkRect.left : hunkRect.right;
+  const y1 = cardRect.top + cardRect.height / 2;
+  const y2 = hunkRect.top + hunkRect.height / 2;
+
+  // Bezier control points for a smooth S-curve
+  const dx = Math.abs(x2 - x1) * 0.5;
+  const cp1x = cardIsLeft ? x1 + dx : x1 - dx;
+  const cp2x = cardIsLeft ? x2 - dx : x2 + dx;
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp2x} ${y2}, ${x2} ${y2}`);
+
+  const colors = { satisfied: '#22c55e', violated: '#ef4444', unclear: '#eab308', 'not_addressed': '#9ca3af' };
+  path.style.stroke = colors[card.dataset.status] || 'rgba(56, 139, 253, 0.6)';
+  svg.appendChild(path);
+}
+
+function activateCard(card) {
+  const wasActive = card.classList.contains('active');
+  clearConnections();
+  if (wasActive) { activeCard = null; return; }
+
+  activeCard = card;
+  card.classList.add('active');
+  const status = card.dataset.status || 'satisfied';
+  const hunkIds = getHunkIds(card);
+
+  hunkIds.forEach((hunkId, i) => {
+    const hunk = document.getElementById(hunkId);
+    if (!hunk) return;
+    hunk.classList.add('highlighted');
+    document.querySelectorAll(`tr[data-hunk="${hunkId}"]`).forEach(row => {
+      row.classList.add('connected-' + status);
+    });
+    if (i === 0) hunk.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    hunkIds.forEach(hunkId => {
+      const hunk = document.getElementById(hunkId);
+      if (hunk) drawConnector(card, hunk);
+    });
+  }));
+}
+
+// Click annotation card -> highlight all its hunks
+document.querySelectorAll('.annotation-card').forEach(card => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.ann-hunk-link')) return; // handled separately
+    activateCard(card);
+  });
+});
+
+// Click individual hunk link inside a card -> scroll to that specific hunk
+document.querySelectorAll('.ann-hunk-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const targetId = link.dataset.target;
+    const hunk = document.getElementById(targetId);
+    if (hunk) {
+      clearConnections();
+      hunk.classList.add('highlighted');
+      hunk.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const card = link.closest('.annotation-card');
+      if (card) {
+        card.classList.add('active');
+        activeCard = card;
+        const status = card.dataset.status || 'satisfied';
+        document.querySelectorAll(`tr[data-hunk="${targetId}"]`).forEach(row => {
+          row.classList.add('connected-' + status);
+        });
+        requestAnimationFrame(() => requestAnimationFrame(() => drawConnector(card, hunk)));
+      }
+    }
+  });
+});
+
+// Click hunk header -> find all annotation cards that reference this hunk
+document.querySelectorAll('.hunk-header').forEach(hunk => {
+  hunk.style.cursor = 'pointer';
+  hunk.addEventListener('click', () => {
+    clearConnections();
+    hunk.classList.add('highlighted');
+    const hunkId = hunk.id;
+    // Find cards whose data-hunks array includes this hunkId
+    const matchingCards = [...document.querySelectorAll('.annotation-card')].filter(card => {
+      return getHunkIds(card).includes(hunkId);
+    });
+    matchingCards.forEach(card => {
+      card.classList.add('active');
+      const status = card.dataset.status || 'satisfied';
+      document.querySelectorAll(`tr[data-hunk="${hunkId}"]`).forEach(row => {
+        row.classList.add('connected-' + status);
+      });
+    });
+    if (matchingCards.length > 0) {
+      matchingCards[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        matchingCards.forEach(card => drawConnector(card, hunk));
+      }));
+    }
+  });
+});
+
+// Redraw connectors on scroll
+let scrollTimer;
+window.addEventListener('scroll', () => {
+  if (activeCard) {
+    svg.innerHTML = '';
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      if (activeCard && activeCard.classList.contains('active')) {
+        getHunkIds(activeCard).forEach(hunkId => {
+          const hunk = document.getElementById(hunkId);
+          if (hunk) drawConnector(activeCard, hunk);
+        });
+      }
+    }, 100);
+  }
+}, true);
+
+// Click elsewhere to clear
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.annotation-card') && !e.target.closest('.hunk-header')) {
+    clearConnections();
+    activeCard = null;
+  }
+});
+</script>
+
+</body>
+</html>
