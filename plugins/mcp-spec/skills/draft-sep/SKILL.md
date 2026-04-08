@@ -105,6 +105,7 @@ Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/0000-{slu
 **Preamble notes:**
 
 - `Status:` — leave blank or omit. Authors should request status changes through their sponsor rather than setting the field themselves.
+- `Type:` — from Q1. `seps/TEMPLATE.md` lists only `Standards Track | Informational | Process`, but `Extensions Track` is valid here per SEP-2133.
 - `Created:` — today's date in `YYYY-MM-DD` format.
 - `Author(s):` — `Name <email> (@github-username)` from Q5.
 - `Sponsor:` — `@github-username` from Q5, or the literal `None`.
@@ -145,4 +146,6 @@ git commit --amend --no-edit
 git push --force-with-lease
 ```
 
-The `npm run generate:seps` step renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` — required for the `render-seps.yml` CI check. The amend collapses everything into one commit so CI never runs against the intermediate `0000-` state, which `check:seps` would otherwise reject. The PR is opened as `--draft` so it is clearly not yet ready for sponsor review.
+The `npm run generate:seps` step renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` — required for the `render-seps.yml` CI check. The amend keeps everything in one commit per SEP-1850 (clean history, no rename churn).
+
+**After the PR is open, the next step is finding a sponsor** — tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR and share it in the relevant Discord channel (per Q5). The 6-month clock starts now.
