@@ -606,7 +606,7 @@ server.registerTool(
     }
 
     const features = alertsData.features || [];
-    if (features.length === 0) {
+    if (!features.length) {
       return {
         content: [
           {
