@@ -4130,6 +4130,13 @@
         "ToolExecution": {
             "description": "Execution-related properties for a tool.",
             "properties": {
+                "requirements": {
+                    "description": "An optional list of requirement identifiers that MUST be satisfied for this tool\nto execute successfully.\n\nEach value is an opaque string. Strings SHOULD be namespaced (e.g.,\n`custom:email.send`) to avoid collisions. MCP does not define or interpret\nthese values.\n\nServers MUST enforce all declared requirements at execution time. If any\nrequirement is not satisfied, the server MUST fail the call.\n\nClients MUST treat requirement strings as opaque and MUST NOT infer equivalence\nbetween different strings. Clients MUST NOT use `requirements` for any\ndecision-making unless all requirements are known to the client and the client\ncan determine that at least one requirement cannot be satisfied. If those\nconditions are met, clients MAY use `requirements` to influence behavior (e.g.,\nfiltering, ranking, or avoiding tool use). If any requirement is unknown, or if\nall requirements may be satisfied, clients MUST behave as if `requirements` were\nnot present.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "taskSupport": {
                     "description": "Indicates whether this tool supports task-augmented execution.\nThis allows clients to handle long-running operations through polling\nthe task system.\n\n- `\"forbidden\"`: Tool does not support task-augmented execution (default when absent)\n- `\"optional\"`: Tool may support task-augmented execution\n- `\"required\"`: Tool requires task-augmented execution\n\nDefault: `\"forbidden\"`",
                     "enum": [

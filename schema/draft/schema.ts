@@ -1708,6 +1708,28 @@ export interface ToolExecution {
    * Default: `"forbidden"`
    */
   taskSupport?: "forbidden" | "optional" | "required";
+
+  /**
+   * An optional list of requirement identifiers that MUST be satisfied for this tool
+   * to execute successfully.
+   *
+   * Each value is an opaque string. Strings SHOULD be namespaced (e.g.,
+   * `custom:email.send`) to avoid collisions. MCP does not define or interpret
+   * these values.
+   *
+   * Servers MUST enforce all declared requirements at execution time. If any
+   * requirement is not satisfied, the server MUST fail the call.
+   *
+   * Clients MUST treat requirement strings as opaque and MUST NOT infer equivalence
+   * between different strings. Clients MUST NOT use `requirements` for any
+   * decision-making unless all requirements are known to the client and the client
+   * can determine that at least one requirement cannot be satisfied. If those
+   * conditions are met, clients MAY use `requirements` to influence behavior (e.g.,
+   * filtering, ranking, or avoiding tool use). If any requirement is unknown, or if
+   * all requirements may be satisfied, clients MUST behave as if `requirements` were
+   * not present.
+   */
+  requirements?: string[];
 }
 
 /**
@@ -1724,6 +1746,9 @@ export interface ToolExecution {
  *
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
+ *
+ * @example With requirements field declaring execution preconditions
+ * {@includeCode ./examples/Tool/with-requirements.json}
  *
  * @category `tools/list`
  */
