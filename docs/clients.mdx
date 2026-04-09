@@ -2053,15 +2053,16 @@ SpinAI is an open-source TypeScript framework for building observable AI agents.
   instructions="https://stdiobus.com/getting-started"
 >
 
-stdio Bus is an MCP client runtime. It connects to MCP servers, executes client operations (`initialize`, `tools/list`, `tools/call`, `resources/read`, prompts, sampling), and manages sessions across multiple transports (stdio, Unix socket, TCP, shared memory). Available as SDKs for [Rust](https://crates.io/crates/stdiobus-client), [Node.js](https://www.npmjs.com/package/@stdiobus/node), [Python](https://pypi.org/project/stdiobus/), C++, and Go.
+stdio Bus is an MCP client runtime that combines multi-language SDKs with a supervised process runtime. It keeps agent and server processes healthy, preserves session continuity, and routes messages reliably across long-running workloads.
 
 **Key features:**
 
-- Connect to MCP servers and perform full client operations including tools, resources, prompts, sampling, and discovery notifications.
-- Run multiple MCP server workers with automatic health monitoring, crash recovery, and session-based routing.
-- Choose your transport: stdio, Unix socket, TCP, POSIX shared memory, or POSIX message queues.
-- Embed into any application via SDKs or deploy standalone with official [Docker images](https://hub.docker.com/r/stdiobus/stdiobus).
-- Launch agents dynamically from the ACP Registry with support for binary, npx, and uvx distributions.
+- Five transport modes: stdio, Unix socket, TCP, shared memory, and message queues — use what fits your environment.
+- Pluggable framing and protocol options including text and binary, with automatic translation between modes.
+- Built-in process supervision with restart policies, health monitoring, and flow control for high-throughput traffic.
+- Session-aware routing that preserves conversation continuity across worker pools with reliable request/response matching.
+- Connect to MCP servers from [Rust](https://crates.io/crates/stdiobus-client), [Node.js](https://www.npmjs.com/package/@stdiobus/node), [Python](https://pypi.org/project/stdiobus/), C++, and Go using dedicated SDKs.
+- Deploy standalone with official [Docker images](https://hub.docker.com/r/stdiobus/stdiobus) or embed directly into your application via the C API.
 
 **Learn more:**
 
