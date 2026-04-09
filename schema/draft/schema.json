@@ -367,9 +367,7 @@
                 },
                 "extensions": {
                     "additionalProperties": {
-                        "additionalProperties": true,
-                        "properties": {},
-                        "type": "object"
+                        "$ref": "#/$defs/JSONObject"
                     },
                     "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
                     "type": "object"
@@ -3433,9 +3431,7 @@
                 },
                 "extensions": {
                     "additionalProperties": {
-                        "additionalProperties": true,
-                        "properties": {},
-                        "type": "object"
+                        "$ref": "#/$defs/JSONObject"
                     },
                     "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/apps\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
                     "type": "object"
@@ -3817,7 +3813,10 @@
                 },
                 "ttl": {
                     "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
-                    "type": "integer"
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
                 }
             },
             "required": [

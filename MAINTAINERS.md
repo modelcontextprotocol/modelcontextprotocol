@@ -2,23 +2,27 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** February 2, 2026
+**Last updated:** April 8, 2026
 
 ## Lead Maintainers
 
 - [David Soria Parra](https://github.com/dsp-ant)
-- _[Justin Spahr-Summers](https://github.com/jspahrsummers) (currently inactive)_
+- [Den Delimarsky](https://github.com/localden)
 
 ## Core Maintainers
 
 - [Caitie McCaffrey](https://github.com/CaitieM20)
 - [Che Liu](https://github.com/pwwpche)
-- [Den Delimarsky](https://github.com/localden)
+- [Clare Liguori](https://github.com/clareliguori)
 - [Kurtis Van Gent](https://github.com/kurtisvg)
 - [Nick Aldridge](https://github.com/000-000-000-000-000)
 - [Nick Cooper](https://github.com/nickcoai)
 - [Paul Carleton](https://github.com/pcarleton)
 - [Peter Alexander](https://github.com/pja-ant)
+
+## Emeritus
+
+- [Justin Spahr-Summers](https://github.com/jspahrsummers) (Co-Inventor, Lead Maintainer Emeritus)
 
 ## SDK Maintainers
 
@@ -142,6 +146,7 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Shaun Smith](https://github.com/evalstate)
 - [Jonathan Hefner](https://github.com/jonathanhefner)
 - [Tadas Antanavicius](https://github.com/tadasant)
+- [Peder Holdgaard Pedersen](https://github.com/PederHP)
 
 ## Working Group & Interest Group Maintainers
 
