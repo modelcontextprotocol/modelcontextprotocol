@@ -1,5 +1,5 @@
 {
-  "result_type": "incomplete",
+  "resultType": "incomplete",
   "inputRequests": {
     "github_login": {
       "method": "elicitation/create",
