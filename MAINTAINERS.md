@@ -8,7 +8,6 @@ This document lists current maintainers in the Model Context Protocol project.
 
 - [David Soria Parra](https://github.com/dsp-ant)
 - [Den Delimarsky](https://github.com/localden)
-- _[Justin Spahr-Summers](https://github.com/jspahrsummers) (Co-Inventor, Lead Maintainer Emeritus)_
 
 ## Core Maintainers
 
@@ -20,6 +19,10 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Nick Cooper](https://github.com/nickcoai)
 - [Paul Carleton](https://github.com/pcarleton)
 - [Peter Alexander](https://github.com/pja-ant)
+
+## Emeritus
+
+- [Justin Spahr-Summers](https://github.com/jspahrsummers) (Co-Inventor, Lead Maintainer Emeritus)
 
 ## SDK Maintainers
 
