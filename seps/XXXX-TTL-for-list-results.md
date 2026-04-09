@@ -1,4 +1,4 @@
-# SEP-XXXX: TTL for Server Features
+# SEP-XXXX: TTL for List Results
 
 - **Status**: Draft
 - **Type**: Standards Track
