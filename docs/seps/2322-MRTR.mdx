@@ -367,9 +367,6 @@ The schema looks like this:
 ```typescript
 // Incomplete response.  May be sent in response to any client-initiated
 // request.
-// At least one of the the inputRequests and requestState fields must be
-// present, since the presence of these fields allow the client to
-// determine that the result is incomplete.
 export interface IncompleteResult extends Result {
   // Requests issued by the server that must be complete before the
   // client can retry the original request.
