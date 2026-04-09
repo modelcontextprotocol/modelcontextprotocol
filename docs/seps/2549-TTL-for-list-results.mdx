@@ -1,11 +1,30 @@
-# SEP-XXXX: TTL for List Results
+---
+title: "SEP-2549: TTL for List Results"
+sidebarTitle: "SEP-2549: TTL for List Results"
+description: "TTL for List Results"
+---
 
-- **Status**: Draft
-- **Type**: Standards Track
-- **Created**: 2026-04-09
-- **Author(s)**: Caitie McCaffrey (@CaitieM20)
-- **Sponsor**: @CaitieM20 
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/XXXX
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2549                                                                            |
+| **Title**     | TTL for List Results                                                            |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-04-09                                                                      |
+| **Author(s)** | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                   |
+| **Sponsor**   | [@CaitieM20](https://github.com/CaitieM20)                                      |
+| **PR**        | [#2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549) |
+
+---
 
 ## Abstract
 
@@ -65,12 +84,12 @@ export interface PaginatedResult extends Result {
 
 ### Semantics
 
-| Condition                                                    | Client behavior                                                                                      |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `ttl` absent                                                 | No freshness hint. Client SHOULD rely on `list_changed` notifications or poll at its own discretion. |
-| `ttl` = 0                                                    | Do not cache. Client SHOULD re-fetch every time the list is needed.                                  |
-| `ttl` > 0                                                    | Client SHOULD consider the response fresh for `ttl` seconds from receipt. Client SHOULD NOT re-fetch before the TTL expires. |
-| `list_changed` notification received while TTL is active     | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL. |
+| Condition                                                | Client behavior                                                                                                              |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `ttl` absent                                             | No freshness hint. Client SHOULD rely on `list_changed` notifications or poll at its own discretion.                         |
+| `ttl` = 0                                                | Do not cache. Client SHOULD re-fetch every time the list is needed.                                                          |
+| `ttl` > 0                                                | Client SHOULD consider the response fresh for `ttl` seconds from receipt. Client SHOULD NOT re-fetch before the TTL expires. |
+| `list_changed` notification received while TTL is active | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL.                        |
 
 #### Freshness calculation
 
@@ -82,7 +101,7 @@ Clients SHOULD NOT treat TTL as a polling interval that triggers automatic backg
 
 TTL and `list_changed` notifications are complementary:
 
-- A server MAY provide `ttl` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
+- A server MAY provide `ttl` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL.
 - A server MAY advertise `listChanged: true` **and** provide `ttl`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
 - A server MAY advertise `listChanged: true` without providing `ttl`. Behavior is unchanged from today.
 - A server SHOULD use one of the mechanisms (TTL or notifications) rather than neither, to ensure clients have some way to stay up to date.
@@ -141,18 +160,18 @@ Notifications provide immediate invalidation which is valuable for long-lived co
 
 ### Prior art
 
-| System                         | Mechanism              | Notes                                                              |
-| ------------------------------ | ---------------------- | ------------------------------------------------------------------ |
-| HTTP `Cache-Control: max-age`  | Integer seconds        | The most widely deployed freshness hint in web infrastructure      |
-| DNS TTL                        | Integer seconds        | Controls how long resolvers cache DNS records                      |
-| GraphQL `@cacheControl`        | `maxAge` integer secs  | Per-field cache hints in GraphQL responses                         |
-| gRPC `grpc-retry-pushback-ms`  | Milliseconds           | Server-provided retry hint (different use case, similar pattern)   |
+| System                        | Mechanism             | Notes                                                            |
+| ----------------------------- | --------------------- | ---------------------------------------------------------------- |
+| HTTP `Cache-Control: max-age` | Integer seconds       | The most widely deployed freshness hint in web infrastructure    |
+| DNS TTL                       | Integer seconds       | Controls how long resolvers cache DNS records                    |
+| GraphQL `@cacheControl`       | `maxAge` integer secs | Per-field cache hints in GraphQL responses                       |
+| gRPC `grpc-retry-pushback-ms` | Milliseconds          | Server-provided retry hint (different use case, similar pattern) |
 
 Integer seconds is the most common representation across these systems.
 
 ### Why not use HTTP caching directly?
 
-MCP is transport-agnostic. While HTTP-based transports could theoretically use `Cache-Control` headers, MCP also operates over stdio,  and supports pluggable transports where HTTP headers may not be available. Embedding the TTL in the JSON response body ensures it works uniformly across all transports.
+MCP is transport-agnostic. While HTTP-based transports could theoretically use `Cache-Control` headers, MCP also operates over stdio, and supports pluggable transports where HTTP headers may not be available. Embedding the TTL in the JSON response body ensures it works uniformly across all transports.
 
 ## Backward Compatibility
 
@@ -175,4 +194,3 @@ _No reference implementation yet._
    - Integer seconds (e.g., `300`) are simpler, consistent with HTTP `max-age` and DNS TTLs, and trivial to compare.
    - ISO 8601 duration strings (e.g., `"PT5M"`) are more human-readable and self-documenting.
    - Current recommendation: integer seconds, but community feedback is welcome.
-
