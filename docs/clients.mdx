@@ -2046,6 +2046,31 @@ SpinAI is an open-source TypeScript framework for building observable AI agents.
 </McpClient>
 
 <McpClient
+  name="stdio Bus"
+  homepage="https://stdiobus.com"
+  sourceCode="https://github.com/stdiobus/stdiobus"
+  supports="Resources, Prompts, Tools"
+  instructions="https://stdiobus.com/getting-started"
+>
+
+stdio Bus is a deterministic C runtime and message bus for MCP/ACP agent protocols. It provides session-based routing, worker process supervision, and backpressure management between clients and MCP-compatible workers. Feature availability depends on the downstream worker/server — stdio Bus forwards all MCP messages transparently without modification.
+
+**Key features:**
+
+- Run MCP servers reliably with multiple worker instances, automatic health monitoring, and crash recovery.
+- Connect over stdio, Unix sockets, or TCP — choose the transport that fits your environment.
+- Keep sessions consistent by routing messages from the same session to the same worker.
+- Integrate from your stack with SDKs for [Rust](https://crates.io/crates/stdiobus-client), [Node.js](https://www.npmjs.com/package/@stdiobus/node), [Python](https://pypi.org/project/stdiobus/), C++, and Go.
+- Deploy with official [Docker images](https://hub.docker.com/r/stdiobus/stdiobus) for local, CI, and server environments.
+
+**Learn more:**
+
+- [stdio Bus – Agentic Orchestration Ecosystem](https://stdiobus.com)
+
+</McpClient>
+
+
+<McpClient
   name="Superinterface"
   homepage="https://superinterface.ai"
   supports="Tools"
