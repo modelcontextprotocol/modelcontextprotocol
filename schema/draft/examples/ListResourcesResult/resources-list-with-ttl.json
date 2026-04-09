@@ -1,0 +1,12 @@
+{
+  "resources": [
+    {
+      "uri": "file:///project/src/main.rs",
+      "name": "main.rs",
+      "title": "Rust Software Application Main File",
+      "description": "Primary application entry point",
+      "mimeType": "text/x-rust"
+    }
+  ],
+  "ttl": 60
+}

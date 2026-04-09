@@ -1,0 +1,20 @@
+{
+  "tools": [
+    {
+      "name": "get_weather",
+      "title": "Weather Information Provider",
+      "description": "Get current weather information for a location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name or zip code"
+          }
+        },
+        "required": ["location"]
+      }
+    }
+  ],
+  "ttl": 300
+}

@@ -924,6 +924,21 @@ export interface PaginatedResult extends Result {
    * If present, there may be more results available.
    */
   nextCursor?: Cursor;
+
+  /**
+   * An optional hint from the server indicating how long (in seconds) the client MAY
+   * cache this response before re-fetching. Semantics are analogous to HTTP
+   * `Cache-Control: max-age`.
+   *
+   * - If absent, the client has no server-provided freshness guidance and SHOULD rely on
+   *   notifications or its own heuristics.
+   * - If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT
+   *   serve a cached copy.
+   * - If positive, the client SHOULD consider the list fresh for this many seconds after
+   *   receiving the response. The client SHOULD NOT re-fetch before the TTL expires
+   *   unless it receives a `list_changed` notification.
+   */
+  ttl?: number;
 }
 
 /* Resources */
@@ -944,6 +959,9 @@ export interface ListResourcesRequest extends PaginatedRequest {
  *
  * @example Resources list with cursor
  * {@includeCode ./examples/ListResourcesResult/resources-list-with-cursor.json}
+ *
+ * @example Resources list with TTL
+ * {@includeCode ./examples/ListResourcesResult/resources-list-with-ttl.json}
  *
  * @category `resources/list`
  */
@@ -980,6 +998,9 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
  *
  * @example Resource templates list
  * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list.json}
+ *
+ * @example Resource templates list with TTL
+ * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list-with-ttl.json}
  *
  * @category `resources/templates/list`
  */
@@ -1313,6 +1334,9 @@ export interface ListPromptsRequest extends PaginatedRequest {
  * @example Prompts list with cursor
  * {@includeCode ./examples/ListPromptsResult/prompts-list-with-cursor.json}
  *
+ * @example Prompts list with TTL
+ * {@includeCode ./examples/ListPromptsResult/prompts-list-with-ttl.json}
+ *
  * @category `prompts/list`
  */
 export interface ListPromptsResult extends PaginatedResult {
@@ -1513,6 +1537,9 @@ export interface ListToolsRequest extends PaginatedRequest {
  *
  * @example Tools list with cursor
  * {@includeCode ./examples/ListToolsResult/tools-list-with-cursor.json}
+ *
+ * @example Tools list with TTL
+ * {@includeCode ./examples/ListToolsResult/tools-list-with-ttl.json}
  *
  * @category `tools/list`
  */
