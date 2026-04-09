@@ -37,7 +37,7 @@
               "docs/learn/architecture",
               "docs/learn/server-concepts",
               "docs/learn/client-concepts",
-              "specification/versioning"
+              "docs/learn/versioning"
             ]
           },
           {
@@ -485,6 +485,10 @@
     }
   },
   "redirects": [
+    {
+      "source": "/specification/versioning",
+      "destination": "/docs/learn/versioning"
+    },
     {
       "source": "/specification/latest",
       "destination": "/specification/2025-11-25",
