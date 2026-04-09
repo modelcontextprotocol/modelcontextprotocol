@@ -452,3 +452,9 @@ Example error:
 4. Resource permissions **SHOULD** be checked before operations
 5. Servers **MUST** sanitize file paths to prevent directory traversal attacks
    when serving `file://` resources
+6. When providing the model with a mechanism to read resources, clients **SHOULD**:
+   - Prompt for user confirmation before reading sensitive resources
+   - Show the requested URI to the user before reading, to avoid malicious or accidental
+     data exfiltration
+   - Validate resource contents before passing them to the LLM
+   - Log model-initiated resource reads for audit purposes
