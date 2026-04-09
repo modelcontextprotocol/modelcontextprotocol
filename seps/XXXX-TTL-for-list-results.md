@@ -133,7 +133,7 @@ No new capability flag is needed. The `ttl` field is optional on the response ob
 
 All four list result types extend `PaginatedResult`. Adding the field there avoids repetition and ensures any future list result types also inherit TTL support. This is consistent with how `nextCursor` is already defined.
 
-`ListTaskResult` also inherits from `PaginatedResult`, but in the move to stateless transports this feature will be removed. So for simplicity we are adding it to `PaginatedResult` now and will remove it from `ListTaskResult` in a future SEP.
+`ListTasksResult` also inherits from `PaginatedResult`, but in the move to stateless transports this feature will be removed. So for simplicity we are adding it to `PaginatedResult` now and will remove it from `ListTaskResult` in a future SEP.
 
 ### Why not replace `list_changed` notifications?
 
@@ -152,7 +152,7 @@ Integer seconds is the most common representation across these systems.
 
 ### Why not use HTTP caching directly?
 
-MCP is transport-agnostic. While HTTP-based transports could theoretically use `Cache-Control` headers, MCP also operates over stdio,  and supports pluggable transports where HTTP headers are may not be available. Embedding the TTL in the JSON response body ensures it works uniformly across all transports.
+MCP is transport-agnostic. While HTTP-based transports could theoretically use `Cache-Control` headers, MCP also operates over stdio,  and supports pluggable transports where HTTP headers may not be available. Embedding the TTL in the JSON response body ensures it works uniformly across all transports.
 
 ## Backward Compatibility
 
@@ -165,7 +165,7 @@ This change is fully backward compatible:
 
 ## Reference Implementation
 
-_No reference implementation yet. 
+_No reference implementation yet._
 
 ---
 

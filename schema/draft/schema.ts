@@ -957,11 +957,8 @@ export interface ListResourcesRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListResourcesRequest | resources/list} request.
  *
- * @example Resources list with cursor
- * {@includeCode ./examples/ListResourcesResult/resources-list-with-cursor.json}
- *
- * @example Resources list with TTL
- * {@includeCode ./examples/ListResourcesResult/resources-list-with-ttl.json}
+ * @example Resources list with cursor and TTL
+ * {@includeCode ./examples/ListResourcesResult/resources-list-with-cursor-and-ttl.json}
  *
  * @category `resources/list`
  */
@@ -996,11 +993,8 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListResourceTemplatesRequest | resources/templates/list} request.
  *
- * @example Resource templates list
- * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list.json}
- *
- * @example Resource templates list with TTL
- * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list-with-ttl.json}
+ * @example Resource templates list with cursor and TTL
+ * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list-with-cursor-and-ttl.json}
  *
  * @category `resources/templates/list`
  */
@@ -1331,11 +1325,8 @@ export interface ListPromptsRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListPromptsRequest | prompts/list} request.
  *
- * @example Prompts list with cursor
- * {@includeCode ./examples/ListPromptsResult/prompts-list-with-cursor.json}
- *
- * @example Prompts list with TTL
- * {@includeCode ./examples/ListPromptsResult/prompts-list-with-ttl.json}
+ * @example Prompts list with cursor and TTL
+ * {@includeCode ./examples/ListPromptsResult/prompts-list-with-cursor-and-ttl.json}
  *
  * @category `prompts/list`
  */
@@ -1535,11 +1526,8 @@ export interface ListToolsRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListToolsRequest | tools/list} request.
  *
- * @example Tools list with cursor
- * {@includeCode ./examples/ListToolsResult/tools-list-with-cursor.json}
- *
- * @example Tools list with TTL
- * {@includeCode ./examples/ListToolsResult/tools-list-with-ttl.json}
+ * @example Tools list with cursor and TTL
+ * {@includeCode ./examples/ListToolsResult/tools-list-with-cursor-and-ttl.json}
  *
  * @category `tools/list`
  */
