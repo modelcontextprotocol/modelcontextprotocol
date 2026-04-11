@@ -2241,19 +2241,21 @@ v0 turns your ideas into fullstack apps, no code required. Describe what you wan
 <McpClient
   name="VS Code GitHub Copilot"
   homepage="https://code.visualstudio.com/"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps, CIMD, DCR"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps, CIMD, DCR, Tasks"
   instructions="https://code.visualstudio.com/docs/copilot/customization/mcp-servers"
 >
 
-VS Code integrates MCP with GitHub Copilot through [agent mode](https://code.visualstudio.com/docs/copilot/chat/chat-agent-mode), allowing direct interaction with MCP-provided tools within your agentic coding workflow. Configure servers in Claude Desktop, workspace or user settings, with guided MCP installation and secure handling of keys in input variables to avoid leaking hard-coded keys.
+VS Code integrates MCP with GitHub Copilot [agents](https://code.visualstudio.com/docs/copilot/agents/overview), which plan, write code, and verify results across your project. Install MCP servers from the built-in gallery or configure them in workspace (`.vscode/mcp.json`) or user settings, with secure handling of keys via input variables.
 
 **Key features:**
 
-- Support for stdio and server-sent events (SSE) transport
-- Per-session selection of tools per agent session for optimal performance
-- Easy server debugging with restart commands and output logging
-- Tool calls with editable inputs and always-allow toggle
-- Integration with existing VS Code extension system to register MCP servers from extensions
+- MCP server gallery in the Extensions view for one-click install and discovery
+- Support for stdio, SSE, and streamable HTTP transports
+- Sandbox mode for stdio servers on macOS and Linux to restrict file system and network access
+- MCP Apps for interactive UI components like forms and visualizations rendered in chat
+- Per-session tool selection, editable inputs, and auto-approve toggle
+- Enterprise management of MCP server access via GitHub policies
+- Settings Sync support to share MCP configuration across devices
 
 </McpClient>
 
