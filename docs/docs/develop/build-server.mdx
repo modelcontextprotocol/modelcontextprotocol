@@ -302,9 +302,9 @@ In this case, we'll add our single weather server like so:
     "weather": {
       "command": "uv",
       "args": [
+        "run",
         "--directory",
         "/ABSOLUTE/PATH/TO/PARENT/FOLDER/weather",
-        "run",
         "weather.py"
       ]
     }
@@ -318,9 +318,9 @@ In this case, we'll add our single weather server like so:
     "weather": {
       "command": "uv",
       "args": [
+        "run",
         "--directory",
         "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\weather",
-        "run",
         "weather.py"
       ]
     }
@@ -345,7 +345,7 @@ Make sure you pass in the absolute path to your server. You can get this by runn
 This tells Claude for Desktop:
 
 1. There's an MCP server named "weather"
-2. To launch it by running `uv --directory /ABSOLUTE/PATH/TO/PARENT/FOLDER/weather run weather.py`
+2. To launch it by running `uv run --directory /ABSOLUTE/PATH/TO/PARENT/FOLDER/weather weather.py`
 
 Save the file, and restart **Claude for Desktop**.
 
