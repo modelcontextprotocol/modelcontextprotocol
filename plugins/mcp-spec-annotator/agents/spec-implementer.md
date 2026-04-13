@@ -35,6 +35,18 @@ You will receive a SEP number. Read the following files from `.reviews/SEP-{n}/`
 - Follow existing code style and patterns in each file you edit
 - If a requirement cannot be satisfied without violating another requirement, report the conflict in your response rather than making a compromised edit
 
+## Conservative Edits
+
+**Prefer minimal, targeted changes over section rewrites.** The principle of minimal diff is critical for specification documents — reviewers need to verify that every change is intentional.
+
+- For **terminology changes** (e.g., requestor → client): use find-and-replace on the specific terms. Do not rewrite the surrounding sentences.
+- For **added concepts**: insert new sentences or paragraphs into existing text. Do not rewrite the section to "flow better."
+- For **removed features**: delete the specific sentences or paragraphs. Do not rewrite surrounding context to fill the gap — a clean deletion is better than a rewrite.
+- For **behavioral requirements**: add them to existing "Behavioral Requirements" sections or create one following the pattern of other feature specs. Do not weave behavioral language into prose descriptions.
+- **Only rewrite a section** when the semantics have fundamentally changed and a targeted edit genuinely cannot express the new meaning.
+
+When in doubt, make the smaller change. A conservative edit that satisfies the requirement is always better than a comprehensive rewrite that also satisfies it.
+
 ## Output
 
 Return a summary of what you changed: which requirements you addressed, which files you edited, and any conflicts you encountered.

@@ -52,6 +52,12 @@ Write ONLY these files to `.reviews/SEP-{n}/`:
 
 Do not create summary.md, README.md, QA-FIXES.md, or any other supplementary files.
 
+**NEVER generate HTML yourself.** The `annotated-diff.html` file MUST be produced by running the `render.py` script. Do not write HTML content, do not construct diff tables manually, do not attempt to "render" by writing to the HTML file. The render script handles all line-by-line diff rendering, annotation card placement, and interactive navigation. If you write HTML yourself, it will be missing diff lines, have empty tables, or contain phantom hunks.
+
+## Style Check Scoping
+
+When checking style requirements (terminology, RFC 2119 keyword formatting, naming conventions), apply them ONLY to files under `docs/specification/` and `schema/`. Do NOT flag style violations in SEP documents (`seps/` or `docs/seps/`) — SEPs intentionally retain their original wording as historical proposals.
+
 ## Output
 
 Return a summary of the annotation results: counts of satisfied/violated/unclear/not_addressed requirements and the path to the HTML artifact.

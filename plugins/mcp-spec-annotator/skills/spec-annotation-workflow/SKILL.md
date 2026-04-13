@@ -39,6 +39,9 @@ These two steps are independent after step 1 — run them in parallel using para
 **Commit range mode** (if `commit_range` is provided):
 Run `git diff {commit_range}` locally. No GitHub access needed.
 
+**Working tree mode** (if dispatched by the orchestrator with a diff already saved):
+The orchestrator generates the diff and saves it to `.reviews/SEP-{sep_number}/diff.patch`. Skip diff resolution — use the file directly. The orchestrator is responsible for correct scoping (excluding unrelated files, including uncommitted changes).
+
 **PR mode** (default):
 Try these sources in order until one succeeds:
 
@@ -69,12 +72,14 @@ Since the script runs instantly, extraction can begin immediately while the diff
 
 ### Step 4: Annotate the diff (requires steps 2 & 3 complete)
 
-If you saved the diff to a file, parse and scaffold it with the scripts:
+**CRITICAL: You MUST run these scripts. Do NOT skip them or attempt to build annotations/HTML yourself.**
+
+Parse and scaffold the diff with the scripts:
 
 ```bash
 # Parse and split hunks
 python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/parse_diff.py \
-  .reviews/SEP-{sep_number}/pr-diff.txt \
+  .reviews/SEP-{sep_number}/diff.patch \
   .reviews/SEP-{sep_number}/parsed-diff.json
 
 # Build annotation skeleton (all requirements as not_addressed, patch_text included, generated files excluded)
@@ -88,7 +93,7 @@ Then read the skeleton `annotations.json` and fill in each requirement's `status
 
 ### Step 5: Render HTML
 
-Follow the `spec-render` skill instructions — run the render script:
+**CRITICAL: You MUST run the render script. NEVER write HTML content yourself.** The render script is the ONLY way to produce correct annotated-diff.html. Attempting to write HTML manually will result in missing diff lines, empty tables, or phantom hunks.
 
 ```bash
 python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py \
@@ -98,6 +103,18 @@ python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py \
 ```
 
 If jinja2 is not installed, run `pip install jinja2` first.
+
+After rendering, verify the output:
+
+```bash
+# Must be non-zero (file headers for each changed file)
+grep -c 'class="file-header"' .reviews/SEP-{sep_number}/annotated-diff.html
+
+# Must be non-zero (actual diff lines)
+grep -cE 'class="(add|remove|context)"' .reviews/SEP-{sep_number}/annotated-diff.html
+```
+
+If either check returns 0, re-run the render script — do NOT attempt to fix the HTML manually.
 
 ### Step 6: Print summary
 

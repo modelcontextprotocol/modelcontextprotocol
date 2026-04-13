@@ -128,6 +128,10 @@ For each hunk (or virtual hunk) in the diff:
 
 If a diff includes changes to files NOT listed in any requirement's `affected_paths`, still analyze those hunks. If a hunk in an unexpected file appears to address a requirement, annotate it with status `unclear` and explain that the file was not expected to be modified for this requirement.
 
+### Style Requirement Scoping
+
+Style requirements (terminology conventions, RFC 2119 keyword formatting, naming patterns) apply ONLY to specification files (`docs/specification/`, `schema/`). Do NOT flag style violations in SEP documents (`seps/`, `docs/seps/`) — SEPs are historical proposals that retain their original wording by design. When evaluating style requirements, check only the hunks from files listed in the requirement's `affected_paths`.
+
 ### Building the Annotations Object
 
 The top-level `annotations` object has one entry per requirement from the meta-spec. For each requirement:

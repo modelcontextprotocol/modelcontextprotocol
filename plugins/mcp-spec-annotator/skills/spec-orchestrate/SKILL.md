@@ -28,15 +28,77 @@ Drives an iterative feedback loop between reviewing and implementing spec change
 
 Before entering the iteration loop, extract requirements and produce the first implementation:
 
-**0a. Extract requirements**: Launch the `spec-reviewer` agent to read the SEP, extract requirements (meta-spec.json), and resolve the PR diff. Save its agent ID.
+**0a. Extract requirements**: Launch the `spec-reviewer` agent to read the SEP and extract requirements (meta-spec.json). If this is PR mode, it also resolves the diff. Save its agent ID.
 
 **0b. Implement first draft**: Launch the `spec-implementer` agent immediately. It reads the meta-spec and makes an initial pass at spec changes for all requirements. This ensures the first review iteration has actual implementation to annotate — not just the SEP document.
+
+### Orchestrator Responsibilities
+
+**The orchestrator (you) owns the deterministic pipeline.** Specifically:
+
+- **Diff generation**: You generate the diff file. The reviewer does NOT decide what diff to use.
+- **Script execution**: You run `parse_diff.py`, `annotate.py`, and `render.py`. The reviewer does NOT run these scripts.
+- **Reviewer scope**: The reviewer ONLY fills in annotation statuses, summaries, and explanations in an existing `annotations.json` skeleton.
+- **Spec files**: You NEVER edit specification files directly. All spec feedback must be expressed as requirement changes (via `spec-update`) and routed through the implementer agent in the next iteration. Direct edits bypass the review loop and will not be reflected in annotations.
 
 ### Iteration Loop
 
 For each iteration (up to `max_iterations`):
 
-**1. Review phase**: Launch the `spec-reviewer` agent to annotate the current diff (including any implementation changes from step 0b or previous iterations). Save its agent ID. It produces or updates `annotations.json` and `annotated-diff.html` in `.reviews/SEP-{sep_number}/`.
+**1. Review phase**: Generate the diff, run the deterministic pipeline scripts, then send the reviewer to fill annotations. The orchestrator (you) runs the scripts directly — do NOT delegate script execution to the reviewer agent.
+
+**1a. Generate the diff**: After any implementation step, the diff MUST include uncommitted working tree changes. Always use:
+
+```bash
+git diff main -- . > .reviews/SEP-{sep_number}/diff.patch
+```
+
+**Never** use `git diff main...HEAD` (misses uncommitted changes). If the branch has unrelated commits (e.g., changes to MAINTAINERS.md from another PR), scope the diff to SEP-relevant files only:
+
+```bash
+# Collect affected paths from meta-spec, plus the SEP file and docs.json
+git diff main -- seps/{sep_number}-*.md docs/docs.json docs/seps/ docs/specification/draft/ schema/draft/ > .reviews/SEP-{sep_number}/diff.patch
+```
+
+**1b. Parse and scaffold**: Run the scripts yourself:
+
+```bash
+# Parse and split hunks
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/parse_diff.py \
+  .reviews/SEP-{sep_number}/diff.patch \
+  .reviews/SEP-{sep_number}/parsed-diff.json
+
+# Build annotation skeleton
+python3 plugins/mcp-spec-annotator/skills/spec-diff/scripts/annotate.py \
+  .reviews/SEP-{sep_number}/meta-spec.json \
+  .reviews/SEP-{sep_number}/parsed-diff.json \
+  .reviews/SEP-{sep_number}/annotations.json
+```
+
+**1c. Fill annotations**: Launch the `spec-reviewer` agent to fill in annotation statuses, summaries, and explanations. The reviewer reads the skeleton `annotations.json` and the `parsed-diff.json`, then updates each requirement's status. It does NOT run scripts or generate HTML.
+
+**1d. Render HTML**: After the reviewer returns, run the render script yourself:
+
+```bash
+python3 plugins/mcp-spec-annotator/skills/spec-render/scripts/render.py \
+  .reviews/SEP-{sep_number}/meta-spec.json \
+  .reviews/SEP-{sep_number}/annotations.json \
+  .reviews/SEP-{sep_number}/annotated-diff.html
+```
+
+If jinja2 is not installed, run `pip install jinja2` first.
+
+**1e. Validate render**: After rendering, verify the HTML is correct:
+
+```bash
+# Should show file-header rows for each changed file
+grep -c 'class="file-header"' .reviews/SEP-{sep_number}/annotated-diff.html
+
+# Should show add/remove/context lines (non-zero count)
+grep -cE 'class="(add|remove|context)"' .reviews/SEP-{sep_number}/annotated-diff.html
+```
+
+If either check returns 0, the render failed — re-run the render script. Do NOT ask the reviewer agent to fix the HTML.
 
 **2. Quality gate**: Launch the `spec-qa` agent to audit the artifacts. If QA fails, branch on issue type:
 
