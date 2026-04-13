@@ -455,6 +455,7 @@
           {
             "group": "Working Group Charters",
             "pages": [
+              "community/inspector-v2/charter",
               "community/server-card/charter",
               "community/triggers-events/charter"
             ]
