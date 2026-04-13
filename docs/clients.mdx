@@ -5,7 +5,7 @@ description: "A list of applications that support MCP integrations"
 
 {/* prettier-ignore-start */}
 
-export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "CIMD", "DCR", "Tasks", "Apps"];
+export const FEATURES = ["Resources", "Prompts", "Tools", "Discovery", "Instructions", "Sampling", "Roots", "Elicitation", "CIMD", "DCR", "OAuth Client Credentials", "Enterprise-Managed Authorization", "Tasks", "Apps"];
 
 export const FEATURE_COLORS = {
   Resources: "blue",
@@ -20,6 +20,8 @@ export const FEATURE_COLORS = {
   Apps: "orange",
   DCR: "yellow",
   CIMD: "yellow",
+  "OAuth Client Credentials": "yellow",
+  "Enterprise-Managed Authorization": "yellow",
 };
 
 export const FeatureBadge = ({ feature }) => {
@@ -281,20 +283,22 @@ export const McpClient = ({ name, homepage, supports, sourceCode, instructions, 
 
 This page showcases applications that support the Model Context Protocol (MCP). Each client may support different MCP features:
 
-| Feature                                 | Description                                                                                                  |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| <FeatureBadge feature="Resources" />    | Server-exposed data and content                                                                              |
-| <FeatureBadge feature="Prompts" />      | Pre-defined templates for LLM interactions                                                                   |
-| <FeatureBadge feature="Tools" />        | Executable functions that LLMs can invoke                                                                    |
-| <FeatureBadge feature="Discovery" />    | Support for tools/prompts/resources changed notifications                                                    |
-| <FeatureBadge feature="Instructions" /> | Server-provided guidance for LLMs                                                                            |
-| <FeatureBadge feature="Sampling" />     | Server-initiated LLM completions                                                                             |
-| <FeatureBadge feature="Roots" />        | Filesystem boundary definitions                                                                              |
-| <FeatureBadge feature="Elicitation" />  | User information requests                                                                                    |
-| <FeatureBadge feature="CIMD" />         | [Client ID Metadata Document](specification/latest/basic/authorization#client-id-metadata-documents) support |
-| <FeatureBadge feature="DCR" />          | [Dynamic Client Registration](specification/latest/basic/authorization#dynamic-client-registration) support  |
-| <FeatureBadge feature="Tasks" />        | Long-running operation tracking                                                                              |
-| <FeatureBadge feature="Apps" />         | Interactive HTML interfaces                                                                                  |
+| Feature                                                     | Description                                                                                                  |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| <FeatureBadge feature="Resources" />                        | Server-exposed data and content                                                                              |
+| <FeatureBadge feature="Prompts" />                          | Pre-defined templates for LLM interactions                                                                   |
+| <FeatureBadge feature="Tools" />                            | Executable functions that LLMs can invoke                                                                    |
+| <FeatureBadge feature="Discovery" />                        | Support for tools/prompts/resources changed notifications                                                    |
+| <FeatureBadge feature="Instructions" />                     | Server-provided guidance for LLMs                                                                            |
+| <FeatureBadge feature="Sampling" />                         | Server-initiated LLM completions                                                                             |
+| <FeatureBadge feature="Roots" />                            | Filesystem boundary definitions                                                                              |
+| <FeatureBadge feature="Elicitation" />                      | User information requests                                                                                    |
+| <FeatureBadge feature="CIMD" />                             | [Client ID Metadata Document](specification/latest/basic/authorization#client-id-metadata-documents) support |
+| <FeatureBadge feature="DCR" />                              | [Dynamic Client Registration](specification/latest/basic/authorization#dynamic-client-registration) support  |
+| <FeatureBadge feature="OAuth Client Credentials" />         | [OAuth Client Credentials](/extensions/auth/oauth-client-credentials) extension support                      |
+| <FeatureBadge feature="Enterprise-Managed Authorization" /> | [Enterprise-Managed Authorization](/extensions/auth/enterprise-managed-authorization) extension support      |
+| <FeatureBadge feature="Tasks" />                            | Long-running operation tracking                                                                              |
+| <FeatureBadge feature="Apps" />                             | Interactive HTML interfaces                                                                                  |
 
 <Note>
 
@@ -504,6 +508,25 @@ Apigene MCP Client is an AI-powered conversational interface that enables seamle
 </McpClient>
 
 <McpClient
+  name="Archestra"
+  homepage="https://archestra.ai"
+  supports="Tools, Apps, CIMD, DCR, Enterprise-Managed Authorization"
+>
+
+Archestra is an enterprise AI platform that combines an LLM proxy, MCP registry/orchestrator, MCP gateway, agent runtime, and chat UI into a single control plane for building, routing, and securing AI workflows.
+
+**Key features:**
+
+- Unified MCP gateway that exposes a single endpoint for orchestrating tools across remote and self-hosted MCP servers.
+- Supports MCP Apps for inline, interactive tool UIs in chat.
+- Supports DCR and CIMD for MCP-native OAuth 2.1 client registration.
+- Supports the Enterprise-Managed Authorization extension for centrally managed enterprise identity flows.
+- Includes an LLM proxy with deterministic, context-aware tool guardrails to reduce prompt-injection and data-exfiltration risk.
+- Adds per-team cost tracking, usage limits, and optimization controls for model traffic.
+
+</McpClient>
+
+<McpClient
   name="Augment Code"
   homepage="https://augmentcode.com"
   supports="Tools"
@@ -578,6 +601,24 @@ BoltAI is a native, all-in-one AI chat client with MCP support. BoltAI supports 
 
 - [BoltAI docs](https://boltai.com/docs/plugins/mcp-servers)
 - [BoltAI website](https://boltai.com)
+
+</McpClient>
+<McpClient
+  name="Bob Shell"
+  homepage="https://bob.ibm.com/docs/shell"
+  supports="Prompts, Tools, Instructions, DCR"
+  instructions="https://bob.ibm.com/docs/shell/configuration/mcp/mcp-bobshell"
+>
+
+Bob Shell brings IBM Bob's AI capabilities to your command line.
+
+**Key features:**
+
+- Custom slash commands for workflow automation and team standardization
+- Checkpointing system with automatic Git snapshots before file changes
+- Trusted folders security to control project access and capabilities
+- Sandboxing support (macOS Seatbelt, Docker, Podman) for isolated operations
+- Specialized modes (Code, Ask, Plan, Advanced) for different workflows
 
 </McpClient>
 
@@ -1104,6 +1145,27 @@ HyperAgent is Playwright supercharged with AI. With HyperAgent, you no longer ne
 - Stealth Mode – Avoid detection with built-in anti-bot patches
 - Cloud Ready – Instantly scale to hundreds of sessions via [Hyperbrowser](https://www.hyperbrowser.ai/)
 - MCP Client – Connect to tools like Composio for full workflows (e.g. writing web data to Google Sheets)
+
+</McpClient>
+<McpClient
+  name="IBM Bob"
+  homepage="https://bob.ibm.com"
+  supports="Resources, Tools"
+  instructions="https://bob.ibm.com/docs/ide/configuration/mcp/mcp-in-bob"
+>
+
+IBM Bob is an AI SDLC partner that enables AI coding assistance via MCP. Built with security-first principles and enterprise-grade deployment flexibility, Bob integrates security into development workflows through shift-left practices, helping accelerate modernization while maintaining governance and compliance.
+
+**Key features:**
+
+- Support for MCP tools and resources with fine-grained control
+- Global and project-level MCP server configuration
+- STDIO and SSE transport support for local and remote servers
+- Individual tool enable/disable for optimized context usage
+- Auto-approval capabilities for trusted tools
+- Built-in MCP server creation through natural language
+- Enterprise-grade security with shift-left integration
+- Integration with development workflows
 
 </McpClient>
 
@@ -1820,6 +1882,25 @@ Proxyman is a native macOS app for HTTP debugging and network monitoring. It now
 
 - [Proxyman MCP Documentation](https://docs.proxyman.com/mcp)
 - [Proxyman Website](https://proxyman.com)
+
+</McpClient>
+
+<McpClient
+  name="Qoder"
+  homepage="https://www.qoder.com/"
+  supports="Tools"
+  instructions="https://docs.qoder.com/user-guide/chat/model-context-protocol"
+>
+
+Qoder is a next-generation agentic coding platform by Alibaba, engineered for real-world software development. By combining enhanced context engineering with autonomous agents, it provides deep awareness of very large codebases and can support workflows ranging from co-pilot assistance to fully autonomous coding.
+
+**Key features:**
+
+- **Agent Mode**: High-efficiency single-agent collaboration that autonomously decides actions from project context, including cross-file refactoring, debugging, and feature iteration.
+- **Experts Mode**: Multi-agent orchestration that decomposes complex requirements and delegates to a virtual expert team (Design, Implementation, Testing, QA) for parallel execution.
+- **Quest Mode**: Fully autonomous end-to-end coding from goal definition through requirement clarification, planning, execution, and validation with a comprehensive final report.
+- **Engineering Knowledge Engine**: Repo Wiki-powered architecture understanding that gives agents full codebase awareness and alignment with project standards.
+- **Memory Engine**: Persistent memory for developer preferences, project conventions, and historical interactions to improve alignment over time.
 
 </McpClient>
 

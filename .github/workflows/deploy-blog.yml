@@ -3,6 +3,9 @@ name: Deploy Hugo site to GitHub Pages
 on:
   push:
     branches: ["main"]
+    paths:
+      - "blog/**"
+      - ".github/workflows/deploy-blog.yml"
   workflow_dispatch:
 
 permissions:
