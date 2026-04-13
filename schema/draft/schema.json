@@ -162,7 +162,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "required": [
@@ -220,7 +220,7 @@
             "type": "object"
         },
         "CancelTaskRequest": {
-            "description": "A request to cancel a task.",
+            "description": "A request to cancel a task.\n\nReceivers MUST support this method even if they are incapable or unwilling to\nactually cancel tasks. In such cases, they SHOULD return an error.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -479,9 +479,6 @@
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadRequest"
-                },
-                {
                     "$ref": "#/$defs/CancelTaskRequest"
                 },
                 {
@@ -503,9 +500,6 @@
                 {
                     "$ref": "#/$defs/GetTaskResult",
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
-                },
-                {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
                 },
                 {
                     "$ref": "#/$defs/CancelTaskResult",
@@ -752,7 +746,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 },
                 "temperature": {
                     "type": "number"
@@ -847,7 +841,7 @@
             "type": "object"
         },
         "CreateTaskResult": {
-            "description": "The result returned for a task-augmented request.",
+            "description": "The result returned for a task-augmented request.\n\nReceivers MAY return this result even when the request does not include a `task` field,\nallowing unsolicited task creation. When this occurs, requestors MUST handle the task\nby polling tasks/get.\n\nReceivers MUST NOT return a CreateTaskResult unless and until a tasks/get request would\nreturn that task; that is, in eventually-consistent systems, receivers MUST wait for\nconsistency before returning the CreateTaskResult.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -958,7 +952,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "required": [
@@ -999,7 +993,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -1275,72 +1269,6 @@
             ],
             "type": "object"
         },
-        "GetTaskPayloadRequest": {
-            "description": "A request to retrieve the result of a completed task.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "tasks/result",
-                    "type": "string"
-                },
-                "params": {
-                    "properties": {
-                        "taskId": {
-                            "description": "The task identifier to retrieve results for.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "taskId"
-                    ],
-                    "type": "object"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
-        "GetTaskPayloadResult": {
-            "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                }
-            },
-            "type": "object"
-        },
-        "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
         "GetTaskRequest": {
             "description": "A request to retrieve the state of a task.",
             "properties": {
@@ -1357,6 +1285,13 @@
                 },
                 "params": {
                     "properties": {
+                        "inputResponses": {
+                            "additionalProperties": {
+                                "$ref": "#/$defs/JSONObject"
+                            },
+                            "description": "Optional responses to server-to-client requests that were returned in a previous\nGetTaskResult's inputRequests field. Keys match the keys from inputRequests.",
+                            "type": "object"
+                        },
                         "taskId": {
                             "description": "The task identifier to query.",
                             "type": "string"
@@ -1383,6 +1318,18 @@
                 },
                 {
                     "$ref": "#/$defs/Task"
+                },
+                {
+                    "properties": {
+                        "inputRequests": {
+                            "additionalProperties": {
+                                "$ref": "#/$defs/JSONObject"
+                            },
+                            "description": "Optional server-to-client requests that need to be fulfilled during task execution.\nWhen present with status \"input_required\", the client should respond to these\nrequests by including inputResponses in the next tasks/get call.\nKeys are arbitrary identifiers for matching requests to responses.",
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
                 }
             ],
             "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
@@ -3472,9 +3419,6 @@
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadRequest"
-                },
-                {
                     "$ref": "#/$defs/CancelTaskRequest"
                 },
                 {
@@ -3526,9 +3470,6 @@
                 {
                     "$ref": "#/$defs/GetTaskResult",
                     "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
-                },
-                {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
                 },
                 {
                     "$ref": "#/$defs/CancelTaskResult",
@@ -3722,6 +3663,10 @@
                     "description": "ISO 8601 timestamp when the task was created.",
                     "type": "string"
                 },
+                "error": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "The error that caused the task to fail. Present only when status is \"failed\"."
+                },
                 "lastUpdatedAt": {
                     "description": "ISO 8601 timestamp when the task was last updated.",
                     "type": "string"
@@ -3729,6 +3674,10 @@
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
+                },
+                "result": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "The final result of the task. Present only when status is \"completed\".\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure."
                 },
                 "status": {
                     "$ref": "#/$defs/TaskStatus",
@@ -3767,7 +3716,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "type": "object"

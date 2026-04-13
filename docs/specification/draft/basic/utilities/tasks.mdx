@@ -11,38 +11,37 @@ The design and behavior of tasks may evolve in future protocol versions.
 
 </Note>
 
-The Model Context Protocol (MCP) allows requestors — which can be either clients or servers, depending on the direction of communication — to augment their requests with **tasks**. Tasks are durable state machines that carry information about the underlying execution state of the request they wrap, and are intended for requestor polling and deferred result retrieval. Each task is uniquely identifiable by a receiver-generated **task ID**.
+The Model Context Protocol (MCP) allows clients to augment their requests with **tasks**. Tasks are durable state machines that carry information about the underlying execution state of the request they wrap, and are intended for client polling and deferred result retrieval. Each task is uniquely identifiable by a server-generated **task ID**.
 
 Tasks are useful for representing expensive computations and batch processing requests, and integrate seamlessly with external job APIs.
 
-## Definitions
-
-Tasks represent parties as either "requestors" or "receivers," defined as follows:
-
-- **Requestor:** The sender of a task-augmented request. This can be the client or the server — either can create tasks.
-- **Receiver:** The receiver of a task-augmented request, and the entity executing the task. This can be the client or the server — either can receive and execute tasks.
-
 ## User Interaction Model
 
-Tasks are designed to be **requestor-driven** - requestors are responsible for augmenting requests with tasks and for polling for the results of those tasks; meanwhile, receivers tightly control which requests (if any) support task-based execution and manages the lifecycles of those tasks.
+Tasks are designed to be **client-driven** - clients are responsible for augmenting requests with tasks and for polling for the results of those tasks; meanwhile, servers tightly control which requests (if any) support task-based execution and manages the lifecycles of those tasks.
 
-This requestor-driven approach ensures deterministic response handling and enables sophisticated patterns such as dispatching concurrent requests, which only the requestor has sufficient context to orchestrate.
+This client-driven approach ensures deterministic response handling and enables sophisticated patterns such as dispatching concurrent requests, which only the client has sufficient context to orchestrate.
 
 Implementations are free to expose tasks through any interface pattern that suits their needs — the protocol itself does not mandate any specific user interaction model.
 
 ## Capabilities
 
-Servers and clients that support task-augmented requests **MUST** declare a `tasks` capability during initialization. The `tasks` capability is structured by request category, with boolean properties indicating which specific request types support task augmentation.
+Servers that support task-augmented requests **MUST** declare a `tasks` capability during initialization. The `tasks` capability is structured by request category, with boolean properties indicating which specific request types support task augmentation.
+
+<Note type="warning">
+
+The `tasks.cancel` and `tasks.requests.tools.call` capability declarations are deprecated. Servers **MAY** return `CreateTaskResult` for any request regardless of declared capabilities.
+
+</Note>
 
 ### Server Capabilities
 
 Servers declare if they support tasks, and if so, which server-side requests can be augmented with tasks.
 
-| Capability                  | Description                                          |
-| --------------------------- | ---------------------------------------------------- |
-| `tasks.list`                | Server supports the `tasks/list` operation           |
-| `tasks.cancel`              | Server supports the `tasks/cancel` operation         |
-| `tasks.requests.tools.call` | Server supports task-augmented `tools/call` requests |
+| Capability                  | Description                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| `tasks.list`                | Server supports the `tasks/list` operation                                          |
+| `tasks.cancel`              | **Deprecated** - Server supports the `tasks/cancel` operation (now always required) |
+| `tasks.requests.tools.call` | **Deprecated** - Server supports task-augmented `tools/call` requests               |
 
 ```json
 {
@@ -60,61 +59,11 @@ Servers declare if they support tasks, and if so, which server-side requests can
 }
 ```
 
-### Client Capabilities
+<Note type="warning">
 
-Clients declare if they support tasks, and if so, which client-side requests can be augmented with tasks.
+The `Tool.execution.taskSupport` field is deprecated. Servers **MAY** return tasks for any tool call regardless of this field's value.
 
-| Capability                              | Description                                                      |
-| --------------------------------------- | ---------------------------------------------------------------- |
-| `tasks.list`                            | Client supports the `tasks/list` operation                       |
-| `tasks.cancel`                          | Client supports the `tasks/cancel` operation                     |
-| `tasks.requests.sampling.createMessage` | Client supports task-augmented `sampling/createMessage` requests |
-| `tasks.requests.elicitation.create`     | Client supports task-augmented `elicitation/create` requests     |
-
-```json
-{
-  "capabilities": {
-    "tasks": {
-      "list": {},
-      "cancel": {},
-      "requests": {
-        "sampling": {
-          "createMessage": {}
-        },
-        "elicitation": {
-          "create": {}
-        }
-      }
-    }
-  }
-}
-```
-
-### Capability Negotiation
-
-During the initialization phase, both parties exchange their `tasks` capabilities to establish which operations support task-based execution. Requestors **SHOULD** only augment requests with a task if the corresponding capability has been declared by the receiver.
-
-For example, if a server's capabilities include `tasks.requests.tools.call: {}`, then clients may augment `tools/call` requests with a task. If a client's capabilities include `tasks.requests.sampling.createMessage: {}`, then servers may augment `sampling/createMessage` requests with a task.
-
-If `capabilities.tasks` is not defined, the peer **SHOULD NOT** attempt to create tasks during requests.
-
-The set of capabilities in `capabilities.tasks.requests` is exhaustive. If a request type is not present, it does not support task-augmentation.
-
-`capabilities.tasks.list` controls if the `tasks/list` operation is supported by the party.
-
-`capabilities.tasks.cancel` controls if the `tasks/cancel` operation is supported by the party.
-
-### Tool-Level Negotiation
-
-Tool calls are given special consideration for the purpose of task augmentation. In the result of `tools/list`, tools declare support for tasks via `execution.taskSupport`, which if present can have a value of `"required"`, `"optional"`, or `"forbidden"`.
-
-This is to be interpreted as a fine-grained layer in addition to capabilities, following these rules:
-
-1. If a server's capabilities do not include `tasks.requests.tools.call`, then clients **MUST NOT** attempt to use task augmentation on that server's tools, regardless of the `execution.taskSupport` value.
-1. If a server's capabilities include `tasks.requests.tools.call`, then clients consider the value of `execution.taskSupport`, and handle it accordingly:
-   1. If `execution.taskSupport` is not present or `"forbidden"`, clients **MUST NOT** attempt to invoke the tool as a task. Servers **SHOULD** return a `-32601` (Method not found) error if a client attempts to do so. This is the default behavior.
-   1. If `execution.taskSupport` is `"optional"`, clients **MAY** invoke the tool as a task or as a normal request.
-   1. If `execution.taskSupport` is `"required"`, clients **MUST** invoke the tool as a task. Servers **MUST** return a `-32601` (Method not found) error if a client does not attempt to do so.
+</Note>
 
 ## Protocol Messages
 
@@ -123,9 +72,11 @@ This is to be interpreted as a fine-grained layer in addition to capabilities, f
 Task-augmented requests follow a two-phase response pattern that differs from normal requests:
 
 - **Normal requests**: The server processes the request and returns the actual operation result directly.
-- **Task-augmented requests**: The server accepts the request and immediately returns a `CreateTaskResult` containing task data. The actual operation result becomes available later through `tasks/result` after the task completes.
+- **Task-augmented requests**: The server accepts the request and immediately returns a [`CreateTaskResult`](/specification/draft/schema#createtaskresult) containing task data. The actual operation result becomes available later through `tasks/get` after the task completes.
 
-To create a task, requestors send a request with the `task` field included in the request params. Requestors **MAY** include a `ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
+Whether a task is created in response to a request is subject to the server's implementation; clients **MUST** be prepared to handle either case. Servers **MAY** return a `CreateTaskResult` for any request, whether or not the client included the `task` field. Servers **MAY** also return an immediate result even when the `task` field is present.
+
+To create a task, clients send a request with the `task` field included in the request params. Clients **MAY** include a `ttl` value indicating the desired task lifetime duration (in milliseconds) since its creation.
 
 **Request:**
 
@@ -166,7 +117,7 @@ To create a task, requestors send a request with the `task` field included in th
 }
 ```
 
-When a receiver accepts a task-augmented request, it returns a [`CreateTaskResult`](/specification/draft/schema#createtaskresult) containing task data. The response does not include the actual operation result. The actual result (e.g., tool result for `tools/call`) becomes available only through `tasks/result` after the task completes.
+When a server accepts a task-augmented request, it returns a `CreateTaskResult` containing task data. The response does not include the actual operation result. The actual result (e.g., tool result for `tools/call`) becomes available only through `tasks/get` after the task completes.
 
 <Note>
 
@@ -189,10 +140,12 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 
 </Note>
 
-Requestors poll for task completion by sending [`tasks/get`](/specification/draft/schema#tasks%2Fget) requests.
-Requestors **SHOULD** respect the `pollInterval` provided in responses when determining polling frequency.
+Clients poll for task completion by sending [`tasks/get`](/specification/draft/schema#tasks%2Fget) requests.
+Clients **SHOULD** respect the `pollInterval` provided in responses when determining polling frequency.
 
-Requestors **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`), or until encountering the [`input_required`](#input-required-status) status. Note that invoking `tasks/result` does not imply that the requestor needs to stop polling - requestors **SHOULD** continue polling the task status via `tasks/get` if they are not actively waiting for `tasks/result` to complete.
+Clients **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`), or until encountering the [`input_required`](#input-required-status) status.
+
+#### Basic Polling
 
 **Request:**
 
@@ -207,7 +160,7 @@ Requestors **SHOULD** continue polling until the task reaches a terminal status 
 }
 ```
 
-**Response:**
+**Response (Working):**
 
 ```json
 {
@@ -225,61 +178,120 @@ Requestors **SHOULD** continue polling until the task reaches a terminal status 
 }
 ```
 
-### Retrieving Task Results
+#### Retrieving Task Results
 
-<Note>
+When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), the `tasks/get` response includes the final result or error inlined into the `Task` object. The `result` field contains what the underlying request would have returned (e.g., `CallToolResult` for `tools/call`), and the `error` field contains any JSON-RPC error that occurred during execution.
 
-In the Streamable HTTP (SSE) transport, clients **MAY** disconnect from an SSE stream opened by the server in response to a `tasks/result` request at any time.
-
-While this note is not prescriptive regarding the specific usage of SSE streams, all implementations **MUST** continue to comply with the existing [Streamable HTTP transport specification](../transports#sending-messages-to-the-server).
-
-</Note>
-
-After a task completes the operation result is retrieved via [`tasks/result`](/specification/draft/schema#tasks%2Fresult). This is distinct from the initial `CreateTaskResult` response, which contains only task data. The result structure matches the original request type (e.g., `CallToolResult` for `tools/call`).
-
-To retrieve the result of a completed task, requestors can send a `tasks/result` request:
-
-While `tasks/result` blocks until the task reaches a terminal status, requestors can continue polling via `tasks/get` in parallel if they are not actively blocked waiting for the result, such as if their previous `tasks/result` request failed or was cancelled. This allows requestors to monitor status changes or display progress updates while the task executes, even after invoking `tasks/result`.
-
-**Request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "tasks/result",
-  "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
-  }
-}
-```
-
-**Response:**
+**Response (Completed with Result):**
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 4,
   "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "Current weather in New York:\nTemperature: 72°F\nConditions: Partly cloudy"
-      }
-    ],
-    "isError": false,
-    "_meta": {
-      "io.modelcontextprotocol/related-task": {
-        "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "completed",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Current weather in New York:\nTemperature: 72°F\nConditions: Partly cloudy"
+        }
+      ],
+      "isError": false
+    }
+  }
+}
+```
+
+**Response (Failed with Error):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "failed",
+    "statusMessage": "Tool execution failed: API rate limit exceeded",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 30000,
+    "error": {
+      "code": -32603,
+      "message": "API rate limit exceeded"
+    }
+  }
+}
+```
+
+#### Input Requests and Responses
+
+When a task requires input from the client (indicated by the `input_required` status), the server includes outstanding requests in the `inputRequests` field of the `tasks/get` response. The client provides responses via the `inputResponses` field in subsequent `tasks/get` requests.
+
+**Response (Input Required):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "input_required",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:45:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000,
+    "inputRequests": {
+      "elicit-name": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please enter your name.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" }
+            },
+            "required": ["name"]
+          }
+        }
       }
     }
   }
 }
 ```
 
+**Request (With Input Response):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tasks/get",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "inputResponses": {
+      "elicit-name": {
+        "action": "accept",
+        "content": {
+          "input": "John Doe"
+        }
+      }
+    }
+  }
+}
+```
+
+The `inputRequests` field represents a point-in-time snapshot of all outstanding server-to-client requests. If the client polls again before providing responses, the same requests will be included in subsequent responses. Clients **SHOULD** deduplicate requests with the same key for UX purposes.
+
 ### Task Status Notification
 
-When a task status changes, receivers **MAY** send a [`notifications/tasks/status`](/specification/draft/schema#notifications%2Ftasks%2Fstatus) notification to inform the requestor of the change. This notification includes the full task state.
+When a task status changes, servers **MAY** send a [`notifications/tasks/status`](/specification/draft/schema#notifications%2Ftasks%2Fstatus) notification to inform the client of the change. This notification includes the full task state.
 
 **Notification:**
 
@@ -293,18 +305,27 @@ When a task status changes, receivers **MAY** send a [`notifications/tasks/statu
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
     "ttl": 60000,
-    "pollInterval": 5000
+    "pollInterval": 5000,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Operation completed successfully."
+        }
+      ],
+      "isError": false
+    }
   }
 }
 ```
 
-The notification includes the full [`Task`](/specification/draft/schema#task) object, including the updated `status` and `statusMessage` (if present). This allows requestors to access the complete task state without making an additional `tasks/get` request.
+The notification includes the full [`Task`](/specification/draft/schema#task) object, including the updated `status`, `statusMessage` (if present), and `result` or `error` fields when the task reaches a terminal status. This allows clients to access the complete task state and final results without making an additional `tasks/get` request.
 
-Requestors **MUST NOT** rely on receiving this notifications, as it is optional. Receivers are not required to send status notifications and may choose to only send them for certain status transitions. Requestors **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
+Clients **MUST NOT** rely on receiving this notifications, as it is optional. Servers are not required to send status notifications and may choose to only send them for certain status transitions. Clients **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
 
 ### Listing Tasks
 
-To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification/draft/schema#tasks%2Flist) request. This operation supports pagination.
+To retrieve a list of tasks, clients can send a [`tasks/list`](/specification/draft/schema#tasks%2Flist) request. This operation supports pagination.
 
 **Request:**
 
@@ -350,7 +371,9 @@ To retrieve a list of tasks, requestors can send a [`tasks/list`](/specification
 
 ### Cancelling Tasks
 
-To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specification/draft/schema#tasks%2Fcancel) request.
+To explicitly cancel a task, clients can send a [`tasks/cancel`](/specification/draft/schema#tasks%2Fcancel) request.
+
+All servers that support tasks **MUST** support the `tasks/cancel` method, even if they are incapable of or unwilling to offer actual task cancellation. Servers that cannot cancel tasks **SHOULD** return an error indicating that cancellation is not supported for the specific task, similar to how `notifications/cancelled` must be accepted but may not result in actual cancellation.
 
 **Request:**
 
@@ -365,7 +388,7 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
 }
 ```
 
-**Response:**
+**Response (Successful Cancellation):**
 
 ```json
 {
@@ -383,25 +406,46 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
 }
 ```
 
+**Response (Cancellation Not Supported):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "error": {
+    "code": -32603,
+    "message": "Task cancellation is not supported for this operation"
+  }
+}
+```
+
 ## Behavior Requirements
 
 These requirements apply to all parties that support receiving task-augmented requests.
 
 ### Task Support and Handling
 
-1. Receivers that do not declare the task capability for a request type **MUST** process requests of that type normally, ignoring any task-augmentation metadata if present.
-1. Receivers that declare the task capability for a request type **MAY** return an error for non-task-augmented requests, requiring requestors to use task augmentation.
+1. Servers **MAY** return `CreateTaskResult` for any request, regardless of whether the client included a `task` field or whether task capabilities were declared. This result **SHOULD** be returned as soon as possible after accepting the task.
+1. Clients **MUST** be prepared to handle `CreateTaskResult` responses for any request.
+1. Servers **MAY** return an immediate result (e.g., `CallToolResult`) even when the client included a `task` field, choosing to complete the operation immediately rather than creating a task. Servers that do not wish to create a task **MUST** ignore the `task` field in the request.
+1. Servers **MUST NOT** return a `CreateTaskResult` unless and until a `tasks/get` request would successfully return that task. In eventually-consistent systems, servers **MUST** wait for consistency before returning `CreateTaskResult` to avoid speculative `tasks/get` requests that cannot find the task.
+
+<Note>
+
+Task support is independent of capability negotiation. Servers may create tasks regardless of declared capabilities. Implementors are advised not to treat tasks as a tool-specific protocol operation, as task support may be expanded to additional request types in the future.
+
+</Note>
 
 ### Task ID Requirements
 
 1. Task IDs **MUST** be a string value.
-1. Task IDs **MUST** be generated by the receiver when creating a task.
-1. Task IDs **MUST** be unique among all tasks controlled by the receiver.
+1. Task IDs **MUST** be generated by the server when creating a task.
+1. Task IDs **MUST** be unique among all tasks controlled by the server.
 
 ### Task Status Lifecycle
 
 1. Tasks **MUST** begin in the `working` status when created.
-1. Receivers **MUST** only transition tasks through the following valid paths:
+1. Servers **MUST** only transition tasks through the following valid paths:
    1. From `working`: may move to `input_required`, `completed`, `failed`, or `cancelled`
    1. From `input_required`: may move to `working`, `completed`, `failed`, or `cancelled`
    1. Tasks with a `completed`, `failed`, or `cancelled` status are in a terminal state and **MUST NOT** transition to any other status
@@ -430,52 +474,39 @@ stateDiagram-v2
 
 ### Input Required Status
 
-<Note>
-
-With the Streamable HTTP (SSE) transport, servers often close SSE streams after delivering a response message, which can lead to ambiguity regarding the stream used for subsequent task messages.
-
-Servers can handle this by enqueueing messages to the client to side-channel task-related messages alongside other responses.
-
-Servers have flexibility in how they manage SSE streams during task polling and result retrieval, and clients **SHOULD** expect messages to be delivered on any SSE stream, including the HTTP GET stream.
-One possible approach is maintaining an SSE stream on `tasks/result` (see notes on the `input_required` status).
-Where possible, servers **SHOULD NOT** upgrade to an SSE stream in response to a `tasks/get` request, as the client has indicated it wishes to poll for a result.
-
-While this note is not prescriptive regarding the specific usage of SSE streams, all implementations **MUST** continue to comply with the existing [Streamable HTTP transport specification](../transports#sending-messages-to-the-server).
-
-</Note>
-
-1. When the task receiver has messages for the requestor that are necessary to complete the task, the receiver **SHOULD** move the task to the `input_required` status.
-1. The receiver **MUST** include the `io.modelcontextprotocol/related-task` metadata in the request to associate it with the task.
-1. When the requestor encounters the `input_required` status, it **SHOULD** preemptively call `tasks/result`.
-1. When the receiver receives all required input, the task **SHOULD** transition out of `input_required` status (typically back to `working`).
+1. When the task server has messages for the client that are necessary to complete the task, the server **SHOULD** move the task to the `input_required` status.
+1. The server **MUST** include outstanding server-to-client requests in the `inputRequests` field of the `tasks/get` response when in `input_required` status.
+1. When the client encounters the `input_required` status, it **SHOULD** provide responses via the `inputResponses` field in subsequent `tasks/get` requests.
+1. The `inputRequests` field represents a point-in-time snapshot of all outstanding requests. If the client polls again before providing all responses, the same requests will be included in subsequent `tasks/get` responses.
+1. When the server receives all required input, the task **SHOULD** transition out of `input_required` status (typically back to `working`).
 
 ### TTL and Resource Management
 
-1. Receivers **MUST** include a `createdAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was created.
-1. Receivers **MUST** include a `lastUpdatedAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was last updated.
-1. Receivers **MAY** override the requested `ttl` duration.
-1. Receivers **MUST** include the actual `ttl` duration (or `null` for unlimited) in `tasks/get` responses.
-1. After a task's `ttl` lifetime has elapsed, receivers **MAY** delete the task and its results, regardless of the task status.
-1. Receivers **MAY** include a `pollInterval` value (in milliseconds) in `tasks/get` responses to suggest polling intervals. Requestors **SHOULD** respect this value when provided.
+1. Servers **MUST** include a `createdAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was created.
+1. Servers **MUST** include a `lastUpdatedAt` [ISO 8601](https://datatracker.ietf.org/doc/html/rfc3339#section-5)-formatted timestamp in all task responses to indicate when the task was last updated.
+1. Servers **MAY** override the requested `ttl` duration.
+1. Servers **MUST** include the actual `ttl` duration (or `null` for unlimited) in `tasks/get` responses.
+1. After a task's `ttl` lifetime has elapsed, servers **MAY** delete the task and its results, regardless of the task status.
+1. Servers **MAY** include a `pollInterval` value (in milliseconds) in `tasks/get` responses to suggest polling intervals. Clients **SHOULD** respect this value when provided.
 
 ### Result Retrieval
 
-1. Receivers that accept a task-augmented request **MUST** return a `CreateTaskResult` as the response. This result **SHOULD** be returned as soon as possible after accepting the task.
-1. When a receiver receives a `tasks/result` request for a task in a terminal status (`completed`, `failed`, or `cancelled`), it **MUST** return the final result of the underlying request, whether that is a successful result or a JSON-RPC error.
-1. When a receiver receives a `tasks/result` request for a task in any other non-terminal status (`working` or `input_required`), it **MUST** block the response until the task reaches a terminal status.
-1. For tasks in a terminal status, receivers **MUST** return from `tasks/result` exactly what the underlying request would have returned, whether that is a successful result or a JSON-RPC error.
+1. When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), servers **MUST** inline the final result or error into the `Task` object returned by `tasks/get`.
+1. For successful completion, the `result` field **MUST** contain what the underlying request would have returned (e.g., `CallToolResult` for `tools/call`).
+1. For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution, or the task **MAY** use `status: "failed"` with a `statusMessage` for tool results with `isError: true`.
+1. Servers **MUST** include the `result` or `error` field in `notifications/tasks/status` notifications when notifying about terminal status transitions.
 
 ### Associating Task-Related Messages
 
 1. All requests, notifications, and responses related to a task **MUST** include the `io.modelcontextprotocol/related-task` key in their `_meta` field, with the value set to an object with a `taskId` matching the associated task ID.
    1. For example, an elicitation that a task-augmented tool call depends on **MUST** share the same related task ID with that tool call's task.
-1. For the `tasks/get`, `tasks/result`, and `tasks/cancel` operations, the `taskId` parameter in the request **MUST** be used as the source of truth for identifying the target task. Requestors **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in these requests, and receivers **MUST** ignore such metadata if present in favor of the RPC method parameter.
-   Similarly, for the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, receivers **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in the result messages, as the `taskId` is already present in the response structure.
+1. For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, the `taskId` parameter in the request **MUST** be used as the source of truth for identifying the target task. Clients **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in these requests, and servers **MUST** ignore such metadata if present in favor of the RPC method parameter.
+1. For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, servers **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in the result messages, as the `taskId` is already present in the response structure.
 
 ### Task Notifications
 
-1. Receivers **MAY** send `notifications/tasks/status` notifications when a task's status changes.
-1. Requestors **MUST NOT** rely on receiving the `notifications/tasks/status` notification, as it is optional.
+1. Servers **MAY** send `notifications/tasks/status` notifications when a task's status changes.
+1. Clients **MUST NOT** rely on receiving the `notifications/tasks/status` notification, as it is optional.
 1. When sent, the `notifications/tasks/status` notification **SHOULD NOT** include the `io.modelcontextprotocol/related-task` metadata, as the task ID is already present in the notification parameters.
 
 ### Task Progress Notifications
@@ -484,27 +515,83 @@ Task-augmented requests support progress notifications as defined in the [progre
 
 ### Task Listing
 
-1. Receivers **SHOULD** use cursor-based pagination to limit the number of tasks returned in a single response.
-1. Receivers **MUST** include a `nextCursor` in the response if more tasks are available.
-1. Requestors **MUST** treat cursors as opaque tokens and not attempt to parse or modify them.
-1. If a task is retrievable via `tasks/get` for a requestor, it **MUST** be retrievable via `tasks/list` for that requestor.
+1. Servers **SHOULD** use cursor-based pagination to limit the number of tasks returned in a single response.
+1. Servers **MUST** include a `nextCursor` in the response if more tasks are available.
+1. Clients **MUST** treat cursors as opaque tokens and not attempt to parse or modify them.
+1. If a task is retrievable via `tasks/get` for a client, it **MUST** be retrievable via `tasks/list` for that client.
 
 ### Task Cancellation
 
-1. Receivers **MUST** reject cancellation requests for tasks already in a terminal status (`completed`, `failed`, or `cancelled`) with error code `-32602` (Invalid params).
-1. Upon receiving a valid cancellation request, receivers **SHOULD** attempt to stop the task execution and **MUST** transition the task to `cancelled` status before sending the response.
+1. Servers **MUST** reject cancellation requests for tasks already in a terminal status (`completed`, `failed`, or `cancelled`) with error code `-32602` (Invalid params).
+1. Upon receiving a valid cancellation request, servers **SHOULD** attempt to stop the task execution and **MUST** transition the task to `cancelled` status before sending the response.
 1. Once a task is cancelled, it **MUST** remain in `cancelled` status even if execution continues to completion or fails.
-1. The `tasks/cancel` operation does not define deletion behavior. However, receivers **MAY** delete cancelled tasks at their discretion at any time, including immediately after cancellation or after the task `ttl` expires.
-1. Requestors **SHOULD NOT** rely on cancelled tasks being retained for any specific duration and should retrieve any needed information before cancelling.
+1. The `tasks/cancel` operation does not define deletion behavior. However, servers **MAY** delete cancelled tasks at their discretion at any time, including immediately after cancellation or after the task `ttl` expires.
+1. Clients **SHOULD NOT** rely on cancelled tasks being retained for any specific duration and should retrieve any needed information before cancelling.
 
 ## Message Flow
+
+### Unsolicited Task Creation
+
+This diagram shows a server returning a task even when the client did not request one. The server chooses to handle the operation as a task based on its own logic.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C,S: Client makes regular request WITHOUT task field
+    C->>S: tools/call (no task field)
+    activate S
+    Note over S: Server decides to create a task<br/>based on operation characteristics
+    S->>C: CreateTaskResult (taskId, status: working)
+    deactivate S
+
+    Note over C,S: Client begins polling for result
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: status: working
+    deactivate S
+
+    Note over S: Task processing continues...
+
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: status: working
+    deactivate S
+
+    Note over S: Task completes
+
+    C->>S: tasks/get (taskId)
+    activate S
+    S->>C: status: completed, result included
+    deactivate S
+```
+
+### Immediate Result Despite Task Request
+
+This diagram shows a server returning an immediate result even when the client explicitly requested task-augmented execution. The server chooses to complete the operation immediately rather than creating a task.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C,S: Client requests task-augmented execution
+    C->>S: tools/call (WITH task field, ttl)
+    activate S
+    Note over S: Server determines operation can<br/>complete immediately (e.g., cached result)
+    S->>C: CallToolResult (immediate result, no task)
+    deactivate S
+
+    Note over C: Client receives result directly,<br/>no polling needed
+```
 
 ### Basic Task Lifecycle
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (Requestor)
-    participant S as Server (Receiver)
+    participant C as Client
+    participant S as Server
     Note over C,S: 1. Task Creation
     C->>S: Request with task field (ttl)
     activate S
@@ -513,35 +600,30 @@ sequenceDiagram
     Note over C,S: 2. Task Polling
     C->>S: tasks/get (taskId)
     activate S
-    S->>C: working
+    S->>C: status: working
     deactivate S
     Note over S: Task processing continues...
     C->>S: tasks/get (taskId)
     activate S
-    S->>C: working
+    S->>C: status: working
     deactivate S
     Note over S: Task completes
     C->>S: tasks/get (taskId)
     activate S
-    S->>C: completed
+    S->>C: status: completed, result included
     deactivate S
-    Note over C,S: 3. Result Retrieval
-    C->>S: tasks/result (taskId)
-    activate S
-    S->>C: Result content
-    deactivate S
-    Note over C,S: 4. Cleanup
+    Note over C,S: 3. Cleanup
     Note over S: After ttl period from creation, task is cleaned up
 ```
 
-### Task-Augmented Tool Call With Elicitation
+### Task-Augmented Tool Call With Input Required
 
 ```mermaid
 sequenceDiagram
     participant U as User
     participant LLM
-    participant C as Client (Requestor)
-    participant S as Server (Receiver)
+    participant C as Client
+    participant S as Server
 
     Note over LLM,C: LLM initiates request
     LLM->>C: Request operation
@@ -559,115 +641,60 @@ sequenceDiagram
     Note over C,S: Client polls for status
     C->>S: tasks/get (task-123)
     activate S
-    S->>C: working
+    S->>C: status: working
     deactivate S
 
     Note over S: Server needs information from client<br/>Task moves to input_required
 
-    Note over C,S: Client polls and discovers input_required
+    Note over C,S: Client polls and discovers input_required with inputRequests
     C->>S: tasks/get (task-123)
     activate S
-    S->>C: input_required
+    S->>C: status: input_required, inputRequests: {elicitation}
     deactivate S
 
-    Note over C,S: Client opens result stream
-    C->>S: tasks/result (task-123)
-    activate S
-    S->>C: elicitation/create (related-task: task-123)
-    activate C
+    Note over C,U: Client processes input request<br/>and prompts user
     C->>U: Prompt user for input
-    U->>C: Provide information
-    C->>S: elicitation response (related-task: task-123)
-    deactivate C
+
+    Note over C,S: Client polls again before user responds
+    C->>S: tasks/get (task-123)
+    activate S
+    S->>C: status: input_required, inputRequests: {elicitation}<br/>(same request as before)
     deactivate S
 
-    Note over C,S: Client closes result stream and resumes polling
+    Note over U,C: User provides information
+    U->>C: Provide information
 
-    Note over S: Task continues processing...<br/>Task moves back to working
+    Note over C,S: Client provides response via inputResponses
+    C->>S: tasks/get (task-123, inputResponses: {elicitation response})
+    activate S
+    S->>C: status: working
+    deactivate S
+
+    Note over S: Task continues processing...
 
     C->>S: tasks/get (task-123)
     activate S
-    S->>C: working
+    S->>C: status: working
     deactivate S
 
     Note over S: Task completes
 
-    Note over C,S: Client polls and discovers completion
+    Note over C,S: Client polls and discovers completion with result
     C->>S: tasks/get (task-123)
     activate S
-    S->>C: completed
-    deactivate S
-
-    Note over C,S: Client retrieves final results
-    C->>S: tasks/result (task-123)
-    activate S
-    S->>C: Result content
+    S->>C: status: completed, result included
     deactivate S
     C->>LLM: Process result
 
     Note over S: Results retained for ttl period from creation
 ```
 
-### Task-Augmented Sampling Request
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant LLM
-    participant C as Client (Receiver)
-    participant S as Server (Requestor)
-
-    Note over S: Server decides to initiate request
-
-    Note over S,C: Server requests client operation (task-augmented)
-    S->>C: sampling/createMessage (ttl: 3600000)
-    activate C
-    C->>S: CreateTaskResult (request-789, status: working)
-    deactivate C
-
-    Note over S: Server continues processing<br/>while waiting for result
-
-    Note over S,C: Server polls for result
-    S->>C: tasks/get (request-789)
-    activate C
-    C->>S: working
-    deactivate C
-
-    Note over C,U: Client may present request to user
-    C->>U: Review request
-    U->>C: Approve request
-
-    Note over C,LLM: Client may involve LLM
-    C->>LLM: Request completion
-    LLM->>C: Return completion
-
-    Note over C,U: Client may present result to user
-    C->>U: Review result
-    U->>C: Approve result
-
-    Note over S,C: Server polls and discovers completion
-    S->>C: tasks/get (request-789)
-    activate C
-    C->>S: completed
-    deactivate C
-
-    Note over S,C: Server retrieves result
-    S->>C: tasks/result (request-789)
-    activate C
-    C->>S: Result content
-    deactivate C
-
-    Note over S: Server continues processing
-
-    Note over C: Results retained for ttl period from creation
-```
-
 ### Task Cancellation Flow
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (Requestor)
-    participant S as Server (Receiver)
+    participant C as Client
+    participant S as Server
 
     Note over C,S: 1. Task Creation
     C->>S: tools/call (request ID: 42, ttl: 60000)
@@ -710,15 +737,17 @@ A task represents the execution state of a request. The task state includes:
 - `ttl`: Time in milliseconds from creation before task may be deleted
 - `pollInterval`: Suggested time in milliseconds between status checks
 - `lastUpdatedAt`: ISO 8601 timestamp when the task status was last updated
+- `result`: Optional field containing the final result when the task reaches a terminal status (e.g., `CallToolResult` for tool calls)
+- `error`: Optional field containing a JSON-RPC error if the task failed
 
 ### Task Status
 
 Tasks can be in one of the following states:
 
 - `working`: The request is currently being processed.
-- `input_required`: The receiver needs input from the requestor. The requestor should call `tasks/result` to receive input requests, even though the task has not reached a terminal state.
-- `completed`: The request completed successfully and results are available.
-- `failed`: The associated request did not complete successfully. For tool calls specifically, this includes cases where the tool call result has `isError` set to true.
+- `input_required`: The server needs input from the client. The `tasks/get` response will include outstanding requests in the `inputRequests` field, and the client should provide responses via the `inputResponses` field in subsequent `tasks/get` requests.
+- `completed`: The request completed successfully and results are available in the `result` field.
+- `failed`: The associated request did not complete successfully. The task will include either the `error` field (for JSON-RPC errors) or the `result` field with `isError: true` (for tool call errors).
 - `cancelled`: The request was cancelled before completion.
 
 ### Task Parameters
@@ -751,8 +780,7 @@ All requests, responses, and notifications associated with a task **MUST** inclu
 
 This associates messages with their originating task across the entire request lifecycle.
 
-For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, requestors and receivers **SHOULD NOT** include this metadata in their messages, as the `taskId` is already present in the message structure.
-The `tasks/result` operation **MUST** include this metadata in its response, as the result structure itself does not contain the task ID.
+For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, clients and servers **SHOULD NOT** include this metadata in their messages, as the `taskId` is already present in the message structure.
 
 ## Error Handling
 
@@ -763,31 +791,14 @@ Tasks use two error reporting mechanisms:
 
 ### Protocol Errors
 
-Receivers **MUST** return standard JSON-RPC errors for the following protocol error cases:
+Servers **MUST** return standard JSON-RPC errors for the following protocol error cases:
 
-- Invalid or nonexistent `taskId` in `tasks/get`, `tasks/result`, or `tasks/cancel`: `-32602` (Invalid params)
+- Invalid or nonexistent `taskId` in `tasks/get` or `tasks/cancel`: `-32602` (Invalid params)
 - Invalid or nonexistent cursor in `tasks/list`: `-32602` (Invalid params)
 - Attempt to cancel a task already in a terminal status: `-32602` (Invalid params)
 - Internal errors: `-32603` (Internal error)
 
-Additionally, receivers **MAY** return the following errors:
-
-- Non-task-augmented request when receiver requires task augmentation for that request type: `-32600` (Invalid request)
-
-Receivers **SHOULD** provide informative error messages to describe the cause of errors.
-
-**Example: Task augmentation required**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32600,
-    "message": "Task augmentation required for tools/call requests"
-  }
-}
-```
+Servers **SHOULD** provide informative error messages to describe the cause of errors.
 
 **Example: Task not found**
 
@@ -817,7 +828,7 @@ Receivers **SHOULD** provide informative error messages to describe the cause of
 
 <Note>
 
-Receivers are not required to retain tasks indefinitely. It is compliant behavior for a receiver to return an error stating the task cannot be found if it has purged an expired task.
+Servers are not required to retain tasks indefinitely. It is compliant behavior for a server to return an error stating the task cannot be found if it has purged an expired task.
 
 </Note>
 
@@ -836,9 +847,9 @@ Receivers are not required to retain tasks indefinitely. It is compliant behavio
 
 ### Task Execution Errors
 
-When the underlying request does not complete successfully, the task moves to the `failed` status. This includes JSON-RPC protocol errors during request execution, or for tool calls specifically, when the tool result has `isError` set to true. The `tasks/get` response **SHOULD** include a `statusMessage` field with diagnostic information about the failure.
+When the underlying request does not complete successfully, the task moves to the `failed` status. This includes JSON-RPC protocol errors during request execution, or for tool calls specifically, when the tool result has `isError` set to true. The `tasks/get` response **SHOULD** include a `statusMessage` field with diagnostic information about the failure, and **MUST** include either the `result` field (for tool errors with `isError: true`) or the `error` field (for JSON-RPC errors).
 
-**Example: Task with execution error**
+**Example: Task with execution error (JSON-RPC error)**
 
 ```json
 {
@@ -850,17 +861,46 @@ When the underlying request does not complete successfully, the task moves to th
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
-    "statusMessage": "Tool execution failed: API rate limit exceeded"
+    "statusMessage": "Tool execution failed: API rate limit exceeded",
+    "error": {
+      "code": -32603,
+      "message": "API rate limit exceeded"
+    }
   }
 }
 ```
 
-For tasks that wrap tool call requests, when the tool result has `isError` set to `true`, the task should reach `failed` status.
+**Example: Task with tool error (isError: true)**
 
-The `tasks/result` endpoint returns exactly what the underlying request would have returned:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
+    "status": "failed",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 30000,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Failed to process request: invalid input"
+        }
+      ],
+      "isError": true
+    }
+  }
+}
+```
 
-- If the underlying request resulted in a JSON-RPC error, `tasks/result` **MUST** return that same JSON-RPC error.
-- If the request completed with a JSON-RPC response, `tasks/result` **MUST** return a successful JSON-RPC response containing that result.
+For tasks that wrap tool call requests, when the tool result has `isError` set to `true`, the task should reach `failed` status and include the tool result in the `result` field.
+
+The `tasks/get` endpoint returns exactly what the underlying request would have returned:
+
+- If the underlying request resulted in a JSON-RPC error, the `error` field **MUST** contain that JSON-RPC error.
+- If the request completed with a result, the `result` field **MUST** contain that result (even if `isError: true` for tool results).
 
 ## Security Considerations
 
@@ -868,33 +908,33 @@ The `tasks/result` endpoint returns exactly what the underlying request would ha
 
 Task IDs are the primary mechanism for accessing task state and results. Without proper access controls, any party that can guess or obtain a task ID could potentially access sensitive information or manipulate tasks they did not create.
 
-When an authorization context is provided, receivers **MUST** bind tasks to said context.
+When an authorization context is provided, servers **MUST** bind tasks to said context.
 
 Context-binding is not practical for all applications. Some MCP servers operate in environments without authorization, such as single-user tools, or use transports that don't support authorization.
-In these scenarios, receivers **SHOULD** document this limitation clearly, as task results may be accessible to any requestor that can guess the task ID.
-If context-binding is unavailable, receivers **MUST** generate cryptographically secure task IDs with enough entropy to prevent guessing and should consider using shorter TTL durations to reduce the exposure window.
-Furthermore, receivers that cannot identify requestors **SHOULD NOT** declare the `tasks.list` capability, as listing tasks would expose task metadata to any requestor regardless of task ID entropy.
+In these scenarios, servers **SHOULD** document this limitation clearly, as task results may be accessible to any client that can guess the task ID.
+If context-binding is unavailable, servers **MUST** generate cryptographically secure task IDs with enough entropy to prevent guessing and should consider using shorter TTL durations to reduce the exposure window.
+Furthermore, servers that cannot identify clients **SHOULD NOT** declare the `tasks.list` capability, as listing tasks would expose task metadata to any client regardless of task ID entropy.
 
-If context-binding is available, receivers **MUST** reject `tasks/get`, `tasks/result`, and `tasks/cancel` requests for tasks that do not belong to the same authorization context as the requestor. For `tasks/list` requests, receivers **MUST** ensure the returned task list includes only tasks associated with the requestor's authorization context.
+If context-binding is available, servers **MUST** reject `tasks/get` and `tasks/cancel` requests for tasks that do not belong to the same authorization context as the client. For `tasks/list` requests, servers **MUST** ensure the returned task list includes only tasks associated with the client's authorization context.
 
-Additionally, receivers **SHOULD** implement rate limiting on task operations to prevent denial-of-service and enumeration attacks.
+Additionally, servers **SHOULD** implement rate limiting on task operations to prevent denial-of-service and enumeration attacks.
 
 ### Resource Management
 
-1. Receivers **SHOULD**:
-   1. Enforce limits on concurrent tasks per requestor
+1. Servers **SHOULD**:
+   1. Enforce limits on concurrent tasks per client
    1. Enforce maximum `ttl` durations to prevent indefinite resource retention
    1. Clean up expired tasks promptly to free resources
    1. Document maximum supported `ttl` duration
-   1. Document maximum concurrent tasks per requestor
+   1. Document maximum concurrent tasks per client
    1. Implement monitoring and alerting for resource usage
 
 ### Audit and Logging
 
-1. Receivers **SHOULD**:
+1. Servers **SHOULD**:
    1. Log task creation, completion, and retrieval events for audit purposes
    1. Include auth context in logs when available
    1. Monitor for suspicious patterns (e.g., many failed task lookups, excessive polling)
-1. Requestors **SHOULD**:
+1. Clients **SHOULD**:
    1. Log task lifecycle events for debugging and audit purposes
    1. Track task IDs and their associated operations

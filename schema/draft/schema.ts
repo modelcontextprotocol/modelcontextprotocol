@@ -95,11 +95,13 @@ export type Cursor = string;
 export interface TaskAugmentedRequestParams extends RequestParams {
   /**
    * If specified, the caller is requesting task-augmented execution for this request.
-   * The request will return a {@link CreateTaskResult} immediately, and the actual result can be
-   * retrieved later via {@link GetTaskPayloadRequest | tasks/result}.
+   * However, receivers MAY return {@link CreateTaskResult} even when this field is absent,
+   * allowing unsolicited task creation. Similarly, receivers MAY return the immediate
+   * result even when this field is present.
    *
-   * Task augmentation is subject to capability negotiation - receivers MUST declare support
-   * for task augmentation of specific request types in their capabilities.
+   * When a {@link CreateTaskResult} is returned, the actual result can be retrieved later
+   * via {@link GetTaskRequest | tasks/get}, which will inline the final result once the
+   * task reaches "completed" status.
    */
   task?: TaskMetadata;
 }
@@ -547,6 +549,9 @@ export interface ClientCapabilities {
 
   /**
    * Present if the client supports task-augmented requests.
+   *
+   * @deprecated Receivers MAY return {@link CreateTaskResult} for any request
+   * without requiring prior capability negotiation.
    */
   tasks?: {
     /**
@@ -555,6 +560,9 @@ export interface ClientCapabilities {
     list?: JSONObject;
     /**
      * Whether this client supports {@link CancelTaskRequest | tasks/cancel}.
+     *
+     * @deprecated Clients MUST support {@link CancelTaskRequest | tasks/cancel}
+     * regardless of this capability declaration.
      */
     cancel?: JSONObject;
     /**
@@ -681,6 +689,10 @@ export interface ServerCapabilities {
     list?: JSONObject;
     /**
      * Whether this server supports {@link CancelTaskRequest | tasks/cancel}.
+     *
+     * @deprecated Servers MUST support {@link CancelTaskRequest | tasks/cancel}
+     * regardless of this capability declaration, though they MAY return an error
+     * if actual cancellation is not possible.
      */
     cancel?: JSONObject;
     /**
@@ -693,6 +705,9 @@ export interface ServerCapabilities {
       tools?: {
         /**
          * Whether the server supports task-augmented {@link CallToolRequest | tools/call} requests.
+         *
+         * @deprecated Servers MAY return {@link CreateTaskResult} for
+         * {@link CallToolRequest | tools/call} requests without declaring this capability.
          */
         call?: JSONObject;
       };
@@ -1706,6 +1721,10 @@ export interface ToolExecution {
    * - `"required"`: Tool requires task-augmented execution
    *
    * Default: `"forbidden"`
+   *
+   * @deprecated Servers MAY return {@link CreateTaskResult} for any tool call
+   * regardless of this field, and requestors MUST be prepared to handle tasks
+   * without checking it.
    */
   taskSupport?: "forbidden" | "optional" | "required";
 }
@@ -1859,10 +1878,30 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
+
+  /**
+   * The final result of the task. Present only when status is "completed".
+   * The structure matches the result type of the original request.
+   * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
+   */
+  result?: JSONObject;
+
+  /**
+   * The error that caused the task to fail. Present only when status is "failed".
+   */
+  error?: JSONObject;
 }
 
 /**
  * The result returned for a task-augmented request.
+ *
+ * Receivers MAY return this result even when the request does not include a `task` field,
+ * allowing unsolicited task creation. When this occurs, requestors MUST handle the task
+ * by polling tasks/get.
+ *
+ * Receivers MUST NOT return a CreateTaskResult unless and until a tasks/get request would
+ * return that task; that is, in eventually-consistent systems, receivers MUST wait for
+ * consistency before returning the CreateTaskResult.
  *
  * @category `tasks`
  */
@@ -1891,6 +1930,12 @@ export interface GetTaskRequest extends JSONRPCRequest {
      * The task identifier to query.
      */
     taskId: string;
+
+    /**
+     * Optional responses to server-to-client requests that were returned in a previous
+     * GetTaskResult's inputRequests field. Keys match the keys from inputRequests.
+     */
+    inputResponses?: { [key: string]: JSONObject };
   };
 }
 
@@ -1899,7 +1944,16 @@ export interface GetTaskRequest extends JSONRPCRequest {
  *
  * @category `tasks/get`
  */
-export type GetTaskResult = Result & Task;
+export type GetTaskResult = Result &
+  Task & {
+    /**
+     * Optional server-to-client requests that need to be fulfilled during task execution.
+     * When present with status "input_required", the client should respond to these
+     * requests by including inputResponses in the next tasks/get call.
+     * Keys are arbitrary identifiers for matching requests to responses.
+     */
+    inputRequests?: { [key: string]: JSONObject };
+  };
 
 /**
  * A successful response for a {@link GetTaskRequest | tasks/get} request.
@@ -1911,42 +1965,10 @@ export interface GetTaskResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * A request to retrieve the result of a completed task.
- *
- * @category `tasks/result`
- */
-export interface GetTaskPayloadRequest extends JSONRPCRequest {
-  method: "tasks/result";
-  params: {
-    /**
-     * The task identifier to retrieve results for.
-     */
-    taskId: string;
-  };
-}
-
-/**
- * The result returned for a {@link GetTaskPayloadRequest | tasks/result} request.
- * The structure matches the result type of the original request.
- * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
- *
- * @category `tasks/result`
- */
-export interface GetTaskPayloadResult extends Result {
-  [key: string]: unknown;
-}
-
-/**
- * A successful response for a {@link GetTaskPayloadRequest | tasks/result} request.
- *
- * @category `tasks/result`
- */
-export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
-  result: GetTaskPayloadResult;
-}
-
-/**
  * A request to cancel a task.
+ *
+ * Receivers MUST support this method even if they are incapable or unwilling to
+ * actually cancel tasks. In such cases, they SHOULD return an error.
  *
  * @category `tasks/cancel`
  */
@@ -3218,7 +3240,6 @@ export type ClientRequest =
   | CallToolRequest
   | ListToolsRequest
   | GetTaskRequest
-  | GetTaskPayloadRequest
   | ListTasksRequest
   | CancelTaskRequest;
 
@@ -3237,7 +3258,6 @@ export type ClientResult =
   | ListRootsResult
   | ElicitResult
   | GetTaskResult
-  | GetTaskPayloadResult
   | ListTasksResult
   | CancelTaskResult;
 
@@ -3249,7 +3269,6 @@ export type ServerRequest =
   | ListRootsRequest
   | ElicitRequest
   | GetTaskRequest
-  | GetTaskPayloadRequest
   | ListTasksRequest
   | CancelTaskRequest;
 
@@ -3279,6 +3298,5 @@ export type ServerResult =
   | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
-  | GetTaskPayloadResult
   | ListTasksResult
   | CancelTaskResult;
