@@ -4,7 +4,7 @@
 - **Type**: Standards Track
 - **Created**: 2026-04-12
 - **Author(s)**: Luca Chang (@LucaButBoring)
-- **Sponsor**: None
+- **Sponsor**: Caitie McCaffrey (@CaitieM20)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2557
 
 ## Abstract
