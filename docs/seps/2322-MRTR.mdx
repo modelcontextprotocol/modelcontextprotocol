@@ -80,7 +80,7 @@ progress, the workflow works like this:
 
 1. Client sends tool call request. For this example, let's assume that
    the load balancers happen to send this request to server instance A.
-2. Server A opens an SSE stream and sends the elicitation response on that
+2. Server A opens an SSE stream and sends the elicitation request on that
    stream.
 3. Client sends the elicitation response as a separate request, for which
    the load balancers will choose a server instance completely
@@ -400,8 +400,8 @@ Since this change creates a polymorphic response for method calls like 'tools/ca
  */
 export interface Result {
   _meta?: MetaObject;
-  // New field to indicate the type of the result, which allows the client to determine how to parse the result object. If no result_type is specified "complete" should be assumed.
-  result_type?: ResultType;
+  // New field to indicate the type of the result, which allows the client to determine how to parse the result object. If no resultType is specified "complete" should be assumed.
+  resultType?: ResultType;
   [key: string]: unknown;
 }
 
@@ -452,7 +452,7 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "result_type": "incomplete",
+    "resultType": "incomplete",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
@@ -509,7 +509,7 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
-    "result_type": "complete",
+    "resultType": "complete",
     "content": [
       {
         "type": "text",
@@ -570,7 +570,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "result_type": "incomplete",
+    "resultType": "incomplete",
     "inputRequests": {
       "resolution": {
         "method": "elicitation/create",
@@ -631,7 +631,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "result_type": "incomplete",
+    "resultType": "incomplete",
     "inputRequests": {
       "duplicate_of": {
         "method": "elicitation/create",
@@ -693,7 +693,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
-    "result_type": "complete",
+    "resultType": "complete",
     "content": [
       {
         "type": "text",
@@ -982,7 +982,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
   "id": 3,
   "jsonrpc": "2.0",
   "result": {
-    "result_type": "incomplete",
+    "resultType": "incomplete",
     "inputRequests": {
       "echo_input": {
         "method": "elicitation/create",
@@ -1056,7 +1056,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 ```
 
 9. <b>Client Request</b> continues to poll the input status using `tasks/get`
-   until server responds with Task Status of `Completed` Client Request
+   until server responds with Task Status of `Completed`
 
 ```json
 {
@@ -1088,7 +1088,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 ```
 
 11. <b>Client Request</b> calls `tasks/result` to get the final result of the
-    `Task` from the server. Client Message
+    `Task` from the server.
 
 ```json
 {
@@ -1108,7 +1108,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
   "id": 6,
   "jsonrpc": "2.0",
   "result": {
-    "result_type": "complete",
+    "resultType": "complete",
     "isError": false,
     "content": [
       {
@@ -1243,7 +1243,7 @@ In the ephemeral workflow, this would look like the following:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "result_type": "incomplete",
+    "resultType": "incomplete",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
