@@ -81,37 +81,70 @@ The following changes will be made to the tasks specification:
 ### Task Capabilities Changes Summary
 
 The below table summarizes the changes to the task-related capabiliteis:
-| Role | Capability | Status | Description |
-| --- | --- | --- | --- |
-|Server | Tasks.Reqeusts.Tools.Call | removed |
-|Server | Task.Cancel | removed | |
-|Server | Tasks.List | still supported | |
-|Client | Tasks.Requests.Sampling.CreateMessage | removed | no longer supported SEP-2260 |
-|Client | Tasks.Requests.Elicitation.Create | removed | no longer supported SEP-2260 |
-| Client| Tasks.Cancel | removed | no longer needed |
-| Client| Tasks.List | removed | no longer needed |
+
+| Role   | Capability                              | Status          | Description                  |
+| ------ | --------------------------------------- | --------------- | ---------------------------- |
+| Server | `tasks.requests.tools.call`             | removed         |
+| Server | `tasks.cancel`                          | removed         |                              |
+| Server | `tasks.list`                            | still supported |                              |
+| Client | `tasks.requests.sampling.createMessage` | removed         | no longer supported SEP-2260 |
+| Client | `tasks.requests.elicitation.create`     | removed         | no longer supported SEP-2260 |
+| Client | `tasks.cancel`                          | removed         | no longer needed             |
+| Client | `tasks.list`                            | removed         | no longer needed             |
 
 ### Task Methods Changes Summary
 
 The below table summarizes the changes to the task-related methods:
-| Method | Status | Description |
-| --- | --- | --- |
-| tasks/get | still supported | Consolidates the entire polling lifecycle into a single method. |
-| tasks/result | removed | No longer needed; results are inlined into `tasks/get`. |
-| tasks/input_resposne | removed | No longer needed; results are inlined into `tasks/get`. |
-| tasks/cancel | still supported | Required to be supported even if actual cancellation is not possible. |
-| tasks/list | still supported | Some open questions on how this should be implemented without sessions. |
+
+| Method                            | Status          | Description                                                             |
+| --------------------------------- | --------------- | ----------------------------------------------------------------------- |
+| `tasks/get`                       | still supported | Consolidates the entire polling lifecycle into a single method.         |
+| `tasks/result`                    | removed         | No longer needed; results are inlined into `tasks/get`.                 |
+| `tasks/input_response` (SEP-2322) | removed         | No longer needed; results are inlined into `tasks/get`.                 |
+| `tasks/cancel`                    | still supported | Required to be supported even if actual cancellation is not possible.   |
+| `tasks/list`                      | still supported | Some open questions on how this should be implemented without sessions. |
 
 ### Task Schema Changes
 
-The `Task` schema defining the task metadata remains unchanged.
+The `Task` schema defining the task metadata remains unchanged. However, we introduce new derived types that inline `result`/`error`/`inputRequests`, to be used by `tasks/get` and `notifications/tasks/status`. This allows us to avoid introducing redundant/bloated fields in `CreateTaskResult` and in `ListTasksResult`.
 
-### Client Reqeuests for `task/get`
+```typescript
+interface InputRequiredTask extends Task {
+  status: "input_required";
+  /**
+   * Field containing the InputRequests that specify the additional information needed from the client. Present
+   * only when task status is `input_required` (see SEP-2322).
+   */
+  inputRequests: InputRequests;
+}
+
+interface CompletedTask extends Task {
+  status: "completed";
+  /**
+   * The final result of the task. Present only when status is "completed".
+   * The structure matches the result type of the original request.
+   * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
+   */
+  result: JSONObject;
+}
+
+interface FailedTask extends Task {
+  status: "failed";
+  /**
+   * The error that caused the task to fail. Present only when status is "failed".
+   */
+  error: JSONObject;
+}
+
+type DetailedTask = Task | InputRequiredTask | CompletedTask | FailedTask;
+```
+
+### Client Requests for `task/get`
 
 ```typescript
 interface GetTaskRequest extends JSONRPCRequest {
-    method "tasks/get";
-    params: {
+  method "tasks/get";
+  params: {
     /**
      * The task identifier to query.
      */
@@ -128,36 +161,26 @@ interface GetTaskRequest extends JSONRPCRequest {
 ### Server Response for `task/get`
 
 ```typescript
-interface GetTaskResult extends Result {
-  /**
-   * Required field containing the Task Metadata Object.
-   */
-  task: Task;
-  /**
-   * Optional field containing the InputRequests that specify the additional information needed from the client. Present only when task status is `input_required`.
-   */
-  inputRequests?: InputRequests;
-  /**
-   * Optional field containing the Result of a Task. Present only when task status is `completed`.
-   */
-  result?: JSONObject;
+type GetTaskResult = Result &
+  DetailedTask & {
+    /**
+     * Optional field containing request state passed back from the server to the client (see SEP-2322).
+     */
+    requestState?: string;
+  };
 
-  /**
-   * Optional field containing the error that caused the task to fail. Present only when task status is `failed`.
-   */
-  error?: JSONObject;
-}
+type TaskStatusNotificationParams = NotificationParams & DetailedTask;
 ```
 
 ### `ResultType`
 
-The ResultType field was introduced in [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) to handle polymorphic results. `Tasks` has the same issue where a server may return a `ToolCallResult` or a `Task`. To address this, we propose the addition of the `task` ResultType to indicate that a Response contains a `Task` object.
+The ResultType field was introduced in [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) to handle polymorphic results. `Tasks` has the same issue where a server may return a `CallToolResult` or a `CreateTaskResult`. To address this, we propose the addition of the `task` ResultType to indicate that a Response contains a `Task` object.
 
 ```typescript
 type ResultType = "complete" | "incomplete" | "task";
 ```
 
-For backwards compatibility ResultType is inferred to be `complete`. Therefore all calls which return a `Task` (i.e.`task/get`, `task/cancel`) calls must set `task` as the ResultType moving forward.
+For backwards compatibility ResultType is inferred by default to be `complete`. Therefore all calls which return a `Task` (i.e.`task/get`, `task/cancel`) calls must set `task` as the ResultType moving forward.
 
 ### Example Task Flow
 
@@ -167,20 +190,18 @@ sequenceDiagram
   participant C as Client
   participant S as Server
   C->>S: tools/call (id: 1)
-  S-->>C: Result (id: 1, taskId: 123, status: working)
+  S-->>C: CreateTaskResult (id: 1, taskId: 123, status: working)
   C->>S: tasks/get (taskId: 123)
-  S-->>C: Result (taskId: 123, status: input_required, inputRequests: {...})
+  S-->>C: GetTaskResult (taskId: 123, status: input_required, inputRequests: {...})
   C->>U: Prompt User for Input
   U-->>C: Provided Input
   C->>S: tasks/get (taskId: 123, inputResponses: {...})
-  S-->>C: Result (taskId: 123, status: working)
+  S-->>C: GetTaskResult (taskId: 123, status: working)
   C-->>S: tasks/get (taskId: 123)
-  S-->>C: Result (taskId: 123, status: completed, result: {...})
-
-
+  S-->>C: GetTaskResult (taskId: 123, status: completed, result: {...})
 ```
 
-Below (collapsed) is the full json example of a tool call with an unsolicited task-augmentation that matches the diagram above:
+Below (collapsed) is the full JSON example of a tool call with an unsolicited task-augmentation that matches the diagram above:
 
 <details>
 
@@ -206,7 +227,7 @@ The server determines (via bespoke logic) that it wants to create a task to repr
 {
   "jsonrpc": "2.0",
   "id": 2,
-  "result_type": "task",
+  "resultType": "task",
   "result": {
     "task": {
       "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
@@ -239,7 +260,7 @@ On each request while the task is in a `"working"` status, the server returns a 
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "result_type": "task",
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "working",
@@ -251,7 +272,7 @@ On each request while the task is in a `"working"` status, the server returns a 
 }
 ```
 
-Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this. On the next `tasks/get` request from the client, the server sends the elicitation payload via the `inputRequests` field. Note that, unlike in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322), the standard task status result is still returned. The updated task polling flow should be thought of as distinct from the MRTR flow, despite sharing many characteristics.
+Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this, and may additionally provide a `requestState` if it so chooses. On the next `tasks/get` request from the client, the server sends the elicitation payload via the `inputRequests` field. Note that, unlike in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322), the standard task status result is still returned. The updated task polling flow should be thought of as distinct from the MRTR flow, despite sharing many characteristics.
 
 ```json
 {
@@ -268,7 +289,7 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
 {
   "id": 4,
   "jsonrpc": "2.0",
-  "result_type": "task",
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
@@ -291,7 +312,8 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
           }
         }
       }
-    }
+    },
+    "requestState": "foo"
   }
 }
 ```
@@ -304,7 +326,8 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
   "id": 5,
   "method": "tasks/get",
   "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "requestState": "foo"
   }
 }
 ```
@@ -313,7 +336,7 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
 {
   "id": 5,
   "jsonrpc": "2.0",
-  "result_type": "task",
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
@@ -336,7 +359,8 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
           }
         }
       }
-    }
+    },
+    "requestState": "foo"
   }
 }
 ```
@@ -357,7 +381,8 @@ The user enters their name, and the client makes a new `tasks/get` request with 
           "input": "Luca"
         }
       }
-    }
+    },
+    "requestState": "foo"
   }
 }
 ```
@@ -396,7 +421,7 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
 {
   "jsonrpc": "2.0",
   "id": 7,
-  "result_type": "task",
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
@@ -419,35 +444,33 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
 
 </details>
 
-### Tasks/Get Behavior by Task State
+### `tasks/get` Behavior by Task State
 
-A `Task` can be in one of the following states: `working`, `completed`, `failed`, `canceled`, or `input_required`. This section defines the expected behavior of a call to `tasks/get` when in each state.
-
-All responses to `task/get` MUST include the `task` object.
+A `Task` can be in one of the following states: `working`, `completed`, `failed`, `cancelled`, or `input_required`. This section defines the expected behavior of a call to `tasks/get` when in each state.
 
 #### Working
 
-The response MUST include the `task` object with `working` status.
+The response MUST include the `working` status.
 
 <details>
-``` json
+
+```json
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result_type": "task",
+  "resultType": "task",
   "result": {
-    "task": {
-      "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-      "status": "working",
-      "statusMessage": "The operation is in progress.",
-      "createdAt": "2025-11-25T10:30:00Z",
-      "lastUpdatedAt": "2025-11-25T10:40:00Z",
-      "ttl": 60000,
-      "pollInterval": 5000
-    }
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "statusMessage": "The operation is in progress.",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 60000,
+    "pollInterval": 5000
   }
 }
 ```
+
 </details>
 
 #### Completed
@@ -455,83 +478,122 @@ The response MUST include the `task` object with `working` status.
 When a task is in the `completed` state, a call to `tasks/get` MUST return the `Task` with status `completed` and include the final result of the task.
 
 <details>
+
 ```json
 {
-"jsonrpc": "2.0",
+  "jsonrpc": "2.0",
   "id": 1,
-  "result_type": "task",
+  "resultType": "task",
   "result": {
-    "task": {
-      "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-      "status": "completed",
-      "statusMessage": "The operation has completed successfully.",
-      "createdAt": "2025-11-25T10:30:00Z",
-      "lastUpdatedAt": "2025-11-25T10:40:00Z",
-      "ttl": 60000,
-      "pollInterval": 5000
-    },
-    "content": [
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "completed",
+    "statusMessage": "The operation has completed successfully.",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 60000,
+    "pollInterval": 5000,
+    "result": {
+      "content": [
         {
-            "type": "text",
-            "text": "Current weather in New York:\nTemperature: 72°F\nConditions: Partly cloudy"
+          "type": "text",
+          "text": "Current weather in New York:\nTemperature: 72°F\nConditions: Partly cloudy"
         }
-    ],
-    "isError": false
+      ],
+      "isError": false
+    }
   }
 }
 ```
+
 </details>
 
 #### Failed
 
 When a task is in the `failed` state, a call to `tasks/get` should return an error in the `result` field indicating the reason for the failure.
 
-TBD On what this looks like.
+To maintain a strong separation between the handling of protocol faults and application-level faults, we will revise prior language suggesting that the `failed` state may be used for tool call errors. Specifically, in error-handling paths for tasks, we will make the following change to the "Result Retrieval" section of the existing specification:
 
-#### Canceled
+```diff
+### Result Retrieval
 
-When a task is in the `canceled` state, a call to `tasks/get` MUST return the `Task` with status `canceled`.
+When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), servers **MUST** inline the final result or error into the `Task` object returned by `tasks/get`.
+
+For successful completion, the `result` field **MUST** contain what the underlying request would have returned (e.g., `CallToolResult` for `tools/call`).
+
+-For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution, or the task **MAY** use `status: "failed"` with a `statusMessage` for tool results with `isError: true`.
++For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution. The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with with `isError: true`.
+
+Servers **MUST** include the `result` or `error` field in `notifications/tasks/status` notifications when notifying about terminal status transitions.
+```
 
 <details>
+
 ```json
 {
-"jsonrpc": "2.0",
+  "jsonrpc": "2.0",
   "id": 1,
-  "result_type": "task",
-
-"result": {
-"task": {
-"taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-"status": "cancelled",
-"statusMessage": "The operation has been cancelled.",
-"createdAt": "2025-11-25T10:30:00Z",
-"lastUpdatedAt": "2025-11-25T10:40:00Z",
-"ttl": 60000,
-"pollInterval": 5000
-},
+  "resultType": "task",
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "failed",
+    "statusMessage": "Tool execution failed: API rate limit exceeded",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 30000,
+    "error": {
+      "code": -32603,
+      "message": "API rate limit exceeded"
+    }
+  }
 }
-}
+```
 
-````
+</details>
+
+#### Cancelled
+
+When a task is in the `cancelled` state, a call to `tasks/get` MUST return the `Task` with status `cancelled`.
+
+<details>
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "resultType": "task",
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "cancelled",
+    "statusMessage": "The task was cancelled by request.",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000
+  }
+}
+```
+
 </details>
 
 #### `input_required`
-If Server Task Status is `input_required` this indicates that the `Task` requires additional input from the client before it can proceed. The server MUST return the `Task` with status set to `input_required` and a `IncompleteResult` from [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
+
+If the task status is `input_required`, this indicates that the `Task` requires additional input from the client before it can proceed. The server MUST return the `Task` with status set to `input_required` and an `IncompleteResult` from [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
+
 <details>
+
 ```json
 {
-"jsonrpc": "2.0",
+  "jsonrpc": "2.0",
   "id": 1,
+  "resultType": "task",
   "result": {
-    "task": {
-      "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-      "status": "input_required",
-      "statusMessage": "The operation requires additional input.",
-      "createdAt": "2025-11-25T10:30:00Z",
-      "lastUpdatedAt": "2025-11-25T10:40:00Z",
-      "ttl": 60000,
-      "pollInterval": 5000
-    },
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "input_required",
+    "statusMessage": "The operation requires additional input.",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 60000,
+    "pollInterval": 5000,
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
@@ -552,18 +614,15 @@ If Server Task Status is `input_required` this indicates that the `Task` require
     }
   }
 }
-````
+```
 
 </details>
 
 ### HTTP Streamable Transport Headers
 
-[SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243) introduces standard headers in the Streamable HTTP Transport to facilitate more efficient routing. Routing on `TaskId`is also desirable since there is often state associated with a specific Task that needs to be consistently routed to the same server instance.
+[SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243) introduces standard headers in the Streamable HTTP Transport to facilitate more efficient routing. Routing on `TaskId` is also desirable since there is often state associated with a specific Task that needs to be consistently routed to the same server instance. SEP-2243 requires that all requests and notifications declare an `Mcp-Method` header.
 
-For Tasks the following Headers MUST be set by the client when making requests over the Streamable HTTP Transport:
-
-- `Mcp-Method`: `tasks/get`, `tasks/cancel`
-- `Mcp-Name`: should contain the `taskId` of the Task being requested or cancelled.
+We will extend this with semantics for the `tasks/get` and `tasks/cancel` requests, requiring that the `Mcp-Name` header MUST be set to the value of `params.taskId` by the client when making `tasks/get` and `tasks/cancel` requests over the Streamable HTTP Transport.
 
 ## Rationale
 
