@@ -1524,12 +1524,12 @@ mcp-use is an open source python library to very easily connect any LLM to any M
   supports="Resources, Prompts, Tools, Discovery, Instructions, Tasks, DCR"
 >
 
-`mcpc` is a universal CLI client for MCP — proof that CLI and MCP are complementary, not competing. Most agents misuse MCP by dumping all tool definitions and results into context, wasting tokens and causing context rot. `mcpc` solves this by giving agents full MCP protocol access through a single `Bash()` tool call, with self-documenting commands agents pick up via `--help` without external skills. MCP handles the remote concerns (server discovery, auth, payments, access control); the shell provides the local interface agents already know.
+`mcpc` maps MCP operations to intuitive CLI commands, giving AI coding agents full protocol access through a single `Bash()` tool call. It works with any MCP server over Streamable HTTP or stdio, with or without a config file. Agents discover commands through `--help` without needing external skills, while MCP handles remote concerns like server discovery, authentication, payments, and access control.
 
 **Key features:**
 
-- **Code mode in the shell:** `--json` output composes with `jq`, `xargs`, and shell pipelines, letting agents write MCP workflows as shell scripts — often more accurate and token-efficient than naive tool calling. `--schema` validates tool schemas against snapshots to catch breaking changes.
-- **Progressive tool discovery:** `grep` searches tools, resources, and prompts across all active sessions with regex, so agents load only what they need instead of injecting every tool definition into the prompt.
+- **Code mode in the shell:** `--json` output composes with `jq`, `xargs`, and shell pipelines for writing MCP workflows as shell scripts, which can be more accurate and token-efficient than tool calling. `--schema` validates tool schemas against snapshots to detect breaking changes.
+- **Progressive tool discovery:** `grep` searches tools, resources, and prompts across all active sessions with regex, so agents load only relevant tools into context.
 - **Full MCP coverage:** tools, resources (including subscriptions and templates), prompts, instructions, async tasks with progress tracking and cancellation, list-change notifications, pagination, and logging control.
 - **Persistent sessions:** maintain multiple simultaneous server connections via named `@sessions`, with automatic reconnection and health monitoring.
 - **Authentication:** OAuth 2.1 with PKCE and dynamic client registration, bearer tokens, multiple named profiles per server, and secure credential storage in the OS keychain.
