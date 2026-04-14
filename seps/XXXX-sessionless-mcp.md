@@ -47,6 +47,7 @@ The issues below apply whether sessions are mandatory (the current spec) or opt-
 The spec does not say when a session begins or ends, because it depends on the host application. In practice, deployed clients vary widely and few scope sessions to a conversation: ChatGPT creates a fresh session for every individual tool call, and Claude.ai did the same until recently;[^per-call] most desktop and IDE clients create one at application launch and keep it for the process lifetime; web clients typically create one per page load. Almost no clients resume a prior session after a disconnect or restart, and on the server side the reference TypeScript SDK provides no public API for reconstructing a session on a different node, so multi-node deployments cannot honor resumption even when a client attempts it.[^ts-sdk-resume] A subagent might share its parent's session or get its own — there is no convention.
 
 [^per-call]: [microsoft/playwright-mcp#1045](https://github.com/microsoft/playwright-mcp/issues/1045), Sep 2025 — server author reports both ChatGPT and Claude.ai closing the session after each tool call, dropping browser state; ["Connector tool calls generating fresh MCP session each invocation"](https://community.openai.com/t/connector-tool-calls-generating-fresh-mcp-session-each-invocation/1364975), OpenAI Developer Community, Nov 2025.
+
 [^ts-sdk-resume]: [modelcontextprotocol/typescript-sdk#1658](https://github.com/modelcontextprotocol/typescript-sdk/issues/1658), Mar 2026 — `StreamableHTTPServerTransport` stores session state in private instance fields with no API to rehydrate from external storage.
 
 This matters because server authors are the ones deciding what to scope to the session, and they need to know what a session corresponds to in order to do that correctly. A Playwright server that ties a browser instance to the session needs to know whether that means one user turn, one agent process, or one long-lived chat. The spec does not specify this and different hosts give different answers, so the server is designing against an abstraction whose semantics it does not control.
@@ -60,6 +61,7 @@ Because `tools/list` may be session-dependent, a client cannot assume a result f
 The Python SDK's own design issue for client-side list caching lists "what is the cache key — per-session or per-server-URL?" as an open question,[^py-sdk-cache] and gateway implementers have shipped per-session caching specifically because they could not assume cross-session validity from the spec.[^agentgateway-cache] Every list endpoint must be treated as potentially session-scoped, so each must be re-fetched per session to be safe.
 
 [^py-sdk-cache]: [modelcontextprotocol/python-sdk#2108](https://github.com/modelcontextprotocol/python-sdk/issues/2108), Feb 2026.
+
 [^agentgateway-cache]: [agentgateway/agentgateway#1510](https://github.com/agentgateway/agentgateway/issues/1510), Apr 2026.
 
 For hosts that regularly spawn subagents, this is a multiplier on the hot path. The possibility that a server is session-scoped forces `O(subagents × servers)` calls to `tools/list`: every subagent, for every server, every time, even if the underlying tool set has not changed since the orchestrator first connected. The client cannot skip the call because it cannot know in advance which servers are session-scoped. For an orchestrator spawning many short-lived subagents, this overhead can exceed the protocol traffic of the actual tool calls. Under this proposal the same workload is `O(servers)`: the orchestrator fetches each list once and every subagent reuses the cached result.
@@ -74,10 +76,10 @@ This is a problem when different pieces of state need different scopes. Consider
 
 No session boundary satisfies both:
 
-| Session model               | Cart (want: shared) | Browser (want: isolated) |
-|-----------------------------|:-------------------:|:------------------------:|
-| Subagents share parent's    | ✓ shared           | ✗ shared (clobbers)     |
-| Subagents get their own     | ✗ isolated         | ✓ isolated              |
+| Session model            | Cart (want: shared) | Browser (want: isolated) |
+| ------------------------ | :-----------------: | :----------------------: |
+| Subagents share parent's |      ✓ shared       |   ✗ shared (clobbers)    |
+| Subagents get their own  |     ✗ isolated      |        ✓ isolated        |
 
 With explicit IDs the orchestrator calls `create_basket()` once, passes the resulting `basket_id` to each subagent, and each subagent separately calls `create_browser()` for its own `browser_id`. The model decides what is shared and what is isolated per piece of state, rather than having one scope imposed on everything.
 
@@ -127,12 +129,12 @@ The model then threads that handle through subsequent calls as an ordinary argum
 
 Nothing here is a protocol extension: `basket_id` is an ordinary string field in `structuredContent` and an ordinary string argument to subsequent tools. This pattern is already the norm in widely-deployed remote MCP servers that manage durable resources:
 
-| Server (official, remote)                                       | Create tool → returned ID         | Operate tools taking that ID                            |
-|-----------------------------------------------------------------|-----------------------------------|---------------------------------------------------------|
-| [Linear](https://linear.app/docs/mcp)                           | `create_issue` → issue id         | `get_issue`, `update_issue`, `create_comment`           |
-| [Notion](https://developers.notion.com/docs/mcp)                | `notion-create-pages` → page id   | `notion-update-page`, `notion-move-pages`               |
-| [GitHub](https://github.com/github/github-mcp-server#tools)     | `create_pull_request` → PR number | `pull_request_read`, `update_pull_request`, `merge_pull_request` |
-| [Stripe](https://docs.stripe.com/mcp)                           | `create_customer` → customer id   | `create_invoice`, `list_subscriptions`                  |
+| Server (official, remote)                                   | Create tool → returned ID         | Operate tools taking that ID                                     |
+| ----------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| [Linear](https://linear.app/docs/mcp)                       | `create_issue` → issue id         | `get_issue`, `update_issue`, `create_comment`                    |
+| [Notion](https://developers.notion.com/docs/mcp)            | `notion-create-pages` → page id   | `notion-update-page`, `notion-move-pages`                        |
+| [GitHub](https://github.com/github/github-mcp-server#tools) | `create_pull_request` → PR number | `pull_request_read`, `update_pull_request`, `merge_pull_request` |
+| [Stripe](https://docs.stripe.com/mcp)                       | `create_customer` → customer id   | `create_invoice`, `list_subscriptions`                           |
 
 The approach can be adopted for less-persistent objects (a browser context, an in-progress cart) by giving the created object a limited lifetime, and/or limiting its discoverability to the principal that created it. The server owns the state, the client holds a name for it, and authorization is checked on every call.
 
@@ -143,7 +145,7 @@ None of the following is normative. Handles are a tool-design pattern, not a pro
 - **Handles are opaque.** A handle that encodes internal structure (`cart_user42_2026-03-11`) invites clients to parse it or models to guess it; an opaque handle such as `bsk_a1b2c3` does not.
 - **Possession is not authorization (where auth exists).** For authenticated servers, validate `(handle, auth_context)` on every call; handles will end up in chat logs, copy-paste buffers, and subagent prompts. For unauthenticated servers, where the handle is necessarily a bearer token, generate it with at least 128 bits of cryptographically secure entropy and bound its lifetime. See [Security Implications](#security-implications).
 - **Durability is documented in the tool description.** Handles outlive connections by design, so "the state lasts until the connection closes" is no longer applicable. Put the policy in the `create_*` tool's description — "returns a basket_id; baskets expire after 24h idle" — so it is visible to the model when it decides to create state. A policy only in server documentation is not visible to the model.
-- **Expired handles return useful errors.** When a tool receives a handle for state that has expired or been destroyed, the error should say so — "basket bsk_a1b2c3 has expired" rather than "invalid argument". A clear expiry error lets the model recover by calling `create_*` again; an opaque error typically leads to retries or failure.
+- **Expired handles return useful errors.** When a tool receives a handle for state that has expired or been destroyed, the error should say so — "basket `bsk_a1b2c3` has expired" rather than "invalid argument". A clear expiry error lets the model recover by calling `create_*` again; an opaque error typically leads to retries or failure.
 - **Creation takes parameters.** `create_context(cluster="staging")` is preferable to `create_context()` followed by `set_cluster(ctx, "staging")`: one round-trip instead of two, and the state cannot exist half-configured.
 - **Cleanup is available.** A `destroy_*(handle)` tool lets models release resources. A `list_*()` tool lets a model recover after losing track of what it created. Neither is required.
 
@@ -214,14 +216,14 @@ Sessions are in the spec today; removing them breaks anyone relying on them.
 
 An automated survey of a 1000-repo random sample of open source MCP servers (classified by per-repo LLM analysis) found:
 
-| Category                                                     | Share | Migration                                     |
-|--------------------------------------------------------------|------:|-----------------------------------------------|
-| No application-level reference to MCP session ID             | 90.0% | None                                          |
-| `Map<sessionId, Transport>` routing (TS SDK boilerplate)     |  3.5% | Removed by a sessionless SDK transport        |
-| Transport setup only (`sessionIdGenerator`, never read)      |  2.8% | Delete one constructor option                 |
-| **Session-keyed application state**                          |  2.5% | Migrate to explicit handles or auth principal |
-| **Proxy / gateway sticky routing**                           |  0.7% | Needs designed replacement                    |
-| **Auth binding** (JWT claims, PKCE verifier keyed on session)|  0.5% | Replace with server-generated nonce or token subject |
+| Category                                                      | Share | Migration                                            |
+| ------------------------------------------------------------- | ----: | ---------------------------------------------------- |
+| No application-level reference to MCP session ID              | 90.0% | None                                                 |
+| `Map<sessionId, Transport>` routing (TS SDK boilerplate)      |  3.5% | Removed by a sessionless SDK transport               |
+| Transport setup only (`sessionIdGenerator`, never read)       |  2.8% | Delete one constructor option                        |
+| **Session-keyed application state**                           |  2.5% | Migrate to explicit handles or auth principal        |
+| **Proxy / gateway sticky routing**                            |  0.7% | Needs designed replacement                           |
+| **Auth binding** (JWT claims, PKCE verifier keyed on session) |  0.5% | Replace with server-generated nonce or token subject |
 
 The bolded rows are the repos that use the session ID for application semantics. The hardest-hit category — gateways that spawn one upstream per session — needs a designed replacement rather than a mechanical edit; see [Backward Compatibility](#backward-compatibility).
 
@@ -262,4 +264,3 @@ This is guidance, not a protocol requirement, since the protocol has no handle c
 ## Reference Implementation
 
 All official SDKs except PHP already provide a stateless mode, implemented as not generating a session ID (e.g. `sessionIdGenerator: undefined` in the TypeScript SDK, `stateless_http=True` in the Python SDK). This SEP makes that mode the only option for servers speaking the new protocol version. SDKs that support multiple protocol versions retain the session-ID-generating code path for older versions; the change is that it is no longer reachable when the negotiated protocol version is the one this SEP introduces.
-
