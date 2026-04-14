@@ -74,28 +74,28 @@ To both improve the adoption of tasks and to reduce their upfront messaging over
 ## Specification
 
 The following changes will be made to the tasks specification:
-<1. With respect to task creation:>
 
-1.  We will deprecate the following capability declarations:
-    1. Client capabilities:
-       1. `tasks` (the entire capability, and all sub-capabilities, given that all supported client methods are now invalid, per [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md))
-          . Server capabilities:
-       1. `tasks.cancel` (only the capability declaration is deprecated; _not_ the `tasks/cancel` method itself)
-       1. `tasks.requests.tools.call`
-1.  We will deprecate the `execution.taskSupport` field from the `Tool` shape.
-1.  We will allow `CreateTaskResult` to be returned in response to `CallToolRequest` when no `task` field is present in the request.
-1.  We will allow `CallToolResult` to be returned in response to `CallToolRequest` even when the `task` field is present in the request.
-1.  With respect to the task polling lifecycle:
-    1.  We will consolidate the entire polling lifecycle into the `tasks/get` method. This single method will handle retrieving task statuses and results simultaneously, and will additionally act as the carrier for receiver-to-requestor requests for the purposes of [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
-    1.  We will remove the requirement that requestors react to the `input_required` status by prematurely invoking `tasks/result` to side-channel requests on an SSE stream in the Streamable HTTP transport.
-    1.  We will inline the final task result or error into the `Task` shape, bringing that into `tasks/get` and all notifications by extension.
-    1.  We will inline outstanding server-to-client requests into a new `inputRequests` field on `GetTaskResult`, akin to the field of the same name used in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
-    1.  We will inline mid-task client-to-server results into a new `inputResponses` field on `GetTaskRequest`, akin to the field of the same name used in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
-    1.  We will remove the `tasks/result` method.
-1.  With respect to tasks in general:
-    1.  We will remove the concept of client-hosted tasks, as [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md) renders them conceptually invalid.
-    1.  We may expand task support to additional client-to-server request types in the future, and implementors are still advised against implementing tasks as a tool-specific protocol operation.
-    1.  We will require `tasks/cancel` to be supported even if a server is incapabable or unwillling of offering actual task cancellation, similar to `notifications/cancelled` (it should instead return an error).
+1. With respect to task creation
+   1. We will deprecate the following capability declarations:
+      1. Client capabilities:
+         1. `tasks` (the entire capability, and all sub-capabilities, given that all supported client methods are now invalid, per [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md))
+      1. Server capabilities:
+         1. `tasks.cancel` (only the capability declaration is deprecated; _not_ the `tasks/cancel` method itself)
+         1. `tasks.requests.tools.call`
+   1. We will deprecate the `execution.taskSupport` field from the `Tool` shape.
+   1. We will allow `CreateTaskResult` to be returned in response to `CallToolRequest` when no `task` field is present in the request.
+   1. We will allow `CallToolResult` to be returned in response to `CallToolRequest` even when the `task` field is present in the request.
+1. With respect to the task polling lifecycle:
+   1. We will consolidate the entire polling lifecycle into the `tasks/get` method. This single method will handle retrieving task statuses and results simultaneously, and will additionally act as the carrier for receiver-to-requestor requests for the purposes of [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
+   1. We will remove the requirement that requestors react to the `input_required` status by prematurely invoking `tasks/result` to side-channel requests on an SSE stream in the Streamable HTTP transport.
+   1. We will inline the final task result or error into the `Task` shape, bringing that into `tasks/get` and all notifications by extension.
+   1. We will inline outstanding server-to-client requests into a new `inputRequests` field on `GetTaskResult`, akin to the field of the same name used in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
+   1. We will inline mid-task client-to-server results into a new `inputResponses` field on `GetTaskRequest`, akin to the field of the same name used in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322).
+   1. We will remove the `tasks/result` method.
+1. With respect to tasks in general:
+   1. We will remove the concept of client-hosted tasks, as [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md) renders them conceptually invalid.
+   1. We may expand task support to additional client-to-server request types in the future, and implementors are still advised against implementing tasks as a tool-specific protocol operation.
+   1. We will require `tasks/cancel` to be supported even if a server is incapabable or unwillling of offering actual task cancellation, similar to `notifications/cancelled` (it should instead return an error).
 
 ### Task Capabilities Changes Summary
 
