@@ -157,7 +157,7 @@ This proposal adds new methods; it does not modify existing ones. Clients that d
 
 **Access control.** Resources created by one client should not be readable by arbitrary other clients unless the server explicitly allows it. The spec does not prescribe the access model but SHOULD require that the URI returned is not trivially guessable (e.g. no sequential IDs).
 
-**Content injection.** Servers that later serve submitted content to other agents should treat it as untrusted input.
+**Content injection.** Servers that later serve submitted content to other agents should treat it as untrusted input. This is particularly relevant in agentic pipelines where a submitted resource may be read directly into an LLM context — a malicious submission could attempt prompt injection against a downstream agent. Servers SHOULD surface the submitting client's identity alongside the resource when serving it, so consumers can apply appropriate trust levels.
 
 **Deletion scope.** `resources/delete` MUST be scoped so a client can only delete resources it created, unless the server explicitly grants broader permissions.
 
