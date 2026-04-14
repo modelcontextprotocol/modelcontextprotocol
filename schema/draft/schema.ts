@@ -662,7 +662,7 @@ export interface ClientCapabilities {
        */
       sampling?: {
         /**
-         * Whether the client supports task-augmented {@link CreateMessageRequest | sampling/createMessage} requests.
+         * Whether the client supports task-augmented `sampling/createMessage` requests.
          */
         createMessage?: JSONObject;
       };
@@ -3269,7 +3269,7 @@ export type EnumSchema =
   | LegacyTitledEnumSchema;
 
 /**
- * The result returned by the client for an {@link ElicitationCreateRequest | elicitation/create} request.
+ * The result returned by the client for an {@link ElicitRequest| elicitation/create} request.
  *
  * @example Input single field
  * {@includeCode ./examples/ElicitResult/input-single-field.json}
