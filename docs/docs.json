@@ -461,6 +461,12 @@
             ]
           },
           {
+            "group": "Interest Group Charters",
+            "pages": [
+              "community/skills-over-mcp/charter"
+            ]
+          },
+          {
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
