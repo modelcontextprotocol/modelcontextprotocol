@@ -47,8 +47,6 @@ to understand subsequent ones. This is in direct opposition to the design of
 modern, cloud-native systems which favor stateless services for their resilience
 and scalability.
 
-
-
 1. **Impediment to Scalability:** The most critical issue is the difficulty of
    load balancing stateful MCP. A simple stateless load balancer (e.g., L4/L7
    round-robin) cannot be used, as it would route a client's requests to
@@ -74,25 +72,21 @@ and scalability.
         disconnect.
 
 
-### Guiding Principles
+## Design Principles
 
-This proposal is the first step toward establishing a "pay as you go" model for
-protocol complexity. We will be guided by the following principles, in order of
-preference:
-
-
+This proposal establishes a "pay as you go" model for protocol complexity,
+guided by the following principles in order of preference:
 
 1. **Prioritize Stateless-ness:** Whenever possible, a request must be
    self-contained, providing all information the server needs to process it
-   without relying on session state from previous requests.
+   without relying on state from previous requests.
 2. **Prefer State References:** If a fully stateless exchange is not practical,
-   references to state should be passed in every request. 
+   references to state should be passed in every request.
 3. **Treat Statefulness as a Last Resort:** The complexity of stateful logic and
    long-lived streaming connections should only be accepted when no simpler
    alternative exists to solve a critical use case.
 
-
-### The Impact on Key Transports
+### Transport Consistency
 
 It is critical that these stateless principles are applied consistently across
 all transports. Keeping the `stdio` and `http` implementations in sync ensures a
@@ -105,7 +99,6 @@ coherent protocol model is essential for a healthy ecosystem.
 
 ## Specification
 
-
 ### Overview
 
 This specification fundamentally refactors the MCP interaction model to be
@@ -113,43 +106,43 @@ This specification fundamentally refactors the MCP interaction model to be
 handshake before any resources can be exchanged. This handshake negotiates and
 establishes several key pieces of information:
 
-
-
 1. MCP Protocol Version
-2. Session ID (if the server supports sessions)
-3. Server Capabilities (and
-   [serverInfo](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/69a292b16a64e086add82fd76fc6aaed68e47de0/schema/draft/schema.ts#L196))
-4. Client Capabilities (and
-   [clientInfo](?tab=t.xcggn0fi5c29#:~:text=also%20includes%20%60clientInfo%60%20(-,https%3A//github.com/modelcontextprotocol/modelcontextprotocol/blob/69a292b16a64e086add82fd76fc6aaed68e47de0/schema/draft/schema.ts%23L181,-)%20and%20%60serverInfo%60%20())
+2. Server Capabilities and `serverInfo`
+3. Client Capabilities and `clientInfo`
 
 The requirement of this initialization handshake **enforces the establishment of
 a state** that is expected to persist for subsequent communication between
 client and server. Furthermore, by bundling these negotiations into a single
 initialization phase, the specification creates an implied link between them,
-particularly between stateful sessions and the exchange of capabilities.
+particularly between the exchange of capabilities and a mandatory connection
+lifecycle.
 
-This proposal is to **deprecate the initialization handshake** and "unbundle"
+This proposal is to **remove the initialization handshake** and "unbundle"
 its functions into discrete, stateless components. We will provide new, more
 clearly defined mechanisms for clients and servers to exchange this information
 without a mandatory state-creating cycle.
+
+> **Note:** Session management (both transport-level and application-level) is
+> addressed separately by
+> [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
+> and
+> [SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567).
+> This SEP focuses exclusively on removing the initialization handshake and
+> providing stateless alternatives for version negotiation, discovery, and
+> capabilities.
 
 
 ### Protocol Version
 
 To make requests self-contained, metadata previously negotiated during the
-handshake must now be included with **every request**. 
-
----
+handshake must now be included with **every request**.
 
 
-
-#### HTTP 
+#### HTTP
 
 For the HTTP transport, protocol version MUST be passed as **HTTP header**. For
 the HTTP transport, the headers MUST be treated as the source of truth over the
-request payload. 
-
-
+request payload.
 
 *   `MCP-Protocol-Version: 2025-06-18`
     *   **Purpose**: To inform the server which version of the MCP specification
@@ -157,12 +150,7 @@ request payload.
     *   **Requirement**: This header is **MANDATORY**. Servers should reject
         requests with a missing or unsupported version.
     *   This header MUST match the value provided in the Request as specified
-        below. 
-
-
-
----
-
+        below.
 
 
 #### Per-request Version
@@ -204,37 +192,52 @@ export interface Request {
 
 If a server receives a request with an unsupported protocol version, it MUST
 return a JSON-RPC error response (400 Bad Request for HTTP).  This response MUST
-conform to the following interface: \
-
-
+conform to the following structure:
 
 ```ts
 /**
- * Defines the JSON-RPC error object returned for an
- * unsupported protocol version.
+ * JSON-RPC error response returned when the client requests
+ * an unsupported protocol version.
  */
-export interface UnsupportedVersionError extends Result {
-  error: {
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
     /**
      * MUST be -32000.
      */
-    code: -32000;
+    "code": -32000,
     /**
      * MUST be "Unsupported protocol version".
      */
-    message: "Unsupported protocol version";
+    "message": "Unsupported protocol version",
     /**
      * MUST contain an array of strings listing the
      * protocol versions supported by the server.
-     * Example: ["2025-06-18", "2025-03-26"]
      */
-    data: {
-        supportedVersions: ["2025-06-18", "2025-03-26"]
-    };
-  };
+    "data": {
+      "supportedVersions": ["2025-06-18", "2025-03-26"]
+    }
+  }
 }
 ```
 
+
+
+#### Version Negotiation Flow
+
+Without an initialization handshake, version negotiation happens inline:
+
+1. The client sends a request with its preferred protocol version in the
+   `MCP-Protocol-Version` header and
+   `modelcontextprotocol.io/mcpProtocolVersion` `_meta` field.
+2. If the server supports that version, it processes the request normally.
+3. If the server does not support the requested version, it returns an
+   `UnsupportedVersionError` containing its list of `supportedVersions`.
+4. The client selects a mutually supported version from the list and retries.
+
+Alternatively, a client **MAY** call `server/discover` first to learn the
+server's supported versions before sending any other requests.
 
 
 ### Optional Discovery for Server Capabilities 
@@ -249,14 +252,7 @@ server **MUST** reject the request with a `404 Not Found` error (for HTTP) or a
 `Method not found` JSON-RPC error (`-32601`).
 
 
-
----
-
-
-
 #### `server/discover` RPC
-
-
 
 *   **Purpose**: To allow a client to query the server for its supported
     protocol versions, capabilities, and other metadata.
@@ -304,16 +300,10 @@ export interface DiscoveryResult extends Result {
 ```
 
 
-
-
----
-
-
-
-### Specify Client Capabilities Per-Request
+### Per-Request Client Capabilities
 
 To complete the decoupling from the initial handshake, client capabilities are
-no longer negotiated once per session. Instead, a client **MAY** specify its
+no longer negotiated once at initialization. Instead, a client **MAY** specify its
 capabilities on a per-request basis. This allows the server to know what
 optional features the client can handle for a specific transaction, such as
 streaming responses. 
@@ -323,22 +313,26 @@ capabilities. If a client's capabilities change and it wishes to update the
 server, a client **SHOULD** send a new RPC. 
 
 If a server sends a request that erroneously calls a client capability it
-doesn't support, a client MUST return a Method not found JSON-RPC error
-(-32601).
+doesn't support, a client MUST return a `Method not found` JSON-RPC error
+(`-32601`).
+
+Client identity information (`clientInfo`) **MAY** also be included in the
+per-request `_meta` field, allowing servers to identify the client without
+requiring an initialization handshake.
 
 The primary capability defined in this proposal is the ability to handle
 streaming responses, which is supported through two distinct models:
 server-initiated and client-initiated.
 
 
-#### Schema Changes
+#### Streaming Models
 
 
 ##### Server-Initiated Streaming (Response Stream)
 
 This model applies when a client makes a standard RPC call and the server
-responds back with an SSE stream. Rather than associate the client capabilities
-with a session, the client may specify supported capabilities in the request. 
+responds back with an SSE stream. The client specifies supported capabilities
+directly in the request. 
 
 The client adds an optional `clientCapabilities` field to the `_meta` object of
 its request. For the HTTP transport, a server that supports this **MAY** then
@@ -346,22 +340,18 @@ respond with an SSE stream for that transaction.
 
 
 ```ts
- export interface Request {
-   // ...
-     _meta?: {
-       // ... other meta fields
-+      /**
-+       * Optional capabilities of the client for this specific request.
-+       */
-+      modelcontextprotocol.io/clientCapabilities?: ClientCapabilities;
-	 roots: [
-		// ... list of roots 
-         ],
-"logLevel": "info"
-       // ... other meta fields
-     };
-   // ...
- }
+export interface Request {
+  // ...
+  _meta?: {
+    // ... other meta fields
++   /**
++    * Optional capabilities of the client for this specific request.
++    */
++   "modelcontextprotocol.io/clientCapabilities"?: ClientCapabilities;
+    // ... other meta fields
+  };
+  // ...
+}
 ```
 
 
@@ -371,17 +361,12 @@ respond with an SSE stream for that transaction.
 This model applies when a client wants to proactively open a persistent SSE
 stream to receive multiple or unsolicited events.
 
-This is achieved using a **dedicated <code>messages/listen</code> RPC</strong>.
-For the HTTP transport, the client sends this request via <code>POST</code>, and
-the server's response is an open SSE stream, with a
-<code>MessagesListenNotification</code> sent as the first event. For the STDIO
-transport, this RPC is used for a simple request/response capabilities check.
-This RPC replaces the existing /GET endpoint behavior for Streamable HTTP today.
-\
- \
-Client-initiated streaming <strong>MAY</strong> be associated with a session. If
-no session is provided, it's assumed the server is using them for unassociated
-or unsolicited requests. 
+This is achieved using a dedicated `messages/listen` RPC. For the HTTP
+transport, the client sends this request via `POST`, and the server's response
+is an open SSE stream, with a `MessagesListenNotification` sent as the first
+event. For the STDIO transport, this RPC is used for a simple request/response
+capabilities check. This RPC replaces the existing GET endpoint behavior for
+Streamable HTTP today.
 
 **Request Schema:**
 
@@ -391,13 +376,9 @@ export interface MessagesListenRequest extends Request {
   method: "messages/listen";
   params: {
     _meta?: {
-      modelcontextprotocol.io/mcpProtocolVersion: string;
-      modelcontextprotocol.io/sessionId?: string;
-      modelcontextprotocol.io/clientCapabilities?: ClientCapabilities;
-      modelcontextprotocol.io/roots: [
-		// ... list of roots 
-      ],
-"logLevel": "info"
+      "modelcontextprotocol.io/mcpProtocolVersion": string;
+      "modelcontextprotocol.io/clientCapabilities"?: ClientCapabilities;
+      "modelcontextprotocol.io/roots"?: Root[];
       // ... other meta fields
     };
   };
@@ -414,12 +395,6 @@ export interface MessagesListenNotification extends Notification {
 ```
 
 
-
-
----
-
-
-
 #### STDIO Transport Behavior
 
 For STDIO's simple request/response model, a client **MAY** send a
@@ -428,12 +403,7 @@ with a `MessagesListenNotification`. The interaction is complete after the
 response is sent. 
 
 The server **MAY** send any server to client messages or notifications for the
-duration of the connection. 
-
-
-
----
-
+duration of the connection.
 
 
 #### Streamable HTTP Transport Behavior
@@ -454,203 +424,33 @@ stream** (`Content-Type: text/event-stream`), and the **first request** on this
 stream **MUST** be an event containing the `MessagesListenNotification`.
 
 
-### Changes to Initialization 
-
-Initialization is no longer required to be the first interaction between client
-and server. 
-
-A server **MAY** use a stateful session associated with a client, to associate
-arbitrary state across multiple interactions. A session does not provide any
-specific guarantees on the state (e.g. protocol version and capabilities may
-change at any time during the session)  unless the server opts to do so. The
-server **SHOULD** document or otherwise communicate to clients when they should
-use sessions, and which state (if any) can be relied on by client behavior for
-the duration of that session.
-
-
-#### Initizalization
-
-A client MAY decide to perform the initialization phase to start a session. If a
-server supports sessions, it MUST respond back with a `sessionId`. 
-
-
-```
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-+   "sessionId": "$SESSION_ID"
-    "protocolVersion": "2025-03-26",
-    "capabilities": {
-      "logging": {},
-      "prompts": {
-        "listChanged": true
-      },
-      "resources": {
-        "subscribe": true,
-        "listChanged": true
-      },
-      "tools": {
-        "listChanged": true
-      }
-    },
-    "serverInfo": {
-      "name": "ExampleServer",
-      "version": "1.0.0"
-    },
-    "instructions": "Optional instructions for the client"
-  }
-}
-```
-
-
-
-#### Per-request session
-
-A client **MUST** attach this to future requests associated with that session.
-Sessions do not need to be associated with any particular connection. 
-
-
-
-##### HTTP 
-
-For the HTTP transport, session-id MUST be passed as **HTTP headers**. For the
-HTTP transport, the headers MUST be treated as the source of truth over the
-request payload. 
-
-
-
-*   `MCP-Session-Id: <opaque-session-string>`
-    *   **Purpose**: To associate a request with an optional, logical session
-        that has been explicitly created on the server.
-    *   **Requirement**: This header is **OPTIONAL**. Servers **MAY** reject
-        requests without this header if they require a session for a particular
-        request. 
-
-
-##### STDIO
-
-For the STDIO transport, where headers are not available, this metadata MUST be
-embedded directly within the `_meta` field of the request payload.
-
-The following diff illustrates the required changes to the `Request` interface:
-
-
-```
-export interface Request {
-   method: string;
-   params?: {
-     /**
-      * See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.
-      */
-     _meta?: {
-+        * The optional ID for a logical session. 
-+        */
-+       modelcontextprotocol.io/sessionId?: string;
-       /**
-        * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
-        */
-       progressToken?: ProgressToken;
-       [key: string]: unknown;
-     };
-     [key: string]: unknown;
-   };
- }
-```
-
-
-
-#### Errors
-
-There are two new errors introduced by this SEP.
-
-
-##### Invalid Sessions
-
-If a server receives a request with an invalid session id, it MUST return a
-JSON-RPC error response (400 Bad Request for HTTP).  This response MUST conform
-to the following interface: \
-
-
-
-```
-/**
- * Defines the JSON-RPC error object returned for an
- * invalid session ID. 
- */
-export interface UnsupportedVersionError extends Result {
-  error: {
-    /**
-     * MUST be -32001.
-     */
-    code: -32001;
-    /**
-     * MUST be "Invalid Session ID".
-     */
-    message: "Invalid Session ID";
-  };
-}
-```
-
-
-
-##### Session Required
-
-If a server requires a valid session to respond to a specific request, it MUST
-return a JSON-RPC error response (400 bad request). This response MUST conform
-to the following interface: \
-
-
-
-```
-/**
- * Defines the JSON-RPC error object returned for an
- * invalid session ID. 
- */
-export interface UnsupportedVersionError extends Result {
-  error: {
-    /**
-     * MUST be -32001.
-     */
-    code: -32001;
-    /**
-     * MUST be "Invalid Session ID".
-     */
-    message: "Invalid Session ID";
-  };
-}
-```
-
-
-
 ### Deprecated and Removed RPCs
 
 To simplify the protocol and align with the move to per-request capabilities,
-the following RPC methods and notifications are deprecated and will be removed:
+the following RPC methods and notifications are removed:
 
-
-
+*   `initialize` / `notifications/initialized`: The initialization handshake is
+    removed. Version negotiation is handled per-request via
+    `MCP-Protocol-Version` headers and `_meta` fields. Capability discovery is
+    handled by `server/discover`. Servers compliant with this SEP **SHOULD**
+    accept and ignore `notifications/initialized` without error to maintain
+    backward compatibility with clients that may send it.
 *   `logging/setLevel`: This method is removed. Log levels should now be
     specified on a per-request basis using the
     `'modelcontextprotocol.io/logLevel'` field in the `_meta` object.
-*   `notifications/roots/list_changed`: This notification is removed.
-    Functionality requiring proactive updates from the server (like root list
-    changes) will be handled by server-initiated streaming.
-*   `notifications/initialized`: This notification is defined as a "no-op" (no
-    operation). Servers compliant with this SEP should accept and ignore this
-    notification without error to maintain backward compatibility with clients
-    that may send it.
+*   `notifications/roots/list_changed`: This notification is removed. Clients
+    now provide their current roots directly in per-request `_meta` fields,
+    making server-side tracking of root changes unnecessary.
 
 
 ## Rationale
 
-
 ### Stateless-First by Default
 
-The primary design decision of this SEP is to make the mandatory initialization
-handshake optional, making stateless interaction the default model for the
-protocol. This choice is rooted in the "pay as you go" principle and the desire
-to align MCP with modern, cloud-native architecture. By making the simplest
+The primary design decision of this SEP is to remove the mandatory initialization
+handshake, making stateless interaction the default model for the protocol. This
+choice is rooted in the "pay as you go" principle and the desire to align MCP
+with modern, cloud-native architecture. By making the simplest
 interaction model the default, we lower the barrier to entry and reduce
 implementation complexity for the most common use cases. This immediately
 enables straightforward horizontal scaling and improves resilience, as any
@@ -681,20 +481,21 @@ scalable, and more robust foundation.
 This proposal originally included dedicated `sessions/create` and
 `sessions/delete` RPCs to manage the lifecycle of a logical session.
 
-Due to a lack of consensus on this specific approach, these changes have been
-removed from this SEP to allow the other core stateless-first changes to
-proceed. Explicit session management will be revisited in a future SEP.
+Session management is now addressed separately by
+[SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567),
+which proposes removing sessions entirely and replacing them with explicit
+state handles. This aligns with the
+[sessions-vs-sessionless decision](https://github.com/modelcontextprotocol/transports-wg/blob/main/docs/sessions-vs-sessionless-decision.md)
+made by the Transports Working Group.
 
 
 ### Separation of Concerns
 
 A core principle of this proposal is the "unbundling" of the monolithic
 initialization handshake into a suite of discrete, single-purpose RPCs. The
-original handshake mixed the concerns of protocol negotiation, capability
-discovery, and session management into a single, complex interaction. The new
-design explicitly separates these:
-
-
+original handshake mixed the concerns of protocol negotiation and capability
+discovery into a single, complex interaction. The new design explicitly
+separates these:
 
 *   **Discovery**: Handled exclusively by `server/discover`.
 *   **Capabilities**: Handled on a per-request basis via the `_meta` field or
@@ -725,16 +526,15 @@ the future.
 
 While this proposal attempts to preserve existing functionality and use-cases,
 this proposal introduces a **fundamental, backward-incompatible change**. Thus,
-it will require a new version of the protocol.. 
+it will require a new version of the protocol.
 
 
 ### Supporting Multiple Versions
 
-While this SEP deprecates the `initialize` handshake, a server that wishes to
+While this SEP removes the `initialize` handshake, a server that wishes to
 support both old and new clients **MAY** do so. Such a server can continue to
 implement the old `initialize` RPC to handle legacy clients, while also exposing
-the new stateless RPCs (`server/discover`, `sessions/create`, etc.) for updated
-clients. 
+the new stateless RPCs (`server/discover`, etc.) for updated clients. 
 
 Both servers and clients should be able to handle changes in the versions
 appropriately. Two example scenarios are outlined below, where vPrev indicates
@@ -743,26 +543,17 @@ the version prior to the SEP, and vAfter indicates a version after it.
 
 #### Client (supporting vPrev) → Server (vPrev, vPost)
 
-
-
-1. Client sends initialization 
+1. Client sends initialization
 2. Server supports vPrev, so initialization is returned per spec
-3. Client and server communicate per`vPrev`.
+3. Client and server communicate per `vPrev`.
 
 
-#### Client (supporting vPrev. vPost) → Server (vPrev)
+#### Client (supporting vPrev, vPost) → Server (vPrev)
 
-
-
-4. Client sends a request (e.g. list/tools) with MCP Protocol Version header
+1. Client sends a request (e.g. tools/list) with MCP Protocol Version header
     1. HTTP: Server says "400 bad request"
-    2. STDIO: returns error indicate initialization was required
-5. Client falls back to vPrev (and makes initialization) for future requests 
-
-
-## Reference Implementation
-
-// TODO
+    2. STDIO: returns error indicating initialization was required
+2. Client falls back to vPrev (and makes initialization) for future requests
 
 
 ## Security Implications
@@ -771,14 +562,22 @@ While this proposal improves the protocol's clarity, implementations **may still
 be vulnerable** to common exploits if not secured correctly. The following
 points should be considered:
 
+*   **Per-request Authentication**: Without a session handshake, every request
+    must be independently authenticated and authorized. Implementations
+    **MUST** ensure that authentication is not bypassed by the removal of the
+    initialization phase.
+*   **Discovery Endpoint Abuse**: The `server/discover` endpoint could be used
+    for reconnaissance. Servers **SHOULD** protect this endpoint with
+    **rate-limiting**.
+*   **Protocol Version Downgrade**: An attacker could forge
+    `UnsupportedVersionError` responses to force a client to use an older,
+    potentially less secure protocol version. All communication **MUST** occur
+    over an encrypted transport like **TLS** to prevent this.
 
 
-*   **Session Hijacking**: The `sessionId` acts as a bearer token. To prevent
-    interception and session hijacking, all communication **MUST** occur over an
-    encrypted transport like **TLS**.
-*   **Resource Exhaustion**: The `sessions/create` RPC is a potential vector for
-    Denial-of-Service attacks. Servers **SHOULD** protect this endpoint with
-    **rate-limiting and resource quotas**.
+## Reference Implementation
+
+// TODO
 
 
 ## FAQ
@@ -797,8 +596,8 @@ stateless protocol as:
 
 This does NOT mean that you can't build stateful applications on top of a
 stateless protocol. HTTP is an example of a stateless protocol, which most of
-the web is built on today. However it does mean that the state cannot exist_ in
-the protocol itself_, and should instead specify the state in the request (or
+the web is built on today. However it does mean that the state cannot exist *in
+the protocol itself*, and should instead specify the state in the request (or
 failing that, a reference to the state for the server or client to track). 
 
 
@@ -812,7 +611,7 @@ use, meaning that the complexity is both constrained and optional to use when
 the situation requires it. 
 
 
-### What is it important for STDIO to be stateless as well? 
+### Why is it important for STDIO to be stateless as well?
 
 The transport MCP is using should be an implementation detail only. If one
 version of a protocol supports functionality that doesn't cleanly map over to
