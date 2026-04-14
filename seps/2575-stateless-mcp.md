@@ -18,7 +18,7 @@ for the duration of the connection.
 
 This inherent statefulness makes it difficult to run MCP at scale. Placing an
 MCP server behind a standard load balancer, for example, is challenging because
-a client's session is coupled to the specific server instance holding its state. 
+a client's session is coupled to the specific server instance holding its state.
 
 This proposal outlines a series of changes to **enable stateless MCP as the
 default**, embracing a "pay as you go" model for protocol complexity and state.
@@ -31,14 +31,12 @@ handshake and replacing it with discrete, stateless alternatives. This initial
 step allows each request to be processed independently, simplifying server-side
 logic and paving the way for robust, scalable deployments.
 
-
 ## Motivation
 
 The Model Context Protocol (MCP) specification currently mandates a stateful
 initialization handshake. This design choice creates significant challenges for
 scalability, reliability, and implementation simplicity. This SEP is motivated
 by the need to address these shortcomings.
-
 
 ### The Problem with Statefulness
 
@@ -63,14 +61,13 @@ and scalability.
    inefficient, adding complexity around "resumability".
 3. **Increased Implementation Complexity:** The current model imposes a
    significant burden on developers.
-    *   **Server-side:** Developers must implement logic to create, manage, and
-        eventually garbage-collect per-client session state. This is a common
-        source of bugs and memory leaks.
-    *   **Client-side:** Developers must write complex code to manage a
-        persistent connection and handle the inevitable network failures and
-        reconnections, including the logic to resynchronize state after a
-        disconnect.
-
+   - **Server-side:** Developers must implement logic to create, manage, and
+     eventually garbage-collect per-client session state. This is a common
+     source of bugs and memory leaks.
+   - **Client-side:** Developers must write complex code to manage a
+     persistent connection and handle the inevitable network failures and
+     reconnections, including the logic to resynchronize state after a
+     disconnect.
 
 ## Design Principles
 
@@ -95,7 +92,6 @@ learned once and applied everywhere. This consistency simplifies the creation of
 transport-agnostic libraries and tooling, and prevents protocol fragmentation
 where different transports behave in fundamentally different ways. A single,
 coherent protocol model is essential for a healthy ecosystem.
-
 
 ## Specification
 
@@ -131,12 +127,10 @@ without a mandatory state-creating cycle.
 > providing stateless alternatives for version negotiation, discovery, and
 > capabilities.
 
-
 ### Protocol Version
 
 To make requests self-contained, metadata previously negotiated during the
 handshake must now be included with **every request**.
-
 
 #### HTTP
 
@@ -144,23 +138,21 @@ For the HTTP transport, protocol version MUST be passed as **HTTP header**. For
 the HTTP transport, the headers MUST be treated as the source of truth over the
 request payload.
 
-*   `MCP-Protocol-Version: 2025-06-18`
-    *   **Purpose**: To inform the server which version of the MCP specification
-        the client is using for this specific request.
-    *   **Requirement**: This header is **MANDATORY**. Servers should reject
-        requests with a missing or unsupported version.
-    *   This header MUST match the value provided in the Request as specified
-        below.
-
+- `MCP-Protocol-Version: 2025-06-18`
+  - **Purpose**: To inform the server which version of the MCP specification
+    the client is using for this specific request.
+  - **Requirement**: This header is **MANDATORY**. Servers should reject
+    requests with a missing or unsupported version.
+  - This header MUST match the value provided in the Request as specified
+    below.
 
 #### Per-request Version
 
 The `protocol-version` MUST be embedded directly within the `_meta` field of the
-request payload. For HTTP, this _meta MUST match the associated HTTP header, or
-else the server should return a 400 Bad Request. 
+request payload. For HTTP, this \_meta MUST match the associated HTTP header, or
+else the server should return a 400 Bad Request.
 
 The following diff illustrates the required changes to the `Request` interface:
-
 
 ```ts
 export interface Request {
@@ -185,8 +177,6 @@ export interface Request {
    };
  }
 ```
-
-
 
 #### Unsupported Protocol Versions
 
@@ -222,8 +212,6 @@ return a JSON-RPC error response. For HTTP, the response status code MUST be
 }
 ```
 
-
-
 #### Version Negotiation Flow
 
 Without an initialization handshake, version negotiation happens inline:
@@ -239,8 +227,7 @@ Without an initialization handshake, version negotiation happens inline:
 Alternatively, a client **MAY** call `server/discover` first to learn the
 server's supported versions before sending any other requests.
 
-
-### Optional Discovery for Server Capabilities 
+### Optional Discovery for Server Capabilities
 
 To allow clients to adapt to different server implementations, this
 specification introduces a **discovery RPC**. This provides a standard mechanism
@@ -251,14 +238,12 @@ first calling the discovery endpoint. If a client calls an unsupported RPC, the
 server **MUST** return a `Method not found` JSON-RPC error (`-32601`). For HTTP,
 the response status code MUST be `404 Not Found`.
 
-
 #### `server/discover` RPC
 
-*   **Purpose**: To allow a client to query the server for its supported
-    protocol versions, capabilities, and other metadata.
+- **Purpose**: To allow a client to query the server for its supported
+  protocol versions, capabilities, and other metadata.
 
 **Request Schema:**
-
 
 ```ts
 export interface DiscoveryRequest extends Request {
@@ -267,9 +252,7 @@ export interface DiscoveryRequest extends Request {
 }
 ```
 
-
 **Response Schema:**
-
 
 ```ts
 export interface DiscoveryResult extends Result {
@@ -299,14 +282,13 @@ export interface DiscoveryResult extends Result {
 }
 ```
 
-
 ### Per-Request Client Capabilities
 
 To complete the decoupling from the initial handshake, client capabilities are
 no longer negotiated once at initialization. Instead, a client **MAY** specify its
 capabilities on a per-request basis. This allows the server to know what
 optional features the client can handle for a specific transaction, such as
-streaming responses. 
+streaming responses.
 
 A server **SHOULD** only send requests that match a client's provided
 capabilities. The server may send these requests in two ways:
@@ -325,31 +307,28 @@ doesn't support, a client MUST return a `Method not found` JSON-RPC error
 In addition to `clientCapabilities`, the following fields previously exchanged
 during initialization **MAY** be included in per-request `_meta` fields:
 
-*   `"modelcontextprotocol.io/clientInfo"`: `Implementation` — identifies the
-    client software without requiring an initialization handshake.
-*   `"modelcontextprotocol.io/roots"`: `Root[]` — the client's current root
-    URIs, replacing the need for `notifications/roots/list_changed`.
-*   `"modelcontextprotocol.io/logLevel"`: `LoggingLevel` — the desired log
-    level for this request, replacing the `logging/setLevel` RPC.
+- `"modelcontextprotocol.io/clientInfo"`: `Implementation` — identifies the
+  client software without requiring an initialization handshake.
+- `"modelcontextprotocol.io/roots"`: `Root[]` — the client's current root
+  URIs, replacing the need for `notifications/roots/list_changed`.
+- `"modelcontextprotocol.io/logLevel"`: `LoggingLevel` — the desired log
+  level for this request, replacing the `logging/setLevel` RPC.
 
 The primary capability defined in this proposal is the ability to handle
 streaming responses, which is supported through two distinct models:
 server-initiated and client-initiated.
 
-
 #### Streaming Models
-
 
 ##### Server-Initiated Streaming (Response Stream)
 
 This model applies when a client makes a standard RPC call and the server
 responds back with an SSE stream. The client specifies supported capabilities
-directly in the request. 
+directly in the request.
 
 The client adds an optional `clientCapabilities` field to the `_meta` object of
 its request. For the HTTP transport, a server that supports this **MAY** then
 respond with an SSE stream for that transaction.
-
 
 ```ts
 export interface Request {
@@ -366,8 +345,6 @@ export interface Request {
 }
 ```
 
-
-
 ##### Client-Initiated Streaming (Background Streaming)
 
 This model applies when a client wants to proactively open a persistent SSE
@@ -381,7 +358,6 @@ capabilities check. This RPC replaces the existing GET endpoint behavior for
 Streamable HTTP today.
 
 **Request Schema:**
-
 
 ```ts
 export interface MessagesListenRequest extends Request {
@@ -397,7 +373,6 @@ export interface MessagesListenRequest extends Request {
 }
 ```
 
-
 **Acknowledgment Notification:**
 
 The server sends this notification as the first event on the stream to
@@ -411,7 +386,6 @@ export interface MessagesListenNotification extends Notification {
 }
 ```
 
-
 #### STDIO Transport Behavior
 
 For STDIO, a client **MAY** send a `MessagesListenRequest` at any time to
@@ -422,7 +396,6 @@ The server **MAY** then send server-to-client messages and notifications for
 the duration of the connection. If the connection is terminated (e.g., the
 server crashes and restarts), the client **MUST** re-send `MessagesListenRequest`
 to re-establish its declared capabilities.
-
 
 #### Streamable HTTP Transport Behavior
 
@@ -441,26 +414,24 @@ To proactively open a persistent SSE stream, the client sends the dedicated
 stream** (`Content-Type: text/event-stream`), and the **first request** on this
 stream **MUST** be an event containing the `MessagesListenNotification`.
 
-
 ### Deprecated and Removed RPCs
 
 To simplify the protocol and align with the move to per-request capabilities,
 the following RPC methods and notifications are removed:
 
-*   `initialize` / `notifications/initialized`: The initialization handshake is
-    removed. Version negotiation is handled per-request via
-    `MCP-Protocol-Version` headers and `_meta` fields. Capability discovery is
-    handled by `server/discover`. Servers compliant with this SEP **SHOULD**
-    accept and ignore `notifications/initialized` without error to maintain
-    backward compatibility with clients that may send it.
-*   `logging/setLevel`: This method is removed. Log levels should now be
-    specified on a per-request basis using the
-    `'modelcontextprotocol.io/logLevel'` field in the `_meta` object.
-*   `notifications/roots/list_changed`: This notification is removed. Clients
-    now provide their current roots directly in per-request `_meta` fields.
-    Since the server receives the current roots with each request, there is no
-    need for a separate change notification.
-
+- `initialize` / `notifications/initialized`: The initialization handshake is
+  removed. Version negotiation is handled per-request via
+  `MCP-Protocol-Version` headers and `_meta` fields. Capability discovery is
+  handled by `server/discover`. Servers compliant with this SEP **SHOULD**
+  accept and ignore `notifications/initialized` without error to maintain
+  backward compatibility with clients that may send it.
+- `logging/setLevel`: This method is removed. Log levels should now be
+  specified on a per-request basis using the
+  `'modelcontextprotocol.io/logLevel'` field in the `_meta` object.
+- `notifications/roots/list_changed`: This notification is removed. Clients
+  now provide their current roots directly in per-request `_meta` fields.
+  Since the server receives the current roots with each request, there is no
+  need for a separate change notification.
 
 ## Rationale
 
@@ -475,14 +446,12 @@ implementation complexity for the most common use cases. This immediately
 enables straightforward horizontal scaling and improves resilience, as any
 request can be handled by any server instance.
 
-
 #### Alternative Considered: Optional Handshake
 
 An alternative we considered was to keep the existing stateful handshake but
 make it optional. In this model, a client could choose to either perform the
 handshake to establish a persistent session or skip it and send self-contained
 requests.
-
 
 #### Why it was rejected:
 
@@ -493,7 +462,6 @@ surface area for bugs. It also violates the design principle of having one
 clear, obvious way to perform a core function. By making a clean break, we
 ensure the entire ecosystem can move forward and benefit from a simpler, more
 scalable, and more robust foundation.
-
 
 ### Explicit Session Management
 
@@ -507,7 +475,6 @@ state handles. This aligns with the
 [sessions-vs-sessionless decision](https://github.com/modelcontextprotocol/transports-wg/blob/main/docs/sessions-vs-sessionless-decision.md)
 made by the Core Maintainers.
 
-
 ### Separation of Concerns
 
 A core principle of this proposal is the "unbundling" of the monolithic
@@ -516,21 +483,19 @@ original handshake mixed the concerns of protocol negotiation and capability
 discovery into a single, complex interaction. The new design explicitly
 separates these:
 
-*   **Discovery**: Handled exclusively by `server/discover`.
-*   **Capabilities**: Handled on a per-request basis via the `_meta` field or
-    the `messages/listen` RPC.
+- **Discovery**: Handled exclusively by `server/discover`.
+- **Capabilities**: Handled on a per-request basis via the `_meta` field or
+  the `messages/listen` RPC.
 
 The rationale for this is to create a more modular, flexible, and understandable
 protocol. Each component now has a single, well-defined responsibility. This
 allows clients to use only the parts of the protocol they need, adhering to our
 "pay as you go" principle.
 
-
 #### Alternative Considered: A Monolithic Handshake
 
 We could have kept a single, monolithic handshake RPC and simply added more
 parameters and complex logic to it to support the stateless-first model.
-
 
 #### Why it was rejected:
 
@@ -540,25 +505,22 @@ features. By separating these concerns, we've made the protocol easier to learn
 and implement correctly, while also making it more flexible and extensible for
 the future.
 
-
 ## Backward Compatibility
 
 While this proposal attempts to preserve existing functionality and use-cases,
 this proposal introduces a **fundamental, backward-incompatible change**. Thus,
 it will require a new version of the protocol.
 
-
 ### Supporting Multiple Versions
 
 While this SEP removes the `initialize` handshake, a server that wishes to
 support both old and new clients **MAY** do so. Such a server can continue to
 implement the old `initialize` RPC to handle legacy clients, while also exposing
-the new stateless RPCs (`server/discover`, etc.) for updated clients. 
+the new stateless RPCs (`server/discover`, etc.) for updated clients.
 
 Both servers and clients should be able to handle changes in the versions
 appropriately. Two example scenarios are outlined below, where vPrev indicates
 the version prior to the SEP, and vAfter indicates a version after it.
-
 
 #### Client (supporting vPrev) → Server (vPrev, vPost)
 
@@ -566,14 +528,12 @@ the version prior to the SEP, and vAfter indicates a version after it.
 2. Server supports vPrev, so initialization is returned per spec
 3. Client and server communicate per `vPrev`.
 
-
 #### Client (supporting vPrev, vPost) → Server (vPrev)
 
 1. Client sends a request (e.g. tools/list) with MCP Protocol Version header
-    1. HTTP: Server says "400 bad request"
-    2. STDIO: returns error indicating initialization was required
+   1. HTTP: Server says "400 bad request"
+   2. STDIO: returns error indicating initialization was required
 2. Client falls back to vPrev (and makes initialization) for future requests
-
 
 ## Security Implications
 
@@ -581,31 +541,28 @@ While this proposal improves the protocol's clarity, implementations **may still
 be vulnerable** to common exploits if not secured correctly. The following
 points should be considered:
 
-*   **Per-request Authentication**: Without a session handshake, every request
-    must be independently authenticated and authorized. Implementations
-    **MUST** ensure that authentication is not bypassed by the removal of the
-    initialization phase.
-*   **Discovery Endpoint Abuse**: The `server/discover` endpoint could be used
-    for reconnaissance. Servers **SHOULD** protect this endpoint with
-    **rate-limiting**.
-*   **Protocol Version Downgrade**: An attacker could forge
-    `UnsupportedVersionError` responses to force a client to use an older,
-    potentially less secure protocol version. All communication **MUST** occur
-    over an encrypted transport like **TLS** to prevent this.
-
+- **Per-request Authentication**: Without a session handshake, every request
+  must be independently authenticated and authorized. Implementations
+  **MUST** ensure that authentication is not bypassed by the removal of the
+  initialization phase.
+- **Discovery Endpoint Abuse**: The `server/discover` endpoint could be used
+  for reconnaissance. Servers **SHOULD** protect this endpoint with
+  **rate-limiting**.
+- **Protocol Version Downgrade**: An attacker could forge
+  `UnsupportedVersionError` responses to force a client to use an older,
+  potentially less secure protocol version. All communication **MUST** occur
+  over an encrypted transport like **TLS** to prevent this.
 
 ## Reference Implementation
 
 // TODO
 
-
 ## FAQ
 
-
-### What is protocol level statelessness? 
+### What is protocol level statelessness?
 
 [Wikipedia](https://en.wikipedia.org/wiki/Stateless_protocol) defines a
-stateless protocol as: 
+stateless protocol as:
 
 > A stateless protocol is a communication protocol in which the receiver must
 > not retain session state from previous requests. The sender transfers relevant
@@ -615,10 +572,9 @@ stateless protocol as:
 
 This does NOT mean that you can't build stateful applications on top of a
 stateless protocol. HTTP is an example of a stateless protocol, which most of
-the web is built on today. However it does mean that the state cannot exist *in
-the protocol itself*, and should instead specify the state in the request (or
-failing that, a reference to the state for the server or client to track). 
-
+the web is built on today. However it does mean that the state cannot exist _in
+the protocol itself_, and should instead specify the state in the request (or
+failing that, a reference to the state for the server or client to track).
 
 ### Does this make MCP a fully stateless protocol?
 
@@ -627,8 +583,7 @@ Not entirely (hence 'by default'). Depending on your interpretation of
 server-initiated) tend to have multiple requests within a context of a stream.
 However, these streams are constrained to a single HTTP request and optional to
 use, meaning that the complexity is both constrained and optional to use when
-the situation requires it. 
-
+the situation requires it.
 
 ### Why is it important for STDIO to be stateless as well?
 
@@ -641,7 +596,6 @@ another without needing to make significant changes to the behavior of their
 applications, and easier to proxy between different transports correctly.
 Otherwise, there will continue to be feature gaps and division between these
 different implementations, leading to both confusion and incompatibility.
-
 
 ## Open Questions
 
