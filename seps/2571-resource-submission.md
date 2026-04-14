@@ -19,16 +19,21 @@ The current MCP resources spec is read-only from the client's perspective. Serve
 
 Consider an orchestrator MCP server that accepts job definitions — configs, prompt templates, data payloads — from clients. When a job is registered, its associated resources must be stored server-side so the job can execute later, independently of the submitting client. Today this requires a custom tool (e.g. `upload_prompt`, `store_config`). This works but forces every orchestration system to reinvent the same pattern with a different interface.
 
-### The broader pattern: agent-to-agent coordination
+### Concrete use case: agent handoff
 
-Multi-agent systems frequently need to pass content between agents via a shared server:
+A research agent completes a web scraping run and needs to pass a large document corpus to a synthesis agent. Today it must either keep running (holding the connection open) or serialize the data through a custom tool. With `resources/create`, the research agent deposits its output and returns a set of URIs. The synthesis agent reads those URIs independently, on its own schedule, with no coupling to the producer's lifecycle.
 
-- Agent A submits a document for Agent B to process
-- An orchestrator stores prompt templates that worker agents will use at runtime
-- A client pre-loads context that a long-running job will need after the client disconnects
-- A pipeline stage deposits output for the next stage to consume
+### Concrete use case: async pipeline stages
 
-In all these cases, the client is the *source* of a resource, not just a consumer. The current spec has no standard way to express this.
+A multi-step data pipeline runs each stage as a separate agent invocation: extract → transform → load. Each stage needs to deposit its output for the next stage to consume. Without `resources/create`, every pipeline operator builds a custom handoff mechanism — a tool, a file path, a database row. With `resources/create`, stage output is a URI. The next stage reads it with `resources/read`. The pipeline becomes composable across different server implementations.
+
+### Concrete use case: pre-loaded context for long-running jobs
+
+A client registers a background job that will run hours later. The job needs a large prompt template and a dataset that exist only on the client at registration time. With `resources/create`, the client submits both at registration and hands the server stable URIs. When the job executes — long after the client has disconnected — it retrieves its inputs via `resources/read` with no dependency on the original client.
+
+### Why a standard primitive matters
+
+Custom tools work. But they push a general coordination primitive into application-specific territory. Every orchestrator, every async job runner, every agent handoff system ends up building the same thing with slightly different interfaces, none of which compose. `resources/create` is the natural complement to `resources/read`. The concept of a URI-addressable resource already exists in the spec — this proposal makes it writable.
 
 ### Why a standard primitive matters
 
@@ -138,6 +143,20 @@ Custom tools work for single implementations but do not compose. If resource sub
 ### Why allow `metadata`?
 
 Servers have legitimate reasons to accept hints — TTL, tags, access scope — without the spec needing to enumerate them. Making `metadata` an open object with defined ignore-unknown semantics follows the same pattern as `_meta` elsewhere in the spec.
+
+### Prior art: the industry already agrees on this pattern
+
+Every major storage and content API converges on the same shape: submit content, receive a stable reference back.
+
+| System | Submit | Reference returned |
+|---|---|---|
+| HTTP | `POST /resources` | `Location:` header URI |
+| AWS S3 | `PutObject` | S3 URI / presigned URL |
+| Google Cloud Storage | `insert` (resumable upload) | Object URI |
+| Cloudflare R2 | `PutObject` | R2 URI |
+| GitHub Gists / Pastebin | `POST` | Stable URL |
+
+MCP already has `resources/read`. The absence of `resources/create` is the anomaly. This proposal brings MCP into alignment with a pattern the industry has considered settled for decades.
 
 ### Alternatives considered
 
