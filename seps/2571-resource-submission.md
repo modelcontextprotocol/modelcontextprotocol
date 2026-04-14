@@ -165,7 +165,7 @@ This proposal adds new methods; it does not modify existing ones. Clients that d
 
 The `resources/create` pattern is already implemented in practice by job orchestration systems that require prompt and config payloads to be stored server-side before a job executes. The interface proposed here generalizes what those systems do with custom tools today.
 
-A reference implementation will be built on [ZeroMCP](https://github.com/probeo-io/antidrift/tree/main/zeromcp) (`@antidrift/zeromcp`, npm), a zero-config MCP runtime that already supports HTTP transport and pluggable tool handlers. ZeroMCP is MIT-licensed and in active use. The implementation will be linked here once published.
+A reference implementation is being built into [ZeroMCP](https://github.com/probeo-io/antidrift/tree/main/zeromcp) (`@antidrift/zeromcp`, npm) by the author of this SEP. ZeroMCP is a zero-config MCP runtime supporting HTTP transport across 10 languages, MIT-licensed and in active use. The implementation link will be added here once the feature is published.
 
 ## Open Questions
 
