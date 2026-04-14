@@ -336,6 +336,31 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
+// Implementation-specific JSON-RPC error codes [-32000, -32099]
+/** @internal */
+export const URL_ELICITATION_REQUIRED = -32042;
+
+/**
+ * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
+ *
+ * @example Authorization required
+ * {@includeCode ./examples/URLElicitationRequiredError/authorization-required.json}
+ *
+ * @internal
+ */
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof URL_ELICITATION_REQUIRED;
+    data: {
+      elicitations: ElicitRequestURLParams[];
+      [key: string]: unknown;
+    };
+  };
+}
+
 /* Empty result */
 /**
  * A result that indicates success but carries no data.
@@ -388,12 +413,8 @@ export interface InputResponses {
  * before the request can be completed.
  *
  * At least one of `inputRequests` or `requestState` MUST be present.
- *
- * @example Incomplete result with input requests
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-input-requests.json}
- *
- * @example Incomplete result with elicitation and sampling input requests
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-elicitation-and-sampling.json}
+ * @example Incomplete result with elicitation and sampling input requests and request state
+ * {@includeCode ./examples/IncompleteResult/incomplete-result-with-elicitation-and-sampling-and-request-state.json}
  *
  * @example Incomplete result with request state only (load shedding)
  * {@includeCode ./examples/IncompleteResult/incomplete-result-with-request-state-only.json}
@@ -413,10 +434,10 @@ export interface IncompleteResult extends Result {
   requestState?: string;
 }
 
-/* New request parameter type that includes fields in a retried request.
+/* Request parameter type that includes input responses and request state.
  * These parameters may be included in any client-initiated request.
  */
-export interface RetryAugmentedRequestParams extends RequestParams {
+export interface InputResponseRequestParams extends RequestParams {
   /* New field to carry the responses for the server's requests from the
    * IncompleteResult message.  For each key in the response's inputRequests
    * field, the same key must appear here with the associated response.
@@ -1094,7 +1115,7 @@ export interface ResourceRequestParams extends RequestParams {
  * @category `resources/read`
  */
 export interface ReadResourceRequestParams
-  extends ResourceRequestParams, RetryAugmentedRequestParams {}
+  extends ResourceRequestParams, InputResponseRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -1414,7 +1435,7 @@ export interface ListPromptsResultResponse extends JSONRPCResultResponse {
  *
  * @category `prompts/get`
  */
-export interface GetPromptRequestParams extends RetryAugmentedRequestParams {
+export interface GetPromptRequestParams extends InputResponseRequestParams {
   /**
    * The name of the prompt or prompt template.
    */
@@ -1673,7 +1694,7 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
  * @category `tools/call`
  */
 export interface CallToolRequestParams
-  extends RetryAugmentedRequestParams, TaskAugmentedRequestParams {
+  extends InputResponseRequestParams, TaskAugmentedRequestParams {
   /**
    * The name of the tool.
    */
