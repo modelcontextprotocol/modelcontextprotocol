@@ -184,7 +184,7 @@ export interface Request {
 +       /**
 +        * The MCP Protocol Version being used for this request.
 +        */
-+       modelcontextprotocol.io/mcpProtocolVersion: string;
++       "modelcontextprotocol.io/mcpProtocolVersion": string;
 
        /**
         * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
@@ -200,8 +200,8 @@ export interface Request {
 #### Unsupported Protocol Versions
 
 If a server receives a request with an unsupported protocol version, it MUST
-return a JSON-RPC error response (400 Bad Request for HTTP). This response MUST
-conform to the following structure:
+return a JSON-RPC error response. For HTTP, the response status code MUST be
+`400 Bad Request`. The error MUST conform to the following structure:
 
 ```ts
 /**
@@ -213,9 +213,9 @@ conform to the following structure:
   "id": 1,
   "error": {
     /**
-     * MUST be -32000.
+     * MUST be -32001.
      */
-    "code": -32000,
+    "code": -32001,
     /**
      * MUST be "Unsupported protocol version".
      */
@@ -254,8 +254,8 @@ for a server to advertise its supported protocol versions and capabilities.
 
 This discovery step is **OPTIONAL**. A client is free to invoke any RPC without
 first calling the discovery endpoint. If a client calls an unsupported RPC, the
-server **MUST** reject the request with a `404 Not Found` error (for HTTP) or a
-`Method not found` JSON-RPC error (`-32601`).
+server **MUST** return a `Method not found` JSON-RPC error (`-32601`). For HTTP,
+the response status code MUST be `404 Not Found`.
 
 #### `server/discover` RPC
 
@@ -267,7 +267,7 @@ server **MUST** reject the request with a `404 Not Found` error (for HTTP) or a
 ```ts
 export interface DiscoveryRequest extends Request {
   method: "server/discover";
-  params?: {}; // No parameters are needed for a discovery request.
+  params?: {};
 }
 ```
 
@@ -310,16 +310,28 @@ optional features the client can handle for a specific transaction, such as
 streaming responses.
 
 A server **SHOULD** only send requests that match a client's provided
-capabilities. If a client's capabilities change and it wishes to update the
-server, a client **SHOULD** send a new RPC.
+capabilities. The server may send these requests in two ways:
+
+1. **Inline**: As notifications within an SSE stream response to a triggering
+   RPC (e.g., `notifications/progress` within a `tools/call` response stream).
+2. **On the listen stream**: As events on an open `messages/listen` SSE stream.
+
+In both cases, the server uses the `clientCapabilities` from the request's
+`_meta` to determine what it is allowed to send.
 
 If a server sends a request that erroneously calls a client capability it
 doesn't support, a client MUST return a `Method not found` JSON-RPC error
 (`-32601`).
 
-Client identity information (`clientInfo`) **MAY** also be included in the
-per-request `_meta` field, allowing servers to identify the client without
-requiring an initialization handshake.
+In addition to `clientCapabilities`, the following fields previously exchanged
+during initialization **MAY** be included in per-request `_meta` fields:
+
+- `"modelcontextprotocol.io/clientInfo"`: `Implementation` — identifies the
+  client software without requiring an initialization handshake.
+- `"modelcontextprotocol.io/roots"`: `Root[]` — the client's current root
+  URIs, replacing the need for `notifications/roots/list_changed`.
+- `"modelcontextprotocol.io/logLevel"`: `LoggingLevel` — the desired log
+  level for this request, replacing the `logging/setLevel` RPC.
 
 The primary capability defined in this proposal is the ability to handle
 streaming responses, which is supported through two distinct models:
@@ -380,7 +392,12 @@ export interface MessagesListenRequest extends Request {
 }
 ```
 
-**Response Schema:**
+**Acknowledgment Notification:**
+
+The server sends this notification as the first event on the stream to
+acknowledge that the listen stream has been established. For HTTP, this is the
+first SSE event. The stream remains open for subsequent server-to-client
+messages until the server sends a final `Result` to close it.
 
 ```ts
 export interface MessagesListenNotification extends Notification {
@@ -390,13 +407,14 @@ export interface MessagesListenNotification extends Notification {
 
 #### STDIO Transport Behavior
 
-For STDIO's simple request/response model, a client **MAY** send a
-`MessagesListenRequest` at any time. The server **MUST** process it and reply
-with a `MessagesListenNotification`. The interaction is complete after the
-response is sent.
+For STDIO, a client **MAY** send a `MessagesListenRequest` at any time to
+declare its capabilities and the messages it is interested in receiving. The
+server **MUST** acknowledge it by sending a `MessagesListenNotification`.
 
-The server **MAY** send any server to client messages or notifications for the
-duration of the connection.
+The server **MAY** then send server-to-client messages and notifications for
+the duration of the connection. If the connection is terminated (e.g., the
+server crashes and restarts), the client **MUST** re-send `MessagesListenRequest`
+to re-establish its declared capabilities.
 
 #### Streamable HTTP Transport Behavior
 
@@ -430,8 +448,9 @@ the following RPC methods and notifications are removed:
   specified on a per-request basis using the
   `'modelcontextprotocol.io/logLevel'` field in the `_meta` object.
 - `notifications/roots/list_changed`: This notification is removed. Clients
-  now provide their current roots directly in per-request `_meta` fields,
-  making server-side tracking of root changes unnecessary.
+  now provide their current roots directly in per-request `_meta` fields.
+  Since the server receives the current roots with each request, there is no
+  need for a separate change notification.
 
 ## Rationale
 
@@ -473,7 +492,7 @@ Session management is now addressed separately by
 which proposes removing sessions entirely and replacing them with explicit
 state handles. This aligns with the
 [sessions-vs-sessionless decision](https://github.com/modelcontextprotocol/transports-wg/blob/main/docs/sessions-vs-sessionless-decision.md)
-made by the Transports Working Group.
+made by the Core Maintainers.
 
 ### Separation of Concerns
 
@@ -596,3 +615,15 @@ another without needing to make significant changes to the behavior of their
 applications, and easier to proxy between different transports correctly.
 Otherwise, there will continue to be feature gaps and division between these
 different implementations, leading to both confusion and incompatibility.
+
+## Open Questions
+
+### Should `clientInfo` be part of `ClientCapabilities`?
+
+Currently, `clientInfo` (`Implementation` type) and `clientCapabilities`
+(`ClientCapabilities` type) are separate fields. In a per-request model, having
+a single field for all client metadata would reduce overhead. However,
+`clientInfo` serves a different purpose (identity/UI) than capabilities
+(feature negotiation). Should `clientInfo` be folded into `ClientCapabilities`,
+remain a separate per-request `_meta` field, or be handled through a different
+mechanism entirely (e.g., only sent via `messages/listen`)?
