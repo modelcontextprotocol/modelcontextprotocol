@@ -413,10 +413,10 @@ export interface IncompleteResult extends Result {
   requestState?: string;
 }
 
-/* New request parameter type that includes fields in a retried request.
+/* Request parameter type that includes input responses and request state.
  * These parameters may be included in any client-initiated request.
  */
-export interface RetryAugmentedRequestParams extends RequestParams {
+export interface InputResponseRequestParams extends RequestParams {
   /* New field to carry the responses for the server's requests from the
    * IncompleteResult message.  For each key in the response's inputRequests
    * field, the same key must appear here with the associated response.
@@ -1094,7 +1094,7 @@ export interface ResourceRequestParams extends RequestParams {
  * @category `resources/read`
  */
 export interface ReadResourceRequestParams
-  extends ResourceRequestParams, RetryAugmentedRequestParams {}
+  extends ResourceRequestParams, InputResponseRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -1414,7 +1414,7 @@ export interface ListPromptsResultResponse extends JSONRPCResultResponse {
  *
  * @category `prompts/get`
  */
-export interface GetPromptRequestParams extends RetryAugmentedRequestParams {
+export interface GetPromptRequestParams extends InputResponseRequestParams {
   /**
    * The name of the prompt or prompt template.
    */
@@ -1673,7 +1673,7 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
  * @category `tools/call`
  */
 export interface CallToolRequestParams
-  extends RetryAugmentedRequestParams, TaskAugmentedRequestParams {
+  extends InputResponseRequestParams, TaskAugmentedRequestParams {
   /**
    * The name of the tool.
    */

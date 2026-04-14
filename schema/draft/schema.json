@@ -1669,6 +1669,20 @@
                 }
             ]
         },
+        "InputResponseRequestParams": {
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "inputResponses": {
+                    "$ref": "#/$defs/InputResponses"
+                },
+                "requestState": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "InputResponses": {
             "additionalProperties": {
                 "$ref": "#/$defs/InputResponse"
@@ -3290,20 +3304,6 @@
                 "incomplete"
             ],
             "type": "string"
-        },
-        "RetryAugmentedRequestParams": {
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
-                "inputResponses": {
-                    "$ref": "#/$defs/InputResponses"
-                },
-                "requestState": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
         },
         "Role": {
             "description": "The sender or recipient of messages and data in a conversation.",
