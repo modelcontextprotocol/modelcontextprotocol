@@ -1,11 +1,11 @@
-# SEP-XXXX: Sessionless MCP via Explicit State Handles
+# SEP-2567: Sessionless MCP via Explicit State Handles
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-03-11
 - **Author(s)**: Peter Alexander (@pja-ant)
 - **Sponsor**: Peter Alexander (@pja-ant)
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567
 - **Related**: [SEP-1442](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442) (Stateless-by-default MCP), [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) (Multi Round-Trip Requests), [SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549) (TTL for List Results)
 
 ## Abstract

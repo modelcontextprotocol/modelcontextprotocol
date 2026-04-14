@@ -47,13 +47,7 @@
               "docs/develop/connect-remote-servers",
               "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
-              {
-                "group": "Clients",
-                "pages": [
-                  "docs/develop/build-client",
-                  "docs/develop/clients/client-best-practices"
-                ]
-              },
+              "docs/develop/build-client",
               "docs/sdk",
               {
                 "group": "Security",
@@ -324,8 +318,7 @@
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/ping",
                       "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/tasks",
-                      "specification/draft/basic/utilities/mrtr"
+                      "specification/draft/basic/utilities/tasks"
                     ]
                   }
                 ]
@@ -431,6 +424,12 @@
             ]
           },
           {
+            "group": "Draft",
+            "pages": [
+              "seps/2567-sessionless-mcp"
+            ]
+          },
+          {
             "group": "Approved",
             "pages": [
               "seps/2322-MRTR"
@@ -469,12 +468,8 @@
           {
             "group": "Working Group Charters",
             "pages": [
-              "community/file-uploads/charter",
               "community/inspector-v2/charter",
-              "community/interceptors/charter",
-              "community/sdk/charter",
               "community/server-card/charter",
-              "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
             ]
           },
