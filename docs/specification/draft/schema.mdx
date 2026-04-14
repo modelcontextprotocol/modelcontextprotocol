@@ -1521,9 +1521,9 @@ to execute successfully.</p> <p>Each value is an opaque string. Strings SHOULD b
 these values.</p> <p>Servers MUST enforce all declared requirements at execution time. If any
 requirement is not satisfied, the server MUST fail the call.</p> <p>Clients MUST treat requirement strings as opaque and MUST NOT infer equivalence
 between different strings. Clients MUST NOT use <code>requirements</code> for any
-decision-making unless all requirements are known to the client and the client
-can determine that at least one requirement cannot be satisfied. If those
-conditions are met, clients MAY use <code>requirements</code> to influence behavior (e.g.,
+decision-making unless all requirements are known to the client, OR the client
+can determine that at least one requirement cannot be satisfied. If either
+condition is met, clients MAY use <code>requirements</code> to influence behavior (e.g.,
 filtering, ranking, or avoiding tool use). If any requirement is unknown, or if
 all requirements may be satisfied, clients MUST behave as if <code>requirements</code> were
 not present.</p> </div></section>

@@ -1722,9 +1722,9 @@ export interface ToolExecution {
    *
    * Clients MUST treat requirement strings as opaque and MUST NOT infer equivalence
    * between different strings. Clients MUST NOT use `requirements` for any
-   * decision-making unless all requirements are known to the client and the client
-   * can determine that at least one requirement cannot be satisfied. If those
-   * conditions are met, clients MAY use `requirements` to influence behavior (e.g.,
+   * decision-making unless all requirements are known to the client, OR the client
+   * can determine that at least one requirement cannot be satisfied. If either
+   * condition is met, clients MAY use `requirements` to influence behavior (e.g.,
    * filtering, ranking, or avoiding tool use). If any requirement is unknown, or if
    * all requirements may be satisfied, clients MUST behave as if `requirements` were
    * not present.
