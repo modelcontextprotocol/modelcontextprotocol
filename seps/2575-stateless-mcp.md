@@ -4,7 +4,7 @@
 - **Type**: Standards Track
 - **Created**: 2025-06-18
 - **Author(s)**: Jonathan Hefner (@jonathanhefner), Mark Roth (@markdroth), Shaun Smith (@evalstate), Harvey Tuch (@htuch), Kurtis Van Gent (@kurtisvg)
-- **Sponsor**: None (seeking sponsor)
+- **Sponsor**: Kurtis Van Gent (@kurtisvg)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575
 
 ## Abstract
