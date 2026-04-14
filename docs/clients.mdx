@@ -1524,19 +1524,19 @@ mcp-use is an open source python library to very easily connect any LLM to any M
   supports="Resources, Prompts, Tools, Discovery, Instructions, Tasks, DCR"
 >
 
-`mcpc` is a universal CLI client for MCP — a Swiss Army knife that maps every MCP operation to intuitive shell commands for interactive use, scripting, and AI coding agents. It works with any MCP server over Streamable HTTP or stdio, with or without a config file.
+`mcpc` is a universal CLI client for MCP — a Swiss Army knife that brings MCP to the shell. AI coding agents only need `Bash()` to connect to any MCP server, discover tools progressively, and compose multi-step workflows as shell scripts. Works with any server over Streamable HTTP or stdio, with or without a config file, and requires no LLM of its own.
 
 **Key features:**
 
+- **Code mode in the shell:** `--json` output composes with `jq`, `xargs`, and shell pipelines, letting agents write MCP workflows as shell scripts — often more accurate and token-efficient than naive tool calling. `--schema` validates tool schemas against snapshots to catch breaking changes.
+- **Progressive tool discovery:** `grep` searches tools, resources, and prompts across all active sessions with regex, so agents load only what they need instead of stuffing every tool definition into context.
 - **Full MCP coverage:** tools, resources (including subscriptions and templates), prompts, instructions, async tasks with progress tracking and cancellation, list-change notifications, pagination, and logging control.
 - **Persistent sessions:** maintain multiple simultaneous server connections via named `@sessions`, with automatic reconnection and health monitoring.
 - **Authentication:** OAuth 2.1 with PKCE and dynamic client registration, bearer tokens, multiple named profiles per server, and secure credential storage in the OS keychain.
-- **Code mode and scripting:** `--json` output composes with `jq`, `xargs`, and shell pipelines; `--schema` validates tool schemas against snapshots to catch breaking changes.
-- **Cross-session discovery:** `grep` searches tools, resources, and prompts across all active sessions with regex support.
 - **AI sandboxing:** built-in MCP proxy server (`--proxy`) exposes authenticated sessions to AI-generated code without leaking credentials.
 - **Interactive shell:** `shell` command provides a REPL with command history, arrow-key navigation, and in-session help for exploratory server testing.
 - **x402 payments (experimental):** autonomous USDC payments on Base blockchain, letting AI agents pay for tool calls via the HTTP 402 protocol.
-- **Lightweight and cross-platform:** minimal dependencies, runs on macOS, Windows, and Linux. Install via `npm install -g @apify/mcpc`.
+- **Lightweight and cross-platform:** no LLM required, minimal dependencies, runs on macOS, Windows, and Linux. Install via `npm install -g @apify/mcpc`.
 
 </McpClient>
 
