@@ -1,11 +1,11 @@
-# SEP-{NUMBER}: Resource Submission — Client-to-Server Resource Creation
+# SEP-2571: Resource Submission — Client-to-Server Resource Creation
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-04-14
 - **Author(s)**: Chris Welker (@cswelker)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2571
 
 ## Abstract
 
