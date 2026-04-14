@@ -2,7 +2,7 @@
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
-    "result_type": "incomplete",
+    "resultType": "incomplete",
     "inputRequests": {
       "echo_input": {
         "method": "elicitation/create",
