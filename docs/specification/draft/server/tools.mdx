@@ -345,17 +345,39 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 #### Structured Content
 
-**Structured** content is returned as a JSON object in the `structuredContent` field of a result.
+Tool results can include both a model-oriented representation and a machine-oriented representation:
 
-For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
+- `content` is the model-oriented representation of the result. Clients **SHOULD** use this field
+  when providing tool results to conversational or agentic model context, if it is present.
+- `structuredContent` is the machine-oriented representation of the same result for programmatic
+  consumers, typed orchestration, and UI hydration.
+
+When both `content` and `structuredContent` are present, they **SHOULD** be semantically
+equivalent. `content` may summarize or textualize `structuredContent` without reproducing every
+field verbatim, but it **SHOULD NOT** contradict it.
+
+For backwards compatibility, a tool that returns structured content **SHOULD** also return a
+`content` representation of the same information. JSON-serialized text is acceptable, but it is
+not required and may be suboptimal depending on the use case.
+
+If `content` is missing or empty, clients **MAY** fall back to `structuredContent`. Clients
+**SHOULD NOT** forward both fields verbatim to the model as separate inputs.
+
+When `isError` is `true`, the error message **SHOULD** be returned in `content`. Servers **MAY**
+omit `structuredContent` for error results.
 
 #### Output Schema
 
-Tools may also provide an output schema for validation of structured results.
-If an output schema is provided:
+Tools may also provide an output schema for validation of `structuredContent`. This schema applies
+to the structured, machine-oriented representation and does not constrain the format of `content`.
+
+If an output schema is provided and a non-error result includes `structuredContent`:
 
 - Servers **MUST** provide structured results that conform to this schema.
 - Clients **SHOULD** validate structured results against this schema.
+
+Clients **SHOULD NOT** validate `structuredContent` against `outputSchema` when `isError` is
+`true`.
 
 Example tool with output schema:
 
@@ -405,7 +427,7 @@ Example valid response for this tool:
     "content": [
       {
         "type": "text",
-        "text": "{\"temperature\": 22.5, \"conditions\": \"Partly cloudy\", \"humidity\": 65}"
+        "text": "Current weather: 22.5C, partly cloudy, 65% humidity."
       }
     ],
     "structuredContent": {

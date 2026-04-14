@@ -177,7 +177,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "content": {
-                    "description": "A list of content objects that represent the unstructured result of the tool call.",
+                    "description": "A list of content objects that represent the model-oriented result of the tool call.\n\nClients SHOULD use this field when providing tool results to conversational or agentic model\ncontext, if it is present.",
                     "items": {
                         "$ref": "#/$defs/ContentBlock"
                     },
@@ -189,7 +189,7 @@
                 },
                 "structuredContent": {
                     "additionalProperties": {},
-                    "description": "An optional JSON object that represents the structured result of the tool call.",
+                    "description": "An optional JSON object that represents the structured, machine-oriented result of the tool\ncall.\n\nWhen both this field and {@link CallToolResult.content} are present, they SHOULD be\nsemantically equivalent. For backwards compatibility, tools that return structured content\nSHOULD also return a `content` representation of the same information. JSON-serialized text is\nacceptable, but not required.",
                     "type": "object"
                 }
             },
@@ -4048,7 +4048,7 @@
                     "type": "string"
                 },
                 "outputSchema": {
-                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a {@link CallToolResult}.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.\nCurrently restricted to `type: \"object\"` at the root level.",
+                    "description": "An optional JSON Schema object defining the structure of the tool's output returned in\nthe structuredContent field of a {@link CallToolResult}.\n\nThis schema applies to structuredContent and does not constrain the format of\n{@link CallToolResult.content}.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.\nCurrently restricted to `type: \"object\"` at the root level.",
                     "properties": {
                         "$schema": {
                             "type": "string"
@@ -4171,7 +4171,7 @@
                     "description": "Optional metadata about the tool result. Clients SHOULD preserve this field when\nincluding tool results in subsequent sampling requests to enable caching optimizations."
                 },
                 "content": {
-                    "description": "The unstructured result content of the tool use.\n\nThis has the same format as {@link CallToolResult.content} and can include text, images,\naudio, resource links, and embedded resources.",
+                    "description": "The model-oriented result content of the tool use.\n\nThis has the same format as {@link CallToolResult.content} and can include text, images,\naudio, resource links, and embedded resources.",
                     "items": {
                         "$ref": "#/$defs/ContentBlock"
                     },
@@ -4183,7 +4183,7 @@
                 },
                 "structuredContent": {
                     "additionalProperties": {},
-                    "description": "An optional structured result object.\n\nIf the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema.",
+                    "description": "An optional structured, machine-oriented result object.\n\nIf the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema unless\n{@link ToolResultContent.isError} is true.",
                     "type": "object"
                 },
                 "toolUseId": {
