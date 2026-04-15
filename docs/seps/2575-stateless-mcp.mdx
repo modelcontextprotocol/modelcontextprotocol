@@ -556,21 +556,12 @@ the version prior to the SEP, and vAfter indicates a version after it.
 
 ## Security Implications
 
-While this proposal improves the protocol's clarity, implementations **may still
-be vulnerable** to common exploits if not secured correctly. The following
-points should be considered:
+Without a session handshake, every request must be independently authenticated
+and authorized. Implementations **MUST** ensure that authentication is not
+bypassed by the removal of the initialization phase.
 
-- **Per-request Authentication**: Without a session handshake, every request
-  must be independently authenticated and authorized. Implementations
-  **MUST** ensure that authentication is not bypassed by the removal of the
-  initialization phase.
-- **Discovery Endpoint Abuse**: The `server/discover` endpoint could be used
-  for reconnaissance. Servers **SHOULD** protect this endpoint with
-  **rate-limiting**.
-- **Protocol Version Downgrade**: An attacker could forge
-  `UnsupportedVersionError` responses to force a client to use an older,
-  potentially less secure protocol version. All communication **MUST** occur
-  over an encrypted transport like **TLS** to prevent this.
+Beyond per-request authentication, this proposal does not introduce additional
+security concerns.
 
 ## Reference Implementation
 
