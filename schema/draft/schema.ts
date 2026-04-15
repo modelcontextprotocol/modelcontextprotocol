@@ -1902,6 +1902,12 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
+
+  /**
+   * Optional request state passed back from the server to the client.
+   * Used for server-side state management per SEP-2322 Multi Round-Trip Requests.
+   */
+  requestState?: string;
 }
 
 /**
@@ -2011,6 +2017,11 @@ export interface GetTaskRequest extends JSONRPCRequest {
      * GetTaskResult's inputRequests field. Keys match the keys from inputRequests.
      */
     inputResponses?: { [key: string]: JSONObject };
+
+    /**
+     * Optional field containing request state passed to the server from the client (see SEP-2322).
+     */
+    requestState?: string;
   };
 }
 
@@ -2020,14 +2031,7 @@ export interface GetTaskRequest extends JSONRPCRequest {
  *
  * @category `tasks/get`
  */
-export type GetTaskResult = Result &
-  DetailedTask & {
-    /**
-     * Optional request state passed back from the server to the client.
-     * Used for server-side state management per SEP-2322 Multi Round-Trip Requests.
-     */
-    requestState?: string;
-  };
+export type GetTaskResult = Result & DetailedTask;
 
 /**
  * A successful response for a {@link GetTaskRequest | tasks/get} request.

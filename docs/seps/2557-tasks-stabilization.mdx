@@ -125,9 +125,17 @@ The below table summarizes the changes to the task-related methods:
 
 ### Task Schema Changes
 
-The `Task` schema defining the task metadata remains unchanged. However, we introduce new derived types that inline `result`/`error`/`inputRequests`, to be used by `tasks/get` and `notifications/tasks/status`. This allows us to avoid introducing redundant/bloated fields in `CreateTaskResult` and in `ListTasksResult`.
+The `Task` schema defining the task metadata gains an optional `requestState` (see SEP-2322). We additionally introduce new derived types that inline `result`/`error`/`inputRequests`, to be used by `tasks/get` and `notifications/tasks/status`. This allows us to avoid introducing redundant/bloated fields in `CreateTaskResult` and in `ListTasksResult`.
 
 ```typescript
+interface Task {
+  // Existing fields...
+  /**
+   * Optional field containing request state passed back from the server to the client (see SEP-2322).
+   */
+  requestState?: string;
+}
+
 interface InputRequiredTask extends Task {
   status: "input_required";
   /**
@@ -170,9 +178,13 @@ interface GetTaskRequest extends JSONRPCRequest {
     taskId: string;
     /**
      * Optional field to allow the client to respond to a server's request for more information
-     * when the task is in `input_required` state.
+     * when the task is in `input_required` state (see SEP-2322).
      */
     inputResponses?: InputResponses;
+    /**
+     * Optional field containing request state passed to the server from the client (see SEP-2322).
+     */
+    requestState?: string;
   };
 }
 ```
@@ -180,13 +192,7 @@ interface GetTaskRequest extends JSONRPCRequest {
 ### Server Response for `task/get`
 
 ```typescript
-type GetTaskResult = Result &
-  DetailedTask & {
-    /**
-     * Optional field containing request state passed back from the server to the client (see SEP-2322).
-     */
-    requestState?: string;
-  };
+type GetTaskResult = Result & DetailedTask;
 
 type TaskStatusNotificationParams = NotificationParams & DetailedTask;
 ```

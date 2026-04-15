@@ -512,15 +512,6 @@
                         },
                         {
                             "$ref": "#/$defs/Task"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -531,15 +522,6 @@
                         },
                         {
                             "$ref": "#/$defs/InputRequiredTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -550,15 +532,6 @@
                         },
                         {
                             "$ref": "#/$defs/CompletedTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -569,15 +542,6 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -754,6 +718,10 @@
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
                 },
                 "result": {
                     "$ref": "#/$defs/JSONObject",
@@ -1359,6 +1327,10 @@
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
                 },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
+                },
                 "status": {
                     "const": "failed",
                     "description": "Current task state.",
@@ -1509,6 +1481,10 @@
                             "description": "Optional responses to server-to-client requests that were returned in a previous\nGetTaskResult's inputRequests field. Keys match the keys from inputRequests.",
                             "type": "object"
                         },
+                        "requestState": {
+                            "description": "Optional field containing request state passed to the server from the client (see SEP-2322).",
+                            "type": "string"
+                        },
                         "taskId": {
                             "description": "The task identifier to query.",
                             "type": "string"
@@ -1537,15 +1513,6 @@
                         },
                         {
                             "$ref": "#/$defs/Task"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -1556,15 +1523,6 @@
                         },
                         {
                             "$ref": "#/$defs/InputRequiredTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -1575,15 +1533,6 @@
                         },
                         {
                             "$ref": "#/$defs/CompletedTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -1594,15 +1543,6 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 }
@@ -1894,6 +1834,10 @@
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
                 },
                 "status": {
                     "const": "input_required",
@@ -3855,15 +3799,6 @@
                         },
                         {
                             "$ref": "#/$defs/Task"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -3874,15 +3809,6 @@
                         },
                         {
                             "$ref": "#/$defs/InputRequiredTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -3893,15 +3819,6 @@
                         },
                         {
                             "$ref": "#/$defs/CompletedTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -3912,15 +3829,6 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
-                        },
-                        {
-                            "properties": {
-                                "requestState": {
-                                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
                         }
                     ]
                 },
@@ -4131,6 +4039,10 @@
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
                 },
                 "status": {
                     "$ref": "#/$defs/TaskStatus",
