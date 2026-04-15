@@ -220,6 +220,7 @@ A tool definition includes:
 - `annotations`: Optional properties describing tool behavior
 - `execution`: Optional object describing execution-related properties
   - `taskSupport`: Indicates whether this tool supports [task-augmented execution](/specification/draft/basic/utilities/tasks#tool-level-negotiation). Values: `"forbidden"` (default), `"optional"`, or `"required"`
+  - `requirements`: Optional list of opaque requirement identifiers that MUST be satisfied for the tool to execute successfully (see [Preconditions](#preconditions))
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to
@@ -298,6 +299,63 @@ Server developers **SHOULD NOT** mark sensitive parameters (passwords, API keys,
 PII) with `x-mcp-header`, as header values are visible to network intermediaries.
 
 </Warning>
+
+### Preconditions
+
+Tools **MAY** declare an optional `execution.requirements` field — a list of opaque string
+identifiers that represent preconditions for successful execution:
+
+```json
+{
+  "name": "launch_rocket",
+  "description": "Initiates a rocket launch sequence. Only available to authorized mission control personnel when weather conditions are clear and the launch window is open.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "to": { "type": "string" },
+      "subject": { "type": "string" },
+      "body": { "type": "string" }
+    },
+    "required": ["to", "subject", "body"]
+  },
+  "execution": {
+    "requirements": [
+      "auth:oauth2",
+      "auth:claim:role:mission_control",
+      "capability:rocket.launch",
+      "env:production",
+      "state:weather.clear",
+      "feature:launch_window.open"
+    ]
+  }
+}
+```
+
+Requirement strings are intentionally opaque — MCP does not define or interpret their
+meaning. Strings **SHOULD** be namespaced (e.g., `capability:rocket.launch`) to avoid
+collisions across implementations.
+
+#### Server Behavior
+
+- Servers **MUST** enforce all declared requirements at execution time.
+- If any requirement is not satisfied, the server **MUST** fail the call.
+- Error responses **SHOULD** indicate which requirements were unmet when possible.
+
+#### Client Behavior
+
+Clients **MAY** use `requirements` to influence behavior, subject to the following constraints:
+
+- Clients **MUST** treat requirement strings as opaque.
+- Clients **MUST NOT** infer equivalence between different strings.
+
+- Clients **MUST NOT** use `requirements` for any decision-making unless:
+  - All requirements are known to the client.
+- **OR**
+  - The client can determine that at least one requirement cannot be satisfied.
+
+- If the above conditions are met, clients **MAY** use `requirements` to influence behavior (e.g., filtering, ranking, or avoiding failures).
+
+- If any requirement is unknown, or if all requirements may be satisfied, clients **MUST** behave as if `requirements` were not present.
 
 ### Tool Result
 
