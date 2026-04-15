@@ -425,7 +425,7 @@
                                     "properties": {
                                         "createMessage": {
                                             "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the client supports task-augmented {@link CreateMessageRequestsampling/createMessage} requests."
+                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
                                         }
                                     },
                                     "type": "object"
@@ -978,7 +978,7 @@
             "type": "object"
         },
         "ElicitResult": {
-            "description": "The result returned by the client for an {@link ElicitationCreateRequest elicitation/create} request.",
+            "description": "The result returned by the client for an {@link ElicitRequestelicitation/create} request.",
             "properties": {
                 "action": {
                     "description": "The user action in response to the elicitation.\n- `\"accept\"`: User submitted the form/confirmed the action\n- `\"decline\"`: User explicitly declined the action\n- `\"cancel\"`: User dismissed without making an explicit choice",
