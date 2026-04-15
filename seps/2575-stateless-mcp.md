@@ -295,7 +295,7 @@ capabilities. The server may send these requests in two ways:
 
 1. **Inline**: As notifications within an SSE stream response to a triggering
    RPC (e.g., `notifications/progress` within a `tools/call` response stream).
-2. **On the listen stream**: As events on an open `messages/listen` SSE stream.
+2. **On the listen stream**: As events on an open `notifications/listen` SSE stream.
 
 In both cases, the server uses the `clientCapabilities` from the request's
 `_meta` to determine what it is allowed to send.
@@ -313,6 +313,10 @@ during initialization **MAY** be included in per-request `_meta` fields:
   URIs, replacing the need for `notifications/roots/list_changed`.
 - `"io.modelcontextprotocol/logLevel"`: `LoggingLevel` — the desired log
   level for this request, replacing the `logging/setLevel` RPC.
+- `"io.modelcontextprotocol/resourceSubscriptions"`: `string[]` — an array
+  of resource URIs the client is interested in, replacing
+  `resources/subscribe`. The server sends `notifications/resources/updated`
+  on the `notifications/listen` stream for matching resources.
 
 The primary capability defined in this proposal is the ability to handle
 streaming responses, which is supported through two distinct models:
@@ -350,18 +354,22 @@ export interface Request {
 This model applies when a client wants to proactively open a persistent SSE
 stream to receive multiple or unsolicited events.
 
-This is achieved using a dedicated `messages/listen` RPC. For the HTTP
+This is achieved using a dedicated `notifications/listen` RPC. For the HTTP
 transport, the client sends this request via `POST`, and the server's response
-is an open SSE stream, with a `MessagesListenNotification` sent as the first
-event. For the STDIO transport, this RPC is used for a simple request/response
-capabilities check. This RPC replaces the existing GET endpoint behavior for
-Streamable HTTP today.
+is an open SSE stream, with a `NotificationsListenNotification` sent as the
+first event. For the STDIO transport, this RPC is used to declare the client's
+capabilities and interests.
+
+This RPC replaces the existing HTTP GET endpoint for Streamable HTTP. The GET
+endpoint is removed; all communication uses POST. Only notifications (not
+requests) may be sent on the listen stream, per
+[SEP-2260](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2260).
 
 **Request Schema:**
 
 ```ts
-export interface MessagesListenRequest extends Request {
-  method: "messages/listen";
+export interface NotificationsListenRequest extends Request {
+  method: "notifications/listen";
   params: {
     _meta?: {
       "io.modelcontextprotocol/mcpProtocolVersion": string;
@@ -381,20 +389,20 @@ first SSE event. The stream remains open for subsequent server-to-client
 messages until the server sends a final `Result` to close it.
 
 ```ts
-export interface MessagesListenNotification extends Notification {
-  method: "notifications/messages/listen";
+export interface NotificationsListenNotification extends Notification {
+  method: "notifications/listen/acknowledged";
 }
 ```
 
 #### STDIO Transport Behavior
 
-For STDIO, a client **MAY** send a `MessagesListenRequest` at any time to
+For STDIO, a client **MAY** send a `NotificationsListenRequest` at any time to
 declare its capabilities and the messages it is interested in receiving. The
-server **MUST** acknowledge it by sending a `MessagesListenNotification`.
+server **MUST** acknowledge it by sending a `NotificationsListenNotification`.
 
 The server **MAY** then send server-to-client messages and notifications for
 the duration of the connection. If the connection is terminated (e.g., the
-server crashes and restarts), the client **MUST** re-send `MessagesListenRequest`
+server crashes and restarts), the client **MUST** re-send `NotificationsListenRequest`
 to re-establish its declared capabilities.
 
 #### Streamable HTTP Transport Behavior
@@ -410,9 +418,9 @@ field. The server **MAY** then respond with an SSE stream for that transaction.
 **2. Client-Initiated Streaming**
 
 To proactively open a persistent SSE stream, the client sends the dedicated
-`MessagesListenRequest` via `POST`. The server's response **is an open SSE
+`NotificationsListenRequest` via `POST`. The server's response **is an open SSE
 stream** (`Content-Type: text/event-stream`), and the **first request** on this
-stream **MUST** be an event containing the `MessagesListenNotification`.
+stream **MUST** be an event containing the `NotificationsListenNotification`.
 
 ### Deprecated and Removed RPCs
 
@@ -432,6 +440,14 @@ the following RPC methods and notifications are removed:
   now provide their current roots directly in per-request `_meta` fields.
   Since the server receives the current roots with each request, there is no
   need for a separate change notification.
+- `resources/subscribe` / `resources/unsubscribe`: These methods are removed.
+  Resource subscriptions are inherently stateful — the server must remember
+  which resources each client has subscribed to. Instead, clients specify
+  the resources they are interested in via per-request `_meta` fields using
+  `"io.modelcontextprotocol/resourceSubscriptions"`: `string[]` (an array of
+  resource URIs). The server sends `notifications/resources/updated`
+  notifications on the `notifications/listen` stream for any matching
+  resources.
 
 ## Rationale
 
@@ -485,7 +501,7 @@ separates these:
 
 - **Discovery**: Handled exclusively by `server/discover`.
 - **Capabilities**: Handled on a per-request basis via the `_meta` field or
-  the `messages/listen` RPC.
+  the `notifications/listen` RPC.
 
 The rationale for this is to create a more modular, flexible, and understandable
 protocol. Each component now has a single, well-defined responsibility. This
@@ -598,4 +614,4 @@ a single field for all client metadata would reduce overhead. However,
 `clientInfo` serves a different purpose (identity/UI) than capabilities
 (feature negotiation). Should `clientInfo` be folded into `ClientCapabilities`,
 remain a separate per-request `_meta` field, or be handled through a different
-mechanism entirely (e.g., only sent via `messages/listen`)?
+mechanism entirely (e.g., only sent via `notifications/listen`)?
