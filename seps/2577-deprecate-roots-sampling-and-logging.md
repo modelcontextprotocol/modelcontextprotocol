@@ -1,11 +1,11 @@
-# SEP-0000: Deprecate Roots, Sampling, and Logging
+# SEP-2577: Deprecate Roots, Sampling, and Logging
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-04-14
 - **Author(s)**: Kurtis Van Gent (@kurtisvg)
 - **Sponsor**: @kurtisvg
-- **PR**: #0000
+- **PR**: #2577
 
 > **Note**: This SEP is predicated on a hypothetical SEP where MCP considers a
 > specification version supported for one year past its original release date.
