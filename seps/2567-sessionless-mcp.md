@@ -6,17 +6,17 @@
 - **Author(s)**: Peter Alexander (@pja-ant)
 - **Sponsor**: Peter Alexander (@pja-ant)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567
-- **Related**: [SEP-1442](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442) (Stateless-by-default MCP), [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) (Multi Round-Trip Requests), [SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549) (TTL for List Results)
+- **Related**: [SEP-2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575) (Make MCP Stateless), [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) (Multi Round-Trip Requests), [SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549) (TTL for List Results)
 
 ## Abstract
 
-This proposal removes the protocol-level session concept from MCP, replacing implicit session-scoped state with explicit, server-minted state handles that the model carries and threads through subsequent calls. [SEP-1442] makes sessions optional by defaulting to stateless operation; this proposal removes the opt-in as well.
+This proposal removes the protocol-level session concept from MCP, replacing implicit session-scoped state with explicit, server-minted state handles that the model carries and threads through subsequent calls. [SEP-2575] makes sessions optional by defaulting to stateless operation; this proposal removes the opt-in as well.
 
 After more than a year in the spec, sessions have not converged on a consistent meaning across clients: some scope them per tool call, some per application launch, some per page load, and almost none resume them. A server author cannot predict what scope or lifetime a session will have when their server is connected to an arbitrary client, which has made the session unreliable as a container for application state. This proposal holds that application state can be served by explicit identifiers, and that the session abstraction adds constraints (fixed cardinality, undefined lifetime, uncacheable list endpoints across session boundaries) without corresponding benefit.
 
 Under this proposal, a server that currently scopes a shopping cart (for example) to the session instead exposes a tool `create_basket()` that returns a `basket_id` and threads that ID through subsequent tool calls, e.g. `add_item(basket_id, ...)`. The model decides what is shared and what is isolated; list endpoints become cacheable across what used to be session boundaries; and agent orchestrators can freely share or not share application state as needed. Explicit state handles are not a new protocol construct — there is no schema or wire format for them. They are a tool-design pattern; the protocol change is the removal of sessions, which leaves handles as the way to express cross-call state.
 
-[SEP-1442]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1442
+[SEP-2575]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575
 [SEP-2322]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322
 [SEP-2549]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549
 
@@ -26,7 +26,7 @@ Under this proposal, a server that currently scopes a shopping cart (for example
 
 The current spec is not fully precise about which behaviors are session-bound, but in practice five categories of things attach to a session's lifetime:
 
-1. **Negotiated capabilities and protocol version.** The result of `initialize` — which protocol version is in use and which optional capabilities each side supports — is established once per session and assumed for its duration. [SEP-1442] resolves this by removing `initialize` and carrying version/capability information per-request, so this proposal treats it as already addressed.
+1. **Negotiated capabilities and protocol version.** The result of `initialize` — which protocol version is in use and which optional capabilities each side supports — is established once per session and assumed for its duration. [SEP-2575] resolves this by removing `initialize` and carrying version/capability information per-request, so this proposal treats it as already addressed.
 
 2. **Elicitation and sampling intermediate state.** When a tool call triggers an `elicitation/create` or `sampling/createMessage` round-trip, the server has to correlate the eventual response with the original in-flight tool call — state that today lives implicitly in the session. [SEP-2322] (Multi Round-Trip Requests) resolves this by carrying the correlation state explicitly through the request/response cycle, so this proposal treats it as already addressed.
 
@@ -34,13 +34,13 @@ The current spec is not fully precise about which behaviors are session-bound, b
 
 4. **Mutable list endpoints.** `tools/list` (and `resources/list`, `prompts/list`) can legally return different results over a session's lifetime. For example, a server could expose an `enable_admin_tools` tool that mutates what subsequent `tools/list` calls return.
 
-5. **Resource subscriptions.** Subscription lifetime is tied to session lifetime. ([SEP-1442] addresses this separately and it is not re-examined here.)
+5. **Resource subscriptions.** Subscription lifetime is tied to session lifetime. ([SEP-2575] addresses this separately and it is not re-examined here.)
 
 With (1), (2), and (5) handled by other SEPs, this proposal addresses (3) and (4).
 
 ### Problems with session scoping
 
-The issues below apply whether sessions are mandatory (the current spec) or opt-in (the direction [SEP-1442] takes).
+The issues below apply whether sessions are mandatory (the current spec) or opt-in (the direction [SEP-2575] takes).
 
 #### Session lifetime is undefined, and servers can't design around it
 
@@ -89,7 +89,7 @@ The same lack of an identifier also means session state is not addressable from 
 
 ### Summary of changes
 
-1. **Remove the session concept from the protocol.** The `Mcp-Session-Id` header is removed and the spec language describing session lifecycle and session-scoped behavior is deleted. The protocol is sessionless at every layer. (This supersedes the opt-in stateful path that [SEP-1442] retained.)
+1. **Remove the session concept from the protocol.** The `Mcp-Session-Id` header is removed and the spec language describing session lifecycle and session-scoped behavior is deleted. The protocol is sessionless at every layer. (This supersedes the opt-in stateful path that [SEP-2575] retained.)
 
 2. **List endpoints are session-independent.** With no session, the results of `tools/list`, `resources/list`, and `prompts/list` have no per-session or per-connection scope to depend on. Lists can still change for other reasons (server deployment, auth changes); caching and invalidation mechanics for those are specified separately in [SEP-2549].
 
@@ -172,7 +172,7 @@ Two places in the current spec define behavior in terms of session scope and nee
 
 ### Why remove sessions rather than just default them off?
 
-[SEP-1442] already addresses making MCP work behind load balancers and without sticky routing. The reasons for going further are:
+[SEP-2575] already addresses making MCP work behind load balancers and without sticky routing. The reasons for going further are:
 
 - **Opt-in sessions still prevent list caching.** A client cannot cache `tools/list` across session boundaries unless it knows the server does not opt into session-scoped mutation, and it cannot know that in advance. The client therefore re-fetches per session per server even though few servers opt in. The `O(subagents × servers)` cost from the Motivation section is caused by sessions being possible, not by sessions being used, so making them optional does not remove it.
 - **The primitive influences server design.** Offering session-scoped state in the spec leads server authors to use it for workflows that would be better served by explicit IDs.
