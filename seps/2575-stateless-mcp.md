@@ -165,7 +165,7 @@ export interface Request {
 +       /**
 +        * The MCP Protocol Version being used for this request.
 +        */
-+       "modelcontextprotocol.io/mcpProtocolVersion": string;
++       "io.modelcontextprotocol/mcpProtocolVersion": string;
 
        /**
         * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
@@ -218,7 +218,7 @@ Without an initialization handshake, version negotiation happens inline:
 
 1. The client sends a request with its preferred protocol version in the
    `MCP-Protocol-Version` header and
-   `modelcontextprotocol.io/mcpProtocolVersion` `_meta` field.
+   `io.modelcontextprotocol/mcpProtocolVersion` `_meta` field.
 2. If the server supports that version, it processes the request normally.
 3. If the server does not support the requested version, it returns an
    `UnsupportedVersionError` containing its list of `supportedVersions`.
@@ -307,11 +307,11 @@ doesn't support, a client MUST return a `Method not found` JSON-RPC error
 In addition to `clientCapabilities`, the following fields previously exchanged
 during initialization **MAY** be included in per-request `_meta` fields:
 
-- `"modelcontextprotocol.io/clientInfo"`: `Implementation` — identifies the
+- `"io.modelcontextprotocol/clientInfo"`: `Implementation` — identifies the
   client software without requiring an initialization handshake.
-- `"modelcontextprotocol.io/roots"`: `Root[]` — the client's current root
+- `"io.modelcontextprotocol/roots"`: `Root[]` — the client's current root
   URIs, replacing the need for `notifications/roots/list_changed`.
-- `"modelcontextprotocol.io/logLevel"`: `LoggingLevel` — the desired log
+- `"io.modelcontextprotocol/logLevel"`: `LoggingLevel` — the desired log
   level for this request, replacing the `logging/setLevel` RPC.
 
 The primary capability defined in this proposal is the ability to handle
@@ -338,7 +338,7 @@ export interface Request {
 +   /**
 +    * Optional capabilities of the client for this specific request.
 +    */
-+   "modelcontextprotocol.io/clientCapabilities"?: ClientCapabilities;
++   "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
     // ... other meta fields
   };
   // ...
@@ -364,9 +364,9 @@ export interface MessagesListenRequest extends Request {
   method: "messages/listen";
   params: {
     _meta?: {
-      "modelcontextprotocol.io/mcpProtocolVersion": string;
-      "modelcontextprotocol.io/clientCapabilities"?: ClientCapabilities;
-      "modelcontextprotocol.io/roots"?: Root[];
+      "io.modelcontextprotocol/mcpProtocolVersion": string;
+      "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
+      "io.modelcontextprotocol/roots"?: Root[];
       // ... other meta fields
     };
   };
@@ -427,7 +427,7 @@ the following RPC methods and notifications are removed:
   backward compatibility with clients that may send it.
 - `logging/setLevel`: This method is removed. Log levels should now be
   specified on a per-request basis using the
-  `'modelcontextprotocol.io/logLevel'` field in the `_meta` object.
+  `'io.modelcontextprotocol/logLevel'` field in the `_meta` object.
 - `notifications/roots/list_changed`: This notification is removed. Clients
   now provide their current roots directly in per-request `_meta` fields.
   Since the server receives the current roots with each request, there is no
