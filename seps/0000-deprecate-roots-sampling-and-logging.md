@@ -23,7 +23,7 @@ This SEP deprecates the following core protocol features:
 These features are deprecated starting in the specification version that
 includes this SEP (expected June 2026). They will continue to be fully
 functional in all specification versions released within one year of that
-version's release. 
+version's release.
 
 Each of those subsequent versions will in turn support the features for one year
 after its own release, assuming the one-year-per-version support policy proposed
@@ -108,49 +108,49 @@ Add `@deprecated` JSDoc annotations to the following items in
 
 #### Deprecated capabilities
 
-| Capability                                | Location                                 |
-| ----------------------------------------- | ---------------------------------------- |
-| `ClientCapabilities.roots`                | Client capability for listing roots      |
-| `ClientCapabilities.sampling`             | Client capability for LLM sampling       |
+| Capability                                   | Location                               |
+| -------------------------------------------- | -------------------------------------- |
+| `ClientCapabilities.roots`                   | Client capability for listing roots    |
+| `ClientCapabilities.sampling`                | Client capability for LLM sampling     |
 | `ClientCapabilities.tasks.requests.sampling` | Task-augmented sampling sub-capability |
-| `ServerCapabilities.logging`              | Server capability for log messages       |
+| `ServerCapabilities.logging`                 | Server capability for log messages     |
 
 #### Deprecated types — Roots
 
-| Type                             | Description                                |
-| -------------------------------- | ------------------------------------------ |
-| `Root`                           | Represents a root directory or file        |
-| `ListRootsRequest`              | Server-to-client request for `roots/list`  |
-| `ListRootsResult`               | Result containing roots array              |
-| `ListRootsResultResponse`       | JSON-RPC response wrapper                  |
-| `RootsListChangedNotification`  | Client notification when roots change      |
+| Type                           | Description                               |
+| ------------------------------ | ----------------------------------------- |
+| `Root`                         | Represents a root directory or file       |
+| `ListRootsRequest`             | Server-to-client request for `roots/list` |
+| `ListRootsResult`              | Result containing roots array             |
+| `ListRootsResultResponse`      | JSON-RPC response wrapper                 |
+| `RootsListChangedNotification` | Client notification when roots change     |
 
 #### Deprecated types — Sampling
 
-| Type                             | Description                                    |
-| -------------------------------- | ---------------------------------------------- |
-| `CreateMessageRequestParams`    | Parameters for `sampling/createMessage`         |
-| `CreateMessageRequest`          | Server-to-client request for sampling           |
-| `CreateMessageResult`           | Result from a sampling request                  |
-| `CreateMessageResultResponse`   | JSON-RPC response wrapper                       |
-| `SamplingMessage`               | A message in a sampling conversation            |
-| `SamplingMessageContentBlock`   | Content block union for sampling messages       |
-| `ToolChoice`                    | Controls model tool selection during sampling   |
-| `ToolUseContent`                | Tool use content block in sampling messages     |
-| `ToolResultContent`             | Tool result content block in sampling messages  |
-| `ModelPreferences`              | Server preferences for model selection          |
-| `ModelHint`                     | Hints for model selection                       |
+| Type                          | Description                                    |
+| ----------------------------- | ---------------------------------------------- |
+| `CreateMessageRequestParams`  | Parameters for `sampling/createMessage`        |
+| `CreateMessageRequest`        | Server-to-client request for sampling          |
+| `CreateMessageResult`         | Result from a sampling request                 |
+| `CreateMessageResultResponse` | JSON-RPC response wrapper                      |
+| `SamplingMessage`             | A message in a sampling conversation           |
+| `SamplingMessageContentBlock` | Content block union for sampling messages      |
+| `ToolChoice`                  | Controls model tool selection during sampling  |
+| `ToolUseContent`              | Tool use content block in sampling messages    |
+| `ToolResultContent`           | Tool result content block in sampling messages |
+| `ModelPreferences`            | Server preferences for model selection         |
+| `ModelHint`                   | Hints for model selection                      |
 
 #### Deprecated types — Logging
 
-| Type                                | Description                            |
-| ----------------------------------- | -------------------------------------- |
-| `LoggingLevel`                     | Syslog severity level enum             |
-| `SetLevelRequestParams`           | Parameters for `logging/setLevel`       |
+| Type                               | Description                             |
+| ---------------------------------- | --------------------------------------- |
+| `LoggingLevel`                     | Syslog severity level enum              |
+| `SetLevelRequestParams`            | Parameters for `logging/setLevel`       |
 | `SetLevelRequest`                  | Client-to-server request to set level   |
-| `SetLevelResultResponse`          | JSON-RPC response wrapper               |
+| `SetLevelResultResponse`           | JSON-RPC response wrapper               |
 | `LoggingMessageNotificationParams` | Parameters for log message notification |
-| `LoggingMessageNotification`      | Server-to-client log message            |
+| `LoggingMessageNotification`       | Server-to-client log message            |
 
 #### Annotation format
 
