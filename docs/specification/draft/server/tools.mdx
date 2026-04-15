@@ -55,6 +55,11 @@ with the set of tools currently available to the requesting client. This set **M
 empty and **MAY** change over the lifetime of the connection (see
 [List Changed Notification](#list-changed-notification)).
 
+Servers **SHOULD** return tools in a deterministic order (i.e., the same ordering across
+requests when the underlying set of tools has not changed). Deterministic ordering enables
+clients to reliably cache the tool list and improves LLM prompt cache hit rates when tools
+are included in model context.
+
 ## Protocol Messages
 
 ### Listing Tools
