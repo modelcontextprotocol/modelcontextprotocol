@@ -421,6 +421,12 @@
               "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
             ]
+          },
+          {
+            "group": "Approved with changes",
+            "pages": [
+              "seps/2322-MRTR"
+            ]
           }
         ]
       },
