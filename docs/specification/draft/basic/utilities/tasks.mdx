@@ -166,6 +166,7 @@ Clients **SHOULD** continue polling until the task reaches a terminal status (`c
 {
   "jsonrpc": "2.0",
   "id": 3,
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "working",
@@ -188,6 +189,7 @@ When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), t
 {
   "jsonrpc": "2.0",
   "id": 4,
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
@@ -214,6 +216,7 @@ When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), t
 {
   "jsonrpc": "2.0",
   "id": 5,
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "failed",
@@ -239,6 +242,7 @@ When a task requires input from the client (indicated by the `input_required` st
 {
   "jsonrpc": "2.0",
   "id": 6,
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
@@ -436,6 +440,19 @@ Task support is independent of capability negotiation. Servers may create tasks 
 
 </Note>
 
+### Task Data Shapes
+
+The protocol distinguishes between two representations of task data:
+
+1. **Base task data** (`Task`): Contains task metadata only — `taskId`, `status`, `statusMessage`, `createdAt`, `lastUpdatedAt`, `ttl`, and `pollInterval`. This shape is used by `CreateTaskResult` and `ListTasksResult`, which **MUST NOT** include `result`, `error`, or `inputRequests` fields.
+1. **Detailed task data** (`DetailedTask`): Extends the base task data with status-specific fields. This shape is used by `tasks/get` responses and `notifications/tasks/status` notifications:
+   - When `status` is `"completed"`: **MUST** include a `result` field containing the final result of the underlying request.
+   - When `status` is `"failed"`: **MUST** include an `error` field containing the JSON-RPC error.
+   - When `status` is `"input_required"`: **MUST** include an `inputRequests` field containing outstanding server-to-client requests.
+   - When `status` is `"working"` or `"cancelled"`: No additional fields are required.
+
+This separation ensures that `CreateTaskResult` and `ListTasksResult` remain lightweight, while `tasks/get` provides the full task state including inlined results and pending requests.
+
 ### Task ID Requirements
 
 1. Task IDs **MUST** be a string value.
@@ -493,8 +510,35 @@ stateDiagram-v2
 
 1. When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), servers **MUST** inline the final result or error into the `Task` object returned by `tasks/get`.
 1. For successful completion, the `result` field **MUST** contain what the underlying request would have returned (e.g., `CallToolResult` for `tools/call`).
-1. For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution, or the task **MAY** use `status: "failed"` with a `statusMessage` for tool results with `isError: true`.
+1. For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution. The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with `isError: true` (which should use the `completed` status with the error in the `result` field).
 1. Servers **MUST** include the `result` or `error` field in `notifications/tasks/status` notifications when notifying about terminal status transitions.
+
+### Result Type Discrimination
+
+To enable clients to distinguish between different response types without inspecting the entire payload, task-returning methods use the `resultType` field on the JSON-RPC response envelope:
+
+1. All methods that return a `Task` object (`tasks/get`, `tasks/cancel`) **MUST** set the `resultType` field to `"task"` on the JSON-RPC response.
+1. Methods that return `CreateTaskResult` (such as task-augmented `tools/call` requests) **SHOULD** set the `resultType` field to `"task"` to indicate a task was created instead of an immediate result.
+1. Clients **MAY** use the `resultType` field for polymorphic result handling, allowing them to quickly determine whether a response contains a task or an immediate result.
+1. If `resultType` is not specified, it defaults to `"complete"`.
+
+**Example: tasks/get response with resultType**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "resultType": "task",
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
+    "status": "working",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000
+  }
+}
+```
 
 ### Associating Task-Related Messages
 
@@ -746,8 +790,8 @@ Tasks can be in one of the following states:
 
 - `working`: The request is currently being processed.
 - `input_required`: The server needs input from the client. The `tasks/get` response will include outstanding requests in the `inputRequests` field, and the client should provide responses via the `inputResponses` field in subsequent `tasks/get` requests.
-- `completed`: The request completed successfully and results are available in the `result` field.
-- `failed`: The associated request did not complete successfully. The task will include either the `error` field (for JSON-RPC errors) or the `result` field with `isError: true` (for tool call errors).
+- `completed`: The request completed successfully and results are available in the `result` field. This includes tool calls that returned results with `isError: true`.
+- `failed`: The request failed due to a JSON-RPC error during execution. The task will include the `error` field with the JSON-RPC error details. This status **MUST NOT** be used for non-JSON-RPC errors.
 - `cancelled`: The request was cancelled before completion.
 
 ### Task Parameters
@@ -847,14 +891,15 @@ Servers are not required to retain tasks indefinitely. It is compliant behavior 
 
 ### Task Execution Errors
 
-When the underlying request does not complete successfully, the task moves to the `failed` status. This includes JSON-RPC protocol errors during request execution, or for tool calls specifically, when the tool result has `isError` set to true. The `tasks/get` response **SHOULD** include a `statusMessage` field with diagnostic information about the failure, and **MUST** include either the `result` field (for tool errors with `isError: true`) or the `error` field (for JSON-RPC errors).
+When the underlying request encounters a JSON-RPC protocol error during execution, the task moves to the `failed` status. The `tasks/get` response **SHOULD** include a `statusMessage` field with diagnostic information about the failure, and **MUST** include the `error` field with the JSON-RPC error.
 
-**Example: Task with execution error (JSON-RPC error)**
+**Example: Task with JSON-RPC execution error**
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 4,
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
     "status": "failed",
@@ -870,15 +915,18 @@ When the underlying request does not complete successfully, the task moves to th
 }
 ```
 
-**Example: Task with tool error (isError: true)**
+**Example: Tool call completed with application error (isError: true)**
+
+For tool calls that complete successfully at the protocol level but return an application-level error (indicated by `isError: true` in the tool result), the task reaches `completed` status with the tool result in the `result` field:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 5,
+  "resultType": "task",
   "result": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
-    "status": "failed",
+    "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
     "ttl": 30000,
@@ -895,12 +943,18 @@ When the underlying request does not complete successfully, the task moves to th
 }
 ```
 
-For tasks that wrap tool call requests, when the tool result has `isError` set to `true`, the task should reach `failed` status and include the tool result in the `result` field.
-
 The `tasks/get` endpoint returns exactly what the underlying request would have returned:
 
-- If the underlying request resulted in a JSON-RPC error, the `error` field **MUST** contain that JSON-RPC error.
-- If the request completed with a result, the `result` field **MUST** contain that result (even if `isError: true` for tool results).
+- If the underlying request resulted in a JSON-RPC error, the task uses `failed` status and the `error` field **MUST** contain that JSON-RPC error.
+- If the request completed with a result (even if `isError: true` for tool results), the task uses `completed` status and the `result` field **MUST** contain that result.
+
+## Transport Considerations
+
+### Streamable HTTP Headers
+
+When using the [Streamable HTTP transport](/specification/draft/basic/transports#streamable-http), clients **MUST** set the `Mcp-Name` header to the value of `params.taskId` when making `tasks/get` and `tasks/cancel` requests. This enables infrastructure to route task-related requests to the correct server instance, as tasks often involve server-side state that must be consistently co-located.
+
+This requirement extends the standard headers defined in [SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243), which requires all requests and notifications to declare an `Mcp-Method` header.
 
 ## Security Considerations
 

@@ -151,6 +151,21 @@ export interface Result {
 }
 
 /**
+ * Discriminator for polymorphic result handling.
+ * Indicates the semantic type of the result to enable clients to determine
+ * how to process the response without inspecting the entire result payload.
+ *
+ * - "complete": The request completed successfully and the result contains final data
+ * - "incomplete": The request requires additional client input (see SEP-2322 Multi Round-Trip Requests)
+ * - "task": The response contains a Task object for polling (see tasks specification)
+ *
+ * Defaults to "complete" if not specified.
+ *
+ * @category Common Types
+ */
+export type ResultType = "complete" | "incomplete" | "task";
+
+/**
  * @category Errors
  */
 export interface Error {
@@ -203,6 +218,15 @@ export interface JSONRPCResultResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
+
+  /**
+   * Discriminator for polymorphic result handling. When present, indicates the
+   * semantic type of the result so that clients can determine how to process
+   * the response without inspecting the entire result payload.
+   *
+   * Defaults to "complete" if not specified.
+   */
+  resultType?: ResultType;
 }
 
 /**
@@ -1804,7 +1828,7 @@ export type TaskStatus =
   | "working" // The request is currently being processed
   | "input_required" // The task is waiting for input (e.g., elicitation or sampling)
   | "completed" // The request completed successfully and results are available
-  | "failed" // The associated request did not complete successfully. For tool calls specifically, this includes cases where the tool call result has `isError` set to true.
+  | "failed" // The request failed due to a JSON-RPC error. This status MUST NOT be used for non-JSON-RPC errors (e.g., tool results with isError: true should use "completed" status with the error in the result field).
   | "cancelled"; // The request was cancelled before completion
 
 /**
@@ -1878,22 +1902,73 @@ export interface Task {
    * Suggested polling interval in milliseconds.
    */
   pollInterval?: number;
-
-  /**
-   * The final result of the task. Present only when status is "completed".
-   * The structure matches the result type of the original request.
-   * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
-   */
-  result?: JSONObject;
-
-  /**
-   * The error that caused the task to fail. Present only when status is "failed".
-   */
-  error?: JSONObject;
 }
 
 /**
+ * A task that is waiting for input from the client.
+ * Used by tasks/get and notifications/tasks/status.
+ *
+ * @category `tasks`
+ */
+export interface InputRequiredTask extends Task {
+  status: "input_required";
+  /**
+   * Server-to-client requests that need to be fulfilled during task execution.
+   * Keys are arbitrary identifiers for matching requests to responses.
+   */
+  inputRequests: { [key: string]: JSONObject };
+}
+
+/**
+ * A task that has completed successfully.
+ * Used by tasks/get and notifications/tasks/status.
+ *
+ * @category `tasks`
+ */
+export interface CompletedTask extends Task {
+  status: "completed";
+  /**
+   * The final result of the task.
+   * The structure matches the result type of the original request.
+   * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
+   */
+  result: JSONObject;
+}
+
+/**
+ * A task that has failed due to a JSON-RPC error.
+ * Used by tasks/get and notifications/tasks/status.
+ *
+ * @category `tasks`
+ */
+export interface FailedTask extends Task {
+  status: "failed";
+  /**
+   * The JSON-RPC error that caused the task to fail.
+   */
+  error: JSONObject;
+}
+
+/**
+ * A union type representing a task with optional inlined result/error/inputRequests fields.
+ * This type is used by tasks/get and notifications/tasks/status to provide complete task state
+ * including terminal results or pending input requests.
+ *
+ * @category `tasks`
+ */
+export type DetailedTask =
+  | Task
+  | InputRequiredTask
+  | CompletedTask
+  | FailedTask;
+
+/**
  * The result returned for a task-augmented request.
+ *
+ * This type uses the base {@link Task} shape intentionally: `CreateTaskResult` represents
+ * task metadata only, and MUST NOT include `result`, `error`, or `inputRequests` fields.
+ * Those fields are reserved for {@link DetailedTask} subtypes returned by
+ * {@link GetTaskRequest | tasks/get} and {@link TaskStatusNotification | notifications/tasks/status}.
  *
  * Receivers MAY return this result even when the request does not include a `task` field,
  * allowing unsolicited task creation. When this occurs, requestors MUST handle the task
@@ -1941,18 +2016,17 @@ export interface GetTaskRequest extends JSONRPCRequest {
 
 /**
  * The result returned for a {@link GetTaskRequest | tasks/get} request.
+ * Returns a DetailedTask which may include inlined result/error/inputRequests based on task status.
  *
  * @category `tasks/get`
  */
 export type GetTaskResult = Result &
-  Task & {
+  DetailedTask & {
     /**
-     * Optional server-to-client requests that need to be fulfilled during task execution.
-     * When present with status "input_required", the client should respond to these
-     * requests by including inputResponses in the next tasks/get call.
-     * Keys are arbitrary identifiers for matching requests to responses.
+     * Optional request state passed back from the server to the client.
+     * Used for server-side state management per SEP-2322 Multi Round-Trip Requests.
      */
-    inputRequests?: { [key: string]: JSONObject };
+    requestState?: string;
   };
 
 /**
@@ -2010,6 +2084,11 @@ export interface ListTasksRequest extends PaginatedRequest {
 /**
  * The result returned for a {@link ListTasksRequest | tasks/list} request.
  *
+ * This type uses the base {@link Task} shape intentionally: `ListTasksResult` provides
+ * task metadata only, and MUST NOT include `result`, `error`, or `inputRequests` fields.
+ * Those fields are reserved for {@link DetailedTask} subtypes returned by
+ * {@link GetTaskRequest | tasks/get} and {@link TaskStatusNotification | notifications/tasks/status}.
+ *
  * @category `tasks/list`
  */
 export interface ListTasksResult extends PaginatedResult {
@@ -2027,10 +2106,11 @@ export interface ListTasksResultResponse extends JSONRPCResultResponse {
 
 /**
  * Parameters for a `notifications/tasks/status` notification.
+ * Uses DetailedTask to include inlined result/error/inputRequests for terminal status transitions.
  *
  * @category `notifications/tasks/status`
  */
-export type TaskStatusNotificationParams = NotificationParams & Task;
+export type TaskStatusNotificationParams = NotificationParams & DetailedTask;
 
 /**
  * An optional notification from the receiver to the requestor, informing them that a task's status has changed. Receivers are not required to send these notifications.

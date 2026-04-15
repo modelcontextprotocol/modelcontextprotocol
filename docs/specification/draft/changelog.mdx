@@ -9,7 +9,17 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 
 ## Major changes
 
-N/A
+1. Stabilize tasks feature with major simplifications ([SEP-2557](/seps/2557-tasks-stabilization)):
+   - Allow unsolicited task creation: servers can return `CreateTaskResult` even when clients don't request a task
+   - Allow immediate results: servers can return immediate results even when clients request a task
+   - Consolidate polling lifecycle: `tasks/get` now handles status retrieval, result delivery, and server-to-client requests
+   - Remove `tasks/result` method: results and errors are inlined into the `Task` object
+   - Remove client-hosted tasks: per SEP-2260, client-hosted task polling is conceptually invalid
+   - Add `DetailedTask` types: `InputRequiredTask`, `CompletedTask`, `FailedTask` for typed task states
+   - Add `ResultType` discriminator: use `"task"` value to indicate responses containing Task objects
+   - Deprecate capability declarations: `tasks` (client), `tasks.cancel`, and `tasks.requests.tools.call` (server)
+   - Deprecate `execution.taskSupport` field on Tool schema
+   - Clarify `failed` status semantics: MUST NOT be used for non-JSON-RPC errors (e.g., tool results with `isError: true` should use `completed` status)
 
 ## Minor changes
 
@@ -19,7 +29,8 @@ N/A
 
 ## Other schema changes
 
-N/A
+1. Add `requestState` field to `GetTaskResult` for server-side state management per SEP-2322
+2. Update `TaskStatusNotificationParams` to use `DetailedTask` for inlined result/error/inputRequests in terminal status notifications
 
 ## Governance and process updates
 
