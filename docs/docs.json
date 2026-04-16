@@ -444,6 +444,7 @@
             "group": "Working Group Charters",
             "pages": [
               "community/inspector-v2/charter",
+              "community/registry/charter",
               "community/server-card/charter",
               "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
