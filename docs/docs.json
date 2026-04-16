@@ -463,13 +463,8 @@
             "pages": [
               "community/inspector-v2/charter",
               "community/server-card/charter",
+              "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
-            ]
-          },
-          {
-            "group": "Interest Group Charters",
-            "pages": [
-              "community/skills-over-mcp/charter"
             ]
           },
           {
