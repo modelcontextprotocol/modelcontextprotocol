@@ -57,13 +57,8 @@ To both improve the adoption of tasks and to reduce their upfront messaging over
 The following changes will be made to the tasks specification:
 
 1. With respect to task creation
-   1. We will deprecate the following capability declarations:
-      1. Client capabilities:
-         1. `tasks` (the entire capability, and all sub-capabilities, given that all supported client methods are now invalid, per [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md))
-      1. Server capabilities:
-         1. `tasks.cancel` (only the capability declaration is deprecated; _not_ the `tasks/cancel` method itself)
-         1. `tasks.requests.tools.call`
-   1. We will deprecate the `execution.taskSupport` field from the `Tool` shape.
+   1. We will remove the `tasks` capability declaration on both the client and the server.
+   1. We will remove the `execution.taskSupport` field from the `Tool` shape.
    1. We will allow `CreateTaskResult` to be returned in response to `CallToolRequest` when no `task` field is present in the request.
    1. We will allow `CallToolResult` to be returned in response to `CallToolRequest` even when the `task` field is present in the request.
 1. With respect to the task polling lifecycle:
@@ -75,38 +70,39 @@ The following changes will be made to the tasks specification:
    1. We will remove the `tasks/result` method.
 1. With respect to tasks in general:
    1. We will remove the concept of client-hosted tasks, as [SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md) renders them conceptually invalid.
+   1. We will remove the `tasks/list` operation.
    1. We may expand task support to additional client-to-server request types in the future, and implementors are still advised against implementing tasks as a tool-specific protocol operation.
    1. We will require `tasks/cancel` to be supported even if a server is incapabable or unwillling of offering actual task cancellation, similar to `notifications/cancelled` (it should instead return an error).
 
 ### Task Capabilities Changes Summary
 
-The below table summarizes the changes to the task-related capabiliteis:
+The below table summarizes the changes to the task-related capabilities:
 
-| Role   | Capability                              | Status          | Description                  |
-| ------ | --------------------------------------- | --------------- | ---------------------------- |
-| Server | `tasks.requests.tools.call`             | removed         |
-| Server | `tasks.cancel`                          | removed         |                              |
-| Server | `tasks.list`                            | still supported |                              |
-| Client | `tasks.requests.sampling.createMessage` | removed         | no longer supported SEP-2260 |
-| Client | `tasks.requests.elicitation.create`     | removed         | no longer supported SEP-2260 |
-| Client | `tasks.cancel`                          | removed         | no longer needed             |
-| Client | `tasks.list`                            | removed         | no longer needed             |
+| Role   | Capability                              | Status  | Description                  |
+| ------ | --------------------------------------- | ------- | ---------------------------- |
+| Server | `tasks.requests.tools.call`             | removed |                              |
+| Server | `tasks.cancel`                          | removed | `tasks/cancel` is required   |
+| Server | `tasks.list`                            | removed | `tasks/list` is removed      |
+| Client | `tasks.requests.sampling.createMessage` | removed | no longer supported SEP-2260 |
+| Client | `tasks.requests.elicitation.create`     | removed | no longer supported SEP-2260 |
+| Client | `tasks.cancel`                          | removed | no longer needed             |
+| Client | `tasks.list`                            | removed | no longer needed             |
 
 ### Task Methods Changes Summary
 
 The below table summarizes the changes to the task-related methods:
 
-| Method                            | Status          | Description                                                             |
-| --------------------------------- | --------------- | ----------------------------------------------------------------------- |
-| `tasks/get`                       | still supported | Consolidates the entire polling lifecycle into a single method.         |
-| `tasks/result`                    | removed         | No longer needed; results are inlined into `tasks/get`.                 |
-| `tasks/input_response` (SEP-2322) | removed         | No longer needed; results are inlined into `tasks/get`.                 |
-| `tasks/cancel`                    | still supported | Required to be supported even if actual cancellation is not possible.   |
-| `tasks/list`                      | still supported | Some open questions on how this should be implemented without sessions. |
+| Method                            | Status          | Description                                                           |
+| --------------------------------- | --------------- | --------------------------------------------------------------------- |
+| `tasks/get`                       | still supported | Consolidates the entire polling lifecycle into a single method.       |
+| `tasks/result`                    | removed         | No longer needed; results are inlined into `tasks/get`.               |
+| `tasks/input_response` (SEP-2322) | removed         | No longer needed; results are inlined into `tasks/get`.               |
+| `tasks/cancel`                    | still supported | Required to be supported even if actual cancellation is not possible. |
+| `tasks/list`                      | removed         | Use cases can be satisfied with client handling.                      |
 
 ### Task Schema Changes
 
-The `Task` schema defining the task metadata gains an optional `requestState` (see SEP-2322). We additionally introduce new derived types that inline `result`/`error`/`inputRequests`, to be used by `tasks/get` and `notifications/tasks/status`. This allows us to avoid introducing redundant/bloated fields in `CreateTaskResult` and in `ListTasksResult`.
+The `Task` schema defining the task metadata gains an optional `requestState` (see SEP-2322). We additionally introduce new derived types that inline `result`/`error`/`inputRequests`, to be used by `tasks/get` and `notifications/tasks/status`. This allows us to avoid introducing redundant/bloated fields in `CreateTaskResult`.
 
 ```typescript
 interface Task {
@@ -634,9 +630,15 @@ We will extend this with semantics for the `tasks/get` and `tasks/cancel` reques
 
 ### Removing `tasks/result`
 
-Removing methods is not done lightly, but was the logical conclusion of this proposal after inlining the result/error into `tasks/get`. As an alternative, we could have left `tasks/get` unchanged and left `tasks/result` in solely as a method for late result retrieval. This would have incentivized using `tasks/get` as a general method of retrieving the task state and result simultaneously, rendering `tasks/result` obsolete regardless.
+Removing `tasks/result` was the logical conclusion of this proposal after inlining the result/error into `tasks/get`. As an alternative, we could have left `tasks/get` unchanged and left `tasks/result` in solely as a method for late result retrieval. This would have incentivized using `tasks/get` as a general method of retrieving the task state and result simultaneously, rendering `tasks/result` obsolete regardless.
 
 Furthermore, the greatest flaw of `tasks/result` today is its blocking requirement, and leaving that in place would leave the general implementation headache of dealing with that unsolved. If we chose to instead remove the blocking requirement in favor of an "incomplete" error, we could get away with leaving `tasks/result` in place in a deprecated state, but then we would have been making a breaking change to it anyways.
+
+### Removing `tasks/list`
+
+Given that tasks are intended to be bound to their creator in some way (the current specification is that they should be bound to the "authorization context" if possible), removing `tasks/list` avoids complications where that context is not well-defined. As a specific example: If a task ID is unique and resistant to guessing, but does not have a "user" associated with it, the server running that task knows subsequent requests containing that task ID are owned by the caller. However, it does not know if two separate tasks with different IDs are from the same caller unless it can correlate them via some additional property (e.g. some variety of session state).
+
+As a second point, we assert that all common use cases for `tasks/list` can in fact be satisfied by the client application, similarly to the argument for removing sessions posed in [SEP-2567: Sessionless MCP via Explicit State Handles](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567). An end-user application that needs to retain a list of tasks associated with a conversation can store task IDs it receives alongside its own persisted conversation state; one that wishes to maintain a list of tasks to reference across conversations can aggregate that list on its own.
 
 ### Removing Client-Hosted Tasks
 

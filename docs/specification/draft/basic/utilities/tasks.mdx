@@ -25,45 +25,7 @@ Implementations are free to expose tasks through any interface pattern that suit
 
 ## Capabilities
 
-Servers that support task-augmented requests **MUST** declare a `tasks` capability during initialization. The `tasks` capability is structured by request category, with boolean properties indicating which specific request types support task augmentation.
-
-<Note type="warning">
-
-The `tasks.cancel` and `tasks.requests.tools.call` capability declarations are deprecated. Servers **MAY** return `CreateTaskResult` for any request regardless of declared capabilities.
-
-</Note>
-
-### Server Capabilities
-
-Servers declare if they support tasks, and if so, which server-side requests can be augmented with tasks.
-
-| Capability                  | Description                                                                         |
-| --------------------------- | ----------------------------------------------------------------------------------- |
-| `tasks.list`                | Server supports the `tasks/list` operation                                          |
-| `tasks.cancel`              | **Deprecated** - Server supports the `tasks/cancel` operation (now always required) |
-| `tasks.requests.tools.call` | **Deprecated** - Server supports task-augmented `tools/call` requests               |
-
-```json
-{
-  "capabilities": {
-    "tasks": {
-      "list": {},
-      "cancel": {},
-      "requests": {
-        "tools": {
-          "call": {}
-        }
-      }
-    }
-  }
-}
-```
-
-<Note type="warning">
-
-The `Tool.execution.taskSupport` field is deprecated. Servers **MAY** return tasks for any tool call regardless of this field's value.
-
-</Note>
+Task support requires no capability negotiation. Servers **MAY** return `CreateTaskResult` for any request without declaring a `tasks` capability, and clients **MUST** be prepared to handle tasks regardless of declared capabilities.
 
 ## Protocol Messages
 
@@ -293,6 +255,64 @@ When a task requires input from the client (indicated by the `input_required` st
 
 The `inputRequests` field represents a point-in-time snapshot of all outstanding server-to-client requests. If the client polls again before providing responses, the same requests will be included in subsequent responses. Clients **SHOULD** deduplicate requests with the same key for UX purposes.
 
+#### Request State Management
+
+Servers **MAY** set an optional `requestState` string on any `Task` object to pass opaque routing or state information back to the client. When a client receives a `Task` with a `requestState` value, it **MUST** echo back the exact value of that field in the `requestState` field of subsequent `tasks/get` requests for the same task. The server can use this echoed value to recover routing context or session state without maintaining per-task server-side session data, enabling stateless, load-balanced deployments.
+
+**Response (with requestState):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "resultType": "task",
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "input_required",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:45:00Z",
+    "ttl": 30000,
+    "pollInterval": 5000,
+    "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0=",
+    "inputRequests": {
+      "elicit-name": {
+        "method": "elicitation/create",
+        "params": {
+          "message": "Please enter your name.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": { "name": { "type": "string" } },
+            "required": ["name"]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Follow-up Request (echoing requestState):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tasks/get",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0=",
+    "inputResponses": {
+      "elicit-name": {
+        "action": "accept",
+        "content": { "input": "Jane Doe" }
+      }
+    }
+  }
+}
+```
+
+The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. If no `requestState` is present in the server's response, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
+
 ### Task Status Notification
 
 When a task status changes, servers **MAY** send a [`notifications/tasks/status`](/specification/draft/schema#notifications%2Ftasks%2Fstatus) notification to inform the client of the change. This notification includes the full task state.
@@ -326,52 +346,6 @@ When a task status changes, servers **MAY** send a [`notifications/tasks/status`
 The notification includes the full [`Task`](/specification/draft/schema#task) object, including the updated `status`, `statusMessage` (if present), and `result` or `error` fields when the task reaches a terminal status. This allows clients to access the complete task state and final results without making an additional `tasks/get` request.
 
 Clients **MUST NOT** rely on receiving this notifications, as it is optional. Servers are not required to send status notifications and may choose to only send them for certain status transitions. Clients **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
-
-### Listing Tasks
-
-To retrieve a list of tasks, clients can send a [`tasks/list`](/specification/draft/schema#tasks%2Flist) request. This operation supports pagination.
-
-**Request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "method": "tasks/list",
-  "params": {
-    "cursor": "optional-cursor-value"
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "result": {
-    "tasks": [
-      {
-        "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-        "status": "working",
-        "createdAt": "2025-11-25T10:30:00Z",
-        "lastUpdatedAt": "2025-11-25T10:40:00Z",
-        "ttl": 30000,
-        "pollInterval": 5000
-      },
-      {
-        "taskId": "abc123-def456-ghi789",
-        "status": "completed",
-        "createdAt": "2025-11-25T09:15:00Z",
-        "lastUpdatedAt": "2025-11-25T10:40:00Z",
-        "ttl": 60000
-      }
-    ],
-    "nextCursor": "next-page-cursor"
-  }
-}
-```
 
 ### Cancelling Tasks
 
@@ -444,14 +418,14 @@ Task support is independent of capability negotiation. Servers may create tasks 
 
 The protocol distinguishes between two representations of task data:
 
-1. **Base task data** (`Task`): Contains task metadata only — `taskId`, `status`, `statusMessage`, `createdAt`, `lastUpdatedAt`, `ttl`, and `pollInterval`. This shape is used by `CreateTaskResult` and `ListTasksResult`, which **MUST NOT** include `result`, `error`, or `inputRequests` fields.
+1. **Base task data** (`Task`): Contains task metadata only — `taskId`, `status`, `statusMessage`, `createdAt`, `lastUpdatedAt`, `ttl`, and `pollInterval`. This shape is used by `CreateTaskResult`, which **MUST NOT** include `result`, `error`, or `inputRequests` fields.
 1. **Detailed task data** (`DetailedTask`): Extends the base task data with status-specific fields. This shape is used by `tasks/get` responses and `notifications/tasks/status` notifications:
    - When `status` is `"completed"`: **MUST** include a `result` field containing the final result of the underlying request.
    - When `status` is `"failed"`: **MUST** include an `error` field containing the JSON-RPC error.
    - When `status` is `"input_required"`: **MUST** include an `inputRequests` field containing outstanding server-to-client requests.
    - When `status` is `"working"` or `"cancelled"`: No additional fields are required.
 
-This separation ensures that `CreateTaskResult` and `ListTasksResult` remain lightweight, while `tasks/get` provides the full task state including inlined results and pending requests.
+This separation ensures that `CreateTaskResult` remains lightweight, while `tasks/get` provides the full task state including inlined results and pending requests.
 
 ### Task ID Requirements
 
@@ -544,8 +518,8 @@ To enable clients to distinguish between different response types without inspec
 
 1. All requests, notifications, and responses related to a task **MUST** include the `io.modelcontextprotocol/related-task` key in their `_meta` field, with the value set to an object with a `taskId` matching the associated task ID.
    1. For example, an elicitation that a task-augmented tool call depends on **MUST** share the same related task ID with that tool call's task.
-1. For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, the `taskId` parameter in the request **MUST** be used as the source of truth for identifying the target task. Clients **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in these requests, and servers **MUST** ignore such metadata if present in favor of the RPC method parameter.
-1. For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, servers **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in the result messages, as the `taskId` is already present in the response structure.
+1. For the `tasks/get` and `tasks/cancel` operations, the `taskId` parameter in the request **MUST** be used as the source of truth for identifying the target task. Clients **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in these requests, and servers **MUST** ignore such metadata if present in favor of the RPC method parameter.
+1. For the `tasks/get` and `tasks/cancel` operations, servers **SHOULD NOT** include `io.modelcontextprotocol/related-task` metadata in the result messages, as the `taskId` is already present in the response structure.
 
 ### Task Notifications
 
@@ -556,13 +530,6 @@ To enable clients to distinguish between different response types without inspec
 ### Task Progress Notifications
 
 Task-augmented requests support progress notifications as defined in the [progress](./progress) specification. The `progressToken` provided in the initial request remains valid throughout the task lifetime.
-
-### Task Listing
-
-1. Servers **SHOULD** use cursor-based pagination to limit the number of tasks returned in a single response.
-1. Servers **MUST** include a `nextCursor` in the response if more tasks are available.
-1. Clients **MUST** treat cursors as opaque tokens and not attempt to parse or modify them.
-1. If a task is retrievable via `tasks/get` for a client, it **MUST** be retrievable via `tasks/list` for that client.
 
 ### Task Cancellation
 
@@ -783,6 +750,7 @@ A task represents the execution state of a request. The task state includes:
 - `lastUpdatedAt`: ISO 8601 timestamp when the task status was last updated
 - `result`: Optional field containing the final result when the task reaches a terminal status (e.g., `CallToolResult` for tool calls)
 - `error`: Optional field containing a JSON-RPC error if the task failed
+- `requestState`: Optional opaque string set by the server for stateless routing or state management. Clients **MUST** echo this value back exactly in subsequent `tasks/get` requests (see [Request State Management](#request-state-management)).
 
 ### Task Status
 
@@ -824,7 +792,7 @@ All requests, responses, and notifications associated with a task **MUST** inclu
 
 This associates messages with their originating task across the entire request lifecycle.
 
-For the `tasks/get`, `tasks/list`, and `tasks/cancel` operations, clients and servers **SHOULD NOT** include this metadata in their messages, as the `taskId` is already present in the message structure.
+For the `tasks/get` and `tasks/cancel` operations, clients and servers **SHOULD NOT** include this metadata in their messages, as the `taskId` is already present in the message structure.
 
 ## Error Handling
 
@@ -838,7 +806,6 @@ Tasks use two error reporting mechanisms:
 Servers **MUST** return standard JSON-RPC errors for the following protocol error cases:
 
 - Invalid or nonexistent `taskId` in `tasks/get` or `tasks/cancel`: `-32602` (Invalid params)
-- Invalid or nonexistent cursor in `tasks/list`: `-32602` (Invalid params)
 - Attempt to cancel a task already in a terminal status: `-32602` (Invalid params)
 - Internal errors: `-32603` (Internal error)
 
@@ -967,9 +934,8 @@ When an authorization context is provided, servers **MUST** bind tasks to said c
 Context-binding is not practical for all applications. Some MCP servers operate in environments without authorization, such as single-user tools, or use transports that don't support authorization.
 In these scenarios, servers **SHOULD** document this limitation clearly, as task results may be accessible to any client that can guess the task ID.
 If context-binding is unavailable, servers **MUST** generate cryptographically secure task IDs with enough entropy to prevent guessing and should consider using shorter TTL durations to reduce the exposure window.
-Furthermore, servers that cannot identify clients **SHOULD NOT** declare the `tasks.list` capability, as listing tasks would expose task metadata to any client regardless of task ID entropy.
 
-If context-binding is available, servers **MUST** reject `tasks/get` and `tasks/cancel` requests for tasks that do not belong to the same authorization context as the client. For `tasks/list` requests, servers **MUST** ensure the returned task list includes only tasks associated with the client's authorization context.
+If context-binding is available, servers **MUST** reject `tasks/get` and `tasks/cancel` requests for tasks that do not belong to the same authorization context as the client.
 
 Additionally, servers **SHOULD** implement rate limiting on task operations to prevent denial-of-service and enumeration attacks.
 

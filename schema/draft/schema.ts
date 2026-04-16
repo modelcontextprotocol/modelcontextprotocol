@@ -572,48 +572,6 @@ export interface ClientCapabilities {
   };
 
   /**
-   * Present if the client supports task-augmented requests.
-   *
-   * @deprecated Receivers MAY return {@link CreateTaskResult} for any request
-   * without requiring prior capability negotiation.
-   */
-  tasks?: {
-    /**
-     * Whether this client supports {@link ListTasksRequest | tasks/list}.
-     */
-    list?: JSONObject;
-    /**
-     * Whether this client supports {@link CancelTaskRequest | tasks/cancel}.
-     *
-     * @deprecated Clients MUST support {@link CancelTaskRequest | tasks/cancel}
-     * regardless of this capability declaration.
-     */
-    cancel?: JSONObject;
-    /**
-     * Specifies which request types can be augmented with tasks.
-     */
-    requests?: {
-      /**
-       * Task support for sampling-related requests.
-       */
-      sampling?: {
-        /**
-         * Whether the client supports task-augmented `sampling/createMessage` requests.
-         */
-        createMessage?: JSONObject;
-      };
-      /**
-       * Task support for elicitation-related requests.
-       */
-      elicitation?: {
-        /**
-         * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
-         */
-        create?: JSONObject;
-      };
-    };
-  };
-  /**
    * Optional MCP extensions that the client supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
@@ -702,40 +660,6 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the tool list.
      */
     listChanged?: boolean;
-  };
-  /**
-   * Present if the server supports task-augmented requests.
-   */
-  tasks?: {
-    /**
-     * Whether this server supports {@link ListTasksRequest | tasks/list}.
-     */
-    list?: JSONObject;
-    /**
-     * Whether this server supports {@link CancelTaskRequest | tasks/cancel}.
-     *
-     * @deprecated Servers MUST support {@link CancelTaskRequest | tasks/cancel}
-     * regardless of this capability declaration, though they MAY return an error
-     * if actual cancellation is not possible.
-     */
-    cancel?: JSONObject;
-    /**
-     * Specifies which request types can be augmented with tasks.
-     */
-    requests?: {
-      /**
-       * Task support for tool-related requests.
-       */
-      tools?: {
-        /**
-         * Whether the server supports task-augmented {@link CallToolRequest | tools/call} requests.
-         *
-         * @deprecated Servers MAY return {@link CreateTaskResult} for
-         * {@link CallToolRequest | tools/call} requests without declaring this capability.
-         */
-        call?: JSONObject;
-      };
-    };
   };
   /**
    * Optional MCP extensions that the server supports. Keys are extension identifiers
@@ -1730,30 +1654,6 @@ export interface ToolAnnotations {
 }
 
 /**
- * Execution-related properties for a tool.
- *
- * @category `tools/list`
- */
-export interface ToolExecution {
-  /**
-   * Indicates whether this tool supports task-augmented execution.
-   * This allows clients to handle long-running operations through polling
-   * the task system.
-   *
-   * - `"forbidden"`: Tool does not support task-augmented execution (default when absent)
-   * - `"optional"`: Tool may support task-augmented execution
-   * - `"required"`: Tool requires task-augmented execution
-   *
-   * Default: `"forbidden"`
-   *
-   * @deprecated Servers MAY return {@link CreateTaskResult} for any tool call
-   * regardless of this field, and requestors MUST be prepared to handle tasks
-   * without checking it.
-   */
-  taskSupport?: "forbidden" | "optional" | "required";
-}
-
-/**
  * Definition for a tool the client can call.
  *
  * @example With default 2020-12 input schema
@@ -1787,11 +1687,6 @@ export interface Tool extends BaseMetadata, Icons {
     properties?: { [key: string]: JSONValue };
     required?: string[];
   };
-
-  /**
-   * Execution-related properties for this tool.
-   */
-  execution?: ToolExecution;
 
   /**
    * An optional JSON Schema object defining the structure of the tool's output returned in
@@ -2074,38 +1969,6 @@ export type CancelTaskResult = Result & Task;
  */
 export interface CancelTaskResultResponse extends JSONRPCResultResponse {
   result: CancelTaskResult;
-}
-
-/**
- * A request to retrieve a list of tasks.
- *
- * @category `tasks/list`
- */
-export interface ListTasksRequest extends PaginatedRequest {
-  method: "tasks/list";
-}
-
-/**
- * The result returned for a {@link ListTasksRequest | tasks/list} request.
- *
- * This type uses the base {@link Task} shape intentionally: `ListTasksResult` provides
- * task metadata only, and MUST NOT include `result`, `error`, or `inputRequests` fields.
- * Those fields are reserved for {@link DetailedTask} subtypes returned by
- * {@link GetTaskRequest | tasks/get} and {@link TaskStatusNotification | notifications/tasks/status}.
- *
- * @category `tasks/list`
- */
-export interface ListTasksResult extends PaginatedResult {
-  tasks: Task[];
-}
-
-/**
- * A successful response for a {@link ListTasksRequest | tasks/list} request.
- *
- * @category `tasks/list`
- */
-export interface ListTasksResultResponse extends JSONRPCResultResponse {
-  result: ListTasksResult;
 }
 
 /**
@@ -3324,7 +3187,6 @@ export type ClientRequest =
   | CallToolRequest
   | ListToolsRequest
   | GetTaskRequest
-  | ListTasksRequest
   | CancelTaskRequest;
 
 /** @internal */
@@ -3342,7 +3204,6 @@ export type ClientResult =
   | ListRootsResult
   | ElicitResult
   | GetTaskResult
-  | ListTasksResult
   | CancelTaskResult;
 
 /* Server messages */
@@ -3353,7 +3214,6 @@ export type ServerRequest =
   | ListRootsRequest
   | ElicitRequest
   | GetTaskRequest
-  | ListTasksRequest
   | CancelTaskRequest;
 
 /** @internal */
@@ -3382,5 +3242,4 @@ export type ServerResult =
   | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
-  | ListTasksResult
   | CancelTaskResult;

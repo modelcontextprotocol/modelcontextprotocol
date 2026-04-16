@@ -385,46 +385,6 @@
                         }
                     },
                     "type": "object"
-                },
-                "tasks": {
-                    "description": "Present if the client supports task-augmented requests.",
-                    "properties": {
-                        "cancel": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this client supports {@link CancelTaskRequesttasks/cancel}."
-                        },
-                        "list": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this client supports {@link ListTasksRequesttasks/list}."
-                        },
-                        "requests": {
-                            "description": "Specifies which request types can be augmented with tasks.",
-                            "properties": {
-                                "elicitation": {
-                                    "description": "Task support for elicitation-related requests.",
-                                    "properties": {
-                                        "create": {
-                                            "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests."
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "sampling": {
-                                    "description": "Task support for sampling-related requests.",
-                                    "properties": {
-                                        "createMessage": {
-                                            "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
                 }
             },
             "type": "object"
@@ -490,9 +450,6 @@
                     "$ref": "#/$defs/CancelTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/ListTasksRequest"
-                },
-                {
                     "$ref": "#/$defs/SetLevelRequest"
                 },
                 {
@@ -548,9 +505,6 @@
                 {
                     "$ref": "#/$defs/CancelTaskResult",
                     "description": "The result returned for a {@link CancelTaskRequesttasks/cancel} request."
-                },
-                {
-                    "$ref": "#/$defs/ListTasksResult"
                 },
                 {
                     "$ref": "#/$defs/CreateMessageResult"
@@ -2407,78 +2361,6 @@
             ],
             "type": "object"
         },
-        "ListTasksRequest": {
-            "description": "A request to retrieve a list of tasks.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "tasks/list",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/PaginatedRequestParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method"
-            ],
-            "type": "object"
-        },
-        "ListTasksResult": {
-            "description": "The result returned for a {@link ListTasksRequesttasks/list} request.\n\nThis type uses the base {@link Task} shape intentionally: `ListTasksResult` provides\ntask metadata only, and MUST NOT include `result`, `error`, or `inputRequests` fields.\nThose fields are reserved for {@link DetailedTask} subtypes returned by\n{@link GetTaskRequesttasks/get} and {@link TaskStatusNotificationnotifications/tasks/status}.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
-                "nextCursor": {
-                    "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
-                    "type": "string"
-                },
-                "tasks": {
-                    "items": {
-                        "$ref": "#/$defs/Task"
-                    },
-                    "type": "array"
-                }
-            },
-            "required": [
-                "tasks"
-            ],
-            "type": "object"
-        },
-        "ListTasksResultResponse": {
-            "description": "A successful response for a {@link ListTasksRequesttasks/list} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ListTasksResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
         "ListToolsRequest": {
             "description": "Sent from the client to request a list of tools the server has.",
             "properties": {
@@ -3661,36 +3543,6 @@
                     },
                     "type": "object"
                 },
-                "tasks": {
-                    "description": "Present if the server supports task-augmented requests.",
-                    "properties": {
-                        "cancel": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this server supports {@link CancelTaskRequesttasks/cancel}."
-                        },
-                        "list": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this server supports {@link ListTasksRequesttasks/list}."
-                        },
-                        "requests": {
-                            "description": "Specifies which request types can be augmented with tasks.",
-                            "properties": {
-                                "tools": {
-                                    "description": "Task support for tool-related requests.",
-                                    "properties": {
-                                        "call": {
-                                            "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the server supports task-augmented {@link CallToolRequesttools/call} requests."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
-                },
                 "tools": {
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
@@ -3745,9 +3597,6 @@
                 },
                 {
                     "$ref": "#/$defs/CancelTaskRequest"
-                },
-                {
-                    "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
                     "$ref": "#/$defs/CreateMessageRequest"
@@ -3835,9 +3684,6 @@
                 {
                     "$ref": "#/$defs/CancelTaskResult",
                     "description": "The result returned for a {@link CancelTaskRequesttasks/cancel} request."
-                },
-                {
-                    "$ref": "#/$defs/ListTasksResult"
                 },
                 {
                     "$ref": "#/$defs/CompleteResult"
@@ -4352,10 +4198,6 @@
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
-                "execution": {
-                    "$ref": "#/$defs/ToolExecution",
-                    "description": "Execution-related properties for this tool."
-                },
                 "icons": {
                     "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
@@ -4468,21 +4310,6 @@
                     "enum": [
                         "auto",
                         "none",
-                        "required"
-                    ],
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "ToolExecution": {
-            "description": "Execution-related properties for a tool.",
-            "properties": {
-                "taskSupport": {
-                    "description": "Indicates whether this tool supports task-augmented execution.\nThis allows clients to handle long-running operations through polling\nthe task system.\n\n- `\"forbidden\"`: Tool does not support task-augmented execution (default when absent)\n- `\"optional\"`: Tool may support task-augmented execution\n- `\"required\"`: Tool requires task-augmented execution\n\nDefault: `\"forbidden\"`",
-                    "enum": [
-                        "forbidden",
-                        "optional",
                         "required"
                     ],
                     "type": "string"
