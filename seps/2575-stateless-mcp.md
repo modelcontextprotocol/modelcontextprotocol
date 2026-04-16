@@ -313,10 +313,6 @@ during initialization **MAY** be included in per-request `_meta` fields:
   URIs, replacing the need for `notifications/roots/list_changed`.
 - `"io.modelcontextprotocol/logLevel"`: `LoggingLevel` — the desired log
   level for this request, replacing the `logging/setLevel` RPC.
-- `"io.modelcontextprotocol/resourceSubscriptions"`: `string[]` — an array
-  of resource URIs the client is interested in, replacing
-  `resources/subscribe`. The server sends `notifications/resources/updated`
-  on the `notifications/listen` stream for matching resources.
 
 The primary capability defined in this proposal is the ability to handle
 streaming responses, which is supported through two distinct models:
@@ -377,9 +373,41 @@ export interface NotificationsListenRequest extends Request {
       "io.modelcontextprotocol/roots"?: Root[];
       // ... other meta fields
     };
+
+    /**
+     * Optional filter for which notifications the client wants to receive.
+     * If omitted, the server SHOULD send all notifications the client's
+     * capabilities support.
+     */
+    notifications?: {
+      /**
+       * If true, receive notifications/tools/list_changed.
+       */
+      toolsListChanged?: boolean;
+
+      /**
+       * If true, receive notifications/prompts/list_changed.
+       */
+      promptsListChanged?: boolean;
+
+      /**
+       * If true, receive notifications/resources/list_changed.
+       */
+      resourcesListChanged?: boolean;
+
+      /**
+       * Subscribe to notifications/resources/updated for specific
+       * resource URIs. Replaces the resources/subscribe RPC.
+       */
+      resourceSubscriptions?: string[];
+    };
   };
 }
 ```
+
+If `notifications` is omitted entirely, the server **SHOULD** send all
+notifications the client's declared capabilities support. If provided, only
+the specified notification types are delivered.
 
 **Acknowledgment Notification:**
 
@@ -442,11 +470,10 @@ the following RPC methods and notifications are removed:
   need for a separate change notification.
 - `resources/subscribe` / `resources/unsubscribe`: These methods are removed.
   Resource subscriptions are inherently stateful — the server must remember
-  which resources each client has subscribed to. Instead, clients specify
-  the resources they are interested in via per-request `_meta` fields using
-  `"io.modelcontextprotocol/resourceSubscriptions"`: `string[]` (an array of
-  resource URIs). The server sends `notifications/resources/updated`
-  notifications on the `notifications/listen` stream for any matching
+  which resources each client has subscribed to. Instead, clients declare
+  the resources they want updates for in the `notifications` param of the
+  `notifications/listen` request. The server sends
+  `notifications/resources/updated` on the listen stream for matching
   resources.
 
 ## Rationale
