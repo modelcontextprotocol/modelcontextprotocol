@@ -240,7 +240,7 @@ As agents connect to more MCP servers and accumulate access to hundreds or thous
 
 This section covers two complementary patterns that address these scaling challenges: **progressive discovery**, which controls _when_ tool definitions enter context, and **programmatic tool calling**, which controls _how_ tools are invoked.
 
-### Progressive Discovery of Servers and Tools
+### Avoiding context bloat using progressive discovery of Servers and Tools
 
 Naive MCP clients load all tool definitions from all connected servers at the start of every conversation. For a handful of tools this is fine. But when a host has access to dozens of servers exposing hundreds of tools, those definitions alone can consume the majority of the context window before the user's message is even read.
 
