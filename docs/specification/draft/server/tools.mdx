@@ -239,6 +239,20 @@ A tool definition includes:
   - `DATA_EXPORT_v2`
   - `admin.tools.list`
 
+<Note>
+
+Tool name uniqueness is scoped to a single server. Clients or proxies that
+aggregate tools from multiple servers **MAY** encounter naming collisions (for
+example, two servers each exposing a `search` tool) and **SHOULD** implement a
+disambiguation strategy such as prefixing tool names with a server identifier.
+
+The server `name` returned during
+[initialization](/specification/draft/basic/lifecycle#initialization) is not
+guaranteed to be unique across servers and **SHOULD NOT** be relied upon for
+disambiguation.
+
+</Note>
+
 #### x-mcp-header
 
 The `x-mcp-header` extension property allows servers to designate specific tool
