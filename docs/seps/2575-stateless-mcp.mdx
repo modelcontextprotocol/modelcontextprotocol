@@ -171,30 +171,16 @@ The `protocol-version` MUST be embedded directly within the `_meta` field of the
 request payload. For HTTP, this \_meta MUST match the associated HTTP header, or
 else the server should return a 400 Bad Request.
 
-The following diff illustrates the required changes to the `Request` interface:
+The following diff illustrates the required changes to `RequestMetaObject`:
 
 ```ts
-export interface Request {
-   method: string;
-   params?: {
-     /**
-      * See [General fields: `_meta`](/specification/2025-06-18/basic/index#meta) for notes on `_meta` usage.
-      */
-     _meta?: {
-+       /**
-+        * The MCP Protocol Version being used for this request.
-+        */
-+       "io.modelcontextprotocol/protocolVersion": string;
-
-       /**
-        * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
-        */
-       progressToken?: ProgressToken;
-       [key: string]: unknown;
-     };
-     [key: string]: unknown;
-   };
- }
+export interface RequestMetaObject extends MetaObject {
+  progressToken?: ProgressToken;
++ /**
++  * The MCP Protocol Version being used for this request.
++  */
++ "io.modelcontextprotocol/protocolVersion": string;
+}
 ```
 
 #### Unsupported Protocol Versions
@@ -361,22 +347,18 @@ This model applies when a client makes a standard RPC call and the server
 responds back with an SSE stream. The client specifies supported capabilities
 directly in the request.
 
-The client adds an optional `clientCapabilities` field to the `_meta` object of
-its request. For the HTTP transport, a server that supports this **MAY** then
-respond with an SSE stream for that transaction.
+The client adds an optional `clientCapabilities` field to `RequestMetaObject`.
+For the HTTP transport, a server that supports this **MAY** then respond with
+an SSE stream for that transaction.
 
 ```ts
-export interface Request {
-  // ...
-  _meta?: {
-    // ... other meta fields
-+   /**
-+    * Optional capabilities of the client for this specific request.
-+    */
-+   "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
-    // ... other meta fields
-  };
-  // ...
+export interface RequestMetaObject extends MetaObject {
+  progressToken?: ProgressToken;
+  "io.modelcontextprotocol/protocolVersion": string;
++ /**
++  * Optional capabilities of the client for this specific request.
++  */
++ "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
 }
 ```
 
