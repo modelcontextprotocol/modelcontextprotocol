@@ -184,7 +184,7 @@ export interface Request {
 +       /**
 +        * The MCP Protocol Version being used for this request.
 +        */
-+       "io.modelcontextprotocol/mcpProtocolVersion": string;
++       "io.modelcontextprotocol/protocolVersion": string;
 
        /**
         * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by notifications/progress). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
@@ -237,7 +237,7 @@ Without an initialization handshake, version negotiation happens inline:
 
 1. The client sends a request with its preferred protocol version in the
    `MCP-Protocol-Version` header and
-   `io.modelcontextprotocol/mcpProtocolVersion` `_meta` field.
+   `io.modelcontextprotocol/protocolVersion` `_meta` field.
 2. If the server supports that version, it processes the request normally.
 3. If the server does not support the requested version, it returns an
    `UnsupportedVersionError` containing its list of `supportedVersions`.
@@ -391,7 +391,7 @@ export interface NotificationsListenRequest extends Request {
   method: "notifications/listen";
   params: {
     _meta?: {
-      "io.modelcontextprotocol/mcpProtocolVersion": string;
+      "io.modelcontextprotocol/protocolVersion": string;
       "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
       "io.modelcontextprotocol/roots"?: Root[];
       // ... other meta fields
