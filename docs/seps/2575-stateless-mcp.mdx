@@ -204,30 +204,21 @@ return a JSON-RPC error response. For HTTP, the response status code MUST be
 `400 Bad Request`. The error MUST conform to the following structure:
 
 ```ts
-/**
- * JSON-RPC error response returned when the client requests
- * an unsupported protocol version.
- */
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    /**
-     * MUST be -32001.
-     */
-    "code": -32001,
-    /**
-     * MUST be "Unsupported protocol version".
-     */
-    "message": "Unsupported protocol version",
-    /**
-     * MUST contain an array of strings listing the
-     * protocol versions supported by the server.
-     */
-    "data": {
-      "supportedVersions": ["2025-06-18", "2025-03-26"]
-    }
-  }
+export const UNSUPPORTED_PROTOCOL_VERSION = -32001;
+
+export interface UnsupportedProtocolVersionError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof UNSUPPORTED_PROTOCOL_VERSION;
+    data: {
+      /**
+       * An array of protocol version strings that the server supports.
+       */
+      supportedVersions: string[];
+    };
+  };
 }
 ```
 
@@ -322,6 +313,31 @@ In both cases, the server uses the `clientCapabilities` from the request's
 If a server sends a request that erroneously calls a client capability it
 doesn't support, a client MUST return a `Method not found` JSON-RPC error
 (`-32601`).
+
+If a server requires client capabilities to process a request and the client
+has not provided them, the server MUST return a JSON-RPC error. For HTTP, the
+response status code MUST be `400 Bad Request`. The client MAY then retry the
+request with the required capabilities in `_meta`.
+
+```ts
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+
+export interface MissingRequiredClientCapabilityError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof MISSING_REQUIRED_CLIENT_CAPABILITY;
+    data: {
+      /**
+       * The capabilities the server requires from the client
+       * to process this request.
+       */
+      requiredCapabilities: ClientCapabilities;
+    };
+  };
+}
+```
 
 In addition to `clientCapabilities`, the following fields previously exchanged
 during initialization **MAY** be included in per-request `_meta` fields:
