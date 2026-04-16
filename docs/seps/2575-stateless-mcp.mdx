@@ -464,8 +464,8 @@ field. The server **MAY** then respond with an SSE stream for that transaction.
 
 To proactively open a persistent SSE stream, the client sends the dedicated
 `NotificationsListenRequest` via `POST`. The server's response **is an open SSE
-stream** (`Content-Type: text/event-stream`), and the **first request** on this
-stream **MUST** be an event containing the `NotificationsListenNotification`.
+stream** (`Content-Type: text/event-stream`), and the first JSON-RPC message on
+this stream **MUST** be a `NotificationsListenNotification`.
 
 ### Deprecated and Removed RPCs
 
