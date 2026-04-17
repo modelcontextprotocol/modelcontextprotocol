@@ -14,7 +14,9 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
+
+const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const SEPS_DIR = path.join(__dirname, "..", "seps");
 const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "seps");
@@ -392,7 +394,7 @@ async function main() {
       // Format MDX files with Prettier
       const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
       if (mdxTempFiles.length > 0) {
-        execSync(`npx prettier --write ${mdxTempFiles.join(" ")}`, { stdio: "pipe" });
+        execFileSync(npx, ["prettier", "--write", ...mdxTempFiles], { stdio: "pipe" });
       }
 
       // Compare formatted temp files with existing files
@@ -432,7 +434,7 @@ async function main() {
       .map(({ path: p }) => path.relative(process.cwd(), p));
     if (filesToFormat.length > 0) {
       console.log("\nFormatting generated files with Prettier...");
-      execSync(`npx prettier --write ${filesToFormat.join(" ")}`, { stdio: "inherit" });
+      execFileSync(npx, ["prettier", "--write", ...filesToFormat], { stdio: "inherit" });
     }
 
     console.log("\nSEP documentation generated successfully!");

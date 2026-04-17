@@ -27,9 +27,7 @@
         "pages": [
           {
             "group": "Get started",
-            "pages": [
-              "docs/getting-started/intro"
-            ]
+            "pages": ["docs/getting-started/intro"]
           },
           {
             "group": "About MCP",
@@ -37,7 +35,7 @@
               "docs/learn/architecture",
               "docs/learn/server-concepts",
               "docs/learn/client-concepts",
-              "specification/versioning"
+              "docs/learn/versioning"
             ]
           },
           {
@@ -60,17 +58,11 @@
           },
           {
             "group": "Developer tools",
-            "pages": [
-              "docs/tools/inspector",
-              "docs/tools/debugging"
-            ]
+            "pages": ["docs/tools/inspector", "docs/tools/debugging"]
           },
           {
             "group": "Examples",
-            "pages": [
-              "clients",
-              "examples"
-            ]
+            "pages": ["clients", "examples"]
           }
         ]
       },
@@ -81,10 +73,7 @@
           "extensions/client-matrix",
           {
             "group": "MCP Apps",
-            "pages": [
-              "extensions/apps/overview",
-              "extensions/apps/build"
-            ]
+            "pages": ["extensions/apps/overview", "extensions/apps/build"]
           },
           {
             "group": "Authorization Extensions",
@@ -372,9 +361,7 @@
           },
           {
             "group": "Consuming",
-            "pages": [
-              "registry/registry-aggregators"
-            ]
+            "pages": ["registry/registry-aggregators"]
           },
           "registry/terms-of-service"
         ]
@@ -421,6 +408,10 @@
               "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": ["seps/2243-http-standardization"]
           }
         ]
       },
@@ -438,10 +429,7 @@
           },
           {
             "group": "Propose Changes",
-            "pages": [
-              "community/design-principles",
-              "community/sep-guidelines"
-            ]
+            "pages": ["community/design-principles", "community/sep-guidelines"]
           },
           {
             "group": "Governance",
@@ -455,15 +443,15 @@
           {
             "group": "Working Group Charters",
             "pages": [
+              "community/inspector-v2/charter",
               "community/server-card/charter",
+              "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
             ]
           },
           {
             "group": "Roadmap",
-            "pages": [
-              "development/roadmap"
-            ]
+            "pages": ["development/roadmap"]
           }
         ]
       }
@@ -485,6 +473,10 @@
     }
   },
   "redirects": [
+    {
+      "source": "/specification/versioning",
+      "destination": "/docs/learn/versioning"
+    },
     {
       "source": "/specification/latest",
       "destination": "/specification/2025-11-25",
@@ -653,9 +645,6 @@
     }
   ],
   "contextual": {
-    "options": [
-      "copy",
-      "view"
-    ]
+    "options": ["copy", "view"]
   }
 }
