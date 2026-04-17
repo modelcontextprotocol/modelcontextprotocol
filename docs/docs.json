@@ -55,7 +55,8 @@
                   "docs/tutorials/security/authorization",
                   "docs/tutorials/security/security_best_practices"
                 ]
-              }
+              },
+              "docs/tutorials/deployment"
             ]
           },
           {
