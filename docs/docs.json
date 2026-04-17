@@ -427,6 +427,12 @@
             "pages": [
               "seps/2243-http-standardization"
             ]
+          },
+          {
+            "group": "Tbd",
+            "pages": [
+              "seps/2448-server-execution-telemetry"
+            ]
           }
         ]
       },
