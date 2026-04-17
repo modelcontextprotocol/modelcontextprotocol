@@ -12,7 +12,7 @@ arguments:
 
 This skill guides an author through producing a SEP that conforms to `docs/community/sep-guidelines.mdx` and `seps/TEMPLATE.md`. Work through the phases **in order** — do not start writing the draft until the gate, interview, and research are complete.
 
-**Prerequisite:** This skill must be run from a local clone of `modelcontextprotocol/modelcontextprotocol`. Before doing anything else, verify `seps/TEMPLATE.md` exists in the working directory; if it does not, stop and tell the user to clone the spec repo and re-run from its root.
+**Prerequisite:** This skill must be run from a local clone of `modelcontextprotocol/modelcontextprotocol`. Before doing anything else, verify `seps/TEMPLATE.md` exists in the working directory; if it does not, stop and tell the user to clone the spec repo and re-run from its root. If it does exist, run `git fetch origin` and ensure `main` is current so the research phases see up-to-date SEPs, schema, and `MAINTAINERS.md`.
 
 **Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group or Interest Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`.
 
@@ -102,7 +102,7 @@ Read two or three Final-status SEPs to see what a well-filled section looks like
 
 Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/0000-{slug}.md` where `{slug}` is a lowercase, hyphenated version of the idea trimmed to ~50 characters (match the pattern of existing `seps/*.md` filenames). The `0000` placeholder is the documented convention from the SEP guidelines.
 
-**Required sections:** Abstract, Motivation, Specification, Rationale, Backward Compatibility, Security Implications, Reference Implementation. **Optional sections:** Alternatives Considered, Open Questions, Performance Implications, Testing Plan, Acknowledgments.
+Everything above the `---` rule in the template is required — write "none identified" with reasoning rather than omitting a section. Headings under "Additional Optional Sections" are optional.
 
 **Preamble notes:**
 
@@ -111,7 +111,7 @@ Read `seps/TEMPLATE.md` and fill each section in order. Write to `seps/0000-{slu
 - `Created:` — today's date in `YYYY-MM-DD` format.
 - `Author(s):` — `Name <email> (@github-username)` from Q5.
 - `Sponsor:` — `@github-username` from Q5, or the literal `None`.
-- `PR:` — `seps/TEMPLATE.md` has a stale URL pointing at the wrong repo. Replace the entire URL with `https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}` (the `{NUMBER}` placeholder gets filled in Phase 6).
+- `PR:` — set to `https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}` (the `{NUMBER}` placeholder gets filled in Phase 6).
 
 ## Phase 5 — Checkpoint
 
@@ -154,4 +154,4 @@ git push --force-with-lease
 
 The amend keeps the rename in one commit per SEP-1850. `npm run generate:seps` renders `docs/seps/{N}-{slug}.mdx` and updates `docs/docs.json` (required for the `render-seps.yml` CI check), and `npm run format:docs` keeps the `markdown-format.yml` check green.
 
-**After the PR is open, the next step is finding a sponsor** — tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR and share it in the relevant Discord channel (per Q5). The 6-month clock starts now.
+**If Q5 answered `None`, the next step after the PR is open is finding a sponsor** — tag 1-2 relevant maintainers from `MAINTAINERS.md` on the PR and share it in the relevant Discord channel. The 6-month clock starts now.
