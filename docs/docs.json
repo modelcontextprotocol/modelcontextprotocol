@@ -425,7 +425,8 @@
           {
             "group": "Draft",
             "pages": [
-              "seps/2243-http-standardization"
+              "seps/2243-http-standardization",
+              "seps/2596-spec-feature-lifecycle-and-deprecation"
             ]
           }
         ]
