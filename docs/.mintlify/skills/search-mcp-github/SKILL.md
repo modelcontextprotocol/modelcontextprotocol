@@ -1,1 +1,0 @@
-../../../../plugins/mcp-spec/skills/search-mcp-github/SKILL.md
