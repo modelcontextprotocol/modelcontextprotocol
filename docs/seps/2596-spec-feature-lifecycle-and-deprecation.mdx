@@ -1,0 +1,285 @@
+---
+title: "SEP-2596: Specification Feature Lifecycle and Deprecation Policy"
+sidebarTitle: "SEP-2596: Specification Feature Lifecycle and Dep…"
+description: "Specification Feature Lifecycle and Deprecation Policy"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Process
+  </Badge>
+</div>
+
+| Field         | Value                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| **SEP**       | 2596                                                                                                          |
+| **Title**     | Specification Feature Lifecycle and Deprecation Policy                                                        |
+| **Status**    | Draft                                                                                                         |
+| **Type**      | Process                                                                                                       |
+| **Created**   | 2026-04-17                                                                                                    |
+| **Author(s)** | Den Delimarsky <den[@anthropic](https://github.com/anthropic).com> ([@localden](https://github.com/localden)) |
+| **Sponsor**   | [@localden](https://github.com/localden)                                                                      |
+| **PR**        | [#2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)                               |
+
+---
+
+## Abstract
+
+This SEP defines a lifecycle for individual features within the Model Context Protocol
+specification, separate from the revision lifecycle of the specification document itself. It
+introduces three feature states (Active, Deprecated, Removed), the criteria and procedure for
+moving between them, a minimum window between deprecation and removal, and the documentation
+required at each transition. The goal is a predictable timeline that SDK authors and implementers
+can plan migrations against when protocol surface area is retired.
+
+## Motivation
+
+The specification has already retired or signalled retirement of several features, but each case
+has been handled ad hoc:
+
+- The HTTP+SSE transport is described as "deprecated" in the
+  [Streamable HTTP backwards-compatibility guidance][transports-compat], with no stated removal
+  date.
+- The `includeContext` values `"thisServer"` and `"allServers"` are labelled "soft-deprecated" in
+  [`sampling/createMessage`][sampling-includecontext] and in `schema.ts`, with the note that they
+  "may be removed in future spec releases."
+- JSON-RPC batching was added in revision `2025-03-26` and removed in `2025-06-18`, a single
+  release later, with no deprecation period.
+- Open proposals such as consolidating `Resource` and `ResourceTemplate` ([#1540][issue-1540]) and
+  moving roots and sampling out of core ([April 1 Core Maintainer meeting][cm-2026-04-01]) would
+  each retire existing surface area but have no process to follow.
+
+This inconsistency has costs. Implementers cannot tell whether "deprecated" and "soft-deprecated"
+mean different things, or how long either state lasts before removal. Community questions such as
+[discussion #2177][disc-2177] (asking when the SSE transport will actually be removed) have no
+policy to point to. At the [NYC maintainer meeting][nyc-2026-03-31], large implementers described
+indefinite support for past protocol versions as "corrosive tech debt." The [Stability over
+velocity][design-principles] design principle observes that "removing from \[the spec\] is nearly
+impossible" but offers no path for the cases where removal is warranted.
+
+The Core Maintainers agreed at the [April 1, 2026 meeting][cm-2026-04-01] that MCP needs "a formal
+versioning status and a defined deprecation cycle" with "direction agreed, mechanics TBD." This SEP
+proposes those mechanics.
+
+## Specification
+
+### Scope
+
+This policy governs **features** of the MCP core specification: protocol messages, capabilities,
+transports, schema types, and normative behavioural requirements. It does not govern SDK APIs,
+registry policies, extensions (which are versioned independently per [SEP-2133][sep-2133]), or the
+revision lifecycle of the specification document itself (Draft, Current, Final), which is defined
+in the [versioning guide][versioning].
+
+### Feature states
+
+A specification feature is in exactly one of three states:
+
+| State          | Meaning                                                                                                                               | Implementer expectation                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Active**     | The feature is part of the current specification with no planned removal.                                                             | Implement per the feature's normative requirements.                                                                         |
+| **Deprecated** | The feature remains in the specification but is scheduled for removal. A migration path is documented.                                | New implementations SHOULD NOT adopt the feature. Existing implementations SHOULD migrate before the earliest removal date. |
+| **Removed**    | The feature no longer appears in the current specification. It remains documented in the Final revision in which it was last present. | Implementations targeting the current revision MUST NOT depend on the feature.                                              |
+
+The term "soft-deprecated" is retired. Existing uses in the specification are reclassified as
+Deprecated under this policy (see [Transition](#transition)).
+
+A Deprecated feature MAY be restored to Active by a SEP that supersedes the deprecation SEP and
+documents the changed circumstances. Restoration follows the same approval path as deprecation. If
+the feature is later deprecated again, the twelve-month window is measured afresh from the new
+deprecation.
+
+### Deprecating a feature
+
+A feature MAY be proposed for deprecation when at least one of the following holds:
+
+- It has been superseded by another feature that covers the same use cases.
+- It presents a security, privacy, or interoperability risk that cannot be mitigated in place.
+- Ecosystem telemetry or SDK maintainer consensus indicates negligible adoption relative to its
+  maintenance cost.
+
+Deprecation is a specification change and therefore requires a SEP per the [SEP
+guidelines][sep-guidelines]. The deprecation SEP MUST:
+
+1. Identify the feature by name and link to its definition in `schema.ts` and the specification
+   prose.
+2. State the rationale against the criteria above.
+3. Document the migration path, or state explicitly that none is required.
+4. Specify the **earliest removal date**: a calendar date (`YYYY-MM-DD`) on or after which the
+   feature may be removed. This date MUST be at least twelve months after the publication date of
+   the revision in which the deprecation first appears. The feature is eligible for removal in the
+   first specification revision published on or after this date.
+
+When the deprecation SEP reaches Final, the following changes land in `draft`:
+
+- The feature's entry in `schema.ts` gains a `@deprecated` JSDoc tag referencing the deprecation
+  SEP and the earliest removal date.
+- The specification prose for the feature gains a deprecation notice with the same information.
+- The `changelog.mdx` for the next revision gains a "Deprecated" entry.
+
+### Removing a feature
+
+Removal requires a second SEP. The removal SEP MAY be opened at any time after the revision
+containing the deprecation has been published, but MUST NOT reach Final before the earliest removal
+date. This allows the removal SEP to be drafted and reviewed during the deprecation window so that
+the deletion can land in the first revision published on or after that date.
+
+The removal SEP MUST:
+
+1. Reference the deprecation SEP.
+2. Confirm that the earliest removal date has passed or will have passed by the target revision's
+   publication.
+3. Confirm that the migration target named in the deprecation SEP, if any, is Active in the
+   revision from which removal is proposed.
+4. Confirm that all Tier 1 SDKs (per [SEP-1730][sep-1730]) have shipped a stable release in which
+   the feature is no longer required for protocol conformance, or record an explicit Core
+   Maintainer override vote with rationale.
+
+A feature MAY remain Deprecated indefinitely if no removal SEP is opened. The earliest removal date
+sets the point at which removal becomes permissible; it does not oblige removal to happen.
+
+When the removal SEP reaches Final, the feature is deleted from `schema/draft/schema.ts` and the
+draft specification prose, and `changelog.mdx` gains a "Removed" entry that links to both SEPs and
+the last Final revision in which the feature was present.
+
+### Expedited removal
+
+The twelve-month floor MAY be shortened when the deprecated feature presents an active security
+risk, meaning a vulnerability with a published security advisory or documented in-the-wild
+exploitation for which no in-place mitigation exists. Shortening the window requires Core
+Maintainer approval under the [SEP-932][sep-932] decision process, recorded in the deprecation SEP.
+The shortened window MUST still provide at least ninety days between publication of the revision
+containing the deprecation and the earliest removal date.
+
+### Roles
+
+| Action                             | Who                                                       |
+| ---------------------------------- | --------------------------------------------------------- |
+| Propose deprecation or removal SEP | Any contributor, per the SEP process                      |
+| Sponsor                            | A Maintainer or Core Maintainer, per the SEP process      |
+| Approve deprecation or removal SEP | Core Maintainers, per [SEP-932][sep-932] decision process |
+| Approve expedited removal          | Core Maintainers, per [SEP-932][sep-932] decision process |
+
+### Transition
+
+On acceptance of this SEP:
+
+- Features currently described as "deprecated" or "soft-deprecated" in the draft specification (the
+  HTTP+SSE transport and the `includeContext` values `"thisServer"` / `"allServers"`) are
+  reclassified as Deprecated. Their earliest removal date is set to twelve months after this SEP
+  reaches Final, unless a feature-specific SEP sets a different date.
+- The [versioning guide][versioning] is updated to reference this policy.
+
+## Rationale
+
+### Why a separate state model from specification revisions?
+
+The [versioning guide][versioning] already defines Draft, Current, and Final for specification
+_revisions_. Those states describe the editorial maturity of a whole document and say nothing about
+whether a given message or field within a Current revision is on its way out. The [Kubernetes
+deprecation policy][k8s-deprecation], the [Node.js deprecation cycle][nodejs-deprecation], and IETF
+[RFC 2026][rfc-2026] all maintain feature-level deprecation rules alongside their release
+versioning for this reason.
+
+### Why two SEPs (deprecate, then remove)?
+
+Requiring a second SEP for removal creates an explicit checkpoint after the ecosystem has had time
+to react. The approach mirrors the advancement and relegation procedures in [SEP-1730][sep-1730],
+where each state transition requires a deliberate decision rather than a timer expiring, and is
+consistent with the [SEP guidelines][sep-guidelines] already treating removal of a protocol feature
+as SEP-worthy.
+
+### Why twelve months?
+
+The [NYC maintainer meeting][nyc-2026-03-31] floated a "one year supported plus one year
+deprecation" model and recorded reluctance to commit to longer windows given how quickly the
+agentic space is moving. Twelve months between deprecation landing and earliest removal is the
+deprecation half of that model. It spans at least two of the six-month release cycles discussed at
+the same meeting: one for SDK maintainers to ship migration support and one for downstream
+adoption. Core Maintainers may leave a feature Deprecated for longer; twelve months is the minimum.
+
+### Relationship to SEP-1400 (Semantic Versioning)
+
+[SEP-1400][sep-1400] proposes replacing date-based revision identifiers with semantic versioning.
+The two proposals address different questions: SEP-1400 is about how revisions are numbered, and
+this SEP is about how features within a revision are retired. This SEP uses a calendar earliest
+removal date specifically so that it does not depend on the revision identifier scheme; it applies
+unchanged whether revisions are dated or semantically versioned.
+
+### Consensus
+
+Direction was agreed at the [NYC maintainer meeting (March 31, 2026)][nyc-2026-03-31] and confirmed
+at the [April 1, 2026 Core Maintainer meeting][cm-2026-04-01], which recorded "formal versioning
+status and SDK deprecation cycle (direction agreed, mechanics TBD)." Community demand is visible in
+[discussion #2177][disc-2177] (asking when SSE removal will happen) and [discussion
+#1980][disc-1980] (asking to sunset a backwards-compatibility requirement that has outlived its
+purpose).
+
+## Backward Compatibility
+
+This SEP introduces a process and does not change protocol behaviour. The
+[Transition](#transition) section assigns a Deprecated state and earliest removal date to two
+features that are already informally deprecated, making their status explicit without shortening
+any implied timeline.
+
+## Security Implications
+
+None identified. This is a governance change with no new protocol surface, transport,
+authentication flow, or trust boundary. A defined deprecation path has an indirect security
+benefit: it gives the project a predictable mechanism for retiring features that are later found to
+be unsafe, which is what the [Expedited removal](#expedited-removal) clause is for.
+
+## Reference Implementation
+
+For a Process SEP the reference implementation is the policy applied to a real case. The
+[Transition](#transition) section applies it to the two existing informal deprecations, and a
+follow-up pull request will:
+
+- Add `@deprecated` JSDoc tags to the HTTP+SSE transport types and the `includeContext` enum values
+  in `schema/draft/schema.ts`.
+- Add "Deprecated" entries to `docs/specification/draft/changelog.mdx`.
+- Update `docs/docs/learn/versioning.mdx` to link to this policy.
+
+That pull request serves as the running-code validation before this SEP advances to Final.
+
+---
+
+## Open Questions
+
+- **Specification revision support window.** The NYC meeting also discussed how long Tier-1 SDKs
+  must support a given specification _revision_ (as distinct from a feature within one). That
+  policy is related but separate and may belong in an amendment to [SEP-1730][sep-1730].
+- **Telemetry source for the "negligible adoption" criterion.** The policy permits deprecation on
+  adoption grounds, but the project has no shared telemetry today. Until one exists, this criterion
+  relies on SDK maintainer attestation.
+- **Feature maturity tiers.** This SEP applies a uniform twelve-month floor to every Active
+  feature. The [Kubernetes deprecation policy][k8s-deprecation] uses alpha/beta/GA tiers with
+  shorter windows for less mature features, which would have allowed the JSON-RPC batching reversal
+  cited in [Motivation](#motivation) without a year-long deprecation. Whether MCP should adopt an
+  Experimental tier with a shorter or zero window is left for a follow-up SEP.
+- **Runtime deprecation signal.** Signaling under this policy is documentation-only (`@deprecated`
+  JSDoc, prose notice, changelog). Implementers that do not use an official SDK and do not read the
+  changelog receive no warning before removal. A wire-level signal (for example a `_meta`
+  deprecation field on responses, comparable to the Kubernetes `Warning` header) would close that
+  gap but is a Standards Track change outside the scope of this Process SEP.
+
+[transports-compat]: https://modelcontextprotocol.io/specification/draft/basic/transports#backwards-compatibility
+[sampling-includecontext]: https://modelcontextprotocol.io/specification/draft/client/sampling
+[versioning]: https://modelcontextprotocol.io/docs/learn/versioning
+[design-principles]: https://modelcontextprotocol.io/community/design-principles
+[sep-guidelines]: https://modelcontextprotocol.io/community/sep-guidelines
+[sep-932]: https://modelcontextprotocol.io/seps/932-model-context-protocol-governance
+[sep-1730]: https://modelcontextprotocol.io/seps/1730-sdks-tiering-system
+[sep-2133]: https://modelcontextprotocol.io/seps/2133-extensions
+[sep-1400]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1400
+[issue-1540]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1540
+[nyc-2026-03-31]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2547
+[cm-2026-04-01]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2536
+[disc-2177]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2177
+[disc-1980]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1980
+[k8s-deprecation]: https://kubernetes.io/docs/reference/using-api/deprecation-policy/
+[nodejs-deprecation]: https://nodejs.org/api/deprecations.html
+[rfc-2026]: https://www.rfc-editor.org/rfc/rfc2026
