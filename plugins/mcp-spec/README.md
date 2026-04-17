@@ -39,7 +39,7 @@ Search across MCP GitHub discussions, issues, and pull requests to find relevant
 
 Research and draft a Specification Enhancement Proposal that conforms to the [SEP governance process](https://modelcontextprotocol.io/community/sep-guidelines). Gates on whether the idea is SEP-worthy, interviews the author, checks existing spec coverage and prior art, then fills the template's required and optional sections and writes `seps/0000-{slug}.md`. Optionally opens a draft PR, backfills the SEP number, and runs `npm run generate:seps` and `npm run format:docs` so CI stays green.
 
-**Prerequisite:** Run from a local clone of this repository (the skill reads `seps/TEMPLATE.md` and writes into `seps/`).
+**Prerequisite:** Run from a local clone of this repository or your fork of it (the skill reads `seps/TEMPLATE.md` and writes into `seps/`).
 
 **Example:**
 

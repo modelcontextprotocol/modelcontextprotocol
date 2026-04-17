@@ -12,7 +12,13 @@ arguments:
 
 This skill guides an author through producing a SEP that conforms to `docs/community/sep-guidelines.mdx` and `seps/TEMPLATE.md`. Work through the phases **in order** — do not start writing the draft until the gate, interview, and research are complete.
 
-**Prerequisite:** This skill must be run from a local clone of `modelcontextprotocol/modelcontextprotocol`. Before doing anything else, verify `seps/TEMPLATE.md` exists in the working directory; if it does not, stop and tell the user to clone the spec repo and re-run from its root. If it does exist, run `git fetch origin` and ensure `main` is current so the research phases see up-to-date SEPs, schema, and `MAINTAINERS.md`.
+**Prerequisite:** This skill must be run from a local clone of `modelcontextprotocol/modelcontextprotocol` or a fork of it. Before doing anything else:
+
+1. Verify `seps/TEMPLATE.md` exists in the working directory. If it does not, stop and tell the user to run `gh repo fork modelcontextprotocol/modelcontextprotocol --clone` (or, if they are a maintainer with push access, clone the upstream repo directly) and re-run from its root.
+2. Determine the **canonical remote** — the remote that points at `modelcontextprotocol/modelcontextprotocol` itself, not a fork. Inspect `git remote -v`: if `origin` points at the canonical repo, the canonical remote is `origin`. If `origin` points at a fork, look for an `upstream` remote; if none exists, add it with `git remote add upstream https://github.com/modelcontextprotocol/modelcontextprotocol.git`. The canonical remote is then `upstream`.
+3. Run `git fetch {canonical}` and ensure local `main` is current with `{canonical}/main` so the research phases see up-to-date SEPs, schema, and `MAINTAINERS.md`.
+
+Phase 6 references `{canonical}` for the branch start-point and `origin` for the push target; these are the same remote for maintainers and different remotes for fork-based contributors.
 
 **Discuss before drafting.** The SEP guidelines advise raising an idea in Discord or a Working Group or Interest Group meeting before opening a SEP. If the user has not discussed this idea anywhere yet, say so explicitly and ask whether they want to proceed anyway. A cold SEP is valid but more likely to stall — and if no sponsor is found within 6 months, Core Maintainers may close the PR and mark the SEP `dormant`.
 
@@ -129,15 +135,16 @@ Then **ask**: open a draft PR now, or stop here so they can edit the file first?
 SEP-1850 documents an amend-based flow: open the PR with the `0000-` placeholder, then immediately rename and amend so the final history is a single commit with the real number.
 
 ```bash
-git fetch origin
-git checkout -b sep/{slug} origin/main
+git fetch {canonical}
+git checkout -b sep/{slug} {canonical}/main
 git add seps/0000-{slug}.md
 git commit -m "SEP: {title}"
 git push -u origin sep/{slug}
-gh pr create --title "SEP: {title}" --body "{one-paragraph summary}" --draft --reviewer {sponsor-username}
+gh pr create --repo modelcontextprotocol/modelcontextprotocol --base main \
+  --title "SEP: {title}" --body "{one-paragraph summary}" --draft --reviewer {sponsor-username}
 ```
 
-If the `sep/{slug}` branch already exists (e.g., re-entering this phase after a checkpoint pause), reuse it instead of creating a new one. Omit `--reviewer` if Q5 answered `None`. If the user lacks push access to `origin`, have them fork first and let `gh pr create` target the upstream base.
+`{canonical}` is the remote established in the Prerequisite (either `origin` or `upstream`); `origin` is always the push target. If the `sep/{slug}` branch already exists (e.g., re-entering this phase after a checkpoint pause), reuse it instead of creating a new one. Omit `--reviewer` if Q5 answered `None`. If `gh` prompts for a default repository, run `gh repo set-default modelcontextprotocol/modelcontextprotocol` and retry.
 
 Capture the PR number `{N}` from `gh pr create` output, then backfill:
 
