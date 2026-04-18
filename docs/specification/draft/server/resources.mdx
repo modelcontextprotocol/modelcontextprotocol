@@ -177,7 +177,8 @@ Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resou
 ### Resource Templates
 
 Resource templates allow servers to expose parameterized resources using
-[URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
+[URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Each resource
+template is uniquely identified by its `uriTemplate`. Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
 This operation supports [pagination](/specification/draft/server/utilities/pagination).
 
@@ -326,6 +327,17 @@ A resource definition includes:
 - `icons`: Optional array of icons for display in user interfaces
 - `mimeType`: Optional MIME type
 - `size`: Optional size in bytes
+
+### Resource Template
+
+A resource template definition includes:
+
+- `uriTemplate`: Unique identifier for the template, formatted as an [RFC 6570](https://datatracker.ietf.org/doc/html/rfc6570) URI template
+- `name`: The name of the template.
+- `title`: Optional human-readable name of the template for display purposes.
+- `description`: Optional description
+- `icons`: Optional array of icons for display in user interfaces
+- `mimeType`: Optional MIME type for all resources matching the template
 
 ### Resource Contents
 
