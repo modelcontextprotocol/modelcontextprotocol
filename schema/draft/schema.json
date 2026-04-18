@@ -162,7 +162,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "required": [
@@ -210,6 +210,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CallToolResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -220,7 +224,7 @@
             "type": "object"
         },
         "CancelTaskRequest": {
-            "description": "A request to cancel a task.",
+            "description": "A request to cancel a task.\n\nReceivers MUST support this method even if they are incapable or unwilling to\nactually cancel tasks. In such cases, they SHOULD return an error.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -277,6 +281,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CancelTaskResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -377,46 +385,6 @@
                         }
                     },
                     "type": "object"
-                },
-                "tasks": {
-                    "description": "Present if the client supports task-augmented requests.",
-                    "properties": {
-                        "cancel": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this client supports {@link CancelTaskRequesttasks/cancel}."
-                        },
-                        "list": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this client supports {@link ListTasksRequesttasks/list}."
-                        },
-                        "requests": {
-                            "description": "Specifies which request types can be augmented with tasks.",
-                            "properties": {
-                                "elicitation": {
-                                    "description": "Task support for elicitation-related requests.",
-                                    "properties": {
-                                        "create": {
-                                            "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests."
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "sampling": {
-                                    "description": "Task support for sampling-related requests.",
-                                    "properties": {
-                                        "createMessage": {
-                                            "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
                 }
             },
             "type": "object"
@@ -479,13 +447,7 @@
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadRequest"
-                },
-                {
                     "$ref": "#/$defs/CancelTaskRequest"
-                },
-                {
-                    "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
                     "$ref": "#/$defs/SetLevelRequest"
@@ -501,18 +463,48 @@
                     "$ref": "#/$defs/Result"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskResult",
-                    "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/Task"
+                        }
+                    ]
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/InputRequiredTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/CompletedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
                 },
                 {
                     "$ref": "#/$defs/CancelTaskResult",
                     "description": "The result returned for a {@link CancelTaskRequesttasks/cancel} request."
-                },
-                {
-                    "$ref": "#/$defs/ListTasksResult"
                 },
                 {
                     "$ref": "#/$defs/CreateMessageResult"
@@ -653,12 +645,70 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CompleteResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
                 "id",
                 "jsonrpc",
                 "result"
+            ],
+            "type": "object"
+        },
+        "CompletedTask": {
+            "description": "A task that has completed successfully.\nUsed by tasks/get and notifications/tasks/status.",
+            "properties": {
+                "createdAt": {
+                    "description": "ISO 8601 timestamp when the task was created.",
+                    "type": "string"
+                },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
+                "pollInterval": {
+                    "description": "Suggested polling interval in milliseconds.",
+                    "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "The final result of the task.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure."
+                },
+                "status": {
+                    "const": "completed",
+                    "description": "Current task state.",
+                    "type": "string"
+                },
+                "statusMessage": {
+                    "description": "Optional human-readable message describing the current task state.\nThis can provide context for any status, including:\n- Reasons for \"cancelled\" status\n- Summaries for \"completed\" status\n- Diagnostic information for \"failed\" status (e.g., error details, what went wrong)",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "The task identifier.",
+                    "type": "string"
+                },
+                "ttl": {
+                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "createdAt",
+                "lastUpdatedAt",
+                "result",
+                "status",
+                "taskId",
+                "ttl"
             ],
             "type": "object"
         },
@@ -752,7 +802,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 },
                 "temperature": {
                     "type": "number"
@@ -837,6 +887,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CreateMessageResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -847,7 +901,7 @@
             "type": "object"
         },
         "CreateTaskResult": {
-            "description": "The result returned for a task-augmented request.",
+            "description": "The result returned for a task-augmented request.\n\nThis type uses the base {@link Task} shape intentionally: `CreateTaskResult` represents\ntask metadata only, and MUST NOT include `result`, `error`, or `inputRequests` fields.\nThose fields are reserved for {@link DetailedTask} subtypes returned by\n{@link GetTaskRequesttasks/get} and {@link TaskStatusNotificationnotifications/tasks/status}.\n\nReceivers MAY return this result even when the request does not include a `task` field,\nallowing unsolicited task creation. When this occurs, requestors MUST handle the task\nby polling tasks/get.\n\nReceivers MUST NOT return a CreateTaskResult unless and until a tasks/get request would\nreturn that task; that is, in eventually-consistent systems, receivers MUST wait for\nconsistency before returning the CreateTaskResult.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -873,6 +927,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CreateTaskResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -885,6 +943,23 @@
         "Cursor": {
             "description": "An opaque token used to represent a cursor for pagination.",
             "type": "string"
+        },
+        "DetailedTask": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/Task"
+                },
+                {
+                    "$ref": "#/$defs/InputRequiredTask"
+                },
+                {
+                    "$ref": "#/$defs/CompletedTask"
+                },
+                {
+                    "$ref": "#/$defs/FailedTask"
+                }
+            ],
+            "description": "A union type representing a task with optional inlined result/error/inputRequests fields.\nThis type is used by tasks/get and notifications/tasks/status to provide complete task state\nincluding terminal results or pending input requests."
         },
         "ElicitRequest": {
             "description": "A request from the server to elicit additional information from the user via the client.",
@@ -958,7 +1033,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "required": [
@@ -999,7 +1074,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -1069,6 +1144,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ElicitResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1183,6 +1262,60 @@
             ],
             "type": "object"
         },
+        "FailedTask": {
+            "description": "A task that has failed due to a JSON-RPC error.\nUsed by tasks/get and notifications/tasks/status.",
+            "properties": {
+                "createdAt": {
+                    "description": "ISO 8601 timestamp when the task was created.",
+                    "type": "string"
+                },
+                "error": {
+                    "$ref": "#/$defs/JSONObject",
+                    "description": "The JSON-RPC error that caused the task to fail."
+                },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
+                "pollInterval": {
+                    "description": "Suggested polling interval in milliseconds.",
+                    "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
+                },
+                "status": {
+                    "const": "failed",
+                    "description": "Current task state.",
+                    "type": "string"
+                },
+                "statusMessage": {
+                    "description": "Optional human-readable message describing the current task state.\nThis can provide context for any status, including:\n- Reasons for \"cancelled\" status\n- Summaries for \"completed\" status\n- Diagnostic information for \"failed\" status (e.g., error details, what went wrong)",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "The task identifier.",
+                    "type": "string"
+                },
+                "ttl": {
+                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "createdAt",
+                "error",
+                "lastUpdatedAt",
+                "status",
+                "taskId",
+                "ttl"
+            ],
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
@@ -1266,72 +1399,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/GetPromptResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
-        "GetTaskPayloadRequest": {
-            "description": "A request to retrieve the result of a completed task.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
                 },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "tasks/result",
-                    "type": "string"
-                },
-                "params": {
-                    "properties": {
-                        "taskId": {
-                            "description": "The task identifier to retrieve results for.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "taskId"
-                    ],
-                    "type": "object"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
-        "GetTaskPayloadResult": {
-            "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                }
-            },
-            "type": "object"
-        },
-        "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1357,6 +1428,17 @@
                 },
                 "params": {
                     "properties": {
+                        "inputResponses": {
+                            "additionalProperties": {
+                                "$ref": "#/$defs/JSONObject"
+                            },
+                            "description": "Optional responses to server-to-client requests that were returned in a previous\nGetTaskResult's inputRequests field. Keys match the keys from inputRequests.",
+                            "type": "object"
+                        },
+                        "requestState": {
+                            "description": "Optional field containing request state passed to the server from the client (see SEP-2322).",
+                            "type": "string"
+                        },
                         "taskId": {
                             "description": "The task identifier to query.",
                             "type": "string"
@@ -1377,15 +1459,49 @@
             "type": "object"
         },
         "GetTaskResult": {
-            "allOf": [
+            "anyOf": [
                 {
-                    "$ref": "#/$defs/Result"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/Task"
+                        }
+                    ]
                 },
                 {
-                    "$ref": "#/$defs/Task"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/InputRequiredTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/CompletedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
                 }
             ],
-            "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
+            "description": "The result returned for a {@link GetTaskRequesttasks/get} request.\nReturns a DetailedTask which may include inlined result/error/inputRequests based on task status."
         },
         "GetTaskResultResponse": {
             "description": "A successful response for a {@link GetTaskRequesttasks/get} request.",
@@ -1399,6 +1515,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/GetTaskResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1613,6 +1733,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/InitializeResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1640,6 +1764,63 @@
             "required": [
                 "jsonrpc",
                 "method"
+            ],
+            "type": "object"
+        },
+        "InputRequiredTask": {
+            "description": "A task that is waiting for input from the client.\nUsed by tasks/get and notifications/tasks/status.",
+            "properties": {
+                "createdAt": {
+                    "description": "ISO 8601 timestamp when the task was created.",
+                    "type": "string"
+                },
+                "inputRequests": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/JSONObject"
+                    },
+                    "description": "Server-to-client requests that need to be fulfilled during task execution.\nKeys are arbitrary identifiers for matching requests to responses.",
+                    "type": "object"
+                },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
+                "pollInterval": {
+                    "description": "Suggested polling interval in milliseconds.",
+                    "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
+                },
+                "status": {
+                    "const": "input_required",
+                    "description": "Current task state.",
+                    "type": "string"
+                },
+                "statusMessage": {
+                    "description": "Optional human-readable message describing the current task state.\nThis can provide context for any status, including:\n- Reasons for \"cancelled\" status\n- Summaries for \"completed\" status\n- Diagnostic information for \"failed\" status (e.g., error details, what went wrong)",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "The task identifier.",
+                    "type": "string"
+                },
+                "ttl": {
+                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "createdAt",
+                "inputRequests",
+                "lastUpdatedAt",
+                "status",
+                "taskId",
+                "ttl"
             ],
             "type": "object"
         },
@@ -1827,6 +2008,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1951,6 +2136,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListPromptsResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2019,6 +2208,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListResourceTemplatesResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2087,6 +2280,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListResourcesResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2151,74 +2348,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListRootsResult"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "result"
-            ],
-            "type": "object"
-        },
-        "ListTasksRequest": {
-            "description": "A request to retrieve a list of tasks.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
                 },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "tasks/list",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/PaginatedRequestParams"
-                }
-            },
-            "required": [
-                "id",
-                "jsonrpc",
-                "method"
-            ],
-            "type": "object"
-        },
-        "ListTasksResult": {
-            "description": "The result returned for a {@link ListTasksRequesttasks/list} request.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
-                "nextCursor": {
-                    "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
-                    "type": "string"
-                },
-                "tasks": {
-                    "items": {
-                        "$ref": "#/$defs/Task"
-                    },
-                    "type": "array"
-                }
-            },
-            "required": [
-                "tasks"
-            ],
-            "type": "object"
-        },
-        "ListTasksResultResponse": {
-            "description": "A successful response for a {@link ListTasksRequesttasks/list} request.",
-            "properties": {
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "result": {
-                    "$ref": "#/$defs/ListTasksResult"
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2287,6 +2420,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListToolsResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2594,6 +2731,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2892,6 +3033,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ReadResourceResult"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3230,6 +3375,15 @@
             },
             "type": "object"
         },
+        "ResultType": {
+            "description": "Discriminator for polymorphic result handling.\nIndicates the semantic type of the result to enable clients to determine\nhow to process the response without inspecting the entire result payload.\n\n- \"complete\": The request completed successfully and the result contains final data\n- \"incomplete\": The request requires additional client input (see SEP-2322 Multi Round-Trip Requests)\n- \"task\": The response contains a Task object for polling (see tasks specification)\n\nDefaults to \"complete\" if not specified.",
+            "enum": [
+                "complete",
+                "incomplete",
+                "task"
+            ],
+            "type": "string"
+        },
         "Role": {
             "description": "The sender or recipient of messages and data in a conversation.",
             "enum": [
@@ -3389,36 +3543,6 @@
                     },
                     "type": "object"
                 },
-                "tasks": {
-                    "description": "Present if the server supports task-augmented requests.",
-                    "properties": {
-                        "cancel": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this server supports {@link CancelTaskRequesttasks/cancel}."
-                        },
-                        "list": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this server supports {@link ListTasksRequesttasks/list}."
-                        },
-                        "requests": {
-                            "description": "Specifies which request types can be augmented with tasks.",
-                            "properties": {
-                                "tools": {
-                                    "description": "Task support for tool-related requests.",
-                                    "properties": {
-                                        "call": {
-                                            "$ref": "#/$defs/JSONObject",
-                                            "description": "Whether the server supports task-augmented {@link CallToolRequesttools/call} requests."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
-                },
                 "tools": {
                     "description": "Present if the server offers any tools to call.",
                     "properties": {
@@ -3472,13 +3596,7 @@
                     "$ref": "#/$defs/GetTaskRequest"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadRequest"
-                },
-                {
                     "$ref": "#/$defs/CancelTaskRequest"
-                },
-                {
-                    "$ref": "#/$defs/ListTasksRequest"
                 },
                 {
                     "$ref": "#/$defs/CreateMessageRequest"
@@ -3524,18 +3642,48 @@
                     "$ref": "#/$defs/CreateTaskResult"
                 },
                 {
-                    "$ref": "#/$defs/GetTaskResult",
-                    "description": "The result returned for a {@link GetTaskRequesttasks/get} request."
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/Task"
+                        }
+                    ]
                 },
                 {
-                    "$ref": "#/$defs/GetTaskPayloadResult"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/InputRequiredTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/CompletedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
                 },
                 {
                     "$ref": "#/$defs/CancelTaskResult",
                     "description": "The result returned for a {@link CancelTaskRequesttasks/cancel} request."
-                },
-                {
-                    "$ref": "#/$defs/ListTasksResult"
                 },
                 {
                     "$ref": "#/$defs/CompleteResult"
@@ -3596,6 +3744,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3706,6 +3858,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3729,6 +3885,10 @@
                 "pollInterval": {
                     "description": "Suggested polling interval in milliseconds.",
                     "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "type": "string"
                 },
                 "status": {
                     "$ref": "#/$defs/TaskStatus",
@@ -3767,7 +3927,7 @@
                 },
                 "task": {
                     "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
+                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "type": "object"
@@ -3816,15 +3976,49 @@
             "type": "object"
         },
         "TaskStatusNotificationParams": {
-            "allOf": [
+            "anyOf": [
                 {
-                    "$ref": "#/$defs/NotificationParams"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/NotificationParams"
+                        },
+                        {
+                            "$ref": "#/$defs/Task"
+                        }
+                    ]
                 },
                 {
-                    "$ref": "#/$defs/Task"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/NotificationParams"
+                        },
+                        {
+                            "$ref": "#/$defs/InputRequiredTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/NotificationParams"
+                        },
+                        {
+                            "$ref": "#/$defs/CompletedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/NotificationParams"
+                        },
+                        {
+                            "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
                 }
             ],
-            "description": "Parameters for a `notifications/tasks/status` notification."
+            "description": "Parameters for a `notifications/tasks/status` notification.\nUses DetailedTask to include inlined result/error/inputRequests for terminal status transitions."
         },
         "TextContent": {
             "description": "Text provided to or from an LLM.",
@@ -4004,10 +4198,6 @@
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
-                "execution": {
-                    "$ref": "#/$defs/ToolExecution",
-                    "description": "Execution-related properties for this tool."
-                },
                 "icons": {
                     "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
@@ -4120,21 +4310,6 @@
                     "enum": [
                         "auto",
                         "none",
-                        "required"
-                    ],
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "ToolExecution": {
-            "description": "Execution-related properties for a tool.",
-            "properties": {
-                "taskSupport": {
-                    "description": "Indicates whether this tool supports task-augmented execution.\nThis allows clients to handle long-running operations through polling\nthe task system.\n\n- `\"forbidden\"`: Tool does not support task-augmented execution (default when absent)\n- `\"optional\"`: Tool may support task-augmented execution\n- `\"required\"`: Tool requires task-augmented execution\n\nDefault: `\"forbidden\"`",
-                    "enum": [
-                        "forbidden",
-                        "optional",
                         "required"
                     ],
                     "type": "string"
@@ -4342,6 +4517,10 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
