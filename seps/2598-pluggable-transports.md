@@ -1,11 +1,11 @@
-# SEP-0000: Pluggable Transports
+# SEP-2598: Pluggable Transports
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-04-17
 - **Author(s)**: Kurtis Van Gent (@kurtisvg)
 - **Sponsor**: @kurtisvg
-- **PR**: https://github.com/modelcontextprotocol/specification/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2598
 
 ## Abstract
 
