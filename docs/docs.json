@@ -425,7 +425,7 @@
           {
             "group": "Draft",
             "pages": [
-              "seps/2557-tasks-stabilization"
+              "seps/2557-adapt-tasks-for-stateless-and-sessionless-protocol"
             ]
           }
         ]
