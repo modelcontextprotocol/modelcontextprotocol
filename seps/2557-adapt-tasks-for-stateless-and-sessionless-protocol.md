@@ -1,4 +1,4 @@
-# SEP-2557: Adapat Tasks for Stateless & Sessionless Protocol
+# SEP-2557: Adapt Tasks for Stateless & Sessionless Protocol
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -16,15 +16,16 @@ This SEP incorporates changes into `Tasks` necessary following the acceptance of
 - [SEP-2243: Http Standardization](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243)
 - [SEP-2567: Sessionless MCP via Explicit State Handles](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567).
 
-It also proposes a simplification of [tasks](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks) based on feedback since the initial experimental release. 
+It also proposes a simplification of [tasks](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks) based on feedback since the initial experimental release.
 
-This SEP DOES NOT move Tasks out of Experimentation status. 
-
+This SEP DOES NOT move Tasks out of Experimentation status.
 
 ## Motivation
+
 A number of changes are necessary in the `Tasks` feature to support the upcoming changes to the spec listed in the SEPs above, and to address issues identified since the initial experimental release of `Tasks` in the `2025-11-25` specification release.
 
 ### Changes to support upcoming SEPs
+
 A number of changes are necessay to support the upcoming changes to the spec listed in the SEPs above.
 
 <b>[SEP-2260]</b> disallows unsolicited server-to-client requests, which invalidates the concept of client tasks for elicitation and sampling operations. This proposal removes client-hosted tasks & their associated capabiliteis since these scenarios are no longer supported.
@@ -37,10 +38,12 @@ Given the difficulty of implementing the MRTR changes in Tasks as the spec curre
 
 <b>[SEP-2243]</b> introduces standard headers in the Streamable HTTP Transport to facilitate more efficient routing. Routing on `TaskId` is also desirable since there is often state associated with a specific Task that needs to be consistently routed to the same server instance. This proposal requires that the `Mcp-Name` header MUST be set to the value of `params.taskId` by the client when making `tasks/get` and `tasks/cancel` requests over the Streamable HTTP Transport.
 
-### Lessons Learned from Implementation & Usage Feedback</b>
-`Tasks` were introduced in an experimental state in the `2025-11-25` specification release, serving as an alternate execution mode for certain request types (tool calls, elicitation, and sampling) to enable polling for the result of a task-augmented operation. 
+### Lessons Learned from Implementation & Usage Feedback
+
+`Tasks` were introduced in an experimental state in the `2025-11-25` specification release, serving as an alternate execution mode for certain request types (tool calls, elicitation, and sampling) to enable polling for the result of a task-augmented operation.
 
 #### Current Task Flow Overview
+
 This is done according to the following process, using tool calls as an example:
 
 1. Check the receiver's task capabilities for the request type. If the capability is not present, the receiver does not support tasks.
@@ -56,72 +59,84 @@ This is done according to the following process, using tool calls as an example:
    1. If the client still has an active `tasks/result` call from a prior `input_required` status, it will receive the result as the result to that open request.
 
 #### Current Task Flow Problems
+
 The current flow has a number of problems:
-1. `tasks/result` is overloaded and calling it to retrieve server requests when in the `input_required` status is unintuitive.  
+
+1. `tasks/result` is overloaded and calling it to retrieve server requests when in the `input_required` status is unintuitive.
 2. `tasks/result` is expected to block until the task is completed if called prematurely. This has led to [implementation issues](https://github.com/modelcontextprotocol/java-sdk/pull/755#issuecomment-3806079033). Requires long lived persistent connections, which many clients & servers do not want to implement. This problem still exists even with MRTR.
 3. The flow is inefficient. Clients must make multiple calls to `tasks/get` to check on the status and then to `tasks/result` to retrieve the final result or required input.
 
 Task Creation also has a number of issues since it is client-directed instead of being server-directed.Today the client must declare that it wants a task to be created by including the `task` field in the request. This creates several issues:
+
 1. It requires requestors to explicitly check the capabilities of receivers. This introduces an unnecessary state contract that may be violated during mid-session deployments under the Streamable HTTP transport, and also raises concerns about the capability exchange growing in payload size indefinitely as more methods are supported.
 2. It requires a tool-specific behavior carveout which gets pushed onto the client to navigate. Related to this, it forces clients to cache a `tools/list` call prior to making any task-augmented tool call.
 3. It requires host application developers to explicitly choose to opt into task support from request to request, rather than relying on a single, consistent request construction path for all protocol operations.
 4. It creates unnecessary burden on server developers to handle both the task and non-task flow for the same tool call. Most Tools will either return a `Task` or not, no use case has emerged where a server would want to return a `Task` for some calls and not others for the same tool, so this flexibility is unnecessary.
 
 ## Specification
+
 To support the new SEPs and solve the issues outlined above we propose the follwoing changes to the `Tasks` specification:
 
 1. Removes Features made obsolete by upcoming SEPs.
 2. Task Creation is determined by the Server.
-2. Servers MUST support `task/cancel` operation.
-3. Removal of Task Capabilities that are no longer necessary.
-4. Simplified Task Polling Flow which consolidates all polling onto the `tasks/get` method.
+3. Servers MUST support `task/cancel` operation.
+4. Removal of Task Capabilities that are no longer necessary.
+5. Simplified Task Polling Flow which consolidates all polling onto the `tasks/get` method.
 
 ### Remove features made obsolete by upcoming SEPs
+
 1. We will remove the concept of client-hosted tasks (Sampling & Elicitation), as SEP-2260 disallows unsolicited server-to-client requests
 2. We will remove the optional `tasks/list` operation, as SEP-2567 removes sessions which was the only defined scope for listing tasks between a server and a client. We may expand task support to additional client-to-server request types in the future, and implementors are still advised against implementing tasks as a tool-specific protocol operation.
 
 ### Task Creation Changes
+
 Tasks will no longer be an optional capability, but will instead become a standard part of the protocol that servers MAY choose to implement. If a Tool returns a Task, Servers MUST declare `execution.tasksupport` on the tool definition.
 
-Clients MUST understand Tasks, however they are not required to implement the polling workflow and leverage tools with `execution.taskSupport`. Clients MAY choose to filter out tools with `execution.taskSupport` declared. 
+Clients MUST understand Tasks, however they are not required to implement the polling workflow and leverage tools with `execution.taskSupport`. Clients MAY choose to filter out tools with `execution.taskSupport` declared.
 
-  1. We will remove the `tasks` capability declaration on both the client and the server.
-  1. Servers MAY return `CreateTaskResult` or a `CallToolResult`in response to `CallToolRequest`.
-  1. Servers SHOULD ignore the `task` field if it is present in a `CallToolRequest`. 
-  1. If a server returns a `CreateTaskResult`, it MUST support the `tasks/get` and `tasks/cancel` methods to allow clients to poll for the result and cancel the task if desired.
+1. We will remove the `tasks` capability declaration on both the client and the server.
+1. Servers MAY return `CreateTaskResult` or a `CallToolResult`in response to `CallToolRequest`.
+1. Servers SHOULD ignore the `task` field if it is present in a `CallToolRequest`.
+1. If a server returns a `CreateTaskResult`, it MUST support the `tasks/get` and `tasks/cancel` methods to allow clients to poll for the result and cancel the task if desired.
 
 ### Task Cancel Changes
+
 We propose aligning Task Cancellation with the Cooperative Cancellation model. In this model the requestor The requestor signals intent, but the worker decides when or if to honor it. This alligns `tasks/cancel with the cancellation pattern used in `notifications/cancelled`, where clients can always send a cancellation request, but servers can choose how to handle it. This also aligns Tasks with how Cancellation Tokens are handled in most async/concurrent programming languages including Go, Python, C#, TypeScript, etc...
 
 In the specification this means:
 
 Servers MUST support the `task/cancel` operation. A server MAY choose to ignore cancellation requests if its incapable or unwilling to offer cancellation of that Task.
 
-### Task Capabilities Changes 
+### Task Capabilities Changes
+
 This SEP Removes all capabilities related to Tasks.
+
 - SEP-2567 makes `tasks/list` impossible to support.
 - SEP-2260 disallows unsolicited server-to-client requests, which invalidates the concept of client tasks for elicitation and sampling operations.
 - This SEP makes Tasks a standard part of the protocol, and not a negotiated capability.
-- This SEP Makes `tasks/cancel` required to be supported, even if a server does not wish to support tasks. 
+- This SEP Makes `tasks/cancel` required to be supported, even if a server does not wish to support tasks.
 
 The below table summarizes the changes to the task-related capabilities:
 
-| Role   | Capability                              | Status  | Description                  |
-| ------ | --------------------------------------- | ------- | ---------------------------- |
-| Server | `tasks.requests.tools.call`             | removed | part of core protocol not an optional capability                             |
-| Server | `tasks.cancel`                          | removed | `tasks/cancel` is required   |
-| Server | `tasks.list`                            | removed | no longer supported SEP-2567 |
-| Client | `tasks.requests.sampling.createMessage` | removed | no longer supported SEP-2260 |
-| Client | `tasks.requests.elicitation.create`   | removed | no longer supported SEP-2260 |
-| Client | `tasks.cancel`                   | removed | no longer needed, no client tasks  |
-| Client | `tasks.list`                     | removed | no longer supported SEP-2567  |
+| Role   | Capability                              | Status  | Description                                      |
+| ------ | --------------------------------------- | ------- | ------------------------------------------------ |
+| Server | `tasks.requests.tools.call`             | removed | part of core protocol not an optional capability |
+| Server | `tasks.cancel`                          | removed | `tasks/cancel` is required                       |
+| Server | `tasks.list`                            | removed | no longer supported SEP-2567                     |
+| Client | `tasks.requests.sampling.createMessage` | removed | no longer supported SEP-2260                     |
+| Client | `tasks.requests.elicitation.create`     | removed | no longer supported SEP-2260                     |
+| Client | `tasks.cancel`                          | removed | no longer needed, no client tasks                |
+| Client | `tasks.list`                            | removed | no longer supported SEP-2567                     |
 
 ### Task Flow Change
-We propose simplifying the Task Flow into two methods: `tasks/get` and `tasks/cancel`.
-- The `tasks/get` methods will handle retrieving task statuses and results simultaneously, and will additionally act as the carrier for receiver-to-requestor requests for the purposes of SEP-2322: Multi Round-Trip Requests. This simplifies the flow and allows for polling or streaming updates on a single endpoint. Moreover this more closely matches Long Running Operation APIs where there is a single endpoint that is polled for the status of an operation.
-- The `tasks/cancel` method will be required and a separate endpoint. 
 
-Below is an example of the new Task Flow. 
+We propose simplifying the Task Flow into two methods: `tasks/get` and `tasks/cancel`.
+
+- The `tasks/get` methods will handle retrieving task statuses and results simultaneously, and will additionally act as the carrier for receiver-to-requestor requests for the purposes of SEP-2322: Multi Round-Trip Requests. This simplifies the flow and allows for polling or streaming updates on a single endpoint. Moreover this more closely matches Long Running Operation APIs where there is a single endpoint that is polled for the status of an operation.
+- The `tasks/cancel` method will be required and a separate endpoint.
+
+Below is an example of the new Task Flow.
+
 ```mermaid
 sequenceDiagram
   participant U as User
@@ -141,31 +156,33 @@ sequenceDiagram
   S-->>C: GetTaskResult (taskId: 123, status: completed, result: {...})
 ```
 
-We will make the following changes to the specification to support this. 
+We will make the following changes to the specification to support this.
+
 1. We will remove the requirement that requestors react to the input_required status by prematurely invoking tasks/result to side-channel requests on an SSE stream in the Streamable HTTP transport.
 2. We will inline the final task result or error into the Task shape, bringing that into tasks/get and all notifications by extension.
 3. We will inline outstanding server-to-client requests into a new inputRequests field on GetTaskResult, akin to the field of the same name used in SEP-2322.
 4. We will inline mid-task client-to-server results into a new inputResponses field on GetTaskRequest, akin to the field of the same name used in SEP-2322.
 5. We will remove the tasks/result method.
 6. We will update error handling to remove the notion that a task can be failed due to non-JSON-RPC errors such as a tool result with isError: true to maintain a strong separation between protocol-level faults and application-level faults.
+
 ```diff
 -For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution, or the task **MAY** use `status: "failed"` with a `statusMessage` for tool results with `isError: true`.
 +For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution. The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with with `isError: true`.
 ```
 
 #### task/get Specification
+
 We will add the following language to the specification to define the new flow and the expected behavior of `tasks/get`:
 
 Upon receiving a `tasks/get` request with `inputResponses`, the server MUST process the provided responses and update the task state accordingly. The server MAY choose to transition the task back to `working` status if it determines that the provided input is sufficient to continue processing.
 
 Upon receiving a `tasks/get` request, the server MUST check the status of the task and respond accordingly:
+
 1. if the status is `working` the server MUST return a a `Task` object with status `working`.
-2. if the status is `input_required` the server MUST return a `Task` object with status `input_required` and an `inputRequests` field defined in [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322). The `inputRequests` field MUST contain all outstanding requests from the server to the client that need to be fulfilled before the task can proceed. 
+2. if the status is `input_required` the server MUST return a `Task` object with status `input_required` and an `inputRequests` field defined in [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322). The `inputRequests` field MUST contain all outstanding requests from the server to the client that need to be fulfilled before the task can proceed.
 3. if the status is `completed` the server MUST return a `Task` object with status `completed` and a `result` field containing the final result of the task.
-5. if the status is `cancelled` the server MUST return a `Task` object with status `cancelled`.
-4. if the status is `failed` the server MUST return a `Task` object with status `failed` and the error that occurred during execution. 
-
-
+4. if the status is `cancelled` the server MUST return a `Task` object with status `cancelled`.
+5. if the status is `failed` the server MUST return a `Task` object with status `failed` and the error that occurred during execution.
 
 The below section contains example responses for each of the above cases.
 
@@ -377,7 +394,6 @@ type ResultType = "complete" | "incomplete" | "task";
 ```
 
 For backwards compatibility ResultType is inferred by default to be `complete`. Therefore all calls which return a `Task` (i.e.`task/get`, `task/cancel`) calls must set `task` as the ResultType moving forward.
-
 
 Below (collapsed) is the full JSON example of a tool call with an unsolicited task-augmentation that matches the diagram above:
 

@@ -9,7 +9,7 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 
 ## Major changes
 
-1. Stabilize tasks feature with major simplifications ([SEP-2557](/seps/2557-tasks-stabilization)):
+1. Adapt tasks for a stateless and sessionless protocol ([SEP-2557](/seps/2557-adapt-tasks-for-stateless-and-sessionless-protocol)):
    - Allow unsolicited task creation: servers can return `CreateTaskResult` even when clients don't request a task
    - Allow immediate results: servers can return immediate results even when clients request a task
    - Consolidate polling lifecycle: `tasks/get` now handles status retrieval, result delivery, and server-to-client requests
