@@ -1,0 +1,145 @@
+---
+title: Server instructions
+sidebarTitle: Server instructions
+description: How to write, generate, and display the server `instructions` field.
+---
+
+Servers return an `instructions` string in the [`InitializeResult`](/specification/draft/basic/lifecycle#initialization) payload. Instructions tell the model how to use the server and its features, beyond what individual tool descriptions can convey. They are distinct from `description` (server-level metadata for humans and UI) and from per-tool `description` (per-tool guidance for the model).
+
+Use this page when you are building a server that ships non-trivial tools, when clients need to render or route instructions, or when you are deciding whether information belongs in `instructions`, a tool description, or a prompt.
+
+## When to use `instructions`
+
+Reach for `instructions` when guidance is **cross-cutting** or **workflow-level**. Put per-tool guidance in the tool's own `description` instead.
+
+| Guidance belongs in...                           | Why                                                                   |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `instructions`                                   | Cross-tool ordering, operating constraints, failure-recovery strategy |
+| `tool.description`                               | What the tool does, argument semantics, return shape                  |
+| [`prompts`](/docs/learn/server-concepts#prompts) | User-invoked, parameterized templates                                 |
+| `serverInfo.description`                         | Short human-readable summary for clients and marketplaces             |
+
+### Good fit
+
+- "Always call `authenticate` before any `fetch_*` tool."
+- "Prefer `search_*` over `list_*` for large repositories. Paginate in batches of 5-10."
+- "Results are capped at 1000 rows. Use `count_rows` first when the caller asks for totals."
+- "Write operations are disabled unless the server was started with `--allow-writes`."
+
+### Poor fit
+
+- Restating what is already in a tool description. This duplicates tokens and drifts over time.
+- Persona or tone instructions ("respond cheerfully"). The host controls voice.
+- Safety policy the server cannot actually enforce. If the server cannot detect the violation, an instruction will not prevent it.
+- Marketing copy ("the fastest MCP server ever"). Belongs in `serverInfo.description`.
+
+## Writing effective instructions
+
+### Keep them short and model-agnostic
+
+Long instructions crowd the context window and degrade across models. Aim for a paragraph or two per toolset. Write in plain imperative voice. Do not mention specific models, vendors, or prompt formats.
+
+### Lead with the ordering constraints
+
+Models benefit most from sequencing hints. Put them first:
+
+```text
+Workflow: 1) run `plan` to preview changes, 2) run `apply` to commit. Never call
+`apply` without a prior `plan` in the same session.
+```
+
+### State constraints the model cannot infer
+
+Rate limits, mutually exclusive flags, required environment, side-effect boundaries. These are invisible from a tool schema alone.
+
+```text
+`delete_branch` is destructive and not reversible. Confirm with the user before
+calling it on any branch matching `main`, `master`, or `release/*`.
+```
+
+### Avoid absolute claims about compliance
+
+Instructions are guidance, not guarantees. Models follow them probabilistically. A server that depends on an instruction being followed for correctness has a bug, not a documentation gap. Put enforcement in the tool implementation.
+
+## Dynamic instructions
+
+Instructions are generated once per `initialize`. Servers can tailor the string to the requesting client or to the current configuration.
+
+Common patterns:
+
+- **Per-toolset**: assemble the instruction from the set of enabled tools. Example: the [`github-mcp-server`](https://github.com/github/github-mcp-server) builds its base instruction plus one fragment per enabled toolset (`pull_requests`, `issues`, `code_security`) before returning the result.
+- **Per-client**: branch on `clientInfo.name` or declared client capabilities to target known host behaviors. Use sparingly; most servers should not special-case clients.
+- **Per-auth-scope**: when a server exposes different tools for different scopes, the instruction should describe only what the caller can actually reach.
+
+Dynamic instructions should still be deterministic for a given configuration. Random wording harms cache hits in client-side prompt caching.
+
+## Testing instructions
+
+Treat instructions as part of the server's interface. Review them when tools change.
+
+A practical evaluation loop:
+
+1. Define a target workflow that a correct caller should follow (for example: `search_items` then `get_item` then `update_item`).
+2. Replay representative user prompts against a fresh session with instructions enabled.
+3. Score each run as success or failure based on the tool sequence, not just the final answer.
+4. Compare against the same prompts with instructions disabled to isolate their contribution.
+
+Variance across models is expected. A phrasing that works well for one model may underperform on another. Measure rather than assume.
+
+## Client behavior
+
+Clients that inject `instructions` into the model context **SHOULD**:
+
+- Surface to the user that the server is contributing instructions. Users cannot consent to guidance they cannot see.
+- Offer a way to review, enable, or disable instructions per server.
+- Document how instructions are combined when multiple servers are connected, including any delimiters, ordering, or truncation applied.
+
+Clients that do not use `instructions` **SHOULD** still expose the field to users, for example in a server details view, so users can understand what the server expects.
+
+Clients **MUST NOT** assume `instructions` is present. The field is optional. Servers that omit it are fully conformant.
+
+## Failure modes
+
+**Contradiction with tool descriptions.** If `instructions` says "never call `delete_*` directly" but the tool description says "call this to remove a record", models will pick whichever is closer in context. Keep the two aligned; when they must differ, the instruction should say which takes precedence and why.
+
+**Token bloat.** Every `initialize` adds the instruction to the session context. Long instructions across several connected servers compound quickly. If your instruction is longer than the combined tool descriptions, shorten it or move detail into tool descriptions.
+
+**Stale guidance.** Instructions drift when tools are renamed or removed. Add a check to your release process that fails CI if the instruction references a tool name that no longer exists.
+
+**Cross-server conflict.** Two servers can issue contradictory guidance (one says "always paginate", another says "never paginate"). The client chooses the resolution; servers should scope their instructions to their own tools to reduce collisions.
+
+## Examples
+
+### Database server
+
+```text
+Read-only Postgres access to the `analytics` schema. Run `list_tables` before any
+query to confirm schema names; table listings are cached for 60 seconds.
+Use `explain` before `query` for any join across more than three tables. Results
+are truncated at 1000 rows; add `LIMIT` to avoid surprise truncation.
+```
+
+### Filesystem server
+
+```text
+Workspace root is configured at startup and cannot be changed from the client.
+All paths are resolved relative to the root. Use `read_file` for single files
+and `read_many_files` when batching; do not call `read_file` in a loop. Writes
+require the server to have been started with `--allow-writes`.
+```
+
+### GitHub-style API integration
+
+```text
+Authenticated as a single user. API responses can overflow context windows:
+prefer `search_*` over `list_*`; paginate in batches of 5-10 items; pass
+`minimal_output=true` when you do not need full objects. For PR reviews use
+`create_pending_review`, then `add_comment_to_pending_review` one comment at a
+time, then `submit_pending_review`. Single-call review tools are unreliable.
+```
+
+## Further reading
+
+- Specification: [`InitializeResult.instructions`](/specification/draft/schema#initializeresult-instructions)
+- Lifecycle: [Initialization](/specification/draft/basic/lifecycle#initialization)
+- Blog: [Using server instructions](https://blog.modelcontextprotocol.io/posts/2025-11-03-using-server-instructions/)

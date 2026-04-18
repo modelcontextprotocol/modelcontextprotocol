@@ -48,6 +48,7 @@
               "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
               "docs/develop/build-client",
+              "docs/develop/server-instructions",
               "docs/sdk",
               {
                 "group": "Security",
