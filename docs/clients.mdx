@@ -1519,20 +1519,24 @@ mcp-use is an open source python library to very easily connect any LLM to any M
 </McpClient>
 
 <McpClient
-  name="mcpc"
+  name="mcpc MCP CLI client"
   homepage="https://github.com/apify/mcpc"
-  supports="Resources, Prompts, Tools, Discovery, Instructions"
+  supports="Resources, Prompts, Tools, Discovery, Instructions, Tasks, CIMD, DCR"
 >
 
-`mcpc` is a universal CLI client for MCP that maps MCP operations to intuitive commands for interactive shell use, scripts, and AI coding agents.
+`mcpc` is a universal command-line client for MCP. It maps MCP operations to intuitive CLI commands, giving AI coding agents full protocol access through a single `Bash()` tool call. It works with any MCP server over Streamable HTTP or stdio, with or without a config file. Agents discover commands through `--help` without needing external skills, while MCP handles remote concerns like server discovery, authentication, payments, and access control.
 
 **Key features:**
 
-- Swiss Army knife for MCP: supports stdio and streamable HTTP, server config files and zero config, OAuth 2.1, HTTP headers, and main MCP features.
-- Persistent sessions for interaction with multiple servers simultaneously.
-- Structured text output enables AI agents to explore and interact with MCP servers.
-- JSON output and schema validation allow stable integration with other CLI tools, scripting, and MCP **code mode** in a shell.
-- Proxy MCP server to provide AI code sandboxes with secure access to authenticated MCP sessions.
+- **Code mode in the shell:** `--json` output composes with `jq`, `xargs`, and shell pipelines for writing MCP workflows as shell scripts, which can be more accurate and token-efficient than tool calling. `--schema` validates tool schemas against snapshots to detect breaking changes.
+- **Progressive tool discovery:** `grep` searches tools, resources, and prompts across all active sessions with regex, so agents load only relevant tools into context.
+- **Full MCP coverage:** tools, resources (including subscriptions and templates), prompts, instructions, async tasks with progress tracking and cancellation, list-change notifications, pagination, and logging control.
+- **Persistent sessions:** maintain multiple simultaneous server connections via named `@sessions`, with automatic reconnection and health monitoring.
+- **Authentication:** OAuth 2.1 with PKCE and dynamic client registration, bearer tokens, multiple named profiles per server, and secure credential storage in the OS keychain.
+- **AI sandboxing:** built-in MCP proxy server (`--proxy`) exposes authenticated sessions to AI-generated code without leaking credentials.
+- **Interactive shell:** `shell` command provides a REPL with command history, arrow-key navigation, and in-session help for exploratory server testing.
+- **x402 payments (experimental):** autonomous USDC payments on Base blockchain, letting AI agents pay for tool calls via the HTTP 402 protocol.
+- **Lightweight and cross-platform:** no LLM required, minimal dependencies, production-ready. Runs on macOS, Windows, and Linux. Install via `npm install -g @apify/mcpc`.
 
 </McpClient>
 
@@ -2259,19 +2263,21 @@ v0 turns your ideas into fullstack apps, no code required. Describe what you wan
 <McpClient
   name="VS Code GitHub Copilot"
   homepage="https://code.visualstudio.com/"
-  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps, CIMD, DCR"
+  supports="Resources, Prompts, Tools, Discovery, Sampling, Roots, Elicitation, Instructions, Apps, CIMD, DCR, Tasks"
   instructions="https://code.visualstudio.com/docs/copilot/customization/mcp-servers"
 >
 
-VS Code integrates MCP with GitHub Copilot through [agent mode](https://code.visualstudio.com/docs/copilot/chat/chat-agent-mode), allowing direct interaction with MCP-provided tools within your agentic coding workflow. Configure servers in Claude Desktop, workspace or user settings, with guided MCP installation and secure handling of keys in input variables to avoid leaking hard-coded keys.
+VS Code integrates MCP with GitHub Copilot [agents](https://code.visualstudio.com/docs/copilot/agents/overview), which plan, write code, and verify results across your project. Install MCP servers from the built-in gallery or configure them in workspace (`.vscode/mcp.json`) or user settings, with secure handling of keys via input variables.
 
 **Key features:**
 
-- Support for stdio and server-sent events (SSE) transport
-- Per-session selection of tools per agent session for optimal performance
-- Easy server debugging with restart commands and output logging
-- Tool calls with editable inputs and always-allow toggle
-- Integration with existing VS Code extension system to register MCP servers from extensions
+- MCP server gallery in the Extensions view for one-click install and discovery
+- Support for stdio, SSE, and streamable HTTP transports
+- Sandbox mode for stdio servers on macOS and Linux to restrict file system and network access
+- MCP Apps for interactive UI components like forms and visualizations rendered in chat
+- Per-session tool selection, editable inputs, and auto-approve toggle
+- Enterprise management of MCP server access via GitHub policies
+- Settings Sync support to share MCP configuration across devices
 
 </McpClient>
 

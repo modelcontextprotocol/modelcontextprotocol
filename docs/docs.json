@@ -425,7 +425,8 @@
           {
             "group": "Draft",
             "pages": [
-              "seps/2557-tasks-stabilization"
+              "seps/2243-http-standardization",
+              "seps/2557-adapt-tasks-for-stateless-and-sessionless-protocol"
             ]
           }
         ]
@@ -463,6 +464,7 @@
             "pages": [
               "community/inspector-v2/charter",
               "community/server-card/charter",
+              "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
             ]
           },

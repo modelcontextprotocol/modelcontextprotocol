@@ -1,0 +1,136 @@
+---
+title: Skills Over MCP Charter
+description: Charter for the MCP Skills Over MCP Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Skills Over MCP Working Group defines how "agent skills" — rich, structured
+instructions for agent workflows — are discovered, distributed, and consumed through MCP.
+Native skills support in host applications demonstrates strong demand, and the group
+emerged from discussion on [SEP-2076 — Agent Skills as a First-Class MCP Primitive](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2076),
+which raised open questions about whether existing MCP primitives suffice or what
+conventions to standardize. The WG produces specification extensions, reference
+implementations, and coordination artifacts because solutions touch the protocol spec,
+registry schema, SDK implementations, and client behavior.
+
+## Scope
+
+### In Scope
+
+- **Specification Work**: SEPs defining how skills are represented, discovered, and
+  consumed within MCP — including the Skills Extension (Extensions Track) and related
+  protocol changes
+- **Reference Implementations**: SDK components and reference servers demonstrating
+  skill discovery and consumption patterns
+- **Cross-Cutting Concerns**: Coordination with Registry WG (skills discovery/distribution,
+  registry schema changes), Agents WG (skill activation, server metadata consumption),
+  Primitive Grouping WG (progressive disclosure patterns), and external projects including
+  the [Agent Skills](https://agentskills.io/) spec (content format and well-known URI
+  discovery), FastMCP, and PydanticAI
+- **Documentation**: Specification sections and guidance covering skill authoring,
+  discovery, and consumption
+
+### Out of Scope
+
+- **Registry schema decisions**: Schema ownership belongs to the Registry WG; this WG
+  contributes requirements but does not own the schema
+- **Client implementation mandates**: We can document patterns but not require specific
+  client behavior
+- **Plugin/bundle packaging**: Installable bundles (skills + servers + subagents +
+  configuration as a single artifact) — surfaced by use cases but belongs to a broader
+  packaging effort
+
+### Related Groups
+
+- **Agents WG** — How agents consume server metadata, skill activation
+- **Registry WG** — Skills discovery/distribution, registry schema changes
+- **Primitive Grouping WG** — Progressive disclosure patterns
+
+## Leadership
+
+| Role | Name            | Organization                | GitHub                                   | Term    |
+| ---- | --------------- | --------------------------- | ---------------------------------------- | ------- |
+| Lead | Ola Hungerford  | Nordstrom / MCP Maintainer  | [@olaservo](https://github.com/olaservo) | Initial |
+| Lead | Peter Alexander | Anthropic / Core Maintainer | [@pja-ant](https://github.com/pja-ant)   | Initial |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name                     | Organization                    | GitHub                                                 | Discord | Level       |
+| ------------------------ | ------------------------------- | ------------------------------------------------------ | ------- | ----------- |
+| Ola Hungerford           | Nordstrom / MCP Maintainer      | [@olaservo](https://github.com/olaservo)               |         | Lead        |
+| Peter Alexander          | Anthropic / Core Maintainer     | [@pja-ant](https://github.com/pja-ant)                 |         | Lead        |
+| Yu Yi                    | Google                          | [@erain](https://github.com/erain)                     |         | Participant |
+| Sunish Sheth             | Databricks                      | [@sunishsheth2009](https://github.com/sunishsheth2009) |         | Participant |
+| Keith A Groves           | Hyix                            | [@keithagroves](https://github.com/keithagroves)       |         | Participant |
+| Peder Holdgaard Pedersen | Saxo Bank / MCP Maintainer      | [@pederhp](https://github.com/pederhp)                 |         | Participant |
+| Sam Morrow               | GitHub                          | [@SamMorrowDrums](https://github.com/SamMorrowDrums)   |         | Participant |
+| Jacob MacDonald          | Google                          | [@jakemac53](https://github.com/jakemac53)             |         | Participant |
+| Jonathan Hefner          | Independent / MCP Maintainer    | [@jonathanhefner](https://github.com/jonathanhefner)   |         | Participant |
+| Luca Chang               | AWS / MCP Maintainer            | [@LucaButBoring](https://github.com/LucaButBoring)     |         | Participant |
+| Bob Dickinson            | TeamSpark.ai / MCP Maintainer   | [@BobDickinson](https://github.com/BobDickinson)       |         | Participant |
+| Radoslav Dimitrov        | Stacklok / MCP Maintainer       | [@rdimitrov](https://github.com/rdimitrov)             |         | Participant |
+| Juan Antonio Osorio      | Stacklok                        | [@JAORMX](https://github.com/JAORMX)                   |         | Participant |
+| Kaxil Naik               | Astronomer / Apache Airflow PMC | [@kaxil](https://github.com/kaxil)                     |         | Participant |
+| Cliff Hall               | Futurescale                     | [@cliffhall](https://github.com/cliffhall)             |         | Participant |
+
+## Operations
+
+| Meeting         | Frequency         | Duration   | Purpose                                                                             |
+| --------------- | ----------------- | ---------- | ----------------------------------------------------------------------------------- |
+| Working Session | Weekly (Tuesdays) | 60 minutes | Technical discussion, pattern evaluation, proposal review; open to all participants |
+
+Default start time is 9:00 AM Pacific. Sessions may occasionally be scheduled earlier to better accommodate non-US time zones.
+
+Meetings are published at [meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io). Agendas are posted in advance per MCP meeting policy. Meeting notes are published to [Meeting Notes — Skills Over MCP WG](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/categories/meeting-notes-skills-over-mcp-wg).
+
+Discord: [#skills-over-mcp-wg](https://discord.com/channels/1358869848138059966/1464745826629976084)
+
+## Resources
+
+- Experimental findings and reference implementations: [modelcontextprotocol/experimental-ext-skills](https://github.com/modelcontextprotocol/experimental-ext-skills)
+- Project board: [Skills Over MCP WG](https://github.com/orgs/modelcontextprotocol/projects/38/views/1)
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+Full live tracking is on the [Skills Over MCP WG project board](https://github.com/orgs/modelcontextprotocol/projects/38/views/1). Headline workstreams:
+
+| Item                                           | Status      | Target Date | Champion                                                                                     |
+| ---------------------------------------------- | ----------- | ----------- | -------------------------------------------------------------------------------------------- |
+| Skills Extension SEP (draft, Extensions Track) | In Review   |             | [@pja-ant](https://github.com/pja-ant)                                                       |
+| Skills Extension reference implementation      | In Review   |             | [@olaservo](https://github.com/olaservo)                                                     |
+| Agent Skills spec coordination                 | In Progress |             | [@jonathanhefner](https://github.com/jonathanhefner), [@pja-ant](https://github.com/pja-ant) |
+| Registry skills.json proposal                  | In Progress |             | [@JAORMX](https://github.com/JAORMX)                                                         |
+
+### Success Criteria
+
+- **Short-term**: Documented consensus on requirements and evaluation of existing approaches
+- **Medium-term**: Clear recommendation (convention vs. protocol extension vs. both) — the draft Skills Extension SEP represents the WG's current direction: a formal extension using existing Resources primitives
+- **Long-term**: Interoperable skill distribution across MCP servers and clients
+
+## Changelog
+
+| Date       | Change                                                                                                                                                                                                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-16 | Converted from Interest Group to Working Group                                                                                                                                                                                                                                                                   |
+| 2026-04-14 | Initial charter (formalized from [experimental-ext-skills](https://github.com/modelcontextprotocol/experimental-ext-skills) repo README, which served as the de facto charter before the charter process was established via [SEP-2149](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2149)) |
+| 2026-02-01 | IG formed; experimental repo created                                                                                                                                                                                                                                                                             |
