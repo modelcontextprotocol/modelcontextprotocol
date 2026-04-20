@@ -42,7 +42,7 @@ Under this proposal, a server that currently scopes a shopping cart (for example
 
 ### What sessions scope today
 
-The current spec is not fully precise about which behaviors are session-bound, but in practice five categories of things attach to a session's lifetime:
+The current spec is imprecise about which behaviors are session-bound, but in practice five categories of things attach to a session's lifetime:
 
 1. **Negotiated capabilities and protocol version.** The result of `initialize` — which protocol version is in use and which optional capabilities each side supports — is established once per session and assumed for its duration. [SEP-2575] resolves this by removing `initialize` and carrying version/capability information per-request, so this proposal treats it as already addressed.
 
@@ -50,7 +50,7 @@ The current spec is not fully precise about which behaviors are session-bound, b
 
 3. **Application state.** The canonical example is a shopping cart: `add_item()`, `add_item()`, `checkout()`, with the cart existing implicitly per-session. This generalizes to any stateful workflow — a Playwright browser instance, a database transaction, an open file descriptor.
 
-4. **Mutable list endpoints.** `tools/list` (and `resources/list`, `prompts/list`) can legally return different results over a session's lifetime. For example, a server could expose an `enable_admin_tools` tool that mutates what subsequent `tools/list` calls return.
+4. **Mutable list endpoints.** `tools/list` (and `resources/list`, `prompts/list`) can legally return different results over a session's lifetime. For example, a database server could expose a `connect_database` tool that, once called, makes `query` and `list_tables` appear in subsequent `tools/list` results.
 
 5. **Resource subscriptions.** Subscription lifetime is tied to session lifetime. ([SEP-2575] introduces `messages/listen` as the delivery channel for server-to-client notifications; subscription lifetime under that model is not re-examined here.)
 
@@ -177,7 +177,7 @@ With sessions removed, list endpoints no longer have a session to vary against. 
 
 How clients learn that a cached list has gone stale is the subject of [SEP-2549], which defines a server-advertised TTL on list responses and the interaction with `notifications/*/list_changed`. The two SEPs are complementary: this one removes the session as a source of variation, so there is a stable thing to cache; [SEP-2549] specifies how long to cache it and when to invalidate.
 
-One consequence of the constraint above is that servers can no longer mutate `tools/list` as a side effect of tool calls; the `enable_admin_tools()`-mutates-the-list pattern is no longer permitted. In practice this is rarely used. For the same effect, servers can expose all tools unconditionally at list time and enforce authorization at call time (which is already the common posture for auth-gated tools).
+One consequence of the constraint above is that servers can no longer mutate list results as a side effect of other requests; the pattern from the Motivation — where calling `connect_database()` makes `query` and `list_tables` appear in subsequent `tools/list` results — is no longer permitted. For the same effect, the server exposes `query` and `list_tables` unconditionally at list time and has them take a `connection_id` argument returned by `connect_database()`. A `query` call without a valid `connection_id` fails with an error directing the model to call `connect_database()` first; the dependency is expressed in the tool's input schema and description rather than in the list result.
 
 ### Consequential spec edits
 
@@ -249,7 +249,7 @@ The bolded rows are the repos that use the session ID for application semantics.
 
 This is a **breaking change** for servers that rely on protocol-level session state. The migration path depends on server category:
 
-**Stdio servers using process-lifetime state.** These are the most common stateful servers today and are not broken by this proposal in their default deployment: the process lifetime still exists, and a server that keeps a single in-memory browser instance per process continues to work with a stdio client that spawns one process. Stdio servers never had `Mcp-Session-Id`.
+**Stdio servers using process-lifetime state.** These are the most common stateful servers today. Mechanically they are not broken by this proposal in their default deployment — the process lifetime still exists, and a server that keeps a single in-memory browser instance per process continues to function with a stdio client that spawns one process. However, such servers SHOULD NOT rely on process-lifetime state and SHOULD migrate to explicit handles. Process lifetime has the same undefined-scope problem this SEP removes for HTTP (whether the process corresponds to one conversation, one application launch, or something else is up to the host), and a server that depends on it cannot offer equivalent behavior over HTTP, where there is no process per client. Stdio servers never had `Mcp-Session-Id`, so the header removal itself does not affect them.
 
 **HTTP servers using `Mcp-Session-Id`.** These are less common and must migrate to explicit handles. The migration is mechanical: replace the session-scoped state map with a handle-keyed state map, add a `create_*` tool, add the handle as a parameter to stateful tools.
 
@@ -282,3 +282,9 @@ This is guidance, not a protocol requirement, since the protocol has no handle c
 ## Reference Implementation
 
 All official SDKs except PHP already provide a stateless mode, implemented as not generating a session ID (e.g. `sessionIdGenerator: undefined` in the TypeScript SDK, `stateless_http=True` in the Python SDK). This SEP makes that mode the only option for servers speaking the new protocol version. SDKs that support multiple protocol versions retain the session-ID-generating code path for older versions; the change is that it is no longer reachable when the negotiated protocol version is the one this SEP introduces.
+
+## Future Work
+
+This SEP deliberately does not introduce a protocol-level concept of a handle: from the wire's perspective `basket_id` is an ordinary string. A consequence is that nothing marks `basket_id` as a state handle to the client or model — the relationship between `create_basket`'s output and `add_item`'s input is inferred from naming and tool descriptions, not declared.
+
+A follow-up proposal could make that relationship explicit, for example via shared JSON Schema `$defs` referenced across a server's tool input and output schemas, or via a tool annotation that marks a result field as a handle. That would let orchestrators identify which values are live state (for compaction, hand-off, or cleanup purposes) without parsing tool descriptions. It is left out of scope here to keep this SEP to the minimum needed to remove sessions.
