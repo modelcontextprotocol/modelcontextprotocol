@@ -668,6 +668,17 @@ applications, and easier to proxy between different transports correctly.
 Otherwise, there will continue to be feature gaps and division between these
 different implementations, leading to both confusion and incompatibility.
 
+### How does `server/discover` relate to the MCP Server Card?
+
+The `server/discover` RPC overlaps with the
+[MCP Server Card](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127)
+proposal, which defines a `.well-known/mcp.json` document for HTTP-based
+discovery. Both mechanisms are intentionally retained: the Server Card is
+well-suited to HTTP (no auth required, cacheable, indexable) while
+`server/discover` provides a unified RPC interface that works consistently
+across HTTP and STDIO transports. The two should be aligned on content where
+applicable.
+
 ## Open Questions
 
 ### What belongs in `_meta` vs. as a top-level protocol field?
