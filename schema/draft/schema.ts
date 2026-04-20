@@ -88,25 +88,6 @@ export type ProgressToken = string | number;
 export type Cursor = string;
 
 /**
- * Common params for any task-augmented request.
- *
- * @internal
- */
-export interface TaskAugmentedRequestParams extends RequestParams {
-  /**
-   * If specified, the caller is requesting task-augmented execution for this request.
-   * However, receivers MAY return {@link CreateTaskResult} even when this field is absent,
-   * allowing unsolicited task creation. Similarly, receivers MAY return the immediate
-   * result even when this field is present.
-   *
-   * When a {@link CreateTaskResult} is returned, the actual result can be retrieved later
-   * via {@link GetTaskRequest | tasks/get}, which will inline the final result once the
-   * task reaches "completed" status.
-   */
-  task?: TaskMetadata;
-}
-
-/**
  * Common params for any request.
  *
  * @category Common Types
@@ -1560,7 +1541,7 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
  *
  * @category `tools/call`
  */
-export interface CallToolRequestParams extends TaskAugmentedRequestParams {
+export interface CallToolRequestParams {
   /**
    * The name of the tool.
    */
@@ -1725,19 +1706,6 @@ export type TaskStatus =
   | "completed" // The request completed successfully and results are available
   | "failed" // The request failed due to a JSON-RPC error. This status MUST NOT be used for non-JSON-RPC errors (e.g., tool results with isError: true should use "completed" status with the error in the result field).
   | "cancelled"; // The request was cancelled before completion
-
-/**
- * Metadata for augmenting a request with task execution.
- * Include this in the `task` field of the request parameters.
- *
- * @category `tasks`
- */
-export interface TaskMetadata {
-  /**
-   * Requested duration in milliseconds to retain task from creation.
-   */
-  ttl?: number;
-}
 
 /**
  * Metadata for associating messages with a task.
@@ -2103,7 +2071,7 @@ export type LoggingLevel =
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageRequestParams extends TaskAugmentedRequestParams {
+export interface CreateMessageRequestParams {
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -2775,7 +2743,7 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
+export interface ElicitRequestFormParams {
   /**
    * The elicitation mode.
    */
@@ -2808,7 +2776,7 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestURLParams extends TaskAugmentedRequestParams {
+export interface ElicitRequestURLParams {
   /**
    * The elicitation mode.
    */

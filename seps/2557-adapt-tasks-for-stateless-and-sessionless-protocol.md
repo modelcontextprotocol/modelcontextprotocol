@@ -78,7 +78,7 @@ Task Creation also has a number of issues since it is client-directed instead of
 To support the new SEPs and solve the issues outlined above we propose the following changes to the `Tasks` specification:
 
 1. Removes Features made obsolete by upcoming SEPs.
-2. Task Creation is determined by the Server.
+2. Task Creation is determined by the Server. Removed the `task` parameter from tool call requests.
 3. Servers MUST support `task/cancel` operation.
 4. Removal of Task Capabilities that are no longer necessary.
 5. Simplified Task Polling Flow which consolidates all polling onto the `tasks/get` method.
@@ -99,7 +99,7 @@ Tasks will no longer be an optional capability, but will instead become a standa
 
 ### Task Cancel Changes
 
-We propose aligning Task Cancellation with the Cooperative Cancellation model. In this model the requestor The requestor signals intent, but the worker decides when or if to honor it. This alligns `tasks/cancel with the cancellation pattern used in `notifications/cancelled`, where clients can always send a cancellation request, but servers can choose how to handle it. This also aligns Tasks with how Cancellation Tokens are handled in most async/concurrent programming languages including Go, Python, C#, TypeScript, etc...
+We propose aligning Task Cancellation with the Cooperative Cancellation model. In this model the requestor The requestor signals intent, but the worker decides when or if to honor it. This aligns `tasks/cancel` with the cancellation pattern used in `notifications/cancelled`, where clients can always send a cancellation request, but servers can choose how to handle it. This also aligns Tasks with how Cancellation Tokens are handled in most async/concurrent programming languages including Go, Python, C#, TypeScript, etc...
 
 In the specification this means:
 
@@ -690,6 +690,7 @@ The following adjustments related to unsolicited tasks are breaking changes:
 
 1. We will allow `CreateTaskResult` to be returned in response to `CallToolRequest` when no `task` field is present in the client request.
 1. We will allow `CallToolResult` to be returned in response to `CallToolRequest` even when the `task` field is present in the request.
+1. We will remove the `task` field from client requests.
 
 At a protocol level, this should be handled according to the protocol version. Under the `2025-11-25` protocol version, these cases **SHOULD** be handled as malformed responses, but under subsequent protocol versions, they **MUST** be treated as valid per the updated specification language.
 

@@ -148,9 +148,6 @@
         "CallToolRequestParams": {
             "description": "Parameters for a `tools/call` request.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "arguments": {
                     "additionalProperties": {},
                     "description": "Arguments to use for the tool call.",
@@ -159,10 +156,6 @@
                 "name": {
                     "description": "The name of the tool.",
                     "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "required": [
@@ -760,9 +753,6 @@
         "CreateMessageRequestParams": {
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "includeContext": {
                     "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. Values `\"thisServer\"` and `\"allServers\"` are soft-deprecated. Servers SHOULD only use these values if the client\ndeclares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.",
                     "enum": [
@@ -799,10 +789,6 @@
                 "systemPrompt": {
                     "description": "An optional system prompt the server wants to use for sampling. The client MAY modify or omit this prompt.",
                     "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 },
                 "temperature": {
                     "type": "number"
@@ -990,9 +976,6 @@
         "ElicitRequestFormParams": {
             "description": "The parameters for a request to elicit non-sensitive information from the user via a form in the client.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "message": {
                     "description": "The message to present to the user describing what information is being requested.",
                     "type": "string"
@@ -1030,10 +1013,6 @@
                         "type"
                     ],
                     "type": "object"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 }
             },
             "required": [
@@ -1056,9 +1035,6 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
                 "elicitationId": {
                     "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
                     "type": "string"
@@ -1071,10 +1047,6 @@
                     "const": "url",
                     "description": "The elicitation mode.",
                     "type": "string"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
                 },
                 "url": {
                     "description": "The URL that the user should navigate to.",
@@ -3917,29 +3889,6 @@
                 "taskId",
                 "ttl"
             ],
-            "type": "object"
-        },
-        "TaskAugmentedRequestParams": {
-            "description": "Common params for any task-augmented request.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject"
-                },
-                "task": {
-                    "$ref": "#/$defs/TaskMetadata",
-                    "description": "If specified, the caller is requesting task-augmented execution for this request.\nHowever, receivers MAY return {@link CreateTaskResult} even when this field is absent,\nallowing unsolicited task creation. Similarly, receivers MAY return the immediate\nresult even when this field is present.\n\nWhen a {@link CreateTaskResult} is returned, the actual result can be retrieved later\nvia {@link GetTaskRequesttasks/get}, which will inline the final result once the\ntask reaches \"completed\" status."
-                }
-            },
-            "type": "object"
-        },
-        "TaskMetadata": {
-            "description": "Metadata for augmenting a request with task execution.\nInclude this in the `task` field of the request parameters.",
-            "properties": {
-                "ttl": {
-                    "description": "Requested duration in milliseconds to retain task from creation.",
-                    "type": "integer"
-                }
-            },
             "type": "object"
         },
         "TaskStatus": {
