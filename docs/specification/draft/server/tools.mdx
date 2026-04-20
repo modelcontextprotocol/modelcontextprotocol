@@ -214,12 +214,26 @@ A tool definition includes:
 - `outputSchema`: Optional JSON Schema defining expected output structure
   - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
+- `execution`: Optional execution settings for the tool
+  - `taskSupport`: If `true`, indicates this tool may return a [task](/specification/draft/basic/utilities/tasks) instead of an immediate result
 - `annotations`: Optional properties describing tool behavior
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to
   be untrusted unless they come from trusted servers.
 </Warning>
+
+#### Task Support
+
+Tools that may return a task instead of an immediate result **MUST** declare `execution.taskSupport` in their tool definition. This allows clients to discover which tools support task-based execution before invocation.
+
+When `execution.taskSupport` is `true`:
+
+- The server **MAY** return a `CreateTaskResult` instead of an immediate result (e.g., `CallToolResult`) for any invocation of this tool
+- Clients **MUST** be prepared to handle task responses for this tool
+- Clients that do not implement the task polling workflow **MAY** filter out this tool from their available tool list
+
+See the [Tasks specification](/specification/draft/basic/utilities/tasks) for details on task-based execution.
 
 #### Tool Names
 

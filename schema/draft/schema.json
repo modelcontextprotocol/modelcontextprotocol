@@ -224,7 +224,7 @@
             "type": "object"
         },
         "CancelTaskRequest": {
-            "description": "A request to cancel a task.\n\nReceivers MUST support this method even if they are incapable or unwilling to\nactually cancel tasks. In such cases, they SHOULD return an error.",
+            "description": "A request to cancel a task.\n\nAll servers that return CreateTaskResult MUST support this method, even if they are\nincapable or unwilling to actually cancel tasks. This aligns tasks with the cooperative\ncancellation model used elsewhere in the protocol.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -674,7 +674,7 @@
                     "type": "integer"
                 },
                 "requestState": {
-                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.\nServers MAY return a different requestState value on each tasks/get response;\nclients MUST always use the most recently received value.",
                     "type": "string"
                 },
                 "result": {
@@ -1282,7 +1282,7 @@
                     "type": "integer"
                 },
                 "requestState": {
-                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.\nServers MAY return a different requestState value on each tasks/get response;\nclients MUST always use the most recently received value.",
                     "type": "string"
                 },
                 "status": {
@@ -1790,7 +1790,7 @@
                     "type": "integer"
                 },
                 "requestState": {
-                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.\nServers MAY return a different requestState value on each tasks/get response;\nclients MUST always use the most recently received value.",
                     "type": "string"
                 },
                 "status": {
@@ -3887,7 +3887,7 @@
                     "type": "integer"
                 },
                 "requestState": {
-                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.",
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.\nServers MAY return a different requestState value on each tasks/get response;\nclients MUST always use the most recently received value.",
                     "type": "string"
                 },
                 "status": {
@@ -4198,6 +4198,10 @@
                     "description": "A human-readable description of the tool.\n\nThis can be used by clients to improve the LLM's understanding of available tools. It can be thought of like a \"hint\" to the model.",
                     "type": "string"
                 },
+                "execution": {
+                    "$ref": "#/$defs/ToolExecution",
+                    "description": "Optional execution settings for the tool."
+                },
                 "icons": {
                     "description": "Optional set of sized icons that the client can display in a user interface.\n\nClients that support rendering icons MUST support at least the following MIME types:\n- `image/png` - PNG images (safe, universal compatibility)\n- `image/jpeg` (and `image/jpg`) - JPEG images (safe, universal compatibility)\n\nClients that support rendering icons SHOULD also support:\n- `image/svg+xml` - SVG images (scalable but requires security precautions)\n- `image/webp` - WebP images (modern, efficient format)",
                     "items": {
@@ -4313,6 +4317,16 @@
                         "required"
                     ],
                     "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ToolExecution": {
+            "description": "Execution settings describing a {@link Tool}.",
+            "properties": {
+                "taskSupport": {
+                    "description": "If true, this tool may return {@link CreateTaskResult} instead of an immediate result.\nWhen present, the server MAY choose to return a task for any invocation of this tool.\nClients should be prepared to handle task-based execution for tools with this flag set.\n\nDefault: false",
+                    "type": "boolean"
                 }
             },
             "type": "object"

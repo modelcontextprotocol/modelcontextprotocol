@@ -296,8 +296,11 @@ requests, mirrored from the JSON-RPC request body:
 | ------------ | ----------------------------- | ------------------------------------------------------ |
 | `Mcp-Method` | `method`                      | All requests and notifications                         |
 | `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
+| `Mcp-Name`   | `params.taskId`               | `tasks/get`, `tasks/cancel` requests                   |
 
 These headers are **REQUIRED** for compliance.
+
+For task-related operations (`tasks/get` and `tasks/cancel`), the `Mcp-Name` header **MUST** be set to the value of `params.taskId`. This enables infrastructure to route task requests to the correct server instance, as tasks often involve server-side state that must be consistently co-located.
 
 #### Examples
 
@@ -375,6 +378,25 @@ Mcp-Method: notifications/initialized
 {
   "jsonrpc": "2.0",
   "method": "notifications/initialized"
+}
+```
+
+**`tasks/get` request:**
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: tasks/get
+Mcp-Name: 786512e2-9e0d-44bd-8f29-789f320fe840
+
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "tasks/get",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
+  }
 }
 ```
 

@@ -17,15 +17,15 @@ Tasks are useful for representing expensive computations and batch processing re
 
 ## User Interaction Model
 
-Tasks are designed to be **client-driven** - clients are responsible for augmenting requests with tasks and for polling for the results of those tasks; meanwhile, servers tightly control which requests (if any) support task-based execution and manages the lifecycles of those tasks.
-
-This client-driven approach ensures deterministic response handling and enables sophisticated patterns such as dispatching concurrent requests, which only the client has sufficient context to orchestrate.
+Tasks are designed to support **server-directed execution** - servers decide when to create tasks for expensive or long-running operations, while clients are responsible for polling for results. This approach ensures deterministic response handling and enables sophisticated patterns such as dispatching concurrent requests, which only the client has sufficient context to orchestrate.
 
 Implementations are free to expose tasks through any interface pattern that suits their needs — the protocol itself does not mandate any specific user interaction model.
 
 ## Capabilities
 
-Task support requires no capability negotiation. Servers **MAY** return `CreateTaskResult` for any request without declaring a `tasks` capability, and clients **MUST** be prepared to handle tasks regardless of declared capabilities.
+Task support requires no capability negotiation. Tasks are a standard part of the protocol that servers **MAY** choose to implement. Servers **MAY** return `CreateTaskResult` for any request without declaring a capability, and clients **MUST** be prepared to handle tasks regardless of declared capabilities.
+
+All servers **MUST** implement the `tasks/get` and `tasks/cancel` methods. Servers that have not created any tasks will simply return an error for unknown task IDs.
 
 ## Protocol Messages
 
@@ -311,7 +311,7 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
 }
 ```
 
-The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. If no `requestState` is present in the server's response, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
+The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers **MAY** return a different `requestState` value on each `tasks/get` response; clients **MUST** always use the most recently received value in their next request. If no `requestState` is present in the server's response, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
 
 ### Task Status Notification
 
@@ -351,7 +351,9 @@ Clients **MUST NOT** rely on receiving this notifications, as it is optional. Se
 
 To explicitly cancel a task, clients can send a [`tasks/cancel`](/specification/draft/schema#tasks%2Fcancel) request.
 
-All servers that support tasks **MUST** support the `tasks/cancel` method, even if they are incapable of or unwilling to offer actual task cancellation. Servers that cannot cancel tasks **SHOULD** return an error indicating that cancellation is not supported for the specific task, similar to how `notifications/cancelled` must be accepted but may not result in actual cancellation.
+All servers that return `CreateTaskResult` **MUST** support the `tasks/cancel` method. This aligns tasks with the cooperative cancellation model used elsewhere in the protocol (e.g., `notifications/cancelled`): the requestor signals intent, but the worker decides whether to honor it.
+
+Servers **MAY** choose to ignore cancellation requests if they are incapable or unwilling to cancel a specific task. In such cases, the task continues executing and eventually reaches a terminal status (`completed` or `failed`).
 
 **Request:**
 
@@ -403,16 +405,22 @@ These requirements apply to all parties that support receiving task-augmented re
 
 ### Task Support and Handling
 
-1. Servers **MAY** return `CreateTaskResult` for any request, regardless of whether the client included a `task` field or whether task capabilities were declared. This result **SHOULD** be returned as soon as possible after accepting the task.
-1. Clients **MUST** be prepared to handle `CreateTaskResult` responses for any request.
-1. Servers **MAY** return an immediate result (e.g., `CallToolResult`) even when the client included a `task` field, choosing to complete the operation immediately rather than creating a task. Servers that do not wish to create a task **MUST** ignore the `task` field in the request.
+1. Servers **MAY** return `CreateTaskResult` for any request, regardless of whether the client included a `task` field. This result **SHOULD** be returned as soon as possible after accepting the task.
+1. Clients **MUST** be prepared to handle `CreateTaskResult` responses for any request, and **MUST** support the polling workflow via `tasks/get` to retrieve task results.
+1. Servers **MAY** return an immediate result (e.g., `CallToolResult`) even when the client included a `task` field, choosing to complete the operation immediately rather than creating a task.
 1. Servers **MUST NOT** return a `CreateTaskResult` unless and until a `tasks/get` request would successfully return that task. In eventually-consistent systems, servers **MUST** wait for consistency before returning `CreateTaskResult` to avoid speculative `tasks/get` requests that cannot find the task.
 
 <Note>
 
-Task support is independent of capability negotiation. Servers may create tasks regardless of declared capabilities. Implementors are advised not to treat tasks as a tool-specific protocol operation, as task support may be expanded to additional request types in the future.
+Task support is independent of capability negotiation. Servers may create tasks regardless of declared capabilities. Tasks are a standard part of the protocol, not a tool-specific operation, though task support may initially be most common for tool calls.
 
 </Note>
+
+### Tool Task Support Declaration
+
+1. Tools that may return `CreateTaskResult` **MUST** declare `execution.taskSupport` in their tool definition.
+1. This declaration allows clients to discover which tools support task-based execution before invocation.
+1. Clients that do not implement the task polling workflow **MAY** filter out tools with `execution.taskSupport` declared.
 
 ### Task Data Shapes
 
@@ -467,9 +475,11 @@ stateDiagram-v2
 
 1. When the task server has messages for the client that are necessary to complete the task, the server **SHOULD** move the task to the `input_required` status.
 1. The server **MUST** include outstanding server-to-client requests in the `inputRequests` field of the `tasks/get` response when in `input_required` status.
+1. The `inputRequests` field **MUST** contain all outstanding requests from the server to the client that need to be fulfilled before the task can proceed.
 1. When the client encounters the `input_required` status, it **SHOULD** provide responses via the `inputResponses` field in subsequent `tasks/get` requests.
+1. Upon receiving a `tasks/get` request with `inputResponses`, the server **MUST** process the provided responses and update the task state accordingly.
+1. The server **MAY** transition the task back to `working` status if the provided input is sufficient to continue processing.
 1. The `inputRequests` field represents a point-in-time snapshot of all outstanding requests. If the client polls again before providing all responses, the same requests will be included in subsequent `tasks/get` responses.
-1. When the server receives all required input, the task **SHOULD** transition out of `input_required` status (typically back to `working`).
 
 ### TTL and Resource Management
 
@@ -484,7 +494,6 @@ stateDiagram-v2
 
 1. When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), servers **MUST** inline the final result or error into the `Task` object returned by `tasks/get`.
 1. For successful completion, the `result` field **MUST** contain what the underlying request would have returned (e.g., `CallToolResult` for `tools/call`).
-1. For failures, the `error` field **MUST** contain the JSON-RPC error that occurred during execution. The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with `isError: true` (which should use the `completed` status with the error in the `result` field).
 1. Servers **MUST** include the `result` or `error` field in `notifications/tasks/status` notifications when notifying about terminal status transitions.
 
 ### Result Type Discrimination
@@ -533,8 +542,10 @@ Task-augmented requests support progress notifications as defined in the [progre
 
 ### Task Cancellation
 
+1. All servers that return `CreateTaskResult` **MUST** support the `tasks/cancel` operation, even if they are incapable or unwilling to actually cancel tasks.
+1. Servers **MAY** choose to ignore cancellation requests if they are incapable or unwilling to cancel a specific task. In such cases, the task continues executing and eventually reaches a terminal status (`completed` or `failed`).
 1. Servers **MUST** reject cancellation requests for tasks already in a terminal status (`completed`, `failed`, or `cancelled`) with error code `-32602` (Invalid params).
-1. Upon receiving a valid cancellation request, servers **SHOULD** attempt to stop the task execution and **MUST** transition the task to `cancelled` status before sending the response.
+1. Upon receiving a valid cancellation request for a non-terminal task, servers that choose to honor the cancellation **SHOULD** attempt to stop the task execution and transition the task to `cancelled` status.
 1. Once a task is cancelled, it **MUST** remain in `cancelled` status even if execution continues to completion or fails.
 1. The `tasks/cancel` operation does not define deletion behavior. However, servers **MAY** delete cancelled tasks at their discretion at any time, including immediately after cancellation or after the task `ttl` expires.
 1. Clients **SHOULD NOT** rely on cancelled tasks being retained for any specific duration and should retrieve any needed information before cancelling.
@@ -859,6 +870,8 @@ Servers are not required to retain tasks indefinitely. It is compliant behavior 
 ### Task Execution Errors
 
 When the underlying request encounters a JSON-RPC protocol error during execution, the task moves to the `failed` status. The `tasks/get` response **SHOULD** include a `statusMessage` field with diagnostic information about the failure, and **MUST** include the `error` field with the JSON-RPC error.
+
+The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with `isError: true`. Application-level errors **MUST** use the `completed` status with the error details in the `result` field. This maintains a strong separation between protocol-level faults (which use the `failed` status) and application-level faults (which are returned as `completed` results with `isError: true`).
 
 **Example: Task with JSON-RPC execution error**
 
