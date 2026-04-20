@@ -165,11 +165,7 @@ export interface RequestMetaObject extends MetaObject {
 + /**
 +  * Identifies the client software.
 +  */
-+ "io.modelcontextprotocol/clientInfo"?: Implementation;
-+ /**
-+  * The client's current root URIs.
-+  */
-+ "io.modelcontextprotocol/roots"?: Root[];
++ "io.modelcontextprotocol/clientInfo": Implementation;
 + /**
 +  * The desired log level for this request.
 +  */
@@ -340,11 +336,25 @@ In addition to `clientCapabilities`, the following fields previously exchanged
 during initialization **MAY** be included in per-request `_meta` fields:
 
 - `"io.modelcontextprotocol/clientInfo"`: `Implementation` — identifies the
-  client software without requiring an initialization handshake.
-- `"io.modelcontextprotocol/roots"`: `Root[]` — the client's current root
-  URIs, replacing the need for `notifications/roots/list_changed`.
+  client software. **Required.** The `Implementation` schema requires `name`
+  and `version`; other fields are optional.
 - `"io.modelcontextprotocol/logLevel"`: `LoggingLevel` — the desired log
-  level for this request, replacing the `logging/setLevel` RPC.
+  level for this request. **Optional.** If absent, the server **MUST NOT**
+  send any log notifications for this request. The client opts in to log
+  messages by explicitly setting a level. Replaces the `logging/setLevel`
+  RPC.
+
+Roots are intentionally not included as a per-request `_meta` field. Servers
+that need the client's roots **MUST** request them via the MRTR
+`ListRootsRequest` mechanism (see
+[SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)),
+which avoids putting potentially large root lists on every request and
+follows the "pay as you go" principle.
+
+The required fields (`protocolVersion`, `clientCapabilities`, `clientInfo`)
+MUST be present on every request. A request missing any of these is
+malformed; the server **MUST** reject it with `INVALID_PARAMS` (and `400 Bad
+Request` for HTTP).
 
 The primary capability defined in this proposal is the ability to handle
 streaming responses, which is supported through two distinct models:
@@ -366,8 +376,7 @@ stream for that transaction.
 export interface RequestMetaObject extends MetaObject {
   progressToken?: ProgressToken;
   "io.modelcontextprotocol/protocolVersion": string;
-  "io.modelcontextprotocol/clientInfo"?: Implementation;
-  "io.modelcontextprotocol/roots"?: Root[];
+  "io.modelcontextprotocol/clientInfo": Implementation;
   "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 + /**
 +  * Capabilities of the client for this specific request.
@@ -400,8 +409,8 @@ export interface NotificationsListenRequest extends Request {
   params: {
     _meta?: {
       "io.modelcontextprotocol/protocolVersion": string;
-      "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
-      "io.modelcontextprotocol/roots"?: Root[];
+      "io.modelcontextprotocol/clientInfo": Implementation;
+      "io.modelcontextprotocol/clientCapabilities": ClientCapabilities;
       // ... other meta fields
     };
 
@@ -492,13 +501,14 @@ the following RPC methods and notifications are removed:
   handled by `server/discover`. Servers compliant with this SEP **SHOULD**
   accept and ignore `notifications/initialized` without error to maintain
   backward compatibility with clients that may send it.
-- `logging/setLevel`: This method is removed. Log levels should now be
-  specified on a per-request basis using the
-  `'io.modelcontextprotocol/logLevel'` field in the `_meta` object.
-- `notifications/roots/list_changed`: This notification is removed. Clients
-  now provide their current roots directly in per-request `_meta` fields.
-  Since the server receives the current roots with each request, there is no
-  need for a separate change notification.
+- `logging/setLevel`: Removed. The log level is now specified per-request
+  via the `'io.modelcontextprotocol/logLevel'` `_meta` field. There is no
+  replacement RPC.
+- `roots/list`: Removed as a top-level server-to-client RPC. Servers that
+  need the client's roots **MUST** request them via the MRTR
+  `ListRootsRequest` mechanism (see SEP-2322).
+- `notifications/roots/list_changed`: Removed. Roots are fetched on demand
+  via MRTR, so there is no need for a change notification.
 - `resources/subscribe` / `resources/unsubscribe`: These methods are removed.
   Resource subscriptions are inherently stateful — the server must remember
   which resources each client has subscribed to. Instead, clients declare
