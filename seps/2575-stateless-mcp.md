@@ -186,19 +186,21 @@ return a JSON-RPC error response. For HTTP, the response status code MUST be
 `400 Bad Request`. The error MUST conform to the following structure:
 
 ```ts
-export const UNSUPPORTED_PROTOCOL_VERSION = -32001;
-
 export interface UnsupportedProtocolVersionError extends Omit<
   JSONRPCErrorResponse,
   "error"
 > {
   error: Error & {
-    code: typeof UNSUPPORTED_PROTOCOL_VERSION;
+    code: typeof INVALID_PARAMS;
     data: {
       /**
        * An array of protocol version strings that the server supports.
        */
-      supportedVersions: string[];
+      supported: string[];
+      /**
+       * The protocol version that was requested by the client.
+       */
+      requested: string;
     };
   };
 }
@@ -213,7 +215,7 @@ Without an initialization handshake, version negotiation happens inline:
    `io.modelcontextprotocol/protocolVersion` `_meta` field.
 2. If the server supports that version, it processes the request normally.
 3. If the server does not support the requested version, it returns an
-   `UnsupportedVersionError` containing its list of `supportedVersions`.
+   `UnsupportedProtocolVersionError` containing its list of `supported` versions.
 4. The client selects a mutually supported version from the list and retries.
 
 Alternatively, a client **MAY** call `server/discover` first to learn the
