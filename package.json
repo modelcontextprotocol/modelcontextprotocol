@@ -57,7 +57,7 @@
     "remark-parse": "^11.0.0",
     "tsx": "^4.21.0",
     "typedoc": "^0.28.19",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.58.1",
     "typescript-json-schema": "^0.67.1",
     "unified": "^11.0.5"
