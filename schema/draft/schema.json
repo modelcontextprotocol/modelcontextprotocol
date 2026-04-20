@@ -692,7 +692,7 @@
                     "type": "string"
                 },
                 "ttl": {
-                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "description": "Actual retention duration from creation in integer seconds, null for unlimited.",
                     "type": [
                         "integer",
                         "null"
@@ -1275,7 +1275,7 @@
                     "type": "string"
                 },
                 "ttl": {
-                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "description": "Actual retention duration from creation in integer seconds, null for unlimited.",
                     "type": [
                         "integer",
                         "null"
@@ -1783,7 +1783,7 @@
                     "type": "string"
                 },
                 "ttl": {
-                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "description": "Actual retention duration from creation in integer seconds, null for unlimited.",
                     "type": [
                         "integer",
                         "null"
@@ -3879,7 +3879,7 @@
                     "type": "string"
                 },
                 "ttl": {
-                    "description": "Actual retention duration from creation in milliseconds, null for unlimited.",
+                    "description": "Actual retention duration from creation in integer seconds, null for unlimited.",
                     "type": [
                         "integer",
                         "null"

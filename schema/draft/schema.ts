@@ -1756,7 +1756,7 @@ export interface Task {
   lastUpdatedAt: string;
 
   /**
-   * Actual retention duration from creation in milliseconds, null for unlimited.
+   * Actual retention duration from creation in integer seconds, null for unlimited.
    * @nullable
    */
   ttl: number | null;

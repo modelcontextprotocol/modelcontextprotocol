@@ -77,16 +77,17 @@ Task Creation also has a number of issues since it is client-directed instead of
 
 To support the new SEPs and solve the issues outlined above we propose the following changes to the `Tasks` specification:
 
-1. Removes Features made obsolete by upcoming SEPs.
+1. Removes/alters features made obsolete by upcoming SEPs.
 2. Task Creation is determined by the Server. Removed the `task` parameter from tool call requests.
 3. Servers MUST support `task/cancel` operation.
 4. Removal of Task Capabilities that are no longer necessary.
 5. Simplified Task Polling Flow which consolidates all polling onto the `tasks/get` method.
 
-### Remove features made obsolete by upcoming SEPs
+### Remove/alter features made obsolete by upcoming SEPs
 
 1. We will remove the concept of client-hosted tasks (Sampling & Elicitation), as SEP-2260 disallows unsolicited server-to-client requests
 2. We will remove the optional `tasks/list` operation, as SEP-2567 removes sessions which was the only defined scope for listing tasks between a server and a client. We may expand task support to additional client-to-server request types in the future, and implementors are still advised against implementing tasks as a tool-specific protocol operation.
+3. We will change `Task.ttl` to be expressed in integer seconds to align with SEP-2549, which matches standard HTTP conventions.
 
 ### Task Creation Changes
 
@@ -197,7 +198,7 @@ The below section contains example responses for each of the above cases.
     "statusMessage": "The operation is in progress.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 60000,
+    "ttl": 60,
     "pollInterval": 5000
   }
 }
@@ -216,7 +217,7 @@ The below section contains example responses for each of the above cases.
     "statusMessage": "The operation has completed successfully.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 60000,
+    "ttl": 60,
     "pollInterval": 5000,
     "result": {
       "content": [
@@ -244,7 +245,7 @@ The below section contains example responses for each of the above cases.
     "statusMessage": "Tool execution failed: API rate limit exceeded",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "error": {
       "code": -32603,
       "message": "API rate limit exceeded"
@@ -266,7 +267,7 @@ The below section contains example responses for each of the above cases.
     "statusMessage": "The task was cancelled by request.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000
   }
 }
@@ -285,7 +286,7 @@ The below section contains example responses for each of the above cases.
     "statusMessage": "The operation requires additional input.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 60000,
+    "ttl": 60,
     "pollInterval": 5000,
     "inputRequests": {
       "github_login": {
@@ -426,7 +427,7 @@ The server determines (via bespoke logic) that it wants to create a task to repr
       "status": "working",
       "createdAt": "2025-11-25T10:30:00Z",
       "lastUpdatedAt": "2025-11-25T10:50:00Z",
-      "ttl": 30000,
+      "ttl": 30,
       "pollInterval": 5000
     }
   }
@@ -458,7 +459,7 @@ On each request while the task is in a `"working"` status, the server returns a 
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000
   }
 }
@@ -487,7 +488,7 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000,
     "inputRequests": {
       "name": {
@@ -534,7 +535,7 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000,
     "inputRequests": {
       "name": {
@@ -590,7 +591,7 @@ With the elicitation fulfilled and no other outstanding requests to send, the se
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000
   }
 }
@@ -619,7 +620,7 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000,
     "result": {
       "content": [

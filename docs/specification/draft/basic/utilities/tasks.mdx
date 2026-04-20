@@ -73,7 +73,7 @@ Whether a task is created in response to a request is subject to the server's im
       "statusMessage": "The operation is now in progress.",
       "createdAt": "2025-11-25T10:30:00Z",
       "lastUpdatedAt": "2025-11-25T10:40:00Z",
-      "ttl": 60000,
+      "ttl": 60,
       "pollInterval": 5000
     }
   }
@@ -136,7 +136,7 @@ Clients **SHOULD** continue polling until the task reaches a terminal status (`c
     "statusMessage": "The operation is now in progress.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000
   }
 }
@@ -158,7 +158,7 @@ When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), t
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000,
     "result": {
       "content": [
@@ -186,7 +186,7 @@ When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), t
     "statusMessage": "Tool execution failed: API rate limit exceeded",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "error": {
       "code": -32603,
       "message": "API rate limit exceeded"
@@ -211,7 +211,7 @@ When a task requires input from the client (indicated by the `input_required` st
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:45:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000,
     "inputRequests": {
       "elicit-name": {
@@ -272,7 +272,7 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:45:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000,
     "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0=",
     "inputRequests": {
@@ -343,7 +343,7 @@ When a task status changes, servers **MAY** send a [`notifications/tasks/status`
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 60000,
+    "ttl": 60,
     "pollInterval": 5000,
     "result": {
       "content": [
@@ -395,7 +395,7 @@ Servers **MAY** choose to ignore cancellation requests if they are incapable or 
     "statusMessage": "The task was cancelled by request.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000
   }
 }
@@ -525,7 +525,7 @@ To enable clients to distinguish between different response types without inspec
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "pollInterval": 5000
   }
 }
@@ -710,7 +710,7 @@ A task represents the execution state of a request. The task state includes:
 - `status`: Current state of the task execution
 - `statusMessage`: Optional human-readable message describing the current state (can be present for any status, including error details for failed tasks)
 - `createdAt`: ISO 8601 timestamp when the task was created
-- `ttl`: Time in milliseconds from creation before task may be deleted
+- `ttl`: Time in integer seconds from creation before task may be deleted
 - `pollInterval`: Suggested time in milliseconds between status checks
 - `lastUpdatedAt`: ISO 8601 timestamp when the task status was last updated
 - `result`: Optional field containing the final result when the task reaches a terminal status (e.g., `CallToolResult` for tool calls)
@@ -823,7 +823,7 @@ The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such 
     "status": "failed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "statusMessage": "Tool execution failed: API rate limit exceeded",
     "error": {
       "code": -32603,
@@ -847,7 +847,7 @@ For tool calls that complete successfully at the protocol level but return an ap
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 30000,
+    "ttl": 30,
     "result": {
       "content": [
         {
