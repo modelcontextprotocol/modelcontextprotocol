@@ -330,6 +330,55 @@
             },
             "type": "object"
         },
+        "CancelledTask": {
+            "description": "A task that has been cancelled.\nUsed by tasks/get and notifications/tasks/status.",
+            "properties": {
+                "createdAt": {
+                    "description": "ISO 8601 timestamp when the task was created.",
+                    "type": "string"
+                },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
+                "pollInterval": {
+                    "description": "Suggested polling interval in milliseconds.",
+                    "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.\nServers MAY return a different requestState value on each tasks/get response;\nclients MUST always include the most recently received value on the next request.",
+                    "type": "string"
+                },
+                "status": {
+                    "const": "cancelled",
+                    "description": "Current task state.",
+                    "type": "string"
+                },
+                "statusMessage": {
+                    "description": "Optional human-readable message describing the current task state.\nThis can provide context for any status, including:\n- Reasons for \"cancelled\" status\n- Summaries for \"completed\" status\n- Diagnostic information for \"failed\" status (e.g., error details, what went wrong)",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "The task identifier.",
+                    "type": "string"
+                },
+                "ttl": {
+                    "description": "Actual retention duration from creation in integer seconds, null for unlimited.",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "createdAt",
+                "lastUpdatedAt",
+                "status",
+                "taskId",
+                "ttl"
+            ],
+            "type": "object"
+        },
         "ClientCapabilities": {
             "description": "Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.",
             "properties": {
@@ -465,7 +514,7 @@
                             "$ref": "#/$defs/Result"
                         },
                         {
-                            "$ref": "#/$defs/Task"
+                            "$ref": "#/$defs/WorkingTask"
                         }
                     ]
                 },
@@ -496,6 +545,16 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/CancelledTask"
                         }
                     ]
                 },
@@ -937,7 +996,7 @@
         "DetailedTask": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/Task"
+                    "$ref": "#/$defs/WorkingTask"
                 },
                 {
                     "$ref": "#/$defs/InputRequiredTask"
@@ -947,6 +1006,9 @@
                 },
                 {
                     "$ref": "#/$defs/FailedTask"
+                },
+                {
+                    "$ref": "#/$defs/CancelledTask"
                 }
             ],
             "description": "A union type representing a task with optional inlined result/error/inputRequests fields.\nThis type is used by tasks/get and notifications/tasks/status to provide complete task state\nincluding terminal results or pending input requests."
@@ -1442,7 +1504,7 @@
                             "$ref": "#/$defs/Result"
                         },
                         {
-                            "$ref": "#/$defs/Task"
+                            "$ref": "#/$defs/WorkingTask"
                         }
                     ]
                 },
@@ -1473,6 +1535,16 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/CancelledTask"
                         }
                     ]
                 }
@@ -3623,7 +3695,7 @@
                             "$ref": "#/$defs/Result"
                         },
                         {
-                            "$ref": "#/$defs/Task"
+                            "$ref": "#/$defs/WorkingTask"
                         }
                     ]
                 },
@@ -3654,6 +3726,16 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Result"
+                        },
+                        {
+                            "$ref": "#/$defs/CancelledTask"
                         }
                     ]
                 },
@@ -3936,7 +4018,7 @@
                             "$ref": "#/$defs/NotificationParams"
                         },
                         {
-                            "$ref": "#/$defs/Task"
+                            "$ref": "#/$defs/WorkingTask"
                         }
                     ]
                 },
@@ -3967,6 +4049,16 @@
                         },
                         {
                             "$ref": "#/$defs/FailedTask"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/NotificationParams"
+                        },
+                        {
+                            "$ref": "#/$defs/CancelledTask"
                         }
                     ]
                 }
@@ -4571,6 +4663,55 @@
             "required": [
                 "enum",
                 "type"
+            ],
+            "type": "object"
+        },
+        "WorkingTask": {
+            "description": "A task that is in a normal working state.\nUsed by tasks/get and notifications/tasks/status.",
+            "properties": {
+                "createdAt": {
+                    "description": "ISO 8601 timestamp when the task was created.",
+                    "type": "string"
+                },
+                "lastUpdatedAt": {
+                    "description": "ISO 8601 timestamp when the task was last updated.",
+                    "type": "string"
+                },
+                "pollInterval": {
+                    "description": "Suggested polling interval in milliseconds.",
+                    "type": "integer"
+                },
+                "requestState": {
+                    "description": "Optional request state passed back from the server to the client.\nUsed for server-side state management per SEP-2322 Multi Round-Trip Requests.\nServers MAY return a different requestState value on each tasks/get response;\nclients MUST always include the most recently received value on the next request.",
+                    "type": "string"
+                },
+                "status": {
+                    "const": "working",
+                    "description": "Current task state.",
+                    "type": "string"
+                },
+                "statusMessage": {
+                    "description": "Optional human-readable message describing the current task state.\nThis can provide context for any status, including:\n- Reasons for \"cancelled\" status\n- Summaries for \"completed\" status\n- Diagnostic information for \"failed\" status (e.g., error details, what went wrong)",
+                    "type": "string"
+                },
+                "taskId": {
+                    "description": "The task identifier.",
+                    "type": "string"
+                },
+                "ttl": {
+                    "description": "Actual retention duration from creation in integer seconds, null for unlimited.",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "createdAt",
+                "lastUpdatedAt",
+                "status",
+                "taskId",
+                "ttl"
             ],
             "type": "object"
         }

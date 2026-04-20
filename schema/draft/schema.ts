@@ -1776,6 +1776,16 @@ export interface Task {
 }
 
 /**
+ * A task that is in a normal working state.
+ * Used by tasks/get and notifications/tasks/status.
+ *
+ * @category `tasks`
+ */
+export interface WorkingTask extends Task {
+  status: "working";
+}
+
+/**
  * A task that is waiting for input from the client.
  * Used by tasks/get and notifications/tasks/status.
  *
@@ -1821,6 +1831,16 @@ export interface FailedTask extends Task {
 }
 
 /**
+ * A task that has been cancelled.
+ * Used by tasks/get and notifications/tasks/status.
+ *
+ * @category `tasks`
+ */
+export interface CancelledTask extends Task {
+  status: "cancelled";
+}
+
+/**
  * A union type representing a task with optional inlined result/error/inputRequests fields.
  * This type is used by tasks/get and notifications/tasks/status to provide complete task state
  * including terminal results or pending input requests.
@@ -1828,10 +1848,11 @@ export interface FailedTask extends Task {
  * @category `tasks`
  */
 export type DetailedTask =
-  | Task
+  | WorkingTask
   | InputRequiredTask
   | CompletedTask
-  | FailedTask;
+  | FailedTask
+  | CancelledTask;
 
 /**
  * The result returned for a task-augmented request.
