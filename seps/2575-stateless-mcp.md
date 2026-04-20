@@ -1,4 +1,4 @@
-# SEP-2575: Stateless-by-Default MCP
+# SEP-2575: Make MCP Stateless
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -134,9 +134,10 @@ handshake must now be included with **every request**.
 
 #### HTTP
 
-For the HTTP transport, protocol version MUST be passed as **HTTP header**. For
-the HTTP transport, the headers MUST be treated as the source of truth over the
-request payload.
+For the HTTP transport, protocol version MUST be passed as an **HTTP header**.
+The header value MUST match the value provided in the request payload's `_meta`
+field; otherwise the server MUST return a `400 Bad Request` (see
+[SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243)).
 
 - `MCP-Protocol-Version: 2025-06-18`
   - **Purpose**: To inform the server which version of the MCP specification
