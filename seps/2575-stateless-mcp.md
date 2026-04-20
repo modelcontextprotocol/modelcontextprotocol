@@ -647,6 +647,20 @@ different implementations, leading to both confusion and incompatibility.
 
 ## Open Questions
 
+### What belongs in `_meta` vs. as a top-level protocol field?
+
+This SEP places several previously-handshake-negotiated values
+(`protocolVersion`, `clientInfo`, `roots`, `logLevel`, `clientCapabilities`)
+into per-request `_meta` fields under the `io.modelcontextprotocol/` namespace.
+This follows the spec's allowance for "purpose-specific metadata" reserved by
+definitions in the schema.
+
+However, this risks overloading `_meta` over time — at what point do we add
+top-level fields again? One possible distinction: required protocol-level
+fields (e.g., `protocolVersion`) might better live as top-level fields, while
+optional or extension-provided values stay in `_meta`. This question deserves
+broader discussion before this SEP is finalized.
+
 ### Should `clientInfo` be part of `ClientCapabilities`?
 
 Currently, `clientInfo` (`Implementation` type) and `clientCapabilities`
