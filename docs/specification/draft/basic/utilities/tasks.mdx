@@ -258,7 +258,7 @@ The `inputRequests` field represents a point-in-time snapshot of all outstanding
 
 #### Request State Management
 
-Servers **MAY** set an optional `requestState` string on any `Task` object to pass opaque routing or state information back to the client. When a client receives a `Task` with a `requestState` value, it **MUST** echo back the exact value of that field in the `requestState` field of subsequent `tasks/get` requests for the same task. The server can use this echoed value to recover routing context or session state without maintaining per-task server-side session data, enabling stateless, load-balanced deployments.
+Servers **MAY** set an optional `requestState` string on any `Task` object to pass opaque routing or state information back to the client. When a client receives a `Task` with a `requestState` value, it **MUST** echo back the exact value of that field in the `requestState` field of subsequent `tasks/get` and `tasks/cancel` requests for the same task. The server can use this echoed value to recover routing context or session state without maintaining per-task server-side session data, enabling stateless, load-balanced deployments.
 
 **Response (with requestState):**
 
@@ -312,7 +312,21 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
 }
 ```
 
-The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers **MAY** return a different `requestState` value on each `tasks/get` response; clients **MUST** always use the most recently received value in their next request. If no `requestState` is present in the server's response, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
+**`tasks/cancel` Request (echoing requestState):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tasks/cancel",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0="
+  }
+}
+```
+
+The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers **MAY** return a different `requestState` value on each `tasks/get` and `tasks/cancel` response; clients **MUST** always use the most recently received value in their next request. If no `requestState` is present in the server's response, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
 
 ### Task Status Notification
 

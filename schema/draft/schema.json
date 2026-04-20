@@ -232,6 +232,10 @@
                 },
                 "params": {
                     "properties": {
+                        "requestState": {
+                            "description": "Optional field containing request state passed to the server from the client (see SEP-2322).",
+                            "type": "string"
+                        },
                         "taskId": {
                             "description": "The task identifier to cancel.",
                             "type": "string"

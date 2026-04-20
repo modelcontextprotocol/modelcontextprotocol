@@ -1923,6 +1923,11 @@ export interface CancelTaskRequest extends JSONRPCRequest {
      * The task identifier to cancel.
      */
     taskId: string;
+
+    /**
+     * Optional field containing request state passed to the server from the client (see SEP-2322).
+     */
+    requestState?: string;
   };
 }
 
