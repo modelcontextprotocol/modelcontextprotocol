@@ -240,16 +240,17 @@ Without an initialization handshake, version negotiation happens inline:
 Alternatively, a client **MAY** call `server/discover` first to learn the
 server's supported versions before sending any other requests.
 
-### Optional Discovery for Server Capabilities
+### Discovery for Server Capabilities
 
 To allow clients to adapt to different server implementations, this
 specification introduces a **discovery RPC**. This provides a standard mechanism
 for a server to advertise its supported protocol versions and capabilities.
 
-This discovery step is **OPTIONAL**. A client is free to invoke any RPC without
-first calling the discovery endpoint. If a client calls an unsupported RPC, the
-server **MUST** return a `Method not found` JSON-RPC error (`-32601`). For HTTP,
-the response status code MUST be `404 Not Found`.
+Servers **MUST** implement `server/discover`. Clients **MAY** call it but are
+not required to — a client is free to invoke any RPC without first calling the
+discovery endpoint. If a client calls an unsupported RPC, the server **MUST**
+return a `Method not found` JSON-RPC error (`-32601`). For HTTP, the response
+status code MUST be `404 Not Found`.
 
 #### `server/discover` RPC
 
