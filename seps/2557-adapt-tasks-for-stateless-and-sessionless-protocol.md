@@ -93,8 +93,8 @@ To support the new SEPs and solve the issues outlined above we propose the follo
 Tasks will no longer be an optional capability, but will instead become a standard part of the protocol that servers MAY choose to implement.
 
 1. We will remove the `tasks` capability declaration on both the client and the server.
-1. Servers MAY return `CreateTaskResult` or a `CallToolResult`in response to `CallToolRequest`.
-1. Servers SHOULD ignore the `task` field if it is present in a `CallToolRequest`.
+1. We will remove the `tasks` parameter from `CallToolRequest`.
+1. Servers MAY return `CreateTaskResult` or a `CallToolResult` in response to `CallToolRequest`.
 1. If a server returns a `CreateTaskResult`, it MUST support the `tasks/get` and `tasks/cancel` methods to allow clients to poll for the result and cancel the task if desired.
 
 ### Task Cancel Changes
