@@ -94,7 +94,8 @@ The client **MUST** initiate this phase by sending an `initialize` request conta
           "sizes": ["48x48"]
         }
       ],
-      "websiteUrl": "https://example.com"
+      "websiteUrl": "https://example.com",
+      "keywords": ["chat", "ide", "developer-tools"]
     }
   }
 }
@@ -142,7 +143,14 @@ The server **MUST** respond with its own capabilities and information:
           "sizes": ["any"]
         }
       ],
-      "websiteUrl": "https://example.com/server"
+      "websiteUrl": "https://example.com/server",
+      "keywords": [
+        "jira",
+        "bitbucket",
+        "atlassian",
+        "issue-tracking",
+        "pull-request"
+      ]
     },
     "instructions": "Optional instructions for the client"
   }
@@ -215,6 +223,22 @@ Capability objects can describe sub-capabilities like:
 - `listChanged`: Support for list change notifications (for prompts, resources, and
   tools)
 - `subscribe`: Support for subscribing to individual items' changes (resources only)
+
+#### Keyword-based Server Routing
+
+Servers **MAY** advertise an optional `keywords` array in their `serverInfo` (and clients **MAY** do the same in `clientInfo`). Each entry is a short, lowercase token describing a domain, topic, integration, or capability the implementation is associated with — for example `"jira"`, `"bitbucket"`, `"postgres"`, `"observability"`.
+
+Keywords are **purely advisory metadata**. They do not change the protocol surface, do not gate any request, and **MUST NOT** be used as a security boundary.
+
+Clients connected to multiple servers **MAY** use `keywords` to:
+
+- **Route** a user's natural-language request to the most relevant server when the request contains or implies one of the advertised keywords (e.g. user mentions "jira" → prefer the server whose `keywords` includes `"jira"`), even when no tool name, description, or resource directly matches.
+- **Rank or filter** servers in discovery, search, and selection UIs.
+- **Pre-load or pre-select** servers based on conversational context, project type, or active workspace.
+
+Clients **SHOULD** treat `keywords` as case-insensitive and **SHOULD NOT** require an exact substring match against tool names, descriptions, or resource URIs before considering a server relevant. Servers **SHOULD** keep the list small and focused (typically under ~10 entries) and **SHOULD NOT** include the server's own `name` or generic terms (e.g. `"server"`, `"mcp"`) that provide no routing signal.
+
+Because `keywords` is optional and unrecognized by older clients, adding or removing entries is fully backward compatible.
 
 #### Extension Negotiation
 

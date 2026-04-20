@@ -1499,6 +1499,13 @@
                     },
                     "type": "array"
                 },
+                "keywords": {
+                    "description": "An optional list of keywords or tags that describe the domain, topics,\nor capabilities of this implementation.\n\nClients MAY use these keywords to route user requests to the most relevant\nserver, surface servers in search/discovery UIs, or pre-select servers\nbased on conversational context.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
                     "type": "string"
