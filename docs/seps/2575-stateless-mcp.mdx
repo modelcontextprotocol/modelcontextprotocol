@@ -306,19 +306,30 @@ transaction, such as streaming responses. An absent or empty capabilities
 object means the client supports no optional capabilities — servers **MUST
 NOT** infer capabilities from prior requests.
 
-A server **SHOULD** only send requests that match a client's provided
-capabilities. The server may send these requests in two ways:
+Two related SEPs together eliminate independent server-to-client requests
+entirely:
 
-1. **Inline**: As notifications within an SSE stream response to a triggering
-   RPC (e.g., `notifications/progress` within a `tools/call` response stream).
-2. **On the listen stream**: As events on an open `notifications/listen` SSE stream.
+- [SEP-2260](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2260)
+  restricts the `notifications/listen` SSE stream to notifications only — no
+  requests flow on this channel.
+- [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
+  (Multi Round-Trip Requests, MRTR) introduces `IncompleteResult`, which lets
+  a server embed input requests (elicitation, sampling, roots) within the
+  response to a specific client request (e.g., `CallTool`, `GetPrompt`,
+  `ListResources`). The client satisfies these and retries the original
+  request.
 
-In both cases, the server uses the `clientCapabilities` from the request's
-`_meta` to determine what it is allowed to send.
+With both in place, the server never independently calls the client. Instead,
+when processing a request, the server inspects the declared
+`clientCapabilities` and decides between two paths:
 
-If a server sends a request that erroneously calls a client capability it
-doesn't support, a client MUST return a `Method not found` JSON-RPC error
-(`-32601`).
+- **Required capability missing** — the server returns
+  `MissingRequiredClientCapabilityError` indicating which capability it needs.
+- **Required capability present** — the server returns an `IncompleteResult`
+  containing the relevant input requests, or completes the request directly
+  if no client interaction is needed.
+
+A server **MUST NOT** rely on capabilities the client has not declared.
 
 If a server requires client capabilities the client has not declared, the
 server MUST return a JSON-RPC error. For HTTP, the response status code MUST
