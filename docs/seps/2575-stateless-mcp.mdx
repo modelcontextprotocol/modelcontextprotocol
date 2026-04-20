@@ -198,7 +198,9 @@ export interface RequestMetaObject extends MetaObject {
 
 #### Unsupported Protocol Versions
 
-If a server receives a request with an unsupported protocol version, it MUST
+If a server receives a request with a protocol version it does not implement
+(whether the version is unknown to the server or is a known version the server
+has chosen not to support, such as an experimental or draft version), it MUST
 return a JSON-RPC error response. For HTTP, the response status code MUST be
 `400 Bad Request`. The error MUST conform to the following structure:
 
