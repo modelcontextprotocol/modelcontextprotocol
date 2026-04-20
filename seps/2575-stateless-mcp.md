@@ -162,6 +162,18 @@ export interface RequestMetaObject extends MetaObject {
 +  * The MCP Protocol Version being used for this request.
 +  */
 + "io.modelcontextprotocol/protocolVersion": string;
++ /**
++  * Identifies the client software.
++  */
++ "io.modelcontextprotocol/clientInfo"?: Implementation;
++ /**
++  * The client's current root URIs.
++  */
++ "io.modelcontextprotocol/roots"?: Root[];
++ /**
++  * The desired log level for this request.
++  */
++ "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 }
 ```
 
@@ -337,6 +349,9 @@ an SSE stream for that transaction.
 export interface RequestMetaObject extends MetaObject {
   progressToken?: ProgressToken;
   "io.modelcontextprotocol/protocolVersion": string;
+  "io.modelcontextprotocol/clientInfo"?: Implementation;
+  "io.modelcontextprotocol/roots"?: Root[];
+  "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 + /**
 +  * Optional capabilities of the client for this specific request.
 +  */
