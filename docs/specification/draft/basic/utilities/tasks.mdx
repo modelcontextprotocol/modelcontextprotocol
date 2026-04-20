@@ -328,6 +328,8 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
 
 The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers **MAY** return a different `requestState` value on each `tasks/get` and `tasks/cancel` response; clients **MUST** always use the most recently received value in their next request. If no `requestState` is present in the server's response, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
 
+Upon receiving a `notifications/tasks/status` notification for a task status update, clients **MUST** update their tracked `requestState` value with any value provided in the notification, as they would do with a standard response.
+
 ### Task Status Notification
 
 When a task status changes, servers **MAY** send a [`notifications/tasks/status`](/specification/draft/schema#notifications%2Ftasks%2Fstatus) notification to inform the client of the change. This notification includes the full task state.
@@ -360,7 +362,9 @@ When a task status changes, servers **MAY** send a [`notifications/tasks/status`
 
 The notification includes the full [`Task`](/specification/draft/schema#task) object, including the updated `status`, `statusMessage` (if present), and `result` or `error` fields when the task reaches a terminal status. This allows clients to access the complete task state and final results without making an additional `tasks/get` request.
 
-Clients **MUST NOT** rely on receiving this notifications, as it is optional. Servers are not required to send status notifications and may choose to only send them for certain status transitions. Clients **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
+Clients **MUST NOT** rely on receiving this notification, as it is optional. Servers are not required to send status notifications and may choose to only send them for certain status transitions. Clients **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
+
+In Streamable HTTP, if a server sends this notification, it **MUST** send it on an SSE stream associated with a `tasks/get` request.
 
 ### Cancelling Tasks
 
