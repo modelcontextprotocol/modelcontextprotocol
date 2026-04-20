@@ -502,6 +502,10 @@ the following RPC methods and notifications are removed:
   resources they want updates for in the `notifications` param of the
   `notifications/listen` request. The server sends
   `notifications/resources/updated` on the listen stream for matching resources.
+- `ping`: Removed. With independent server-to-client requests eliminated,
+  ping no longer serves a useful purpose — any normal RPC call (or the
+  `notifications/listen` SSE stream's transport-layer keep-alive) demonstrates
+  liveness equivalently.
 
 ## Rationale
 
