@@ -3,7 +3,8 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2025-06-18
-- **Author(s)**: Jonathan Hefner (@jonathanhefner), Mark Roth (@markdroth), Shaun Smith (@evalstate), Harvey Tuch (@htuch), Kurtis Van Gent (@kurtisvg)
+- **Author(s)**: Jonathan Hefner (@jonathanhefner), Mark Roth (@markdroth),
+  Shaun Smith (@evalstate), Harvey Tuch (@htuch), Kurtis Van Gent (@kurtisvg)
 - **Sponsor**: Kurtis Van Gent (@kurtisvg)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575
 
@@ -64,10 +65,9 @@ and scalability.
    - **Server-side:** Developers must implement logic to create, manage, and
      eventually garbage-collect per-client session state. This is a common
      source of bugs and memory leaks.
-   - **Client-side:** Developers must write complex code to manage a
-     persistent connection and handle the inevitable network failures and
-     reconnections, including the logic to resynchronize state after a
-     disconnect.
+   - **Client-side:** Developers must write complex code to manage a persistent
+     connection and handle the inevitable network failures and reconnections,
+     including the logic to resynchronize state after a disconnect.
 
 ## Design Principles
 
@@ -113,19 +113,15 @@ initialization phase, the specification creates an implied link between them,
 particularly between the exchange of capabilities and a mandatory connection
 lifecycle.
 
-This proposal is to **remove the initialization handshake** and "unbundle"
-its functions into discrete, stateless components. We will provide new, more
-clearly defined mechanisms for clients and servers to exchange this information
-without a mandatory state-creating cycle.
+This proposal is to **remove the initialization handshake** and "unbundle" its
+functions into discrete, stateless components. We will provide new, more clearly
+defined mechanisms for clients and servers to exchange this information without
+a mandatory state-creating cycle.
 
 > **Note:** Session management (both transport-level and application-level) is
-> addressed separately by
-> [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
-> and
-> [SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567).
-> This SEP focuses exclusively on removing the initialization handshake and
-> providing stateless alternatives for version negotiation, discovery, and
-> capabilities.
+> addressed separately by [SEP-2322][SEP-2322] and [SEP-2567][SEP-2567]. This
+> SEP focuses exclusively on removing the initialization handshake and providing
+> stateless alternatives for version negotiation, discovery, and capabilities.
 
 ### Protocol Version
 
@@ -137,15 +133,14 @@ handshake must now be included with **every request**.
 For the HTTP transport, protocol version MUST be passed as an **HTTP header**.
 The header value MUST match the value provided in the request payload's `_meta`
 field; otherwise the server MUST return a `400 Bad Request` (see
-[SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243)).
+[SEP-2243][SEP-2243]).
 
 - `MCP-Protocol-Version: 2025-06-18`
-  - **Purpose**: To inform the server which version of the MCP specification
-    the client is using for this specific request.
+  - **Purpose**: To inform the server which version of the MCP specification the
+    client is using for this specific request.
   - **Requirement**: This header is **MANDATORY**. Servers should reject
     requests with a missing or unsupported version.
-  - This header MUST match the value provided in the Request as specified
-    below.
+  - This header MUST match the value provided in the Request as specified below.
 
 #### Per-request Version
 
@@ -162,14 +157,8 @@ export interface RequestMetaObject extends MetaObject {
 +  * The MCP Protocol Version being used for this request.
 +  */
 + "io.modelcontextprotocol/protocolVersion": string;
-+ /**
-+  * Identifies the client software.
-+  */
-+ "io.modelcontextprotocol/clientInfo": Implementation;
-+ /**
-+  * The desired log level for this request.
-+  */
-+ "io.modelcontextprotocol/logLevel"?: LoggingLevel;
+  // Additional per-request fields (clientInfo, clientCapabilities, logLevel)
+  // are introduced in the Per-Request Client Capabilities section below.
 }
 ```
 
@@ -207,11 +196,12 @@ export interface UnsupportedProtocolVersionError extends Omit<
 Without an initialization handshake, version negotiation happens inline:
 
 1. The client sends a request with its preferred protocol version in the
-   `MCP-Protocol-Version` header and
-   `io.modelcontextprotocol/protocolVersion` `_meta` field.
+   `MCP-Protocol-Version` header and `io.modelcontextprotocol/protocolVersion`
+   `_meta` field.
 2. If the server supports that version, it processes the request normally.
 3. If the server does not support the requested version, it returns an
-   `UnsupportedProtocolVersionError` containing its list of `supported` versions.
+   `UnsupportedProtocolVersionError` containing its list of `supported`
+   versions.
 4. The client selects a mutually supported version from the list and retries.
 
 Alternatively, a client **MAY** call `server/discover` first to learn the
@@ -231,8 +221,8 @@ status code MUST be `404 Not Found`.
 
 #### `server/discover` RPC
 
-- **Purpose**: To allow a client to query the server for its supported
-  protocol versions, capabilities, and other metadata.
+- **Purpose**: To allow a client to query the server for its supported protocol
+  versions, capabilities, and other metadata.
 
 **Request Schema:**
 
@@ -279,38 +269,85 @@ To complete the decoupling from the initial handshake, client capabilities are
 no longer negotiated once at initialization. Instead, a client **MUST** specify
 its capabilities on every request. This ensures the server is always fully
 informed about what optional features the client can handle for that specific
-transaction, such as streaming responses. An absent or empty capabilities
-object means the client supports no optional capabilities — servers **MUST
-NOT** infer capabilities from prior requests.
+transaction. An absent or empty capabilities object means the client supports no
+optional capabilities — servers **MUST NOT** infer capabilities from prior
+requests.
 
-Two related SEPs together eliminate independent server-to-client requests
-entirely:
+#### Per-Request Metadata Schema
 
-- [SEP-2260](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2260)
-  restricts the `notifications/listen` SSE stream to notifications only — no
-  requests flow on this channel.
-- [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
-  (Multi Round-Trip Requests, MRTR) introduces `IncompleteResult`, which lets
-  a server embed input requests (elicitation, sampling, roots) within the
-  response to a specific client request (e.g., `CallTool`, `GetPrompt`,
-  `ListResources`). The client satisfies these and retries the original
-  request.
+Every request's `_meta` carries a small set of fields that previously lived in
+the initialization handshake. The full `RequestMetaObject` shape:
 
-With both in place, the server never independently calls the client. Instead,
-when processing a request, the server inspects the declared
-`clientCapabilities` and decides between two paths:
+```ts
+export interface RequestMetaObject extends MetaObject {
+  progressToken?: ProgressToken;
+  /**
+   * The MCP Protocol Version being used for this request.
+   */
+  "io.modelcontextprotocol/protocolVersion": string;
+  /**
+   * Identifies the client software.
+   */
+  "io.modelcontextprotocol/clientInfo": Implementation;
+  /**
+   * Capabilities of the client for this specific request.
+   */
+  "io.modelcontextprotocol/clientCapabilities": ClientCapabilities;
+  /**
+   * The desired log level for this request.
+   */
+  "io.modelcontextprotocol/logLevel"?: LoggingLevel;
+}
+```
 
-- **Required capability missing** — the server returns
-  `MissingRequiredClientCapabilityError` indicating which capability it needs.
-- **Required capability present** — the server returns an `IncompleteResult`
-  containing the relevant input requests, or completes the request directly
-  if no client interaction is needed.
+Field semantics:
 
-A server **MUST NOT** rely on capabilities the client has not declared.
+- `"io.modelcontextprotocol/protocolVersion"`: `string` — the MCP Protocol
+  Version. **Required.** See the Protocol Version section above for negotiation
+  details.
+- `"io.modelcontextprotocol/clientInfo"`: `Implementation` — identifies the
+  client software. **Required.** The `Implementation` schema requires `name` and
+  `version`; other fields are optional.
+- `"io.modelcontextprotocol/clientCapabilities"`: `ClientCapabilities` — the
+  client's capabilities for this request. **Required.**
+- `"io.modelcontextprotocol/logLevel"`: `LoggingLevel` — the desired log level
+  for this request. **Optional.** If absent, the server **MUST NOT** send any
+  log notifications for this request. The client opts in to log messages by
+  explicitly setting a level. Replaces the `logging/setLevel` RPC.
 
-If a server requires client capabilities the client has not provided, the
-server MUST return a JSON-RPC error, which specifies the missing capabilities.
-For HTTP, the response status code MUST be `400 Bad Request`.
+Roots are intentionally not included as a per-request `_meta` field. Servers
+that need the client's roots **MUST** request them via the MRTR
+`ListRootsRequest` mechanism (see [SEP-2322][SEP-2322]), which avoids putting
+potentially large root lists on every request and follows the "pay as you go"
+principle.
+
+A request missing any required field is malformed; the server **MUST** reject it
+with `INVALID_PARAMS` (and `400 Bad Request` for HTTP).
+
+#### Response Streaming
+
+These declared capabilities govern what the server may include in the response
+stream. [SEP-2322][SEP-2322] (MRTR) defines how server-to-client interactions
+are embedded inline within responses via `IncompleteResult`; this SEP specifies
+that those interactions are governed by the per-request `clientCapabilities`
+declared in `RequestMetaObject`.
+
+For HTTP, any request's response **MAY** be delivered as an SSE stream
+(`Content-Type: text/event-stream`) instead of a single JSON object. Only
+notifications (e.g., `notifications/progress`, `notifications/message`) flow as
+independent messages on this stream, followed by the final result.
+Server-to-client interactions (sampling, elicitation, listRoots) are **not**
+sent as independent requests — they are embedded as input requests inside an
+`IncompleteResult` returned from specific request paths (e.g., `CallTool`,
+`GetPrompt`, `ListResources`). The client satisfies the input requests and
+retries the original request.
+
+#### Missing Required Capabilities
+
+A server **MUST NOT** rely on capabilities the client has not declared. If a
+server requires client capabilities the client has not provided, the server
+**MUST** return a JSON-RPC error, which specifies the missing capabilities. For
+HTTP, the response status code MUST be `400 Bad Request`.
 
 ```ts
 export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
@@ -332,74 +369,19 @@ export interface MissingRequiredClientCapabilityError extends Omit<
 }
 ```
 
-In addition to `clientCapabilities`, the following fields previously exchanged
-during initialization **MAY** be included in per-request `_meta` fields:
+### `notifications/listen` RPC
 
-- `"io.modelcontextprotocol/clientInfo"`: `Implementation` — identifies the
-  client software. **Required.** The `Implementation` schema requires `name`
-  and `version`; other fields are optional.
-- `"io.modelcontextprotocol/logLevel"`: `LoggingLevel` — the desired log
-  level for this request. **Optional.** If absent, the server **MUST NOT**
-  send any log notifications for this request. The client opts in to log
-  messages by explicitly setting a level. Replaces the `logging/setLevel`
-  RPC.
+This SEP introduces a new `notifications/listen` RPC that replaces the previous
+HTTP GET endpoint and ensures consistent behavior between HTTP and STDIO. A
+client uses it to open a long-lived channel for receiving notifications outside
+the context of a specific request.
 
-Roots are intentionally not included as a per-request `_meta` field. Servers
-that need the client's roots **MUST** request them via the MRTR
-`ListRootsRequest` mechanism (see
-[SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)),
-which avoids putting potentially large root lists on every request and
-follows the "pay as you go" principle.
+The HTTP GET endpoint used by Streamable HTTP for server-to-client messages is
+**removed** in this version of the protocol. All communication uses POST.
 
-The required fields (`protocolVersion`, `clientCapabilities`, `clientInfo`)
-MUST be present on every request. A request missing any of these is
-malformed; the server **MUST** reject it with `INVALID_PARAMS` (and `400 Bad
-Request` for HTTP).
-
-The primary capability defined in this proposal is the ability to handle
-streaming responses, which is supported through two distinct models:
-server-initiated and client-initiated.
-
-#### Streaming Models
-
-##### Server-Initiated Streaming (Response Stream)
-
-This model applies when a client makes a standard RPC call and the server
-responds back with an SSE stream. The client specifies supported capabilities
-directly in the request.
-
-The client adds a `clientCapabilities` field to `RequestMetaObject`. For the
-HTTP transport, a server that supports this **MAY** then respond with an SSE
-stream for that transaction.
-
-```ts
-export interface RequestMetaObject extends MetaObject {
-  progressToken?: ProgressToken;
-  "io.modelcontextprotocol/protocolVersion": string;
-  "io.modelcontextprotocol/clientInfo": Implementation;
-  "io.modelcontextprotocol/logLevel"?: LoggingLevel;
-+ /**
-+  * Capabilities of the client for this specific request.
-+  */
-+ "io.modelcontextprotocol/clientCapabilities": ClientCapabilities;
-}
-```
-
-##### Client-Initiated Streaming (Background Streaming)
-
-This model applies when a client wants to proactively open a persistent SSE
-stream to receive multiple or unsolicited events.
-
-This is achieved using a dedicated `notifications/listen` RPC. For the HTTP
-transport, the client sends this request via `POST`, and the server's response
-is an open SSE stream, with a `NotificationsListenNotification` sent as the
-first event. For the STDIO transport, this RPC is used to declare the client's
-capabilities and interests.
-
-This RPC replaces the existing HTTP GET endpoint for Streamable HTTP. The GET
-endpoint is removed; all communication uses POST. Only notifications (not
-requests) may be sent on the listen stream, per
-[SEP-2260](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2260).
+Per [SEP-2260][SEP-2260], only notifications (not requests) flow on this
+channel; server-initiated requests use MRTR (see Response Streaming above) and
+are scoped to a specific client request.
 
 **Request Schema:**
 
@@ -415,11 +397,11 @@ export interface NotificationsListenRequest extends Request {
     };
 
     /**
-     * Optional filter for which notifications the client wants to receive.
-     * If omitted, the server SHOULD send all notifications the client's
-     * capabilities support.
+     * The notifications the client wants to receive on this stream.
+     * Each notification type is opt-in; the server **MUST NOT** send
+     * notification types the client has not explicitly requested here.
      */
-    notifications?: {
+    notifications: {
       /**
        * If true, receive notifications/tools/list_changed.
        */
@@ -445,9 +427,10 @@ export interface NotificationsListenRequest extends Request {
 }
 ```
 
-If `notifications` is omitted entirely, the server **SHOULD** send all
-notifications the client's declared capabilities support. If provided, only
-the specified notification types are delivered.
+The `notifications` field is **required** and the client **MUST** explicitly
+opt in to each notification type it wants to receive. If a field within
+`notifications` is omitted (or set to `false`), the server **MUST NOT** send
+notifications of that type.
 
 **Acknowledgment Notification:**
 
@@ -462,33 +445,19 @@ export interface NotificationsListenNotification extends Notification {
 }
 ```
 
-#### STDIO Transport Behavior
+#### Transport Behavior
 
-For STDIO, a client **MAY** send a `NotificationsListenRequest` at any time to
-declare its capabilities and the messages it is interested in receiving. The
-server **MUST** acknowledge it by sending a `NotificationsListenNotification`.
+**HTTP.** The client sends `NotificationsListenRequest` via `POST`. The server's
+response is an open SSE stream (`Content-Type: text/event-stream`), and the
+first JSON-RPC message on this stream **MUST** be a
+`NotificationsListenNotification`.
 
-The server **MAY** then send server-to-client messages and notifications for
-the duration of the connection. If the connection is terminated (e.g., the
-server crashes and restarts), the client **MUST** re-send `NotificationsListenRequest`
-to re-establish its declared capabilities.
-
-#### Streamable HTTP Transport Behavior
-
-For HTTP, there are two distinct models for handling streaming:
-
-**1. Server-Initiated Streaming**
-
-To receive a streaming response for a single RPC call, the client **augments the
-standard request** by including the `clientCapabilities` object in the `_meta`
-field. The server **MAY** then respond with an SSE stream for that transaction.
-
-**2. Client-Initiated Streaming**
-
-To proactively open a persistent SSE stream, the client sends the dedicated
-`NotificationsListenRequest` via `POST`. The server's response **is an open SSE
-stream** (`Content-Type: text/event-stream`), and the first JSON-RPC message on
-this stream **MUST** be a `NotificationsListenNotification`.
+**STDIO.** The client sends `NotificationsListenRequest` at any time. The server
+**MUST** acknowledge it by sending a `NotificationsListenNotification`.
+Subsequent notifications flow on the bidirectional STDIO channel. If the
+connection is terminated (e.g., the server crashes and restarts), the client
+**MUST** re-send `NotificationsListenRequest` to re-establish its declared
+capabilities and interests.
 
 ### Deprecated and Removed RPCs
 
@@ -496,35 +465,34 @@ To simplify the protocol and align with the move to per-request capabilities,
 the following RPC methods and notifications are removed:
 
 - `initialize` / `notifications/initialized`: The initialization handshake is
-  removed. Version negotiation is handled per-request via
-  `MCP-Protocol-Version` headers and `_meta` fields. Capability discovery is
-  handled by `server/discover`. Servers compliant with this SEP **SHOULD**
-  accept and ignore `notifications/initialized` without error to maintain
-  backward compatibility with clients that may send it.
-- `logging/setLevel`: Removed. The log level is now specified per-request
-  via the `'io.modelcontextprotocol/logLevel'` `_meta` field. There is no
+  removed. Version negotiation is handled per-request via `MCP-Protocol-Version`
+  headers and `_meta` fields. Capability discovery is handled by
+  `server/discover`. Servers compliant with this SEP **SHOULD** accept and
+  ignore `notifications/initialized` without error to maintain backward
+  compatibility with clients that may send it.
+- `logging/setLevel`: Removed. The log level is now specified per-request via
+  the `'io.modelcontextprotocol/logLevel'` `_meta` field. There is no
   replacement RPC.
-- `roots/list`: Removed as a top-level server-to-client RPC. Servers that
-  need the client's roots **MUST** request them via the MRTR
-  `ListRootsRequest` mechanism (see SEP-2322).
-- `notifications/roots/list_changed`: Removed. Roots are fetched on demand
-  via MRTR, so there is no need for a change notification.
+- `roots/list`: Removed as a top-level server-to-client RPC. Servers that need
+  the client's roots **MUST** request them via the MRTR `ListRootsRequest`
+  mechanism (see SEP-2322).
+- `notifications/roots/list_changed`: Removed. Roots are fetched on demand via
+  MRTR, so there is no need for a change notification.
 - `resources/subscribe` / `resources/unsubscribe`: These methods are removed.
   Resource subscriptions are inherently stateful — the server must remember
-  which resources each client has subscribed to. Instead, clients declare
-  the resources they want updates for in the `notifications` param of the
+  which resources each client has subscribed to. Instead, clients declare the
+  resources they want updates for in the `notifications` param of the
   `notifications/listen` request. The server sends
-  `notifications/resources/updated` on the listen stream for matching
-  resources.
+  `notifications/resources/updated` on the listen stream for matching resources.
 
 ## Rationale
 
 ### Stateless-First by Default
 
-The primary design decision of this SEP is to remove the mandatory initialization
-handshake, making stateless interaction the default model for the protocol. This
-choice is rooted in the "pay as you go" principle and the desire to align MCP
-with modern, cloud-native architecture. By making the simplest
+The primary design decision of this SEP is to remove the mandatory
+initialization handshake, making stateless interaction the default model for the
+protocol. This choice is rooted in the "pay as you go" principle and the desire
+to align MCP with modern, cloud-native architecture. By making the simplest
 interaction model the default, we lower the barrier to entry and reduce
 implementation complexity for the most common use cases. This immediately
 enables straightforward horizontal scaling and improves resilience, as any
@@ -552,12 +520,10 @@ scalable, and more robust foundation.
 This proposal originally included dedicated `sessions/create` and
 `sessions/delete` RPCs to manage the lifecycle of a logical session.
 
-Session management is now addressed separately by
-[SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567),
-which proposes removing sessions entirely and replacing them with explicit
-state handles. This aligns with the
-[sessions-vs-sessionless decision](https://github.com/modelcontextprotocol/transports-wg/blob/main/docs/sessions-vs-sessionless-decision.md)
-made by the Core Maintainers.
+Session management is now addressed separately by [SEP-2567][SEP-2567], which
+proposes removing sessions entirely and replacing them with explicit state
+handles. This aligns with the [sessions-vs-sessionless
+decision][sessions-decision] made by the Core Maintainers.
 
 ### Separation of Concerns
 
@@ -568,8 +534,8 @@ discovery into a single, complex interaction. The new design explicitly
 separates these:
 
 - **Discovery**: Handled exclusively by `server/discover`.
-- **Capabilities**: Handled on a per-request basis via the `_meta` field or
-  the `notifications/listen` RPC.
+- **Capabilities**: Handled on a per-request basis via the `_meta` field or the
+  `notifications/listen` RPC.
 
 The rationale for this is to create a more modular, flexible, and understandable
 protocol. Each component now has a single, well-defined responsibility. This
@@ -674,8 +640,7 @@ different implementations, leading to both confusion and incompatibility.
 
 ### How does `server/discover` relate to the MCP Server Card?
 
-The `server/discover` RPC overlaps with the
-[MCP Server Card](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127)
+The `server/discover` RPC overlaps with the [MCP Server Card][SEP-2127]
 proposal, which defines a `.well-known/mcp.json` document for HTTP-based
 discovery. Both mechanisms are intentionally retained: the Server Card is
 well-suited to HTTP (no auth required, cacheable, indexable) while
@@ -694,17 +659,24 @@ This follows the spec's allowance for "purpose-specific metadata" reserved by
 definitions in the schema.
 
 However, this risks overloading `_meta` over time — at what point do we add
-top-level fields again? One possible distinction: required protocol-level
-fields (e.g., `protocolVersion`) might better live as top-level fields, while
-optional or extension-provided values stay in `_meta`. This question deserves
-broader discussion before this SEP is finalized.
+top-level fields again? One possible distinction: required protocol-level fields
+(e.g., `protocolVersion`) might better live as top-level fields, while optional
+or extension-provided values stay in `_meta`. This question deserves broader
+discussion before this SEP is finalized.
 
 ### Should `clientInfo` be part of `ClientCapabilities`?
 
 Currently, `clientInfo` (`Implementation` type) and `clientCapabilities`
 (`ClientCapabilities` type) are separate fields. In a per-request model, having
 a single field for all client metadata would reduce overhead. However,
-`clientInfo` serves a different purpose (identity/UI) than capabilities
-(feature negotiation). Should `clientInfo` be folded into `ClientCapabilities`,
-remain a separate per-request `_meta` field, or be handled through a different
-mechanism entirely (e.g., only sent via `notifications/listen`)?
+`clientInfo` serves a different purpose (identity/UI) than capabilities (feature
+negotiation). Should `clientInfo` be folded into `ClientCapabilities`, remain a
+separate per-request `_meta` field, or be handled through a different mechanism
+entirely (e.g., only sent via `notifications/listen`)?
+
+[SEP-2127]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
+[SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243
+[SEP-2260]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2260
+[SEP-2322]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322
+[SEP-2567]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567
+[sessions-decision]: https://github.com/modelcontextprotocol/transports-wg/blob/main/docs/sessions-vs-sessionless-decision.md
