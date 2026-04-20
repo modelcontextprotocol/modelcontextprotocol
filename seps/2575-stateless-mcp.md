@@ -240,7 +240,7 @@ the response status code MUST be `404 Not Found`.
 **Request Schema:**
 
 ```ts
-export interface DiscoveryRequest extends Request {
+export interface DiscoverRequest extends Request {
   method: "server/discover";
   params?: {};
 }
@@ -249,7 +249,7 @@ export interface DiscoveryRequest extends Request {
 **Response Schema:**
 
 ```ts
-export interface DiscoveryResult extends Result {
+export interface DiscoverResult extends Result {
   /**
    * A list of MCP Protocol Version strings that this server supports.
    * The client should choose a version from this list for use in
