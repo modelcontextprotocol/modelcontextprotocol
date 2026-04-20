@@ -299,10 +299,12 @@ export interface DiscoverResult extends Result {
 ### Per-Request Client Capabilities
 
 To complete the decoupling from the initial handshake, client capabilities are
-no longer negotiated once at initialization. Instead, a client **MAY** specify its
-capabilities on a per-request basis. This allows the server to know what
-optional features the client can handle for a specific transaction, such as
-streaming responses.
+no longer negotiated once at initialization. Instead, a client **MUST** specify
+its capabilities on every request. This ensures the server is always fully
+informed about what optional features the client can handle for that specific
+transaction, such as streaming responses. An absent or empty capabilities
+object means the client supports no optional capabilities — servers **MUST
+NOT** infer capabilities from prior requests.
 
 A server **SHOULD** only send requests that match a client's provided
 capabilities. The server may send these requests in two ways:
@@ -318,10 +320,10 @@ If a server sends a request that erroneously calls a client capability it
 doesn't support, a client MUST return a `Method not found` JSON-RPC error
 (`-32601`).
 
-If a server requires client capabilities to process a request and the client
-has not provided them, the server MUST return a JSON-RPC error. For HTTP, the
-response status code MUST be `400 Bad Request`. The client MAY then retry the
-request with the required capabilities in `_meta`.
+If a server requires client capabilities the client has not declared, the
+server MUST return a JSON-RPC error. For HTTP, the response status code MUST
+be `400 Bad Request`. The error data identifies the required capabilities so
+the client knows which capabilities are missing.
 
 ```ts
 export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
@@ -365,9 +367,9 @@ This model applies when a client makes a standard RPC call and the server
 responds back with an SSE stream. The client specifies supported capabilities
 directly in the request.
 
-The client adds an optional `clientCapabilities` field to `RequestMetaObject`.
-For the HTTP transport, a server that supports this **MAY** then respond with
-an SSE stream for that transaction.
+The client adds a `clientCapabilities` field to `RequestMetaObject`. For the
+HTTP transport, a server that supports this **MAY** then respond with an SSE
+stream for that transaction.
 
 ```ts
 export interface RequestMetaObject extends MetaObject {
@@ -377,9 +379,9 @@ export interface RequestMetaObject extends MetaObject {
   "io.modelcontextprotocol/roots"?: Root[];
   "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 + /**
-+  * Optional capabilities of the client for this specific request.
++  * Capabilities of the client for this specific request.
 +  */
-+ "io.modelcontextprotocol/clientCapabilities"?: ClientCapabilities;
++ "io.modelcontextprotocol/clientCapabilities": ClientCapabilities;
 }
 ```
 
