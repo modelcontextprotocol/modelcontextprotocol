@@ -1823,7 +1823,7 @@ export interface Task {
    * Optional request state passed back from the server to the client.
    * Used for server-side state management per SEP-2322 Multi Round-Trip Requests.
    * Servers MAY return a different requestState value on each tasks/get response;
-   * clients MUST always use the most recently received value.
+   * clients MUST always include the most recently received value on the next request.
    */
   requestState?: string;
 }
