@@ -1654,22 +1654,6 @@ export interface ToolAnnotations {
 }
 
 /**
- * Execution settings describing a {@link Tool}.
- *
- * @category `tools/list`
- */
-export interface ToolExecution {
-  /**
-   * If true, this tool may return {@link CreateTaskResult} instead of an immediate result.
-   * When present, the server MAY choose to return a task for any invocation of this tool.
-   * Clients should be prepared to handle task-based execution for tools with this flag set.
-   *
-   * Default: false
-   */
-  taskSupport?: boolean;
-}
-
-/**
  * Definition for a tool the client can call.
  *
  * @example With default 2020-12 input schema
@@ -1717,11 +1701,6 @@ export interface Tool extends BaseMetadata, Icons {
     properties?: { [key: string]: JSONValue };
     required?: string[];
   };
-
-  /**
-   * Optional execution settings for the tool.
-   */
-  execution?: ToolExecution;
 
   /**
    * Optional additional tool information.

@@ -416,12 +416,6 @@ Task support is independent of capability negotiation. Servers may create tasks 
 
 </Note>
 
-### Tool Task Support Declaration
-
-1. Tools that may return `CreateTaskResult` **MUST** declare `execution.taskSupport` in their tool definition.
-1. This declaration allows clients to discover which tools support task-based execution before invocation.
-1. Clients that do not implement the task polling workflow **MAY** filter out tools with `execution.taskSupport` declared.
-
 ### Task Data Shapes
 
 The protocol distinguishes between two representations of task data:

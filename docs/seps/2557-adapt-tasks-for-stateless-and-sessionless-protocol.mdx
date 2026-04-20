@@ -119,7 +119,7 @@ Task Creation also has a number of issues since it is client-directed instead of
 
 ## Specification
 
-To support the new SEPs and solve the issues outlined above we propose the follwoing changes to the `Tasks` specification:
+To support the new SEPs and solve the issues outlined above we propose the following changes to the `Tasks` specification:
 
 1. Removes Features made obsolete by upcoming SEPs.
 2. Task Creation is determined by the Server.
@@ -134,9 +134,7 @@ To support the new SEPs and solve the issues outlined above we propose the follw
 
 ### Task Creation Changes
 
-Tasks will no longer be an optional capability, but will instead become a standard part of the protocol that servers MAY choose to implement. If a Tool returns a Task, Servers MUST declare `execution.tasksupport` on the tool definition.
-
-Clients MUST understand Tasks, however they are not required to implement the polling workflow and leverage tools with `execution.taskSupport`. Clients MAY choose to filter out tools with `execution.taskSupport` declared.
+Tasks will no longer be an optional capability, but will instead become a standard part of the protocol that servers MAY choose to implement.
 
 1. We will remove the `tasks` capability declaration on both the client and the server.
 1. Servers MAY return `CreateTaskResult` or a `CallToolResult`in response to `CallToolRequest`.
