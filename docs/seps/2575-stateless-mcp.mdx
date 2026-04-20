@@ -331,10 +331,9 @@ when processing a request, the server inspects the declared
 
 A server **MUST NOT** rely on capabilities the client has not declared.
 
-If a server requires client capabilities the client has not declared, the
-server MUST return a JSON-RPC error. For HTTP, the response status code MUST
-be `400 Bad Request`. The error data identifies the required capabilities so
-the client knows which capabilities are missing.
+If a server requires client capabilities the client has not provided, the
+server MUST return a JSON-RPC error, which specifies the missing capabilities.
+For HTTP, the response status code MUST be `400 Bad Request`.
 
 ```ts
 export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
