@@ -387,9 +387,9 @@ export interface MissingRequiredClientCapabilityError extends Omit<
 }
 ```
 
-### `notifications/listen` RPC
+### `subscriptions/listen` RPC
 
-This SEP introduces a new `notifications/listen` RPC that replaces the previous
+This SEP introduces a new `subscriptions/listen` RPC that replaces the previous
 HTTP GET endpoint and ensures consistent behavior between HTTP and STDIO. A
 client uses it to open a long-lived channel for receiving notifications outside
 the context of a specific request.
@@ -401,11 +401,11 @@ Per [SEP-2260][SEP-2260], only notifications (not requests) flow on this
 channel; server-initiated requests use MRTR (see Response Streaming above) and
 are scoped to a specific client request.
 
-**Request Schema:**
+#### Request Schema
 
 ```ts
-export interface NotificationsListenRequest extends Request {
-  method: "notifications/listen";
+export interface SubscriptionsListenRequest extends Request {
+  method: "subscriptions/listen";
   params: {
     _meta?: {
       "io.modelcontextprotocol/protocolVersion": string;
@@ -456,7 +456,7 @@ opt in to each notification type it wants to receive. If a field within
 `notifications` is omitted (or set to `false`), the server **MUST NOT** send
 notifications of that type.
 
-**Acknowledgment Notification:**
+#### Acknowledgment Notification
 
 The server sends this notification as the first event on the stream to
 acknowledge that the listen stream has been established. For HTTP, this is the
@@ -464,23 +464,23 @@ first SSE event. The stream remains open for subsequent server-to-client
 messages until the server sends a final `Result` to close it.
 
 ```ts
-export interface NotificationsListenNotification extends Notification {
-  method: "notifications/listen/acknowledged";
+export interface SubscriptionsAcknowledgedNotification extends Notification {
+  method: "notifications/subscriptions/acknowledged";
 }
 ```
 
 #### Transport Behavior
 
-**HTTP.** The client sends `NotificationsListenRequest` via `POST`. The server's
+**HTTP.** The client sends `SubscriptionsListenRequest` via `POST`. The server's
 response is an open SSE stream (`Content-Type: text/event-stream`), and the
 first JSON-RPC message on this stream **MUST** be a
-`NotificationsListenNotification`.
+`SubscriptionsAcknowledgedNotification`.
 
-**STDIO.** The client sends `NotificationsListenRequest` at any time. The server
-**MUST** acknowledge it by sending a `NotificationsListenNotification`.
+**STDIO.** The client sends `SubscriptionsListenRequest` at any time. The server
+**MUST** acknowledge it by sending a `SubscriptionsAcknowledgedNotification`.
 Subsequent notifications flow on the bidirectional STDIO channel. If the
 connection is terminated (e.g., the server crashes and restarts), the client
-**MUST** re-send `NotificationsListenRequest` to re-establish its declared
+**MUST** re-send `SubscriptionsListenRequest` to re-establish its declared
 capabilities and interests.
 
 ### Deprecated and Removed RPCs
@@ -506,11 +506,11 @@ the following RPC methods and notifications are removed:
   Resource subscriptions are inherently stateful — the server must remember
   which resources each client has subscribed to. Instead, clients declare the
   resources they want updates for in the `notifications` param of the
-  `notifications/listen` request. The server sends
+  `subscriptions/listen` request. The server sends
   `notifications/resources/updated` on the listen stream for matching resources.
 - `ping`: Removed. With independent server-to-client requests eliminated,
   ping no longer serves a useful purpose — any normal RPC call (or the
-  `notifications/listen` SSE stream's transport-layer keep-alive) demonstrates
+  `subscriptions/listen` SSE stream's transport-layer keep-alive) demonstrates
   liveness equivalently.
 
 ## Rationale
@@ -563,7 +563,7 @@ separates these:
 
 - **Discovery**: Handled exclusively by `server/discover`.
 - **Capabilities**: Handled on a per-request basis via the `_meta` field or the
-  `notifications/listen` RPC.
+  `subscriptions/listen` RPC.
 
 The rationale for this is to create a more modular, flexible, and understandable
 protocol. Each component now has a single, well-defined responsibility. This
@@ -700,7 +700,7 @@ a single field for all client metadata would reduce overhead. However,
 `clientInfo` serves a different purpose (identity/UI) than capabilities (feature
 negotiation). Should `clientInfo` be folded into `ClientCapabilities`, remain a
 separate per-request `_meta` field, or be handled through a different mechanism
-entirely (e.g., only sent via `notifications/listen`)?
+entirely (e.g., only sent via `subscriptions/listen`)?
 
 [SEP-2127]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243
