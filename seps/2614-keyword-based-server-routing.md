@@ -1,30 +1,11 @@
----
-title: "SEP-9999: Keyword-based Server Routing via `Implementation.keywords`"
-sidebarTitle: "SEP-9999: Keyword-based Server Routing via `Imple…"
-description: "Keyword-based Server Routing via `Implementation.keywords`"
----
+# SEP-2614: Keyword-based Server Routing via `Implementation.keywords`
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Standards Track
-  </Badge>
-</div>
-
-| Field         | Value                                                                           |
-| ------------- | ------------------------------------------------------------------------------- |
-| **SEP**       | 9999                                                                            |
-| **Title**     | Keyword-based Server Routing via `Implementation.keywords`                      |
-| **Status**    | Draft                                                                           |
-| **Type**      | Standards Track                                                                 |
-| **Created**   | 2026-04-20                                                                      |
-| **Author(s)** | Vijay Waghmare ([@Vijaynw](https://github.com/Vijaynw))                         |
-| **Sponsor**   | None (seeking sponsor)                                                          |
-| **PR**        | [#9999](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/9999) |
-
----
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-04-20
+- **Author(s)**: Vijay Waghmare (@Vijaynw)
+- **Sponsor**: None (seeking sponsor)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2614
 
 ## Abstract
 
