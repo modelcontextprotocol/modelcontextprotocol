@@ -448,6 +448,22 @@ messages until the server sends a final `Result` to close it.
 ```ts
 export interface SubscriptionsAcknowledgedNotification extends Notification {
   method: "notifications/subscriptions/acknowledged";
+  params: {
+    /**
+     * The notification subscriptions the server has agreed to honor.
+     * Only includes notification types the server actually supports.
+     * If the client requested an unsupported notification type
+     * (e.g., promptsListChanged when the server has no prompts),
+     * it is omitted from this set.
+     */
+    notifications: {
+      toolsListChanged?: boolean;
+      promptsListChanged?: boolean;
+      resourcesListChanged?: boolean;
+      resourceSubscriptions?: string[];
+      logLevel?: LoggingLevel;
+    };
+  };
 }
 ```
 
@@ -473,9 +489,7 @@ the following RPC methods and notifications are removed:
 - `initialize` / `notifications/initialized`: The initialization handshake is
   removed. Version negotiation is handled per-request via `MCP-Protocol-Version`
   headers and `_meta` fields. Capability discovery is handled by
-  `server/discover`. Servers compliant with this SEP **SHOULD** accept and
-  ignore `notifications/initialized` without error to maintain backward
-  compatibility with clients that may send it.
+  `server/discover`.
 - `logging/setLevel`: Removed. The log level is now specified per-request via
   the `'io.modelcontextprotocol/logLevel'` `_meta` field. There is no
   replacement RPC.
