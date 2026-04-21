@@ -3,88 +3,104 @@ title: "Client Best Practices"
 description: "Get the most out of MCP when building a client"
 ---
 
-As agents connect to more MCP servers and accumulate access to hundreds or thousands of tools, naive approaches to tool management break down. Loading every tool definition into the model's context window upfront wastes tokens, increases latency, and degrades model performance. Passing large intermediate results through the model between sequential tool calls compounds the problem.
+As MCP clients, such as agents, connect to more MCP servers and accumulate access to hundreds or thousands of tools, naive approaches to tool management break down. Loading every tool definition into the model's context window upfront wastes tokens, increases latency, and degrades model performance. Passing large intermediate results through the model between sequential tool calls compounds the problem.
 
-This section covers two complementary patterns that address these scaling challenges: **progressive discovery**, which controls _when_ tool definitions enter context, and **programmatic tool calling**, which controls _how_ tools are invoked.
+Two patterns address these challenges: **progressive discovery**, which controls _when_ tool definitions enter context, and **programmatic tool calling**, which controls _how_ tools are invoked.
 
 ### Avoiding context bloat using progressive discovery of Servers and Tools
 
-Naive MCP clients load all tool definitions from all connected servers at the start of every conversation. For a handful of tools this is fine. But when a host has access to dozens of servers exposing hundreds of tools, those definitions alone can consume the majority of the context window before the user's message is even read.
+Naive MCP clients pass the tool definitions of every connected server directly to the model at the start of each conversation. For a handful of tools, this is perfectly reasonable. But when a host has access to dozens of servers exposing hundreds of tools, those definitions alone can consume the majority of the context window before the model has even read the user's message.
 
 <img
   src="/images/progressive-discovery.svg"
   alt="Comparison of loading all tools upfront versus discovering tools on demand. The upfront approach consumes ~150,000 tokens on definitions alone, while progressive discovery uses ~2,000 tokens by loading only what the task requires."
 />
 
-Progressive discovery solves this by introducing a layered approach: the model starts with lightweight tools for _finding_ the right tools, then loads full definitions only for the ones it actually needs.
+Progressive discovery avoids this:
+
+- The client defers the loading of MCP tools.
+- The client provides a lightweight `search_tools` tool.
+- The client loads full definitions only as needed.
 
 #### When to Use Progressive Discovery
 
-Not every deployment needs progressive discovery. With roughly tens of tools, include full definitions in the system prompt — the token cost is manageable and the model benefits from immediate access. Once you reach hundreds of tools, switch to progressive discovery to avoid dominating the context window.
+Progressive discovery is best used when tool definitions take large parts of the context window. For a small
+set of tools with tool definitions taking up a small part of the context window, loading all tools is fine.
+Once the tool definitions take up a significant part of the available context window, clients should switch to progressive discovery. We recommend that clients implement thresholds to determine when to switch:
+
+- Implement a threshold as a percentage of the context window. For example, 1%-5%.
+- Load tool definitions. Once the threshold is reached, switch to progressive discovery.
 
 #### Choosing a Discovery Strategy
 
-The core principle — start lightweight, load details on demand — can be implemented in a number of ways:
+Once the model invokes the `search_tools` tool, we need to choose a search strategy:
 
-- **Search-based**: A `search_tools` meta-tool using keyword matching (BM25, regex). Simple and effective at moderate scale.
+- **Keyword-based**: Keyword matching (BM25, regex). Simple and effective, particularly for descriptive tool names and descriptions.
 - **Embedding-based**: Vector-similarity retrieval over tool descriptions. Handles synonyms and semantic matching better.
-- **Subagent-based**: A secondary model interaction selects tools for the task.
-- **Hybrid**: Combine approaches — e.g., one-line category descriptions in the system prompt for orientation, with deeper discovery on demand.
+- **Subagent-based**: A secondary model, often a small and fast model such as Claude Haiku or Gemini Flash, selects tools for the task. This usually works very well but can be more costly than embedding-based or keyword-based solutions.
+- **Hybrid**: Combine approaches. For example, by scoring across keyword and embedding rankings, or choosing
+  different strategies depending on use-case or query.
 
-Some model providers already offer built-in tool search — for example, [OpenAI](https://developers.openai.com/api/docs/guides/tools-tool-search) and [Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool) both support this natively. When available, you may prefer the platform's tool search over a custom implementation. Build your own when the provider doesn't offer one or when you need specialized retrieval logic (e.g., domain-specific ranking or access-control filtering).
+Some model providers already offer built-in tool search. For example, both [OpenAI](https://developers.openai.com/api/docs/guides/tools-tool-search) and [Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool) support this natively. When available, you may prefer the platform's tool search over a custom implementation. Build your own when the provider doesn't offer one or when you need specialized retrieval logic (e.g., domain-specific ranking or access-control filtering).
 
-The three-layer pattern below illustrates a custom search-based approach in detail, but the layered principle — catalog, inspect, execute — applies regardless of retrieval mechanism.
+The three-layer pattern below illustrates a custom search-based approach in detail, but the layered principle (catalog, inspect, execute) applies regardless of retrieval mechanism.
 
-#### The Three-Layer Pattern
+#### Using Progressive Discovery
 
-One well-proven implementation of progressive discovery uses a search-based, three-layer approach:
+One common implementation for progressive discovery uses a search-based three-layer approach:
 
-**Layer 1 — Catalog.** The client exposes a small number of meta-tools that let the model search and browse available capabilities. A `search_tools` tool accepts a natural-language query and returns a list of matching tool names with brief descriptions. This is analogous to browsing an API reference rather than reading every page.
+**Layer 1: Catalog.** The client exposes a small set of meta-tools for searching available capabilities. A `search_tools` tool accepts a natural-language query and returns matching tool names with brief descriptions.
 
 ```typescript
 // The model calls a lightweight search tool
 search_tools({ query: "update salesforce record" })
 
-// Returns concise matches — names and one-line descriptions only
+// Returns concise matches: names and one-line descriptions only
 → [
     { name: "salesforce.updateRecord", description: "Update fields on a Salesforce object" },
     { name: "salesforce.upsertRecord", description: "Insert or update based on external ID" }
   ]
 ```
 
-**Layer 2 — Inspect.** Once the model identifies a relevant tool, it can request the full definition — input schema, output schema, and detailed documentation — for just that tool. This keeps the context focused.
+**Layer 2: Inspect.** Once the model identifies a candidate, it fetches the full definition (input schema, output schema, documentation) for that tool only.
 
 ```typescript
 // The model inspects only the tool it needs
-get_tool_details({ name: "salesforce.updateRecord" })
-
-// Returns the complete schema for this single tool
-→ {
-    name: "salesforce.updateRecord",
-    description: "Updates a record in Salesforce",
-    inputSchema: {
-      type: "object",
-      properties: {
-        objectType: { type: "string", description: "Salesforce object type" },
-        recordId: { type: "string", description: "Record ID to update" },
-        data: { type: "object", description: "Fields to update" }
-      },
-      required: ["objectType", "recordId", "data"]
-    }
-  }
+get_tool_details({ name: "salesforce.updateRecord" });
 ```
 
-**Layer 3 — Execute.** The model calls the tool with full knowledge of its interface, having loaded only the definitions it needed.
+This returns the complete schema for a single tool:
 
-This search-based pattern reduces token usage from tool definitions dramatically in real-world deployments, while actually _improving_ tool selection accuracy — the model spends its attention on a few relevant tools rather than scanning hundreds of irrelevant ones. Other discovery strategies (embeddings, subagents, etc.) follow the same layered principle but substitute different retrieval mechanisms in the catalog layer.
+```json
+{
+  "name": "salesforce.updateRecord",
+  "description": "Updates a record in Salesforce",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "objectType": {
+        "type": "string",
+        "description": "Salesforce object type"
+      },
+      "recordId": { "type": "string", "description": "Record ID to update" },
+      "data": { "type": "object", "description": "Fields to update" }
+    },
+    "required": ["objectType", "recordId", "data"]
+  }
+}
+```
+
+**Layer 3: Execute.** The model calls the tool with full knowledge of its interface, having loaded only the definitions it needed.
+
+This pattern reduces token usage dramatically and can improve tool selection accuracy: the model focuses on a few relevant tools rather than scanning hundreds of irrelevant ones. Other discovery strategies (embeddings, subagents, etc.) follow the same layered principle but substitute different retrieval mechanisms in the catalog layer.
 
 #### Dynamic Server Management
 
 Progressive discovery extends beyond individual tools to entire servers. Rather than connecting to every configured server at startup, a client can:
 
-1. Maintain a **registry** of available servers and their high-level descriptions.
-2. **Connect** to a server only when the model determines it needs that server's capabilities.
-3. **Disconnect** servers that are no longer relevant to the current task, freeing context.
+1. Maintain a registry of available servers and their high-level descriptions.
+2. Connect to a server only when the model determines it needs that server's capabilities.
+3. Disconnect servers that are no longer relevant to the current task, freeing context.
 
 ```mermaid
 sequenceDiagram
@@ -110,7 +126,7 @@ sequenceDiagram
     Client-->>Model: Server disconnected, context freed
 ```
 
-This pattern is particularly well-suited to general-purpose agents, where the user's intent is unknown at the outset. The agent begins with a minimal core of always-on servers and acquires new capabilities organically as the conversation progresses. When combined with agent skills, this approach becomes even more powerful: the client can introduce servers and tools as individual skills require them.
+This works especially well for general-purpose agents, where the user's intent isn't known upfront. The agent starts with a minimal set of always-on servers and connects others as needed. Combined with agent skills, the client can bring in servers and tools on demand.
 
 #### Implementation Guidelines
 
@@ -124,9 +140,12 @@ When implementing progressive discovery:
 
 ### Programmatic Tool Calling / Code Mode
 
-With direct tool calling, every tool invocation is a round trip: the model generates a tool call, the client executes it, and the full result flows back into the model's context. When a task requires chaining multiple tools — read a document, transform it, write it somewhere else — each intermediate result passes through the model, consuming tokens and adding latency even when the model has nothing meaningful to contribute at that step.
+With direct tool calling, every tool invocation is a round trip: the model generates a tool call, the client executes it, and the full result flows back into the model's context. When a task requires chaining multiple tools (read a document, transform it, write it somewhere else), each intermediate result passes through the model, consuming tokens and adding latency even when it has nothing to do with them.
 
-Programmatic tool calling (sometimes called "code mode") inverts this pattern. Instead of calling tools directly, the model writes code that calls tools. The code executes in a sandboxed environment, and only the final result returns to the model.
+Programmatic tool calling (sometimes called "code mode") provides a way for clients to **compose tool calls** effectively. Instead of calling tools directly, the model writes code that calls tools. The code executes in a sandboxed environment, and only the final result returns to the model.
+
+Programmatic tool calling is powerful and allows for more efficient use of MCP tools and resources, but requires
+clients to implement a sandbox environment.
 
 <img
   src="/images/programmatic-tool-calling.svg"
@@ -135,9 +154,9 @@ Programmatic tool calling (sometimes called "code mode") inverts this pattern. I
 
 #### How It Works
 
-The client converts MCP tool schemas into a programmatic API in a language the model can write — typically TypeScript or Python. These functions are available inside a sandboxed execution environment. When the model needs to use tools, it writes a script rather than making individual tool calls.
+The client converts MCP tool schemas into a typed API available inside a sandbox. When the model needs tools, it writes a script and executes it.
 
-**Step 1 — Generate a programmatic API from MCP schemas.** The client reads each server's tool definitions and produces typed function stubs:
+**Step 1: Generate a programmatic API from MCP schemas.** The client reads each server's tool definitions and produces typed functions based on each tool's `outputSchema`:
 
 ```typescript
 // Auto-generated from the Logging MCP server's tool schema
@@ -147,38 +166,40 @@ interface LogEntry {
   level: string;
 }
 
-declare function logging_getLogs(input: {
+function logging_getLogs(input: {
   level: "error" | "warn" | "info";
   since: number;
-}): Promise<{ entries: LogEntry[] }>;
+}): Promise<{ entries: LogEntry[] }> {
+  return mcp.callTool<{ entries: LogEntry[] }>("logging_getLogs", input);
+}
 
 // Auto-generated from the Ticketing MCP server's tool schema
-declare function ticketing_createIssue(input: {
+function ticketing_createIssue(input: {
   title: string;
   body?: string;
   priority: "low" | "medium" | "high";
-}): Promise<{ issueId: string }>;
+}): Promise<{ issueId: string }> {
+  return mcp.callTool<{ issueId: string }>("ticketing_createIssue", input);
+}
 ```
 
-These function stubs are not standalone — the client must wire each stub so that calls inside the sandbox are intercepted and dispatched as `tools/call` requests to the appropriate MCP server. The sandbox itself has no direct access to servers; the client acts as the broker, adding authorization and routing each call.
-
-Servers that define an [`outputSchema`](/specification/draft/server/tools#output-schema) on their tools improve the quality of generated APIs. When an output schema is present, the client can produce precise return types (like `LogEntry` above) instead of generic `any` types — giving the model type information that leads to more correct code with fewer errors.
+MCP Servers can provide an optional [`outputSchema`](/specification/draft/server/tools#output-schema) for each tool. When an output schema is present, the client can produce precise return types (like `LogEntry` above).
 
 When an output schema is absent, there are two fallback strategies:
 
-- Use a generic type and move on. Accept any or string as the return type and handle the unstructured output downstream.
-- Extract a typed result using a fast model. Pass the tool's output to a lightweight model like Claude Haiku or Gemini Flash with instructions to coerce it into a known type — for example, `extract(mcpTool('generic_tool', params), Model.AnthropicHaiku, ExpectedType)`, where `ExpectedType` is a type definition the model can target. If the conversion fails, the model can fall back to a generic string or surface an error.
+- Use a generic type (e.g., `any`) and move on. Accept `any` or `string` as the return type and handle the unstructured output downstream.
+- Extract a typed result using a fast model. Pass the tool's output to a lightweight model like Claude Haiku or Gemini Flash with instructions to coerce it into a known type, for example, `extract(mcpTool('generic_tool', params), Model.AnthropicHaiku, ExpectedType)`, where `ExpectedType` is a type definition the model can target. If the conversion fails, the model can fall back to a generic string or surface an error.
 
-**Step 2 — The model writes code against these APIs.** Rather than making separate tool calls with full results flowing through context between them, the model writes a single script. Consider a task like "find all error logs from the past hour and file a ticket for each unique error." With direct tool calling, thousands of log entries would flow through the model's context. With code, the model filters in the sandbox:
+**Step 2: The model writes code against these APIs.** Rather than making separate tool calls with full results flowing through context between them, the model writes a single script. Consider a task like "find all error logs from the past hour and file a ticket for each unique error." With direct tool calling, thousands of log entries would flow through the model's context. With code, the model filters in the sandbox:
 
 ```typescript
-// Model-generated code — executes in sandbox
+// Model-generated code, executes in sandbox
 const logs = await logging_getLogs({
   level: "error",
   since: Date.now() - 3600000,
 });
 
-// Filter and deduplicate inside the sandbox — not in the model's context
+// Filter and deduplicate inside the sandbox, not in the model's context
 const uniqueErrors = new Map<string, LogEntry>();
 for (const log of logs.entries) {
   if (!uniqueErrors.has(log.message)) {
@@ -201,34 +222,24 @@ console.log(
 );
 ```
 
-**Step 3 — The sandbox executes the code.** Function calls inside the sandbox are intercepted and routed back to the appropriate MCP server through the client. The log data and ticket creation flow directly between servers without ever entering the model's context. Only the `console.log` output — a single summary line — returns to the model.
+**Step 3: The sandbox executes the code.** Function calls inside the sandbox are intercepted and routed back to the appropriate MCP server through the client. The log data and ticket creation flow directly between servers without ever entering the model's context. Only the `console.log` output, a single summary line, returns to the model.
 
 #### Choosing a Sandbox
 
-The best sandbox depends on which language you want the model to write, your host application's language, and how much isolation you need. Here are some open-source options:
+The right sandbox depends on the language you want the model to write, your host application's language, and how much isolation you need:
 
 | Sandboxed language | Runtime / Library                                        | Host language | Approach                                                                                        |
 | ------------------ | -------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
 | **JavaScript**     | [Deno](https://github.com/denoland/deno)                 | Rust / CLI    | V8-based runtime with fine-grained permissions. Can disable all permissions for full lockdown.  |
 | **Python**         | [Monty](https://github.com/pydantic/monty)               | Rust          | Minimal, secure Python interpreter built for AI use cases. No I/O by default.                   |
-| **TypeScript**     | [pctx](https://github.com/portofcontext/pctx)            | Python / Rust | Incorporates code mode concepts more explicitly as a library, as well as low level rust support |
+| **TypeScript**     | [pctx](https://github.com/portofcontext/pctx)            | Python / Rust | Incorporates code mode concepts more explicitly as a library, as well as low-level Rust support |
 | **Any (via Wasm)** | [Wasmtime](https://github.com/bytecodealliance/wasmtime) | Rust / C / Go | Compile any language to Wasm and run it with capability-based security.                         |
 
 Regardless of sandbox, the integration pattern is the same: the client injects function stubs, intercepts calls, and dispatches them as underlying `tools/call` requests to MCP servers.
 
-#### Why Code Is a Better Interface
-
-LLMs have been trained on vast amounts of real-world code and are very capable when writing tool-calling programs against a code interface that models the MCP tools. This approach has several practical benefits:
-
-| Benefit                 | Explanation                                                                                                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Data out of context** | Intermediate results flow between tools inside the sandbox. The model only sees what the code explicitly logs or returns, dramatically reducing token consumption. |
-| **Batched execution**   | Multiple tool calls execute in a single round trip. A script that reads five files and writes a summary makes one trip to the model instead of eleven.             |
-| **Native control flow** | Loops, conditionals, error handling, and retries are expressed in code rather than requiring multiple model turns to orchestrate.                                  |
-
 #### Execution Architecture
 
-A robust programmatic tool calling implementation has three components:
+The implementation has three components:
 
 ```mermaid
 flowchart LR
@@ -248,7 +259,7 @@ flowchart LR
 
 **The client** acts as a broker. It receives function calls from the sandbox, maps them to the correct MCP server, executes the tool call, and returns the result to the sandbox. Authorization tokens and credentials are held by the client and never exposed to the generated code.
 
-**The model** sees only what the sandbox returns — typically the output of `console.log` statements or a final return value. This gives the model (and the client developer) precise control over what enters the context window.
+**The model** sees only what the sandbox returns, typically the output of `console.log` statements or a final return value. This gives the model (and the client developer) precise control over what enters the context window.
 
 #### Security Considerations
 
@@ -261,4 +272,4 @@ Programmatic tool calling introduces a code execution surface that requires care
 
 #### Combining Both Patterns
 
-Progressive discovery and programmatic tool calling work well together. The model uses discovery tools to identify which tools it needs, loads their schemas, and then writes a single script that calls multiple tools in one execution pass. This combination minimizes both the token cost of tool definitions _and_ the token cost of tool results — keeping the model's context focused on reasoning rather than data shuttling.
+Progressive discovery and programmatic tool calling work well together. The model uses discovery tools to identify which tools it needs, loads their schemas, and then writes a single script that calls multiple tools in one execution pass. This combination minimizes both the token cost of tool definitions _and_ the token cost of tool results, keeping the model's context focused on reasoning rather than passing data through it.
