@@ -156,7 +156,7 @@ clients to implement a sandbox environment.
 
 The client converts MCP tool schemas into a typed API available inside a sandbox. When the model needs tools, it writes a script and executes it.
 
-**Step 1: Generate a programmatic API from MCP schemas.** The client reads each server's tool definitions and produces typed functions based on each tool's `outputSchema`:
+**Step 1: Generate a programmatic API from MCP schemas.** The client reads each server's tool definitions and produces typed functions based on each tool's arguments and `outputSchema`:
 
 ```typescript
 // Auto-generated from the Logging MCP server's tool schema
