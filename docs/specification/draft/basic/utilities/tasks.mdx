@@ -129,8 +129,8 @@ Clients **SHOULD** continue polling until the task reaches a terminal status (`c
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "working",
     "statusMessage": "The operation is now in progress.",
@@ -152,8 +152,8 @@ When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), t
 {
   "jsonrpc": "2.0",
   "id": 4,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -179,8 +179,8 @@ When a task reaches a terminal status (`completed`, `failed`, or `cancelled`), t
 {
   "jsonrpc": "2.0",
   "id": 5,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "failed",
     "statusMessage": "Tool execution failed: API rate limit exceeded",
@@ -205,8 +205,8 @@ When a task requires input from the client (indicated by the `input_required` st
 {
   "jsonrpc": "2.0",
   "id": 6,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -266,8 +266,8 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
 {
   "jsonrpc": "2.0",
   "id": 6,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -523,8 +523,8 @@ To enable clients to distinguish between different response types without inspec
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -821,8 +821,8 @@ The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such 
 {
   "jsonrpc": "2.0",
   "id": 4,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
     "status": "failed",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -845,8 +845,8 @@ For tool calls that complete successfully at the protocol level but return an ap
 {
   "jsonrpc": "2.0",
   "id": 5,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f820fe840",
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",

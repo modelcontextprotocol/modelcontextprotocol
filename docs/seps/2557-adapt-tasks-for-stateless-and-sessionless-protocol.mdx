@@ -32,7 +32,7 @@ This SEP incorporates changes into `Tasks` necessary following the acceptance of
 
 - [SEP-2260: Require Server requests to be associated with a Client request](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md)
 - [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
-- [SEP-2243: Http Standardization](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243)
+- [SEP-2243: Http Standardization](./2243-http-standardization.md)
 - [SEP-2567: Sessionless MCP via Explicit State Handles](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567).
 
 It also proposes a simplification of [tasks](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks) based on feedback since the initial experimental release.
@@ -47,40 +47,15 @@ A number of changes are necessary in the `Tasks` feature to support the upcoming
 
 A number of changes are necessay to support the upcoming changes to the spec listed in the SEPs above.
 
-<b>[SEP-2260]</b> disallows unsolicited server-to-client requests, which
-invalidates the concept of client tasks for elicitation and sampling operations.
-This proposal removes client-hosted tasks & their associated capabiliteis since
-these scenarios are no longer supported.
+**[SEP-2260](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md)** disallows unsolicited server-to-client requests, which invalidates the concept of client tasks for elicitation and sampling operations. This proposal removes client-hosted tasks & their associated capabiliteis since these scenarios are no longer supported.
 
-<b>[SEP-2567]</b> removes sessions from the protocol, which was the only defined
-scope for `tasks/list`. This proposal removes `tasks/list` methods and
-capabilities since there is no clear way to scope a list of tasks between a
-server and a client.
+**SEP-2567** removes sessions from the protocol, which was the only defined scope for `tasks/list`. This proposal removes `tasks/list` methods and capabilities since there is no clear way to scope a list of tasks between a server and a client.
 
-<b>[SEP-2322]</b> introduces a new flow for how the server requests more input
-from the client, i.e. `elicitations`, `sampling`, and `roots`. SEP-2322
-leverages the existing `input_required` task status to signal when the server
-needs more information. The client then makes a request to `tasks/result` to
-retrieve the `IncompleteResult` which contains the server's request for more
-information. The current specification requires the client to make this
-`tasks/result` request in a blocking manner, which is unintuitive and has led to
-implementation issues. We identified that we would need to make a breaking
-change to `tasks/result` during SEP-2322 discussions, but decided redesigning
-tasks would be a scope expansion that would derail MRTR discussion. This
-proposal simplifies this flow by inlining the `IncompleteResult` into the
-`tasks/get` response when the task is in an `input_required` state, eliminating
-the need for a separate blocking request and improving the intuitiveness of the
-flow.
+**SEP-2322** introduces a new flow for how the server requests more input from the client, i.e. `elicitations`, `sampling`, and `roots`. SEP-2322 leverages the existing `input_required` task status to signal when the server needs more information. The client then makes a request to `tasks/result` to retrieve the `IncompleteResult` which contains the server's request for more information. The current specification requires the client to make this `tasks/result` request in a blocking manner, which is unintuitive and has led to implementation issues. We identified that we would need to make a breaking change to `tasks/result` during SEP-2322 discussions, but decided redesigning tasks would be a scope expansion that would derail MRTR discussion. This proposal simplifies this flow by inlining the `IncompleteResult` into the `tasks/get` response when the task is in an `input_required` state, eliminating the need for a separate blocking request and improving the intuitiveness of the flow.
 
 Given the difficulty of implementing the MRTR changes in Tasks as the spec currently stands, we believe that simplifying the Tasks flow by collapsing several methods into `tasks/get` is necessary and is also proposed here.
 
-<b>[SEP-2243]</b> introduces standard headers in the Streamable HTTP Transport
-to facilitate more efficient routing. Routing on `TaskId` is also desirable
-since there is often state associated with a specific Task that needs to be
-consistently routed to the same server instance. This proposal requires that the
-`Mcp-Name` header MUST be set to the value of `params.taskId` by the client when
-making `tasks/get` and `tasks/cancel` requests over the Streamable HTTP
-Transport.
+**[SEP-2243](./2243-http-standardization.md)** introduces standard headers in the Streamable HTTP Transport to facilitate more efficient routing. Routing on `TaskId` is also desirable since there is often state associated with a specific Task that needs to be consistently routed to the same server instance. This proposal requires that the `Mcp-Name` header MUST be set to the value of `params.taskId` by the client when making `tasks/get` and `tasks/cancel` requests over the Streamable HTTP Transport.
 
 ### Lessons Learned from Implementation & Usage Feedback
 
@@ -144,7 +119,7 @@ Tasks will no longer be an optional capability, but will instead become a standa
 
 ### Task Cancel Changes
 
-We propose aligning Task Cancellation with the Cooperative Cancellation model. In this model the requestor The requestor signals intent, but the worker decides when or if to honor it. This aligns `tasks/cancel` with the cancellation pattern used in `notifications/cancelled`, where clients can always send a cancellation request, but servers can choose how to handle it. This also aligns Tasks with how Cancellation Tokens are handled in most async/concurrent programming languages including Go, Python, C#, TypeScript, etc...
+We propose aligning Task Cancellation with the Cooperative Cancellation model. In this model the requestor signals intent, but the worker decides when or if to honor it. This aligns `tasks/cancel` with the cancellation pattern used in `notifications/cancelled`, where clients can always send a cancellation request, but servers can choose how to handle it. This also aligns Tasks with how Cancellation Tokens are handled in most async/concurrent programming languages including Go, Python, C#, TypeScript, etc...
 
 In the specification this means:
 
@@ -168,8 +143,8 @@ The below table summarizes the changes to the task-related capabilities:
 | Server | `tasks.list`                            | removed | no longer supported SEP-2567                     |
 | Client | `tasks.requests.sampling.createMessage` | removed | no longer supported SEP-2260                     |
 | Client | `tasks.requests.elicitation.create`     | removed | no longer supported SEP-2260                     |
-| Client | `tasks.cancel`                          | removed | no longer needed, no client tasks                |
-| Client | `tasks.list`                            | removed | no longer supported SEP-2567                     |
+| Client | `tasks.cancel`                          | removed | no longer supported SEP-2260                     |
+| Client | `tasks.list`                            | removed | no longer supported SEP-2260/SEP-2567            |
 
 ### Task Flow Change
 
@@ -235,8 +210,8 @@ The below section contains example responses for each of the above cases.
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "working",
     "statusMessage": "The operation is in progress.",
@@ -254,8 +229,8 @@ The below section contains example responses for each of the above cases.
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
     "statusMessage": "The operation has completed successfully.",
@@ -282,8 +257,8 @@ The below section contains example responses for each of the above cases.
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "failed",
     "statusMessage": "Tool execution failed: API rate limit exceeded",
@@ -304,8 +279,8 @@ The below section contains example responses for each of the above cases.
 {
   "jsonrpc": "2.0",
   "id": 6,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "cancelled",
     "statusMessage": "The task was cancelled by request.",
@@ -323,8 +298,8 @@ The below section contains example responses for each of the above cases.
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
     "statusMessage": "The operation requires additional input.",
@@ -464,8 +439,8 @@ The server determines (via bespoke logic) that it wants to create a task to repr
 {
   "jsonrpc": "2.0",
   "id": 2,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "task": {
       "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
       "status": "working",
@@ -497,8 +472,8 @@ On each request while the task is in a `"working"` status, the server returns a 
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -526,8 +501,8 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
 {
   "id": 4,
   "jsonrpc": "2.0",
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -573,8 +548,8 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
 {
   "id": 5,
   "jsonrpc": "2.0",
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -658,8 +633,8 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
 {
   "jsonrpc": "2.0",
   "id": 7,
-  "resultType": "task",
   "result": {
+    "resultType": "task",
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
@@ -681,7 +656,7 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
 
 ### HTTP Streamable Transport Headers
 
-[SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243) introduces standard headers in the Streamable HTTP Transport to facilitate more efficient routing. Routing on `TaskId` is also desirable since there is often state associated with a specific Task that needs to be consistently routed to the same server instance. SEP-2243 requires that all requests and notifications declare an `Mcp-Method` header.
+[SEP-2243](./2243-http-standardization.md) introduces standard headers in the Streamable HTTP Transport to facilitate more efficient routing. Routing on `TaskId` is also desirable since there is often state associated with a specific Task that needs to be consistently routed to the same server instance. SEP-2243 requires that all requests and notifications declare an `Mcp-Method` header.
 
 We will extend this with semantics for the `tasks/get` and `tasks/cancel` requests, requiring that the `Mcp-Name` header MUST be set to the value of `params.taskId` by the client when making `tasks/get` and `tasks/cancel` requests over the Streamable HTTP Transport.
 

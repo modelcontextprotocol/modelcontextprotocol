@@ -127,6 +127,14 @@ export interface Notification {
  * @category Common Types
  */
 export interface Result {
+  /**
+   * Discriminator for polymorphic result handling. When present, indicates the
+   * semantic type of the result so that clients can determine how to process
+   * the response without inspecting the entire result payload.
+   *
+   * Defaults to "complete" if not specified.
+   */
+  resultType?: ResultType;
   _meta?: MetaObject;
   [key: string]: unknown;
 }
@@ -199,15 +207,6 @@ export interface JSONRPCResultResponse {
   jsonrpc: typeof JSONRPC_VERSION;
   id: RequestId;
   result: Result;
-
-  /**
-   * Discriminator for polymorphic result handling. When present, indicates the
-   * semantic type of the result so that clients can determine how to process
-   * the response without inspecting the entire result payload.
-   *
-   * Defaults to "complete" if not specified.
-   */
-  resultType?: ResultType;
 }
 
 /**

@@ -180,6 +180,10 @@
                     "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
                     "type": "boolean"
                 },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
+                },
                 "structuredContent": {
                     "additionalProperties": {},
                     "description": "An optional JSON object that represents the structured result of the tool call.",
@@ -203,10 +207,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CallToolResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -278,10 +278,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CancelTaskResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -682,6 +678,10 @@
                         "values"
                     ],
                     "type": "object"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -701,10 +701,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CompleteResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -909,6 +905,10 @@
                     "description": "The name of the model that generated the message.",
                     "type": "string"
                 },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
+                },
                 "role": {
                     "$ref": "#/$defs/Role"
                 },
@@ -936,10 +936,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CreateMessageResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -954,6 +950,10 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 },
                 "task": {
                     "$ref": "#/$defs/Task"
@@ -976,10 +976,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/CreateTaskResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1163,6 +1159,10 @@
                     },
                     "description": "The submitted form data, only present when action is `\"accept\"` and mode was `\"form\"`.\nContains values matching the requested schema.\nOmitted for out-of-band mode responses.",
                     "type": "object"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1182,10 +1182,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ElicitResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1418,6 +1414,10 @@
                         "$ref": "#/$defs/PromptMessage"
                     },
                     "type": "array"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1437,10 +1437,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/GetPromptResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1563,10 +1559,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/GetTaskResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -1758,6 +1750,10 @@
                     "description": "The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.",
                     "type": "string"
                 },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
+                },
                 "serverInfo": {
                     "$ref": "#/$defs/Implementation"
                 }
@@ -1781,10 +1777,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/InitializeResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2056,10 +2048,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2165,6 +2153,10 @@
                         "$ref": "#/$defs/Prompt"
                     },
                     "type": "array"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2184,10 +2176,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListPromptsResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2237,6 +2225,10 @@
                         "$ref": "#/$defs/ResourceTemplate"
                     },
                     "type": "array"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2256,10 +2248,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListResourceTemplatesResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2309,6 +2297,10 @@
                         "$ref": "#/$defs/Resource"
                     },
                     "type": "array"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2328,10 +2320,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListResourcesResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2372,6 +2360,10 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
+                },
                 "roots": {
                     "items": {
                         "$ref": "#/$defs/Root"
@@ -2396,10 +2388,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListRootsResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2444,6 +2432,10 @@
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
                 },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
+                },
                 "tools": {
                     "items": {
                         "$ref": "#/$defs/Tool"
@@ -2468,10 +2460,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ListToolsResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -2716,6 +2704,10 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "type": "object"
@@ -2779,10 +2771,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3062,6 +3050,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3081,10 +3073,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/ReadResourceResult"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3419,6 +3407,10 @@
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "type": "object"
@@ -3802,10 +3794,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -3916,10 +3904,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
@@ -4562,10 +4546,6 @@
                 },
                 "result": {
                     "$ref": "#/$defs/Result"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "description": "Discriminator for polymorphic result handling. When present, indicates the\nsemantic type of the result so that clients can determine how to process\nthe response without inspecting the entire result payload.\n\nDefaults to \"complete\" if not specified."
                 }
             },
             "required": [
