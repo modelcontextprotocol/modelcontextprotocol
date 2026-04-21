@@ -718,11 +718,11 @@ At a protocol level, this should be handled according to the protocol version. U
 
 In [SEP-1686](./1686-tasks.md), we explicitly chose not to introduce support for unsolicitated task creation, as this would have required all implementations to break all method contracts by allowing `CreateTaskResult` to be returned in addition to the non-task result shape. This proposal explicitly rejects that argument, opting to consider `CreateTaskResult` as something akin to a JSON-RPC error, which already needed to be handled in the standard result path. Implementations already needed to branch response handling for error response shapes - `CreateTaskResult` is different in that rather than being a different JSON-RPC envelope shape, it is a different subset shape of a JSON-RPC result.
 
-Fortunately for the proposal author, `CreateTaskResult` also happens to be a unique result shape, as it is the only MCP result with a single `result.task` key. This enables implementations to predictably handle this difference internally at the deserialization layer without necessarily exposing it to SDK consumers. The following (non-binding) implementation approach is suggested to support this:
+With the introduction of `result.resultType` in [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322), we no longer need to be concerned about this. This SEP extends that from `"complete" | "incomplete"` to include `"task"` as a supported value to signal returning a `CreateTaskResult` instead. The following guidance is suggested for client SDK maintainers regarding this polymorphism:
 
 1. All existing API surfaces should remain unchanged - that is, if a `client.callTool()` method is written to return `CallToolResult`, that method contract should not be altered to return a union of `CallToolResult` and `CreateTaskResult`.
 1. Internally, if such a request returns `CreateTaskResult`, follow the standard task polling semantics of the current specification.
-1. Gradually introduce new methods that surface the polling flow to SDK consumers as needed.
+1. Gradually introduce new methods that surface the polling flow to SDK consumers as needed so they can leverage task lifecycle events for deeper application integrations.
 
 ## Security Implications
 
