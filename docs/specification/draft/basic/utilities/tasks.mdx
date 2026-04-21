@@ -719,7 +719,7 @@ A task represents the execution state of a request. The task state includes:
 - `lastUpdatedAt`: ISO 8601 timestamp when the task status was last updated
 - `result`: Optional field containing the final result when the task reaches a terminal status (e.g., `CallToolResult` for tool calls)
 - `error`: Optional field containing a JSON-RPC error if the task failed
-- `requestState`: Optional opaque string set by the server for stateless routing or state management. Clients **MUST** echo this value back exactly in subsequent `tasks/get` requests (see [Request State Management](#request-state-management)).
+- `requestState`: Optional opaque string set by the server for stateless routing or state management. Clients **MUST** echo this value back exactly in subsequent `tasks/get` and `tasks/cancel` requests (see [Request State Management](#request-state-management)).
 
 ### Task Status
 
