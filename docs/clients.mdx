@@ -623,6 +623,30 @@ Bob Shell brings IBM Bob's AI capabilities to your command line.
 </McpClient>
 
 <McpClient
+  name="Burnish"
+  homepage="https://burnish-demo.fly.dev"
+  sourceCode="https://github.com/danfking/burnish"
+  supports="Tools, Discovery, Instructions"
+>
+
+Burnish is an explorer-first MCP client — "Swagger UI for MCP." It auto-generates interactive UI from any server's tool outputs and input schemas, so you can inspect and invoke tools directly without an LLM or chat loop.
+
+**Key features:**
+
+- No LLM required: tools are executed from auto-generated forms, outputs render as cards, tables, charts, pipelines, and dashboards based on JSON shape.
+- 10 Lit 3 web components drive the output layer; embeddable via npm or CDN in your own app (`@burnishdev/components`).
+- Deep-linkable per server and per tool, so individual tools can be shared like Swagger UI endpoints.
+- Works with any stdio or SSE MCP server via `npx burnish -- <your-server>` — zero config.
+- Open source (AGPL-3.0), cross-platform (macOS, Windows, Linux), and includes a hosted demo.
+
+**Learn more:**
+
+- [Hosted demo](https://burnish-demo.fly.dev)
+- [Example server (34 tools across every rendering path)](https://www.npmjs.com/package/@burnishdev/example-server)
+
+</McpClient>
+
+<McpClient
   name="Call Chirp"
   homepage="https://www.call-chirp.com"
   supports="Prompts, Tools"
