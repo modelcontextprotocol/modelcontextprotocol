@@ -543,6 +543,13 @@ export interface ClientCapabilities {
   elicitation?: {
     form?: JSONObject;
     url?: JSONObject;
+    /**
+     * Whether this client supports {@link ArraySchema} in form-mode
+     * `requestedSchema`. Servers SHOULD NOT include `type: "array"` properties
+     * in elicitation requests unless this is present, as older clients may
+     * reject the entire request rather than ignoring the unknown member.
+     */
+    arrays?: JSONObject;
   };
 
   /**
@@ -1797,18 +1804,28 @@ export interface Tool extends BaseMetadata, Icons {
  */
 export interface FileInputDescriptor {
   /**
-   * MIME type patterns that the server will accept for this input.
-   * Supports exact types (e.g., `"image/png"`) and wildcard subtypes
-   * (e.g., `"image/*"`). If omitted, any file type is accepted.
+   * Media type patterns and/or file extensions the client SHOULD filter the
+   * picker to. Supports exact MIME types (`"image/png"`), wildcard subtypes
+   * (`"image/*"`), and dot-prefixed extensions (`".pdf"`) following the same
+   * grammar as the HTML `accept` attribute. Extension entries are picker hints
+   * only; server-side validation compares MIME types. If omitted, any file
+   * type is accepted.
    */
   accept?: string[];
 
   /**
    * Maximum file size in bytes (decoded size, per file). Servers SHOULD reject
-   * larger files with {@link InvalidParamsError} and the structured reason
+   * larger files with a tool-execution error carrying the structured reason
    * `"file_too_large"`.
    */
   maxSize?: number;
+
+  /**
+   * Name of a sibling string property in the same object schema that the
+   * client SHOULD populate with the selected file's original filename. If the
+   * named property does not exist in the schema, this field is ignored.
+   */
+  filenameProperty?: string;
 }
 
 /* Tasks */
@@ -3188,17 +3205,19 @@ export type EnumSchema =
   | LegacyTitledEnumSchema;
 
 /**
- * Schema for a flat array of primitive values. Items may use any scalar
- * primitive schema; nesting (arrays of arrays) is not permitted.
+ * Schema for a flat array of string values. Nesting (arrays of arrays) is not
+ * permitted. Generalization to other primitive item types is deferred to a
+ * future SEP that simultaneously widens {@link ElicitResult.content} to carry
+ * the corresponding array values.
  *
- * When `mcpFile` is present, `items` MUST be a {@link StringSchema} with
- * `format: "uri"`, and the field is rendered as a multi-file picker.
+ * When `mcpFile` is present, `items` MUST have `format: "uri"`, and the field
+ * is rendered as a multi-file picker.
  *
  * @category `elicitation/create`
  */
 export interface ArraySchema {
   type: "array";
-  items: StringSchema | NumberSchema | BooleanSchema | EnumSchema;
+  items: StringSchema;
   title?: string;
   description?: string;
   minItems?: number;
