@@ -7,7 +7,7 @@ As MCP host applications, such as agents, connect to more MCP servers and accumu
 
 Two patterns address these challenges: **progressive discovery**, which controls _when_ tool definitions enter context, and **programmatic tool calling**, which controls _how_ tools are invoked.
 
-### Avoiding context bloat using progressive discovery of Servers and Tools
+## Progressive Tool Discovery
 
 Naive MCP clients pass the tool definitions of every connected server directly to the model at the start of each conversation. For a handful of tools, this is perfectly reasonable. But when a host has access to dozens of servers exposing hundreds of tools, those definitions alone can consume the majority of the context window before the model has even read the user's message.
 
@@ -18,9 +18,9 @@ Naive MCP clients pass the tool definitions of every connected server directly t
 
 Progressive discovery avoids this:
 
-- The client defers the loading of MCP tools.
-- The client provides a lightweight `search_tools` tool.
-- The client loads full definitions only as needed.
+- The host fetches tool definitions via `tools/list` as normal, but defers injecting them into the model's context.
+- The host provides a lightweight `search_tools` meta-tool to the model.
+- The host loads full definitions into context only as needed.
 
 #### When to Use Progressive Discovery
 
@@ -41,7 +41,7 @@ Once the model invokes the `search_tools` tool, we need to choose a search strat
 - **Hybrid**: Combine approaches. For example, by scoring across keyword and embedding rankings, or choosing
   different strategies depending on use-case or query.
 
-Some model providers already offer built-in tool search. For example, both [OpenAI](https://developers.openai.com/api/docs/guides/tools-tool-search) and [Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool) support this natively. When available, you may prefer the platform's tool search over a custom implementation. Build your own when the provider doesn't offer one or when you need specialized retrieval logic (e.g., domain-specific ranking or access-control filtering).
+Some model providers already offer built-in tool search. For example, [OpenAI](https://developers.openai.com/api/docs/guides/tools-tool-search) and [Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool) support this natively; check your provider's documentation for an equivalent. When available, you may prefer the platform's tool search over a custom implementation. Build your own when the provider doesn't offer one or when you need specialized retrieval logic (e.g., domain-specific ranking or access-control filtering).
 
 The three-layer pattern below illustrates a custom search-based approach in detail, but the layered principle (catalog, inspect, execute) applies regardless of retrieval mechanism.
 
@@ -126,7 +126,7 @@ sequenceDiagram
     Client-->>Model: Server disconnected, context freed
 ```
 
-This works especially well for general-purpose agents, where the user's intent isn't known upfront. The agent starts with a minimal set of always-on servers and connects others as needed. Combined with agent skills, the client can bring in servers and tools on demand.
+This works especially well for general-purpose agents, where the user's intent isn't known upfront. The agent starts with a minimal set of always-on servers and connects others as needed. Combined with [agent skills](/docs/develop/build-with-agent-skills), a skill file can declare which MCP servers it needs, and the host connects them only when that skill is invoked.
 
 #### Implementation Guidelines
 
@@ -135,7 +135,8 @@ When implementing progressive discovery:
 | Guideline                        | Rationale                                                                                          |
 | -------------------------------- | -------------------------------------------------------------------------------------------------- |
 | **Offer multiple detail levels** | Let the model choose between name-only, name-and-description, or full-schema responses.            |
-| **Cache tool definitions**       | Once a tool definition is loaded, keep it available for the duration of the session.               |
+| **Cache tool definitions**       | Once fetched from a server, memoize the definition host-side so re-injecting it later doesn't need another `tools/list` round trip. This is separate from what's currently in the model's context. |
+| **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                |
 | **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities. |
 
 ### Programmatic Tool Calling / Code Mode
@@ -149,7 +150,7 @@ clients to implement a sandbox environment.
 
 <img
   src="/images/programmatic-tool-calling.svg"
-  alt="Comparison of direct tool calling versus programmatic tool calling. Direct calling requires three round trips through the model with ~150K tokens. Programmatic calling uses one round trip, with the code executing tool calls directly in a sandbox, returning ~200 tokens."
+  alt="Comparison of direct tool calling versus programmatic tool calling. Direct calling passes every intermediate result through the model (~100K+ tokens). Programmatic calling sends a ~200-token script to a sandbox, which executes the tool calls and returns a ~15-token summary."
 />
 
 #### How It Works
@@ -185,10 +186,10 @@ function ticketing_createIssue(input: {
 
 MCP Servers can provide an optional [`outputSchema`](/specification/draft/server/tools#output-schema) for each tool. When an output schema is present, the client can produce precise return types (like `LogEntry` above).
 
-When an output schema is absent, there are two fallback strategies:
+When an output schema is absent, prefer the simple path:
 
-- Use a generic type (e.g., `any`) and move on. Accept `any` or `string` as the return type and handle the unstructured output downstream.
-- Extract a typed result using a fast model. Pass the tool's output to a lightweight model like Claude Haiku or Gemini Flash with instructions to coerce it into a known type, for example, `extract(mcpTool('generic_tool', params), Model.AnthropicHaiku, ExpectedType)`, where `ExpectedType` is a type definition the model can target. If the conversion fails, the model can fall back to a generic string or surface an error.
+- **Use a generic type and move on.** Accept `any` or `string` and handle the unstructured output downstream. The real fix is for server authors to provide `outputSchema`.
+- **Extract a typed result using a fast model**, for single-shot calls outside loops. Expose a host-brokered `extract(value, ExpectedType)` helper through the same stub-interception path as MCP tool calls so the sandbox itself never opens a network connection. The helper routes to a small model (for example, Claude Haiku or Gemini Flash) to coerce the value into `ExpectedType`. This adds per-call latency and can hallucinate or drop fields, so validate the result against `ExpectedType` before use.
 
 **Step 2: The model writes code against these APIs.** Rather than making separate tool calls with full results flowing through context between them, the model writes a single script. Consider a task like "find all error logs from the past hour and file a ticket for each unique error." With direct tool calling, thousands of log entries would flow through the model's context. With code, the model filters in the sandbox:
 
@@ -226,16 +227,16 @@ console.log(
 
 #### Choosing a Sandbox
 
-The right sandbox depends on the language you want the model to write, your host application's language, and how much isolation you need:
+The right sandbox depends on the language you want the model to write, your host application's language, and how much isolation you need. The table lists example runtimes rather than endorsements; evaluate maturity for your use case:
 
 | Sandboxed language | Runtime / Library                                        | Host language | Approach                                                                                        |
 | ------------------ | -------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
-| **JavaScript**     | [Deno](https://github.com/denoland/deno)                 | Rust / CLI    | V8-based runtime with fine-grained permissions. Can disable all permissions for full lockdown.  |
-| **Python**         | [Monty](https://github.com/pydantic/monty)               | Rust          | Minimal, secure Python interpreter built for AI use cases. No I/O by default.                   |
-| **TypeScript**     | [pctx](https://github.com/portofcontext/pctx)            | Python / Rust | Incorporates code mode concepts more explicitly as a library, as well as low-level Rust support |
-| **Any (via Wasm)** | [Wasmtime](https://github.com/bytecodealliance/wasmtime) | Rust / C / Go | Compile any language to Wasm and run it with capability-based security.                         |
+| **JavaScript**     | [Deno](https://github.com/denoland/deno), `isolated-vm`       | Rust / CLI    | V8-based runtimes with fine-grained permissions. Can disable all permissions for full lockdown. |
+| **Python**         | [Monty](https://github.com/pydantic/monty) *(experimental)*   | Rust          | Minimal Python interpreter built for AI use cases. No I/O by default.                           |
+| **TypeScript**     | [pctx](https://github.com/portofcontext/pctx) *(early-stage)* | Python / Rust | Incorporates code mode concepts as a library, with low-level Rust support.                      |
+| **Any (via Wasm)** | [Wasmtime](https://github.com/bytecodealliance/wasmtime)      | Rust / C / Go | Compile any language to Wasm and run it with capability-based security.                         |
 
-Regardless of sandbox, the integration pattern is the same: the client injects function stubs, intercepts calls, and dispatches them as underlying `tools/call` requests to MCP servers.
+Regardless of sandbox, the integration pattern is the same: the host injects function stubs, intercepts calls over an in-process or stdio channel (so network permissions can stay fully denied), and dispatches them as `tools/call` requests to MCP servers.
 
 #### Execution Architecture
 
