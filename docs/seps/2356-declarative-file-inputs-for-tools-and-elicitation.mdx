@@ -364,11 +364,12 @@ more appropriate for the transport or file size:
   file itself.
 
 Servers **MUST** accept `data:` URIs for `mcpFile` arguments. Servers **MAY**
-reject other schemes; such servers **SHOULD** document this restriction in the
-tool description and use the `file_scheme_unsupported` reason (see
-[Server-side validation](#server-side-validation)). Servers that accept
-`http(s)://` or `file://` schemes **MUST** apply the safeguards in
-[Security Implications](#security-implications).
+additionally accept `file:`, `http:`, or `https:` subject to
+[Security Implications](#security-implications). Servers **MUST** reject any
+other scheme with `file_scheme_unsupported` and **MUST NOT** dereference it.
+Servers **MUST** reject `file:` on transports other than stdio, and **MUST**
+reject `file:` URIs whose authority component is non-empty and not
+`localhost` (RFC 8089 §2).
 
 If a server needs the original filename, it **SHOULD** declare a separate
 string argument for it and reference it via `filenameProperty` in the
@@ -378,23 +379,23 @@ property is the filename by name-matching heuristics.
 
 ### Host integration on the tool surface
 
-Tools are model-controlled; the model populates `arguments`. The recommended
-flow for `mcpFile` arguments on the tool surface is:
+Tools are model-controlled; the model populates `arguments`. For `mcpFile`
+arguments on the tool surface:
 
-1. The model emits a `tools/call` with the `mcpFile` argument absent or set to
-   a placeholder value.
+1. The model emits a `tools/call` with the `mcpFile` argument absent. Hosts
+   **MUST** disregard any value the model supplies in an `mcpFile` slot,
+   regardless of scheme.
 2. The host detects the unfilled `mcpFile` slot at the human-in-the-loop
    confirmation step it already presents for tool calls.
 3. The host renders a file picker, encodes the user's selection per
    [Wire encoding](#wire-encoding), and substitutes the value before
    dispatching the request to the server.
-4. Hosts **SHOULD NOT** include the encoded data URI value in model context;
-   the model does not need to see file bytes to proceed.
+4. Hosts **MUST NOT** include the encoded data URI value in model context.
 
-Hosts **MAY** alternatively pre-bind files the user has already attached to
-the conversation, matching them to `mcpFile` slots by `accept` filter, and
-present that binding for confirmation rather than a fresh picker. This is the
-pattern OpenAI Apps SDK `fileParams` follows.
+Hosts **MAY** offer a file the user has already attached to the conversation
+as a picker default, but **MUST NOT** bind it to a server's `mcpFile` slot
+without an explicit per-invocation confirmation that displays the destination
+server.
 
 Hosts that recognize `mcpFile` but cannot present a picker (CLI without a TTY,
 automated agents, CI pipelines) **SHOULD** prompt for a local path and encode
@@ -659,9 +660,9 @@ This SEP is backward compatible at the schema level:
   The `elicitation.arrays` client capability lets servers detect support
   before emitting the new member.
 
-Servers **MUST** accept any well-formed URI value for a `uri`-format argument
-regardless of whether the client recognized `mcpFile` or how the value was
-produced. The keyword governs _presentation_, not _acceptance_.
+Servers **MUST** accept well-formed `data:` URIs for an `mcpFile`-annotated
+argument regardless of whether the client recognized the keyword or how the
+value was produced. The keyword governs _presentation_, not _acceptance_.
 
 A required `mcpFile` argument on a non-recognizing client renders as a bare
 URI text input that the user cannot reasonably fill. Servers **SHOULD NOT**
@@ -686,131 +687,75 @@ the keyword in any validator they ship.
 The threat model for file inputs has two distinct defenders. The **host**
 protects the user from a malicious or compromised server (and from a model
 under that server's influence via prompt injection). The **server** protects
-itself and its operating environment from a malicious or compromised client.
-The requirements below are grouped by defender; neither set substitutes for
-the other.
+itself and its operating environment from malicious or compromised input.
+Neither set of requirements substitutes for the other. These requirements
+assume the host is trustworthy software acting on the user's behalf; host
+integrity is a prerequisite outside this document's scope.
 
 ### Host-side file access (protecting the user from the server)
 
 The host is the user's trust boundary. Servers are untrusted by default; tool
 descriptions and prior tool results may contain prompt-injection payloads that
-influence the model. The host is the only party that knows whether a given
-file path was selected by the user or authored by the model.
+influence the model (see [OWASP LLM Top 10 2025][owasp-llm], LLM01 and LLM06).
+The host is the only party that knows whether a given value was selected by
+the user or authored by the model.
 
+- Hosts **MUST** treat any value present in the model's tool-call output for
+  an `mcpFile` slot as model-authored and **MUST NOT** transmit it. The only
+  value a host may send in an `mcpFile` slot is one the host itself populated
+  from a user consent gesture for a single (server, tool, request) tuple.
+  Hosts **MUST** discard the encoded value after dispatch.
 - Hosts **MUST NOT** read a local file and encode it into a `data:` URI unless
-  the user explicitly selected that file for this tool invocation via a picker
-  or equivalent consent gesture.
-- Hosts **MUST NOT** auto-dereference a `file://` URI or filesystem path that
-  originated from the model layer. If the model supplies a path-like value in
-  an `mcpFile` slot, the host **MUST** either present it to the user for
-  explicit confirmation (showing the resolved path and the destination server)
-  or reject the call.
-- Hosts **SHOULD** display, before transmission, which file is being sent and
-  to which server, with the same prominence as other destructive-tool
-  confirmations.
-- Hosts **MAY** maintain a per-server allow-list of directories the user has
-  previously granted, analogous to per-origin grants in the browser File
-  System Access API, but **MUST NOT** grant blanket filesystem access to any
-  server by default.
+  the user explicitly selected that file via a picker or equivalent consent
+  gesture, and **MUST NOT** pass any model-supplied value to a path-resolution
+  or URL-fetch API.
+- Hosts **MUST** display, before transmission, the file identity (derived by
+  the host from the picker selection) and the destination server. Hosts
+  **MUST** populate `filenameProperty` from the picker, overwriting any
+  model-supplied value.
 
-### File content is untrusted input
+### File content reaching the model
 
-Servers **MUST** treat file content as untrusted, exactly as they would any
-other client-supplied data. This applies equally to inline data URIs and to
-content fetched from `http(s)://` or read from `file://` URIs.
+File content is untrusted with respect to the model as well as the server.
+Hosts **MUST NOT** include the encoded `data:` URI value in model context.
+Servers returning text derived from `mcpFile` input in `CallToolResult`
+**SHOULD** delimit it as untrusted data, and hosts **MUST** present such
+results to the model as data, not instructions ([OWASP LLM Top 10
+2025][owasp-llm], LLM01).
 
-### MIME type is advisory
+### Server-side handling
 
-The `<mediatype>` in a data URI, the `Content-Type` header on a fetched URL,
-and any extension-based type inference are all set by parties other than the
-server and may not reflect the actual byte content. Servers that dispatch on
-file type **SHOULD** verify the type against the content (magic bytes) and
-**SHOULD** reject on mismatch rather than silently re-typing, to avoid
-polyglot-file routing attacks.
+A server that accepts file input is subject to the same threat surface as any
+web application accepting uploads: SSRF when fetching client-supplied URLs,
+path traversal when reading local paths, parser vulnerabilities and resource
+exhaustion when decoding content. This specification does not restate that
+guidance. Servers **MUST** satisfy the applicable requirements of [OWASP ASVS
+5.0 §V5 (File Handling)][asvs-v5] for the schemes and formats they accept, and
+**MUST** reject any scheme or format for which they are not prepared to do so
+using `file_scheme_unsupported` or `file_type_rejected`. The OWASP cheat
+sheets for [File Upload][cs-upload], [SSRF Prevention][cs-ssrf], [Path
+Traversal][cs-path], and [XXE Prevention][cs-xxe] provide implementation
+guidance.
 
-Servers that accept compressed or container formats **MUST** enforce
-decompression-ratio and output-size limits to mitigate archive bombs. Servers
-that accept XML-based formats (including SVG and Office Open XML) **MUST**
-disable external-entity resolution. Servers **SHOULD** sandbox file processing
-where feasible.
+The wire format carries no provenance: servers **MUST NOT** assume any
+received URI was user-selected rather than model-authored. The `accept` list
+is a UX filter; servers **MUST NOT** assume it was enforced. The
+`<mediatype>` segment of a `data:` URI is advisory; servers **MUST NOT**
+dispatch on it without validating the content.
 
-### Resource exhaustion
+### Logging and telemetry
 
-Because files may arrive inline, a malicious or buggy client can attempt to
-exhaust server memory with oversized payloads. Servers **SHOULD** enforce
-`maxSize` early (ideally during JSON parsing or immediately after, before
-fully materializing the decoded bytes) and **SHOULD** apply a sensible global
-ceiling even for arguments where `maxSize` is omitted.
+`data:` URI values in `mcpFile` arguments contain user file bytes and **MUST**
+be treated as sensitive. Hosts, servers, and SDKs **MUST** redact them (e.g.,
+to `data:<type>;base64,[<n> bytes]`) in transport logs, debug output, tracing
+spans, and error reports.
 
-### Local file inclusion (protecting the server from the client)
-
-These requirements protect the server and its operating environment. They do
-not protect the user from a malicious server; see
-[Host-side file access](#host-side-file-access-protecting-the-user-from-the-server)
-above. The wire format carries no provenance, so servers **MUST NOT** assume
-that a `file://` value was user-selected rather than model-authored.
-
-Servers that accept `file://` URIs:
-
-- **MUST** canonicalize the path (resolving `..` segments and symlinks via a
-  `realpath`-equivalent) before applying any access check.
-- **MUST** restrict reads to an operator-configured allow-list of directories
-  and reject any path that falls outside it after canonicalization.
-- **SHOULD** reject `file://` on non-stdio transports with
-  `file_scheme_unsupported`, since the assumption of a shared filesystem is
-  not verifiable from the wire.
-
-Servers not prepared to implement the above **MUST** reject `file://` outright
-with `file_scheme_unsupported`.
-
-Servers using the [Roots][roots] capability **SHOULD** cross-check `file://`
-paths against the client's declared roots, noting that roots are guidance and
-not a hard access-control list.
-
-Unlike [`Icon.src`][icons-security], where consumers are required to reject
-`file:` because the consumer is a UI renderer, `mcpFile` values are consumed
-by server tool logic that may legitimately share a filesystem with a stdio
-client. `file://` is therefore permitted here subject to the controls above.
-
-[roots]: ../docs/specification/draft/client/roots.mdx
-[icons-security]: ../docs/specification/draft/basic/index.mdx
-
-### Server-side request forgery
-
-Servers that fetch `http(s)://` URIs supplied by clients **MUST** treat those
-URIs as untrusted and apply the following safeguards. Servers not prepared to
-implement them **MUST** reject `http(s)://` schemes with
-`file_scheme_unsupported`.
-
-- Servers **MUST NOT** send credentials (cookies, `Authorization` headers, or
-  ambient cloud-SDK identity such as EC2 instance profiles, GKE workload
-  identity, or Application Default Credentials) when fetching client-supplied
-  URLs.
-- Servers **MUST** resolve the hostname once, validate the resolved IP against
-  the deny-list below, and pass the validated IP literal directly to the
-  socket connect call (setting `Host` and SNI to the original hostname).
-  Implementations **MUST NOT** re-resolve the hostname between validation and
-  connection.
-- The deny-list **MUST** include, after canonicalizing the address
-  representation (decimal, octal, and IPv6-mapped-IPv4 forms): loopback
-  (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`, `fe80::/10`, which
-  covers AWS, GCP, and Azure instance-metadata endpoints), private ranges
-  (RFC 1918), and unique-local (`fc00::/7`).
-- Servers **MUST NOT** follow redirects that change origin.
-- Servers **SHOULD** prefer allow-lists when the tool's expected source
-  domains are bounded.
-- Servers **SHOULD** impose timeouts and size limits on the fetch.
-
-See the [OWASP SSRF Prevention Cheat Sheet][owasp-ssrf] for further guidance.
-
-[owasp-ssrf]: https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html
-
-### `accept` is a UX filter, not a security boundary
-
-The `accept` list constrains the client's file picker, but a client is free to
-send any MIME type it likes. Servers **MUST** validate the received type if it
-matters for correctness or safety, and **MUST NOT** assume `accept` was
-enforced.
+[owasp-llm]: https://genai.owasp.org/llm-top-10/
+[asvs-v5]: https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x14-V5-File-Handling.md
+[cs-upload]: https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
+[cs-ssrf]: https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html
+[cs-path]: https://owasp.org/www-community/attacks/Path_Traversal
+[cs-xxe]: https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
 
 ## Future Work
 
