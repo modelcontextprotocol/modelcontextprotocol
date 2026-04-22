@@ -31,23 +31,33 @@ body:has(#enable-section-numbers) {
 
   #content-area h2[id],
   #table-of-contents li[data-depth="0"] {
+    counter-increment: h2-counter;
     counter-set: h3-counter h4-counter h5-counter h6-counter;
   }
 
   #content-area h3[id],
   #table-of-contents li[data-depth="1"] {
+    counter-increment: h3-counter;
     counter-set: h4-counter h5-counter h6-counter;
   }
 
   #content-area h4[id],
   #table-of-contents li[data-depth="2"] {
+    counter-increment: h4-counter;
     counter-set: h5-counter h6-counter;
   }
 
   #content-area h5[id],
   #content-area h5,
   #table-of-contents li[data-depth="3"] {
+    counter-increment: h5-counter;
     counter-set: h6-counter;
+  }
+
+  #content-area h6[id],
+  #content-area h6,
+  #table-of-contents li[data-depth="4"] {
+    counter-increment: h6-counter;
   }
 
   #table-of-contents li a::before {
@@ -56,19 +66,16 @@ body:has(#enable-section-numbers) {
 
   #content-area h2[id]::before,
   #table-of-contents li[data-depth="0"] a::before {
-    counter-increment: h2-counter;
     content: counter(h2-counter) ". ";
   }
 
   #content-area h3[id]::before,
   #table-of-contents li[data-depth="1"] a::before {
-    counter-increment: h3-counter;
     content: counter(h2-counter) "." counter(h3-counter) " ";
   }
 
   #content-area h4[id]::before,
   #table-of-contents li[data-depth="2"] a::before {
-    counter-increment: h4-counter;
     content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
       " ";
   }
@@ -76,7 +83,6 @@ body:has(#enable-section-numbers) {
   #content-area h5[id]::before,
   #content-area h5::before,
   #table-of-contents li[data-depth="3"] a::before {
-    counter-increment: h5-counter;
     content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
       "." counter(h5-counter) " ";
   }
@@ -84,7 +90,6 @@ body:has(#enable-section-numbers) {
   #content-area h6[id]::before,
   #content-area h6::before,
   #table-of-contents li[data-depth="4"] a::before {
-    counter-increment: h6-counter;
     content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter)
       "." counter(h5-counter) "." counter(h6-counter) " ";
   }
