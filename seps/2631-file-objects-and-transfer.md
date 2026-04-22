@@ -1,17 +1,11 @@
----
-title: "SEP-0000: File Objects and Transfer"
-sidebarTitle: "SEP-0000: File Objects and Transfer"
-description: "File Objects and Transfer"
----
-
-# SEP-0000: File Objects and Transfer
+# SEP-2631: File Objects and Transfer
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-04-20
 - **Author(s)**: Casey Chow (@caseychow)
 - **Sponsor**: None
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2631
 
 ## Abstract
 
