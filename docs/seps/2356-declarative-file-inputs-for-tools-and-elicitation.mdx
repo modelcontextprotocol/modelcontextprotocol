@@ -219,6 +219,14 @@ interface FileInputDescriptor {
    * client SHOULD populate with the selected file's original filename.
    */
   filenameProperty?: string;
+
+  /**
+   * Decoded byte size at or below which clients SHOULD encode the file inline
+   * as a data: URI. Above this threshold clients SHOULD NOT inline; the
+   * server is expected to obtain the file via URL-mode elicitation instead.
+   * If omitted, maxSize is the effective inline ceiling.
+   */
+  maxInlineSize?: number;
 }
 ```
 
@@ -410,6 +418,48 @@ transmitting a payload that is known to violate the constraint. Clients
 **SHOULD NOT** rely on the operating system's picker filter alone to enforce
 `accept`; pickers commonly allow the user to override the filter.
 
+### Large files: URL-mode elicitation
+
+Inline `data:` URIs are practical for small to medium files. They are not
+practical for large ones: a 100 MB file becomes ~133 MB of base64 inside a
+single JSON-RPC message that both sides must buffer in full. For files above
+the server's `maxInlineSize` threshold, this SEP does not introduce a new
+upload protocol. Servers **SHOULD** instead obtain the file via [URL-mode
+elicitation][url-elicit], which already provides an out-of-band browser flow
+where the upload protocol (presigned, resumable, chunked, authenticated) is
+entirely server-controlled.
+
+The flow on each surface, using only existing primitives:
+
+**Tool surface.** The host shows a file picker at the human-in-the-loop step
+(per [Host integration on the tool surface](#host-integration-on-the-tool-surface)).
+If the selected file's decoded size exceeds `maxInlineSize`, the host
+dispatches `tools/call` with the `mcpFile` argument **absent**. The server,
+seeing the slot unfilled, sends a nested `elicitation/create` with
+`mode: "url"` whose `url` is a server-hosted upload page. The user uploads in
+the browser; the server receives the file directly, signals completion via
+`notifications/elicitation/complete`, and resumes the tool call from session
+state. The `mcpFile` slot never carries the large file on the wire.
+
+**Elicitation surface.** A server that needs a large file **SHOULD** issue a
+URL-mode elicitation directly rather than a form-mode one with `mcpFile`,
+since the file would not fit the form-mode `ElicitResult.content` string slot
+either. A server **MAY** issue form-mode `mcpFile` first and, on receiving a
+`file_too_large` cancellation or no response, re-elicit in URL mode.
+
+Servers that expect large files **SHOULD** declare `maxInlineSize` so hosts
+can skip encoding a payload that will not be accepted inline. Servers that set
+`maxInlineSize` **MUST** declare the `elicitation.url` server capability or
+otherwise be prepared to handle the slot arriving absent.
+
+When the client has not declared the `elicitation.url` capability, the server
+**MAY** return `URLElicitationRequiredError` (`-32042`) so the host can
+surface the upload URL to the operator. This path, including the completion
+notification, is specified in [URL Mode Elicitation][url-elicit] and is
+unchanged by this SEP.
+
+[url-elicit]: ../docs/specification/draft/client/elicitation.mdx
+
 ### Server-side validation
 
 Servers **MUST** validate received file inputs against their declared
@@ -597,10 +647,27 @@ parser limits in some runtimes). However, "large" is context-dependent: a
 constrained edge deployment. The SEP therefore provides the `maxSize` knob
 per-argument and leaves the value to server authors.
 
-For files too large to embed inline, the scheme flexibility above provides two
-escape valves: `file://` for local servers, and URL-mode elicitation to direct
-the user to a server-controlled upload endpoint for remote ones. Neither
-requires new transport machinery.
+For files too large to embed inline,
+[Large files: URL-mode elicitation](#large-files-url-mode-elicitation) reuses
+the existing URL-mode mechanism rather than introducing an upload protocol
+into MCP. Upload protocols vary widely (presigned PUT, resumable, chunked
+multipart, authenticated endpoints); a generic descriptor that covered all of
+them would either be incomplete or would amount to specifying a new transport.
+URL-mode keeps the upload protocol server-side where it belongs, and `file://`
+remains available for local stdio servers that share a filesystem.
+
+### Why not a presigned-upload descriptor?
+
+An alternative considered was a `FileUploadTarget` descriptor
+(`{url, method, headers, fields, expiresAt, reference}`) carried on form-mode
+elicitation, modelled on S3/GCS/Azure presigned URLs. It was rejected because
+it only covers single-shot presigned object storage: the credential-forgery
+defense (clients refuse `Authorization` in `headers`) means it cannot reach
+authenticated server-owned endpoints; it cannot express resumable protocols
+(tus, GCS resumable) or multipart-chunked uploads; and any server needing
+those would fall through to URL-mode anyway. URL-mode already exists, already
+handles every upload protocol the server cares to implement, and adds no new
+schema surface.
 
 ### Prior art: OpenAI Apps SDK `openai/fileParams`
 
@@ -631,19 +698,19 @@ same vendor convention.
 
 ### Relationship to other file-handling work
 
-This SEP is complementary to URL-mode elicitation. The two address different
-interaction patterns:
+This SEP layers on URL-mode elicitation rather than replacing it:
 
-- **This SEP (push):** The client knows at tool-listing time which arguments
-  are files, gathers them up front, and sends them with the call. Suited to
-  tools where "which file" is part of the user's initial intent.
-- **URL-mode elicitation (pull, out-of-band):** The server decides during
-  execution that it needs a file and directs the user to an upload endpoint.
-  Suited to conditional or multi-step flows, and the natural choice when the
-  payload is too large to embed inline and no other scheme is available.
+- **`mcpFile` with `data:` (push, inline):** The client knows at tool-listing
+  time which arguments are files, encodes them inline, and sends them with the
+  call. Suited to small-to-medium payloads where inline transfer is practical.
+- **URL-mode elicitation (pull, out-of-band):** The server directs the user's
+  browser to an upload page it controls. Suited to large payloads, and the
+  path this SEP specifies for files above `maxInlineSize`.
+- **`file://` (local only):** When client and server share a filesystem on a
+  stdio transport.
 
-A client may reasonably support both. A server may use `mcpFile` for its
-simple tools and fall back to URL-mode elicitation for the heavy ones.
+A server selects the path based on the file's size and the client's declared
+`elicitation.url` capability.
 
 ## Backward Compatibility
 

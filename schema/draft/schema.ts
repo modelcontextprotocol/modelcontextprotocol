@@ -1826,6 +1826,14 @@ export interface FileInputDescriptor {
    * named property does not exist in the schema, this field is ignored.
    */
   filenameProperty?: string;
+
+  /**
+   * Decoded byte size at or below which clients SHOULD encode the file inline
+   * as a `data:` URI. Above this threshold clients SHOULD NOT inline; the
+   * server is expected to obtain the file via URL-mode elicitation instead.
+   * If omitted, `maxSize` is the effective inline ceiling.
+   */
+  maxInlineSize?: number;
 }
 
 /* Tasks */
