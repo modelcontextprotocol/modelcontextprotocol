@@ -24,39 +24,6 @@
             },
             "type": "object"
         },
-        "ArraySchema": {
-            "description": "Schema for a flat array of string values. Nesting (arrays of arrays) is not\npermitted. Generalization to other primitive item types is deferred to a\nfuture SEP that simultaneously widens {@link ElicitResult.content} to carry\nthe corresponding array values.\n\nWhen `mcpFile` is present, `items` MUST have `format: \"uri\"`, and the field\nis rendered as a multi-file picker.",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "items": {
-                    "$ref": "#/$defs/StringSchema"
-                },
-                "maxItems": {
-                    "type": "integer"
-                },
-                "mcpFile": {
-                    "$ref": "#/$defs/FileInputDescriptor",
-                    "description": "Marks this array as a multi-file input. Clients SHOULD render a native\nfile picker allowing multiple selections. See {@link FileInputDescriptor}."
-                },
-                "minItems": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "type": {
-                    "const": "array",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "items",
-                "type"
-            ],
-            "type": "object"
-        },
         "AudioContent": {
             "description": "Audio provided to or from an LLM.",
             "properties": {
@@ -364,10 +331,6 @@
                 "elicitation": {
                     "description": "Present if the client supports elicitation from the server.",
                     "properties": {
-                        "arrays": {
-                            "$ref": "#/$defs/JSONObject",
-                            "description": "Whether this client supports {@link ArraySchema} in form-mode\n`requestedSchema`. Servers SHOULD NOT include `type: \"array\"` properties\nin elicitation requests unless this is present, as older clients may\nreject the entire request rather than ignoring the unknown member."
-                        },
                         "form": {
                             "$ref": "#/$defs/JSONObject"
                         },
@@ -1221,7 +1184,7 @@
             "type": "object"
         },
         "FileInputDescriptor": {
-            "description": "Value of the `mcpFile` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property (or an array thereof), it\nmarks the property as a file input that clients SHOULD render as a native\nfile picker. Selected files are encoded as URIs, defaulting to RFC 2397\ndata URIs.\n\nAll fields are advisory; servers MUST still validate inputs independently.\n\nFor {@link Tool.inputSchema} properties, `mcpFile` is added directly inside\nthe JSON Schema property definition. For elicitation forms, it appears on\n{@link StringSchema} or {@link ArraySchema}.",
+            "description": "Value of the `mcpFile` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property, it marks the property as a\nfile input that clients SHOULD render as a native file picker. Selected\nfiles are encoded as RFC 2397 data URIs.\n\nBoth fields are advisory; servers MUST still validate inputs independently.\n\nFor {@link Tool.inputSchema} properties, `mcpFile` is added directly inside\nthe JSON Schema property definition. For elicitation forms, it appears on\n{@link StringSchema}.",
             "properties": {
                 "accept": {
                     "description": "Media type patterns and/or file extensions the client SHOULD filter the\npicker to. Supports exact MIME types (`\"image/png\"`), wildcard subtypes\n(`\"image/*\"`), and dot-prefixed extensions (`\".pdf\"`) following the same\ngrammar as the HTML `accept` attribute. Extension entries are picker hints\nonly; server-side validation compares MIME types. If omitted, any file\ntype is accepted.",
@@ -1230,16 +1193,8 @@
                     },
                     "type": "array"
                 },
-                "filenameProperty": {
-                    "description": "Name of a sibling string property in the same object schema that the\nclient SHOULD populate with the selected file's original filename. If the\nnamed property does not exist in the schema, this field is ignored.",
-                    "type": "string"
-                },
-                "maxInlineSize": {
-                    "description": "Decoded byte size at or below which clients SHOULD encode the file inline\nas a `data:` URI. Above this threshold clients SHOULD NOT inline; the\nserver is expected to obtain the file via URL-mode elicitation instead.\nIf omitted, `maxSize` is the effective inline ceiling.",
-                    "type": "integer"
-                },
                 "maxSize": {
-                    "description": "Maximum file size in bytes (decoded size, per file). Servers SHOULD reject\nlarger files with a tool-execution error carrying the structured reason\n`\"file_too_large\"`.",
+                    "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads with the `\"file_too_large\"`\nstructured error reason. For files larger than this, servers obtain the\nfile via URL-mode elicitation instead of this property.",
                     "type": "integer"
                 }
             },
@@ -2690,12 +2645,9 @@
                 },
                 {
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
-                },
-                {
-                    "$ref": "#/$defs/ArraySchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types and\nflat arrays of primitives, without nested objects."
+            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -3702,7 +3654,7 @@
                 },
                 "mcpFile": {
                     "$ref": "#/$defs/FileInputDescriptor",
-                    "description": "Marks this string as a file input when `format` is `\"uri\"`. Clients SHOULD\nrender a native file picker and populate the field with a URI (data URI by\ndefault) pointing to the selected file. See {@link FileInputDescriptor}."
+                    "description": "Marks this string as a file input when `format` is `\"uri\"`. Clients SHOULD\nrender a native file picker and populate the field with an RFC 2397 data\nURI for the selected file. See {@link FileInputDescriptor}."
                 },
                 "minLength": {
                     "type": "integer"

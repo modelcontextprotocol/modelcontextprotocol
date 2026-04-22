@@ -543,13 +543,6 @@ export interface ClientCapabilities {
   elicitation?: {
     form?: JSONObject;
     url?: JSONObject;
-    /**
-     * Whether this client supports {@link ArraySchema} in form-mode
-     * `requestedSchema`. Servers SHOULD NOT include `type: "array"` properties
-     * in elicitation requests unless this is present, as older clients may
-     * reject the entire request rather than ignoring the unknown member.
-     */
-    arrays?: JSONObject;
   };
 
   /**
@@ -1789,16 +1782,15 @@ export interface Tool extends BaseMetadata, Icons {
 
 /**
  * Value of the `mcpFile` JSON Schema extension keyword. When present on a
- * `{"type": "string", "format": "uri"}` property (or an array thereof), it
- * marks the property as a file input that clients SHOULD render as a native
- * file picker. Selected files are encoded as URIs, defaulting to RFC 2397
- * data URIs.
+ * `{"type": "string", "format": "uri"}` property, it marks the property as a
+ * file input that clients SHOULD render as a native file picker. Selected
+ * files are encoded as RFC 2397 data URIs.
  *
- * All fields are advisory; servers MUST still validate inputs independently.
+ * Both fields are advisory; servers MUST still validate inputs independently.
  *
  * For {@link Tool.inputSchema} properties, `mcpFile` is added directly inside
  * the JSON Schema property definition. For elicitation forms, it appears on
- * {@link StringSchema} or {@link ArraySchema}.
+ * {@link StringSchema}.
  *
  * @category `tools/list`
  */
@@ -1814,26 +1806,12 @@ export interface FileInputDescriptor {
   accept?: string[];
 
   /**
-   * Maximum file size in bytes (decoded size, per file). Servers SHOULD reject
-   * larger files with a tool-execution error carrying the structured reason
-   * `"file_too_large"`.
+   * Maximum decoded file size in bytes that the server will accept inline as a
+   * data URI. Servers MUST reject larger payloads with the `"file_too_large"`
+   * structured error reason. For files larger than this, servers obtain the
+   * file via URL-mode elicitation instead of this property.
    */
   maxSize?: number;
-
-  /**
-   * Name of a sibling string property in the same object schema that the
-   * client SHOULD populate with the selected file's original filename. If the
-   * named property does not exist in the schema, this field is ignored.
-   */
-  filenameProperty?: string;
-
-  /**
-   * Decoded byte size at or below which clients SHOULD encode the file inline
-   * as a `data:` URI. Above this threshold clients SHOULD NOT inline; the
-   * server is expected to obtain the file via URL-mode elicitation instead.
-   * If omitted, `maxSize` is the effective inline ceiling.
-   */
-  maxInlineSize?: number;
 }
 
 /* Tasks */
@@ -2949,8 +2927,8 @@ export interface ElicitRequest extends JSONRPCRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types and
- * flat arrays of primitives, without nested objects.
+ * Restricted schema definitions that only allow primitive types
+ * without nested objects or arrays.
  *
  * @category `elicitation/create`
  */
@@ -2958,8 +2936,7 @@ export type PrimitiveSchemaDefinition =
   | StringSchema
   | NumberSchema
   | BooleanSchema
-  | EnumSchema
-  | ArraySchema;
+  | EnumSchema;
 
 /**
  * @example Email input schema
@@ -2977,8 +2954,8 @@ export interface StringSchema {
   default?: string;
   /**
    * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
-   * render a native file picker and populate the field with a URI (data URI by
-   * default) pointing to the selected file. See {@link FileInputDescriptor}.
+   * render a native file picker and populate the field with an RFC 2397 data
+   * URI for the selected file. See {@link FileInputDescriptor}.
    */
   mcpFile?: FileInputDescriptor;
 }
@@ -3211,31 +3188,6 @@ export type EnumSchema =
   | SingleSelectEnumSchema
   | MultiSelectEnumSchema
   | LegacyTitledEnumSchema;
-
-/**
- * Schema for a flat array of string values. Nesting (arrays of arrays) is not
- * permitted. Generalization to other primitive item types is deferred to a
- * future SEP that simultaneously widens {@link ElicitResult.content} to carry
- * the corresponding array values.
- *
- * When `mcpFile` is present, `items` MUST have `format: "uri"`, and the field
- * is rendered as a multi-file picker.
- *
- * @category `elicitation/create`
- */
-export interface ArraySchema {
-  type: "array";
-  items: StringSchema;
-  title?: string;
-  description?: string;
-  minItems?: number;
-  maxItems?: number;
-  /**
-   * Marks this array as a multi-file input. Clients SHOULD render a native
-   * file picker allowing multiple selections. See {@link FileInputDescriptor}.
-   */
-  mcpFile?: FileInputDescriptor;
-}
 
 /**
  * The result returned by the client for an {@link ElicitRequest | elicitation/create} request.

@@ -29,16 +29,18 @@ description: "Declarative File Inputs for Tools and Elicitation"
 ## Abstract
 
 This SEP introduces `mcpFile`, a JSON Schema extension keyword that marks a
-`uri`-format string property as a file input. The keyword carries optional
-MIME-type filters and a size limit. Clients that recognize the keyword render
-a native file picker for the annotated property and populate it with a URI
-pointing to the selected file. Servers receive an ordinary URI string; the
-annotation affects client-side presentation only.
+`uri`-format string property as a file input. The keyword carries an optional
+media-type filter and size limit. Clients that recognize the keyword render a
+native file picker for the annotated property and populate it with an RFC 2397
+data URI. Servers receive an ordinary string; the annotation affects
+client-side presentation only.
 
-The mechanism is a pure annotation. The underlying schema type is a standard
-`{ "type": "string", "format": "uri" }` (or an array thereof), and servers
-accept any well-formed URI regardless of whether the client recognized the
-keyword or how the value was produced.
+This SEP is deliberately the minimum viable change. It composes from existing
+primitives (JSON Schema annotations, RFC 2397 data URIs, URL-mode elicitation
+for large files) and adds the smallest descriptor that lets a host know which
+fields need a file picker. It does not introduce upload protocols, scheme
+negotiation, multi-file forms, or new capability flags. Those can be layered
+on later without contradicting anything specified here.
 
 ## Motivation
 
@@ -65,10 +67,7 @@ Meanwhile, the client is the party best positioned to solve this problem. It
 already has native UI, knows the user's filesystem, and can trivially show a
 file picker. It just doesn't know _which_ arguments should trigger one.
 
-This SEP closes that gap with a small, declarative annotation. The keyword
-lives directly inside the schema property it describes, which keeps the schema
-self-contained and avoids introducing a parallel data structure that has to
-stay in sync with it.
+This SEP closes that gap with a single annotation keyword.
 
 ## Overview
 
@@ -104,7 +103,7 @@ remains an ordinary `uri`-format string:
 ```
 
 A client that recognizes `mcpFile` renders a file picker filtered to PNG/JPEG,
-encodes the user's selection as a URI, and invokes the tool:
+encodes the user's selection as a data URI, and invokes the tool:
 
 ```json
 {
@@ -156,7 +155,7 @@ applies to `requestedSchema` properties:
 ```
 
 The client renders a form with a file picker for `photo`, the user chooses a
-file, and the client responds with the file encoded as a URI in the same
+file, and the client responds with the file encoded as a data URI in the same
 string slot the schema already defined:
 
 ```json
@@ -177,21 +176,23 @@ constraints, wire encoding, and error handling.
 
 ## Specification
 
-### The `mcpFile` extension keyword
+### MCP JSON Schema vocabulary
 
-`mcpFile` is a JSON Schema extension keyword in the sense of
-[§6.5 of the JSON Schema core specification][json-schema-6.5]: an unknown
-keyword that implementations SHOULD treat as an annotation. It is valid only
-on schemas that describe a URI-bearing string, specifically:
+`mcpFile` is the first MCP-defined JSON Schema extension keyword. MCP
+extension keywords use the `mcp` name prefix; servers and clients **MUST NOT**
+define their own `mcp`-prefixed keywords. The keyword belongs to the
+vocabulary `https://modelcontextprotocol.io/json-schema/vocab/draft`, which is
+part of the dialect declared by [SEP-1613][sep-1613]. Implementations that do
+not recognize a keyword in this vocabulary **SHOULD** treat it as an
+annotation per [§6.5 of the JSON Schema core specification][json-schema-6.5].
 
-- **Single file:** `type: "string"` with `format: "uri"`.
-- **Multiple files:** `type: "array"` whose `items` schema is
-  `type: "string"` with `format: "uri"`. The `mcpFile` keyword appears on the
-  array schema, not on `items`.
-
+[sep-1613]: ./1613-establish-json-schema-2020-12-as-default-dialect-f.md
 [json-schema-6.5]: https://json-schema.org/draft/2020-12/json-schema-core#section-6.5
 
-The keyword's value is an object:
+### The `mcpFile` extension keyword
+
+`mcpFile` is valid only on a schema of the form
+`{"type": "string", "format": "uri"}`. Its value is an object:
 
 ```typescript
 interface FileInputDescriptor {
@@ -206,39 +207,16 @@ interface FileInputDescriptor {
   accept?: string[];
 
   /**
-   * Maximum size in bytes of the decoded file content that the server will
-   * accept. For array-typed properties, this limit applies per file. Servers
-   * SHOULD set this to avoid surprising clients with rejection after a large
-   * upload. If omitted, the server imposes no declared limit (but MAY still
-   * reject excessively large payloads).
+   * Maximum decoded file size in bytes that the server will accept inline as
+   * a data URI. Servers MUST reject larger payloads with the "file_too_large"
+   * structured error reason.
    */
   maxSize?: number;
-
-  /**
-   * Name of a sibling string property in the same object schema that the
-   * client SHOULD populate with the selected file's original filename.
-   */
-  filenameProperty?: string;
-
-  /**
-   * Decoded byte size at or below which clients SHOULD encode the file inline
-   * as a data: URI. Above this threshold clients SHOULD NOT inline; the
-   * server is expected to obtain the file via URL-mode elicitation instead.
-   * If omitted, maxSize is the effective inline ceiling.
-   */
-  maxInlineSize?: number;
 }
 ```
 
-Clients that encounter `mcpFile` on a schema that does not match one of the
-permitted shapes **SHOULD** ignore the keyword and render the field as an
-ordinary input.
-
-For the array form, the client **SHOULD** respect `minItems` and `maxItems`
-from the enclosing array schema when configuring the file picker. Servers
-**SHOULD** declare `maxItems` whenever `mcpFile` is present on an array, and
-**SHOULD** enforce an aggregate ceiling no greater than `maxSize × maxItems`
-bytes. Clients **SHOULD** refuse to render an unbounded multi-file picker.
+Clients that encounter `mcpFile` on a schema that does not match the permitted
+shape **SHOULD** ignore the keyword and render the field as an ordinary input.
 
 The standard `required` array governs whether the file argument is mandatory,
 as with any other property.
@@ -246,104 +224,16 @@ as with any other property.
 The `format: "uri"` precondition is a recognition marker. Clients and servers
 **SHOULD NOT** enable `format: "uri"` as a JSON Schema validation assertion on
 `mcpFile` fields; the value is constrained by [Wire encoding](#wire-encoding)
-below, not by RFC 3986 generic syntax, and asserting it would run large data
-URIs through a regex on every call.
+below, and asserting it would run large data URIs through a regex on every
+call.
 
-#### Example: image resizing tool
-
-```json
-{
-  "name": "resize_image",
-  "description": "Resize an image to the specified dimensions.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "image": {
-        "type": "string",
-        "format": "uri",
-        "description": "The image to resize.",
-        "mcpFile": {
-          "accept": ["image/png", "image/jpeg", "image/webp"],
-          "maxSize": 10485760
-        }
-      },
-      "width": { "type": "integer", "minimum": 1 },
-      "height": { "type": "integer", "minimum": 1 }
-    },
-    "required": ["image", "width", "height"]
-  }
-}
-```
-
-#### Example: multi-file attachment tool
-
-```json
-{
-  "name": "create_support_ticket",
-  "description": "File a support ticket with optional attachments.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "summary": { "type": "string" },
-      "attachments": {
-        "type": "array",
-        "items": { "type": "string", "format": "uri" },
-        "maxItems": 5,
-        "mcpFile": {
-          "accept": ["image/*", "application/pdf", "text/plain"],
-          "maxSize": 5242880
-        }
-      }
-    },
-    "required": ["summary"]
-  }
-}
-```
-
-### Elicitation schema extension: `ArraySchema`
-
-To support multi-file elicitation fields, `PrimitiveSchemaDefinition` gains an
-`ArraySchema` member:
-
-```typescript
-type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema
-  | ArraySchema;
-
-interface ArraySchema {
-  type: "array";
-  items: StringSchema;
-  title?: string;
-  description?: string;
-  minItems?: number;
-  maxItems?: number;
-  mcpFile?: FileInputDescriptor;
-}
-```
-
-`ArraySchema` admits only string items in this SEP. Generalization to other
-primitive item types is deferred to a follow-on SEP that simultaneously widens
-`ElicitResult.content` (currently `string | number | boolean | string[]`) to
-carry the corresponding array values. Nesting (arrays of arrays) is not
-permitted. When `mcpFile` is present, `items` **MUST** have `format: "uri"`.
-
-The `StringSchema` type likewise gains an optional `mcpFile` field for the
-single-file case.
-
-Because `ArraySchema` is a new union member, clients predating this addition
-may reject the entire elicitation request rather than rendering the array
-field as unknown. Servers **SHOULD NOT** include `type: "array"` properties in
-`requestedSchema` unless the client declared `elicitation.arrays` in its
-capabilities.
+For elicitation forms, `StringSchema` gains an optional `mcpFile` field with
+the same semantics.
 
 ### Wire encoding
 
-When a client populates an `mcpFile`-annotated argument from a user-selected
-file, it **SHOULD** encode the file as an [RFC 2397][rfc2397] data URI using
-base64 encoding:
+Clients **MUST** populate an `mcpFile`-annotated argument with an
+[RFC 2397][rfc2397] data URI using base64 encoding:
 
 ```
 data:<mediatype>;base64,<data>
@@ -353,7 +243,7 @@ data:<mediatype>;base64,<data>
 
 Where `<mediatype>` is the MIME type of the file as reported by the client's
 platform (e.g., `image/png`). If the platform does not report a type, the
-client **SHOULD** use `application/octet-stream`.
+client **MUST** use `application/octet-stream`.
 
 Example value (a complete, valid 1×1 PNG, not truncated):
 
@@ -361,29 +251,14 @@ Example value (a complete, valid 1×1 PNG, not truncated):
 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg==
 ```
 
-Clients **MAY** instead supply a URI using a different scheme when doing so is
-more appropriate for the transport or file size:
-
-- `file://` URIs are suitable when client and server share a filesystem (e.g.,
-  a local stdio server). The server reads the file directly with no encoding
-  overhead.
-- `http://` or `https://` URIs are suitable when the file is already hosted or
-  when the client has access to upload infrastructure. The server fetches the
-  file itself.
-
-Servers **MUST** accept `data:` URIs for `mcpFile` arguments. Servers **MAY**
-additionally accept `file:`, `http:`, or `https:` subject to
-[Security Implications](#security-implications). Servers **MUST** reject any
-other scheme with `file_scheme_unsupported` and **MUST NOT** dereference it.
-Servers **MUST** reject `file:` on transports other than stdio, and **MUST**
-reject `file:` URIs whose authority component is non-empty and not
-`localhost` (RFC 8089 §2).
+Servers **MUST** accept well-formed `data:` URIs in `mcpFile`-annotated
+arguments. Servers **MUST** reject any other scheme with the
+`file_scheme_unsupported` structured error reason and **MUST NOT** dereference
+it.
 
 If a server needs the original filename, it **SHOULD** declare a separate
-string argument for it and reference it via `filenameProperty` in the
-`mcpFile` descriptor. Clients **SHOULD** populate the named property from the
-picker's `File.name`. Clients **MUST NOT** attempt to infer which sibling
-property is the filename by name-matching heuristics.
+ordinary string argument for it; the description on that argument is
+sufficient for hosts to know what to populate.
 
 ### Host integration on the tool surface
 
@@ -391,8 +266,7 @@ Tools are model-controlled; the model populates `arguments`. For `mcpFile`
 arguments on the tool surface:
 
 1. The model emits a `tools/call` with the `mcpFile` argument absent. Hosts
-   **MUST** disregard any value the model supplies in an `mcpFile` slot,
-   regardless of scheme.
+   **MUST** disregard any value the model supplies in an `mcpFile` slot.
 2. The host detects the unfilled `mcpFile` slot at the human-in-the-loop
    confirmation step it already presents for tool calls.
 3. The host renders a file picker, encodes the user's selection per
@@ -418,39 +292,16 @@ transmitting a payload that is known to violate the constraint. Clients
 **SHOULD NOT** rely on the operating system's picker filter alone to enforce
 `accept`; pickers commonly allow the user to override the filter.
 
-### Large files: URL-mode elicitation
+### Large files
 
 Inline `data:` URIs are practical for small to medium files. They are not
 practical for large ones: a 100 MB file becomes ~133 MB of base64 inside a
-single JSON-RPC message that both sides must buffer in full. For files above
-the server's `maxInlineSize` threshold, this SEP does not introduce a new
-upload protocol. Servers **SHOULD** instead obtain the file via [URL-mode
+single JSON-RPC message that both sides must buffer in full. This SEP does not
+introduce an upload protocol for that case. Servers that need files larger
+than their declared `maxSize` **SHOULD** obtain them via [URL-mode
 elicitation][url-elicit], which already provides an out-of-band browser flow
-where the upload protocol (presigned, resumable, chunked, authenticated) is
-entirely server-controlled.
-
-The flow on each surface, using only existing primitives:
-
-**Tool surface.** The host shows a file picker at the human-in-the-loop step
-(per [Host integration on the tool surface](#host-integration-on-the-tool-surface)).
-If the selected file's decoded size exceeds `maxInlineSize`, the host
-dispatches `tools/call` with the `mcpFile` argument **absent**. The server,
-seeing the slot unfilled, sends a nested `elicitation/create` with
-`mode: "url"` whose `url` is a server-hosted upload page. The user uploads in
-the browser; the server receives the file directly, signals completion via
-`notifications/elicitation/complete`, and resumes the tool call from session
-state. The `mcpFile` slot never carries the large file on the wire.
-
-**Elicitation surface.** A server that needs a large file **SHOULD** issue a
-URL-mode elicitation directly rather than a form-mode one with `mcpFile`,
-since the file would not fit the form-mode `ElicitResult.content` string slot
-either. A server **MAY** issue form-mode `mcpFile` first and, on receiving a
-`file_too_large` cancellation or no response, re-elicit in URL mode.
-
-Servers that expect large files **SHOULD** declare `maxInlineSize` so hosts
-can skip encoding a payload that will not be accepted inline. Servers that set
-`maxInlineSize` **MUST** declare the `elicitation.url` server capability or
-otherwise be prepared to handle the slot arriving absent.
+where the upload protocol is entirely server-controlled. The `mcpFile` slot
+carries only files that fit inline.
 
 When the client has not declared the `elicitation.url` capability, the server
 **MAY** return `URLElicitationRequiredError` (`-32042`) so the host can
@@ -466,27 +317,24 @@ Servers **MUST** validate received file inputs against their declared
 constraints regardless of which surface delivered them.
 
 When validating against `accept`, servers **MUST** compare only the
-`type/subtype` portion of the content's media type, ignoring any parameters,
-and the comparison **MUST** be case-insensitive. For data URIs, the media type
-is the `<mediatype>` segment before `;base64`. For fetched or file-read
-content, the media type is determined by the server (from HTTP headers,
-extension heuristics, or content sniffing). A wildcard entry such as `image/*`
-matches any subtype of `image`.
+`type/subtype` portion of the data URI's `<mediatype>` segment, ignoring any
+parameters, and the comparison **MUST** be case-insensitive. A wildcard entry
+such as `image/*` matches any subtype of `image`.
 
-Recommended `reason` values for the structured error payloads that follow:
+Servers reporting a structured error for an `mcpFile` argument **MUST** set
+`reason` to one of the following values (servers **MAY** define additional
+values for conditions not listed here):
 
-| `reason`                  | Meaning                                                      |
-| ------------------------- | ------------------------------------------------------------ |
-| `file_too_large`          | Content size exceeds `maxSize`.                              |
-| `file_type_rejected`      | Media type does not satisfy `accept`.                        |
-| `file_uri_malformed`      | Value uses the `data:` scheme but is not well-formed.        |
-| `file_scheme_unsupported` | URI scheme is valid but not accepted by this server.         |
-| `file_unreachable`        | Server could not fetch or read the file at the supplied URI. |
+| `reason`                  | Meaning                                               |
+| ------------------------- | ----------------------------------------------------- |
+| `file_too_large`          | Decoded content size exceeds `maxSize`.               |
+| `file_type_rejected`      | Media type does not satisfy `accept`.                 |
+| `file_uri_malformed`      | Value uses the `data:` scheme but is not well-formed. |
+| `file_scheme_unsupported` | Value is not a `data:` URI.                           |
 
 #### Tool calls
 
-Following [SEP-1303][sep-1303], servers **SHOULD** report `file_too_large`,
-`file_type_rejected`, `file_scheme_unsupported`, and `file_unreachable` as
+Following [SEP-1303][sep-1303], servers **SHOULD** report these as
 tool-execution errors (`CallToolResult` with `isError: true`) so that the
 model can see the failure and self-correct. The error content **SHOULD** be a
 structured object:
@@ -497,12 +345,7 @@ structured object:
   "id": 42,
   "result": {
     "isError": true,
-    "content": [
-      {
-        "type": "text",
-        "text": "File exceeds maximum size"
-      }
-    ],
+    "content": [{ "type": "text", "text": "File exceeds maximum size" }],
     "structuredContent": {
       "reason": "file_too_large",
       "argument": "image",
@@ -527,8 +370,7 @@ with `-32602`. When a file field in `ElicitResult.content` violates a
 constraint, the server **SHOULD** do one of the following:
 
 - Issue a fresh `elicitation/create` request whose `message` explains the
-  violation (e.g., "The selected file is 12 MB; please choose one under
-  10 MB."), giving the user a chance to retry.
+  violation, giving the user a chance to retry.
 - Fail the operation that initiated the elicitation. For an elicitation nested
   inside a tool call, return a `CallToolResult` with `isError: true` and a
   textual explanation.
@@ -538,204 +380,151 @@ and failing the enclosing operation when it is not.
 
 ## Rationale
 
+### Design intent: deliberately minimal
+
+Adding to a protocol as widely adopted as MCP is easy; removing from it is
+not. This SEP therefore ships the smallest mechanism that solves the stated
+problem and leaves obvious extensions (multi-file, alternate schemes, prompt
+arguments) to future SEPs that can be motivated by demonstrated need. Each
+deferred extension has a known backward-compatible path documented in this
+section, so this SEP does not paint the protocol into a corner.
+
 ### Why an inline extension keyword rather than a sidecar map?
 
 An earlier draft of this SEP placed file annotations in a separate
 `inputFiles` map alongside `inputSchema`, keyed by property name. The inline
-design is simpler for several reasons:
+design is simpler:
 
 - **No dual-keying.** A sidecar map creates two places that must agree on
   property names. The inline keyword lives directly on the property it
   describes, so mismatch is impossible by construction.
 - **Standard JSON Schema mechanism.** §6.5 of the core specification
   explicitly permits extension keywords; using it means generic JSON Schema
-  tooling passes the keyword through unchanged. The 2020-12 dialect (MCP's
-  default per SEP-1613) already includes `contentEncoding` and
-  `contentMediaType` as annotation keywords for describing encoded string
-  content, so the pattern has precedent within the dialect itself.
-- **No capability gate for the keyword itself.** A sidecar field on `Tool`
-  raises the question of whether servers should send it to clients that don't
-  understand it. An inline keyword inside `inputSchema` is simply an unknown
-  annotation to such clients, which §6.5 already says they SHOULD ignore. The
-  §6.5 argument establishes that a flag is not needed for protocol safety; it
-  does not address server-side discovery utility ("should I list this tool if
-  the client cannot fill it"). The `elicitation.arrays` flag introduced by
-  this SEP exists for the latter reason on the elicitation surface, where a
-  new union member is not gracefully degradable in shipped SDKs.
+  tooling passes the keyword through unchanged.
+- **No capability gate.** A sidecar field on `Tool` raises the question of
+  whether servers should send it to clients that don't understand it. An
+  inline keyword is simply an unknown annotation to such clients, which §6.5
+  already says they SHOULD ignore.
 
 The analogy to HTML is instructive: `<input type="file" accept="image/*">`
 puts the file hint directly on the element, not in a parallel attribute map.
 
 ### Why not `contentEncoding` / `contentMediaType`?
 
-The 2020-12 dialect already provides `contentMediaType` and `contentEncoding`
-for annotating string content. This SEP introduces `accept` instead for three
-reasons:
-
-- `contentMediaType` takes a single RFC 2046 media type and cannot express
-  disjunction (`["image/png", "image/jpeg"]`) or wildcard subtypes
-  (`"image/*"`). `accept` is the multi-valued analogue, not a reinvention.
-- `contentEncoding: "base64"` would fix the wire shape to inline bytes,
-  foreclosing the `file://` and `https://` reference forms.
-- A URI-typed carrier lets one schema slot hold either inline bytes or a
-  reference, and lets the same server-side handler accept both.
-
-Servers **MAY** additionally emit `contentMediaType` on the same property as a
-hint for non-MCP JSON Schema tooling.
+The 2020-12 dialect already provides these for annotating string content.
+`contentMediaType` takes a single RFC 2046 media type and cannot express
+disjunction or wildcard subtypes; `accept` is the multi-valued analogue, not a
+reinvention. Servers **MAY** additionally emit `contentMediaType` on the same
+property as a hint for non-MCP JSON Schema tooling.
 
 ### Why not reuse `BlobResourceContents` or `EmbeddedResource` as the wire shape?
 
-MCP already carries binary content via `BlobResourceContents` and
-`EmbeddedResource`, but those types are members of the `ContentBlock` union
-used in server-to-client flows (`CallToolResult`, `ReadResourceResult`).
-`CallToolRequest.arguments` is an open `{[key]: unknown}` shaped by the tool's
-JSON Schema, and `ElicitResult.content` is restricted to primitives. Carrying
-a structured object would require widening both surfaces, whereas a URI string
-fits the slots that already exist. The trade-off is that the string carrier
-does not provide a structured `{name, mimeType, size}` metadata envelope,
-which is why `filenameProperty` exists as a declarative pointer to a sibling
-field.
+MCP already carries binary content via these types, but they are members of
+the `ContentBlock` union used in server-to-client flows. `CallToolRequest
+.arguments` is an open `{[key]: unknown}` shaped by the tool's JSON Schema,
+and `ElicitResult.content` is restricted to primitives. Carrying a structured
+object would require widening both surfaces, whereas a data URI string fits
+the slots that already exist.
 
 ### Why not `x-mcp-file` or a `_meta` placement?
 
 The `x-` prefix offers no additional validator tolerance: strict-mode
 validators reject `x-mcpFile` exactly as they reject `mcpFile`. OpenAPI 3.1
 dropped the `x-` requirement for Schema Objects in favor of vocabulary
-declarations. A `_meta` placement (the original review suggestion) was
-considered and rejected because it separates the annotation from the property
-it describes, which is poor locality for generic JSON Schema form renderers
-and reintroduces the dual-keying problem the inline design avoids.
+declarations. A `_meta` placement was considered and rejected because it
+separates the annotation from the property it describes, which is poor
+locality for JSON Schema form renderers and reintroduces dual-keying.
 
-### Why data URIs by default rather than mandating them?
+### Why `data:` only?
 
-Data URIs are the only scheme a client can always produce without external
-infrastructure: no upload endpoint, no shared filesystem, no network
-dependency. That makes them the right default. But mandating them ignores
-cases where a better option exists:
+Permitting `file:` and `https:` alongside `data:` was explored. It introduces
+scheme negotiation that is MAY-on-both-sides (clients MAY send, servers MAY
+accept) without a machine-readable way for either side to learn the other's
+choice, which is as good as not specifying it. It also pulls SSRF and
+local-file-inclusion threat surface into this SEP that the inline `data:` path
+does not have. A future SEP can add scheme support together with a
+machine-readable `schemes` declaration once there is demonstrated need; the
+`format: "uri"` carrier already admits any scheme, so adding more later is
+backward-compatible with this SEP's `data:`-only requirement.
 
-- A local stdio client and server share a filesystem; `file://` avoids a 33%
-  base64 encoding overhead and the memory cost of materializing the encoded
-  string.
-- A file already hosted at a public URL needs no re-encoding at all.
-- A future MCP resource-writing mechanism may offer transport-optimized
-  transfer that neither party should be prevented from using.
+### Why not multi-file in this SEP?
 
-The SEP therefore specifies data URIs as the default encoding and permits
-other schemes as a client choice. Servers that want the simplicity of a single
-code path may reject other schemes; servers that want the efficiency may
-accept them.
+Multi-file requires adding an `ArraySchema` member to
+`PrimitiveSchemaDefinition`, which is a closed union in several shipped SDKs;
+older clients reject the entire elicitation request rather than ignoring the
+unknown member. That widening, its capability flag, and the corresponding
+`ElicitResult.content` change are general elicitation concerns, not
+file-specific ones, and belong in their own SEP. This SEP's keyword applies
+unchanged to an array-of-uri-strings schema once that SEP lands; nothing here
+forecloses it. On the tool surface, `Tool.inputSchema` is open JSON Schema, so
+servers can already declare an array property whose `items` carry `mcpFile`
+without protocol changes; only the elicitation form surface is constrained.
+
+### Why not prompts?
+
+`PromptArgument` is intentionally a flat scalar shape rather than JSON Schema,
+so the keyword does not reach it. The backward-compatible path is a future SEP
+that adds `mcpFile?: FileInputDescriptor` directly to `PromptArgument`, with
+the same data-URI string carrier; no decision in this SEP forecloses that.
+Until then, a prompt that needs a file can describe a tool that accepts one.
 
 ### Why not carry the filename in the URI?
 
-An earlier draft added a `name=` parameter to the data URI
-(`data:image/png;name=photo.png;base64,…`). This was dropped because:
-
-- RFC 2397 does not define `name=` semantically; standardizing it within MCP
-  would be a protocol-specific reinterpretation of a generic format.
-- Clients may prefer not to expose original filenames, which can leak
-  information the user did not intend to share.
-- Servers that need the filename can declare a separate string argument, which
-  makes the requirement explicit in the schema and lets the user see (and
-  edit) what is being sent.
-
-### Why not mandate a hard size limit in the spec?
-
-Data URIs embed base64 in the JSON-RPC envelope, so very large files are
-impractical (memory pressure on both sides, ~33% encoding overhead, JSON
-parser limits in some runtimes). However, "large" is context-dependent: a
-50 MB limit is conservative for a local stdio server and generous for a
-constrained edge deployment. The SEP therefore provides the `maxSize` knob
-per-argument and leaves the value to server authors.
-
-For files too large to embed inline,
-[Large files: URL-mode elicitation](#large-files-url-mode-elicitation) reuses
-the existing URL-mode mechanism rather than introducing an upload protocol
-into MCP. Upload protocols vary widely (presigned PUT, resumable, chunked
-multipart, authenticated endpoints); a generic descriptor that covered all of
-them would either be incomplete or would amount to specifying a new transport.
-URL-mode keeps the upload protocol server-side where it belongs, and `file://`
-remains available for local stdio servers that share a filesystem.
+An earlier draft added a `name=` parameter to the data URI. RFC 2397 does not
+define `name=` semantically. Servers that need the filename declare a separate
+string argument, which makes the requirement explicit in the schema and lets
+the user see and edit what is being sent.
 
 ### Why not a presigned-upload descriptor?
 
-An alternative considered was a `FileUploadTarget` descriptor
-(`{url, method, headers, fields, expiresAt, reference}`) carried on form-mode
-elicitation, modelled on S3/GCS/Azure presigned URLs. It was rejected because
-it only covers single-shot presigned object storage: the credential-forgery
-defense (clients refuse `Authorization` in `headers`) means it cannot reach
-authenticated server-owned endpoints; it cannot express resumable protocols
-(tus, GCS resumable) or multipart-chunked uploads; and any server needing
-those would fall through to URL-mode anyway. URL-mode already exists, already
-handles every upload protocol the server cares to implement, and adds no new
-schema surface.
+A `FileUploadTarget` descriptor (`{url, method, headers, expiresAt,
+reference}`) modelled on S3/GCS/Azure presigned URLs was explored. It only
+covers single-shot presigned object storage: the credential-forgery defense
+(clients refuse `Authorization` in `headers`) means it cannot reach
+authenticated server-owned endpoints; it cannot express resumable protocols or
+multipart-chunked uploads; and any server needing those falls through to
+URL-mode anyway. URL-mode already exists and keeps the upload protocol
+server-side where it belongs.
 
 ### Prior art: OpenAI Apps SDK `openai/fileParams`
 
 OpenAI's [Apps SDK](https://developers.openai.com/apps-sdk/reference/) defines
 a vendor `_meta` key, `_meta["openai/fileParams"]`, that serves the same
-declarative purpose: it is a list of top-level input-schema field names that
-ChatGPT should populate from user-uploaded files. That design validates the
-core premise of this SEP: a lightweight annotation naming the file arguments
-is sufficient for clients to render the right affordance.
-
-This SEP diverges from `openai/fileParams` in two deliberate ways:
-
-- **Inline keyword, not a name list.** `openai/fileParams` is a flat
-  `string[]` outside the schema. This SEP places the annotation directly on
-  the schema property so that per-argument constraints (`accept`, `maxSize`)
-  travel with the declaration, and so that the schema is self-describing.
-- **No hosted-file indirection.** OpenAI's file params are object-typed
-  (`{ download_url, file_id, name, mime_type, size }`) because ChatGPT uploads
-  files to OpenAI-managed storage first and passes a reference. This SEP
-  instead defaults to passing the bytes inline as a data URI, avoiding the
-  need for either party to operate an upload endpoint, while permitting URL
-  references when they are available.
-
-Standardizing this pattern at the protocol level, rather than leaving it to
-vendor `_meta` keys, lets any MCP client implement the file-picker affordance
-against any server, not only pairings where both sides happen to agree on the
-same vendor convention.
+declarative purpose: a list of input-schema field names that ChatGPT should
+populate from user-uploaded files. That validates the core premise: a
+lightweight annotation naming the file arguments is sufficient for clients to
+render the right affordance. This SEP places the annotation inline so
+per-argument constraints travel with the declaration, and standardizes the
+pattern so any MCP client can implement it against any server rather than only
+pairings that agree on a vendor `_meta` key.
 
 ### Relationship to other file-handling work
 
 This SEP layers on URL-mode elicitation rather than replacing it:
 
-- **`mcpFile` with `data:` (push, inline):** The client knows at tool-listing
-  time which arguments are files, encodes them inline, and sends them with the
-  call. Suited to small-to-medium payloads where inline transfer is practical.
-- **URL-mode elicitation (pull, out-of-band):** The server directs the user's
-  browser to an upload page it controls. Suited to large payloads, and the
-  path this SEP specifies for files above `maxInlineSize`.
-- **`file://` (local only):** When client and server share a filesystem on a
-  stdio transport.
+- **`mcpFile` with `data:` (push, inline):** small-to-medium payloads where
+  inline transfer is practical.
+- **URL-mode elicitation (pull, out-of-band):** large payloads, with the
+  upload protocol server-controlled.
 
-A server selects the path based on the file's size and the client's declared
-`elicitation.url` capability.
+A server uses `mcpFile` for inputs up to its `maxSize` and URL-mode
+elicitation above it.
 
 ## Backward Compatibility
 
-This SEP is backward compatible at the schema level:
-
-- `mcpFile` is a JSON Schema extension keyword. Per §6.5 of the JSON Schema
-  core specification, implementations that do not recognize it SHOULD treat it
-  as an annotation and otherwise ignore it. Clients that do not recognize the
-  keyword see an ordinary `uri`-format string field.
-- `ArraySchema` is a new union member of `PrimitiveSchemaDefinition`. Existing
-  schemas using the other four members are unaffected. Some shipped client
-  SDKs implement `PrimitiveSchemaDefinition` as a closed union and will reject
-  the entire `elicitation/create` request when they encounter `type: "array"`.
-  The `elicitation.arrays` client capability lets servers detect support
-  before emitting the new member.
+This SEP is fully backward compatible. `mcpFile` is a JSON Schema extension
+keyword; per §6.5 implementations that do not recognize it SHOULD treat it as
+an annotation and otherwise ignore it. Clients that do not recognize the
+keyword see an ordinary `uri`-format string field. `StringSchema` gaining an
+optional field is additive.
 
 Servers **MUST** accept well-formed `data:` URIs for an `mcpFile`-annotated
-argument regardless of whether the client recognized the keyword or how the
-value was produced. The keyword governs _presentation_, not _acceptance_.
+argument regardless of whether the client recognized the keyword. The keyword
+governs presentation, not acceptance.
 
 A required `mcpFile` argument on a non-recognizing client renders as a bare
 URI text input that the user cannot reasonably fill. Servers **SHOULD NOT**
-mark `mcpFile` arguments `required` unless the tool is useless without them,
-and **SHOULD** accept `https://` so a model-supplied URL remains a viable path
-when no picker is available.
+mark `mcpFile` arguments `required` unless the tool is useless without them.
 
 ## Implementation Notes
 
@@ -751,13 +540,8 @@ the keyword in any validator they ship.
 
 ## Security Implications
 
-The threat model for file inputs has two distinct defenders. The **host**
-protects the user from a malicious or compromised server (and from a model
-under that server's influence via prompt injection). The **server** protects
-itself and its operating environment from malicious or compromised input.
-Neither set of requirements substitutes for the other. These requirements
-assume the host is trustworthy software acting on the user's behalf; host
-integrity is a prerequisite outside this document's scope.
+These requirements assume the host is trustworthy software acting on the
+user's behalf; host integrity is a prerequisite outside this document's scope.
 
 ### Host-side file access (protecting the user from the server)
 
@@ -775,11 +559,9 @@ the user or authored by the model.
 - Hosts **MUST NOT** read a local file and encode it into a `data:` URI unless
   the user explicitly selected that file via a picker or equivalent consent
   gesture, and **MUST NOT** pass any model-supplied value to a path-resolution
-  or URL-fetch API.
+  API.
 - Hosts **MUST** display, before transmission, the file identity (derived by
-  the host from the picker selection) and the destination server. Hosts
-  **MUST** populate `filenameProperty` from the picker, overwriting any
-  model-supplied value.
+  the host from the picker selection) and the destination server.
 
 ### File content reaching the model
 
@@ -792,20 +574,16 @@ results to the model as data, not instructions ([OWASP LLM Top 10
 
 ### Server-side handling
 
-A server that accepts file input is subject to the same threat surface as any
-web application accepting uploads: SSRF when fetching client-supplied URLs,
-path traversal when reading local paths, parser vulnerabilities and resource
-exhaustion when decoding content. This specification does not restate that
-guidance. Servers **MUST** satisfy the applicable requirements of [OWASP ASVS
-5.0 §V5 (File Handling)][asvs-v5] for the schemes and formats they accept, and
-**MUST** reject any scheme or format for which they are not prepared to do so
-using `file_scheme_unsupported` or `file_type_rejected`. The OWASP cheat
-sheets for [File Upload][cs-upload], [SSRF Prevention][cs-ssrf], [Path
-Traversal][cs-path], and [XXE Prevention][cs-xxe] provide implementation
-guidance.
+Because this SEP specifies `data:` as the only wire scheme, servers do not
+fetch URLs or read filesystem paths on the basis of an `mcpFile` value, and
+the SSRF and local-file-inclusion classes do not arise from this mechanism.
+Servers are still decoding untrusted bytes and **MUST** satisfy the applicable
+requirements of [OWASP ASVS 5.0 §V5 (File Handling)][asvs-v5] for the formats
+they accept. The OWASP cheat sheets for [File Upload][cs-upload] and [XXE
+Prevention][cs-xxe] provide implementation guidance.
 
 The wire format carries no provenance: servers **MUST NOT** assume any
-received URI was user-selected rather than model-authored. The `accept` list
+received value was user-selected rather than model-authored. The `accept` list
 is a UX filter; servers **MUST NOT** assume it was enforced. The
 `<mediatype>` segment of a `data:` URI is advisory; servers **MUST NOT**
 dispatch on it without validating the content.
@@ -820,46 +598,25 @@ spans, and error reports.
 [owasp-llm]: https://genai.owasp.org/llm-top-10/
 [asvs-v5]: https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x14-V5-File-Handling.md
 [cs-upload]: https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
-[cs-ssrf]: https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html
-[cs-path]: https://owasp.org/www-community/attacks/Path_Traversal
 [cs-xxe]: https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
 
 ## Future Work
 
-### MCP JSON Schema vocabulary
-
-`mcpFile` is the first MCP-defined JSON Schema extension keyword. MCP
-extension keywords use the `mcp` name prefix; servers and clients **MUST NOT**
-define their own `mcp`-prefixed keywords. A formal `$vocabulary` URI
-(`https://modelcontextprotocol.io/json-schema/vocab/draft`) will be registered
-in the dialect declared by SEP-1613 so that future keywords have a common
-home and validators can be configured once for all of them.
-
-### Reserved extensions to `FileInputDescriptor`
-
-The descriptor may grow the following fields in future SEPs; their semantics
-are not specified here:
-
-- `directory?: boolean` for directory selection, analogous to HTML
-  `webkitdirectory`.
-- `schemes?: string[]` for machine-readable per-field declaration of accepted
-  URI schemes, replacing the current advice to document scheme restrictions in
-  the tool description.
-
-### Generalized `ArraySchema` items
-
-`ArraySchema.items` is restricted to `StringSchema` in this SEP. A follow-on
-SEP may widen it to other primitive types together with a corresponding
-widening of `ElicitResult.content`, which currently cannot carry `number[]` or
-`boolean[]` values.
+The following are intentionally deferred and have known backward-compatible
+paths documented in [Rationale](#rationale): multi-file inputs (via a general
+elicitation array SEP), additional wire schemes (via a `schemes` declaration),
+and `PromptArgument` support. None require changes to what this SEP specifies.
 
 ## Reference Implementation
 
-TBD. A reference implementation will demonstrate:
+A reference implementation in the TypeScript SDK is required before this SEP
+advances past Draft. It will demonstrate:
 
-- TypeScript SDK: `FileInputDescriptor` type exported for use in tool
-  definitions, and a client-side helper that reads a `File`/`Blob` and
-  produces a conforming data URI string.
+- `FileInputDescriptor` exported for use in tool definitions, with the keyword
+  pre-registered in the SDK's bundled validator.
+- A client-side `encodeFileAsDataUri(file: File | Blob): string` helper.
 - A sample server exposing an image-processing tool with `mcpFile`, validating
-  `maxSize` and `accept` on receipt.
-- A sample client rendering a native file picker for annotated arguments.
+  `maxSize` and `accept` on receipt and emitting the structured error reasons.
+- A sample host demonstrating the §Host integration flow end to end: model
+  emits the call with the slot absent, host renders a picker, substitutes the
+  encoded value, and keeps it out of model context.
