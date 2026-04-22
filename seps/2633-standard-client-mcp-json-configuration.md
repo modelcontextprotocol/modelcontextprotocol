@@ -1,4 +1,4 @@
-# SEP-0000: Standard Client-Side Configuration Format - mcp.json
+# SEP-2633: Standard Client-Side Configuration Format - mcp.json
 
 - **Status**: Draft
 - **Type**: Standards Track
