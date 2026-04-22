@@ -82,8 +82,9 @@ either, or both:
 
 Servers that declare the `resources` capability **MUST** respond to `resources/list`
 requests with the set of resources currently available to the requesting client. This set
-**MAY** be empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+**MAY** be empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection.
 
 ## Protocol Messages
 
