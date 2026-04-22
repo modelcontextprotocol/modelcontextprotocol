@@ -220,8 +220,8 @@ For **Standards Track SEPs** that introduce or modify observable protocol behavi
 
 **What's required:**
 
-- A conformance scenario tagged with the SEP number, targeting the `draft` spec version
-- A structured traceability file (`sep-NNNN.yaml`) mapping each MUST/MUST NOT in the SEP's Specification section to either a check ID or a documented exclusion with a linked tracking issue
+- A conformance scenario tagged with the SEP number, targeting the date-prefixed draft spec version (e.g. `YYYY-MM-draft`)
+- A structured traceability file (`sep-NNNN.yaml`) mapping each MUST/MUST NOT and SHOULD/SHOULD NOT in the SEP's Specification section to either a check ID or a documented exclusion with a linked tracking issue
 - The scenario passes against the SEP's reference implementation
 
 **What's exempt:**
@@ -231,7 +231,7 @@ For **Standards Track SEPs** that introduce or modify observable protocol behavi
 
 **Who does what:**
 
-- The **sponsor** ensures a conformance scenario is written and verifies the traceability file covers every MUST/MUST NOT in the SEP
+- The **sponsor** ensures a conformance scenario is written and verifies the traceability file covers every MUST/MUST NOT and SHOULD/SHOULD NOT in the SEP
 - The **conformance repository maintainers** review the scenario PR for technical correctness
 - The test **author** can be anyone: the SEP author, an SDK maintainer, a community contributor
 

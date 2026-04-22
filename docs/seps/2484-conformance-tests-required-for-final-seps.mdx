@@ -28,7 +28,7 @@ description: "Require Conformance Tests for Standards Track SEPs to Reach Final 
 
 ## Abstract
 
-This SEP adds a conformance test requirement to the `Accepted → Final` transition for Standards Track SEPs. Before a Standards Track SEP that changes observable protocol behavior can be marked `Final`, a conformance scenario covering its normative requirements must be merged into the conformance repository, accompanied by a structured traceability file mapping each MUST/MUST NOT to a check or a documented exclusion. This keeps the conformance suite synchronized with the specification as it evolves, gives SDK maintainers an executable target for implementation, and makes SEP-1730's tier percentages a meaningful measure of spec coverage. Process and Informational SEPs are exempt, as are Standards Track SEPs with no observable protocol behavior.
+This SEP adds a conformance test requirement to the `Accepted → Final` transition for Standards Track SEPs. Before a Standards Track SEP that changes observable protocol behavior can be marked `Final`, a conformance scenario covering its normative requirements must be merged into the conformance repository, accompanied by a structured traceability file mapping each MUST/MUST NOT and SHOULD/SHOULD NOT to a check or a documented exclusion. This keeps the conformance suite synchronized with the specification as it evolves, gives SDK maintainers an executable target for implementation, and makes SEP-1730's tier percentages a meaningful measure of spec coverage. Process and Informational SEPs are exempt, as are Standards Track SEPs with no observable protocol behavior.
 
 ## Motivation
 
@@ -65,11 +65,11 @@ The conformance suite itself is not restricted to official SDKs. Any implementat
 
 For a Standards Track SEP in scope to transition from `Accepted` to `Final`:
 
-1. **A conformance scenario** tagged with the SEP number is merged into the conformance repository, targeting the `draft` spec version.
+1. **A conformance scenario** tagged with the SEP number is merged into the conformance repository, targeting the date-prefixed draft spec version the SEP is slated for (e.g. `YYYY-MM-draft`).
 2. **A traceability file** accompanies the scenario. See below.
 3. **The scenario passes** against the SEP's reference implementation.
 
-When the spec version containing the SEP is released, the scenario's spec-version tag is updated from `draft` to the dated version as part of the normal release process.
+When that spec version is released, the scenario's spec-version tag is updated from `YYYY-MM-draft` to the dated version as part of the normal release process. The conformance harness and the SDK under test must both recognize the draft tag as a negotiable protocol version so that the new requirements are actually exercised.
 
 ### Traceability file
 
@@ -83,6 +83,8 @@ requirements:
     check: sep-1234-foo-present
   - text: "MUST NOT send `bar` before initialization"
     check: sep-1234-bar-absent
+  - text: "SHOULD include `qux` when available"
+    check: sep-1234-qux-present
   - text: "MUST reject requests with invalid `baz`"
     check: sep-1234-baz-rejected
   - text: "MUST retry on 503"
@@ -96,7 +98,7 @@ Structured data lets tooling link check failures back to spec sections and lets 
 
 Exclusions come in two flavors. **Framework gaps** (the behavior is observable but the framework can't express it yet) should link a tracking `issue`. **Not protocol-observable** (the requirement governs client rendering, implementation internals, or similar) needs only the `excluded` reason. A SEP whose requirements are all the second kind is exempt and doesn't need a scenario at all.
 
-The sponsor verifies the traceability file is complete: every MUST and MUST NOT (and RFC 2119 equivalents: SHALL, REQUIRED) in the SEP's Specification section has a row. SHOULD and MAY requirements do not need rows, although it is recommended to include SHOULD's a WARNING check. The sponsor does not review test code; that is the conformance repository's normal PR review. What counts as a normative requirement is the sponsor's call.
+The sponsor verifies the traceability file is complete: every MUST, MUST NOT, SHOULD, and SHOULD NOT (and RFC 2119 equivalents: SHALL, REQUIRED, RECOMMENDED) in the SEP's Specification section has a row. Checks for SHOULD-level requirements report as warnings rather than failures. MAY requirements do not need rows. The sponsor does not review test code; that is the conformance repository's normal PR review. What counts as a normative requirement is the sponsor's call.
 
 ### Who writes the tests
 
@@ -187,6 +189,7 @@ Before this SEP itself can be marked `Final`, the following conformance-reposito
 
 - Structured traceability file format (`sep-NNNN.yaml`) and schema
 - Scenario scaffolding tool
+- Conformance harness supports date-prefixed draft versions (e.g. `YYYY-MM-draft`) as negotiable protocol versions
 - `MAINTAINERS.md` published and the repository listed in MCP governance documentation
 
 These are this SEP's own reference implementation checklist, not ongoing process requirements.
