@@ -54,8 +54,8 @@ The design target for this SEP is a minimal interoperable baseline:
 
 ### File Input/Output Declaration and Representation
 
-- Let servers declare file-valued inputs explicitly through metadata adjacent to tool and
-  elicitation schemas.
+- Let servers declare file-valued inputs explicitly through sidecar fields adjacent to
+  tool and elicitation schemas.
 - Standardize the representation of file-valued inputs so clients can bind files before
   `tools/call` without harness-specific parameter rewriting.
 - Standardize the representation of file-valued outputs so generated or transformed
@@ -262,17 +262,11 @@ Tools and elicitation forms declare file-valued fields with a sidecar map keyed 
 name. The sidecar identifies which existing schema properties should be treated as file
 inputs, while the schema itself continues to describe the value shape.
 
-This SEP expects the long-term protocol shape to be explicit sidecar fields:
+This SEP defines explicit sidecar fields:
 
 - `inputFiles` on `Tool`, containing the tool's actual file input declarations.
 - `requestedFiles` on form-mode elicitation requests, containing the actual file fields
   requested from the user.
-
-Until those fields are standardized, implementations **MAY** carry the same maps in
-`_meta` under the following reserved keys:
-
-- `modelcontextprotocol.io/fileInputs` for tool input fields.
-- `modelcontextprotocol.io/requestedFiles` for elicitation form fields.
 
 A tool with a single file input can be declared as:
 
@@ -289,12 +283,10 @@ A tool with a single file input can be declared as:
     },
     "required": ["document"]
   },
-  "_meta": {
-    "modelcontextprotocol.io/fileInputs": {
-      "document": {
-        "accept": ["application/pdf"],
-        "maxFileSize": 10485760
-      }
+  "inputFiles": {
+    "document": {
+      "accept": ["application/pdf"],
+      "maxFileSize": 10485760
     }
   }
 }
@@ -318,12 +310,10 @@ For multiple files:
     },
     "required": ["documents"]
   },
-  "_meta": {
-    "modelcontextprotocol.io/fileInputs": {
-      "documents": {
-        "accept": ["application/pdf", "text/plain"],
-        "maxFileSize": 10485760
-      }
+  "inputFiles": {
+    "documents": {
+      "accept": ["application/pdf", "text/plain"],
+      "maxFileSize": 10485760
     }
   }
 }
@@ -347,12 +337,10 @@ Elicitation requests use the same descriptor shape:
       },
       "required": ["document"]
     },
-    "_meta": {
-      "modelcontextprotocol.io/requestedFiles": {
-        "document": {
-          "accept": ["application/pdf"],
-          "maxFileSize": 10485760
-        }
+    "requestedFiles": {
+      "document": {
+        "accept": ["application/pdf"],
+        "maxFileSize": 10485760
       }
     }
   }
@@ -594,8 +582,7 @@ bind selected files before `tools/call`.
 
 This also keeps the proposal compatible with the direction of SEP-2356: `inputFiles` is
 the actual file-input declaration surface, and `requestedFiles` is its elicitation
-counterpart. Using `_meta` as the interim carrier lets implementations experiment with
-that real sidecar shape before MCP standardizes dedicated top-level fields.
+counterpart.
 
 ### Why File Objects Instead of Bare URIs
 
@@ -696,8 +683,6 @@ Rejected because it preserves the current interoperability gap.
 
 ## Open Questions
 
-- Should the stable sidecar fields be named `inputFiles` and `requestedFiles`, matching
-  SEP-2356, while updating their value contract to `FileValue` instead of URI strings?
 - Should `files/prepareUpload` require support for both raw-body and multipart HTTP
   uploads in v1, or allow servers to advertise only one?
 - Should `files/getDownload` optionally return metadata for save/open/display affordances
@@ -714,6 +699,6 @@ Rejected because it preserves the current interoperability gap.
   adopts its sidecar-declaration model while changing the value representation from inline
   RFC 2397 `data:` URIs to `FileValue` objects.
 - OpenAI `openai/fileParams`: prior art for declaratively identifying which tool
-  parameters are file-valued. Unlike `openai/fileParams`, this SEP's `fileInputs` map is
-  intended to be the actual MCP file-input declaration, with `_meta` used only as a
-  provisional placement until a first-class sidecar field is standardized.
+  parameters are file-valued. Unlike `openai/fileParams`, this SEP's `inputFiles` map is
+  intended to be the actual MCP file-input declaration rather than an app-specific
+  parameter rewriting hint.
