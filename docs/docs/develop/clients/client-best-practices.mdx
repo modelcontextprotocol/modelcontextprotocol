@@ -139,7 +139,7 @@ When implementing progressive discovery:
 | **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                                                                                                                |
 | **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities.                                                                                                 |
 
-### Programmatic Tool Calling / Code Mode
+## Programmatic Tool Calling / Code Mode
 
 With direct tool calling, every tool invocation is a round trip: the model generates a tool call, the client executes it, and the full result flows back into the model's context. When a task requires chaining multiple tools (read a document, transform it, write it somewhere else), each intermediate result passes through the model, consuming tokens and adding latency even when it has nothing to do with them.
 
