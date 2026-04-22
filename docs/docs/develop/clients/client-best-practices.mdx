@@ -1,5 +1,5 @@
 ---
-title: "Client Best Practices"
+title: "Building Quality Clients"
 description: "Get the most out of MCP when building a client"
 ---
 
@@ -132,12 +132,12 @@ This works especially well for general-purpose agents, where the user's intent i
 
 When implementing progressive discovery:
 
-| Guideline                        | Rationale                                                                                          |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Offer multiple detail levels** | Let the model choose between name-only, name-and-description, or full-schema responses.            |
+| Guideline                        | Rationale                                                                                                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Offer multiple detail levels** | Let the model choose between name-only, name-and-description, or full-schema responses.                                                                                                            |
 | **Cache tool definitions**       | Once fetched from a server, memoize the definition host-side so re-injecting it later doesn't need another `tools/list` round trip. This is separate from what's currently in the model's context. |
-| **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                |
-| **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities. |
+| **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                                                                                                                |
+| **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities.                                                                                                 |
 
 ### Programmatic Tool Calling / Code Mode
 
@@ -229,14 +229,26 @@ console.log(
 
 The right sandbox depends on the language you want the model to write, your host application's language, and how much isolation you need. The table lists example runtimes rather than endorsements; evaluate maturity for your use case:
 
-| Sandboxed language | Runtime / Library                                        | Host language | Approach                                                                                        |
-| ------------------ | -------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
+| Sandboxed language | Runtime / Library                                             | Host language | Approach                                                                                        |
+| ------------------ | ------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
 | **JavaScript**     | [Deno](https://github.com/denoland/deno), `isolated-vm`       | Rust / CLI    | V8-based runtimes with fine-grained permissions. Can disable all permissions for full lockdown. |
-| **Python**         | [Monty](https://github.com/pydantic/monty) *(experimental)*   | Rust          | Minimal Python interpreter built for AI use cases. No I/O by default.                           |
-| **TypeScript**     | [pctx](https://github.com/portofcontext/pctx) *(early-stage)* | Python / Rust | Incorporates code mode concepts as a library, with low-level Rust support.                      |
+| **Python**         | [Monty](https://github.com/pydantic/monty) _(experimental)_   | Rust          | Minimal Python interpreter built for AI use cases. No I/O by default.                           |
+| **TypeScript**     | [pctx](https://github.com/portofcontext/pctx) _(early-stage)_ | Python / Rust | Incorporates code mode concepts as a library, with low-level Rust support.                      |
 | **Any (via Wasm)** | [Wasmtime](https://github.com/bytecodealliance/wasmtime)      | Rust / C / Go | Compile any language to Wasm and run it with capability-based security.                         |
 
 Regardless of sandbox, the integration pattern is the same: the host injects function stubs, intercepts calls over an in-process or stdio channel (so network permissions can stay fully denied), and dispatches them as `tools/call` requests to MCP servers.
+
+### Interaction with Prompt Caching
+
+Most providers cache the prompt prefix, including the `tools` array. Adding or removing tool
+definitions mid-conversation invalidates that cache, and the resulting miss can cost more tokens
+than the definitions you removed. To preserve caching:
+
+- Append newly discovered definitions after the cache breakpoint rather than re-sorting the
+  `tools` array, or route every call through a single stable `call_tool({name, args})` meta-tool
+  so the array never changes.
+- Treat server disconnection as a conversation-boundary operation rather than a per-turn one.
+- Consult your provider's caching documentation alongside the tool-search links above.
 
 #### Execution Architecture
 
@@ -258,7 +270,7 @@ flowchart LR
 
 **The sandbox** runs model-generated code in an isolated environment with no direct network access. Its only interface to the outside world is through the generated function stubs, which route calls back to the client.
 
-**The client** acts as a broker. It receives function calls from the sandbox, maps them to the correct MCP server, executes the tool call, and returns the result to the sandbox. Authorization tokens and credentials are held by the client and never exposed to the generated code.
+**The host** acts as a broker. It receives function calls from the sandbox, maps them to the correct MCP server, executes the tool call, and returns the result to the sandbox. Authorization tokens and credentials are held by the host and never exposed to the generated code.
 
 **The model** sees only what the sandbox returns, typically the output of `console.log` statements or a final return value. This gives the model (and the client developer) precise control over what enters the context window.
 
@@ -266,10 +278,20 @@ flowchart LR
 
 Programmatic tool calling introduces a code execution surface that requires careful sandboxing:
 
-- **Network isolation**: The sandbox should have no direct network access. All external communication flows through the MCP client, which enforces authorization and access control.
-- **No credential exposure**: API keys and tokens are held by the client, not passed into the sandbox. The generated code calls typed functions; the client adds authentication when forwarding to MCP servers.
+- **Per-call authorization**: The broker is still the MCP host for spec purposes. Apply the same human-in-the-loop confirmation policy to sandbox-originated calls that you apply to direct calls (see [Tools: Security](/specification/draft/server/tools#security)). Approving the script does not grant blanket approval for every tool call it makes at runtime.
+- **Cross-server data flow**: Tool results from one server are untrusted input to another. The broker should apply the same input-review policy to brokered calls as to direct ones; output truncation alone does not prevent exfiltration.
+- **Network isolation**: The sandbox should have no direct network access. All external communication flows through the host broker, which enforces authorization and access control.
+- **No credential exposure**: API keys and tokens are held by the host. The generated code calls typed functions; the host adds authentication when forwarding to servers.
 - **Resource limits**: Set timeouts and memory limits on sandbox execution to prevent runaway scripts.
-- **Output filtering**: Validate and truncate sandbox output before feeding it back to the model.
+- **Output filtering**: Validate and truncate sandbox console output before feeding it back to the model.
+
+#### Error Handling
+
+MCP tool errors arrive as a successful response with `isError: true` rather than a transport
+failure. Generated wrappers should convert this into a thrown exception so model-authored code
+can use `try`/`catch`. If an uncaught error terminates the script, surface it as the script's
+result so the model can self-correct; the model is responsible for reporting any partial side
+effects already committed.
 
 #### Combining Both Patterns
 
