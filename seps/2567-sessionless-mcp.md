@@ -163,10 +163,13 @@ One consequence of the constraint above is that servers can no longer mutate lis
 
 ### Consequential spec edits
 
-Two places in the current spec define behavior in terms of session scope and need re-scoping:
+Beyond removing the §Session Management section itself, several other places in the current spec define behavior in terms of session scope and need re-scoping:
 
 - **JSON-RPC request ID uniqueness.** The spec currently requires that a request `id` "MUST NOT have been previously used by the requestor within the same session." The purpose of `id` is for the sender to correlate an incoming response with the request that produced it; the receiver only echoes it. With sessions removed, the constraint is re-scoped accordingly: a sender MUST NOT issue a request whose `id` matches that of another request it has sent and not yet received a response for. This is transport-agnostic, sufficient for correlation under every transport, and is what the TypeScript and Python SDKs already do via a monotonically increasing counter per client object. ([JSON-RPC 2.0 §4](https://www.jsonrpc.org/specification#request_object) itself imposes no uniqueness requirement — it only requires the receiver to echo the `id` — so this remains an MCP-level constraint.)
+- **SSE event ID uniqueness.** The spec currently scopes SSE event IDs as "globally unique across all streams within that session." With sessions removed, the constraint is simply that the ID is globally unique across all streams the server manages, so that a `Last-Event-ID` resolves to a single stream. The existing guidance that event IDs encode the originating stream already implies this.
 - **Pagination cursor validity.** The spec currently advises clients not to "persist cursors across sessions." With sessions removed, this advice disappears. Cursor stability and snapshot consistency are outside the scope of this proposal.
+- **List-endpoint variability.** The `tools/list`, `resources/list`, and `prompts/list` pages each say results "MAY change over the lifetime of the connection." These are re-scoped per [§Session-independent list endpoints](#session-independent-list-endpoints): results MAY change over time but MUST NOT vary per-connection or as a side effect of other requests on the connection.
+- **Wording.** A handful of phrases that use "session" descriptively — "stateful session protocol" in the architecture overview, "available during the session" in capability negotiation, "same logical session" in authorization, the elicitation prohibition on associating state "with session IDs alone," and similar — are reworded or removed. These carry no semantic change beyond the session removal itself.
 
 ## Rationale
 

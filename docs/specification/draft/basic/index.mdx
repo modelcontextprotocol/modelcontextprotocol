@@ -7,8 +7,7 @@ title: Overview
 The Model Context Protocol consists of several key components that work together:
 
 - **Base Protocol**: Core JSON-RPC message types
-- **Lifecycle Management**: Connection initialization, capability negotiation, and
-  session control
+- **Lifecycle Management**: Connection initialization and capability negotiation
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Sampling and root directory lists provided by clients
@@ -45,8 +44,8 @@ these types of messages:
 
 - Requests **MUST** include a string or integer ID.
 - Unlike base JSON-RPC, the ID **MUST NOT** be `null`.
-- The request ID **MUST NOT** have been previously used by the requestor within the same
-  session.
+- The request ID **MUST NOT** match the ID of any other request the sender has issued and
+  not yet received a response for.
 
 ### Responses
 

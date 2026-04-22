@@ -47,8 +47,9 @@ available prompts changes.
 
 Servers that declare the `prompts` capability **MUST** respond to `prompts/list` requests
 with the set of prompts currently available to the requesting client. This set **MAY** be
-empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection.
 
 ## Protocol Messages
 

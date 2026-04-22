@@ -93,7 +93,6 @@ The following MCP operations support pagination:
    - Don't make any determination based on cursor value other than whether a
      non-null value was provided (e.g. an empty string is a valid cursor and
      thus **MUST NOT** be treated as the end of results)
-   - Don't persist cursors across sessions
 
 ## Error Handling
 
