@@ -3,7 +3,7 @@
 <!-- cspell:ignore streamable -->
 <!-- markdownlint-disable MD036 MD060 -->
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-02-04
 - **Author(s)**: MCP Transports Working Group
@@ -389,14 +389,17 @@ HTTP parsers typically trim leading and trailing whitespace from header values. 
 Clients MUST apply the following encoding rules in order:
 
 1. **Type conversion**: Convert the parameter value to its string representation:
+
    - `string`: Use the value as-is
    - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
    - `boolean`: Convert to lowercase `"true"` or `"false"`
 
 2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):
+
    - Apply Base64 encoding (see below)
 
 3. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
+
    - If valid, proceed to step 4
    - If invalid (contains non-ASCII characters), apply Base64 encoding (see below)
 

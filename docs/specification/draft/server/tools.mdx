@@ -541,6 +541,7 @@ Providing an output schema helps clients and LLMs understand and properly handle
 Tools use two error reporting mechanisms:
 
 1. **Protocol Errors** indicate issues with the request structure itself that models are less likely to be able to fix:
+
    - Unknown tool
    - Malformed requests (requests that fail to satisfy [CallToolRequest schema](/specification/draft/schema#calltoolrequest))
    - Server errors
@@ -559,6 +560,7 @@ Tools use two error reporting mechanisms:
    ```
 
 2. **Tool Execution Errors** contain actionable feedback that language models can use to self-correct and retry with adjusted parameters:
+
    - API failures
    - Input validation errors (e.g., date in wrong format, value out of range)
    - Business logic errors
@@ -587,6 +589,7 @@ Clients **SHOULD** provide tool execution errors to language models to enable se
 ## Security Considerations
 
 1. Servers **MUST**:
+
    - Validate all tool inputs
    - Implement proper access controls
    - Rate limit tool invocations

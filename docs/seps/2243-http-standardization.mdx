@@ -5,8 +5,8 @@ description: "HTTP Header Standardization for Streamable HTTP Transport"
 ---
 
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
+  <Badge color="green" shape="pill">
+    Final
   </Badge>
   <Badge color="gray" shape="pill">
     Standards Track
@@ -17,7 +17,7 @@ description: "HTTP Header Standardization for Streamable HTTP Transport"
 | ------------- | ------------------------------------------------------------------------------- |
 | **SEP**       | 2243                                                                            |
 | **Title**     | HTTP Header Standardization for Streamable HTTP Transport                       |
-| **Status**    | Draft                                                                           |
+| **Status**    | Final                                                                           |
 | **Type**      | Standards Track                                                                 |
 | **Created**   | 2026-02-04                                                                      |
 | **Author(s)** | MCP Transports Working Group                                                    |
@@ -405,14 +405,17 @@ HTTP parsers typically trim leading and trailing whitespace from header values. 
 Clients MUST apply the following encoding rules in order:
 
 1. **Type conversion**: Convert the parameter value to its string representation:
+
    - `string`: Use the value as-is
    - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
    - `boolean`: Convert to lowercase `"true"` or `"false"`
 
 2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):
+
    - Apply Base64 encoding (see below)
 
 3. **ASCII validation**: Check if the string contains only valid ASCII characters (0x20-0x7E):
+
    - If valid, proceed to step 4
    - If invalid (contains non-ASCII characters), apply Base64 encoding (see below)
 
