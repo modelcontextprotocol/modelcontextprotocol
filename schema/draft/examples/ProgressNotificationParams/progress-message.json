@@ -2,5 +2,19 @@
   "progressToken": "oivaizmir",
   "progress": 50,
   "total": 100,
-  "message": "Reticulating splines..."
+  "message": "Calling retrieval tool",
+  "content": {
+    "event": "tool_call",
+    "text": "Calling retrieval tool",
+    "actor": {
+      "kind": "agent",
+      "name": "catalog-assistant"
+    },
+    "data": {
+      "toolName": "get_metadata",
+      "input": {
+        "productId": "ABC"
+      }
+    }
+  }
 }

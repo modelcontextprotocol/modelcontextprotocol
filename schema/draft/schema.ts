@@ -880,6 +880,50 @@ export interface ProgressNotificationParams extends NotificationParams {
    * An optional message describing the current progress.
    */
   message?: string;
+  /**
+   * Optional structured content describing the progress event.
+   */
+  content?: {
+    /**
+     * A machine-readable string describing the kind of progress event.
+     */
+    event?: string;
+    /**
+     * Optional human-readable text associated with the event.
+     */
+    text?: string;
+    /**
+     * Optional metadata describing the actor that emitted or is responsible for the progress event.
+     */
+    actor?: {
+      /**
+       * The kind of actor, such as `agent`, `tool`, or `server`.
+       */
+      kind?: string;
+      /**
+       * The name of the actor.
+       */
+      name?: string;
+    };
+    /**
+     * Optional event-specific structured payload.
+     */
+    data?: {
+      /**
+       * The name of the tool involved in the progress event, if applicable.
+       */
+      toolName?: string;
+      /**
+       * Event-specific structured input data, if applicable.
+       */
+      input?: { [key: string]: unknown };
+      /**
+       * Event-specific structured output data, if applicable.
+       */
+      output?: { [key: string]: unknown };
+      [key: string]: unknown;
+    };
+  };
 }
 
 /**
