@@ -5,7 +5,7 @@
 - **Created**: 2026-04-21
 - **Author(s)**: Bob Dickinson (@BobDickinson), Tadas Antanavicius (@tadasant)
 - **Sponsor**:
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2633
 
 ## Abstract
 
