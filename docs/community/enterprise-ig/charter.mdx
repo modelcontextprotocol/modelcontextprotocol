@@ -1,0 +1,102 @@
+---
+title: Enterprise Interest Group Charter
+description: Charter for the MCP Enterprise Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Enterprise IG explores the challenges of deploying MCP in enterprise environments under the broader umbrella of enterprise MCP governance and best practices. As MCP adoption scales across regulated industries and large organizations, enterprise teams face recurring gaps in areas such as authentication integration, identity propagation, audit and compliance, gateway behavior, scalability and resilience, and configuration management that are not yet addressed at the protocol level. This group brings together enterprise practitioners to document these challenges, share production patterns, and build consensus on priorities for the MCP roadmap.
+
+All discussions and sessions are protocol-focused and vendor-neutral. The Enterprise IG is not a venue for product pitches or vendor-specific marketing. Participants contribute as practitioners sharing deployment experience and requirements, not as representatives promoting commercial solutions.
+
+## Scope
+
+### In Scope
+
+- **MCP Governance and Best Practices**: The overarching focus of the group is documenting enterprise governance patterns and best practices for MCP deployment, with the following specific domains explored under this umbrella:
+- **Enterprise Authentication and Identity**: Discussion of enterprise-managed auth patterns including IdP integration (SSO, SAML, OIDC), token lifecycle management, On-Behalf-Of (OBO) token exchange flows, and fine-grained authorization (Rich Authorization Requests). Gathering requirements to inform the Auth WG and related SEPs.
+- **Identity Propagation and Session Context**: How verified identity is surfaced and conveyed across MCP clients, servers, and downstream services for policy enforcement and audit. Includes the spawned-agent and delegated-agent case: identity lineage, least-privilege for child agents, descendant revocation, and auditability across multi-agent chains. Adjacent to authentication but distinct in focus — the gaps show up in how identity is exposed and consumed, not how auth itself is performed.
+- **Audit, Observability, and Compliance**: Exploration of standardized audit trail formats for MCP tool invocations, integration with enterprise SIEM and observability platforms, and evidence generation for compliance frameworks (SOC 2, HIPAA, GDPR, EU AI Act). Includes sector-specific compliance patterns such as PHI handling and BAA-scoped data flows in healthcare environments.
+- **Gateway and Proxy Behavior**: Documentation of enterprise deployment patterns where MCP traffic routes through API gateways, load balancers, reverse proxies, and security proxies. Identification of protocol-level gaps (session stickiness, SSE timeout handling, header propagation) that affect enterprise deployments.
+- **Scalability and Resilience**: Patterns for running MCP at enterprise scale across regions and availability zones, handling failover, managing session state under horizontal scaling, and ensuring reliability for mission-critical deployments.
+- **MCP in Enterprise Architecture**: How MCP fits into broader enterprise architecture including integration with existing middleware, data platforms, and agent orchestration layers.
+- **Configuration Portability and Deployment**: Discussion of challenges in deploying MCP servers across heterogeneous client environments, multi-tenant configuration patterns, and enterprise-scale rollout practices.
+- **Interceptors and Middleware**: Exploration of use cases for request/response interception in MCP pipelines, including PII redaction, compliance validation, content filtering, and hallucination detection. Gathering requirements that may inform future specification work on middleware patterns.
+- **Problem Statements and Use Cases**: Documentation of enterprise pain points and production failure scenarios (anonymized) to build an evidence base for prioritizing specification work.
+- **Recommendations to Working Groups**: Providing structured input from enterprise practitioners to the Auth WG, Security IG, Gateways IG, and other groups on enterprise-specific requirements.
+
+### Out of Scope
+
+- Writing or owning SEPs. The Enterprise IG produces problem statements, use cases, and recommendations. Concrete specification changes are driven through the appropriate Working Groups.
+- Defining product-specific or vendor-specific solutions. Discussions must remain vendor-neutral and focused on protocol-level patterns.
+- General MCP support or onboarding. The group focuses on enterprise deployment challenges, not introductory MCP topics.
+- Overlapping directly with the Auth WG's specification work. The Enterprise IG gathers enterprise auth requirements and feeds them to the Auth WG rather than proposing auth protocol changes.
+
+### Related Groups
+
+- **Auth WG** — Enterprise auth requirements (IdP integration, OBO flows, RAR) are gathered here and provided as input to the Auth WG's specification work.
+- **Security IG** — Overlapping interest in runtime security, tool poisoning, and credential management. The Enterprise IG focuses on the organizational and governance dimensions; the Security IG focuses on threat models and protocol-level mitigations.
+- **Gateways IG** — Direct overlap on gateway/proxy behavior patterns. The Enterprise IG provides enterprise deployment context; the Gateways IG focuses on technical gateway specifications.
+- **Financial Services IG** — Several enterprise concerns (compliance, audit, regulated environments) overlap with the FS-IG. Cross-posting and joint sessions will be coordinated where appropriate.
+
+## Leadership
+
+| Role | Name | Organization | GitHub | Term |
+| ---- | ---- | ------------ | ------ | ---- |
+| Facilitator | Raghu Chandra | Independent | [@raghu-chandra-mcp](https://github.com/raghu-chandra-mcp) | 6 months |
+| Facilitator | Yannj_Fr | MCPApps Builders | [@yannj-fr](https://github.com/yannj-fr) | 6 months |
+
+## Membership
+
+| Name | Organization | GitHub | Discord | Level |
+| ---- | ------------ | ------ | ------- | ----- |
+| Raghu Chandra | Independent | [@raghu-chandra-mcp](https://github.com/raghu-chandra-mcp) | raghu.chandra | Facilitator |
+| Yannj_Fr | MCPApps Builders | [@yannj-fr](https://github.com/yannj-fr) | yannj_fr | Facilitator |
+| Peder H P | Saxo Bank | [@pederhp](https://github.com/pederhp) | | Participant |
+| Derek Lewis | Silex Data Solutions | [@derekelewis](https://github.com/derekelewis) | dlewis.io | Participant |
+| Aman s | Independent Researcher; Blue Shield of California | [@aman210122](https://github.com/aman210122) | | Participant |
+| Ola | Nordstrom / MCP Maintainer | [@olaservo](https://github.com/olaservo) | | Participant |
+| Varun | TraceForce | [@vawadhwa88](https://github.com/vawadhwa88) | | Participant |
+| Markus Mueller | Boomi | [@mquadrat](https://github.com/mquadrat) | | Participant |
+| Aaron Parecki | Okta | [@aaronpk](https://github.com/aaronpk) | | Participant |
+| cayerbe | GNS-Foundation | [@GNS-Foundation](https://github.com/GNS-Foundation) | cayerbe | Participant |
+| Anishma | EmpowerID | [@anishma](https://github.com/anishma) | | Participant |
+| Lin Sun | Solo.io | [@linsun](https://github.com/linsun) | | Participant |
+| Joey | Archestra | [@joeyorlando](https://github.com/joeyorlando) | | Participant |
+
+## Operations
+
+| Meeting | Frequency | Duration | Purpose |
+| ------- | --------- | -------- | ------- |
+| Working Session | Monthly | 60 min | Use case discussion, pain point cataloging, cross-group coordination |
+
+Discord: #enterprise-ig
+
+### Decision Process for Recommendations
+
+The Enterprise IG produces non-binding recommendations, problem statements, and use cases. To ensure clarity and avoid downstream process debates, the following applies:
+
+- **Problem statements and use cases** are contributed asynchronously via GitHub Discussions or Discord threads and reviewed during monthly meetings.
+- **Recommendations to Working Groups** are finalized through lazy consensus among participants, with a 7-day review period posted on GitHub. If no objections are raised, the recommendation is considered approved.
+- **Facilitators** are responsible for packaging approved recommendations and delivering them to the relevant Working Group or Interest Group.
+
+## Deliverables (Optional)
+
+As an Interest Group, the Enterprise IG does not produce binding deliverables. The following are planned discussion outputs:
+
+| Item | Status | Target Date | Champion |
+| ---- | ------ | ----------- | -------- |
+| Enterprise Pain Points Catalog | Planned | Q2 2026 | Raghu Chandra |
+| Healthcare & Compliance Use Cases (PHI, BAA) | Planned | Q3 2026 | Aman s |
+| Enterprise Auth Requirements (input to Auth WG) | Planned | Q3 2026 | TBD |
+| Gateway Deployment Patterns Document | Planned | Q3 2026 | TBD |
+
+## Changelog
+
+| Date | Change |
+| ---- | ------ |
+| 2026-04-13 | Initial charter filed |
