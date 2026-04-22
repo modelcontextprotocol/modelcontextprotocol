@@ -47,7 +47,13 @@
               "docs/develop/connect-remote-servers",
               "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
-              "docs/develop/build-client",
+              {
+                "group": "Clients",
+                "pages": [
+                  "docs/develop/build-client",
+                  "docs/develop/clients/client-best-practices"
+                ]
+              },
               "docs/sdk",
               {
                 "group": "Security",
