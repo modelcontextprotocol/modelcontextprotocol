@@ -27,22 +27,22 @@ Consider this example of the same GitHub MCP server configuration in two popular
 {
   "servers": {
     // Comments don't break me
-    "github": {  
-      "type": "http",  
-      "url": "https://api.githubcopilot.com/mcp/",  
-      "headers": {  
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
         "Authorization": "Bearer ${input:github_mcp_pat}", // <- trailing comma
-      }  
-    }  
-  },  
-  "inputs": [  
-    {  
-      "type": "promptString",  
-      "id": "github_mcp_pat",  
-      "description": "GitHub Personal Access Token",  
-      "password": true  
-    }  
-  ]  
+      },
+    },
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "github_mcp_pat",
+      "description": "GitHub Personal Access Token",
+      "password": true,
+    },
+  ],
 }
 ```
 
@@ -53,9 +53,9 @@ Consider this example of the same GitHub MCP server configuration in two popular
   "mcpServers": {
     "github": {
       "type": "http",
-      "url": "https://api.githubcopilot.com/mcp",  
-      "headers": {  
-        "authorization":"Bearer ${GITHUB_MCP_PAT}"  
+      "url": "https://api.githubcopilot.com/mcp",
+      "headers": {
+        "authorization": "Bearer ${GITHUB_MCP_PAT}"
       }
     }
   }
@@ -66,7 +66,7 @@ These two clients use different file names, different file types (JSONC vs JSON)
 
 While these two clients (and many others) use the `type` value "http" to represent streamable HTTP, there are many exceptions: RooCode/Cline uses "streamable-http". Goose uses "streamable_http". LangChain used "streamable_http" until December of 2025 when they widened it to also allow "streamable-http" or just "http". Also, many clients infer the `type` value from the presence of "command" or "url" attributes (presumably modern clients infer the type to be streamable http when url is present, but it's not clear that can be relied upon).
 
-This disparity also complicates life for server publishers trying to help with installation guidance. Consider the GitHub MCP server: [https://github.com/github/github-mcp-server](https://github.com/github/github-mcp-server) 
+This disparity also complicates life for server publishers trying to help with installation guidance. Consider the GitHub MCP server: [https://github.com/github/github-mcp-server](https://github.com/github/github-mcp-server)
 
 In the documentation for that server there are 11 separate server configuration examples to show how to install that one server into different clients. There are VSCode instructions on the main page, then seven additional pages for installing into other clients, including one for installing it into other IDEs supporting Copilot, of which there are four variants (bringing the total to 11). Granted, server.json and ServerCards are a better solution to this, but even with those solutions, JSON configuration examples will likely still persist.
 
@@ -76,13 +76,13 @@ We will establish a standard format for mcp.json as defined below.
 
 ### Relationship to server.json
 
-| Format | Purpose | Configurability |
-| :---- | :---- | :---- |
+| Format      | Purpose                                     | Configurability                                                        |
+| :---------- | :------------------------------------------ | :--------------------------------------------------------------------- |
 | server.json | Server package specification for registries | Highly configurable — variables, templates, user-adjustable parameters |
-| mcp.json | Client-side server configuration | Fully resolved — only auth secrets remain as interpolatable variables |
+| mcp.json    | Client-side server configuration            | Fully resolved — only auth secrets remain as interpolatable variables  |
 
-* server.json = "Here's how this server can be configured"  
-* mcp.json = "Here's exactly how this client will connect to its servers"
+- server.json = "Here's how this server can be configured"
+- mcp.json = "Here's exactly how this client will connect to its servers"
 
 Each entry in an mcp.json is what you get after resolving a server.json template with concrete values.
 
@@ -103,27 +103,29 @@ Server names must match `^[a-zA-Z0-9_\[\]-]+$` (alphanumeric, hyphens, underscor
 
 ### Server Configuration Fields
 
-| Field         | Type     | Required     | Description |
-|---------------|----------|--------------|-------------|
-| `title`       | string   | No           | Human-readable display name (max 100 chars) |
-| `description` | string   | No           | What the server provides (max 500 chars) |
+| Field         | Type     | Required     | Description                                                |
+| ------------- | -------- | ------------ | ---------------------------------------------------------- |
+| `title`       | string   | No           | Human-readable display name (max 100 chars)                |
+| `description` | string   | No           | What the server provides (max 500 chars)                   |
 | `type`        | string   | **Yes**      | Transport type: `"stdio"`, `"sse"`, or `"streamable-http"` |
-| `command`     | string   | Yes (stdio)  | Executable command for stdio servers |
-| `args`        | string[] | No (stdio)   | Command-line arguments |
-| `env`         | object   | No (stdio)   | Environment variables (string values) |
-| `url`         | string   | Yes (remote) | Endpoint URL for sse/streamable-http servers |
-| `headers`     | object   | No (remote)  | HTTP headers for remote servers (string values) |
-| `oauth`       | object   | No (remote)  | OAuth configuration for servers using OAuth authorization |
+| `command`     | string   | Yes (stdio)  | Executable command for stdio servers                       |
+| `args`        | string[] | No (stdio)   | Command-line arguments                                     |
+| `env`         | object   | No (stdio)   | Environment variables (string values)                      |
+| `url`         | string   | Yes (remote) | Endpoint URL for sse/streamable-http servers               |
+| `headers`     | object   | No (remote)  | HTTP headers for remote servers (string values)            |
+| `oauth`       | object   | No (remote)  | OAuth configuration for servers using OAuth authorization  |
 
 #### Transport-Specific Requirements
 
 **stdio servers** (`type: "stdio"`):
+
 - `command` is required
 - `args` is allowed
 - `env` is allowed
 - `url` and `headers` are not allowed
 
 **Remote servers** (`type: "sse"` or `type: "streamable-http"`):
+
 - `url` is required
 - `headers` is allowed
 - `oauth` is allowed (see [OAuth Configuration](#oauth-configuration))
@@ -188,10 +190,10 @@ For remote servers using HTTP streaming:
 
 Remote servers can use OAuth for authorization. The `oauth` object configures how the MCP client initiates the OAuth flow:
 
-| Field         | Type     | Required | Description |
-|---------------|----------|----------|-------------|
-| `clientId`    | string   | No       | OAuth client ID. If omitted, the client uses Dynamic Client Registration (DCR) or discovery. |
-| `scopes`      | string[] | No       | OAuth scopes to request in the authorization request. Passed as the `scope` parameter (RFC 6749 §3.3). |
+| Field         | Type     | Required | Description                                                                                                                   |
+| ------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `clientId`    | string   | No       | OAuth client ID. If omitted, the client uses Dynamic Client Registration (DCR) or discovery.                                  |
+| `scopes`      | string[] | No       | OAuth scopes to request in the authorization request. Passed as the `scope` parameter (RFC 6749 §3.3).                        |
 | `redirectUri` | string   | No       | Redirect URI for the OAuth callback. For CLI/desktop clients this is typically `http://localhost:{port}/callback` (RFC 8252). |
 
 All `oauth` fields are optional. Servers that support automatic discovery (RFC 8414, RFC 9728) and Dynamic Client Registration may need no configuration at all — just a `url`:
@@ -255,6 +257,7 @@ The `scopes` field allows a single server to be configured with different access
 This enables shareable configurations: a recipient copies the file, authenticates with their own identity, and each entry is scoped correctly via the OAuth consent flow.
 
 **Validation rules:**
+
 - `oauth` is forbidden for `stdio` entries
 - `oauth` and `headers` with an `Authorization` key should not both be present on the same entry — use one auth mechanism or the other
 
@@ -272,11 +275,11 @@ Unpinned versions cause security issues and non-deterministic behavior, and make
 
 All string values support secret value interpolation. The MCP client is responsible for resolving these values at runtime.
 
-Interpolated values are enclosed in `${...}` wrapping and can occur anywhere in a string value, including multiple times in the same string value. The values are encoded as URIs per [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986) with a limited set of defined schemes representing value sources. For environment variables the scheme is "env" and the token would be represented as `${env:ENV_VAR_NAME}`.  
+Interpolated values are enclosed in `${...}` wrapping and can occur anywhere in a string value, including multiple times in the same string value. The values are encoded as URIs per [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986) with a limited set of defined schemes representing value sources. For environment variables the scheme is "env" and the token would be represented as `${env:ENV_VAR_NAME}`.
 
 Interpolated values can be resolved by pipe chaining multiple URIs, where the first element to resolve to a non-empty value is used. For example: `${env:ENV_VAR_NAME | value:Foo}`.
 
-The use of schemes to represent values other than environment variables allows clients to reference secrets stored in other systems or by other means, while still being shared by multiple clients. 
+The use of schemes to represent values other than environment variables allows clients to reference secrets stored in other systems or by other means, while still being shared by multiple clients.
 
 For example, a [OnePassword URI](https://developer.1password.com/docs/cli/secret-reference-syntax/) in the form: `op://<vault-name>/<item-name>/[section-name/]<field-name>` as traditionally used in apps supporting OnePassword, could be used directly and shared by different clients as long as they supported OnePassword and had access to the specified vault. This would be true of any supported secret manager or technology.
 
@@ -284,15 +287,16 @@ As another example, VS Code and related products use a scheme of "input" to spec
 
 #### Initial Schemes
 
-| Scheme    | Description     | Example |
-|-----------|-----------------|---------|
-| `env`     | Environment var | `env:ENV_VAR_NAME` |
-| `value`   | Literal value   | `value:Foo` |
-| `input`   | Collected value | `input:input_name` |
-| `op`      | OnePassword URI | `op://myVault/theItem/secret` |
-| ...       | More to come    | |
+| Scheme  | Description     | Example                       |
+| ------- | --------------- | ----------------------------- |
+| `env`   | Environment var | `env:ENV_VAR_NAME`            |
+| `value` | Literal value   | `value:Foo`                   |
+| `input` | Collected value | `input:input_name`            |
+| `op`    | OnePassword URI | `op://myVault/theItem/secret` |
+| ...     | More to come    |                               |
 
 Interpolation is primarily intended for authentication secrets:
+
 - API keys: `"${env:OPENAI_API_KEY}"`
 - Bearer tokens: `"Bearer ${env:AUTH_TOKEN}"`
 - Database credentials: `"postgresql://${env:PG_USER}:${env:PG_PASS}@host/db"`
@@ -319,7 +323,7 @@ In the past, the MCP protocol has been criticized for the mcp.json attack surfac
 
 This related SEP details issues with "one-click" installation of servers by clients: [SEP-1024: MCP Client Security Requirements for Local Server Installation](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/1024-mcp-client-security-requirements-for-local-server-.md).
 
-The same consent issues apply to servers discovered in an mcp.json. When a client loads an mcp.json it should require consent for each server discovered and it should store that consent securely. If any part of a server configuration changes, consent must be re-established. If new servers show up on a subsequent load of an mcp.json, the client should identify them and seek consent. 
+The same consent issues apply to servers discovered in an mcp.json. When a client loads an mcp.json it should require consent for each server discovered and it should store that consent securely. If any part of a server configuration changes, consent must be re-established. If new servers show up on a subsequent load of an mcp.json, the client should identify them and seek consent.
 
 For proper management of interpolated secrets, any secrets represented in the server configuration must be clearly identified in the consent interface, and the consent to use a given secret should be specific to the server for which consent was given.
 
