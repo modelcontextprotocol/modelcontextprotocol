@@ -95,7 +95,7 @@ If jinja2 is not installed, run `pip install jinja2` first.
 grep -c 'class="file-header"' .reviews/SEP-{sep_number}/annotated-diff.html
 
 # Should show add/remove/context lines (non-zero count)
-grep -cE 'class="(add|remove|context)"' .reviews/SEP-{sep_number}/annotated-diff.html
+grep -cE 'class="line-(add|remove|context)"' .reviews/SEP-{sep_number}/annotated-diff.html
 ```
 
 If either check returns 0, the render failed — re-run the render script. Do NOT ask the reviewer agent to fix the HTML.
