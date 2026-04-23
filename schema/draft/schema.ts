@@ -821,6 +821,18 @@ export interface Implementation extends BaseMetadata, Icons {
    * @format uri
    */
   websiteUrl?: string;
+
+  /**
+   * An optional list of keywords or tags that describe the domain, topics,
+   * or capabilities of this implementation.
+   *
+   * Clients MAY use these keywords to route user requests to the most relevant
+   * server, surface servers in search/discovery UIs, or pre-select servers
+   * based on conversational context.
+   *
+   * @example `["jira", "bitbucket", "atlassian", "issue-tracking"]`
+   */
+  keywords?: string[];
 }
 
 /* Ping */
