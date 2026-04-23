@@ -2660,6 +2660,55 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "content": {
+                    "description": "Optional structured content describing the progress event.",
+                    "properties": {
+                        "actor": {
+                            "description": "Optional metadata describing the actor that emitted or is responsible for the progress event.",
+                            "properties": {
+                                "kind": {
+                                    "description": "The kind of actor, such as `agent`, `tool`, or `server`.",
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "description": "The name of the actor.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "data": {
+                            "additionalProperties": {},
+                            "description": "Optional event-specific structured payload.",
+                            "properties": {
+                                "input": {
+                                    "additionalProperties": {},
+                                    "description": "Event-specific structured input data, if applicable.",
+                                    "type": "object"
+                                },
+                                "output": {
+                                    "additionalProperties": {},
+                                    "description": "Event-specific structured output data, if applicable.",
+                                    "type": "object"
+                                },
+                                "toolName": {
+                                    "description": "The name of the tool involved in the progress event, if applicable.",
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "event": {
+                            "description": "A machine-readable string describing the kind of progress event.",
+                            "type": "string"
+                        },
+                        "text": {
+                            "description": "Optional human-readable text associated with the event.",
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
                 "message": {
                     "description": "An optional message describing the current progress.",
                     "type": "string"

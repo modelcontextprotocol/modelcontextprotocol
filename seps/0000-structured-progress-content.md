@@ -27,6 +27,7 @@ The current progress notification format is intentionally lightweight. It allows
 This is enough for simple loading indicators and basic text updates, but it becomes limiting when a progress notification needs to communicate more than a single sentence.
 
 This motivation was informed in part by a Langflow enhancement demonstration:
+
 - https://github.com/langflow-ai/langflow/issues/12828
 
 That work makes use of the existing `message`-based progress mechanism but it's easy to imagine possibilities to provide a richer, more transparent user experience during multi-step and delegated execution, and it highlights why a more structured protocol-level representation would be valuable.

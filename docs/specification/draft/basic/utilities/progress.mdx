@@ -72,29 +72,22 @@ The receiver **MAY** then send progress notifications containing:
 - The `content` field **MAY** provide machine-readable structured progress details.
 - If both `message` and `content.text` are present, they **SHOULD** be semantically
   aligned.
-+
-+### Structured Progress Content
-+
-+The optional `content` field allows senders to attach structured metadata to a progress
-+notification without requiring receivers to parse free-form text.
-+
-+A minimal interoperable `content` shape includes:
-+
-+- `event`: a machine-readable string describing the kind of progress event
-+- `text`: optional human-readable text associated with the event
-+- `actor`: optional metadata describing the actor responsible for the event
-+- `data`: optional event-specific structured payload
-+
-+For tool-oriented progress events, `content.data` may include fields such as:
-+
-+- `toolName`
-+- `input`
-+- `output`
-+
-+For example:
-+
-+- `tool_call` may include `toolName` and `input`
-+- `tool_result` may include `toolName` and `output`
+
+* +### Structured Progress Content
+* +The optional `content` field allows senders to attach structured metadata to a progress
+  +notification without requiring receivers to parse free-form text.
+* +A minimal interoperable `content` shape includes:
+* +- `event`: a machine-readable string describing the kind of progress event
+  +- `text`: optional human-readable text associated with the event
+  +- `actor`: optional metadata describing the actor responsible for the event
+  +- `data`: optional event-specific structured payload
+* +For tool-oriented progress events, `content.data` may include fields such as:
+* +- `toolName`
+  +- `input`
+  +- `output`
+* +For example:
+* +- `tool_call` may include `toolName` and `input`
+  +- `tool_result` may include `toolName` and `output`
 
 ## Behavior Requirements
 
