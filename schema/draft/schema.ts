@@ -682,6 +682,61 @@ export interface ClientCapabilities {
   };
 
   /**
+   * Present if the client supports file-valued inputs or outputs.
+   */
+  files?: {
+    /**
+     * Whether the client can upload file bytes out-of-band and use file URI
+     * values for file-valued inputs.
+     */
+    upload?: boolean;
+    /**
+     * Whether the client can download file-valued outputs out-of-band.
+     */
+    download?: boolean;
+    /**
+     * Out-of-band file transfer families supported by this client.
+     */
+    transports?: FileTransport[];
+  };
+
+  /**
+   * Present if the client supports task-augmented requests.
+   */
+  tasks?: {
+    /**
+     * Whether this client supports {@link ListTasksRequest | tasks/list}.
+     */
+    list?: JSONObject;
+    /**
+     * Whether this client supports {@link CancelTaskRequest | tasks/cancel}.
+     */
+    cancel?: JSONObject;
+    /**
+     * Specifies which request types can be augmented with tasks.
+     */
+    requests?: {
+      /**
+       * Task support for sampling-related requests.
+       */
+      sampling?: {
+        /**
+         * Whether the client supports task-augmented `sampling/createMessage` requests.
+         */
+        createMessage?: JSONObject;
+      };
+      /**
+       * Task support for elicitation-related requests.
+       */
+      elicitation?: {
+        /**
+         * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
+         */
+        create?: JSONObject;
+      };
+    };
+  };
+  /**
    * Optional MCP extensions that the client supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
@@ -1737,6 +1792,210 @@ export interface CallToolRequestParams extends InputResponseRequestParams {
 export interface CallToolRequest extends JSONRPCRequest {
   method: "tools/call";
   params: CallToolRequestParams;
+}
+
+/**
+ * A transport family used to move file bytes out-of-band.
+ *
+ * @category Files
+ */
+export type FileTransport = "https";
+
+/**
+ * A declaration that a tool or elicitation field is file-valued.
+ *
+ * @category Files
+ */
+export interface FileInputDescriptor {
+  /**
+   * MIME types or file extensions the client SHOULD use to filter file selection.
+   */
+  accept?: string[];
+  /**
+   * Maximum size in bytes for each individual file.
+   */
+  maxFileSize?: number;
+  /**
+   * Human-readable guidance for the user about why this file is being requested.
+   */
+  purpose?: string;
+}
+
+/**
+ * A map from field name to the file input declaration for that field.
+ *
+ * @category Files
+ */
+export type FileInputMap = { [fieldName: string]: FileInputDescriptor };
+
+/**
+ * Out-of-band URI payload for a file or resource.
+ *
+ * @category Files
+ */
+export interface UriFilePayload {
+  /**
+   * Stable URI for the file within the originating party's namespace.
+   *
+   * This URI identifies a file handle, but does not imply the file is available via resources/read.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
+ * A file-valued output or content item.
+ *
+ * @category Files
+ */
+export interface FileValue {
+  /**
+   * The file URI to resolve through files/getDownload.
+   *
+   * @format uri
+   */
+  uri: string;
+  /**
+   * Optional display filename.
+   */
+  name?: string;
+  /**
+   * Optional MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional size in bytes.
+   */
+  size?: number;
+}
+
+/**
+ * HTTPS descriptor for moving file bytes out-of-band.
+ *
+ * @category Files
+ */
+export interface FileTransferDescriptor {
+  transport: "https";
+  method: "GET" | "PUT" | "POST";
+  /**
+   * The upload or download URL.
+   *
+   * @format uri
+   */
+  url: string;
+  /**
+   * Headers the client SHOULD include when using this descriptor.
+   */
+  headers?: { [key: string]: string };
+  /**
+   * Multipart form details for POST uploads.
+   */
+  multipart?: {
+    /**
+     * The multipart form field that carries the file bytes.
+     */
+    fileField: string;
+    /**
+     * Additional multipart form fields to include.
+     */
+    fields?: { [key: string]: string };
+  };
+  /**
+   * The time after which this descriptor is no longer valid.
+   *
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
+/**
+ * Parameters for preparing an out-of-band file upload.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadRequestParams extends RequestParams {
+  /**
+   * Optional display filename.
+   */
+  name?: string;
+  /**
+   * Optional MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional size in bytes.
+   */
+  size?: number;
+}
+
+/**
+ * Used by the client to prepare an out-of-band upload to the server.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadRequest extends JSONRPCRequest {
+  method: "files/prepareUpload";
+  params: PrepareUploadRequestParams;
+}
+
+/**
+ * The file value and transfer descriptor returned by the server.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadResult extends Result {
+  file: FileValue;
+  transfer: FileTransferDescriptor;
+}
+
+/**
+ * A successful response from the server for a {@link PrepareUploadRequest | files/prepareUpload} request.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadResultResponse extends JSONRPCResultResponse {
+  result: PrepareUploadResult;
+}
+
+/**
+ * Parameters for resolving a generated file for download.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadRequestParams extends RequestParams {
+  /**
+   * The generated file URI to resolve.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
+ * Used by the client to resolve a generated file for download.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadRequest extends JSONRPCRequest {
+  method: "files/getDownload";
+  params: GetDownloadRequestParams;
+}
+
+/**
+ * The transfer descriptor returned by the server for a generated file.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadResult extends Result, FileTransferDescriptor {}
+
+/**
+ * A successful response from the server for a {@link GetDownloadRequest | files/getDownload} request.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadResultResponse extends JSONRPCResultResponse {
+  result: GetDownloadResult;
 }
 
 /**

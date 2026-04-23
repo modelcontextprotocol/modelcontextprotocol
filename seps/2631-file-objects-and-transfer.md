@@ -9,19 +9,19 @@
 
 ## Abstract
 
-This SEP proposes a first-class MCP contract for file inputs and outputs. It
-introduces typed file values, a shared payload model for inline or referenced file
-content, capability negotiation for file transfer modes, and control-plane methods for
-preparing uploads and resolving downloads. The goal is to let clients and servers
-exchange files for tool calls and elicitation flows without assuming a mounted local
-filesystem.
+This SEP extends [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356)
+with out-of-band file transfer and generated file outputs. SEP-2356 defines how tools
+and elicitation forms declare file-valued fields and uses URI strings, including RFC
+2397 `data:` URIs, as the baseline input value. This SEP adds file-transfer URIs,
+capability negotiation for transfer modes, and control-plane methods for preparing
+uploads and resolving downloads.
 
-Under this proposal, tools and elicitation forms can explicitly declare which fields are
-file-valued. Clients can gather files through native pickers, app-owned storage, browser
-uploads, or local filesystems. Servers can receive `FileValue` objects during
-`tools/call` and return `FileValue` objects in tool results or resource reads. Actual
-bytes are transferred either out-of-band through negotiated upload/download endpoints or
-inline as text/base64 when both parties explicitly support bounded inline transfer.
+Under this proposal, clients can still satisfy SEP-2356 file inputs with `data:` URIs.
+When inline transfer is undesirable, clients can instead prepare an upload, receive a
+file URI, upload bytes out of band, and pass that file URI string in the same file-valued
+tool argument or elicitation response field. Servers can also return file URI metadata in
+tool results or resource reads so generated artifacts can be downloaded without forcing
+bytes through JSON-RPC.
 
 ## Motivation
 
@@ -31,6 +31,8 @@ file to the user":
 
 - `resources/read` and `ContentBlock` support server-to-client retrieval patterns, but
   they do not define an out-of-band file transfer path for large or sensitive content.
+- SEP-2356 defines declarative file inputs and inline `data:` URI values, but not
+  upload negotiation, generated file outputs, or download resolution.
 - Tool arguments are arbitrary JSON, which has led implementations toward ad hoc file
   parameter conventions, hosted-storage handles, or inline `base64`.
 
@@ -45,8 +47,10 @@ This gap creates several ecosystem problems:
 
 The design target for this SEP is a minimal interoperable baseline:
 
-- A server can declare that a tool argument or elicitation field is a file.
-- A client can supply that file in an efficient and secure way.
+- A server can use SEP-2356 declarations to identify file-valued tool arguments and
+  elicitation fields.
+- A client can supply those files either as inline `data:` URIs or as negotiated file
+  URI strings.
 - A server can return a file in a result without forcing bytes into the model-visible
   contract.
 
@@ -54,10 +58,8 @@ The design target for this SEP is a minimal interoperable baseline:
 
 ### File Input/Output Declaration and Representation
 
-- Let servers declare file-valued inputs explicitly through sidecar fields adjacent to
-  tool and elicitation schemas.
-- Standardize the representation of file-valued inputs so clients can bind files before
-  `tools/call` without harness-specific parameter rewriting.
+- Reuse SEP-2356 sidecar declarations for file-valued tool and elicitation inputs.
+- Extend the SEP-2356 URI-string input contract with out-of-band file URI values.
 - Standardize the representation of file-valued outputs so generated or transformed
   artifacts can be downloaded, opened, saved, or reused predictably.
 - Keep file identity and metadata in the JSON-RPC control plane while allowing file
@@ -65,9 +67,10 @@ The design target for this SEP is a minimal interoperable baseline:
 
 ### File Transfer Mechanism Negotiation
 
-- Standardize file upload and download in a way that supports both inline text/base64
-  payloads and negotiated out-of-band HTTP upload, including multipart form uploads.
-- Allow both inline text/base64 transfer and out-of-band HTTP transfer as interoperable
+- Standardize file upload and download in a way that supports both SEP-2356 inline
+  `data:` URI values and negotiated out-of-band HTTP upload, including multipart form
+  uploads.
+- Allow both inline `data:` URI transfer and out-of-band HTTP transfer as interoperable
   options, so implementations can choose based on file size, sensitivity, environment,
   and UX.
 
@@ -102,24 +105,24 @@ This SEP defines the following principles:
 
 1. Generic MCP file support **MUST** work across hosted, browser-based, local, and
    gateway-mediated environments.
-2. Raw bytes **MUST** only be sent inline when both parties explicitly negotiate inline
-   transfer support.
+2. File-valued inputs **MUST** preserve SEP-2356's URI-string value contract.
 3. Clients **MAY** source files from local filesystems, browser uploads, app-owned
    storage, cloud drives, or any other user-mediated surface.
 4. File collection **SHOULD** usually happen before the main request is sent, rather
    than through a follow-up elicitation or URL-mode loop.
-5. File-valued inputs **SHOULD** be declared through a sidecar map adjacent to the
-   relevant schema so the schema continues to describe the value shape.
+5. File-valued inputs **SHOULD** be declared through SEP-2356 sidecar maps adjacent to
+   the relevant schema so the schema continues to describe the value shape.
 
 ### 2. Capabilities
 
-Clients that support file objects declare a new `files` capability during initialization:
+Clients that support out-of-band file transfer declare a new `files` capability during
+initialization:
 
 ```json
 {
   "capabilities": {
     "files": {
-      "input": true,
+      "inputTransfer": true,
       "output": true,
       "transports": ["https"]
     }
@@ -129,7 +132,8 @@ Clients that support file objects declare a new `files` capability during initia
 
 Capability fields:
 
-- `input`: the client can provide file-valued inputs to tools or elicitation forms.
+- `inputTransfer`: the client can use out-of-band file URI transfer for SEP-2356
+  file-valued inputs.
 - `output`: the client can receive file-valued outputs from tool results.
 - `transports`: supported out-of-band transport families. This SEP initially defines
   `https`, including multipart form uploads.
@@ -146,13 +150,15 @@ right protocol surface:
 - `elicitation/create` form mode continues to use `requestedSchema` and form response
   content.
 
-This SEP adds new file-specific shapes and threads them through those existing surfaces:
+SEP-2356 defines these input shapes, which this SEP reuses:
 
 - `FileInputDescriptor` and `FileInputMap`: sidecar declarations for file-valued fields.
-- `FilePayload`: a shared payload union for inline text, inline base64 bytes, or a file
-  URI.
-- `FileValue`: the value shape used for file-valued tool arguments, elicitation
-  responses, structured tool output, and file content blocks.
+
+This SEP adds new file-transfer and output shapes and threads them through existing
+surfaces:
+
+- file URI strings: an out-of-band value mode for SEP-2356 file-valued input fields.
+- `FileValue`: metadata for generated or returned files identified by file URI.
 - `FileContent`: a new `ContentBlock` variant that wraps a `FileValue`.
 - `FileResourceContents`: a new `resources/read` resource-content variant for
   file-backed resources.
@@ -161,60 +167,39 @@ This SEP adds new file-specific shapes and threads them through those existing s
 - `files/prepareUpload` and `files/getDownload`: control-plane methods for resolving
   upload and download transfer descriptors.
 
-### 4. File Values and Payloads
+### 4. File Input Values and File Outputs
 
-This SEP introduces a `FileValue` shape: a file-valued input or output with display
-metadata and one payload.
+SEP-2356 file inputs remain URI strings. A file-valued tool argument or elicitation
+response field contains either:
 
-The payload is one of:
+- a `data:` URI as defined by SEP-2356; or
+- a file URI prepared through `files/prepareUpload`.
 
-- inline text, using `text`;
-- inline base64 bytes, using `blob`;
-- an out-of-band file URI, using `uri`.
-
-A `FileValue` wraps optional file metadata around a payload:
+Inline input continues to use SEP-2356's RFC 2397 `data:` URI form:
 
 ```json
-{
-  "type": "file",
-  "name": "tiny.txt",
-  "mimeType": "text/plain",
-  "size": 12,
-  "content": {
-    "text": "Hello world!"
-  }
-}
+"data:text/plain;name=tiny.txt;base64,SGVsbG8gd29ybGQh"
 ```
 
-Binary inline content uses `blob`:
+Out-of-band input uses a file URI string:
 
 ```json
-{
-  "type": "file",
-  "name": "tiny.bin",
-  "mimeType": "application/octet-stream",
-  "size": 12,
-  "content": {
-    "blob": "SGVsbG8gd29ybGQh"
-  }
-}
+"mcp-file://server/file_01HXYZ"
 ```
 
-Out-of-band content uses `uri`:
+For generated files and file content blocks, this SEP introduces `FileValue`: file URI
+plus optional display metadata.
 
 ```json
 {
-  "type": "file",
+  "uri": "mcp-file://server/file_01HYZA",
   "name": "report.pdf",
   "mimeType": "application/pdf",
-  "size": 248123,
-  "content": {
-    "uri": "mcp-file://server/file_01HXYZ"
-  }
+  "size": 248123
 }
 ```
 
-The `uri` payload identifies a file handle, but does not imply the file is available via
+The `uri` identifies a file handle, but does not imply the file is available via
 `resources/read`.
 
 #### URI Namespaces
@@ -235,34 +220,34 @@ Clients **MUST NOT** assume that a file URI can be passed to `resources/read`. S
 
 Rules:
 
-- Inline binary transfer **MUST** use base64 in the `blob` field.
-- Clients and servers **SHOULD** choose between inline and out-of-band transfer based on
-  file size, sensitivity, environment, and user experience.
-- Clients **MAY** decide whether to send a file inline or via out-of-band upload.
-- Servers **MUST** validate and either accept or reject file values using their normal
-  request validation rules.
+- Inline input transfer **MUST** use SEP-2356 `data:` URIs.
+- Out-of-band input transfer **MUST** use file URI strings prepared through
+  `files/prepareUpload`.
+- Clients **MAY** decide whether to send a file as a `data:` URI or via out-of-band
+  upload.
+- Servers **MUST** validate and either accept or reject file URI values using their
+  normal request validation rules.
 
 In pseudocode:
 
 ```ts
-type FilePayload = { text: string } | { blob: string } | { uri: string };
+type FileInputValue = string; // data: URI or file URI
 
 interface FileValue {
-  type: "file";
+  uri: string;
   name?: string;
   mimeType?: string;
   size?: number;
-  content: FilePayload;
 }
 ```
 
 ### 5. Declaring File-Valued Inputs
 
-Tools and elicitation forms declare file-valued fields with a sidecar map keyed by field
-name. The sidecar identifies which existing schema properties should be treated as file
-inputs, while the schema itself continues to describe the value shape.
+Tools and elicitation forms declare file-valued fields using SEP-2356 sidecar maps keyed
+by field name. The sidecar identifies which existing schema properties should be treated
+as file inputs, while the schema itself continues to describe the value shape.
 
-This SEP defines explicit sidecar fields:
+SEP-2356 defines these explicit sidecar fields:
 
 - `inputFiles` on `Tool`, containing the tool's actual file input declarations.
 - `requestedFiles` on form-mode elicitation requests, containing the actual file fields
@@ -277,7 +262,8 @@ A tool with a single file input can be declared as:
     "type": "object",
     "properties": {
       "document": {
-        "type": "object",
+        "type": "string",
+        "format": "uri",
         "description": "The document to analyze."
       }
     },
@@ -303,7 +289,8 @@ For multiple files:
       "documents": {
         "type": "array",
         "items": {
-          "type": "object"
+          "type": "string",
+          "format": "uri"
         },
         "minItems": 2
       }
@@ -331,7 +318,8 @@ Elicitation requests use the same descriptor shape:
       "type": "object",
       "properties": {
         "document": {
-          "type": "object",
+          "type": "string",
+          "format": "uri",
           "title": "Document"
         }
       },
@@ -348,8 +336,8 @@ Elicitation requests use the same descriptor shape:
 ```
 
 Each sidecar entry **MUST** name a property that exists in the associated schema. The
-referenced schema property **MUST** describe either a single `FileValue` value or an array
-whose items are `FileValue` values.
+referenced schema property **MUST** describe either a single URI string value or an array
+whose items are URI string values, as defined by SEP-2356.
 
 File input descriptors MAY include:
 
@@ -386,13 +374,10 @@ The server responds with an upload descriptor:
   "id": 10,
   "result": {
     "file": {
-      "type": "file",
+      "uri": "mcp-file://server/file_01HXYZ",
       "name": "report.pdf",
       "mimeType": "application/pdf",
-      "size": 248123,
-      "content": {
-        "uri": "mcp-file://server/file_01HXYZ"
-      }
+      "size": 248123
     },
     "transfer": {
       "transport": "https",
@@ -414,10 +399,10 @@ The server responds with an upload descriptor:
 ```
 
 The client uploads bytes out-of-band using the provided descriptor, then passes the
-returned `FileValue` in `tools/call` or the elicitation result.
+returned file URI string in `tools/call` or the elicitation result.
 
 If inline transfer is used instead, the client **MAY** skip `files/prepareUpload` and
-send a `FileValue` whose payload contains `text` or `blob`.
+send a SEP-2356 `data:` URI string.
 
 #### Tool Call Upload Lifecycle
 
@@ -435,17 +420,18 @@ sequenceDiagram
     Server-->>Client: { file: FileValue, transfer: HTTPS multipart descriptor }
     Client->>Upload: POST multipart/form-data { fileField: "file", file: report.pdf, token }
     Upload-->>Client: 200 OK
-    Client->>Server: tools/call analyze_document { document: FileValue }
+    Client->>Server: tools/call analyze_document { document: "mcp-file://server/file_01HXYZ" }
     Server-->>Client: CallToolResult content or structuredContent
 
     Note over Client,Server: prepareUpload params: { "name": "report.pdf", "mimeType": "application/pdf", "size": 248123 }
     Note over Client,Upload: multipart body includes the file bytes under transfer.multipart.fileField
-    Note over Client,Server: tools/call arguments.document.content.uri is "mcp-file://server/file_01HXYZ"
+    Note over Client,Server: tools/call arguments.document is "mcp-file://server/file_01HXYZ"
 ```
 
 ### 7. Tool Invocation with Files
 
-After upload preparation, clients pass `FileValue` objects in `tools/call` arguments:
+After upload preparation, clients pass file URI strings in SEP-2356 file-valued
+`tools/call` arguments:
 
 ```json
 {
@@ -455,23 +441,14 @@ After upload preparation, clients pass `FileValue` objects in `tools/call` argum
   "params": {
     "name": "analyze_document",
     "arguments": {
-      "document": {
-        "type": "file",
-        "name": "report.pdf",
-        "mimeType": "application/pdf",
-        "size": 248123,
-        "content": {
-          "uri": "mcp-file://server/file_01HXYZ"
-        }
-      }
+      "document": "mcp-file://server/file_01HXYZ"
     }
   }
 }
 ```
 
-Servers **MUST** treat file arguments as `FileValue` objects whose URI payloads are
-resolved through the upload contract, not as local filesystem paths or storage-specific
-handles.
+Servers **MUST** treat file arguments as URI strings whose file URI values are resolved
+through the upload contract, not as local filesystem paths or storage-specific handles.
 
 ### 8. File Outputs
 
@@ -482,13 +459,10 @@ Tool results may return `FileValue` objects in either `structuredContent` or a n
 {
   "type": "file",
   "file": {
-    "type": "file",
+    "uri": "mcp-file://server/file_01HYZA",
     "name": "annotated-report.pdf",
     "mimeType": "application/pdf",
-    "size": 252001,
-    "content": {
-      "uri": "mcp-file://server/file_01HYZA"
-    }
+    "size": 252001
   }
 }
 ```
@@ -557,7 +531,7 @@ sensitive resource bytes to be returned inline through JSON-RPC.
 Implementations **SHOULD** use standard JSON-RPC errors with the following guidance:
 
 - `-32601` when `files/prepareUpload` or `files/getDownload` is not supported.
-- `-32602` when a file object is malformed or violates declared constraints such as
+- `-32602` when a file URI is malformed or violates declared constraints such as
   `accept` or `maxFileSize`.
 - `-32603` for internal failures resolving upload or download descriptors.
 
@@ -575,25 +549,29 @@ Servers **SHOULD** include machine-readable details when rejecting a file, such 
 
 ### Why Sidecar Declarations
 
-File-ness is an affordance over an input field, not the whole schema for that field. A
-sidecar map lets the schema continue to describe the value the server expects while giving
-clients enough metadata to render file selection UX, validate obvious constraints, and
-bind selected files before `tools/call`.
+File-ness is an affordance over an input field, not the whole schema for that field.
+SEP-2356's sidecar map lets the schema continue to describe the URI string value the
+server expects while giving clients enough metadata to render file selection UX, validate
+obvious constraints, and bind selected files before `tools/call`.
 
-This also keeps the proposal compatible with the direction of SEP-2356: `inputFiles` is
-the actual file-input declaration surface, and `requestedFiles` is its elicitation
-counterpart.
+### Why File URIs for Inputs
 
-### Why File Objects Instead of Bare URIs
+Using URI strings for inputs preserves SEP-2356 compatibility. A server that declares a
+file input through SEP-2356 receives a URI string whether the client chose inline `data:`
+transfer or out-of-band upload. This avoids a split where the same file-valued argument is
+a string for SEP-2356 clients but an object for SEP-2631 clients.
 
-Bare URIs overfit to storage topology. A typed file object gives the protocol a stable,
-model-visible unit that can survive different backing implementations:
+### Why File Values for Outputs
+
+Generated files often need display metadata in addition to a URI. A `FileValue` gives the
+protocol a stable, model-visible output unit that can survive different backing
+implementations:
 
 - local filesystems;
 - hosted upload buckets;
 - application-managed artifacts;
 - transient gateway handles;
-- inline small-file fallback.
+- generated artifacts with display names and MIME types.
 
 ### Why Separate Control Plane from Data Plane
 
@@ -624,7 +602,7 @@ This proposal is additive.
   so, though they would not automatically gain interoperability from this SEP.
 
 If adopted, implementations may gradually migrate from custom file argument conventions
-to the standard file value and payload model defined here.
+to the standard SEP-2356 declaration model and file URI transfer model defined here.
 
 ## Security Implications
 
@@ -646,7 +624,8 @@ This SEP introduces important security considerations:
 
 The main performance impact is positive:
 
-- large files no longer need to be base64-encoded into JSON-RPC messages;
+- large files no longer need to be encoded into inline `data:` URIs inside JSON-RPC
+  messages;
 - intermediaries and servers avoid parsing oversized request bodies for file content;
 - clients can use storage-native upload and download paths.
 
@@ -657,19 +636,20 @@ that tradeoff is preferable to making every file transfer inline.
 
 Conforming implementations should test at least:
 
-- upload preparation followed by successful `tools/call` with a `FileValue`;
+- upload preparation followed by successful `tools/call` with a file URI string;
 - generated file output followed by successful `files/getDownload`;
-- rejection of malformed file objects;
+- rejection of malformed file URI values;
 - rejection of inline files that violate server validation or policy;
 - user-driven file selection from non-filesystem sources such as browser upload surfaces.
 
 ## Alternatives Considered
 
-### 1. Standardize inline `data:` URIs as the primary representation
+### 1. Use only inline `data:` URIs
 
-Rejected because it couples control-plane semantics to raw-byte transport, scales poorly,
-and encourages large model-visible payloads; this SEP still allows inline base64, but
-not as the only or primary representation.
+Rejected as the whole transfer story because it couples control-plane semantics to
+raw-byte transport, scales poorly, and encourages large model-visible payloads. This SEP
+keeps SEP-2356 `data:` URIs as the baseline representation while adding file URIs for
+out-of-band transfer.
 
 ### 2. Use `resources/read` and `ResourceLink` as the entire file contract
 
@@ -696,8 +676,8 @@ Rejected because it preserves the current interoperability gap.
 
 - [PR #2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356):
   an existing MCP proposal for declarative file inputs in tools and elicitation. This SEP
-  adopts its sidecar-declaration model while changing the value representation from inline
-  RFC 2397 `data:` URIs to `FileValue` objects.
+  builds on its sidecar-declaration model and URI-string input value contract by adding
+  negotiated file URI transfer and generated file outputs.
 - OpenAI `openai/fileParams`: prior art for declaratively identifying which tool
   parameters are file-valued. Unlike `openai/fileParams`, this SEP's `inputFiles` map is
   intended to be the actual MCP file-input declaration rather than an app-specific
