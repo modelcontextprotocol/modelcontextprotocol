@@ -89,8 +89,8 @@ Responses are sent in reply to requests, containing either the result or error o
 - Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
 - Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
-- Error codes in the range `-32768` to `-32000` (inclusive) are reserved by JSON-RPC and MCP. Within that range, codes `-32000` to `-32099` are **reserved for MCP-defined errors**; implementations **MUST NOT** use codes in this range for their own application-specific errors.
-- Implementations **MAY** define application-specific error codes outside the range `-32768` to `-32000`.
+- Error codes in the range `-32000` to `-32768` (inclusive) are reserved by JSON-RPC and MCP. Within that range, codes `-32000` to `-32099` are **reserved for MCP-defined errors**; implementations **MUST NOT** use codes in this range for their own application-specific errors.
+- Implementations **MAY** define application-specific error codes outside the range `-32000` to `-32768`.
 
 ### Notifications
 
