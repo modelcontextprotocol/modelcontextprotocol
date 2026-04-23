@@ -3,11 +3,8 @@ title: Elicitation
 ---
 
 <div id="enable-section-numbers" />
-
 <Note>
-
-Elicitation is newly introduced in this version of the MCP specification and its design may evolve in future protocol versions.
-
+TODO: put warning here about MRTR breaking change
 </Note>
 
 The Model Context Protocol (MCP) provides a standardized way for servers to request additional
@@ -101,8 +98,8 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 ## Protocol Messages
 
 ### Elicitation Requests
-
-To request information from a user, servers send an `elicitation/create` request.
+Servers **MAY** request information from a user during the processing of a client request, by sending an `IncompleteResult`
+containing an `elicitation/create` request.
 
 All elicitation requests **MUST** include the following parameters:
 
@@ -485,15 +482,16 @@ sequenceDiagram
     participant Server
 
     Note over Server: Server initiates elicitation
-    Server->>Client: elicitation/create (mode: form)
+    Client->>Server: tools/call(id: 1)
+    note right of Server: Server needs more info
+    Server-->>Client: IncompleteRequest(elicitation/create (mode: form))
 
     Note over User,Client: Present elicitation UI
     User-->>Client: Provide requested information
 
-    Note over Server,Client: Complete request
-    Client->>Server: Return user response
-
-    Note over Server: Continue processing with new information
+    Note over Server,Client: Retry request with new information
+    Client->>Server: tools/call(id: 2, user response)
+    Server-->>Client: Result(id: 2, result)
 ```
 
 ### URL Mode Flow
@@ -505,20 +503,22 @@ sequenceDiagram
     participant Client
     participant Server
 
-    Note over Server: Server initiates elicitation
-    Server->>Client: elicitation/create (mode: url)
+    Client->>Server: tools/call(id: 1)
+    Note right of Server: Server needs more info
+    Server-->>Client: IncompleteRequest(elicitation/create (mode: url))
 
     Client->>User: Present consent to open URL
     User-->>Client: Provide consent
 
     Client->>UserAgent: Open URL
-    Client->>Server: Accept response
+    Client->>Server: tools/call(id: 2, Accept Response))
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
     Server-->>Client: notifications/elicitation/complete (optional)
 
     Note over Server: Continue processing with new information
+    Server-->Client: Result(id: 2, result)
 ```
 
 ### URL Mode With Elicitation Required Error Flow
@@ -554,15 +554,11 @@ sequenceDiagram
 Elicitation responses use a three-action model to clearly distinguish between different user actions. These actions apply to both form and URL elicitation modes.
 
 ```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "action": "accept", // or "decline" or "cancel"
-    "content": {
-      "propertyName": "value",
-      "anotherProperty": 42
-    }
+"result": {
+  "action": "accept", // or "decline" or "cancel"
+  "content": {
+    "propertyName": "value",
+    "anotherProperty": 42
   }
 }
 ```
@@ -591,13 +587,11 @@ Servers should handle each state appropriately:
 ## Implementation Considerations
 
 ### Statefulness
+As of the `2026-06-30` version of the MCP specification, elicitations do not require that the server 
+maintain state about users as the request information and the elicitation response are both sent in the same 
+client-server interaction. 
 
-Most practical uses of elicitation require that the server maintain state about users:
-
-- Whether required information has been collected (e.g., the user's display name via form mode elicitation)
-- Status of resource access (e.g., API keys or a payment flow via URL mode elicitation)
-
-Servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
+However, if state is stored, servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
 
 - State **MUST NOT** be associated with session IDs alone
 - State storage **MUST** be protected against unauthorized access
@@ -662,6 +656,8 @@ Credentials obtained via URL mode elicitation are distinct from the MCP server c
 
 #### Implementation Pattern
 
+TODO: Caitie Redo this section after figuring out what to do with URLElicitationRequiredError.
+
 When implementing external authorization via URL mode elicitation:
 
 1. The MCP server generates an authorization URL, acting as an OAuth client to the third-party service
@@ -717,18 +713,12 @@ Servers **MUST** return standard JSON-RPC errors for common failure cases:
 
 - When a request cannot be processed until an elicitation is completed: `-32042` (`URLElicitationRequiredError`)
 
-Clients **MUST** return standard JSON-RPC errors for common failure cases:
-
-- Server sends an `elicitation/create` request with a mode not declared in client capabilities: `-32602` (Invalid params)
-- Server sends an `elicitation/create` request with no associated client-to-server request: `-32602` (Invalid params)
-
 ## Security Considerations
 
 1. Servers **MUST** bind elicitation requests to the client and user identity
 1. Clients **MUST** provide clear indication of which server is requesting information
 1. Clients **SHOULD** implement user approval controls
 1. Clients **SHOULD** allow users to decline elicitation requests at any time
-1. Clients **SHOULD** implement rate limiting
 1. Clients **SHOULD** present elicitation requests in a way that makes it clear what information is being requested and why
 
 ### Safe URL Handling
