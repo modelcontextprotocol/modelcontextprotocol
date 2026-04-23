@@ -51,7 +51,7 @@
                 "group": "Clients",
                 "pages": [
                   "docs/develop/build-client",
-                  "docs/develop/clients/client-best-practices"
+                  "docs/develop/clients/building-quality-clients"
                 ]
               },
               "docs/sdk",
