@@ -431,6 +431,7 @@
           {
             "group": "Draft",
             "pages": [
+              "seps/1763-interceptors-for-model-context-protocol",
               "seps/2243-http-standardization"
             ]
           }
