@@ -319,7 +319,23 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
-// Implementation-specific JSON-RPC error codes [-32000, -32099]
+// MCP-reserved JSON-RPC error codes [-32000, -32099]
+export const HEADER_MISMATCH = -32001;
+
+/**
+ * An MCP-specific error indicating that HTTP `Mcp-*` headers do not match the corresponding values in the request body, or that required headers are missing or malformed. This error is only applicable to the Streamable HTTP transport.
+ *
+ * @see {@link https://modelcontextprotocol.io/specification/draft/basic/transports#server-validation | Streamable HTTP Server Validation}
+ *
+ * @example Method mismatch
+ * {@includeCode ./examples/HeaderMismatchError/method-mismatch.json}
+ *
+ * @category Errors
+ */
+export interface HeaderMismatchError extends Error {
+  code: typeof HEADER_MISMATCH;
+}
+
 /** @internal */
 export const URL_ELICITATION_REQUIRED = -32042;
 
