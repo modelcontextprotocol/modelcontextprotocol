@@ -354,6 +354,28 @@
                     "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
                     "type": "object"
                 },
+                "files": {
+                    "description": "Present if the client supports file-valued inputs or outputs.",
+                    "properties": {
+                        "inputTransfer": {
+                            "description": "Whether the client can use out-of-band file URI transfer for file-valued inputs.",
+                            "type": "boolean"
+                        },
+                        "output": {
+                            "description": "Whether the client can receive file-valued outputs from tool results.",
+                            "type": "boolean"
+                        },
+                        "transports": {
+                            "description": "Out-of-band file transfer families supported by this client.",
+                            "items": {
+                                "const": "https",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {
@@ -474,6 +496,12 @@
                 },
                 {
                     "$ref": "#/$defs/CallToolRequest"
+                },
+                {
+                    "$ref": "#/$defs/PrepareUploadRequest"
+                },
+                {
+                    "$ref": "#/$defs/GetDownloadRequest"
                 },
                 {
                     "$ref": "#/$defs/GetTaskRequest"
@@ -672,6 +700,9 @@
                 },
                 {
                     "$ref": "#/$defs/AudioContent"
+                },
+                {
+                    "$ref": "#/$defs/FileContent"
                 },
                 {
                     "$ref": "#/$defs/ResourceLink"
@@ -927,6 +958,13 @@
                     "description": "The elicitation mode.",
                     "type": "string"
                 },
+                "requestedFiles": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/FileInputDescriptor"
+                    },
+                    "description": "Declares which requested schema properties are file-valued.",
+                    "type": "object"
+                },
                 "requestedSchema": {
                     "description": "A restricted subset of JSON Schema.\nOnly top-level properties are allowed, without nesting.",
                     "properties": {
@@ -1120,14 +1158,7 @@
                     "description": "Optional annotations for the client."
                 },
                 "resource": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/TextResourceContents"
-                        },
-                        {
-                            "$ref": "#/$defs/BlobResourceContents"
-                        }
-                    ]
+                    "$ref": "#/$defs/ResourceContents"
                 },
                 "type": {
                     "const": "resource",
@@ -1183,21 +1214,352 @@
             ],
             "type": "object"
         },
+        "FileArraySchema": {
+            "description": "Schema for a multi-file elicitation field.",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "items": {
+                    "$ref": "#/$defs/FileSchema"
+                },
+                "maxItems": {
+                    "type": "integer"
+                },
+                "minItems": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "array",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "items",
+                "type"
+            ],
+            "type": "object"
+        },
+        "FileContent": {
+            "description": "A file provided to or from an LLM.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/Annotations",
+                    "description": "Optional annotations for the client."
+                },
+                "file": {
+                    "$ref": "#/$defs/FileValue",
+                    "description": "The file value to render, download, save, or reuse."
+                },
+                "type": {
+                    "const": "file",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "file",
+                "type"
+            ],
+            "type": "object"
+        },
         "FileInputDescriptor": {
-            "description": "Value of the `mcpFile` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property, it marks the property as a\nfile input that clients SHOULD render as a native file picker. Selected\nfiles are encoded as RFC 2397 data URIs.\n\nBoth fields are advisory; servers MUST still validate inputs independently.\n\nFor {@link Tool.inputSchema} properties, `mcpFile` is added directly inside\nthe JSON Schema property definition. For elicitation forms, it appears on\n{@link StringSchema}.",
+            "description": "A declaration that a tool or elicitation field is file-valued.\nValue of the `mcpFile` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property, it marks the property as a\nfile input that clients SHOULD render as a native file picker. Selected\nfiles are encoded as RFC 2397 data URIs.\n\nBoth fields are advisory; servers MUST still validate inputs independently.\n\nFor {@link Tool.inputSchema} properties, `mcpFile` is added directly inside\nthe JSON Schema property definition. For elicitation forms, it appears on\n{@link StringSchema}.",
             "properties": {
                 "accept": {
-                    "description": "Media type patterns and/or file extensions the client SHOULD filter the\npicker to. Supports exact MIME types (`\"image/png\"`), wildcard subtypes\n(`\"image/*\"`), and dot-prefixed extensions (`\".pdf\"`) following the same\ngrammar as the HTML `accept` attribute. Extension entries are picker hints\nonly; server-side validation compares MIME types. If omitted, any file\ntype is accepted.",
+                    "description": "MIME types or file extensions the client SHOULD use to filter file selection.\nMedia type patterns and/or file extensions the client SHOULD filter the\npicker to. Supports exact MIME types (`\"image/png\"`), wildcard subtypes\n(`\"image/*\"`), and dot-prefixed extensions (`\".pdf\"`) following the same\ngrammar as the HTML `accept` attribute. Extension entries are picker hints\nonly; server-side validation compares MIME types. If omitted, any file\ntype is accepted.",
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
                 },
+                "maxFileSize": {
+                    "description": "Maximum size in bytes for each individual file.",
+                    "type": "integer"
+                },
                 "maxSize": {
                     "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads with the `\"file_too_large\"`\nstructured error reason. For files larger than this, servers obtain the\nfile via URL-mode elicitation instead of this property.",
                     "type": "integer"
+                },
+                "purpose": {
+                    "description": "Human-readable guidance for the user about why this file is being requested.",
+                    "type": "string"
                 }
             },
+            "type": "object"
+        },
+        "FileInputMap": {
+            "additionalProperties": {
+                "$ref": "#/$defs/FileInputDescriptor"
+            },
+            "description": "A map from field name to the file input declaration for that field.",
+            "type": "object"
+        },
+        "FileResourceContents": {
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "content": {
+                    "$ref": "#/$defs/UriFilePayload",
+                    "description": "A resource payload represented as an out-of-band file URI."
+                },
+                "mimeType": {
+                    "description": "The MIME type of this resource, if known.",
+                    "type": "string"
+                },
+                "uri": {
+                    "description": "The URI of this resource.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "content",
+                "uri"
+            ],
+            "type": "object"
+        },
+        "FileSchema": {
+            "description": "Schema for a single file-valued elicitation field.",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "const": "object",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        },
+        "FileTransferDescriptor": {
+            "description": "HTTPS descriptor for moving file bytes out-of-band.",
+            "properties": {
+                "expiresAt": {
+                    "description": "The time after which this descriptor is no longer valid.",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "headers": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Headers the client SHOULD include when using this descriptor.",
+                    "type": "object"
+                },
+                "method": {
+                    "enum": [
+                        "GET",
+                        "POST",
+                        "PUT"
+                    ],
+                    "type": "string"
+                },
+                "multipart": {
+                    "description": "Multipart form details for POST uploads.",
+                    "properties": {
+                        "fields": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "Additional multipart form fields to include.",
+                            "type": "object"
+                        },
+                        "fileField": {
+                            "description": "The multipart form field that carries the file bytes.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "fileField"
+                    ],
+                    "type": "object"
+                },
+                "transport": {
+                    "const": "https",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The upload or download URL.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "method",
+                "transport",
+                "url"
+            ],
+            "type": "object"
+        },
+        "FileTransport": {
+            "const": "https",
+            "description": "A transport family used to move file bytes out-of-band.",
+            "type": "string"
+        },
+        "FileValue": {
+            "description": "A file-valued output or content item.",
+            "properties": {
+                "mimeType": {
+                    "description": "Optional MIME type.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Optional display filename.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Optional size in bytes.",
+                    "type": "integer"
+                },
+                "uri": {
+                    "description": "The file URI to resolve through files/getDownload.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
+            ],
+            "type": "object"
+        },
+        "GetDownloadRequest": {
+            "description": "Used by the client to resolve a generated file for download.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/getDownload",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/GetDownloadRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "GetDownloadRequestParams": {
+            "description": "Parameters for resolving a generated file for download.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "uri": {
+                    "description": "The generated file URI to resolve.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
+            ],
+            "type": "object"
+        },
+        "GetDownloadResult": {
+            "description": "The transfer descriptor returned by the server for a generated file.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "expiresAt": {
+                    "description": "The time after which this descriptor is no longer valid.",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "headers": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Headers the client SHOULD include when using this descriptor.",
+                    "type": "object"
+                },
+                "method": {
+                    "enum": [
+                        "GET",
+                        "POST",
+                        "PUT"
+                    ],
+                    "type": "string"
+                },
+                "multipart": {
+                    "description": "Multipart form details for POST uploads.",
+                    "properties": {
+                        "fields": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "Additional multipart form fields to include.",
+                            "type": "object"
+                        },
+                        "fileField": {
+                            "description": "The multipart form field that carries the file bytes.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "fileField"
+                    ],
+                    "type": "object"
+                },
+                "transport": {
+                    "const": "https",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The upload or download URL.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "method",
+                "transport",
+                "url"
+            ],
+            "type": "object"
+        },
+        "GetDownloadResultResponse": {
+            "description": "A successful response from the server for a {@link GetDownloadRequestfiles/getDownload} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/GetDownloadResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
             "type": "object"
         },
         "GetPromptRequest": {
@@ -2620,6 +2982,93 @@
             ],
             "type": "object"
         },
+        "PrepareUploadRequest": {
+            "description": "Used by the client to prepare an out-of-band upload to the server.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/prepareUpload",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/PrepareUploadRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "PrepareUploadRequestParams": {
+            "description": "Parameters for preparing an out-of-band file upload.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "mimeType": {
+                    "description": "Optional MIME type.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Optional display filename.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Optional size in bytes.",
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "PrepareUploadResult": {
+            "description": "The file value and transfer descriptor returned by the server.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "file": {
+                    "$ref": "#/$defs/FileValue"
+                },
+                "transfer": {
+                    "$ref": "#/$defs/FileTransferDescriptor"
+                }
+            },
+            "required": [
+                "file",
+                "transfer"
+            ],
+            "type": "object"
+        },
+        "PrepareUploadResultResponse": {
+            "description": "A successful response from the server for a {@link PrepareUploadRequestfiles/prepareUpload} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/PrepareUploadResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
+            "type": "object"
+        },
         "PrimitiveSchemaDefinition": {
             "anyOf": [
                 {
@@ -2645,9 +3094,15 @@
                 },
                 {
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
+                },
+                {
+                    "$ref": "#/$defs/FileSchema"
+                },
+                {
+                    "$ref": "#/$defs/FileArraySchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "Restricted schema definitions that allow primitive form fields and file-valued fields."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -2880,14 +3335,7 @@
                 },
                 "contents": {
                     "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/$defs/TextResourceContents"
-                            },
-                            {
-                                "$ref": "#/$defs/BlobResourceContents"
-                            }
-                        ]
+                        "$ref": "#/$defs/ResourceContents"
                     },
                     "type": "array"
                 }
@@ -3021,8 +3469,8 @@
             ],
             "type": "object"
         },
-        "ResourceContents": {
-            "description": "The contents of a specific resource or sub-resource.",
+        "ResourceContentMetadata": {
+            "description": "Common metadata for a specific resource or sub-resource.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -3041,6 +3489,20 @@
                 "uri"
             ],
             "type": "object"
+        },
+        "ResourceContents": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/TextResourceContents"
+                },
+                {
+                    "$ref": "#/$defs/BlobResourceContents"
+                },
+                {
+                    "$ref": "#/$defs/FileResourceContents"
+                }
+            ],
+            "description": "The contents of a specific resource or sub-resource."
         },
         "ResourceLink": {
             "description": "A resource that the server is capable of reading, included in a prompt or tool call result.\n\nNote: resource links returned by tools are not guaranteed to appear in the results of {@link ListResourcesRequestresources/list} requests.",
@@ -3536,6 +3998,12 @@
                 },
                 {
                     "$ref": "#/$defs/CallToolResult"
+                },
+                {
+                    "$ref": "#/$defs/PrepareUploadResult"
+                },
+                {
+                    "$ref": "#/$defs/GetDownloadResult"
                 },
                 {
                     "$ref": "#/$defs/CreateTaskResult"
@@ -4036,6 +4504,13 @@
                     },
                     "type": "array"
                 },
+                "inputFiles": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/FileInputDescriptor"
+                    },
+                    "description": "Declares which input schema properties are file-valued.",
+                    "type": "object"
+                },
                 "inputSchema": {
                     "description": "A JSON Schema object defining the expected parameters for the tool.",
                     "properties": {
@@ -4460,6 +4935,20 @@
             "required": [
                 "enum",
                 "type"
+            ],
+            "type": "object"
+        },
+        "UriFilePayload": {
+            "description": "Out-of-band URI payload for a file or resource.",
+            "properties": {
+                "uri": {
+                    "description": "Stable URI for the file within the originating party's namespace.\n\nThis URI identifies a file handle, but does not imply the file is available via resources/read.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         }

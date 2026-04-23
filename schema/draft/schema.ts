@@ -546,6 +546,24 @@ export interface ClientCapabilities {
   };
 
   /**
+   * Present if the client supports file-valued inputs or outputs.
+   */
+  files?: {
+    /**
+     * Whether the client can use out-of-band file URI transfer for file-valued inputs.
+     */
+    inputTransfer?: boolean;
+    /**
+     * Whether the client can receive file-valued outputs from tool results.
+     */
+    output?: boolean;
+    /**
+     * Out-of-band file transfer families supported by this client.
+     */
+    transports?: FileTransport[];
+  };
+
+  /**
    * Present if the client supports task-augmented requests.
    */
   tasks?: {
@@ -1043,7 +1061,7 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  * @category `resources/read`
  */
 export interface ReadResourceResult extends Result {
-  contents: (TextResourceContents | BlobResourceContents)[];
+  contents: ResourceContents[];
 }
 
 /**
@@ -1247,11 +1265,11 @@ export interface ResourceTemplate extends BaseMetadata, Icons {
 }
 
 /**
- * The contents of a specific resource or sub-resource.
+ * Common metadata for a specific resource or sub-resource.
  *
  * @internal
  */
-export interface ResourceContents {
+export interface ResourceContentMetadata {
   /**
    * The URI of this resource.
    *
@@ -1267,12 +1285,22 @@ export interface ResourceContents {
 }
 
 /**
+ * The contents of a specific resource or sub-resource.
+ *
+ * @category Content
+ */
+export type ResourceContents =
+  | TextResourceContents
+  | BlobResourceContents
+  | FileResourceContents;
+
+/**
  * @example Text file contents
  * {@includeCode ./examples/TextResourceContents/text-file-contents.json}
  *
  * @category Content
  */
-export interface TextResourceContents extends ResourceContents {
+export interface TextResourceContents extends ResourceContentMetadata {
   /**
    * The text of the item. This must only be set if the item can actually be represented as text (not binary data).
    */
@@ -1285,13 +1313,23 @@ export interface TextResourceContents extends ResourceContents {
  *
  * @category Content
  */
-export interface BlobResourceContents extends ResourceContents {
+export interface BlobResourceContents extends ResourceContentMetadata {
   /**
    * A base64-encoded string representing the binary data of the item.
    *
    * @format byte
    */
   blob: string;
+}
+
+/**
+ * @category Content
+ */
+export interface FileResourceContents extends ResourceContentMetadata {
+  /**
+   * A resource payload represented as an out-of-band file URI.
+   */
+  content: UriFilePayload;
 }
 
 /* Prompts */
@@ -1473,7 +1511,7 @@ export interface ResourceLink extends Resource {
  */
 export interface EmbeddedResource {
   type: "resource";
-  resource: TextResourceContents | BlobResourceContents;
+  resource: ResourceContents;
 
   /**
    * Optional annotations for the client.
@@ -1625,6 +1663,210 @@ export interface CallToolRequest extends JSONRPCRequest {
 }
 
 /**
+ * A transport family used to move file bytes out-of-band.
+ *
+ * @category Files
+ */
+export type FileTransport = "https";
+
+/**
+ * A declaration that a tool or elicitation field is file-valued.
+ *
+ * @category Files
+ */
+export interface FileInputDescriptor {
+  /**
+   * MIME types or file extensions the client SHOULD use to filter file selection.
+   */
+  accept?: string[];
+  /**
+   * Maximum size in bytes for each individual file.
+   */
+  maxFileSize?: number;
+  /**
+   * Human-readable guidance for the user about why this file is being requested.
+   */
+  purpose?: string;
+}
+
+/**
+ * A map from field name to the file input declaration for that field.
+ *
+ * @category Files
+ */
+export type FileInputMap = { [fieldName: string]: FileInputDescriptor };
+
+/**
+ * Out-of-band URI payload for a file or resource.
+ *
+ * @category Files
+ */
+export interface UriFilePayload {
+  /**
+   * Stable URI for the file within the originating party's namespace.
+   *
+   * This URI identifies a file handle, but does not imply the file is available via resources/read.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
+ * A file-valued output or content item.
+ *
+ * @category Files
+ */
+export interface FileValue {
+  /**
+   * The file URI to resolve through files/getDownload.
+   *
+   * @format uri
+   */
+  uri: string;
+  /**
+   * Optional display filename.
+   */
+  name?: string;
+  /**
+   * Optional MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional size in bytes.
+   */
+  size?: number;
+}
+
+/**
+ * HTTPS descriptor for moving file bytes out-of-band.
+ *
+ * @category Files
+ */
+export interface FileTransferDescriptor {
+  transport: "https";
+  method: "GET" | "PUT" | "POST";
+  /**
+   * The upload or download URL.
+   *
+   * @format uri
+   */
+  url: string;
+  /**
+   * Headers the client SHOULD include when using this descriptor.
+   */
+  headers?: { [key: string]: string };
+  /**
+   * Multipart form details for POST uploads.
+   */
+  multipart?: {
+    /**
+     * The multipart form field that carries the file bytes.
+     */
+    fileField: string;
+    /**
+     * Additional multipart form fields to include.
+     */
+    fields?: { [key: string]: string };
+  };
+  /**
+   * The time after which this descriptor is no longer valid.
+   *
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
+/**
+ * Parameters for preparing an out-of-band file upload.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadRequestParams extends RequestParams {
+  /**
+   * Optional display filename.
+   */
+  name?: string;
+  /**
+   * Optional MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional size in bytes.
+   */
+  size?: number;
+}
+
+/**
+ * Used by the client to prepare an out-of-band upload to the server.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadRequest extends JSONRPCRequest {
+  method: "files/prepareUpload";
+  params: PrepareUploadRequestParams;
+}
+
+/**
+ * The file value and transfer descriptor returned by the server.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadResult extends Result {
+  file: FileValue;
+  transfer: FileTransferDescriptor;
+}
+
+/**
+ * A successful response from the server for a {@link PrepareUploadRequest | files/prepareUpload} request.
+ *
+ * @category `files/prepareUpload`
+ */
+export interface PrepareUploadResultResponse extends JSONRPCResultResponse {
+  result: PrepareUploadResult;
+}
+
+/**
+ * Parameters for resolving a generated file for download.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadRequestParams extends RequestParams {
+  /**
+   * The generated file URI to resolve.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
+ * Used by the client to resolve a generated file for download.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadRequest extends JSONRPCRequest {
+  method: "files/getDownload";
+  params: GetDownloadRequestParams;
+}
+
+/**
+ * The transfer descriptor returned by the server for a generated file.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadResult extends Result, FileTransferDescriptor {}
+
+/**
+ * A successful response from the server for a {@link GetDownloadRequest | files/getDownload} request.
+ *
+ * @category `files/getDownload`
+ */
+export interface GetDownloadResultResponse extends JSONRPCResultResponse {
+  result: GetDownloadResult;
+}
+
+/**
  * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
  *
  * @example Tools list changed
@@ -1750,6 +1992,11 @@ export interface Tool extends BaseMetadata, Icons {
     properties?: { [key: string]: JSONValue };
     required?: string[];
   };
+
+  /**
+   * Declares which input schema properties are file-valued.
+   */
+  inputFiles?: FileInputMap;
 
   /**
    * Execution-related properties for this tool.
@@ -2364,6 +2611,7 @@ export type ContentBlock =
   | TextContent
   | ImageContent
   | AudioContent
+  | FileContent
   | ResourceLink
   | EmbeddedResource;
 
@@ -2444,6 +2692,27 @@ export interface AudioContent {
    * The MIME type of the audio. Different providers may support different audio types.
    */
   mimeType: string;
+
+  /**
+   * Optional annotations for the client.
+   */
+  annotations?: Annotations;
+
+  _meta?: MetaObject;
+}
+
+/**
+ * A file provided to or from an LLM.
+ *
+ * @category Content
+ */
+export interface FileContent {
+  type: "file";
+
+  /**
+   * The file value to render, download, save, or reuse.
+   */
+  file: FileValue;
 
   /**
    * Optional annotations for the client.
@@ -2869,6 +3138,11 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
     };
     required?: string[];
   };
+
+  /**
+   * Declares which requested schema properties are file-valued.
+   */
+  requestedFiles?: FileInputMap;
 }
 
 /**
@@ -2927,8 +3201,7 @@ export interface ElicitRequest extends JSONRPCRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions that allow primitive form fields and file-valued fields.
  *
  * @category `elicitation/create`
  */
@@ -2936,7 +3209,34 @@ export type PrimitiveSchemaDefinition =
   | StringSchema
   | NumberSchema
   | BooleanSchema
-  | EnumSchema;
+  | EnumSchema
+  | FileSchema
+  | FileArraySchema;
+
+/**
+ * Schema for a single file-valued elicitation field.
+ *
+ * @category `elicitation/create`
+ */
+export interface FileSchema {
+  type: "object";
+  title?: string;
+  description?: string;
+}
+
+/**
+ * Schema for a multi-file elicitation field.
+ *
+ * @category `elicitation/create`
+ */
+export interface FileArraySchema {
+  type: "array";
+  title?: string;
+  description?: string;
+  minItems?: number;
+  maxItems?: number;
+  items: FileSchema;
+}
 
 /**
  * @example Email input schema
@@ -3220,7 +3520,9 @@ export interface ElicitResult extends Result {
    * Contains values matching the requested schema.
    * Omitted for out-of-band mode responses.
    */
-  content?: { [key: string]: string | number | boolean | string[] };
+  content?: {
+    [key: string]: string | number | boolean | string[];
+  };
 }
 
 /**
@@ -3268,6 +3570,8 @@ export type ClientRequest =
   | SubscribeRequest
   | UnsubscribeRequest
   | CallToolRequest
+  | PrepareUploadRequest
+  | GetDownloadRequest
   | ListToolsRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
@@ -3328,6 +3632,8 @@ export type ServerResult =
   | ListResourcesResult
   | ReadResourceResult
   | CallToolResult
+  | PrepareUploadResult
+  | GetDownloadResult
   | CreateTaskResult
   | ListToolsResult
   | GetTaskResult
