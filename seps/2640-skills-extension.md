@@ -1,5 +1,6 @@
 # SEP-2640: Skills Extension
 
+- **Status**: Draft
 - **Type**: Extensions Track
 - **Created**: 2026-04-23
 - **Author(s)**: Peter Alexander (@pja-ant), Ola Hungerford (@olaservo),
