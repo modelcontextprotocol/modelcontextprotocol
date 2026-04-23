@@ -1,11 +1,11 @@
-# SEP-0000: Progressive Tool Disclosure
+# SEP-2636: Progressive Tool Disclosure
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-04-21
-- **Author(s)**: Sai Prakash <sylonzero@gmail.com> (@SylonZero)
+- **Author(s)**: Sai Prakash (@SylonZero)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: TBD
+- **PR**: 2636
 
 ## Abstract
 
