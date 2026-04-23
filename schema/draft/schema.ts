@@ -161,7 +161,7 @@ export interface Result {
    *
    * @default "complete"
    */
-  resultType?: ResultType;
+  resultType: ResultType;
   [key: string]: unknown;
 }
 
