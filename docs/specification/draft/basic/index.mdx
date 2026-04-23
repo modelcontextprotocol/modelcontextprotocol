@@ -79,7 +79,7 @@ can use to determine how to parse and handle the `result` object.
 
 - A `resultType` of `"complete"` the request completed successfully and the result contains the final content.
 - A `resultType` of `"incomplete"` the request is incomplete and more information is needed to process the request. The result contains an `IncompleteResult` object with additional information needed.
-- If `resultType` is not specified, clients **MUST** assume a default value of `"complete"`.
+- If `resultType` is not specified, clients **MUST** assume a default value of `"complete"` for backwards compatibility.
 
 #### Error Responses
 

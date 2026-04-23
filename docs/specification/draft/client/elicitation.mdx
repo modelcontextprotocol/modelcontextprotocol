@@ -481,7 +481,6 @@ sequenceDiagram
     participant Client
     participant Server
 
-    Note over Server: Server initiates elicitation
     Client->>Server: tools/call(id: 1)
     note right of Server: Server needs more info
     Server-->>Client: IncompleteRequest(elicitation/create (mode: form))
