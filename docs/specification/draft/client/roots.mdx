@@ -59,14 +59,13 @@ changes.
 
 ### Listing Roots
 
-To retrieve roots, servers send a `roots/list` request:
+To retrieve roots during the processing of a client request, servers send an `IncompleteResponse` 
+containing a `roots/list` request:
 
 **Request:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "roots/list"
 }
 ```
@@ -75,8 +74,6 @@ To retrieve roots, servers send a `roots/list` request:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "roots": [
       {
@@ -107,8 +104,9 @@ sequenceDiagram
     participant Client
 
     Note over Server,Client: Discovery
-    Server->>Client: roots/list
-    Client-->>Server: Available roots
+    Client->>Server: tool/call(id: 1)
+    Server-->>Client: IncompleteResponse(roots/list)
+    Client->>Server: tool/call(id: 2, Available roots)
 
     Note over Server,Client: Changes
     Client--)Server: notifications/roots/list_changed
@@ -153,28 +151,8 @@ Example roots for different use cases:
 ```
 
 ## Error Handling
-
-Clients **SHOULD** return standard JSON-RPC errors for common failure cases:
-
-- Client does not support roots: `-32601` (Method not found)
-- Server sends a `roots/list` request with no associated client-to-server request: `-32602` (Invalid params)
-- Internal errors: `-32603`
-
-Example error:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32601,
-    "message": "Roots not supported",
-    "data": {
-      "reason": "Client does not have roots capability"
-    }
-  }
-}
-```
+If an error occurs, the client does not need to replay the initial call with an error message 
+as the server is not waiting for a response with the `IncompleteResponse` pattern.
 
 ## Security Considerations
 
