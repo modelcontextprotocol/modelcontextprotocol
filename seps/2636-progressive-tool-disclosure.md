@@ -23,17 +23,17 @@ In every MCP host that exposes tools to an LLM today, this entire payload is mat
 
 A worked example from the MindStaq MCP service (project, task, OKR, and issue management for a SaaS work-management platform):
 
-| Metric | Value |
-|---|---|
-| Distinct tools exposed | ~25 |
-| Mean tool record size | ~700 tokens |
-| Per-turn `tools/list` context cost | ~17,500 tokens |
-| Tools actually invoked per turn (p95) | 0–2 |
-| Wasted tokens per turn (p95) | ~16,000+ |
+| Metric                                | Value          |
+| ------------------------------------- | -------------- |
+| Distinct tools exposed                | ~25            |
+| Mean tool record size                 | ~700 tokens    |
+| Per-turn `tools/list` context cost    | ~17,500 tokens |
+| Tools actually invoked per turn (p95) | 0–2            |
+| Wasted tokens per turn (p95)          | ~16,000+       |
 
 The community has converged on the symptom from several angles:
 
-- **[SEP-1821](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821)** (Dynamic Tool Discovery, Egor Orlov) adds a `query` parameter so `tools/list` returns a filtered subset. This reduces *how many* records are returned but does not reduce the per-record payload — matching tools still ship full schemas.
+- **[SEP-1821](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1821)** (Dynamic Tool Discovery, Egor Orlov) adds a `query` parameter so `tools/list` returns a filtered subset. This reduces _how many_ records are returned but does not reduce the per-record payload — matching tools still ship full schemas.
 - **[SEP-1862](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1862)** (Tool Resolution, Nick Cooper) adds `tools/resolve` for refining per-call annotations once arguments are known. Orthogonal to upfront catalog cost.
 - **[SEP-1881](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1881)** (Scope-Filtered Tool Discovery, Kevin Gao) standardises auth-driven filtering. Also orthogonal: a user with full scopes legitimately holding 200 tools is not helped.
 - **[Issue #2470](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2470)** (Capability-Aware Tool Presentation) proposes per-tool tier hints. Reduces individual record size but leaves the catalog enumeration model unchanged.
@@ -172,7 +172,7 @@ interface DescribeToolsRequest {
 
 ```typescript
 interface DescribeToolsResult {
-  tools: Tool[];  // existing Tool type, schemas included
+  tools: Tool[]; // existing Tool type, schemas included
 }
 ```
 
@@ -190,7 +190,7 @@ The `-32002` code is in the JSON-RPC server-defined range (`-32000` to `-32099`)
 
 A trivial server-side polyfill — implementing `tools/catalog` and `tools/describe` as views over an existing `tools/list` — is provided in the reference implementation. This means SDK authors can ship the new methods with no application-code changes for servers that already implement `tools/list`.
 
-Clients SHOULD prefer `tools/catalog` + `tools/describe` over `tools/list` whenever the server advertises the capability, *unless* the client genuinely needs the full catalog (e.g., a tool inspector UI).
+Clients SHOULD prefer `tools/catalog` + `tools/describe` over `tools/list` whenever the server advertises the capability, _unless_ the client genuinely needs the full catalog (e.g., a tool inspector UI).
 
 ### 5. Schema Hash Canonicalization
 
@@ -325,15 +325,15 @@ Out of scope for this prototype, intentionally:
 
 The intended impact is a substantial reduction in per-turn context cost for hosts that route tools through MCP. The reference implementation ships a benchmark over a 37-tool synthetic catalog modelled on the MindStaq MCP service; the table below is its actual output, measured with the `cl100k_base` tokenizer via `js-tiktoken`.
 
-| Scenario                                  | Bytes  | Tokens (cl100k_base) | Savings vs baseline |
-| ----------------------------------------- | -----: | -------------------: | ------------------: |
-| Baseline `tools/list` (n=37)              | 20,709 |                5,238 |                   — |
-| `tools/catalog` only                      |  9,639 |                2,919 |               44.3% |
-| `tools/catalog` + `tools/describe(k=1)`   | 10,796 |                3,223 |               38.5% |
-| `tools/catalog` + `tools/describe(k=3)`   | 11,771 |                3,458 |               34.0% |
-| `tools/catalog` + `tools/describe(k=5)`   | 12,938 |                3,767 |               28.1% |
-| `tools/catalog` + `tools/describe(k=10)`  | 16,654 |                4,732 |                9.7% |
-| Steady state (cache hit, catalog only)    |  9,639 |                2,919 |               44.3% |
+| Scenario                                 |  Bytes | Tokens (cl100k_base) | Savings vs baseline |
+| ---------------------------------------- | -----: | -------------------: | ------------------: |
+| Baseline `tools/list` (n=37)             | 20,709 |                5,238 |                   — |
+| `tools/catalog` only                     |  9,639 |                2,919 |               44.3% |
+| `tools/catalog` + `tools/describe(k=1)`  | 10,796 |                3,223 |               38.5% |
+| `tools/catalog` + `tools/describe(k=3)`  | 11,771 |                3,458 |               34.0% |
+| `tools/catalog` + `tools/describe(k=5)`  | 12,938 |                3,767 |               28.1% |
+| `tools/catalog` + `tools/describe(k=10)` | 16,654 |                4,732 |                9.7% |
+| Steady state (cache hit, catalog only)   |  9,639 |                2,919 |               44.3% |
 
 `cl100k_base` is the encoding used by GPT-3.5-turbo, GPT-4, and GPT-4o. It is a defensible proxy for Anthropic's tokenizer on schema-heavy JSON payloads — the two differ by single-digit percentages on the workloads measured here. Reviewers can reproduce the table exactly with `cd examples/progressive-disclosure && npm install && npm run bench`. Two heuristic estimators (chars/4 and JSON-aware) are retained in `bench/tokenize.ts` for sanity-check comparison; the SEP cites only the tiktoken column.
 
@@ -341,7 +341,7 @@ The shape of the curve is the meaningful artifact: at the typical operating poin
 
 For larger catalogs the relative improvement holds and the absolute win grows: a 200-tool catalog of similar shape would be on the order of ~28k baseline tokens, ~16k catalog-only — a ~12k token saving on every turn that the cache hits.
 
-There is a per-turn cost: `tools/describe` adds one additional round trip when the agent picks tools whose schemas are not yet cached. For stdio transports this is sub-millisecond; for network transports it is a single HTTP request. Steady state (with client-side caching as demonstrated in the reference implementation) is one round trip per *new* tool, not per turn.
+There is a per-turn cost: `tools/describe` adds one additional round trip when the agent picks tools whose schemas are not yet cached. For stdio transports this is sub-millisecond; for network transports it is a single HTTP request. Steady state (with client-side caching as demonstrated in the reference implementation) is one round trip per _new_ tool, not per turn.
 
 ## Testing Plan
 
