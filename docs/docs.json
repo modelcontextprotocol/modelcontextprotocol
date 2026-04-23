@@ -426,7 +426,8 @@
             "group": "Draft",
             "pages": [
               "seps/2243-http-standardization",
-              "seps/2356-declarative-file-inputs-for-tools-and-elicitation"
+              "seps/2356-declarative-file-inputs-for-tools-and-elicitation",
+              "seps/2631-file-objects-and-transfer"
             ]
           }
         ]
