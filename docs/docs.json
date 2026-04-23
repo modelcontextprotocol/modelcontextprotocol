@@ -431,7 +431,8 @@
           {
             "group": "Draft",
             "pages": [
-              "seps/2243-http-standardization"
+              "seps/2243-http-standardization",
+              "seps/2567-sessionless-mcp"
             ]
           }
         ]
@@ -468,9 +469,7 @@
             "group": "Working Group Charters",
             "pages": [
               "community/inspector-v2/charter",
-              "community/interceptors/charter",
               "community/server-card/charter",
-              "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
             ]
           },

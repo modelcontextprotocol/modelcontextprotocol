@@ -121,8 +121,6 @@ MCP endpoint.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
      JSON-RPC _response_. These messages **MUST** relate to the originating client
      _request_.
-   - The server **MAY** terminate the SSE stream if the [session](#session-management)
-     expires.
    - After the JSON-RPC _response_ has been sent, the server **SHOULD** terminate the
      SSE stream.
    - Disconnection **MAY** occur at any time (e.g., due to network conditions).
@@ -174,9 +172,7 @@ lost:
 
 1. Servers **MAY** attach an `id` field to their SSE events, as described in the
    [SSE standard](https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation).
-   - If present, the ID **MUST** be globally unique across all streams within that
-     [session](#session-management)—or all streams with that specific client, if session
-     management is not in use.
+   - If present, the ID **MUST** be globally unique across all streams.
    - Event IDs **SHOULD** encode sufficient information to identify the originating
      stream, enabling the server to correlate a `Last-Event-ID` to the correct stream.
 2. If the client wishes to resume after a disconnection (whether due to network failure
@@ -195,38 +191,6 @@ lost:
 In other words, these event IDs should be assigned by servers on a _per-stream_ basis, to
 act as a cursor within that particular stream.
 
-### Session Management
-
-An MCP "session" consists of logically related interactions between a client and a
-server, beginning with the [initialization phase](/specification/draft/basic/lifecycle). To support
-servers which want to establish stateful sessions:
-
-1. A server using the Streamable HTTP transport **MAY** assign a session ID at
-   initialization time, by including it in an `MCP-Session-Id` header on the HTTP
-   response containing the `InitializeResult`.
-   - The session ID **SHOULD** be globally unique and cryptographically secure (e.g., a
-     securely generated UUID, a JWT, or a cryptographic hash).
-   - The session ID **MUST** only contain visible ASCII characters (ranging from 0x21 to
-     0x7E).
-   - The client **MUST** handle the session ID in a secure manner, see [Session Hijacking mitigations](/specification/draft/basic/security_best_practices#session-hijacking) for more details.
-2. If an `MCP-Session-Id` is returned by the server during initialization, clients using
-   the Streamable HTTP transport **MUST** include it in the `MCP-Session-Id` header on
-   all of their subsequent HTTP requests.
-   - Servers that require a session ID **SHOULD** respond to requests without an
-     `MCP-Session-Id` header (other than initialization) with HTTP 400 Bad Request.
-3. The server **MAY** terminate the session at any time, after which it **MUST** respond
-   to requests containing that session ID with HTTP 404 Not Found.
-4. When a client receives HTTP 404 in response to a request containing an
-   `MCP-Session-Id`, it **MUST** start a new session by sending a new `InitializeRequest`
-   without a session ID attached.
-5. Clients that no longer need a particular session (e.g., because the user is leaving
-   the client application) **SHOULD** send an HTTP DELETE to the MCP endpoint with the
-   `MCP-Session-Id` header, to explicitly terminate the session.
-   - The server **MAY** respond to this request with HTTP 405 Method Not Allowed,
-     indicating that the server does not allow clients to terminate sessions. If the
-     server returns HTTP 405, it **MUST** include an `Allow` header listing the methods
-     it does support.
-
 ### Sequence Diagram
 
 ```mermaid
@@ -237,13 +201,13 @@ sequenceDiagram
     note over Client, Server: initialization
 
     Client->>+Server: POST InitializeRequest
-    Server->>-Client: InitializeResponse<br>MCP-Session-Id: 1868a90c...
+    Server->>-Client: InitializeResponse
 
-    Client->>+Server: POST InitializedNotification<br>MCP-Session-Id: 1868a90c...
+    Client->>+Server: POST InitializedNotification
     Server->>-Client: 202 Accepted
 
     note over Client, Server: client requests
-    Client->>+Server: POST ... request ...<br>MCP-Session-Id: 1868a90c...
+    Client->>+Server: POST ... request ...
 
     alt single HTTP response
       Server->>Client: ... response ...
@@ -256,11 +220,11 @@ sequenceDiagram
     deactivate Server
 
     note over Client, Server: client notifications/responses
-    Client->>+Server: POST ... notification/response ...<br>MCP-Session-Id: 1868a90c...
+    Client->>+Server: POST ... notification/response ...
     Server->>-Client: 202 Accepted
 
     note over Client, Server: server requests
-    Client->>+Server: GET<br>MCP-Session-Id: 1868a90c...
+    Client->>+Server: GET
     loop while connection remains open
         Server-)Client: ... SSE messages from server ...
     end
@@ -306,7 +270,6 @@ These headers are **REQUIRED** for compliance.
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
 Mcp-Name: get_weather
 
@@ -328,7 +291,6 @@ Mcp-Name: get_weather
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: resources/read
 Mcp-Name: file:///projects/myapp/config.json
 
@@ -369,7 +331,6 @@ Mcp-Method: initialize
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: notifications/initialized
 
 {
@@ -486,7 +447,6 @@ including the tool name and the reason for rejection.
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
 Mcp-Method: tools/call
 Mcp-Name: execute_sql
 Mcp-Param-Region: us-west1

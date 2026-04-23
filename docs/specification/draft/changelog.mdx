@@ -9,7 +9,7 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 
 ## Major changes
 
-N/A
+1. Remove protocol-level sessions and the `Mcp-Session-Id` header from the Streamable HTTP transport. List endpoints (`tools/list`, `resources/list`, `prompts/list`) no longer vary per-connection. Servers that need cross-call state use explicit, server-minted handles passed as ordinary tool arguments ([SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567)).
 
 ## Minor changes
 
