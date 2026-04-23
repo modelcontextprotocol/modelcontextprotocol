@@ -431,7 +431,8 @@
           {
             "group": "Draft",
             "pages": [
-              "seps/2243-http-standardization"
+              "seps/2243-http-standardization",
+              "seps/2557-adapt-tasks-for-stateless-and-sessionless-protocol"
             ]
           }
         ]
