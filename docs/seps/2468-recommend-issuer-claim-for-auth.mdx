@@ -81,7 +81,7 @@ Requiring unique redirect_uri per issuer
 
 ## Backward Compatibility
 
-This is additive security and does not impact backwards incompatibilities.
+The `iss` parameter is additive on the wire. Client validation introduces a behavioral change for hosts whose authorization server advertises `authorization_response_iss_parameter_supported: true` but whose callback handling does not yet pass `iss` to the SDK; those flows will be rejected until the host extracts `iss` from the redirect URI alongside `code`. SDKs are expected to widen callback signatures additively (e.g., an optional `iss` argument) so existing call sites continue to compile. Authorization servers that do not advertise support are unaffected.
 
 ## Security Implications
 
