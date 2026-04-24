@@ -1792,6 +1792,9 @@ export interface Tool extends BaseMetadata, Icons {
  * the JSON Schema property definition. For elicitation forms, it appears on
  * {@link StringSchema}.
  *
+ * @example Rejecting an oversized file input
+ * {@includeCode ./examples/CallToolResult/file-input-too-large.json}
+ *
  * @category `tools/list`
  */
 export interface FileInputDescriptor {
@@ -1809,6 +1812,8 @@ export interface FileInputDescriptor {
    * Maximum decoded file size in bytes that the server will accept inline as a
    * data URI. Servers MUST reject larger payloads. For files larger than this,
    * servers obtain the file via URL-mode elicitation instead of this property.
+   * If omitted, the server accepts any size it is willing to buffer; clients
+   * SHOULD warn above an implementation-defined threshold.
    */
   maxSize?: number;
 }

@@ -1194,7 +1194,7 @@
                     "type": "array"
                 },
                 "maxSize": {
-                    "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads. For files larger than this,\nservers obtain the file via URL-mode elicitation instead of this property.",
+                    "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads. For files larger than this,\nservers obtain the file via URL-mode elicitation instead of this property.\nIf omitted, the server accepts any size it is willing to buffer; clients\nSHOULD warn above an implementation-defined threshold.",
                     "type": "integer"
                 }
             },

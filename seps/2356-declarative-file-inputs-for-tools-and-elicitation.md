@@ -3,8 +3,8 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-03-04
-- **Author(s)**: TBD
-- **Sponsor**: None
+- **Author(s)**: Olivier Chafik (@ochafik)
+- **Sponsor**: Den Delimarsky (@localden)
 - **PR**: [#2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356)
 
 ## Abstract
@@ -43,6 +43,15 @@ unsatisfying ways:
    endpoint, the user uploads there first, and passes a returned handle to the
    tool. This works but requires the server to run an HTTP listener and the
    client to know about it, neither of which MCP standardizes today.
+
+These workarounds are deployed today. One server author [on this SEP's
+discussion thread][gumbees-comment] describes their production instance of
+pattern 3: the tool description instructs the model to `curl` the file to a
+per-request staging URL the server mints, then pass the returned attachment
+URL as the tool argument. It works, but every server reinvents the staging
+endpoint and the model has to be coached through it in prose.
+
+[gumbees-comment]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356#issuecomment-4193417740
 
 Meanwhile, the client is the party best positioned to solve this problem. It
 already has native UI, knows the user's filesystem, and can trivially show a
@@ -189,7 +198,9 @@ interface FileInputDescriptor {
 
   /**
    * Maximum decoded file size in bytes that the server will accept inline as
-   * a data URI. Servers MUST reject larger payloads.
+   * a data URI. Servers MUST reject larger payloads. If omitted, the server
+   * accepts any size it is willing to buffer; clients SHOULD warn above an
+   * implementation-defined threshold.
    */
   maxSize?: number;
 }
@@ -197,6 +208,17 @@ interface FileInputDescriptor {
 
 Clients that encounter `mcpFile` on a schema that does not match the permitted
 shape **SHOULD** ignore the keyword and render the field as an ordinary input.
+For example, the keyword below is misplaced (the property is not
+`format: "uri"`) and a client treats `notes` as a plain string field:
+
+```json
+{
+  "notes": {
+    "type": "string",
+    "mcpFile": { "accept": ["text/plain"] }
+  }
+}
+```
 
 The standard `required` array governs whether the file argument is mandatory,
 as with any other property.
@@ -460,6 +482,29 @@ This SEP layers on URL-mode elicitation rather than replacing it:
 
 A server uses `mcpFile` for inputs up to its `maxSize` and URL-mode
 elicitation above it.
+
+## Drawbacks
+
+This design accepts the following costs in exchange for its minimal surface:
+
+- **Inline transfer only.** Base64 inflates payload size by roughly a third
+  and the entire encoded value travels in one JSON-RPC message that both
+  peers buffer in full. There is no chunking or resumption. Files above the
+  low-megabyte range are pushed to URL-mode elicitation
+  ([§Large files](#large-files)), which means the simple path stops being
+  the available path well before most users would consider a file "large."
+- **Validator registration burden.** Because `mcpFile` is an extension
+  keyword, every SDK that bundles a JSON Schema validator must pre-register
+  it, and non-SDK hosts running a strict-mode validator must do the same
+  ([§Implementation Notes](#implementation-notes)). This is a small but
+  perpetual maintenance cost across the SDK matrix and a foot-gun for hosts
+  that compile `inputSchema` directly.
+- **Degraded UX on non-recognizing clients.** With no capability gate, a
+  server cannot tell whether the client will render a picker. A `required`
+  `mcpFile` argument on an older client surfaces as a bare URI text box the
+  user cannot reasonably fill
+  ([§Backward Compatibility](#backward-compatibility)). The mitigation is
+  guidance (servers SHOULD NOT mark these required) rather than mechanism.
 
 ## Backward Compatibility
 
