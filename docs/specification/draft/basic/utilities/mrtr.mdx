@@ -191,6 +191,8 @@ what is directly present in the retry request.
 
 1. Servers **MAY** respond to any [supported client request](#supported-requests) with an `IncompleteResult`. 
 1. The `IncompleteResult` **MAY** include an `inputRequests` field.
+    - `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of the request.
+    - `inputRequests` values are request objects that **MUST** be one of [`ElicitRequest`](/specification/draft/schema#elicitrequest), [`CreateMessageRequest`](/specification/draft/schema#createmessagerequest), or [`ListRootsRequest`](/specification/draft/schema#listrootsrequest)
 1. The `IncompleteResult` **MAY** include a `requestState` field. If specified, this field is an opaque string meaningful only to the server. Servers are free to encode the state in any format (e.g., plain JSON, base64-encoded JSON, encrypted JWT, serialized binary).
 1. If a request contains a `requestState` field, servers **MUST** always validate that state, as the client is an untrusted intermediary.
    - If tampering is a concern, servers **SHOULD** encrypt the `requestState` field using an encryption algorithm of their choice (e.g., AES-GCM or a signed JWT) to ensure both confidentiality and integrity.
@@ -246,13 +248,14 @@ sequenceDiagram
 
 1. Servers **MAY** respond to `tasks/get` by indicating that the task is in status `input_required`.
 1. Servers **MUST** include an `inputRequests` field in the `tasks/result` response when the task is in status `input_required`.
+  - `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of a `Task`.
 1. Servers **MAY** include a `requestState` field in the `tasks/result` response when the task is in status `input_required`. 
 
 #### Client Requirements (Persistent)
 
 1. When `tasks/get` shows status `input_required`, clients **MUST** call `tasks/result` to get the `inputRequests` and optional `requestState`.
 1. Clients **SHOULD** construct the results of those requests and call [`tasks/input_response`](/specification/draft/basic/utilities/tasks#providing-input-for-tasks) with the `inputResponses` & `requestState` (if present).
-1. Clients **MAY** choose not to fulfill the input requests, in which case they can cancel the task.
+1. Clients **MAY** choose not to fulfill the input requests, in which case they **MAY** cancel the task. 
 
 
 ### Error Handling
