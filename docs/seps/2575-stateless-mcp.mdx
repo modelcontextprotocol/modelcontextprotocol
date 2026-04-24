@@ -373,6 +373,17 @@ How a client cancels an in-flight request depends on the transport:
 Servers **SHOULD** stop work on a cancelled request as soon as practical and
 **MUST NOT** send any further messages for it.
 
+##### Resumable Streams Are Removed
+
+Because connection drops now implicitly cancel a request, resumable SSE streams
+(via `Last-Event-ID` reconnection) are removed. They contradict the
+stateless-by-default paradigm: resuming would require the server to retain
+per-request state across connection failures.
+
+Workloads that need durability or resumability **MUST** use the tasks
+primitive instead, which provides explicit mechanisms for fetching results
+after a connection drop.
+
 #### Missing Required Capabilities
 
 A server **MUST NOT** rely on capabilities the client has not declared. If
