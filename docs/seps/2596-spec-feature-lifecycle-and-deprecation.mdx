@@ -37,20 +37,20 @@ can plan migrations against when protocol surface area is retired.
 
 ## Motivation
 
-The specification has already retired or signalled retirement of several features, but each case
+The specification has already retired or signaled retirement of several features, but each case
 has been handled ad hoc:
 
 - The HTTP+SSE transport is described as "deprecated" in the
   [Streamable HTTP backwards-compatibility guidance][transports-compat], with no stated removal
   date.
-- The `includeContext` values `"thisServer"` and `"allServers"` are labelled "soft-deprecated" in
+- The `includeContext` values `"thisServer"` and `"allServers"` are labeled "soft-deprecated" in
   [`sampling/createMessage`][sampling-includecontext] and in `schema.ts`, with the note that they
   "may be removed in future spec releases."
 - JSON-RPC batching was added in revision `2025-03-26` and removed in `2025-06-18`, a single
   release later, with no deprecation period.
 - Open proposals such as consolidating `Resource` and `ResourceTemplate` ([#1540][issue-1540]) and
-  moving roots and sampling out of core ([April 1 Core Maintainer meeting][cm-2026-04-01]) would
-  each retire existing surface area but have no process to follow.
+  deprecating roots, sampling, and logging ([SEP-2577][sep-2577]) would each retire existing
+  surface area but have no process to follow.
 
 This inconsistency has costs. Implementers cannot tell whether "deprecated" and "soft-deprecated"
 mean different things, or how long either state lasts before removal. Community questions such as
@@ -69,7 +69,7 @@ proposes those mechanics.
 ### Scope
 
 This policy governs **features** of the MCP core specification: protocol messages, capabilities,
-transports, schema types, and normative behavioural requirements. It does not govern the
+transports, schema types, and normative behavioral requirements. It does not govern the
 independent lifecycle of SDK-specific APIs, registry policies, extensions (which are versioned
 independently per [SEP-2133][sep-2133]), or the revision lifecycle of the specification document
 itself (Draft, Current, Final), which is defined in the [versioning guide][versioning].
@@ -125,11 +125,10 @@ guidelines][sep-guidelines]. The deprecation SEP MUST:
    eligible for removal in the first specification revision released as Current on or after this
    date.
 
-Throughout this policy, a revision is "released" on the date it is promoted to Current under the
-[versioning guide][versioning].
-
-When the deprecation SEP reaches Final, the following changes land in the draft specification
-(`schema/draft/` and `docs/specification/draft/`):
+The feature is Deprecated from the date the deprecation SEP reaches Final; the state transition
+does not wait for the next specification revision. At that point the following changes land in the
+draft specification (`schema/draft/` and `docs/specification/draft/`) and surface in the next
+revision when it is promoted to Current under the [versioning guide][versioning]:
 
 - The feature's entry in `schema.ts` gains a `@deprecated` JSDoc tag referencing the deprecation
   SEP and the earliest removal date.
@@ -166,7 +165,9 @@ The removal SEP MUST:
    process][governance-decisions], with rationale recorded in the removal SEP.
 
 A feature MAY remain Deprecated indefinitely if no removal SEP is opened. The earliest removal date
-sets the point at which removal becomes permissible; it does not oblige removal to happen.
+sets the point at which removal becomes permissible; it does not oblige removal to happen. This
+accommodates cases where ecosystem migration is slower than anticipated; the deprecation notice and
+earliest removal date remain as the planning signal even if removal is deferred.
 
 When the removal SEP reaches Final, the feature is deleted from `schema/draft/schema.ts` (where
 present) and the draft specification prose, and `changelog.mdx` gains an entry under the "Removed"
@@ -192,6 +193,11 @@ removal date.
 | Approve restoration to Active                | Core Maintainers, per the [governance decision process][governance-decisions] |
 | Approve expedited removal                    | Core Maintainers, per the [governance decision process][governance-decisions] |
 | Waive Tier-1 SDK confirmation (removal)      | Core Maintainers, per the [governance decision process][governance-decisions] |
+
+As with all Core Maintainer decisions, Lead Maintainers retain veto authority over each of the
+approvals above, per the [governance roles][governance-roles] definition.
+
+[governance-roles]: https://modelcontextprotocol.io/community/governance#roles
 
 ### Transition
 
@@ -326,6 +332,7 @@ That pull request serves as the running-code validation before this SEP advances
 [sep-2133]: https://modelcontextprotocol.io/seps/2133-extensions
 [sep-1400]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1400
 [issue-1540]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1540
+[sep-2577]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577
 [nyc-2026-03-31]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2547
 [cm-2026-04-01]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2536
 [disc-2177]: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2177
