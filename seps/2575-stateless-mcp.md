@@ -269,9 +269,8 @@ To complete the decoupling from the initial handshake, client capabilities are
 no longer negotiated once at initialization. Instead, a client **MUST** specify
 its capabilities on every request. This ensures the server is always fully
 informed about what optional features the client can handle for that specific
-transaction. An absent or empty capabilities object means the client supports no
-optional capabilities — servers **MUST NOT** infer capabilities from prior
-requests.
+transaction. An empty capabilities object means the client supports no optional
+capabilities — servers **MUST NOT** infer capabilities from prior requests.
 
 #### Per-Request Metadata Schema
 
@@ -481,6 +480,41 @@ export interface SubscriptionsAcknowledgedNotification extends Notification {
 }
 ```
 
+#### Multiple Concurrent Subscriptions
+
+A client **MAY** have multiple active subscriptions concurrently (e.g., one
+listening for tools-list changes, another for resource updates). Each
+subscription is identified by the JSON-RPC request ID of its
+`SubscriptionsListenRequest`.
+
+To allow STDIO clients to demultiplex notifications belonging to different
+subscriptions on the single shared channel, every notification delivered as
+part of an active subscription **MUST** include the subscription's request ID
+in `_meta`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/tools/list_changed",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "<original listen request id>"
+    }
+  }
+}
+```
+
+This same correlation pattern applies to other server-to-client notifications
+that need to be associated with a specific request, such as
+`notifications/progress` (which uses the originating request's ID).
+
+#### Stopping a Subscription
+
+- **HTTP.** Closing the SSE response stream stops the subscription.
+- **STDIO.** The client sends `notifications/cancelled` referencing the listen
+  request's ID. The server **MUST** stop sending notifications for that
+  subscription.
+
 #### Transport Behavior
 
 **HTTP.** The client sends `SubscriptionsListenRequest` via `POST`. The server's
@@ -490,10 +524,10 @@ first JSON-RPC message on this stream **MUST** be a
 
 **STDIO.** The client sends `SubscriptionsListenRequest` at any time. The server
 **MUST** acknowledge it by sending a `SubscriptionsAcknowledgedNotification`.
-Subsequent notifications flow on the bidirectional STDIO channel. If the
-connection is terminated (e.g., the server crashes and restarts), the client
-**MUST** re-send `SubscriptionsListenRequest` to re-establish its declared
-capabilities and interests.
+Subsequent notifications flow on the bidirectional STDIO channel, each tagged
+with the subscription's request ID as described above. If the connection is
+terminated (e.g., the server crashes and restarts), the client **MUST** re-send
+`SubscriptionsListenRequest` to re-establish its subscriptions.
 
 ### Deprecated and Removed RPCs
 
