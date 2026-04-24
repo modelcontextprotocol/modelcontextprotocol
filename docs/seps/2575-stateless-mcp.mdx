@@ -589,10 +589,11 @@ the following RPC methods and notifications are removed:
   resources they want updates for in the `notifications` param of the
   `subscriptions/listen` request. The server sends
   `notifications/resources/updated` on the listen stream for matching resources.
-- `ping`: Removed. With independent server-to-client requests eliminated,
-  ping no longer serves a useful purpose — any normal RPC call (or the
-  `subscriptions/listen` SSE stream's transport-layer keep-alive) demonstrates
-  liveness equivalently.
+- `ping`: Removed in **both directions**. Server-to-client ping is removed
+  because servers can no longer independently send requests. Client-to-server
+  ping is also removed because any normal RPC call already proves server
+  liveness, and transport-layer mechanisms (HTTP keep-alives, SSE comments,
+  STDIO process status) handle connection-health checks more appropriately.
 
 ## Rationale
 
