@@ -62,6 +62,7 @@ The fields of the `authorization` object are defined as follows:
   - `additional`. The newly-issued credential coexists with the existing credential. The client MUST retain the existing credential for its original purpose. The newly-issued credential's usable scope is determined by its grant, and the client selects the appropriate credential per request.
 
   The lifetime of an additional credential is governed by its OAuth `expires_in` value. Client-side management of additional credentials (storage, selection per request, cleanup after expiry) is an implementation concern outside the scope of this SEP. Servers that require single-use semantics for an additional credential SHOULD enforce single-use at the resource server.
+
 - `remediationHints` (array of objects, OPTIONAL). Structured remediation hints carried at the JSON-RPC layer that complement any transport-level authorization challenge. Each hint is an object with:
   - a `type` field (string, REQUIRED), naming the remediation mechanism, and
   - zero or more additional members whose names and shapes are determined by the value of `type`.
@@ -112,7 +113,7 @@ Example denial:
       "authorization": {
         "reason": "insufficient_authorization",
         "authorizationContextId": "authzctx_7c5d1d79",
-        "remediationHints": [ { "type": "url" } ]
+        "remediationHints": [{ "type": "url" }]
       },
       "elicitations": [
         {
@@ -393,7 +394,6 @@ The SEP composes with existing MCP primitives rather than inventing parallel sha
 **URL elicitation as the universal remediation primitive**
 
 An alternative was considered in which all denial remediation would be modeled through MCP URL elicitation, so that every authorization denial surfaces as a URL the user opens in a browser. This was rejected as a universal primitive because URL elicitation's standardized follow-up is `notifications/elicitation/complete`, not the return of a credential to the client. URL elicitation therefore cannot safely model flows in which the remediation produces a new access token. The SEP adopts URL elicitation partially, for Use Case 1, where the remediation is server-side state set through user interaction and the client's credential does not change. Use Cases 2 and 3, which produce new credentials, rely on OAuth rather than URL elicitation.
-
 
 ## Backward Compatibility
 
