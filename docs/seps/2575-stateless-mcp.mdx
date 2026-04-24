@@ -421,7 +421,7 @@ are scoped to a specific client request.
 export interface SubscriptionsListenRequest extends Request {
   method: "subscriptions/listen";
   params: {
-    _meta?: {
+    _meta: {
       "io.modelcontextprotocol/protocolVersion": string;
       "io.modelcontextprotocol/clientInfo": Implementation;
       "io.modelcontextprotocol/clientCapabilities": ClientCapabilities;
