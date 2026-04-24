@@ -420,6 +420,8 @@ On receiving the authorization response, MCP clients **MUST** apply the validati
 
 Note: comparing (rather than rejecting) when `iss` is present without metadata advertisement is more lenient than [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4); this accommodates authorization servers that emit `iss` without yet advertising it in metadata.
 
+A future revision of this specification is expected to upgrade authorization server inclusion of `iss` from **SHOULD** to **MUST**, at which point clients **MUST** reject any authorization response that lacks the parameter. Implementers are encouraged to emit and validate `iss` now to ease that transition.
+
 If validation fails, the client **MUST NOT** transmit the authorization code to any token endpoint and **MUST** discard the per-request state for that attempt. Clients **MUST NOT** normalize issuer values (case, port, trailing slash, or percent-encoding) before comparison.
 
 ## Resource Parameter Implementation
