@@ -23,5 +23,6 @@
       ]
     }
   ],
-  "nextCursor": "next-page-cursor"
+  "nextCursor": "next-page-cursor",
+  "ttl": 300
 }
