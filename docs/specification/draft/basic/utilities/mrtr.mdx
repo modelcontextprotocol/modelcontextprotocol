@@ -217,7 +217,7 @@ what is directly present in the retry request.
    - Servers using plaintext state **MUST** treat the decoded values as untrusted input and validate them the same way they would validate any client-supplied data.
 1. Servers **MUST** include at least one of `inputRequests` or `requestState` in every `IncompleteResult` response.
 1. Servers **MUST NOT** send an `inputRequests` that the client has not declared support for in its capabilities. For example, if a client does not declare support for `elicitation`, the server **MUST NOT** include any `elicitation/create` requests in the `inputRequests` field.
-1. Servers **MUST NOT** assume that clients will fulfill the `inputRequests` or retry the original request. Servers **MAY** choose to return an `IncompleteResult` multiple times in response to the same original request if they want to repeatedly prompt the user for information until they have what they need to complete the request.
+1. Servers **MUST NOT** assume that clients will fulfill the `inputRequests` or retry the original request. Servers **MAY** choose to return an `IncompleteResult` on multiple attempts at the same request if they want to repeatedly prompt the user for information until they have what they need to complete the request.
 
 #### Client Requirements (Basic Workflow)
 
