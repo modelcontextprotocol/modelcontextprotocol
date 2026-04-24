@@ -1194,7 +1194,7 @@
                     "type": "array"
                 },
                 "maxSize": {
-                    "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads with the `\"file_too_large\"`\nstructured error reason. For files larger than this, servers obtain the\nfile via URL-mode elicitation instead of this property.",
+                    "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads. For files larger than this,\nservers obtain the file via URL-mode elicitation instead of this property.",
                     "type": "integer"
                 }
             },

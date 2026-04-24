@@ -1807,9 +1807,8 @@ export interface FileInputDescriptor {
 
   /**
    * Maximum decoded file size in bytes that the server will accept inline as a
-   * data URI. Servers MUST reject larger payloads with the `"file_too_large"`
-   * structured error reason. For files larger than this, servers obtain the
-   * file via URL-mode elicitation instead of this property.
+   * data URI. Servers MUST reject larger payloads. For files larger than this,
+   * servers obtain the file via URL-mode elicitation instead of this property.
    */
   maxSize?: number;
 }

@@ -208,8 +208,7 @@ interface FileInputDescriptor {
 
   /**
    * Maximum decoded file size in bytes that the server will accept inline as
-   * a data URI. Servers MUST reject larger payloads with the "file_too_large"
-   * structured error reason.
+   * a data URI. Servers MUST reject larger payloads.
    */
   maxSize?: number;
 }
@@ -252,9 +251,8 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nG
 ```
 
 Servers **MUST** accept well-formed `data:` URIs in `mcpFile`-annotated
-arguments. Servers **MUST** reject any other scheme with the
-`file_scheme_unsupported` structured error reason and **MUST NOT** dereference
-it.
+arguments. Servers **MUST** reject any other scheme and **MUST NOT**
+dereference it.
 
 If a server needs the original filename, it **SHOULD** declare a separate
 ordinary string argument for it; the description on that argument is
@@ -321,45 +319,17 @@ When validating against `accept`, servers **MUST** compare only the
 parameters, and the comparison **MUST** be case-insensitive. A wildcard entry
 such as `image/*` matches any subtype of `image`.
 
-Servers reporting a structured error for an `mcpFile` argument **MUST** set
-`reason` to one of the following values (servers **MAY** define additional
-values for conditions not listed here):
-
-| `reason`                  | Meaning                                               |
-| ------------------------- | ----------------------------------------------------- |
-| `file_too_large`          | Decoded content size exceeds `maxSize`.               |
-| `file_type_rejected`      | Media type does not satisfy `accept`.                 |
-| `file_uri_malformed`      | Value uses the `data:` scheme but is not well-formed. |
-| `file_scheme_unsupported` | Value is not a `data:` URI.                           |
-
 #### Tool calls
 
-Following [SEP-1303][sep-1303], servers **SHOULD** report these as
-tool-execution errors (`CallToolResult` with `isError: true`) so that the
-model can see the failure and self-correct. The error content **SHOULD** be a
-structured object:
+Following [SEP-1303][sep-1303], servers **SHOULD** report validation failures
+as tool-execution errors (`CallToolResult` with `isError: true`) so that the
+model can see the failure and self-correct. The text content **SHOULD**
+identify the offending argument and which constraint was violated (size, media
+type, scheme, or URI form).
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 42,
-  "result": {
-    "isError": true,
-    "content": [{ "type": "text", "text": "File exceeds maximum size" }],
-    "structuredContent": {
-      "reason": "file_too_large",
-      "argument": "image",
-      "maxSize": 10485760,
-      "receivedSize": 15728640
-    }
-  }
-}
-```
-
-Servers **MAY** instead return JSON-RPC `-32602` (Invalid Params) for
-`file_uri_malformed`, where the value fails the `format: "uri"` schema
-constraint and is therefore a protocol-level input error rather than an
-execution-level one.
+This SEP does not define a structured error shape for these failures. A
+machine-readable validation-error vocabulary is a cross-cutting concern not
+specific to file inputs and is deferred to [Future Work](#future-work).
 
 [sep-1303]: ./1303-input-validation-errors-as-tool-execution-errors.md
 
@@ -607,6 +577,13 @@ paths documented in [Rationale](#rationale): multi-file inputs (via a general
 elicitation array SEP), additional wire schemes (via a `schemes` declaration),
 and `PromptArgument` support. None require changes to what this SEP specifies.
 
+A machine-readable vocabulary for tool input-validation errors is also
+deferred. Mandating an error shape here would be the first place the protocol
+dictates the body of a `CallToolResult` error, and a tool call can fail for
+reasons unrelated to its file arguments. A general structured-error convention
+for `isError: true` results, if pursued, belongs in its own SEP so that file
+inputs are one case of it rather than the precedent for it.
+
 ## Reference Implementation
 
 A reference implementation in the TypeScript SDK is required before this SEP
@@ -616,7 +593,7 @@ advances past Draft. It will demonstrate:
   pre-registered in the SDK's bundled validator.
 - A client-side `encodeFileAsDataUri(file: File | Blob): string` helper.
 - A sample server exposing an image-processing tool with `mcpFile`, validating
-  `maxSize` and `accept` on receipt and emitting the structured error reasons.
+  `maxSize` and `accept` on receipt.
 - A sample host demonstrating the §Host integration flow end to end: model
   emits the call with the slot absent, host renders a picker, substitutes the
   encoded value, and keeps it out of model context.

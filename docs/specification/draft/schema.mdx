@@ -1496,9 +1496,8 @@ picker to. Supports exact MIME types (<code>&quot;image/png&quot;</code>), wildc
 grammar as the HTML <code>accept</code> attribute. Extension entries are picker hints
 only; server-side validation compares MIME types. If omitted, any file
 type is accepted.</p> </div></section><section class="tsd-panel tsd-member"><div class="tsd-anchor-link" id="fileinputdescriptor-maxsize" data-typedoc-h="3"><span>maxSize?: number</span><a href="#fileinputdescriptor-maxsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"/></svg></a></div><div class="tsd-comment tsd-typography"><p>Maximum decoded file size in bytes that the server will accept inline as a
-data URI. Servers MUST reject larger payloads with the <code>&quot;file&#x5F;too&#x5F;large&quot;</code>
-structured error reason. For files larger than this, servers obtain the
-file via URL-mode elicitation instead of this property.</p> </div></section>
+data URI. Servers MUST reject larger payloads. For files larger than this,
+servers obtain the file via URL-mode elicitation instead of this property.</p> </div></section>
 </div>
 
 
