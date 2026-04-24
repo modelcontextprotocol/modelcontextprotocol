@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-03-25
-- **Author(s)**: Emily Lauber <emilylauber@microsoft.com> (@EmLauber)
+- **Author(s)**: Emily Lauber (@EmLauber)
 - **Sponsor**: @pcarleton
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2468
 
