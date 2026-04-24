@@ -62,35 +62,19 @@ Introducing MCP‑specific issuer binding fields
 
 This is additive security and does not impact backwards incompatibilities.
 
-## TODO: Security Implications
+## Security Implications
 
-Describe any security concerns related to this proposal, including:
+This proposal is a mitigation against mix-up attacks; the security considerations for the mechanism itself are documented in [RFC9207 Section 4](https://datatracker.ietf.org/doc/html/rfc9207#section-4). In particular, the mitigation depends on clients establishing the expected issuer before redirecting and on the comparison being byte-exact.
 
-- New attack surfaces
-- Privacy considerations
-- Authentication or authorization changes
-- Data validation requirements
+## Reference Implementation
 
-If there are no security implications, state that explicitly.
+- Go SDK: [modelcontextprotocol/go-sdk#859](https://github.com/modelcontextprotocol/go-sdk/pull/859)
+- TypeScript SDK: [modelcontextprotocol/typescript-sdk#1957](https://github.com/modelcontextprotocol/typescript-sdk/pull/1957)
 
-## TODO: Reference Implementation
-
-Link to or describe a reference implementation. A reference implementation is required before any SEP can be given "Final" status.
-
-The principle of "rough consensus and running code" is useful when resolving discussions of protocol details.
-
-Include:
-
-- Links to prototype code or pull requests
-- Pointers to example usage
-- Test results or validation
+Both implementations key client validation on the `authorization_response_iss_parameter_supported` metadata flag and validate before transmitting the authorization code to the token endpoint.
 
 ---
 
-### TODO: Open Questions
+### Acknowledgments
 
-Unresolved issues that need community input or further discussion.
-
-### TODO: Acknowledgments
-
-Credit to people who contributed ideas, feedback, or reviews.
+Thanks to Sam Morrow, Max Gerber, Aaron Parecki, Stephen Halter, Nate Barbettini, Karl McGuinness, and Den Delimarsky for reviews and discussion in the Auth Mix-Up Attack Prevention working group.
