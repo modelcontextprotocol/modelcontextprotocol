@@ -3,7 +3,7 @@
 <!-- cspell:ignore streamable -->
 <!-- markdownlint-disable MD036 MD060 -->
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-02-04
 - **Author(s)**: MCP Transports Working Group
