@@ -222,7 +222,7 @@ what is directly present in the retry request.
 #### Client Requirements (Basic Workflow)
 
 1. If a client receives an `IncompleteResult` that contains the `inputRequests` field, the client **MUST** construct the requested
- input before retrying the original request. If the `IncompleteResult` does _not_ contain the `inputRequests` field, 
+ inputs before retrying the original request. If the `IncompleteResult` does _not_ contain the `inputRequests` field, 
  the client **MAY** retry the original request immediately.
 1. If an `IncompleteResult` contains the `requestState` field, the client **MUST** echo back the exact value of that field when retrying the original request. 
     Clients **MUST NOT** inspect, parse, modify, or make any assumptions about the `requestState` contents. If the `IncompleteResult` does not contain a `requestState` field, the client **MUST NOT** include one in the retry.
