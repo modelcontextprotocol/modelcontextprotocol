@@ -1,0 +1,19 @@
+{
+  "mode": "form",
+  "message": "Please select a profile photo.",
+  "requestedSchema": {
+    "type": "object",
+    "properties": {
+      "photo": {
+        "type": "string",
+        "format": "uri",
+        "title": "Profile photo",
+        "mcpFile": {
+          "accept": ["image/*"],
+          "maxSize": 2097152
+        }
+      }
+    },
+    "required": ["photo"]
+  }
+}

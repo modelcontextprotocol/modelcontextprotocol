@@ -1614,6 +1614,9 @@ export interface CallToolRequestParams extends TaskAugmentedRequestParams {
  * @example Call tool request
  * {@includeCode ./examples/CallToolRequest/call-tool-request.json}
  *
+ * @example Call tool with file input
+ * {@includeCode ./examples/CallToolRequest/call-tool-with-file-input.json}
+ *
  * @category `tools/call`
  */
 export interface CallToolRequest extends JSONRPCRequest {
@@ -1725,6 +1728,9 @@ export interface ToolExecution {
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
  *
+ * @example With file input
+ * {@includeCode ./examples/Tool/with-file-input.json}
+ *
  * @category `tools/list`
  */
 export interface Tool extends BaseMetadata, Icons {
@@ -1772,6 +1778,44 @@ export interface Tool extends BaseMetadata, Icons {
   annotations?: ToolAnnotations;
 
   _meta?: MetaObject;
+}
+
+/**
+ * Value of the `mcpFile` JSON Schema extension keyword. When present on a
+ * `{"type": "string", "format": "uri"}` property, it marks the property as a
+ * file input that clients SHOULD render as a native file picker. Selected
+ * files are encoded as RFC 2397 data URIs.
+ *
+ * Both fields are advisory; servers MUST still validate inputs independently.
+ *
+ * For {@link Tool.inputSchema} properties, `mcpFile` is added directly inside
+ * the JSON Schema property definition. For elicitation forms, it appears on
+ * {@link StringSchema}.
+ *
+ * @example Rejecting an oversized file input
+ * {@includeCode ./examples/CallToolResult/file-input-too-large.json}
+ *
+ * @category `tools/list`
+ */
+export interface FileInputDescriptor {
+  /**
+   * Media type patterns and/or file extensions the client SHOULD filter the
+   * picker to. Supports exact MIME types (`"image/png"`), wildcard subtypes
+   * (`"image/*"`), and dot-prefixed extensions (`".pdf"`) following the same
+   * grammar as the HTML `accept` attribute. Extension entries are picker hints
+   * only; server-side validation compares MIME types. If omitted, any file
+   * type is accepted.
+   */
+  accept?: string[];
+
+  /**
+   * Maximum decoded file size in bytes that the server will accept inline as a
+   * data URI. Servers MUST reject larger payloads. For files larger than this,
+   * servers obtain the file via URL-mode elicitation instead of this property.
+   * If omitted, the server accepts any size it is willing to buffer; clients
+   * SHOULD warn above an implementation-defined threshold.
+   */
+  maxSize?: number;
 }
 
 /* Tasks */
@@ -2801,6 +2845,9 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  * @example Elicit multiple fields
  * {@includeCode ./examples/ElicitRequestFormParams/elicit-multiple-fields.json}
  *
+ * @example Elicit file input
+ * {@includeCode ./examples/ElicitRequestFormParams/elicit-file-input.json}
+ *
  * @category `elicitation/create`
  */
 export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
@@ -2909,6 +2956,12 @@ export interface StringSchema {
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
   default?: string;
+  /**
+   * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
+   * render a native file picker and populate the field with an RFC 2397 data
+   * URI for the selected file. See {@link FileInputDescriptor}.
+   */
+  mcpFile?: FileInputDescriptor;
 }
 
 /**
@@ -3151,6 +3204,9 @@ export type EnumSchema =
  *
  * @example Accept URL mode (no content)
  * {@includeCode ./examples/ElicitResult/accept-url-mode-no-content.json}
+ *
+ * @example Accept file input
+ * {@includeCode ./examples/ElicitResult/accept-file-input.json}
  *
  * @category `elicitation/create`
  */
