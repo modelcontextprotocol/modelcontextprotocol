@@ -342,6 +342,20 @@ sent as independent requests — they are embedded as input requests inside an
 `GetPrompt`, `ListResources`). The client satisfies the input requests and
 retries the original request.
 
+#### Request Cancellation
+
+How a client cancels an in-flight request depends on the transport:
+
+- **HTTP.** Closing the SSE response stream **MUST** be treated by the server
+  as cancellation of that request. Because each request has its own response
+  stream, the transport-level disconnect is unambiguous.
+- **STDIO.** The client **MUST** send a `notifications/cancelled`
+  notification referencing the request ID. STDIO has a single shared channel,
+  so there is no per-request stream to close.
+
+Servers **SHOULD** stop work on a cancelled request as soon as practical and
+**MUST NOT** send any further messages for it.
+
 #### Missing Required Capabilities
 
 A server **MUST NOT** rely on capabilities the client has not declared. If a
