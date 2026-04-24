@@ -29,7 +29,15 @@ An IncompleteResponse provides a standardized way to handle server-requests with
  `inputRequests` is a map of server-client requests. Each request has a unique key (e.g., `github_login` or `capital_of_france`) 
  and specifies the type of server-client request via the `method` field (e.g., `elicitation/create` or `sampling/createMessage` or `list/roots`) 
  along with the necessary `params` for that request.
- 
+
+ `Incomplete Result` can be though of as a recoverable error type. It is a way for a Server to signal
+ that the client should retry the request with additional information.
+
+ - the server **MUST** create a unique key for each server-client request in inputRequests.
+ - each value in the `inputRequests` map **MUST** include a `method` field that specifies the type
+  of server-client request and **MUST** include additional fields that match the parameters of that request type.
+- the server **MUST** set the `resultType` field to `incomplete` to indicate that this is an Incomplete Result.
+
 ```json
 {
     "jsonrpc": "2.0",
@@ -81,6 +89,12 @@ An IncompleteResponse provides a standardized way to handle server-requests with
 Upon receiving an `Incomplete Result` with `inputRequests`, the client is expected 
 to prompt the user for the requested information and create an `inputResponses` object.
 The `inputResponses`. The client then replays the original Request incluindg the `inputResponses` object.
+
+- The client **MUST** match the keys in `inputResponses` with the keys in `inputRequests` to correlate responses with requests.
+- The client **MUST** include all required fields in the response that match the request type. (i.e. an Elicitation Request must map to an ElicitResult).
+- The client **MUST** send a new Request with a different `id` field from original request. The new Request 
+    **MUST** include the `inputResponses` and **SHOULD** include the original parameters as well. The client **MAY** choose
+    to alter the original parameters if appropriate (e.g., if the client needs to change the request parameters based on user input or other factors).
 
 ```json
 {
@@ -136,6 +150,7 @@ sequenceDiagram
 
 
 # Capabilities
+TODO Caitie - add language on how servers need to respect client capabilities when generating Incomplete Results.
 
 
 
