@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Process
 - **Created**: 2026-04-17
-- **Author(s)**: Den Delimarsky <den@anthropic.com> (@localden)
+- **Author(s)**: Den Delimarsky (@localden)
 - **Sponsor**: @localden
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596
 
@@ -88,7 +88,10 @@ guidelines][sep-guidelines]. The deprecation SEP MUST:
 1. Identify the feature by name and link to its definition in `schema.ts` and the specification
    prose.
 2. State the rationale against the criteria above.
-3. Document the migration path, or state explicitly that none is required.
+3. Document the migration path, or state explicitly that none is required. If the migration path
+   names a replacement feature, that feature MUST already be Active in the revision in which the
+   deprecation lands. A feature is not deprecated under this policy while its documented
+   replacement is still pending.
 4. Specify the **earliest removal date**: a calendar date (`YYYY-MM-DD`) on or after which the
    feature may be removed. This date MUST be at least twelve months after the publication date of
    the revision in which the deprecation first appears. The feature is eligible for removal in the
@@ -100,6 +103,9 @@ When the deprecation SEP reaches Final, the following changes land in `draft`:
   SEP and the earliest removal date.
 - The specification prose for the feature gains a deprecation notice with the same information.
 - The `changelog.mdx` for the next revision gains a "Deprecated" entry.
+- Tier 1 SDKs (per [SEP-1730][sep-1730]) SHOULD mark the corresponding API surface deprecated using
+  their language's native mechanism (for example `@Deprecated` in Java, `[Obsolete]` in .NET, the
+  `Deprecated:` doc convention in Go) in their next release after the revision is published.
 
 ### Removing a feature
 
@@ -113,11 +119,15 @@ The removal SEP MUST:
 1. Reference the deprecation SEP.
 2. Confirm that the earliest removal date has passed or will have passed by the target revision's
    publication.
-3. Confirm that the migration target named in the deprecation SEP, if any, is Active in the
-   revision from which removal is proposed.
-4. Confirm that all Tier 1 SDKs (per [SEP-1730][sep-1730]) have shipped a stable release in which
-   the feature is no longer required for protocol conformance, or record an explicit Core
-   Maintainer override vote with rationale.
+3. Confirm that the migration target named in the deprecation SEP, if any, remains Active in the
+   revision from which removal is proposed. (It was Active when the deprecation landed per
+   [§Deprecating a feature](#deprecating-a-feature); this re-checks that it has not itself been
+   deprecated in the interim.)
+4. Confirm that all Tier 1 SDKs (per [SEP-1730][sep-1730]) have shipped a stable release in which a
+   user can complete the documented migration without depending on the deprecated feature. This
+   does not require the SDK to have removed the feature; it requires the replacement (or the
+   ability to operate without the feature, where no replacement is specified) to be available in a
+   stable SDK release. A Core Maintainer override vote with rationale may waive this confirmation.
 
 A feature MAY remain Deprecated indefinitely if no removal SEP is opened. The earliest removal date
 sets the point at which removal becomes permissible; it does not oblige removal to happen.
