@@ -375,10 +375,11 @@ Servers **SHOULD** stop work on a cancelled request as soon as practical and
 
 #### Missing Required Capabilities
 
-A server **MUST NOT** rely on capabilities the client has not declared. If a
-server requires client capabilities the client has not provided, the server
-**MUST** return a JSON-RPC error, which specifies the missing capabilities. For
-HTTP, the response status code MUST be `400 Bad Request`.
+A server **MUST NOT** rely on capabilities the client has not declared. If
+processing a request requires a capability the client did not declare in its
+`clientCapabilities`, the server **MUST** return a JSON-RPC error specifying
+the missing capabilities. For HTTP, the response status code MUST be
+`400 Bad Request`.
 
 ```ts
 export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
