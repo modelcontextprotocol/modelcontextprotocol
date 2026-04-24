@@ -160,7 +160,7 @@ To invoke a tool, clients send a `tools/call` request:
 
 ### Incomplete Tool Results
 
-Servers **MAY** respond to `tools/call` with an [`IncompleteResult`](/specification/draft/basic#incompleteresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic#multi-round-trip-requests) mechanism.
+Servers **MAY** respond to `tools/call` with an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
 
 When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
 
