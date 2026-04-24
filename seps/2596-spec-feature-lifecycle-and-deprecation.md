@@ -75,7 +75,7 @@ Deprecated under this policy (see [Transition](#transition)).
 
 A Deprecated feature MAY be restored to Active by a SEP that supersedes the deprecation SEP and
 documents the changed circumstances. Restoration follows the same approval path as deprecation. If
-the feature is later deprecated again, the minimum removal window in [§Deprecating a
+the feature is later deprecated again, the minimum removal window in [Deprecating a
 feature](#deprecating-a-feature) is measured afresh from the new deprecation.
 
 ### Deprecating a feature
@@ -96,9 +96,10 @@ guidelines][sep-guidelines]. The deprecation SEP MUST:
 3. Document the migration path, or state explicitly that none is required. If the migration path
    names a replacement feature, that feature MUST already be Active in a specification revision
    that has been released as Current. Where the migration path leads outside the core
-   specification (for example to an extension under [SEP-2133][sep-2133] or to an SDK convention),
-   this requirement is satisfied when the replacement is available in a stable, generally
-   available release. A feature is not deprecated under this policy while its documented
+   specification, the equivalent bar applies: for an extension under [SEP-2133][sep-2133], its
+   Extensions Track SEP MUST have reached Final and the extension MUST be published in an `ext-*`
+   (not `experimental-ext-*`) repository; for an SDK convention, it MUST be available in a stable
+   release of every Tier 1 SDK. A feature is not deprecated under this policy while its documented
    replacement is still pending.
 4. Specify the **earliest removal date**: a calendar date (`YYYY-MM-DD`) on or after which the
    feature may be removed. This date MUST be at least twelve months after the date the deprecation
@@ -135,9 +136,10 @@ The removal SEP MUST:
 2. Confirm that the earliest removal date has been reached.
 3. Confirm that the migration target named in the deprecation SEP, if any, remains Active in the
    revision from which removal is proposed. (It was Active when the deprecation landed per
-   [§Deprecating a feature](#deprecating-a-feature); this re-checks that it has not itself been
+   [Deprecating a feature](#deprecating-a-feature); this re-checks that it has not itself been
    deprecated in the interim.) Where the migration target is outside the core specification,
-   confirm instead that it remains available in a stable, generally available release.
+   confirm instead that it still meets the bar in item 3 of [Deprecating a
+   feature](#deprecating-a-feature).
 4. Confirm that all Tier 1 SDKs (per [SEP-1730][sep-1730]) have shipped a stable release in which a
    user can complete the documented migration without depending on the deprecated feature. This
    does not require the SDK to have removed the feature; it requires the replacement (or the
@@ -153,6 +155,22 @@ earliest removal date remain as the planning signal even if removal is deferred.
 When the removal SEP reaches Final, the feature is deleted from `schema/draft/schema.ts` (where
 present) and the draft specification prose, and `changelog.mdx` gains an entry under the "Removed"
 heading that links to both SEPs and the last Final revision in which the feature was present.
+
+### Relocating a feature to an extension
+
+A feature that sees low usage in core but remains valuable to some implementers MAY be relocated to
+an optional extension under [SEP-2133][sep-2133] rather than retired outright. Relocation follows
+the same two-SEP procedure:
+
+- The deprecation SEP names the extension as the migration target. Per item 3 of [Deprecating a
+  feature](#deprecating-a-feature), the extension's Extensions Track SEP MUST have reached Final
+  and the extension MUST be published in an `ext-*` repository before the deprecation lands.
+- The removal SEP deletes the feature from core. The changelog entry under "Removed" records the
+  relocation and links the extension so that implementations that still need the feature can
+  obtain it there.
+
+This is the expected path for the cases in [Motivation](#motivation) where surface area is moved
+out of core rather than abandoned, such as [SEP-2577][sep-2577].
 
 ### Expedited removal
 
@@ -184,12 +202,12 @@ approvals above, per the [governance roles][governance-roles] definition.
 
 Two features were already described as deprecated in the specification before this policy existed
 (see [Motivation](#motivation)). When this SEP reaches Final they are classified as Deprecated, and
-the deprecation-SEP requirements in [§Deprecating a feature](#deprecating-a-feature) are not
+the deprecation-SEP requirements in [Deprecating a feature](#deprecating-a-feature) are not
 applied retroactively. The deprecation decision in each case predates this policy; this section
 records it under the new vocabulary so the terms "deprecated" and "soft-deprecated" carry a single
 defined meaning going forward.
 
-For the purposes of [§Removing a feature](#removing-a-feature), the migration target and earliest
+For the purposes of [Removing a feature](#removing-a-feature), the migration target and earliest
 removal date for each are recorded below. Unless a feature-specific SEP sets a different date, the
 earliest removal date is twelve months after this SEP reaches Final.
 
@@ -199,9 +217,9 @@ earliest removal date is twelve months after this SEP reaches Final.
 | `includeContext: "thisServer"` / `"allServers"` | Omit the field or use `"none"`       | Twelve months after this SEP is Final |
 
 This grandfathering applies only to features the specification already described as deprecated on
-the date this SEP reaches Final. Every subsequent deprecation follows [§Deprecating a
+the date this SEP reaches Final. Every subsequent deprecation follows [Deprecating a
 feature](#deprecating-a-feature) in full, and removal of the grandfathered features follows
-[§Removing a feature](#removing-a-feature) without exception.
+[Removing a feature](#removing-a-feature) without exception.
 
 The [versioning guide][versioning] is updated to reference this policy.
 
@@ -274,7 +292,9 @@ For a Process SEP the reference implementation is the policy applied to a real c
 [Transition](#transition) section applies it to the two existing informal deprecations, and a
 follow-up pull request will:
 
-- Add `@deprecated` JSDoc tags to the `includeContext` enum values in `schema/draft/schema.ts`.
+- Add a `@deprecated` JSDoc note to the `includeContext` property in `schema/draft/schema.ts`
+  identifying `"thisServer"` and `"allServers"` as deprecated (the property is a string-literal
+  union, so per-value tags are not possible).
 - Add a deprecation notice to the HTTP+SSE section of `docs/specification/draft/basic/transports.mdx`
   (the transport has no `schema.ts` types).
 - Introduce the "Deprecated" heading in `docs/specification/draft/changelog.mdx` with both entries.
