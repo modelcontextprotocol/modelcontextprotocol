@@ -472,10 +472,17 @@ notifications of that type.
 
 #### Acknowledgment Notification
 
-The server sends this notification as the first event on the stream to
-acknowledge that the listen stream has been established. For HTTP, this is the
-first SSE event. The stream remains open for subsequent server-to-client
-messages until the server sends a final `Result` to close it.
+The server sends this notification first to acknowledge that the subscription
+has been established. The subscription is long-lived and has no natural
+"completion result"; it ends when:
+
+- the client explicitly cancels it (closing the SSE stream on HTTP, or sending
+  `notifications/cancelled` on STDIO);
+- the underlying connection is closed (HTTP timeout, TCP disconnect, STDIO
+  process exit); or
+- the server tears it down (e.g., shutdown), in which case it **MUST** close
+  the SSE stream (HTTP) or send `notifications/cancelled` referencing the
+  subscription's request ID (STDIO).
 
 ```ts
 export interface SubscriptionsAcknowledgedNotification extends Notification {
