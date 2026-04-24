@@ -237,6 +237,8 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 
 After a task completes the operation result is retrieved via [`tasks/result`](/specification/draft/schema#tasks%2Fresult). This is distinct from the initial `CreateTaskResult` response, which contains only task data. The result structure matches the original request type (e.g., `CallToolResult` for `tools/call`).
 
+When a task is in `input_required` status, `tasks/result` returns an [`IncompleteResult`](/specification/draft/basic#incompleteresult) containing `inputRequests` that the client must fulfill via a [`tasks/input_response`](#providing-input-for-tasks) request. See [multi round-trip requests](/specification/draft/basic#multi-round-trip-requests) for details on the persistent workflow.
+
 To retrieve the result of a completed task, requestors can send a `tasks/result` request:
 
 While `tasks/result` blocks until the task reaches a terminal status, requestors can continue polling via `tasks/get` in parallel if they are not actively blocked waiting for the result, such as if their previous `tasks/result` request failed or was cancelled. This allows requestors to monitor status changes or display progress updates while the task executes, even after invoking `tasks/result`.
@@ -383,6 +385,59 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
 }
 ```
 
+### Providing Input for Tasks
+
+When a task reaches the `input_required` status and `tasks/result` returns an [`IncompleteResult`](/specification/draft/basic#incompleteresult), the requestor provides the required input via a [`tasks/input_response`](/specification/draft/schema#tasks%2Finput_response) request. This is the persistent workflow form of [multi round-trip requests](/specification/draft/basic#multi-round-trip-requests).
+
+The `tasks/input_response` request carries:
+- `taskId`: the ID of the task requiring input
+- `inputResponses`: an object mapping each key from the `inputRequests` to the response obtained from the client
+- `requestState` (optional): the opaque state token from the `IncompleteResult`, if provided
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tasks/input_response",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "inputResponses": {
+      "github_login": {
+        "action": "accept",
+        "content": {
+          "name": "octocat"
+        }
+      }
+    },
+    "requestState": "eyJzZXNzaW9uIjoiYWJjMTIzIn0..."
+  }
+}
+```
+
+**Response (task resumes):**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "statusMessage": "Input received, resuming operation.",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:45:00Z",
+    "ttl": 60000,
+    "pollInterval": 5000
+  }
+}
+```
+
+After sending `tasks/input_response`, the task transitions back to `working` status. The requestor **SHOULD** then resume polling via `tasks/get` or call `tasks/result` to retrieve the final result.
+
+Receivers **MUST** reject `tasks/input_response` requests for tasks that are not in `input_required` status with error code `-32602` (Invalid params).
+
 ## Behavior Requirements
 
 These requirements apply to all parties that support receiving task-augmented requests.
@@ -446,7 +501,7 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 
 1. When the task receiver has messages for the requestor that are necessary to complete the task, the receiver **SHOULD** move the task to the `input_required` status.
 1. The receiver **MUST** include the `io.modelcontextprotocol/related-task` metadata in the request to associate it with the task.
-1. When the requestor encounters the `input_required` status, it **SHOULD** preemptively call `tasks/result`.
+1. When the requestor encounters the `input_required` status, it **SHOULD** preemptively call `tasks/result`. If the result is an [`IncompleteResult`](/specification/draft/basic#incompleteresult), the requestor **MUST** fulfill the `inputRequests` and submit responses via [`tasks/input_response`](#providing-input-for-tasks).
 1. When the receiver receives all required input, the task **SHOULD** transition out of `input_required` status (typically back to `working`).
 
 ### TTL and Resource Management
@@ -462,7 +517,8 @@ While this note is not prescriptive regarding the specific usage of SSE streams,
 
 1. Receivers that accept a task-augmented request **MUST** return a `CreateTaskResult` as the response. This result **SHOULD** be returned as soon as possible after accepting the task.
 1. When a receiver receives a `tasks/result` request for a task in a terminal status (`completed`, `failed`, or `cancelled`), it **MUST** return the final result of the underlying request, whether that is a successful result or a JSON-RPC error.
-1. When a receiver receives a `tasks/result` request for a task in any other non-terminal status (`working` or `input_required`), it **MUST** block the response until the task reaches a terminal status.
+1. When a receiver receives a `tasks/result` request for a task in `input_required` status, it **MUST** return an [`IncompleteResult`](/specification/draft/basic#incompleteresult) containing the `inputRequests` that the requestor must fulfill via [`tasks/input_response`](#providing-input-for-tasks).
+1. When a receiver receives a `tasks/result` request for a task in `working` status, it **MUST** block the response until the task reaches a terminal status or `input_required` status.
 1. For tasks in a terminal status, receivers **MUST** return from `tasks/result` exactly what the underlying request would have returned, whether that is a successful result or a JSON-RPC error.
 
 ### Associating Task-Related Messages

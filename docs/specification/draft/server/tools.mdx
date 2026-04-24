@@ -146,6 +146,7 @@ To invoke a tool, clients send a `tools/call` request:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "resultType": "complete",
     "content": [
       {
         "type": "text",
@@ -156,6 +157,68 @@ To invoke a tool, clients send a `tools/call` request:
   }
 }
 ```
+
+### Incomplete Tool Results
+
+Servers **MAY** respond to `tools/call` with an [`IncompleteResult`](/specification/draft/basic#incompleteresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic#multi-round-trip-requests) mechanism.
+
+When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
+
+**Incomplete Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "incomplete",
+    "inputRequests": {
+      "github_login": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please provide your GitHub username",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" }
+            },
+            "required": ["name"]
+          }
+        }
+      }
+    },
+    "requestState": "eyJsb2NhdGlvbiI6Ik5ldyBZb3JrIn0..."
+  }
+}
+```
+
+**Retry with Input Responses:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "inputResponses": {
+      "github_login": {
+        "action": "accept",
+        "content": {
+          "name": "octocat"
+        }
+      }
+    },
+    "requestState": "eyJsb2NhdGlvbiI6Ik5ldyBZb3JrIn0..."
+  }
+}
+```
+
+Note that the JSON-RPC `id` **MUST** be different between the initial request and the retry.
 
 ### List Changed Notification
 

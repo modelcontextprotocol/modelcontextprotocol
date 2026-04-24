@@ -145,6 +145,8 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 }
 ```
 
+Servers **MAY** also respond to `prompts/get` with an [`IncompleteResult`](/specification/draft/basic#incompleteresult) to indicate that additional input is needed before the prompt can be resolved. This follows the [multi round-trip requests](/specification/draft/basic#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
+
 ### List Changed Notification
 
 When the list of available prompts changes, servers that declared the `listChanged`
