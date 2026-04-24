@@ -36,6 +36,7 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- OAuth 2.0 Authorization Server Issuer Identification ([RFC9207](https://datatracker.ietf.org/doc/html/rfc9207))
 - OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
 
 ## Roles
@@ -386,18 +387,42 @@ sequenceDiagram
         Note over C: Use existing client_id
     end
 
-    Note over C: Generate PKCE parameters<br/>Include resource parameter<br/>Apply scope selection strategy
+    Note over C: Generate PKCE parameters<br/>Include resource parameter<br/>Apply scope selection strategy<br/>Record expected issuer
     C->>B: Open browser with authorization URL + code_challenge + resource
     B->>A: Authorization request with resource parameter
     Note over A: User authorizes
-    A->>B: Redirect to callback with authorization code
+    A->>B: Redirect to callback with authorization code + iss
     B->>C: Authorization code callback
+    Note over C: Validate iss against recorded issuer (RFC 9207)
     C->>A: Token request + code_verifier + resource
     A->>C: Access token (+ refresh token)
     C->>M: MCP request with access token
     M-->>C: MCP response
     Note over C,M: MCP communication continues with valid token
 ```
+
+### Authorization Response Validation
+
+Before redirecting the user-agent, the client **MUST** record the `issuer` value from the selected authorization server's metadata document ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414) or OpenID Connect Discovery) and associate it with the request's `state` value, alongside the PKCE code verifier.
+
+MCP authorization servers **SHOULD** include the `iss` parameter in authorization responses, including error responses, as defined in [RFC9207 Section 2](https://datatracker.ietf.org/doc/html/rfc9207#section-2), and advertise this by setting `authorization_response_iss_parameter_supported` to `true` in their metadata.
+
+On receiving the authorization response, MCP clients **MUST** apply the validation in [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4) before transmitting the authorization code to any token endpoint:
+
+| `authorization_response_iss_parameter_supported` | `iss` in response | Client action                                                                              |
+| ------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------ |
+| `true`                                           | present           | Compare to the recorded issuer using simple string comparison ([RFC3986 Section 6.2.1][1]) |
+| `true`                                           | absent            | Reject the response                                                                        |
+| `false` or absent                                | present           | Compare to the recorded issuer using simple string comparison ([RFC3986 Section 6.2.1][1]) |
+| `false` or absent                                | absent            | Proceed                                                                                    |
+
+[1]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
+
+Note: comparing (rather than rejecting) when `iss` is present without metadata advertisement is more lenient than [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4); this accommodates authorization servers that emit `iss` without yet advertising it in metadata.
+
+A future revision of this specification is expected to upgrade authorization server inclusion of `iss` from **SHOULD** to **MUST**, at which point clients **MUST** reject any authorization response that lacks the parameter. Implementers are encouraged to emit and validate `iss` now to ease that transition.
+
+If validation fails, the client **MUST NOT** transmit the authorization code to any token endpoint and **MUST** discard the per-request state for that attempt. Clients **MUST NOT** normalize issuer values (case, port, trailing slash, or percent-encoding) before comparison.
 
 ## Resource Parameter Implementation
 
@@ -609,6 +634,12 @@ Since OAuth 2.1 and PKCE specifications do not define a mechanism for clients to
 - **OpenID Connect Discovery 1.0**: While the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata) does not define `code_challenge_methods_supported`, this field is commonly included by OpenID providers. MCP clients **MUST** verify the presence of `code_challenge_methods_supported` in the provider metadata response. If the field is absent, MCP clients **MUST** refuse to proceed.
 
 Authorization servers providing OpenID Connect Discovery 1.0 **MUST** include `code_challenge_methods_supported` in their metadata to ensure MCP compatibility.
+
+### Mix-Up Attacks
+
+An MCP client typically interacts with many authorization servers over its lifetime. An attacker that controls one of those authorization servers may attempt to have the client send it an authorization code or token issued by a different, honest authorization server (a mix-up attack, described in [RFC9207 Section 1](https://datatracker.ietf.org/doc/html/rfc9207#section-1)).
+
+[Authorization Response Validation](#authorization-response-validation) mitigates this by binding the response to the authorization server the client recorded before redirecting, so the authorization code cannot be redeemed at an unintended token endpoint.
 
 ### Open Redirection
 

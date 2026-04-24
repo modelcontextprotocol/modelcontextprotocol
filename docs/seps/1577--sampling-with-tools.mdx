@@ -177,7 +177,6 @@ In the "Possible Follow ups" Section below, we give examples of features that we
   ```
 
 - Notes:
-
   - Differences of role vs. content type when it comes to tool calling between APIs:
     - OpenAI: `role: “system" | “user" | “assistant" | “tool"` (where tool is for tool results), while tool calls are nested in assistant messages, content is then typically null but some “OpenAI compatible” APIs accept non-null values
       - ```typescript
@@ -312,7 +311,6 @@ Two bits needed here:
       - implicitly supports updating the cache (maybe even as subtree)
     - Cons: possibly harder to implement / more storage inefficient
 - Introduce allowed_tools feature to enable / disable tools w/o breaking context caching
-
   - Relevant to this SEP as we may want to merge this feature [under the tool_choice field, similar to what OpenAI did](https://platform.openai.com/docs/guides/function-calling).
 
     ```typescript
