@@ -670,10 +670,27 @@ the version prior to the SEP, and vAfter indicates a version after it.
 
 #### Client (supporting vPrev, vPost) → Server (vPrev)
 
-1. Client sends a request (e.g. tools/list) with MCP Protocol Version header
-   1. HTTP: Server says "400 bad request"
-   2. STDIO: returns error indicating initialization was required
-2. Client falls back to vPrev (and makes initialization) for future requests
+For HTTP, the client may attempt any vPost request (e.g., `tools/list` with the
+MCP Protocol Version header). The server returns `400 Bad Request` (or
+`Unsupported protocol version`); the client falls back to vPrev (and performs
+initialization) for future requests.
+
+For STDIO, the client cannot rely on a per-request error to detect the server's
+version. A client that supports both a vPost (which does not require
+initialization) **and** a legacy version that does require `initialize`
+**SHOULD** probe with `server/discover` first to determine which to use:
+
+1. Client sends `server/discover` with the MCP Protocol Version `_meta` field
+   set to its preferred vPost.
+2. If the server supports vPost (or any vPost-style version the client also
+   supports), the client uses the discovered version for subsequent requests.
+3. If the server returns `Unsupported protocol version` or `Method not found`,
+   the client falls back to its supported legacy version and performs the
+   `initialize` handshake.
+
+A client that supports only vPost-style versions has no need to probe — it
+simply uses its preferred version and handles `Unsupported protocol version`
+errors normally.
 
 ## Security Implications
 
