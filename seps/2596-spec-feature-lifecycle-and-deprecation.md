@@ -98,8 +98,7 @@ guidelines][sep-guidelines]. The deprecation SEP MUST:
    that has been released as Current. Where the migration path leads outside the core
    specification, the equivalent bar applies: for an extension under [SEP-2133][sep-2133], its
    Extensions Track SEP MUST have reached Final and the extension MUST be published in an `ext-*`
-   (not `experimental-ext-*`) repository; for an SDK convention, it MUST be available in a stable
-   release of every Tier 1 SDK. A feature is not deprecated under this policy while its documented
+   (not `experimental-ext-*`) repository; for an SDK convention, it MUST have a reference implementation available in a stable release of a single Tier 1 SDK and have a corresponding conformance test. A feature is not deprecated under this policy while its documented
    replacement is still pending.
 4. Specify the **earliest removal date**: a calendar date (`YYYY-MM-DD`) on or after which the
    feature may be removed. This date MUST be at least twelve months after the date the deprecation
