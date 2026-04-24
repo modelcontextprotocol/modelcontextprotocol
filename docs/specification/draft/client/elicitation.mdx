@@ -3,6 +3,8 @@ title: Elicitation
 ---
 
 <div id="enable-section-numbers" />
+
+
 The Model Context Protocol (MCP) provides a standardized way for servers to request additional
 information from users through the client during interactions. This flow allows clients to
 maintain control over user interactions and data sharing while enabling servers to gather
@@ -94,7 +96,7 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 ## Protocol Messages
 
 ### Elicitation Requests
-Servers **MAY** request information from a user during the processing of a client request, by sending an `IncompleteResult`
+Servers **MAY** request information from a user during the processing of a client request, by sending an  [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult)
 containing an `elicitation/create` request.
 
 All elicitation requests **MUST** include the following parameters:
@@ -436,37 +438,6 @@ Clients:
 }
 ```
 
-### URL Elicitation Required Error
-
-When a request cannot be processed until an elicitation is completed, the server **MAY** return a [`URLElicitationRequiredError`](#error-handling) (code `-32042`) to indicate to the client that a URL mode elicitation is required. The server **MUST NOT** return this error except when URL mode elicitation is required.
-
-The error **MUST** include a list of elicitations that are required to complete before the original can be retried.
-
-Any elicitations returned in the error **MUST** be URL mode elicitations and have an `elicitationId` property.
-
-**Error Response:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "error": {
-    "code": -32042, // URL_ELICITATION_REQUIRED
-    "message": "This request requires more information.",
-    "data": {
-      "elicitations": [
-        {
-          "mode": "url",
-          "elicitationId": "550e8400-e29b-41d4-a716-446655440000",
-          "url": "https://mcp.example.com/connect?elicitationId=550e8400-e29b-41d4-a716-446655440000",
-          "message": "Authorization is required to access your Example Co files."
-        }
-      ]
-    }
-  }
-}
-```
-
 ## Message Flow
 
 ### Form Mode Flow
@@ -479,7 +450,7 @@ sequenceDiagram
 
     Client->>Server: tools/call(id: 1)
     note right of Server: Server needs more info
-    Server-->>Client: IncompleteRequest(elicitation/create (mode: form))
+    Server-->>Client: IncompleteResult(elicitation/create (mode: form))
 
     Note over User,Client: Present elicitation UI
     User-->>Client: Provide requested information
@@ -499,14 +470,15 @@ sequenceDiagram
     participant Server
 
     Client->>Server: tools/call(id: 1)
-    Note right of Server: Server needs more info
-    Server-->>Client: IncompleteRequest(elicitation/create (mode: url))
+    Note right of Server: Server needs more info that requires URL mode elicitation. <br/> Server creates requestState that encodes information about original request and the URL that the user will need to visit to complete the elicitation.
+    Server-->>Client: IncompleteResult(elicitation/create (mode: url), requestState)
 
     Client->>User: Present consent to open URL
     User-->>Client: Provide consent
 
     Client->>UserAgent: Open URL
-    Client->>Server: tools/call(id: 2, Accept Response))
+    Client->>Server: tools/call(id: 2, Accept Response, requestState))
+    Note right of Server: Server uses requestState to to associate the user's response via the URL with this request. It may need to block until the request is fulfilled. 
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
@@ -514,34 +486,6 @@ sequenceDiagram
 
     Note over Server: Continue processing with new information
     Server-->Client: Result(id: 2, result)
-```
-
-### URL Mode With Elicitation Required Error Flow
-
-```mermaid
-sequenceDiagram
-    participant UserAgent as User Agent (Browser)
-    participant User
-    participant Client
-    participant Server
-
-    Client->>Server: tools/call
-
-    Note over Server: Server needs authorization
-    Server->>Client: URLElicitationRequiredError
-    Note over Client: Client notes the original request can be retried after elicitation
-
-    Client->>User: Present consent to open URL
-    User-->>Client: Provide consent
-
-    Client->>UserAgent: Open URL
-
-    Note over User,UserAgent: User interaction
-
-    UserAgent-->>Server: Interaction complete
-    Server-->>Client: notifications/elicitation/complete (optional)
-
-    Client->>Server: Retry tools/call (optional)
 ```
 
 ## Response Actions
@@ -582,9 +526,7 @@ Servers should handle each state appropriately:
 ## Implementation Considerations
 
 ### Statefulness
-As of the `2026-06-30` version of the MCP specification, elicitations do not require that the server 
-maintain state about users as the request information and the elicitation response are both sent in the same 
-client-server interaction. 
+Elicitations do not require that the server maintain state about users with the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. 
 
 However, if state is stored, servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
 
@@ -651,13 +593,11 @@ Credentials obtained via URL mode elicitation are distinct from the MCP server c
 
 #### Implementation Pattern
 
-TODO: Caitie Redo this section after figuring out what to do with URLElicitationRequiredError.
-
 When implementing external authorization via URL mode elicitation:
 
 1. The MCP server generates an authorization URL, acting as an OAuth client to the third-party service
 2. The MCP server stores internal state that associates (binds) the elicitation request with the user's identity.
-3. The MCP server sends a URL mode elicitation request to the client with a URL that can start the authorization flow.
+3. The MCP server sends a URL mode elicitation request to the client with a URL that can start the authorization flow and an optional `requestState` that encodes information about the elicitation request and user (if needed).
 4. The user completes the OAuth flow directly with the third-party authorization server
 5. The third-party authorization server redirects back to the MCP server
 6. The MCP server securely stores the third-party tokens, bound to the user's identity
@@ -677,13 +617,15 @@ sequenceDiagram
     Client->>Server: tools/call
     Note over Server: Needs 3rd-party authorization for user
     Note over Server: Store state (bind the elicitation request to the user)
-    Server->>Client: URLElicitationRequiredError<br> (mode: "url", url: "https://mcp.example.com/connect?...")
-    Note over Client: Client notes the tools/call request can be retried later
+    Note over Server: generate requestState that encodes information about the original request and user.
+    Server->>Client: IncompleteResult<br/>(mode: "url", url: "https://mcp.example.com/connect?..."), requestState
+
     Client->>User: Present consent to open URL
     User->>Client: Provide consent
     Client->>UserAgent: Open URL
     Client->>Server: Accept response
     UserAgent->>Server: Load connect route
+
     Note over Server: Confirm: user is logged into MCP Server or MCP AS<br>Confirm: elicitation user matches session user
     Server->>UserAgent: Redirect to third-party authorization endpoint
     UserAgent->>3AS: Load authorize route
@@ -694,8 +636,7 @@ sequenceDiagram
     Server->>3AS: Exchange authorization code for  OAuth tokens
     3AS->>Server: Grants tokens
     Note over Server: Bind tokens to MCP user identity
-    Server-->>Client: notifications/elicitation/complete (optional)
-    Client->>Server: Retry tools/call
+    Client->>Server: tools/call (ElicitResults, requestState)
     Note over Server: Retrieve token bound to user identity
     Server->>3RS: Call 3rd-party API
 ```
@@ -704,9 +645,8 @@ This pattern maintains clear security boundaries while enabling rich integration
 
 ## Error Handling
 
-Servers **MUST** return standard JSON-RPC errors for common failure cases:
+Servers **SHOULD NOT** assume that elicitation requests will always succeed, and **MUST** handle cases where the user declines or cancels the elicitation, or where the client fails to process the request.
 
-- When a request cannot be processed until an elicitation is completed: `-32042` (`URLElicitationRequiredError`)
 
 ## Security Considerations
 
