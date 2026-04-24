@@ -637,7 +637,7 @@ Authorization servers providing OpenID Connect Discovery 1.0 **MUST** include `c
 
 An MCP client typically interacts with many authorization servers over its lifetime. An attacker that controls one of those authorization servers may attempt to have the client send it an authorization code or token issued by a different, honest authorization server (a mix-up attack, described in [RFC9207 Section 1](https://datatracker.ietf.org/doc/html/rfc9207#section-1)).
 
-To mitigate this, MCP clients **SHOULD** validate the authorization response `iss` parameter against the issuer recorded before the authorization request, as described in [Authorization Response Validation](#authorization-response-validation). This binds the response to the authorization server the client actually selected and prevents the authorization code from being redeemed at an unintended token endpoint.
+[Authorization Response Validation](#authorization-response-validation) mitigates this by binding the response to the authorization server the client recorded before redirecting, so the authorization code cannot be redeemed at an unintended token endpoint.
 
 ### Open Redirection
 
