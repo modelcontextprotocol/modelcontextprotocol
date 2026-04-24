@@ -156,24 +156,7 @@ Servers **MAY** send `IncompleteResult` responses on the following client reques
 | [`tools/call`](/specification/draft/server/tools#calling-tools)               | Yes                       |
 | [`tasks/result`](/specification/draft/basic/utilities/tasks#retrieving-task-results) | Yes                 |
 
-Servers **MUST NOT** send `IncompleteResult` responses on any other client requests, including but not limited to:
-
-| Client Request              | Supports IncompleteResult |
-| --------------------------- | ------------------------- |
-| `ping`                      | No                        |
-| `initialize`                | No                        |
-| `completion/complete`       | No                        |
-| `logging/setLevel`          | No                        |
-| `prompts/list`              | No                        |
-| `resources/list`            | No                        |
-| `resources/templates/list`  | No                        |
-| `resources/subscribe`       | No                        |
-| `resources/unsubscribe`     | No                        |
-| `tools/list`                | No                        |
-| `tasks/get`                 | No                        |
-| `tasks/list`                | No                        |
-| `tasks/cancel`              | No                        |
-| `tasks/input_response`      | No                        |
+Servers **MUST NOT** send `IncompleteResult` responses on any other client requests.
 
 ### Basic Workflow
 
@@ -207,14 +190,11 @@ what is directly present in the retry request.
 #### Server Requirements (Basic Workflow)
 
 1. Servers **MAY** respond to any [supported client request](#supported-requests) with an `IncompleteResult`. 
-    This response **MAY** be sent either as a standalone response or as the final message on an SSE stream. 
-    If using an SSE stream, servers **MUST NOT** send any message on the stream after the `IncompleteResult`.
 1. The `IncompleteResult` **MAY** include an `inputRequests` field.
 1. The `IncompleteResult` **MAY** include a `requestState` field. If specified, this field is an opaque string meaningful only to the server. Servers are free to encode the state in any format (e.g., plain JSON, base64-encoded JSON, encrypted JWT, serialized binary).
 1. If a request contains a `requestState` field, servers **MUST** always validate that state, as the client is an untrusted intermediary.
    - If tampering is a concern, servers **SHOULD** encrypt the `requestState` field using an encryption algorithm of their choice (e.g., AES-GCM or a signed JWT) to ensure both confidentiality and integrity.
    - If the request state contains data specific to the original user, the server **MUST** use a mechanism to cryptographically bind the data to the original user and **MUST** verify that the `requestState` sent by the client is associated with the currently authenticated user.
-   - Servers using plaintext state **MUST** treat the decoded values as untrusted input and validate them the same way they would validate any client-supplied data.
 1. Servers **MUST** include at least one of `inputRequests` or `requestState` in every `IncompleteResult` response.
 1. Servers **MUST NOT** send an `inputRequests` that the client has not declared support for in its capabilities. For example, if a client does not declare support for `elicitation`, the server **MUST NOT** include any `elicitation/create` requests in the `inputRequests` field.
 1. Servers **MUST NOT** assume that clients will fulfill the `inputRequests` or retry the original request. Servers **MAY** choose to return an `IncompleteResult` multiple times in response to the same original request if they want to repeatedly prompt the user for information until they have what they need to complete the request.
@@ -266,27 +246,26 @@ sequenceDiagram
 
 1. Servers **MAY** respond to `tasks/get` by indicating that the task is in status `input_required`.
 1. Servers **MUST** include an `inputRequests` field in the `tasks/result` response when the task is in status `input_required`.
+1. Servers **MAY** include a `requestState` field in the `tasks/result` response when the task is in status `input_required`. 
 
 #### Client Requirements (Persistent)
 
-1. When `tasks/get` shows status `input_required`, clients **MUST** call `tasks/result` to get the input requests.
-1. Clients **SHOULD** construct the results of those requests and call [`tasks/input_response`](/specification/draft/basic/utilities/tasks#providing-input-for-tasks) with the input responses.
+1. When `tasks/get` shows status `input_required`, clients **MUST** call `tasks/result` to get the `inputRequests` and optional `requestState`.
+1. Clients **SHOULD** construct the results of those requests and call [`tasks/input_response`](/specification/draft/basic/utilities/tasks#providing-input-for-tasks) with the `inputResponses` & `requestState` (if present).
 1. Clients **MAY** choose not to fulfill the input requests, in which case they can cancel the task.
 
-### Transitioning Between Workflows
-
-A tool implementation **MAY** start using the ephemeral workflow and then switch to the persistent workflow by creating a task once it has the information needed to begin processing. This avoids requiring the server to store state until it actually has enough information to start.
-
-However, once a tool implementation returns a task, it has committed to storing state on the server side for the duration of the task. There is no way to transition back to the ephemeral workflow. All subsequent interactions **MUST** be performed via the Tasks API.
 
 ### Error Handling
 
-Servers **SHOULD** validate that the data provided by the client is a valid `InputResponses` object and that the information inside can be correctly parsed. Protocol errors (malformed JSON, invalid schema, internal server errors) **SHOULD** return a JSON-RPC error response with an appropriate error code and message.
+Servers **SHOULD** validate that the data provided by the client is a valid `InputResponses` object and that the information inside can be correctly parsed. 
+Protocol errors (malformed JSON, invalid schema, internal server errors) **SHOULD** return a JSON-RPC error response with an appropriate error code and message.
 
 If additional, unexpected parameters are provided in the `InputResponses` object, the server **SHOULD** ignore any information it does not recognize or need.
 
-If the client fails to send all the information requested in a previous `InputRequests`, and the missing information is necessary for the server to process the request, the server **SHOULD** respond with a new `IncompleteResult` requesting the missing information again, rather than returning an error.
+If the client fails to send all the information requested in a previous `InputRequests`, and the missing information is necessary for the server to process the request, 
+the server **SHOULD** respond with a new `IncompleteResult` requesting the missing information again, rather than returning an error.
 
 ### Security Considerations
 
-Because `requestState` passes through the client, malicious or compromised clients could attempt to modify it to alter server behavior, bypass authorization checks, or corrupt server logic. Servers **MUST** validate request state as described in the [server requirements](#server-requirements-ephemeral) above.
+Because `requestState` passes through the client, malicious or compromised clients could attempt to modify it to alter server behavior, 
+bypass authorization checks, or corrupt server logic. Servers **MUST** validate request state as described in the [server requirements](#server-requirements-ephemeral) above.
