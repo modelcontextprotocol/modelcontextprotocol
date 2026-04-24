@@ -1,6 +1,6 @@
 # SEP-2468: Recommend Issuer (iss) Parameter in MCP Auth Responses
 
-- **Status**: Draft
+- **Status**: In-Review
 - **Type**: Standards Track
 - **Created**: 2026-03-25
 - **Author(s)**: Emily Lauber (@EmLauber)
