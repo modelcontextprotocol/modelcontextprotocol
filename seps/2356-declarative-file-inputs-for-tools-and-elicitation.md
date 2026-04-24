@@ -235,27 +235,30 @@ the same semantics.
 ### Wire encoding
 
 Clients **MUST** populate an `mcpFile`-annotated argument with an
-[RFC 2397][rfc2397] data URI using base64 encoding:
+[RFC 2397][rfc2397] data URI:
 
 ```
-data:<mediatype>;base64,<data>
+data:[<mediatype>][;base64],<data>
 ```
 
 [rfc2397]: https://www.rfc-editor.org/rfc/rfc2397
 
 Where `<mediatype>` is the MIME type of the file as reported by the client's
 platform (e.g., `image/png`). If the platform does not report a type, the
-client **MUST** use `application/octet-stream`.
+client **MUST** use `application/octet-stream`. Clients **SHOULD** use the
+`;base64` form for binary content; the percent-encoded form is permitted and
+may be preferable for short textual payloads.
 
-Example value (a complete, valid 1×1 PNG, not truncated):
+Example values (both well-formed; the first is a complete 1×1 PNG):
 
 ```
 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg==
+data:text/plain,hello%20world
 ```
 
 Servers **MUST** accept well-formed `data:` URIs in `mcpFile`-annotated
-arguments. Servers **MUST** reject any other scheme and **MUST NOT**
-dereference it.
+arguments in either encoding. Servers **MUST** reject any other scheme and
+**MUST NOT** dereference it.
 
 If a server needs the original filename, it **SHOULD** declare a separate
 ordinary string argument for it; the description on that argument is
