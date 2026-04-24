@@ -14,7 +14,9 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
+
+const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const SEPS_DIR = path.join(__dirname, "..", "seps");
 const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "seps");
@@ -38,18 +40,14 @@ interface SEPMetadata {
  * Parse SEP metadata from markdown content
  */
 function parseSEPMetadata(content: string, filename: string): SEPMetadata | null {
-  // Skip template and README files
-  if (filename === "TEMPLATE.md" || filename === "README.md") {
+  // Skip template, README, and 0000- placeholder drafts
+  if (filename === "TEMPLATE.md" || filename === "README.md" || filename.startsWith("0000-")) {
     return null;
   }
 
   // Extract SEP number and slug from filename (e.g., "1850-pr-based-sep-workflow.md")
   const filenameMatch = filename.match(/^(\d+)-(.+)\.md$/);
   if (!filenameMatch) {
-    // Skip files that don't match SEP naming convention (like 0000-*.md drafts)
-    if (filename.match(/^0000-/)) {
-      return null;
-    }
     console.warn(`Warning: Skipping ${filename} - doesn't match SEP naming convention`);
     return null;
   }
@@ -253,8 +251,10 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
   const statusOrder = ["Final", "Accepted", "In-Review", "Draft", "Withdrawn", "Rejected", "Superseded", "Dormant"];
 
   for (const sep of seps) {
-    // Normalize status to title case
-    const status = sep.status.charAt(0).toUpperCase() + sep.status.slice(1).toLowerCase();
+    // Normalize status to title case (handling hyphenated statuses like "In-Review")
+    const status = sep.status.split('-').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join('-');
     if (!groups[status]) {
       groups[status] = [];
     }
@@ -394,7 +394,7 @@ async function main() {
       // Format MDX files with Prettier
       const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
       if (mdxTempFiles.length > 0) {
-        execSync(`npx prettier --write ${mdxTempFiles.join(" ")}`, { stdio: "pipe" });
+        execFileSync(npx, ["prettier", "--write", ...mdxTempFiles], { stdio: "pipe" });
       }
 
       // Compare formatted temp files with existing files
@@ -434,7 +434,7 @@ async function main() {
       .map(({ path: p }) => path.relative(process.cwd(), p));
     if (filesToFormat.length > 0) {
       console.log("\nFormatting generated files with Prettier...");
-      execSync(`npx prettier --write ${filesToFormat.join(" ")}`, { stdio: "inherit" });
+      execFileSync(npx, ["prettier", "--write", ...filesToFormat], { stdio: "inherit" });
     }
 
     console.log("\nSEP documentation generated successfully!");

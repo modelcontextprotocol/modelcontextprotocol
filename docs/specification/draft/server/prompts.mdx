@@ -4,8 +4,6 @@ title: Prompts
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: draft</Info>
-
 The Model Context Protocol (MCP) provides a standardized way for servers to expose prompt
 templates to clients. Prompts allow servers to provide structured messages and
 instructions for interacting with language models. Clients can discover available
@@ -15,6 +13,8 @@ prompts, retrieve their contents, and provide arguments to customize them.
 
 Prompts are designed to be **user-controlled**, meaning they are exposed from servers to
 clients with the intention of the user being able to explicitly select them for use.
+This refers to who decides when the prompt is used, not who authors its content. Prompt
+content is defined by the server.
 
 Typically, prompts would be triggered through user-initiated commands in the user
 interface, which allows users to naturally discover and invoke available prompts.
@@ -44,6 +44,11 @@ Servers that support prompts **MUST** declare the `prompts` capability during
 
 `listChanged` indicates whether the server will emit notifications when the list of
 available prompts changes.
+
+Servers that declare the `prompts` capability **MUST** respond to `prompts/list` requests
+with the set of prompts currently available to the requesting client. This set **MAY** be
+empty and **MAY** change over the lifetime of the connection (see
+[List Changed Notification](#list-changed-notification)).
 
 ## Protocol Messages
 

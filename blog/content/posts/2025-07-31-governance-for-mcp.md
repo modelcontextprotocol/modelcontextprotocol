@@ -1,9 +1,14 @@
-+++
-date = '2025-07-31T00:00:00Z'
-title = 'Building to Last: A New Governance Model for MCP'
-author = 'David Soria Parra (Lead Maintainer)'
-tags = ['announcement', 'governance', 'community']
-+++
+---
+title: "Building to Last: A New Governance Model for MCP"
+date: "2025-07-31T00:00:00Z"
+description: "Introducing MCP's formal governance model: Specification Enhancement Proposals (SEPs), a maintainer structure, and a community-driven process for evolving the protocol."
+author:
+  - David Soria Parra (Lead Maintainer)
+tags:
+  - announcement
+  - governance
+  - community
+---
 
 Since its open source release in November of 2024, the Model Context Protocol project has grown faster than we could have ever imagined. That's a wonderful problem to have, but with growth come growing pains. Our existing processes, which worked well for a small team, have started to show their limits.
 
