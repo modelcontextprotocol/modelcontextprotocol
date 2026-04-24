@@ -38,7 +38,7 @@ Native skills support in host applications demonstrates strong demand for rich, 
 
 - **Fragmented distribution.** A server and the skill that teaches an agent to use it are versioned, discovered, and installed separately. Users installing a server from a registry have no signal that a companion skill exists. ([problem statement](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/problem-statement.md))
 - **Instruction size limits.** Server instructions load once at initialization and are practically bounded in size. Complex workflows — such as the 875-line [mcpGraph skill](https://github.com/TeamSparkAI/mcpGraph/blob/main/skills/mcpgraphtoolkit/SKILL.md) — do not fit this model. ([experimental findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md#mcpgraph-skills-in-mcp-server-repo))
-- **Inconsistent ad-hoc solutions.** Absent a convention, four independent implementations have each invented their own `skill://` URI structure, with diverging semantics for authority, path, and sub-resource addressing.
+- **Inconsistent ad-hoc solutions.** Absent a convention, several independent implementations have each invented their own `skill://` URI structure, with diverging semantics for authority, path, and sub-resource addressing.
 
 ## Specification
 
@@ -65,10 +65,6 @@ Each file within a skill directory is exposed as an MCP resource. Servers SHOULD
 skill://<skill-path>/<file-path>
 ```
 
-A server MAY instead serve skills under another scheme native to its domain (e.g., `github://owner/repo/skills/refunds/SKILL.md`), provided each skill is listed in the [`skill://index.json`](#enumeration-via-skillindexjson) resource. The index is the authoritative record of which resources are skills; outside the index, hosts recognize skills by the `skill://` scheme prefix.
-
-The structural constraints below — `<skill-path>` ending in the skill name, `SKILL.md` explicit in the URI, no nesting — apply regardless of scheme.
-
 where:
 
 - `<skill-path>` is a `/`-separated path of one or more segments locating the skill directory within the server's skill namespace. It MAY be a single segment (`git-workflow`) or nested to arbitrary depth (`acme/billing/refunds`).
@@ -84,6 +80,8 @@ Further constraints:
 - The final `<skill-path>` segment, being the skill `name`, MUST satisfy the Agent Skills specification's naming rules. Prefix segments SHOULD be valid URI path segments per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986); no further constraints are imposed on them.
 
 Per RFC 3986, the first segment of `<skill-path>` occupies the authority component. This carries no special semantics under this convention and clients MUST NOT attempt DNS or network resolution of it.
+
+A server MAY instead serve skills under another scheme native to its domain (e.g., `github://owner/repo/skills/refunds/SKILL.md`), provided each skill is listed in the [`skill://index.json`](#enumeration-via-skillindexjson) resource. The index is the authoritative record of which resources are skills; outside the index, hosts recognize skills by the `skill://` scheme prefix. The structural constraints above — `<skill-path>` ending in the skill name, `SKILL.md` explicit in the URI, no nesting — apply regardless of scheme.
 
 #### Examples
 
@@ -103,7 +101,7 @@ For each `skill://<skill-path>/SKILL.md` resource:
 - `name` SHOULD be set from the `name` field of the `SKILL.md` YAML frontmatter. By the path constraint above, this will equal the final segment of `<skill-path>`.
 - `description` SHOULD be set from the `description` field of the `SKILL.md` YAML frontmatter.
 
-Servers MAY expose additional frontmatter fields via the resource's `_meta` object. Other files in the skill use the `mimeType` appropriate to their content.
+Servers MAY expose additional frontmatter fields via the resource's `_meta` object. When `_meta` keys are used for skill resources, implementations SHOULD use the `io.modelcontextprotocol.skills/` reverse-domain prefix. Other files in the skill use the `mimeType` appropriate to their content.
 
 ### Discovery
 
@@ -276,13 +274,13 @@ These wrappers are thin — each is a single underlying protocol call with a fix
 
 ### Why Resources Instead of a New Primitive?
 
-The Working Group's [decision log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-02-26-prioritize-skills-as-resources-with-client-helper-tools) records this as settled. Skills are files; Resources exist to expose files. Reusing Resources inherits URI addressability, `resources/read`, `resources/subscribe`, templates, and the existing client tooling for free. A new primitive would duplicate most of this and add ecosystem complexity — a concern raised in [community discussion](https://github.com/modelcontextprotocol/experimental-ext-skills/issues/14).
+The Working Group's [decision log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-02-26-prioritize-skills-as-resources-with-client-helper-tools) records this as settled. Skills are files; Resources exist to expose files. Reusing Resources inherits URI addressability, `resources/read`, `resources/subscribe`, templates, and the existing client tooling for free. A new primitive would duplicate most of this and add ecosystem complexity. Using resources to describe files is also aligned with [Composability over specificity](https://modelcontextprotocol.io/community/design-principles#composability-over-specificity) and other MCP [design principles](https://modelcontextprotocol.io/community/design-principles).
 
-[SEP-2076] proposes the new-primitive alternative. That approach offers cleaner capability negotiation and dedicated list-changed notifications, but at the cost of flattening skills to name-addressed blobs — losing the directory model that the Agent Skills specification defines and that supporting files depend on.
+[SEP-2076] originally proposed the new-primitive alternative. That approach offers cleaner capability negotiation and dedicated list-changed notifications, but at the cost of flattening skills to name-addressed blobs — losing the directory model that the Agent Skills specification defines and that supporting files depend on.
 
 ### Why `skill://<path>/<file>` With an Explicit `SKILL.md`?
 
-Four independent implementations converged on `skill://` as the scheme without coordination — a strong signal. They diverged on structure. This SEP adopts the explicit-file form because:
+Several independent implementations converged on `skill://` as the scheme without coordination — a strong signal. They diverged on structure. This SEP adopts the explicit-file form because:
 
 - It directly mirrors the Agent Skills specification's directory model. A skill _is_ a directory; its URI space should look like one.
 - `SKILL.md` being explicit means supporting files are siblings at the same level, with no special casing for "the skill URI" versus "a file in the skill."
@@ -318,7 +316,7 @@ Reinstating archives as a server-side packaging choice — not a client-visible 
 
 This extension introduces no new protocol methods, message types, or schema changes. A server that does not implement this extension simply exposes no `skill://` resources; existing clients are unaffected. A client that does not implement this extension sees `skill://` resources as ordinary resources, which they are.
 
-Existing implementations using other `skill://` URI structures (NimbleBrain's `skill://server/skill`, skilljack's implicit-`SKILL.md` `skill://name`) will need to adjust their URI paths to conform. These are small, mechanical changes.
+Existing implementations using other `skill://` URI structures will need to adjust to conform — see the Working Group's [related-work survey](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/related-work.md) for a catalog. Notably, FastMCP's widely-used [SkillsProvider](https://gofastmcp.com/servers/providers/skills) diverges on URI structure, discovery (per-skill `_manifest` vs. central index), and metadata mapping; coordinating that migration is a near-term Working Group priority. These are mechanical changes, not semantic ones.
 
 ## Security Implications
 
@@ -332,8 +330,6 @@ Skill content is instructional text delivered to a model, which makes it a promp
 - **Archive safety.** Archive-distributed skills are an unpacking attack surface. Hosts MUST validate archives per the [Agent Skills archive safety requirements](https://agentskills.io/well-known-uri#archive-safety): reject path traversal and absolute paths, reject links resolving outside the skill directory, and bound total unpacked size to prevent decompression bombs.
 - **Not a third-party marketplace.** This extension is for servers to ship skills that describe their own tools, not for distributing arbitrary third-party content through a connected server.
 
-The instructor-only scope of this extension ([decisions.md, 2026-02-14](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-02-14-skills-served-over-mcp-use-the-instructor-format)) deliberately excludes the helper model. A filesystem skill might reasonably carry scripts the user has audited; an MCP skill arrives from a remote party and MUST be handled as text that influences model behavior, not as code that executes on the host.
-
 ## Reference Implementation
 
 Per [SEP-2133], an Extensions Track SEP requires at least one reference implementation in an official SDK prior to review.
@@ -342,7 +338,7 @@ Per [SEP-2133], an Extensions Track SEP requires at least one reference implemen
 
 - TypeScript SDK convenience wrappers (`@server.skill()`, `client.listSkills()`, `client.readSkillUri()`): [experimental-ext-skills#71](https://github.com/modelcontextprotocol/experimental-ext-skills/pull/71)
 
-**Host implementations** (reading `skill://` resources, surfacing skills alongside filesystem skills):
+**Prototype host implementations** (reading `skill://` resources, surfacing skills alongside filesystem skills):
 
 - gemini-cli: [olaservo/gemini-cli#1](https://github.com/olaservo/gemini-cli/pull/1)
 - fast-agent: [olaservo/fast-agent#1](https://github.com/olaservo/fast-agent/pull/1)
@@ -350,7 +346,7 @@ Per [SEP-2133], an Extensions Track SEP requires at least one reference implemen
 - codex: [olaservo/codex#1](https://github.com/olaservo/codex/pull/1)
 - Claude Code: prototyped internally at Anthropic; not yet public
 
-**Server implementation:**
+**Prototype server implementation:**
 
 - GitHub MCP Server: [github/github-mcp-server#2360](https://github.com/github/github-mcp-server/pull/2360)
 
@@ -362,7 +358,9 @@ Per [SEP-2133], an Extensions Track SEP requires at least one reference implemen
 - [SEP-2076]: Agent Skills as first-class primitive (alternative approach)
 - [Skills Over MCP Working Group charter](https://modelcontextprotocol.io/community/skills-over-mcp/charter)
 - [Decision Log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md) — Working Group decisions and rationale
-- [Experimental Findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md) — results from implementations
+- [Experimental Findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md) — results from implementations (WIP)
+- [Related Work](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/related-work.md) — survey of existing skill-serving implementations
+- [Skill `_meta` Keys](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/skill-meta-keys.md) — `_meta` key conventions for skill resources
 - [RFC 3986: URIs](https://datatracker.ietf.org/doc/html/rfc3986)
 
 [SEP-2076]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2076
