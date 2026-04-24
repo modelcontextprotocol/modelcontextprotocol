@@ -1,0 +1,4 @@
+{
+  "code": -32001,
+  "message": "Header mismatch: Mcp-Method header value 'tools/call' does not match body value 'prompts/get'"
+}
