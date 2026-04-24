@@ -88,7 +88,9 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
  * Convert GitHub usernames to links
  */
 function formatAuthors(authors: string): string {
-  return authors.replace(/@([\w-]+)/g, "[@$1](https://github.com/$1)");
+  return authors
+    .replace(/<([^<>@\s]+@[^<>@\s]+)>/g, "($1)")
+    .replace(/(?<!\w)@([\w-]+)(?!\.[a-z])/g, "[@$1](https://github.com/$1)");
 }
 
 /**
