@@ -51,7 +51,7 @@
                 "group": "Clients",
                 "pages": [
                   "docs/develop/build-client",
-                  "docs/develop/clients/building-quality-clients"
+                  "docs/develop/clients/client-best-practices"
                 ]
               },
               "docs/sdk",
@@ -418,7 +418,8 @@
               "seps/2085-governance-succession-and-amendment",
               "seps/2133-extensions",
               "seps/2148-contributor-ladder",
-              "seps/2149-working-group-charter-template"
+              "seps/2149-working-group-charter-template",
+              "seps/2243-http-standardization"
             ]
           },
           {
@@ -426,12 +427,6 @@
             "pages": [
               "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
-            ]
-          },
-          {
-            "group": "Draft",
-            "pages": [
-              "seps/2243-http-standardization"
             ]
           }
         ]
@@ -467,6 +462,7 @@
           {
             "group": "Working Group Charters",
             "pages": [
+              "community/file-uploads/charter",
               "community/inspector-v2/charter",
               "community/interceptors/charter",
               "community/server-card/charter",
