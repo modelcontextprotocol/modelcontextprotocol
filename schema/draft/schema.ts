@@ -3544,10 +3544,12 @@ export interface Package {
   registryBaseUrl?: string;
 
   /**
-   * Package version. Must be a specific version. Version ranges are rejected
-   * (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*').
+   * Package version. Must be a specific version. The literal string
+   * `"latest"` is rejected, and version ranges are rejected (e.g., `'^1.2.3'`,
+   * `'~1.2.3'`, `'>=1.2.3'`, `'1.x'`, `'1.*'`).
    *
    * @minLength 1
+   * @pattern ^(?!latest$).+$
    */
   version?: string;
 
@@ -3688,12 +3690,16 @@ export interface Input {
 
   /**
    * Whether the input must be supplied for the package to run.
+   *
+   * @default false
    */
   isRequired?: boolean;
 
   /**
    * Whether the input is a secret value (e.g., password, token). If true,
    * clients should handle the value securely.
+   *
+   * @default false
    */
   isSecret?: boolean;
 
@@ -3702,6 +3708,8 @@ export interface Input {
    * on the user's filesystem. When the input is converted to a string,
    * booleans should be represented by `"true"`/`"false"`, and numbers by
    * decimal values.
+   *
+   * @default "string"
    */
   format?: "string" | "number" | "boolean" | "filepath";
 
@@ -3768,11 +3776,16 @@ export interface PositionalArgument extends InputWithVariables {
    * line; it may be used by client configuration as a label identifying the
    * argument, and it identifies the value in transport URL variable
    * substitution.
+   *
+   * Implementations SHOULD ensure that at least one of `valueHint` or
+   * `value` is set so the positional argument resolves to a concrete value.
    */
   valueHint?: string;
 
   /**
    * Whether the argument can be repeated multiple times in the command line.
+   *
+   * @default false
    */
   isRepeated?: boolean;
 }
@@ -3792,6 +3805,8 @@ export interface NamedArgument extends InputWithVariables {
 
   /**
    * Whether the argument can be repeated multiple times.
+   *
+   * @default false
    */
   isRepeated?: boolean;
 }
