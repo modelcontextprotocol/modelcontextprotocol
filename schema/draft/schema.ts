@@ -3282,3 +3282,516 @@ export type ServerResult =
   | GetTaskPayloadResult
   | ListTasksResult
   | CancelTaskResult;
+
+/* Server Cards (SEP-2127) */
+
+/**
+ * A static metadata document describing a remote MCP server, suitable for
+ * publishing at a `.well-known/mcp-server-card` URI for pre-connection discovery.
+ *
+ * Server Cards intentionally describe only what is needed to discover and
+ * connect to a remote server: identity, transport, and protocol versions.
+ * They do not enumerate primitives (tools, resources, prompts) — those remain
+ * subject to runtime listing via the protocol's standard list operations.
+ *
+ * The companion {@link Server} shape is a strict superset that adds local
+ * package metadata for use cases like the MCP Registry's `server.json`.
+ *
+ * @see [SEP-2127: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127)
+ * @category Server Cards
+ */
+export interface ServerCard {
+  /**
+   * The Server Card JSON Schema URI that this document conforms to.
+   *
+   * @format uri
+   */
+  $schema?: string;
+
+  /**
+   * Server name in reverse-DNS format. Must contain exactly one forward slash
+   * separating namespace from server name.
+   *
+   * @minLength 3
+   * @maxLength 200
+   * @pattern ^[a-zA-Z0-9.-]+/[a-zA-Z0-9._-]+$
+   */
+  name: string;
+
+  /**
+   * Version string for this server. SHOULD follow semantic versioning
+   * (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of `Implementation.version`
+   * in the MCP specification. Non-semantic versions are allowed but may not
+   * sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3',
+   * '>=1.2.3', '1.x', '1.*').
+   *
+   * @maxLength 255
+   */
+  version: string;
+
+  /**
+   * Clear human-readable explanation of server functionality. Should focus on
+   * capabilities, not implementation details.
+   *
+   * @minLength 1
+   * @maxLength 100
+   */
+  description: string;
+
+  /**
+   * Optional human-readable title or display name for the MCP server.
+   * MCP subregistries or clients MAY choose to use this for display purposes.
+   *
+   * @minLength 1
+   * @maxLength 100
+   */
+  title?: string;
+
+  /**
+   * Optional URL to the server's homepage, documentation, or project website.
+   * Provides a central link for users to learn more about the server.
+   * Particularly useful when the server has custom installation instructions
+   * or setup requirements.
+   *
+   * @format uri
+   */
+  websiteUrl?: string;
+
+  /**
+   * Optional repository metadata for the MCP server source code.
+   * Recommended for transparency and security inspection.
+   */
+  repository?: Repository;
+
+  /**
+   * Optional set of sized icons that the client can display in a user interface.
+   *
+   * Clients that support rendering icons MUST support at least the following
+   * MIME types: `image/png` and `image/jpeg` (safe, universal compatibility).
+   * Clients SHOULD also support: `image/svg+xml` (scalable but requires security
+   * precautions) and `image/webp` (modern, efficient format).
+   */
+  icons?: Icon[];
+
+  /**
+   * Metadata helpful for making HTTP-based connections to this MCP server.
+   */
+  remotes?: Remote[];
+
+  /**
+   * Extension metadata using reverse-DNS namespacing for vendor-specific data.
+   *
+   * Follows the protocol's standard `_meta` definition.
+   *
+   * @see {@link MetaObject}
+   */
+  _meta?: MetaObject;
+}
+
+/**
+ * A superset of {@link ServerCard} that additionally describes locally-runnable
+ * packages. This is the shape used by the MCP Registry's `server.json`.
+ *
+ * `Server` documents are typically published to a registry rather than served
+ * from a `.well-known` URI, since they may include instructions for installing
+ * and executing a server on a client's local machine.
+ *
+ * @see [SEP-2127: MCP Server Cards](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127)
+ * @category Server Cards
+ */
+export interface Server extends ServerCard {
+  /**
+   * Metadata helpful for running and connecting to local instances of this MCP server.
+   */
+  packages?: Package[];
+}
+
+/**
+ * Repository metadata for the MCP server source code. Enables users and
+ * security experts to inspect the code, improving transparency.
+ *
+ * @category Server Cards
+ */
+export interface Repository {
+  /**
+   * Repository URL for browsing source code. Should support both web browsing
+   * and `git clone` operations.
+   *
+   * @format uri
+   */
+  url: string;
+
+  /**
+   * Repository hosting service identifier (e.g., `"github"`). Used by registries
+   * to determine validation and API access methods.
+   */
+  source: string;
+
+  /**
+   * Optional relative path from repository root to the server location within a
+   * monorepo or nested package structure. Must be a clean relative path.
+   */
+  subfolder?: string;
+
+  /**
+   * Repository identifier from the hosting service (e.g., GitHub repo ID).
+   * Owned and determined by the source forge. Should remain stable across
+   * repository renames and may be used to detect repository resurrection
+   * attacks — if a repository is deleted and recreated, the ID should change.
+   */
+  id?: string;
+}
+
+/**
+ * Metadata for connecting to a remote (HTTP-based) MCP server endpoint.
+ *
+ * @category Server Cards
+ */
+export interface Remote {
+  /**
+   * The transport type for this remote endpoint.
+   */
+  type: "streamable-http" | "sse";
+
+  /**
+   * The endpoint URL. Must start with `http://` or `https://`.
+   */
+  url: string;
+
+  /**
+   * MCP protocol versions actively supported by this remote endpoint. Allows
+   * clients to negotiate a compatible protocol version before initialization.
+   */
+  supportedProtocolVersions?: string[];
+
+  /**
+   * HTTP headers required or accepted when connecting to this remote endpoint.
+   */
+  headers?: RemoteHeader[];
+}
+
+/**
+ * Describes an HTTP header that a client should include when connecting to
+ * a remote MCP server.
+ *
+ * @category Server Cards
+ */
+export interface RemoteHeader {
+  /**
+   * The header name (e.g., `"X-API-Key"`).
+   */
+  name: string;
+
+  /**
+   * Human-readable explanation of what the header is for. Clients MAY surface
+   * this when prompting users for input.
+   */
+  description?: string;
+
+  /**
+   * Whether the header is required to connect successfully.
+   */
+  isRequired?: boolean;
+
+  /**
+   * Whether the header value is sensitive (e.g., an API key or token).
+   * Clients SHOULD treat values for secret headers with appropriate care
+   * (avoid logging, mask in UI, store securely).
+   */
+  isSecret?: boolean;
+
+  /**
+   * Default value for the header. Used as a starting point for client
+   * configuration when the user has not yet supplied a value.
+   */
+  default?: string;
+
+  /**
+   * Optional list of allowed values for the header. If provided, clients
+   * SHOULD restrict user input to one of these values.
+   */
+  choices?: string[];
+}
+
+/**
+ * Metadata for installing and running a packaged MCP server locally.
+ *
+ * @category Server Cards
+ */
+export interface Package {
+  /**
+   * Registry type indicating how to download packages
+   * (e.g., `"npm"`, `"pypi"`, `"oci"`, `"nuget"`, `"mcpb"`).
+   */
+  registryType: string;
+
+  /**
+   * Package identifier — either a package name (for registries)
+   * or a URL (for direct downloads).
+   */
+  identifier: string;
+
+  /**
+   * Transport configuration for invoking this package after installation.
+   */
+  transport: PackageTransport;
+
+  /**
+   * Base URL of the package registry.
+   *
+   * @format uri
+   */
+  registryBaseUrl?: string;
+
+  /**
+   * Package version. Must be a specific version. Version ranges are rejected
+   * (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*').
+   *
+   * @minLength 1
+   */
+  version?: string;
+
+  /**
+   * MCP protocol versions actively supported by this package.
+   */
+  supportedProtocolVersions?: string[];
+
+  /**
+   * A hint to help clients determine the appropriate runtime for the package
+   * (e.g., `"npx"`, `"uvx"`, `"docker"`, `"dnx"`). Should be provided when
+   * `runtimeArguments` are present.
+   */
+  runtimeHint?: string;
+
+  /**
+   * Arguments passed to the package's runtime command (such as `docker` or
+   * `npx`). The `runtimeHint` field should be provided when `runtimeArguments`
+   * are present.
+   */
+  runtimeArguments?: Argument[];
+
+  /**
+   * Arguments passed to the package's binary.
+   */
+  packageArguments?: Argument[];
+
+  /**
+   * Environment variables to be set when running the package.
+   */
+  environmentVariables?: KeyValueInput[];
+
+  /**
+   * SHA-256 hash of the package file for integrity verification. Required for
+   * MCPB packages and optional for other package types. If present, MCP
+   * clients MUST validate the downloaded file matches the hash before running
+   * packages to ensure file integrity.
+   *
+   * @pattern ^[a-f0-9]{64}$
+   */
+  fileSha256?: string;
+}
+
+/**
+ * Transport protocol configuration for a locally-runnable package.
+ *
+ * @category Server Cards
+ */
+export type PackageTransport =
+  | StdioTransport
+  | StreamableHttpPackageTransport
+  | SsePackageTransport;
+
+/**
+ * Stdio transport — the client launches the package as a subprocess and
+ * communicates over standard input and output.
+ *
+ * @category Server Cards
+ */
+export interface StdioTransport {
+  type: "stdio";
+}
+
+/**
+ * Streamable-HTTP transport for a locally-runnable package that exposes
+ * itself over HTTP after launch.
+ *
+ * @category Server Cards
+ */
+export interface StreamableHttpPackageTransport {
+  type: "streamable-http";
+
+  /**
+   * URL template for the streamable-http transport. Must start with
+   * `http://`, `https://`, or a `{template-variable}`. Variables in
+   * `{curly_braces}` reference argument value-hints, argument names, or
+   * environment variable names from the parent {@link Package}.
+   *
+   * @pattern ^(https?://[^\s]+|\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\s]*)$
+   */
+  url: string;
+
+  /**
+   * HTTP headers to include when connecting to the package's local endpoint.
+   */
+  headers?: KeyValueInput[];
+}
+
+/**
+ * Server-sent events (SSE) transport for a locally-runnable package.
+ *
+ * @category Server Cards
+ */
+export interface SsePackageTransport {
+  type: "sse";
+
+  /**
+   * SSE endpoint URL template. See {@link StreamableHttpPackageTransport.url}
+   * for variable-substitution semantics.
+   *
+   * @pattern ^(https?://[^\s]+|\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\s]*)$
+   */
+  url: string;
+
+  /**
+   * HTTP headers to include when connecting to the package's local endpoint.
+   */
+  headers?: KeyValueInput[];
+}
+
+/**
+ * A command-line argument supplied to a package's binary or runtime.
+ *
+ * @remarks
+ * Arguments construct command-line parameters that may contain user-provided
+ * input. This creates potential command-injection risks if clients execute
+ * commands in a shell environment. Clients SHOULD prefer non-shell execution
+ * methods (e.g., `posix_spawn`) when possible to eliminate injection risks
+ * entirely. Where not possible, clients SHOULD obtain user consent to run the
+ * resolved command before execution.
+ *
+ * @category Server Cards
+ */
+export type Argument = PositionalArgument | NamedArgument;
+
+/**
+ * A user-supplied or pre-set input value, used in {@link Package} argument
+ * and environment-variable definitions.
+ *
+ * @category Server Cards
+ */
+export interface Input {
+  /**
+   * Human-readable explanation of the input. Clients can use this to provide
+   * context to the user.
+   */
+  description?: string;
+
+  /**
+   * Whether the input must be supplied for the package to run.
+   */
+  isRequired?: boolean;
+
+  /**
+   * Whether the input is a secret value (e.g., password, token). If true,
+   * clients should handle the value securely.
+   */
+  isSecret?: boolean;
+
+  /**
+   * Specifies the input format. `"filepath"` should be interpreted as a file
+   * on the user's filesystem. When the input is converted to a string,
+   * booleans should be represented by `"true"`/`"false"`, and numbers by
+   * decimal values.
+   */
+  format?: "string" | "number" | "boolean" | "filepath";
+
+  /**
+   * Default value for the input. SHOULD be a valid value for the input.
+   */
+  default?: string;
+
+  /**
+   * Placeholder displayed during configuration to provide examples or
+   * guidance about the expected form of the input.
+   */
+  placeholder?: string;
+
+  /**
+   * Pre-set value for the input. If set, the value should not be configurable
+   * by end users. Identifiers wrapped in `{curly_braces}` will be replaced
+   * with the corresponding entries from the input's `variables` map (if any).
+   */
+  value?: string;
+
+  /**
+   * Allowed values for the input. If provided, the user must select one.
+   */
+  choices?: string[];
+}
+
+/**
+ * An {@link Input} whose `value` may reference variables for substitution.
+ *
+ * @category Server Cards
+ */
+export interface InputWithVariables extends Input {
+  /**
+   * Variables referenced by `{curly_braces}` identifiers in `value`. The map
+   * key is the variable name; the value defines the variable's properties.
+   */
+  variables?: { [key: string]: Input };
+}
+
+/**
+ * A named input — used for environment variables and HTTP headers.
+ *
+ * @category Server Cards
+ */
+export interface KeyValueInput extends InputWithVariables {
+  /**
+   * Name of the header or environment variable.
+   */
+  name: string;
+}
+
+/**
+ * A positional command-line input — a value inserted verbatim into the
+ * command line.
+ *
+ * @category Server Cards
+ */
+export interface PositionalArgument extends InputWithVariables {
+  type: "positional";
+
+  /**
+   * Identifier for the positional argument. It is not part of the command
+   * line; it may be used by client configuration as a label identifying the
+   * argument, and it identifies the value in transport URL variable
+   * substitution.
+   */
+  valueHint?: string;
+
+  /**
+   * Whether the argument can be repeated multiple times in the command line.
+   */
+  isRepeated?: boolean;
+}
+
+/**
+ * A named command-line input — a `--flag={value}` parameter.
+ *
+ * @category Server Cards
+ */
+export interface NamedArgument extends InputWithVariables {
+  type: "named";
+
+  /**
+   * The flag name, including any leading dashes (e.g., `"--port"`).
+   */
+  name: string;
+
+  /**
+   * Whether the argument can be repeated multiple times.
+   */
+  isRepeated?: boolean;
+}
