@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" fill="none">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { font-size: 13px; font-weight: 600; fill: #09090b; }
+    .heading { font-size: 11px; font-weight: 600; fill: #fff; }
+    .label { font-size: 10px; fill: #09090b; }
+    .sub { font-size: 9.5px; fill: #52525b; }
+    .dim { font-size: 9px; fill: #71717a; }
+    .mono { font-size: 9.5px; fill: #09090b; font-family: ui-monospace, monospace; }
+    .bold { font-size: 11px; font-weight: 600; fill: #09090b; }
+    .green { fill: #065f46; }
+  </style>
+
+  <rect width="760" height="440" rx="8" fill="#fafafa" stroke="#e4e4e7"/>
+
+  <text x="380" y="28" text-anchor="middle" class="title">Progressive Discovery: Load Tools On Demand</text>
+
+  <!-- ══════ LEFT PANEL ══════ -->
+  <rect x="20" y="46" width="350" height="374" rx="6" fill="#fff" stroke="#e4e4e7"/>
+  <rect x="20" y="46" width="350" height="28" rx="6" fill="#18181b"/>
+  <rect x="20" y="68" width="350" height="6" fill="#18181b"/>
+  <text x="195" y="65" text-anchor="middle" class="heading">✗  All tools loaded upfront</text>
+
+  <!-- Tool rows -->
+  <rect x="40" y="88" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="103" class="mono">gdrive.getDocument — schema, params…</text>
+
+  <rect x="40" y="114" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="129" class="mono">gdrive.listFiles — schema, params…</text>
+
+  <rect x="40" y="140" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="155" class="mono">gdrive.shareFile — schema, params…</text>
+
+  <rect x="40" y="166" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="181" class="mono">slack.postMessage — schema, params…</text>
+
+  <rect x="40" y="192" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="207" class="mono">slack.getChannels — schema, params…</text>
+
+  <rect x="40" y="218" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="233" class="mono">salesforce.query — schema, params…</text>
+
+  <rect x="40" y="244" width="310" height="22" rx="3" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="52" y="259" class="mono">salesforce.updateRecord — schema…</text>
+
+  <text x="195" y="284" text-anchor="middle" class="dim">… 150+ more tool definitions …</text>
+
+  <!-- User message -->
+  <rect x="40" y="298" width="310" height="24" rx="3" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="52" y="314" class="mono green">User: "Get my doc and update the lead"</text>
+
+  <!-- Stats -->
+  <text x="195" y="352" text-anchor="middle" class="bold">~150,000 tokens</text>
+  <text x="195" y="366" text-anchor="middle" class="sub">before the model reads the request</text>
+
+  <!-- Bar -->
+  <rect x="40" y="382" width="310" height="8" rx="4" fill="#f4f4f5"/>
+  <rect x="40" y="382" width="295" height="8" rx="4" fill="#18181b"/>
+  <text x="195" y="406" text-anchor="middle" class="dim">High % context consumed by definitions</text>
+
+  <!-- ══════ RIGHT PANEL ══════ -->
+  <rect x="390" y="46" width="350" height="374" rx="6" fill="#fff" stroke="#e4e4e7"/>
+  <rect x="390" y="46" width="350" height="28" rx="6" fill="#18181b"/>
+  <rect x="390" y="68" width="350" height="6" fill="#18181b"/>
+  <text x="565" y="65" text-anchor="middle" class="heading" fill="#18E299">✓  Tools discovered on demand</text>
+
+  <!-- Phase 1 -->
+  <rect x="410" y="88" width="310" height="62" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="422" y="106" class="bold green">① Catalog</text>
+  <text x="422" y="122" class="mono">search_tools("salesforce update")</text>
+  <text x="422" y="136" class="sub">→ salesforce.updateRecord</text>
+  <text x="422" y="148" class="sub">→ salesforce.query</text>
+
+  <!-- Arrow -->
+  <line x1="565" y1="150" x2="565" y2="162" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr)"/>
+
+  <!-- Phase 2 -->
+  <rect x="410" y="162" width="310" height="50" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="422" y="180" class="bold green">② Inspect</text>
+  <text x="422" y="196" class="mono">get_tool_details("salesforce.updateRecord")</text>
+  <text x="422" y="208" class="sub">→ full schema, params, return type</text>
+
+  <!-- Arrow -->
+  <line x1="565" y1="212" x2="565" y2="224" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arr)"/>
+
+  <!-- Phase 3 -->
+  <rect x="410" y="224" width="310" height="50" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="422" y="242" class="bold green">③ Call</text>
+  <text x="422" y="258" class="mono">salesforce.updateRecord({...})</text>
+  <text x="422" y="270" class="sub">→ execute with full context</text>
+
+  <!-- Stats -->
+  <text x="565" y="310" text-anchor="middle" class="bold green">~2,000 tokens</text>
+  <text x="565" y="324" text-anchor="middle" class="sub">only the tools needed for this task</text>
+
+  <!-- Bar -->
+  <rect x="410" y="346" width="310" height="8" rx="4" fill="#f4f4f5"/>
+  <rect x="410" y="346" width="20" height="8" rx="4" fill="#18E299"/>
+  <text x="565" y="370" text-anchor="middle" class="dim">Minimal % context consumed by definitions</text>
+
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a1a1aa"/>
+    </marker>
+  </defs>
+</svg>
