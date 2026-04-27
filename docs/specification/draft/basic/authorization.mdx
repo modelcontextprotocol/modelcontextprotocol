@@ -506,7 +506,7 @@ On receiving the authorization response, MCP clients **MUST** apply the validati
 
 [1]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
 
-Comparing rather than discarding when `iss` is present without metadata advertisement is the local policy permitted by the carve-out in [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4) ("Local policy or configuration can determine whether to accept such responses, and specific guidance is out of scope"). It is sound here because the recorded issuer is always derived from a metadata document validated per [RFC8414 Section 3.3](https://datatracker.ietf.org/doc/html/rfc8414#section-3.3), so a present `iss` can be checked against an authentic baseline, and rejection on mismatch remains an unconditional **MUST**. This accommodates authorization servers that emit `iss` before updating their metadata.
+The third row applies the local-policy provision in [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4): this specification compares a present `iss` against the recorded issuer regardless of metadata advertisement, to accommodate authorization servers that emit `iss` before updating their metadata.
 
 A future revision of this specification is expected to upgrade authorization server inclusion of `iss` from **SHOULD** to **MUST**, at which point clients **MUST** reject any authorization response that lacks the parameter. Implementers are encouraged to emit and validate `iss` now to ease that transition.
 

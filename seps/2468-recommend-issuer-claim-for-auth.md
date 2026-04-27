@@ -60,6 +60,10 @@ Requiring unique redirect_uri per issuer
 
 - CIMD metadata documents are static and cannot enumerate every issuer; with DCR it is technically possible but DCR has operational drawbacks in MCP deployments that make it undesirable to depend on for a security property. RFC 9207 works uniformly across registration approaches.
 
+Discarding `iss` when the server does not advertise support (strict RFC 9207 §2.4 SHOULD)
+
+- RFC 9207 §2.4 recommends that clients SHOULD discard responses carrying `iss` from servers that do not set `authorization_response_iss_parameter_supported`, but explicitly leaves the decision to local policy ("specific guidance is out of scope"). This SEP specifies comparison instead. The recorded issuer always comes from a metadata document the client has already validated per RFC 8414 §3.3, so a present `iss` can be checked against an authentic baseline; rejection on mismatch remains unconditional, so the only behavioral difference is accepting a response whose `iss` matches that baseline — which is not a relaxation. In practice, authorization servers often begin emitting `iss` before their metadata is updated, and discarding in that window would reject legitimate flows without security benefit.
+
 ## Backward Compatibility
 
 The `iss` parameter is additive on the wire. Client validation introduces a behavioral change for hosts whose authorization server advertises `authorization_response_iss_parameter_supported: true` but whose callback handling does not yet pass `iss` to the SDK; those flows will be rejected until the host extracts `iss` from the redirect URI alongside `code`. SDKs are expected to widen callback signatures additively (e.g., an optional `iss` argument) so existing call sites continue to compile. Authorization servers that do not advertise support are unaffected.
