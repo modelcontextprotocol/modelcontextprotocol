@@ -1675,7 +1675,6 @@
                     "type": "string"
                 },
                 "format": {
-                    "default": "string",
                     "description": "Specifies the input format. `\"filepath\"` should be interpreted as a file\non the user's filesystem. When the input is converted to a string,\nbooleans should be represented by `\"true\"`/`\"false\"`, and numbers by\ndecimal values.",
                     "enum": [
                         "boolean",
@@ -1686,12 +1685,10 @@
                     "type": "string"
                 },
                 "isRequired": {
-                    "default": false,
                     "description": "Whether the input must be supplied for the package to run.",
                     "type": "boolean"
                 },
                 "isSecret": {
-                    "default": false,
                     "description": "Whether the input is a secret value (e.g., password, token). If true,\nclients should handle the value securely.",
                     "type": "boolean"
                 },
@@ -1725,7 +1722,6 @@
                     "type": "string"
                 },
                 "format": {
-                    "default": "string",
                     "description": "Specifies the input format. `\"filepath\"` should be interpreted as a file\non the user's filesystem. When the input is converted to a string,\nbooleans should be represented by `\"true\"`/`\"false\"`, and numbers by\ndecimal values.",
                     "enum": [
                         "boolean",
@@ -1736,12 +1732,10 @@
                     "type": "string"
                 },
                 "isRequired": {
-                    "default": false,
                     "description": "Whether the input must be supplied for the package to run.",
                     "type": "boolean"
                 },
                 "isSecret": {
-                    "default": false,
                     "description": "Whether the input is a secret value (e.g., password, token). If true,\nclients should handle the value securely.",
                     "type": "boolean"
                 },
@@ -1995,7 +1989,6 @@
                     "type": "string"
                 },
                 "format": {
-                    "default": "string",
                     "description": "Specifies the input format. `\"filepath\"` should be interpreted as a file\non the user's filesystem. When the input is converted to a string,\nbooleans should be represented by `\"true\"`/`\"false\"`, and numbers by\ndecimal values.",
                     "enum": [
                         "boolean",
@@ -2006,12 +1999,10 @@
                     "type": "string"
                 },
                 "isRequired": {
-                    "default": false,
                     "description": "Whether the input must be supplied for the package to run.",
                     "type": "boolean"
                 },
                 "isSecret": {
-                    "default": false,
                     "description": "Whether the input is a secret value (e.g., password, token). If true,\nclients should handle the value securely.",
                     "type": "boolean"
                 },
@@ -2636,7 +2627,6 @@
                     "type": "string"
                 },
                 "format": {
-                    "default": "string",
                     "description": "Specifies the input format. `\"filepath\"` should be interpreted as a file\non the user's filesystem. When the input is converted to a string,\nbooleans should be represented by `\"true\"`/`\"false\"`, and numbers by\ndecimal values.",
                     "enum": [
                         "boolean",
@@ -2647,17 +2637,14 @@
                     "type": "string"
                 },
                 "isRepeated": {
-                    "default": false,
                     "description": "Whether the argument can be repeated multiple times.",
                     "type": "boolean"
                 },
                 "isRequired": {
-                    "default": false,
                     "description": "Whether the input must be supplied for the package to run.",
                     "type": "boolean"
                 },
                 "isSecret": {
-                    "default": false,
                     "description": "Whether the input is a secret value (e.g., password, token). If true,\nclients should handle the value securely.",
                     "type": "boolean"
                 },
@@ -2964,7 +2951,6 @@
                     "type": "string"
                 },
                 "format": {
-                    "default": "string",
                     "description": "Specifies the input format. `\"filepath\"` should be interpreted as a file\non the user's filesystem. When the input is converted to a string,\nbooleans should be represented by `\"true\"`/`\"false\"`, and numbers by\ndecimal values.",
                     "enum": [
                         "boolean",
@@ -2975,17 +2961,14 @@
                     "type": "string"
                 },
                 "isRepeated": {
-                    "default": false,
                     "description": "Whether the argument can be repeated multiple times in the command line.",
                     "type": "boolean"
                 },
                 "isRequired": {
-                    "default": false,
                     "description": "Whether the input must be supplied for the package to run.",
                     "type": "boolean"
                 },
                 "isSecret": {
-                    "default": false,
                     "description": "Whether the input is a secret value (e.g., password, token). If true,\nclients should handle the value securely.",
                     "type": "boolean"
                 },

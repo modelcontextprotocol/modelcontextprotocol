@@ -3661,16 +3661,12 @@ export interface Input {
 
   /**
    * Whether the input must be supplied for the package to run.
-   *
-   * @default false
    */
   isRequired?: boolean;
 
   /**
    * Whether the input is a secret value (e.g., password, token). If true,
    * clients should handle the value securely.
-   *
-   * @default false
    */
   isSecret?: boolean;
 
@@ -3679,8 +3675,6 @@ export interface Input {
    * on the user's filesystem. When the input is converted to a string,
    * booleans should be represented by `"true"`/`"false"`, and numbers by
    * decimal values.
-   *
-   * @default "string"
    */
   format?: "string" | "number" | "boolean" | "filepath";
 
@@ -3755,8 +3749,6 @@ export interface PositionalArgument extends InputWithVariables {
 
   /**
    * Whether the argument can be repeated multiple times in the command line.
-   *
-   * @default false
    */
   isRepeated?: boolean;
 }
@@ -3776,8 +3768,6 @@ export interface NamedArgument extends InputWithVariables {
 
   /**
    * Whether the argument can be repeated multiple times.
-   *
-   * @default false
    */
   isRepeated?: boolean;
 }
