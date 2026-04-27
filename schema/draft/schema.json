@@ -3334,9 +3334,9 @@
             "description": "Metadata for connecting to a remote (HTTP-based) MCP server endpoint.",
             "properties": {
                 "headers": {
-                    "description": "HTTP headers required or accepted when connecting to this remote endpoint.",
+                    "description": "HTTP headers required or accepted when connecting to this remote\nendpoint. Each header is described as a {@link KeyValueInput} so that\nclients can prompt users for required values, mark secrets, surface\ndefaults, and constrain to a list of choices.",
                     "items": {
-                        "$ref": "#/$defs/RemoteHeader"
+                        "$ref": "#/$defs/KeyValueInput"
                     },
                     "type": "array"
                 },
@@ -3356,49 +3356,21 @@
                     "type": "string"
                 },
                 "url": {
-                    "description": "The endpoint URL. Must start with `http://` or `https://`.",
+                    "description": "URL template for the remote endpoint. Must start with `http://`,\n`https://`, or a `{template-variable}`. Variables in `{curly_braces}`\nare substituted from the {@link Remote.variables} map before the\nclient connects.",
+                    "pattern": "^(https?://[^\\s]+|\\{[a-zA-Z_][a-zA-Z0-9_]*\\}[^\\s]*)$",
                     "type": "string"
+                },
+                "variables": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Input"
+                    },
+                    "description": "Configuration variables that can be referenced as `{curly_braces}`\nplaceholders in `url` (and inside header values via\n{@link InputWithVariables.variables}). The map key is the variable\nname; the value defines the variable's properties (e.g., human-readable\ndescription, default, whether it is required or secret).",
+                    "type": "object"
                 }
             },
             "required": [
                 "type",
                 "url"
-            ],
-            "type": "object"
-        },
-        "RemoteHeader": {
-            "description": "Describes an HTTP header that a client should include when connecting to\na remote MCP server.",
-            "properties": {
-                "choices": {
-                    "description": "Optional list of allowed values for the header. If provided, clients\nSHOULD restrict user input to one of these values.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "default": {
-                    "description": "Default value for the header. Used as a starting point for client\nconfiguration when the user has not yet supplied a value.",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "Human-readable explanation of what the header is for. Clients MAY surface\nthis when prompting users for input.",
-                    "type": "string"
-                },
-                "isRequired": {
-                    "description": "Whether the header is required to connect successfully.",
-                    "type": "boolean"
-                },
-                "isSecret": {
-                    "description": "Whether the header value is sensitive (e.g., an API key or token).\nClients SHOULD treat values for secret headers with appropriate care\n(avoid logging, mask in UI, store securely).",
-                    "type": "boolean"
-                },
-                "name": {
-                    "description": "The header name (e.g., `\"X-API-Key\"`).",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name"
             ],
             "type": "object"
         },

@@ -3454,63 +3454,37 @@ export interface Remote {
   type: "streamable-http" | "sse";
 
   /**
-   * The endpoint URL. Must start with `http://` or `https://`.
+   * URL template for the remote endpoint. Must start with `http://`,
+   * `https://`, or a `{template-variable}`. Variables in `{curly_braces}`
+   * are substituted from the {@link Remote.variables} map before the
+   * client connects.
+   *
+   * @pattern ^(https?://[^\s]+|\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\s]*)$
    */
   url: string;
+
+  /**
+   * HTTP headers required or accepted when connecting to this remote
+   * endpoint. Each header is described as a {@link KeyValueInput} so that
+   * clients can prompt users for required values, mark secrets, surface
+   * defaults, and constrain to a list of choices.
+   */
+  headers?: KeyValueInput[];
+
+  /**
+   * Configuration variables that can be referenced as `{curly_braces}`
+   * placeholders in `url` (and inside header values via
+   * {@link InputWithVariables.variables}). The map key is the variable
+   * name; the value defines the variable's properties (e.g., human-readable
+   * description, default, whether it is required or secret).
+   */
+  variables?: { [key: string]: Input };
 
   /**
    * MCP protocol versions actively supported by this remote endpoint. Allows
    * clients to negotiate a compatible protocol version before initialization.
    */
   supportedProtocolVersions?: string[];
-
-  /**
-   * HTTP headers required or accepted when connecting to this remote endpoint.
-   */
-  headers?: RemoteHeader[];
-}
-
-/**
- * Describes an HTTP header that a client should include when connecting to
- * a remote MCP server.
- *
- * @category Server Cards
- */
-export interface RemoteHeader {
-  /**
-   * The header name (e.g., `"X-API-Key"`).
-   */
-  name: string;
-
-  /**
-   * Human-readable explanation of what the header is for. Clients MAY surface
-   * this when prompting users for input.
-   */
-  description?: string;
-
-  /**
-   * Whether the header is required to connect successfully.
-   */
-  isRequired?: boolean;
-
-  /**
-   * Whether the header value is sensitive (e.g., an API key or token).
-   * Clients SHOULD treat values for secret headers with appropriate care
-   * (avoid logging, mask in UI, store securely).
-   */
-  isSecret?: boolean;
-
-  /**
-   * Default value for the header. Used as a starting point for client
-   * configuration when the user has not yet supplied a value.
-   */
-  default?: string;
-
-  /**
-   * Optional list of allowed values for the header. If provided, clients
-   * SHOULD restrict user input to one of these values.
-   */
-  choices?: string[];
 }
 
 /**
