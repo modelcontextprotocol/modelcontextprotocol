@@ -13,7 +13,7 @@ This SEP proposes requiring the inclusion and validation of an explicit issuer (
 
 ## Motivation
 
-The Model Context Protocol increasingly operates in environments where multiple authorization servers, identity providers, and intermediaries coexist. In such environments, OAuth 2.0 mix‑up attacks become a realistic threat. Mix-up attacks are when an attacker causes a client to associate an authorization response with the wrong authorization server, potentially leading to token leakage or privilege escalation.
+The Model Context Protocol increasingly operates in environments where multiple authorization servers, identity providers, and intermediaries coexist. In such environments, OAuth mix‑up attacks become a realistic threat. Mix-up attacks are when an attacker causes a client to associate an authorization response with the wrong authorization server, potentially leading to token leakage or privilege escalation.
 
 OAuth specifications describes two mitigations for mix‑up attacks: requiring issuer (_iss_) parameter or using a unique redirect_uri for each issuer a client interacts with. A unique redirect_uri per issuer is not possible with Client ID Metadata Documents (the recommended registration approach) and is operationally expensive with Dynamic Client Registration. As such, the recommendation is for MCP environments to leverage the issuer mitigation.
 
