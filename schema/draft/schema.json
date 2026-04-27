@@ -2803,9 +2803,8 @@
                     "description": "Transport configuration for invoking this package after installation."
                 },
                 "version": {
-                    "description": "Package version. Must be a specific version. The literal string\n`\"latest\"` is rejected, and version ranges are rejected (e.g., `'^1.2.3'`,\n`'~1.2.3'`, `'>=1.2.3'`, `'1.x'`, `'1.*'`).",
+                    "description": "Package version.",
                     "minLength": 1,
-                    "pattern": "^(?!latest$).+$",
                     "type": "string"
                 }
             },

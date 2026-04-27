@@ -3518,12 +3518,9 @@ export interface Package {
   registryBaseUrl?: string;
 
   /**
-   * Package version. Must be a specific version. The literal string
-   * `"latest"` is rejected, and version ranges are rejected (e.g., `'^1.2.3'`,
-   * `'~1.2.3'`, `'>=1.2.3'`, `'1.x'`, `'1.*'`).
+   * Package version.
    *
    * @minLength 1
-   * @pattern ^(?!latest$).+$
    */
   version?: string;
 
