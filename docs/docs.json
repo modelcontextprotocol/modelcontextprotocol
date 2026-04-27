@@ -430,7 +430,7 @@
             ]
           },
           {
-            "group": "Draft",
+            "group": "In-Review",
             "pages": [
               "seps/2468-recommend-issuer-claim-for-auth"
             ]
