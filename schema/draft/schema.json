@@ -3813,8 +3813,9 @@
             "description": "A superset of {@link ServerCard} that additionally describes locally-runnable\npackages. This is the shape used by the MCP Registry's `server.json`.\n\n`Server` documents are typically published to a registry rather than served\nfrom a `.well-known` URI, since they may include instructions for installing\nand executing a server on a client's local machine.",
             "properties": {
                 "$schema": {
-                    "description": "The Server Card JSON Schema URI that this document conforms to.",
+                    "description": "The Server Card JSON Schema URI that this document conforms to. Required.\n\nMust be a `/v1/` URL under `static.modelcontextprotocol.io/schemas/`,\nnaming a Server Card / `server.json` schema (e.g.,\n`https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json`\nor `https://static.modelcontextprotocol.io/schemas/v1/server.schema.json`).\nSchema URLs are versioned by the `vN` segment rather than by date so that\nminor, additive revisions of the v1 shape don't bump every published\ndocument's `$schema` URL.",
                     "format": "uri",
+                    "pattern": "^https://static\\.modelcontextprotocol\\.io/schemas/v1/[^/]+\\.schema\\.json$",
                     "type": "string"
                 },
                 "_meta": {
@@ -3877,6 +3878,7 @@
                 }
             },
             "required": [
+                "$schema",
                 "description",
                 "name",
                 "version"
@@ -3981,8 +3983,9 @@
             "description": "A static metadata document describing a remote MCP server, suitable for\npublishing at a `.well-known/mcp-server-card` URI for pre-connection discovery.\n\nServer Cards intentionally describe only what is needed to discover and\nconnect to a remote server: identity, transport, and protocol versions.\nThey do not enumerate primitives (tools, resources, prompts) — those remain\nsubject to runtime listing via the protocol's standard list operations.\n\nThe companion {@link Server} shape is a strict superset that adds local\npackage metadata for use cases like the MCP Registry's `server.json`.",
             "properties": {
                 "$schema": {
-                    "description": "The Server Card JSON Schema URI that this document conforms to.",
+                    "description": "The Server Card JSON Schema URI that this document conforms to. Required.\n\nMust be a `/v1/` URL under `static.modelcontextprotocol.io/schemas/`,\nnaming a Server Card / `server.json` schema (e.g.,\n`https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json`\nor `https://static.modelcontextprotocol.io/schemas/v1/server.schema.json`).\nSchema URLs are versioned by the `vN` segment rather than by date so that\nminor, additive revisions of the v1 shape don't bump every published\ndocument's `$schema` URL.",
                     "format": "uri",
+                    "pattern": "^https://static\\.modelcontextprotocol\\.io/schemas/v1/[^/]+\\.schema\\.json$",
                     "type": "string"
                 },
                 "_meta": {
@@ -4038,6 +4041,7 @@
                 }
             },
             "required": [
+                "$schema",
                 "description",
                 "name",
                 "version"

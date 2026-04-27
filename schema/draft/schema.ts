@@ -3302,11 +3302,20 @@ export type ServerResult =
  */
 export interface ServerCard {
   /**
-   * The Server Card JSON Schema URI that this document conforms to.
+   * The Server Card JSON Schema URI that this document conforms to. Required.
+   *
+   * Must be a `/v1/` URL under `static.modelcontextprotocol.io/schemas/`,
+   * naming a Server Card / `server.json` schema (e.g.,
+   * `https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json`
+   * or `https://static.modelcontextprotocol.io/schemas/v1/server.schema.json`).
+   * Schema URLs are versioned by the `vN` segment rather than by date so that
+   * minor, additive revisions of the v1 shape don't bump every published
+   * document's `$schema` URL.
    *
    * @format uri
+   * @pattern ^https://static\.modelcontextprotocol\.io/schemas/v1/[^/]+\.schema\.json$
    */
-  $schema?: string;
+  $schema: string;
 
   /**
    * Server name in reverse-DNS format. Must contain exactly one forward slash
