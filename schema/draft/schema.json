@@ -1183,6 +1183,23 @@
             ],
             "type": "object"
         },
+        "FileInputDescriptor": {
+            "description": "Value of the `x-mcp-file` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property, it marks the property as a\nfile input that clients SHOULD render as a native file picker. Selected\nfiles are encoded as RFC 2397 data URIs.\n\nBoth fields are advisory; servers MUST still validate inputs independently.\n\nFor {@link Tool.inputSchema} properties, `x-mcp-file` is added directly\ninside the JSON Schema property definition. For elicitation forms, it\nappears on {@link StringSchema}.",
+            "properties": {
+                "accept": {
+                    "description": "Media type patterns and/or file extensions the client SHOULD filter the\npicker to. Supports exact MIME types (`\"image/png\"`), wildcard subtypes\n(`\"image/*\"`), and dot-prefixed extensions (`\".pdf\"`) following the same\ngrammar as the HTML `accept` attribute. Extension entries are picker hints\nonly; server-side validation compares MIME types. If omitted, any file\ntype is accepted.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "maxSize": {
+                    "description": "Maximum decoded file size in bytes that the server will accept inline as a\ndata URI. Servers MUST reject larger payloads. For files larger than this,\nservers obtain the file via URL-mode elicitation instead of this property.\nIf omitted, the server accepts any size it is willing to buffer; clients\nSHOULD warn above an implementation-defined threshold.",
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
@@ -3644,6 +3661,10 @@
                 "type": {
                     "const": "string",
                     "type": "string"
+                },
+                "x-mcp-file": {
+                    "$ref": "#/$defs/FileInputDescriptor",
+                    "description": "Marks this string as a file input when `format` is `\"uri\"`. Clients SHOULD\nrender a native file picker and populate the field with an RFC 2397 data\nURI for the selected file. See {@link FileInputDescriptor}."
                 }
             },
             "required": [
