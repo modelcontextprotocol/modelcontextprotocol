@@ -62,13 +62,25 @@ Responses are sent in reply to requests, containing either the result or error o
   id: string | number;
   result: {
     [key: string]: unknown;
-  }
+  };
+  resultType: string;
 }
 ```
 
 - Result responses **MUST** include the same ID as the request they correspond to.
 - Result responses **MUST** include a `result` field.
 - The `result` **MAY** follow any JSON object structure.
+- The `resultType` field **MUST** be included to indicate the type of the result. If no `resultType` is specified, "complete" should be assumed.
+
+##### ResultType
+
+The `resultType` field in a result response indicates the type of the result being returned. MCP supports poly-morphic result types,
+allowing servers to return different structures based on the outcome of the request. The `resultType` field is a string that clients
+can use to determine how to parse and handle the `result` object.
+
+- A `resultType` of `"complete"` the request completed successfully and the result contains the final content.
+- A `resultType` of `"incomplete"` the request is incomplete and more information is needed to process the request. The result contains an `IncompleteResult` object with additional information needed.
+- If `resultType` is not specified, clients **MUST** assume a default value of `"complete"` for backwards compatibility.
 
 #### Error Responses
 

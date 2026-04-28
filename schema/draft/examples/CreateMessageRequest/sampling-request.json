@@ -1,6 +1,4 @@
 {
-  "jsonrpc": "2.0",
-  "id": "sampling-example",
   "method": "sampling/createMessage",
   "params": {
     "messages": [

@@ -1,6 +1,4 @@
 {
-  "jsonrpc": "2.0",
-  "id": "elicitation-example",
   "method": "elicitation/create",
   "params": {
     "mode": "form",
@@ -9,7 +7,9 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "GitHub Username",
+          "description": "Your GitHub username"
         }
       },
       "required": ["name"]
