@@ -387,7 +387,7 @@ To explicitly cancel a task, requestors can send a [`tasks/cancel`](/specificati
 
 ### Providing Input for Tasks
 
-When a task reaches the `input_required` status and `tasks/result` returns an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult), the requestor provides the required input via a [`tasks/input_response`](/specification/draft/schema#tasks%2Finput_response) request. This is the persistent workflow form of [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests).
+When a task reaches the `input_required` status and `tasks/result` returns an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult), the requestor provides the required input via a [`tasks/input_response`](/specification/draft/schema#tasks%2Finput_response) request. This is the task workflow form of [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests).
 
 The `tasks/input_response` request carries:
 - `taskId`: the ID of the task requiring input
@@ -434,7 +434,7 @@ The `tasks/input_response` request carries:
 }
 ```
 
-After sending `tasks/input_response`, the requestor **SHOULD** then resume polling via `tasks/get`.
+After sending `tasks/input_response`, the requestor **SHOULD** then resume polling via `tasks/get`. 
 
 Receivers **MUST** reject `tasks/input_response` requests for tasks that are not in `input_required` status with error code `-32602` (Invalid params).
 
@@ -626,14 +626,13 @@ sequenceDiagram
     S->>C: input_required
     deactivate S
 
-    Note over C,S: Client opens result stream
     C->>S: tasks/result (task-123)
     activate S
-    S->>C: elicitation/create (related-task: task-123)
+    S->>C: IncompleteResult(elicitation/create)
     activate C
     C->>U: Prompt user for input
     U->>C: Provide information
-    C->>S: elicitation response (related-task: task-123)
+    C->>S: tasks/input_response (elicitation response)
     deactivate C
     deactivate S
 
