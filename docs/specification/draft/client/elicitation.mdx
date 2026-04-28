@@ -4,7 +4,6 @@ title: Elicitation
 
 <div id="enable-section-numbers" />
 
-
 The Model Context Protocol (MCP) provides a standardized way for servers to request additional
 information from users through the client during interactions. This flow allows clients to
 maintain control over user interactions and data sharing while enabling servers to gather
@@ -96,7 +95,8 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 ## Protocol Messages
 
 ### Elicitation Requests
-Servers **MAY** request information from a user during the processing of a client request, by sending an  [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult)
+
+Servers **MAY** request information from a user during the processing of a client request, by sending an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult)
 containing an `elicitation/create` request.
 
 All elicitation requests **MUST** include the following parameters:
@@ -478,7 +478,7 @@ sequenceDiagram
 
     Client->>UserAgent: Open URL
     Client->>Server: tools/call(id: 2, Accept Response, requestState))
-    Note right of Server: Server uses requestState to to associate the user's response via the URL with this request. It may need to block until the request is fulfilled. 
+    Note right of Server: Server uses requestState to to associate the user's response via the URL with this request. It may need to block until the request is fulfilled.
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
@@ -526,7 +526,8 @@ Servers should handle each state appropriately:
 ## Implementation Considerations
 
 ### Statefulness
-Elicitations do not require that the server maintain state about users with the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. 
+
+Elicitations do not require that the server maintain state about users with the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
 
 However, if state is stored, servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
 
@@ -647,7 +648,6 @@ This pattern maintains clear security boundaries while enabling rich integration
 
 Servers **SHOULD NOT** assume that elicitation requests will always succeed, and **MUST** handle cases where the user declines or cancels the elicitation, or where the client fails to process the request.
 
-
 ## Security Considerations
 
 1. Servers **MUST** bind elicitation requests to the client and user identity
@@ -660,7 +660,7 @@ Servers **SHOULD NOT** assume that elicitation requests will always succeed, and
 
 MCP servers requesting elicitation:
 
-1. **MUST NOT** include sensitive information about the end-user, including credentials, personal identifiable information, etc., in the URL sent to the client in a URL elicitation request.
+1. **MUST NOT** include sensitive information about the end-user, including credentials, personally identifiable information, etc., in the URL sent to the client in a URL elicitation request.
 2. **MUST NOT** provide a URL which is pre-authenticated to access a protected resource, as the URL could be used to impersonate the user by a malicious client.
 3. **SHOULD NOT** include URLs intended to be clickable in any field of a form mode elicitation request.
 4. **SHOULD** use HTTPS URLs for non-development environments.
@@ -718,12 +718,12 @@ There are many ways to achieve this and the best way will depend on the specific
 
 As a common, non-normative example, consider a case where the MCP server is accessible via the web and desires to perform a third-party authorization code flow.
 To prevent the phishing attack, the server would create a URL mode elicitation to `https://mcp.example.com/connect?elicitationId=...` rather than the third-party authorization endpoint.
-This "connect URL" must ensure the user who opened the page is the same user who the elicitation was generated for.
+This "connect URL" must ensure the user who opened the page is the same user for whom the elicitation was generated.
 It would, for example, check that the user has a valid session cookie and that the session cookie is for the same user who was using the MCP client to generate the URL mode elicitation.
 This could be done by comparing the authoritative subject (`sub` claim) from the MCP server's authorization server to the subject from the session cookie.
 Once that page ensures the same user, it can send the user to the third-party authorization server at `https://example.com/authorize?...` where a normal OAuth flow can be completed.
 
 In other cases, the server may not be accessible via the web and may not be able to use a session cookie to identify the user.
-In this case, the server must use a different mechanism to identify the user who opens the elicitation URL is the same user who the elicitation was generated for.
+In this case, the server must use a different mechanism to identify that the user who opens the elicitation URL is the same user for whom the elicitation was generated.
 
 In all implementations, the server **MUST** ensure that the mechanism to determine the user's identity is resilient to attacks where an attacker can modify the elicitation URL.
