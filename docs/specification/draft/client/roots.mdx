@@ -85,17 +85,6 @@ containing a `roots/list` request:
 }
 ```
 
-### Root List Changes
-
-When roots change, clients that support `listChanged` **MUST** send a notification:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/roots/list_changed"
-}
-```
-
 ## Message Flow
 
 ```mermaid
@@ -107,11 +96,6 @@ sequenceDiagram
     Client->>Server: tool/call(id: 1)
     Server-->>Client: IncompleteResponse(roots/list)
     Client->>Server: tool/call(id: 2, Available roots)
-
-    Note over Server,Client: Changes
-    Client--)Server: notifications/roots/list_changed
-    Server->>Client: roots/list
-    Client-->>Server: Updated roots
 ```
 
 ## Data Types

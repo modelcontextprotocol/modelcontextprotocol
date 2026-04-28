@@ -449,7 +449,7 @@ sequenceDiagram
     participant Server
 
     Client->>Server: tools/call(id: 1)
-    note right of Server: Server needs more info
+    note over Server: Server needs more info
     Server-->>Client: IncompleteResult(elicitation/create (mode: form))
 
     Note over User,Client: Present elicitation UI
@@ -470,7 +470,7 @@ sequenceDiagram
     participant Server
 
     Client->>Server: tools/call(id: 1)
-    Note right of Server: Server needs more info that requires URL mode elicitation. <br/> Server creates requestState that encodes information about original request and the URL that the user will need to visit to complete the elicitation.
+    Note over Server: Server needs more info <br/> Server creates requestState encoding url info.
     Server-->>Client: IncompleteResult(elicitation/create (mode: url), requestState)
 
     Client->>User: Present consent to open URL
@@ -478,7 +478,7 @@ sequenceDiagram
 
     Client->>UserAgent: Open URL
     Client->>Server: tools/call(id: 2, Accept Response, requestState))
-    Note right of Server: Server uses requestState to to associate the user's response via the URL with this request. It may need to block until the request is fulfilled.
+    Note over Server: Server uses requestState to discover url info. <br/> It may need to block until the request is fulfilled.
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
@@ -619,7 +619,7 @@ sequenceDiagram
     Note over Server: Needs 3rd-party authorization for user
     Note over Server: Store state (bind the elicitation request to the user)
     Note over Server: generate requestState that encodes information about the original request and user.
-    Server->>Client: IncompleteResult<br/>(mode: "url", url: "https://mcp.example.com/connect?..."), requestState
+    Server->>Client: IncompleteResult<br/>(mode: "url", url: "https://mcp.example.com/connect?...", requestState)
 
     Client->>User: Present consent to open URL
     User->>Client: Provide consent
