@@ -163,7 +163,7 @@ indicating that additional input is needed before the request can be completed.
         }
       }
     },
-    "requestState": "opaque-server-state-string"
+    "requestState": "AEAD-protected blob"
   }
 }
 ```
@@ -217,13 +217,23 @@ what is directly present in the retry request.
 1. The `IncompleteResult` **MAY** include an `inputRequests` field.
    - `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of the request.
    - `inputRequests` values are request objects that **MUST** be one of [`ElicitRequest`](/specification/draft/schema#elicitrequest), [`CreateMessageRequest`](/specification/draft/schema#createmessagerequest), or [`ListRootsRequest`](/specification/draft/schema#listrootsrequest)
-1. The `IncompleteResult` **MAY** include a `requestState` field. If specified, this field is an opaque string meaningful only to the server. Servers are free to encode the state in any format (e.g., plain JSON, base64-encoded JSON, encrypted JWT, serialized binary).
-1. If a request contains a `requestState` field, servers **MUST** always validate that state, as the client is an untrusted intermediary.
-   - If tampering is a concern, servers **SHOULD** encrypt the `requestState` field using an encryption algorithm of their choice (e.g., AES-GCM or a signed JWT) to ensure both confidentiality and integrity.
-   - If the request state contains data specific to the original user, the server **MUST** use a mechanism to cryptographically bind the data to the original user and **MUST** verify that the `requestState` sent by the client is associated with the currently authenticated user.
+
+1. The `IncompleteResult` **MAY** include a `requestState` field. If specified, this field is an opaque string meaningful only to the server. Servers are free to encode the state in any format (e.g. base64-encoded JSON, encrypted JWT, serialized binary).
+1. If a client request contains a `requestState` field, servers **MUST** treat `requestState` as an attacker-controlld input. If `requestState` influences authorization, resource acces, or business logic, servers **MUST** protect its integrigty (e.g. HMAC or AEAD) 
+and **MUST** reject state that fails verification. Integrity protection **MAY** be omitted only wen tampering can cause nothing worse than request failure.
+1. To prevent replay, servers **SHOULD** include the following inside the integrity-protected `requestState` payload and verify each on recepit:
+   - the authenticated principal, rejecting state presented by a different principal.
+    - a short expiry (TTL), rejecting state presented after it lapses;
+    - an identifier for the originating request, e.g. the method name and a digest of its salient parameters,rejecting state presented on a request that does not match.
+<Warning>
+Note that these measures bound the replay window and prevent cross-user and corss-request reuse, but do not by themselves 
+guarantee single-use. Servers for which a given `requestState` must be consumed at most once (e.g., one-time redemtpions) **MUST** enforce that invariant server-side.
+</Warning>
+
 1. Servers **MUST** include at least one of `inputRequests` or `requestState` in every `IncompleteResult` response.
 1. Servers **MUST NOT** send an `inputRequests` that the client has not declared support for in its capabilities. For example, if a client does not declare support for `elicitation`, the server **MUST NOT** include any `elicitation/create` requests in the `inputRequests` field.
 1. Servers **MUST NOT** assume that clients will fulfill the `inputRequests` or retry the original request. Servers **MAY** choose to return an `IncompleteResult` on multiple attempts at the same request if they want to repeatedly prompt the user for information until they have what they need to complete the request.
+
 
 #### Client Requirements (Basic Workflow)
 
@@ -270,16 +280,15 @@ sequenceDiagram
     S-->>C: Result (id: 6, final content)
 ```
 
-#### Server Requirements (Persistent)
+#### Server Requirements (Tasks)
 
 1. Servers **MAY** respond to `tasks/get` by indicating that the task is in status `input_required`.
 1. Servers **MUST** include an `inputRequests` field in the `tasks/result` response when the task is in status `input_required`.
-
-- `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of a `Task`.
+1. `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of a `Task`.
 
 1. Servers **MAY** include a `requestState` field in the `tasks/result` response when the task is in status `input_required`.
 
-#### Client Requirements (Persistent)
+#### Client Requirements (Tasks)
 
 1. When `tasks/get` shows status `input_required`, clients **MUST** call `tasks/result` to get the `inputRequests` and optional `requestState`.
 1. Clients **SHOULD** construct the results of those requests and call [`tasks/input_response`](/specification/draft/basic/utilities/tasks#providing-input-for-tasks) with the `inputResponses` & `requestState` (if present).
