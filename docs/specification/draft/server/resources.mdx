@@ -172,6 +172,8 @@ Servers **MAY** return multiple resource contents in response to a single
 `resources/read` request. For example, a server could return the contents of
 several files when a directory resource is read.
 
+Servers **MAY** also respond to `resources/read` with an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult) to indicate that additional input is needed before the resource can be read. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
+
 Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
 
 ### Resource Templates
