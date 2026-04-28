@@ -59,7 +59,7 @@ changes.
 
 ### Listing Roots
 
-To retrieve roots during the processing of a client request, servers send an `IncompleteResponse` 
+To retrieve roots during the processing of a client request, servers send an `IncompleteResponse`
 containing a `roots/list` request:
 
 **Request:**
@@ -135,7 +135,8 @@ Example roots for different use cases:
 ```
 
 ## Error Handling
-If an error occurs, the client does not need to replay the initial call with an error message 
+
+If an error occurs, the client does not need to replay the initial call with an error message
 as the server is not waiting for a response with the `IncompleteResponse` pattern.
 
 ## Security Considerations

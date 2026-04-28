@@ -73,7 +73,8 @@ Responses are sent in reply to requests, containing either the result or error o
 - The `resultType` field **MUST** be included to indicate the type of the result. If no `resultType` is specified, "complete" should be assumed.
 
 ##### ResultType
-The `resultType` field in a result response indicates the type of the result being returned. MCP supports poly-morphic result types, 
+
+The `resultType` field in a result response indicates the type of the result being returned. MCP supports poly-morphic result types,
 allowing servers to return different structures based on the outcome of the request. The `resultType` field is a string that clients
 can use to determine how to parse and handle the `result` object.
 
@@ -305,4 +306,3 @@ Icons can be attached to:
 - `Resource`: Visual indicator for different resource types
 
 Multiple icons can be provided to support different display contexts and resolutions. Clients should select the most appropriate icon based on their UI requirements.
-

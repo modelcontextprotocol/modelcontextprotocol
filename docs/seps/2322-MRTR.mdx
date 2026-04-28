@@ -5,24 +5,20 @@ description: "Multi Round-Trip Requests"
 ---
 
 <div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Approved
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Standards Track
-  </Badge>
+  <Badge color="gray" shape="pill">Approved</Badge>
+  <Badge color="gray" shape="pill">Standards Track</Badge>
 </div>
 
-| Field         | Value                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2322                                                                                                                      |
-| **Title**     | Multi Round-Trip Requests                                                                                                 |
-| **Status**    | Approved                                                                                                                  |
-| **Type**      | Standards Track                                                                                                           |
-| **Created**   | 2026-02-03                                                                                                                |
+| Field | Value |
+|-------|-------|
+| **SEP** | 2322 |
+| **Title** | Multi Round-Trip Requests |
+| **Status** | Approved |
+| **Type** | Standards Track |
+| **Created** | 2026-02-03 |
 | **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), |
-| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                             |
-| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                           |
+| **Sponsor** | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)) |
+| **PR** | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) |
 
 ---
 
@@ -351,7 +347,7 @@ Since this change creates a polymorphic response for method calls like 'tools/ca
 export interface Result {
   _meta?: MetaObject;
   // New field to indicate the type of the result, which allows the client to determine how to parse the result object. If no resultType is specified "complete" should be assumed.
-  resultType?: ResultType;
+  resultType: ResultType;
   [key: string]: unknown;
 }
 
@@ -961,8 +957,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-3. <b>Client Request</b> periodically checks the status of the `Task` using
-   `tasks/get`.
+3. <b>Client Request</b> periodically checks the status of the `Task` using `tasks/get`.
 
 ```json
 {
@@ -993,8 +988,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-5. <b>Client Request</b> sends message `tasks/result` to discover what input is
-   required to proceed.
+5. <b>Client Request</b> sends message `tasks/result` to discover what input is required to proceed.
 
 ```json
 {
@@ -1040,8 +1034,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-7. <b>Client Request</b> presents the Elicitation to the user and collects the
-   input, then sends message to the server.
+7. <b>Client Request</b> presents the Elicitation to the user and collects the input, then sends message to the server.
 
 ```json
 {
@@ -1066,12 +1059,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-8. <b>Server Response</b> Server should acknowledge the receipt of the
-   'tasks/input_response' message by sending a 'JSONRPCResponse'. If the message
-   was successfully received a `JSONRPCResultResponse` is sent including the
-   `taskId`. If an error occurs, a `JSONRPCErrorResponse` is sent. The server
-   can now proceed to complete the `Task` using the provided input, and the
-   `Task` status changes to `Working`.
+8. <b>Server Response</b> Server should acknowledge the receipt of the 'tasks/input_response' message by sending a 'JSONRPCResponse'. If the message was successfully received a `JSONRPCResultResponse` is sent including the `taskId`. If an error occurs, a `JSONRPCErrorResponse` is sent. The server can now proceed to complete the `Task` using the provided input, and the `Task` status changes to `Working`.
 
 ```json
 {
@@ -1087,8 +1075,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-9. <b>Client Request</b> continues to poll the input status using `tasks/get`
-   until server responds with Task Status of `Completed`
+9. <b>Client Request</b> continues to poll the input status using `tasks/get` until server responds with Task Status of `Completed`
 
 ```json
 {
@@ -1119,8 +1106,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
 }
 ```
 
-11. <b>Client Request</b> calls `tasks/result` to get the final result of the
-    `Task` from the server.
+11. <b>Client Request</b> calls `tasks/result` to get the final result of the `Task` from the server.
 
 ```json
 {
@@ -1387,3 +1373,4 @@ TBD
 
 Thanks to Luca Chang (@LucaButBoring) for his valuable input on how to
 integrate input requests into Tasks.
+
