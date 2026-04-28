@@ -585,7 +585,9 @@ the user or authored by the model.
 - A `data:` URI the model supplied directly is model-authored. Hosts **MAY**
   forward it verbatim under their existing tool-approval policy as described
   in [Host integration](#host-integration-on-the-tool-surface), but **MUST
-  NOT** dereference it or substitute other content for it.
+  NOT** dereference it or substitute other content for it. Hosts that forward
+  a model-supplied value **SHOULD** display the decoded size and media type at
+  the approval step so the user has a signal beyond a truncated string.
 
 ### File content reaching the model
 
@@ -624,28 +626,47 @@ spans, and error reports.
 [cs-upload]: https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
 [cs-xxe]: https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
 
+## Unresolved Questions
+
+These do not block Draft and are recorded so reviewers can track them rather
+than re-derive them:
+
+- Whether the vocabulary URI
+  `https://modelcontextprotocol.io/json-schema/vocab/draft` is intended to
+  resolve to a machine-readable vocabulary document or is a URN-style
+  identifier only. SDK validators that fetch `$vocabulary` entries behave
+  differently depending on the answer.
+- Whether SDKs should pre-register the `x-mcp-file` keyword in their bundled
+  validators one protocol version before the keyword appears in the spec, to
+  narrow the strict-validator skew window described in
+  [Implementation Notes](#implementation-notes).
+
 ## Future Work
 
-The following are intentionally deferred and have known backward-compatible
-paths documented in [Rationale](#rationale): multi-file inputs (via a general
-elicitation array SEP), additional wire schemes (via a `schemes` declaration),
-and `PromptArgument` support. None require changes to what this SEP specifies.
+Each item below has a backward-compatible path documented in
+[Rationale](#rationale) and requires no change to what this SEP specifies.
 
-A pull-based composition where the client exposes user-attached files as
-client Resources and the server reads them via `resources/read` was raised in
-[review][keremnalbant-comment]. That keeps large payloads out of the tool-call
-JSON entirely and is complementary to this SEP rather than an alternative; it
-is not specified here because it depends on client-side resource exposure that
-is itself not yet standardized.
+- **Multi-file inputs.** Via a general elicitation `ArraySchema` SEP; the
+  keyword applies unchanged to array items once that lands.
+- **Additional wire schemes.** Via a `schemes` declaration on the descriptor;
+  the `format: "uri"` carrier already admits any scheme.
+- **`PromptArgument` support.** Via an additive `"x-mcp-file"` field on
+  `PromptArgument` with the same data-URI carrier.
+- **Out-of-band transfer and file outputs.** [SEP-2631][sep-2631] proposes
+  capability-negotiated upload/download methods that layer on this SEP's
+  `data:` baseline. Reconciliation is routed through the [File Uploads Working
+  Group][file-uploads-wg].
+- **Pull-based composition via Resources.** Exposing user-attached files as
+  client Resources and having the server pull via `resources/read` was raised
+  in [review][keremnalbant-comment]; it keeps large payloads out of tool-call
+  JSON entirely and is complementary rather than an alternative.
+- **Structured validation-error vocabulary.** A machine-readable error shape
+  for `isError: true` results is a cross-cutting concern and belongs in its
+  own SEP so that file inputs are one case rather than the precedent.
 
+[sep-2631]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2631
+[file-uploads-wg]: ../docs/community/file-uploads/charter.mdx
 [keremnalbant-comment]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356#issuecomment-4298675411
-
-A machine-readable vocabulary for tool input-validation errors is also
-deferred. Mandating an error shape here would be the first place the protocol
-dictates the body of a `CallToolResult` error, and a tool call can fail for
-reasons unrelated to its file arguments. A general structured-error convention
-for `isError: true` results, if pursued, belongs in its own SEP so that file
-inputs are one case of it rather than the precedent for it.
 
 ## Reference Implementation
 
