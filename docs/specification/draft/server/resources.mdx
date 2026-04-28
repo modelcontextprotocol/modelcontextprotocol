@@ -84,7 +84,10 @@ Servers that declare the `resources` capability **MUST** respond to `resources/l
 requests with the set of resources currently available to the requesting client. This set
 **MAY** be empty and **MAY** change over time (see
 [List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
-per-connection or as a side effect of other requests on the connection.
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the resources the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 ## Protocol Messages
 

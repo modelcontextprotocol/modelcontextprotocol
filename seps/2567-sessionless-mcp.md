@@ -155,7 +155,7 @@ From the client's perspective, a handle is an ordinary string in a tool result. 
 
 ### Session-independent list endpoints
 
-With sessions removed, list endpoints no longer have a session to vary against. This is the only constraint this SEP places on `tools/list`, `resources/list`, and `prompts/list`: there is no longer a per-session or per-connection scope for their results to depend on. Lists can still change for other reasons — a server deploys a new version, a user's plan or granted scopes change — and this SEP does not enumerate or restrict those.
+With sessions removed, list endpoints no longer have a session to vary against. This is the only constraint this SEP places on `tools/list`, `resources/list`, and `prompts/list`: there is no longer a per-session or per-connection scope for their results to depend on. This does not preclude varying the list by the authorization presented on the request: credentials are carried on each request, so a server returning different tool sets to different principals or scopes is relying on per-request input, not connection state. Lists can also still change over time for other reasons — a server deploys a new version, a user's plan or granted scopes change — and this SEP does not enumerate or restrict those.
 
 How clients learn that a cached list has gone stale is the subject of [SEP-2549], which defines a server-advertised TTL on list responses and the interaction with `notifications/*/list_changed`. The two SEPs are complementary: this one removes the session as a source of variation, so there is a stable thing to cache; [SEP-2549] specifies how long to cache it and when to invalidate.
 
