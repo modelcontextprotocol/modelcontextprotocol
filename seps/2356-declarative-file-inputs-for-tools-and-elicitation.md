@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP introduces `mcpFile`, a JSON Schema extension keyword that marks a
+This SEP introduces `x-mcp-file`, a JSON Schema extension keyword that marks a
 `uri`-format string property as a file input. The keyword carries an optional
 media-type filter and size limit. Clients that recognize the keyword render a
 native file picker for the annotated property and populate it with an RFC 2397
@@ -66,7 +66,7 @@ examples. The formal rules follow in **Specification**.
 
 ### Tool surface: definition → call
 
-A server declares that the `image` argument is a file by adding the `mcpFile`
+A server declares that the `image` argument is a file by adding the `x-mcp-file`
 keyword to the property's schema. The argument's type does not change; it
 remains an ordinary `uri`-format string:
 
@@ -81,7 +81,7 @@ remains an ordinary `uri`-format string:
         "type": "string",
         "format": "uri",
         "description": "The image to describe.",
-        "mcpFile": {
+        "x-mcp-file": {
           "accept": ["image/png", "image/jpeg"],
           "maxSize": 5242880
         }
@@ -92,7 +92,7 @@ remains an ordinary `uri`-format string:
 }
 ```
 
-A client that recognizes `mcpFile` renders a file picker filtered to PNG/JPEG,
+A client that recognizes `x-mcp-file` renders a file picker filtered to PNG/JPEG,
 encodes the user's selection as a data URI, and invokes the tool:
 
 ```json
@@ -114,7 +114,7 @@ with no separate upload step.
 
 ### Elicitation surface: request → response
 
-The server asks the user for a file mid-flow. The same `mcpFile` keyword
+The server asks the user for a file mid-flow. The same `x-mcp-file` keyword
 applies to `requestedSchema` properties:
 
 ```json
@@ -132,7 +132,7 @@ applies to `requestedSchema` properties:
           "type": "string",
           "format": "uri",
           "title": "Profile photo",
-          "mcpFile": {
+          "x-mcp-file": {
             "accept": ["image/*"],
             "maxSize": 2097152
           }
@@ -168,20 +168,25 @@ constraints, wire encoding, and error handling.
 
 ### MCP JSON Schema vocabulary
 
-`mcpFile` is the first MCP-defined JSON Schema extension keyword. MCP
-extension keywords use the `mcp` name prefix; servers and clients **MUST NOT**
-define their own `mcp`-prefixed keywords. The keyword belongs to the
-vocabulary `https://modelcontextprotocol.io/json-schema/vocab/draft`, which is
-part of the dialect declared by [SEP-1613][sep-1613]. Implementations that do
-not recognize a keyword in this vocabulary **SHOULD** treat it as an
-annotation per [§6.5 of the JSON Schema core specification][json-schema-6.5].
+`x-mcp-file` follows the `x-mcp-*` extension keyword convention established by
+[SEP-2243][sep-2243], which introduced [`x-mcp-header`][x-mcp-header] for the
+same placement (a property inside a tool's `inputSchema`). MCP-defined JSON
+Schema extension keywords use the `x-mcp-` name prefix. Servers and clients
+**MUST NOT** define their own `x-mcp-`-prefixed keywords; each new keyword in
+this family requires its own SEP. The keyword belongs to the vocabulary
+`https://modelcontextprotocol.io/json-schema/vocab/draft`, which is part of
+the dialect declared by [SEP-1613][sep-1613]. Implementations that do not
+recognize a keyword in this vocabulary **SHOULD** treat it as an annotation
+per [§6.5 of the JSON Schema core specification][json-schema-6.5].
 
+[sep-2243]: ./2243-http-standardization.md
+[x-mcp-header]: ../docs/specification/draft/server/tools.mdx#x-mcp-header
 [sep-1613]: ./1613-establish-json-schema-2020-12-as-default-dialect-f.md
 [json-schema-6.5]: https://json-schema.org/draft/2020-12/json-schema-core#section-6.5
 
-### The `mcpFile` extension keyword
+### The `x-mcp-file` extension keyword
 
-`mcpFile` is valid only on a schema of the form
+`x-mcp-file` is valid only on a schema of the form
 `{"type": "string", "format": "uri"}`. Its value is an object:
 
 ```typescript
@@ -206,7 +211,7 @@ interface FileInputDescriptor {
 }
 ```
 
-Clients that encounter `mcpFile` on a schema that does not match the permitted
+Clients that encounter `x-mcp-file` on a schema that does not match the permitted
 shape **SHOULD** ignore the keyword and render the field as an ordinary input.
 For example, the keyword below is misplaced (the property is not
 `format: "uri"`) and a client treats `notes` as a plain string field:
@@ -215,7 +220,7 @@ For example, the keyword below is misplaced (the property is not
 {
   "notes": {
     "type": "string",
-    "mcpFile": { "accept": ["text/plain"] }
+    "x-mcp-file": { "accept": ["text/plain"] }
   }
 }
 ```
@@ -225,16 +230,16 @@ as with any other property.
 
 The `format: "uri"` precondition is a recognition marker. Clients and servers
 **SHOULD NOT** enable `format: "uri"` as a JSON Schema validation assertion on
-`mcpFile` fields; the value is constrained by [Wire encoding](#wire-encoding)
+`x-mcp-file` fields; the value is constrained by [Wire encoding](#wire-encoding)
 below, and asserting it would run large data URIs through a regex on every
 call.
 
-For elicitation forms, `StringSchema` gains an optional `mcpFile` field with
+For elicitation forms, `StringSchema` gains an optional `x-mcp-file` field with
 the same semantics.
 
 ### Wire encoding
 
-Clients **MUST** populate an `mcpFile`-annotated argument with an
+Clients **MUST** populate an `x-mcp-file`-annotated argument with an
 [RFC 2397][rfc2397] data URI:
 
 ```
@@ -256,7 +261,7 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nG
 data:text/plain,hello%20world
 ```
 
-Servers **MUST** accept well-formed `data:` URIs in `mcpFile`-annotated
+Servers **MUST** accept well-formed `data:` URIs in `x-mcp-file`-annotated
 arguments in either encoding. Servers **MUST** reject any other scheme and
 **MUST NOT** dereference it.
 
@@ -266,27 +271,39 @@ sufficient for hosts to know what to populate.
 
 ### Host integration on the tool surface
 
-Tools are model-controlled; the model populates `arguments`. For `mcpFile`
-arguments on the tool surface:
+Tools are model-controlled; the model populates `arguments`. For an
+`x-mcp-file` argument on the tool surface, the typical flow is that the model
+leaves the argument absent and the host fills it from a user gesture:
 
-1. The model emits a `tools/call` with the `mcpFile` argument absent. Hosts
-   **MUST** disregard any value the model supplies in an `mcpFile` slot.
-2. The host detects the unfilled `mcpFile` slot at the human-in-the-loop
-   confirmation step it already presents for tool calls.
+1. The model emits a `tools/call` with the `x-mcp-file` argument absent.
+2. The host detects the unfilled slot at the human-in-the-loop confirmation
+   step it already presents for tool calls.
 3. The host renders a file picker, encodes the user's selection per
    [Wire encoding](#wire-encoding), and substitutes the value before
    dispatching the request to the server.
-4. Hosts **MUST NOT** include the encoded data URI value in model context.
+4. The host **MUST NOT** include the encoded data URI value in model context.
+   The bytes do not pass through the model in either direction.
 
 Hosts **MAY** offer a file the user has already attached to the conversation
-as a picker default, but **MUST NOT** bind it to a server's `mcpFile` slot
+as a picker default, but **MUST NOT** bind it to a server's `x-mcp-file` slot
 without an explicit per-invocation confirmation that displays the destination
 server.
 
-Hosts that recognize `mcpFile` but cannot present a picker (CLI without a TTY,
-automated agents, CI pipelines) **SHOULD** prompt for a local path and encode
-it, or for elicitation respond with `action: "decline"`. Hosts **SHOULD NOT**
-prompt the user to type a raw data URI string.
+Hosts **MAY** instead forward a `data:` URI the model supplied directly in the
+slot, subject to the host's existing tool-approval policy. This is appropriate
+where the model has code-execution or filesystem access via other tools and
+constructs the bytes itself (for example, the output of an image pipeline it
+ran). The exfiltration surface in that arrangement is the model's existing
+tool access, which this SEP does not change. Hosts that forward a
+model-supplied value **MUST NOT** dereference, resolve, or substitute content
+for it; the value is forwarded verbatim or discarded. See [Security
+Implications](#host-side-file-access-protecting-the-user-from-the-server).
+
+Hosts that recognize `x-mcp-file` but cannot present a picker (CLI without a
+TTY, CI pipelines) and are not forwarding a model-supplied value **SHOULD**
+prompt for a local path and encode it, or for elicitation respond with
+`action: "decline"`. Hosts **SHOULD NOT** prompt the user to type a raw data
+URI string.
 
 ### Client-side validation
 
@@ -304,7 +321,7 @@ single JSON-RPC message that both sides must buffer in full. This SEP does not
 introduce an upload protocol for that case. Servers that need files larger
 than their declared `maxSize` **SHOULD** obtain them via [URL-mode
 elicitation][url-elicit], which already provides an out-of-band browser flow
-where the upload protocol is entirely server-controlled. The `mcpFile` slot
+where the upload protocol is entirely server-controlled. The `x-mcp-file` slot
 carries only files that fit inline.
 
 When the client has not declared the `elicitation.url` capability, the server
@@ -402,14 +419,19 @@ and `ElicitResult.content` is restricted to primitives. Carrying a structured
 object would require widening both surfaces, whereas a data URI string fits
 the slots that already exist.
 
-### Why not `x-mcp-file` or a `_meta` placement?
+### Why the `x-mcp-` prefix?
 
-The `x-` prefix offers no additional validator tolerance: strict-mode
-validators reject `x-mcpFile` exactly as they reject `mcpFile`. OpenAPI 3.1
-dropped the `x-` requirement for Schema Objects in favor of vocabulary
-declarations. A `_meta` placement was considered and rejected because it
-separates the annotation from the property it describes, which is poor
-locality for JSON Schema form renderers and reintroduces dual-keying.
+[SEP-2243][sep-2243] established `x-mcp-header` as a JSON Schema extension
+property inside `inputSchema`, and this SEP follows that precedent rather than
+introduce a second naming style for the same placement. The `x-` prefix offers
+no additional validator tolerance (strict-mode validators reject any unknown
+keyword regardless of prefix), and OpenAPI 3.1 dropped the `x-` requirement
+for Schema Objects in favor of vocabulary declarations, but consistency within
+the MCP dialect outweighs both of those points.
+
+A `_meta` placement was considered and rejected because it separates the
+annotation from the property it describes, which is poor locality for JSON
+Schema form renderers and reintroduces dual-keying.
 
 ### Why `data:` only?
 
@@ -433,14 +455,15 @@ unknown member. That widening, its capability flag, and the corresponding
 file-specific ones, and belong in their own SEP. This SEP's keyword applies
 unchanged to an array-of-uri-strings schema once that SEP lands; nothing here
 forecloses it. On the tool surface, `Tool.inputSchema` is open JSON Schema, so
-servers can already declare an array property whose `items` carry `mcpFile`
+servers can already declare an array property whose `items` carry `x-mcp-file`
 without protocol changes; only the elicitation form surface is constrained.
 
 ### Why not prompts?
 
 `PromptArgument` is intentionally a flat scalar shape rather than JSON Schema,
 so the keyword does not reach it. The backward-compatible path is a future SEP
-that adds `mcpFile?: FileInputDescriptor` directly to `PromptArgument`, with
+that adds `"x-mcp-file"?: FileInputDescriptor` directly to `PromptArgument`,
+with
 the same data-URI string carrier; no decision in this SEP forecloses that.
 Until then, a prompt that needs a file can describe a tool that accepts one.
 
@@ -478,12 +501,12 @@ pairings that agree on a vendor `_meta` key.
 
 This SEP layers on URL-mode elicitation rather than replacing it:
 
-- **`mcpFile` with `data:` (push, inline):** small-to-medium payloads where
+- **`x-mcp-file` with `data:` (push, inline):** small-to-medium payloads where
   inline transfer is practical.
 - **URL-mode elicitation (pull, out-of-band):** large payloads, with the
   upload protocol server-controlled.
 
-A server uses `mcpFile` for inputs up to its `maxSize` and URL-mode
+A server uses `x-mcp-file` for inputs up to its `maxSize` and URL-mode
 elicitation above it.
 
 ## Drawbacks
@@ -496,7 +519,7 @@ This design accepts the following costs in exchange for its minimal surface:
   low-megabyte range are pushed to URL-mode elicitation
   ([§Large files](#large-files)), which means the simple path stops being
   the available path well before most users would consider a file "large."
-- **Validator registration burden.** Because `mcpFile` is an extension
+- **Validator registration burden.** Because `x-mcp-file` is an extension
   keyword, every SDK that bundles a JSON Schema validator must pre-register
   it, and non-SDK hosts running a strict-mode validator must do the same
   ([§Implementation Notes](#implementation-notes)). This is a small but
@@ -504,36 +527,36 @@ This design accepts the following costs in exchange for its minimal surface:
   that compile `inputSchema` directly.
 - **Degraded UX on non-recognizing clients.** With no capability gate, a
   server cannot tell whether the client will render a picker. A `required`
-  `mcpFile` argument on an older client surfaces as a bare URI text box the
+  `x-mcp-file` argument on an older client surfaces as a bare URI text box the
   user cannot reasonably fill
   ([§Backward Compatibility](#backward-compatibility)). The mitigation is
   guidance (servers SHOULD NOT mark these required) rather than mechanism.
 
 ## Backward Compatibility
 
-This SEP is fully backward compatible. `mcpFile` is a JSON Schema extension
+This SEP is fully backward compatible. `x-mcp-file` is a JSON Schema extension
 keyword; per §6.5 implementations that do not recognize it SHOULD treat it as
 an annotation and otherwise ignore it. Clients that do not recognize the
 keyword see an ordinary `uri`-format string field. `StringSchema` gaining an
 optional field is additive.
 
-Servers **MUST** accept well-formed `data:` URIs for an `mcpFile`-annotated
+Servers **MUST** accept well-formed `data:` URIs for an `x-mcp-file`-annotated
 argument regardless of whether the client recognized the keyword. The keyword
 governs presentation, not acceptance.
 
-A required `mcpFile` argument on a non-recognizing client renders as a bare
+A required `x-mcp-file` argument on a non-recognizing client renders as a bare
 URI text input that the user cannot reasonably fill. Servers **SHOULD NOT**
-mark `mcpFile` arguments `required` unless the tool is useless without them.
+mark `x-mcp-file` arguments `required` unless the tool is useless without them.
 
 ## Implementation Notes
 
 JSON Schema validators in strict mode reject schemas containing unknown
 keywords at compile time rather than silently ignoring them as §6.5 prefers.
 Ajv v7 and later default to strict mode and will throw
-`unknown keyword: "mcpFile"` when compiling a tool's `inputSchema`. Hosts that
-compile `inputSchema` or `requestedSchema` with such a validator **MUST**
+`unknown keyword: "x-mcp-file"` when compiling a tool's `inputSchema`. Hosts
+that compile `inputSchema` or `requestedSchema` with such a validator **MUST**
 either register the keyword (e.g.,
-`ajv.addKeyword({keyword: "mcpFile", schemaType: "object"})`) or disable
+`ajv.addKeyword({keyword: "x-mcp-file", schemaType: "object"})`) or disable
 strict-schema mode for these schemas. Official MCP SDKs **MUST** pre-register
 the keyword in any validator they ship.
 
@@ -550,23 +573,25 @@ influence the model (see [OWASP LLM Top 10 2025][owasp-llm], LLM01 and LLM06).
 The host is the only party that knows whether a given value was selected by
 the user or authored by the model.
 
-- Hosts **MUST** treat any value present in the model's tool-call output for
-  an `mcpFile` slot as model-authored and **MUST NOT** transmit it. The only
-  value a host may send in an `mcpFile` slot is one the host itself populated
-  from a user consent gesture for a single (server, tool, request) tuple.
-  Hosts **MUST** discard the encoded value after dispatch.
 - Hosts **MUST NOT** read a local file and encode it into a `data:` URI unless
   the user explicitly selected that file via a picker or equivalent consent
-  gesture, and **MUST NOT** pass any model-supplied value to a path-resolution
-  API.
-- Hosts **MUST** display, before transmission, the file identity (derived by
-  the host from the picker selection) and the destination server.
+  gesture for a single (server, tool, request) tuple, and **MUST NOT** pass
+  any model-supplied value to a path-resolution API. Hosts **MUST** discard
+  the encoded value after dispatch and **MUST NOT** include it in model
+  context.
+- Hosts **MUST** display, before transmitting a host-populated value, the file
+  identity (derived by the host from the picker selection) and the destination
+  server.
+- A `data:` URI the model supplied directly is model-authored. Hosts **MAY**
+  forward it verbatim under their existing tool-approval policy as described
+  in [Host integration](#host-integration-on-the-tool-surface), but **MUST
+  NOT** dereference it or substitute other content for it.
 
 ### File content reaching the model
 
 File content is untrusted with respect to the model as well as the server.
 Hosts **MUST NOT** include the encoded `data:` URI value in model context.
-Servers returning text derived from `mcpFile` input in `CallToolResult`
+Servers returning text derived from `x-mcp-file` input in `CallToolResult`
 **SHOULD** delimit it as untrusted data, and hosts **MUST** present such
 results to the model as data, not instructions ([OWASP LLM Top 10
 2025][owasp-llm], LLM01).
@@ -574,7 +599,7 @@ results to the model as data, not instructions ([OWASP LLM Top 10
 ### Server-side handling
 
 Because this SEP specifies `data:` as the only wire scheme, servers do not
-fetch URLs or read filesystem paths on the basis of an `mcpFile` value, and
+fetch URLs or read filesystem paths on the basis of an `x-mcp-file` value, and
 the SSRF and local-file-inclusion classes do not arise from this mechanism.
 Servers are still decoding untrusted bytes and **MUST** satisfy the applicable
 requirements of [OWASP ASVS 5.0 §V5 (File Handling)][asvs-v5] for the formats
@@ -589,7 +614,7 @@ dispatch on it without validating the content.
 
 ### Logging and telemetry
 
-`data:` URI values in `mcpFile` arguments contain user file bytes and **MUST**
+`data:` URI values in `x-mcp-file` arguments contain user file bytes and **MUST**
 be treated as sensitive. Hosts, servers, and SDKs **MUST** redact them (e.g.,
 to `data:<type>;base64,[<n> bytes]`) in transport logs, debug output, tracing
 spans, and error reports.
@@ -606,6 +631,15 @@ paths documented in [Rationale](#rationale): multi-file inputs (via a general
 elicitation array SEP), additional wire schemes (via a `schemes` declaration),
 and `PromptArgument` support. None require changes to what this SEP specifies.
 
+A pull-based composition where the client exposes user-attached files as
+client Resources and the server reads them via `resources/read` was raised in
+[review][keremnalbant-comment]. That keeps large payloads out of the tool-call
+JSON entirely and is complementary to this SEP rather than an alternative; it
+is not specified here because it depends on client-side resource exposure that
+is itself not yet standardized.
+
+[keremnalbant-comment]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356#issuecomment-4298675411
+
 A machine-readable vocabulary for tool input-validation errors is also
 deferred. Mandating an error shape here would be the first place the protocol
 dictates the body of a `CallToolResult` error, and a tool call can fail for
@@ -621,7 +655,7 @@ advances past Draft. It will demonstrate:
 - `FileInputDescriptor` exported for use in tool definitions, with the keyword
   pre-registered in the SDK's bundled validator.
 - A client-side `encodeFileAsDataUri(file: File | Blob): string` helper.
-- A sample server exposing an image-processing tool with `mcpFile`, validating
+- A sample server exposing an image-processing tool with `x-mcp-file`, validating
   `maxSize` and `accept` on receipt.
 - A sample host demonstrating the §Host integration flow end to end: model
   emits the call with the slot absent, host renders a picker, substitutes the

@@ -1781,16 +1781,16 @@ export interface Tool extends BaseMetadata, Icons {
 }
 
 /**
- * Value of the `mcpFile` JSON Schema extension keyword. When present on a
+ * Value of the `x-mcp-file` JSON Schema extension keyword. When present on a
  * `{"type": "string", "format": "uri"}` property, it marks the property as a
  * file input that clients SHOULD render as a native file picker. Selected
  * files are encoded as RFC 2397 data URIs.
  *
  * Both fields are advisory; servers MUST still validate inputs independently.
  *
- * For {@link Tool.inputSchema} properties, `mcpFile` is added directly inside
- * the JSON Schema property definition. For elicitation forms, it appears on
- * {@link StringSchema}.
+ * For {@link Tool.inputSchema} properties, `x-mcp-file` is added directly
+ * inside the JSON Schema property definition. For elicitation forms, it
+ * appears on {@link StringSchema}.
  *
  * @example Rejecting an oversized file input
  * {@includeCode ./examples/CallToolResult/file-input-too-large.json}
@@ -2961,7 +2961,7 @@ export interface StringSchema {
    * render a native file picker and populate the field with an RFC 2397 data
    * URI for the selected file. See {@link FileInputDescriptor}.
    */
-  mcpFile?: FileInputDescriptor;
+  "x-mcp-file"?: FileInputDescriptor;
 }
 
 /**

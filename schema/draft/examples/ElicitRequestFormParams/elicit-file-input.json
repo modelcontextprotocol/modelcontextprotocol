@@ -8,7 +8,7 @@
         "type": "string",
         "format": "uri",
         "title": "Profile photo",
-        "mcpFile": {
+        "x-mcp-file": {
           "accept": ["image/*"],
           "maxSize": 2097152
         }

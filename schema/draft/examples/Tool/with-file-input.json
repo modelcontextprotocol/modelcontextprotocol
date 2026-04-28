@@ -8,7 +8,7 @@
         "type": "string",
         "format": "uri",
         "description": "The image to describe.",
-        "mcpFile": {
+        "x-mcp-file": {
           "accept": ["image/png", "image/jpeg"],
           "maxSize": 5242880
         }
