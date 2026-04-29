@@ -85,8 +85,27 @@ export const ClientFilter = () => {
   const { selectedFeatures, searchText, visibleCount, totalCount } = useFilterStore();
 
   useEffect(() => {
-    filterStore.setState({ selectedFeatures: [], searchText: "" });
+    let initialFeatures = [];
+    if (typeof window !== "undefined") {
+      const filterParam = new URLSearchParams(window.location.search).get("filter");
+      if (filterParam) {
+        const requested = new Set(filterParam.split(",").map(f => f.trim()));
+        initialFeatures = FEATURES.filter(f => requested.has(f));
+      }
+    }
+    filterStore.setState({ selectedFeatures: initialFeatures, searchText: "" });
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("filter");
+    if (selectedFeatures.length > 0) {
+      const value = selectedFeatures.map(encodeURIComponent).join(",");
+      url.search = url.search ? `${url.search}&filter=${value}` : `?filter=${value}`;
+    }
+    window.history.replaceState({}, "", url);
+  }, [selectedFeatures]);
 
   const toggleFeature = (feature) => {
     const newFeatures = selectedFeatures.includes(feature)
