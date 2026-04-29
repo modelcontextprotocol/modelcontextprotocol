@@ -3,7 +3,7 @@
 - **Status**: In-Review
 - **Type**: Extensions Track
 - **Created**: 2026-04-27
-- **Author(s)**: Luca Chang (@LucaButBoring), Caitie McCaffrey (@CaitieM20)
+- **Author(s)**: Luca Chang (@LucaButBoring), Caitie McCaffrey (@CaitieM20); on behalf of the Agents Working Group
 - **Sponsor**: Caitie McCaffrey (@CaitieM20)
 - **Extension Identifier**: `io.modelcontextprotocol/tasks`
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663
