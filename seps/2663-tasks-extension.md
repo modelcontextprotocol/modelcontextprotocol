@@ -483,13 +483,50 @@ The `resultType` field **MUST** be set to `"complete"` on `CancelTaskResult` as 
 
 ### Task Status Notifications
 
-A server **MAY** push status updates in addition to servicing client polls:
+Servers **MAY** push status updates via `notifications/tasks/status` notifications in addition to servicing client polls:
 
 ```typescript
-type TaskStatusNotificationParams = NotificationParams & DetailedTask;
+export type TaskStatusNotificationParams = NotificationParams & Task;
+
+export interface TaskStatusNotification extends JSONRPCNotification {
+  method: "notifications/tasks/status";
+  params: TaskStatusNotificationParams;
+}
 ```
 
 Each notification carries a complete `DetailedTask` for the current status, identical to what `tasks/get` would have returned at that moment.
+
+**Notification:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/tasks/status",
+  "params": {
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "completed",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 60,
+    "pollInterval": 5000,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Operation completed successfully."
+        }
+      ],
+      "isError": false
+    }
+  }
+}
+```
+
+The notification includes the full task object, allowing clients to access the complete task state and final results without making an additional `tasks/get` request.
+
+Clients **MUST NOT** rely on receiving this notification, and **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
+
+In the Streamable HTTP transport, if a server sends this notification, it **MUST** send it on an SSE stream associated with a `tasks/get` request.
 
 ### Streamable HTTP: Routing Headers
 
