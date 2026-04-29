@@ -317,10 +317,10 @@ A server returns `CreateTaskResult` in lieu of the standard result shape for a r
 
 ```typescript
 // resultType: "task"
-interface CreateTaskResult extends Result {
-  task: Task;
-}
+type CreateTaskResult = Result & Task;
 ```
+
+Note that `CreateTaskResult` _does not_ contain `result`/`error`/`inputRequests`. Client implementations **MUST NOT** use these fields if they are found on `CreateTaskResult`, and **MAY** handle this as an invalid protocol response.
 
 **Example Request (CallToolRequest):**
 
@@ -346,15 +346,13 @@ interface CreateTaskResult extends Result {
   "id": 1,
   "result": {
     "resultType": "task",
-    "task": {
-      "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-      "status": "working",
-      "statusMessage": "The operation is now in progress.",
-      "createdAt": "2025-11-25T10:30:00Z",
-      "lastUpdatedAt": "2025-11-25T10:40:00Z",
-      "ttl": 60,
-      "pollInterval": 5000
-    }
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "statusMessage": "The operation is now in progress.",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:40:00Z",
+    "ttl": 60,
+    "pollInterval": 5000
   }
 }
 ```
@@ -515,15 +513,13 @@ The server determines (via bespoke logic) that it wants to create a task to repr
   "id": 2,
   "result": {
     "resultType": "task",
-    "task": {
-      "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-      "status": "working",
-      "createdAt": "2025-11-25T10:30:00Z",
-      "lastUpdatedAt": "2025-11-25T10:50:00Z",
-      "ttl": 3600,
-      "pollInterval": 5000,
-      "requestState": "SGVsbG8sIHdvcmxkCg=="
-    }
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "createdAt": "2025-11-25T10:30:00Z",
+    "lastUpdatedAt": "2025-11-25T10:50:00Z",
+    "ttl": 3600,
+    "pollInterval": 5000,
+    "requestState": "SGVsbG8sIHdvcmxkCg=="
   }
 }
 ```
