@@ -395,11 +395,11 @@ MCP server executes based on the body value).
 When rejecting a request due to header validation failure, servers **MUST** return HTTP
 status `400 Bad Request` and **SHOULD** include a JSON-RPC error response using the following error code:
 
-| Code     | Name             | Description                                                                                                            |
-| -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+| Code     | Name                                                                | Description                                                                                                            |
+| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `-32001` | [`HeaderMismatch`](/specification/draft/schema#headermismatcherror) | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
 
-This error code is in the JSON-RPC implementation-defined server error range (`-32000` to
+This error code is in the [MCP-reserved error range](/specification/draft/basic#error-responses) (`-32000` to
 `-32099`).
 
 **Example error response:**
