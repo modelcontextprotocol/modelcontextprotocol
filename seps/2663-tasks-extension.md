@@ -815,7 +815,7 @@ Servers are not required to retain tasks indefinitely. It is compliant behavior 
 
 When the underlying request encounters a JSON-RPC protocol error during execution, the task moves to the `failed` status. The `tasks/get` response **SHOULD** include a `statusMessage` field with diagnostic information about the failure, and **MUST** include the `error` field with the JSON-RPC error.
 
-The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with `isError: true`. Application-level errors **MUST** use the `completed` status with the error details in the `result` field. This maintains a strong separation between protocol-level faults (which use the `failed` status) and application-level faults (which are returned as `completed` results with `isError: true`).
+The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such as a tool result that completed with `isError: true`. Errors within the context of a protocol method result **MUST** use the `completed` status with the error details in the `result` field. This maintains a strong separation between protocol-level faults (which use the `failed` status) and other faults.
 
 **Example: Task with JSON-RPC execution error**
 
@@ -839,9 +839,9 @@ The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such 
 }
 ```
 
-**Example: Tool call completed with application error (isError: true)**
+**Example: Tool call completed with tool error (isError: true)**
 
-For tool calls that complete successfully at the protocol level but return an application-level error (indicated by `isError: true` in the tool result), the task reaches `completed` status with the tool result in the `result` field:
+For tool calls that complete successfully at the protocol level but return an tool-level error (indicated by `isError: true` in the tool result), the task reaches `completed` status with the tool result in the `result` field:
 
 ```json
 {
