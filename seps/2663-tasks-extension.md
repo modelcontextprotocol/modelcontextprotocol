@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This SEP defines an extension that allows a server respond to a `tools/call` request with an asynchronous _task handle_ instead of a final result, allowing the client to retrieve the eventual result by polling. The extension introduces three methods: `tasks/get`, `tasks/update`, and `tasks/cancel`; a polymorphic-result discriminator (`resultType: "task"`); and a `Task` shape that carries a task status, in-progress server-to-client requests, and a final result or error. Task creation is server-directed: the client signals support by negotiating the extension during `initialize`, and the server decides on a per-request basis whether to materialize a task.
+This SEP defines an extension that allows a server respond to a `tools/call` request with an asynchronous _task handle_ instead of a final result, allowing the client to retrieve the eventual result by polling. The extension introduces three methods: `tasks/get`, `tasks/update`, and `tasks/cancel`; a polymorphic-result discriminator (`resultType: "task"`); and a `Task` shape that carries a task status, in-progress server-to-client requests, and a final result or error. Task creation is server-directed: the client signals support by including the extension in its per-request capabilities, and the server decides on a per-request basis whether to materialize a task.
 
 This proposal supersedes the version of [tasks](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks) specified in the `2025-11-25` release. It is shaped by implementation feedback since that release and by several changes to the base protocol expected to arrive in the `2026-06-30` specification:
 
