@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "ajv": "^8.18.0",
+    "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "cheerio": "^1.2.0",
     "eslint": "^10.2.1",
@@ -58,7 +58,7 @@
     "tsx": "^4.21.0",
     "typedoc": "^0.28.19",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.58.2",
+    "typescript-eslint": "^8.59.0",
     "typescript-json-schema": "^0.67.1",
     "unified": "^11.0.5"
   },
