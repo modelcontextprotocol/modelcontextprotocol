@@ -99,10 +99,10 @@ export const ClientFilter = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
+    url.searchParams.delete("filter");
     if (selectedFeatures.length > 0) {
-      url.searchParams.set("filter", selectedFeatures.join(","));
-    } else {
-      url.searchParams.delete("filter");
+      const value = selectedFeatures.map(encodeURIComponent).join(",");
+      url.search = url.search ? `${url.search}&filter=${value}` : `?filter=${value}`;
     }
     window.history.replaceState({}, "", url);
   }, [selectedFeatures]);
