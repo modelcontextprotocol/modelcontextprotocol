@@ -185,7 +185,7 @@ No authentication, authorization, or data-validation changes are required.
 
 ## Reference Implementation
 
-https://github.com/clouatre-labs/code-analyze-mcp (Apache-2.0)
+https://github.com/clouatre-labs/aptu-coder (Apache-2.0)
 
 All four tool success paths (`analyze_directory`, `analyze_file`, `analyze_symbol`,
 `analyze_module`) set `_meta: { "cache_hint": "no-cache" }` on every `CallToolResult` via a
@@ -202,11 +202,11 @@ fn no_cache_meta() -> Meta {
 }
 ```
 
-An integration test (`tests/integration_tests.rs`,
+An integration test (`crates/aptu-coder/tests/integration_tests.rs`,
 `test_call_tool_result_cache_hint_metadata`) validates round-trip serialization:
 `_meta.cache_hint == "no-cache"` in the JSON output.
 
-The implementation uses rmcp 1.2.0. The `CallToolResult::with_meta(Some(Meta(map)))` API
+The implementation uses rmcp 1.5.0. The `CallToolResult::with_meta(Some(Meta(map)))` API
 serializes arbitrary key-value pairs into `_meta` without schema changes.
 
 This satisfies the SEP "prototype implementation" requirement for Accepted status. Full SDK
