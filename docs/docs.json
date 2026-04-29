@@ -471,6 +471,12 @@
             ]
           },
           {
+            "group": "Interest Group Charters",
+            "pages": [
+              "community/tool-annotations/charter"
+            ]
+          },
+          {
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
