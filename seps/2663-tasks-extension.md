@@ -387,6 +387,12 @@ interface GetTaskRequest extends JSONRPCRequest {
   params: {
     /** Identifier of the task to query. */
     taskId: string;
+
+    /**
+     * Optional opaque request-state token round-tripped from a prior server response
+     * (per SEP-2322).
+     */
+    requestState?: string;
   };
 }
 ```
