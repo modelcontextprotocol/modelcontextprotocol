@@ -34,6 +34,7 @@ while maintaining simplicity:
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- OAuth 2.0 Authorization Server Issuer Identification ([RFC9207](https://datatracker.ietf.org/doc/html/rfc9207))
 - OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
 - OpenID Connect Dynamic Client Registration 1.0 ([OpenID Connect Registration](https://openid.net/specs/openid-connect-registration-1_0.html))
 
@@ -179,6 +180,8 @@ For issuer URLs without path components
    `https://auth.example.com/.well-known/oauth-authorization-server`
 2. OpenID Connect Discovery 1.0:
    `https://auth.example.com/.well-known/openid-configuration`
+
+After retrieving a metadata document, MCP clients **MUST** validate it as required by [RFC8414 Section 3.3](https://datatracker.ietf.org/doc/html/rfc8414#section-3.3) or [OpenID Connect Discovery Section 4.3](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation): the `issuer` value in the document **MUST** be identical to the issuer identifier used to construct the well-known URL. If they differ, the client **MUST NOT** use the metadata. For example, a document fetched from `https://attacker.example/.well-known/oauth-authorization-server` that contains `"issuer": "https://honest.example"` **MUST** be rejected.
 
 ### Authorization Server Discovery Sequence Diagram
 
@@ -472,18 +475,44 @@ sequenceDiagram
         Note over C: Use existing client_id
     end
 
-    Note over C: Generate PKCE parameters<br/>Include resource parameter<br/>Apply scope selection strategy
+    Note over C: Generate PKCE parameters<br/>Include resource parameter<br/>Apply scope selection strategy<br/>Record expected issuer
     C->>B: Open browser with authorization URL + code_challenge + resource
     B->>A: Authorization request with resource parameter
     Note over A: User authorizes
-    A->>B: Redirect to callback with authorization code
+    A->>B: Redirect to callback with authorization code + iss
     B->>C: Authorization code callback
+    Note over C: Validate iss against recorded issuer (RFC 9207)
     C->>A: Token request + code_verifier + resource
     A->>C: Access token (+ refresh token)
     C->>M: MCP request with access token
     M-->>C: MCP response
     Note over C,M: MCP communication continues with valid token
 ```
+
+### Authorization Response Validation
+
+Before redirecting the user-agent, the client **MUST** record the `issuer` value from the selected authorization server's validated metadata document (see [Authorization Server Metadata Discovery](#authorization-server-metadata-discovery)) and associate it with the same per-request record used to store the PKCE code verifier (and the `state` value, if used). The validation in this section depends on that recorded value being authentic; it provides no protection if the expected issuer was obtained from an unvalidated source.
+
+MCP authorization servers **SHOULD** include the `iss` parameter in authorization responses, including error responses, as defined in [RFC9207 Section 2](https://datatracker.ietf.org/doc/html/rfc9207#section-2). Authorization servers that include the `iss` parameter **MUST** advertise this by setting `authorization_response_iss_parameter_supported` to `true` in their metadata ([RFC9207 Section 2.3](https://datatracker.ietf.org/doc/html/rfc9207#section-2.3)).
+
+On receiving the authorization response, MCP clients **MUST** apply the validation in [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4) before transmitting the authorization code to any token endpoint:
+
+| `authorization_response_iss_parameter_supported` | `iss` in response | Client action                                                                              |
+| ------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------ |
+| `true`                                           | present           | Compare to the recorded issuer using simple string comparison ([RFC3986 Section 6.2.1][1]) |
+| `true`                                           | absent            | Reject the response                                                                        |
+| `false` or absent                                | present           | Compare to the recorded issuer using simple string comparison ([RFC3986 Section 6.2.1][1]) |
+| `false` or absent                                | absent            | Proceed                                                                                    |
+
+[1]: https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.1
+
+The third row applies the local-policy provision in [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4): this specification compares a present `iss` against the recorded issuer regardless of metadata advertisement, to accommodate authorization servers that emit `iss` before updating their metadata.
+
+A future revision of this specification is expected to upgrade authorization server inclusion of `iss` from **SHOULD** to **MUST**. Implementers are encouraged to emit and validate `iss` now to ease that transition; client rejection behavior on `iss` absence will continue to be keyed on `authorization_response_iss_parameter_supported` until that revision defines the upgrade path.
+
+After decoding the `iss` value from the `application/x-www-form-urlencoded` response per [RFC 9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4), clients **MUST NOT** apply scheme or host case folding, default-port elision, trailing-slash, or percent-encoding normalization ([RFC 3986 Sections 6.2.2-6.2.3](https://datatracker.ietf.org/doc/html/rfc3986#section-6.2.2)) before comparison.
+
+This validation applies equally to error responses - on mismatch the client **MUST NOT** act on or display `error`, `error_description`, or `error_uri`.
 
 ## Resource Parameter Implementation
 
@@ -759,6 +788,12 @@ Since OAuth 2.1 and PKCE specifications do not define a mechanism for clients to
 - **OpenID Connect Discovery 1.0**: While the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata) does not define `code_challenge_methods_supported`, this field is commonly included by OpenID providers. MCP clients **MUST** verify the presence of `code_challenge_methods_supported` in the provider metadata response. If the field is absent, MCP clients **MUST** refuse to proceed.
 
 Authorization servers providing OpenID Connect Discovery 1.0 **MUST** include `code_challenge_methods_supported` in their metadata to ensure MCP compatibility.
+
+### Mix-Up Attacks
+
+An MCP client typically interacts with many authorization servers over its lifetime. An attacker that controls one of those authorization servers may attempt to have the client send it an authorization code or token issued by a different, honest authorization server (a mix-up attack, described in [RFC9207 Section 1](https://datatracker.ietf.org/doc/html/rfc9207#section-1)).
+
+[Authorization Response Validation](#authorization-response-validation) mitigates this by binding the response to the authorization server the client recorded before redirecting, so the authorization code cannot be redeemed at an unintended token endpoint. PKCE alone does not prevent this attack because the client transmits the `code_verifier` to the attacker's token endpoint. Resource indicators do not help when the attacker's authorization server is intercepting requests before they hit the honest authorization server. This mitigation depends on honest authorization servers emitting `iss`; it provides no protection against an honest server that does not.
 
 ### Open Redirection
 
