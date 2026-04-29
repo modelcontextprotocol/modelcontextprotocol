@@ -140,14 +140,14 @@ interface Task {
    * The server may discard the task after the TTL elapses.
    * Aligns with HTTP cache-control conventions per SEP-2549.
    */
-  ttl: number | null;
+  ttlSeconds: number | null;
 
   /**
    * Suggested polling interval in milliseconds. Clients SHOULD honor this
    * value to avoid overwhelming the server. This value MAY change over the
    * lifetime of a task.
    */
-  pollInterval?: number;
+  pollIntervalMilliseconds?: number;
 
   /**
    * Optional request state passed back from the server to the client.
@@ -243,8 +243,8 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:45:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0=",
     "inputRequests": {
       "elicit-name": {
@@ -361,8 +361,8 @@ Note that `CreateTaskResult` _does not_ contain `result`/`error`/`inputRequests`
     "statusMessage": "The operation is now in progress.",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 60,
-    "pollInterval": 5000
+    "ttlSeconds": 60,
+    "pollIntervalMilliseconds": 5000
   }
 }
 ```
@@ -375,7 +375,7 @@ A server **MUST NOT** return `CreateTaskResult` until the task is durably create
 
 Clients poll for task completion by sending `tasks/get` requests.
 
-Clients **SHOULD** respect the `pollInterval` provided in responses when determining polling frequency. The `pollInterval` **MAY** change over the lifetime of a task. Servers **MAY** rate-limit clients polling more frequently than the recorded `pollInterval`.
+Clients **SHOULD** respect the `pollIntervalMilliseconds` provided in responses when determining polling frequency. The `pollIntervalMilliseconds` **MAY** change over the lifetime of a task. Servers **MAY** rate-limit clients polling more frequently than the recorded `pollIntervalMilliseconds`.
 
 Clients **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`).
 
@@ -527,8 +527,8 @@ The server determines (via bespoke logic) that it wants to create a task to repr
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "requestState": "SGVsbG8sIHdvcmxkCg=="
   }
 }
@@ -560,8 +560,8 @@ On each request while the task is in a `"working"` status, the server returns a 
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "requestState": "SGVsbG8sIEknbSBzdGlsbCB3b3JraW5nCg=="
   }
 }
@@ -591,8 +591,8 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "inputRequests": {
       "name": {
         "method": "elicitation/create",
@@ -638,8 +638,8 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
     "status": "input_required",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "inputRequests": {
       "name": {
         "method": "elicitation/create",
@@ -719,8 +719,8 @@ Asynchronously, the server processes it and moves the task back into the `workin
     "status": "working",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "requestState": "SGVsbG8sIEknbSB3b3JraW5nIGFnYWluCg=="
   }
 }
@@ -750,8 +750,8 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 3600,
-    "pollInterval": 5000,
+    "ttlSeconds": 3600,
+    "pollIntervalMilliseconds": 5000,
     "result": {
       "content": [
         {
@@ -829,7 +829,7 @@ The `failed` status **MUST NOT** be used to represent non-JSON-RPC errors, such 
     "status": "failed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 3600,
+    "ttlSeconds": 3600,
     "statusMessage": "Tool execution failed: API rate limit exceeded",
     "error": {
       "code": -32603,
@@ -853,7 +853,7 @@ For tool calls that complete successfully at the protocol level but return an to
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:40:00Z",
-    "ttl": 3600,
+    "ttlSeconds": 3600,
     "result": {
       "content": [
         {
