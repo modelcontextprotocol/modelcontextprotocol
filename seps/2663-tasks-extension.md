@@ -297,9 +297,19 @@ Servers **MAY** set an optional `requestState` string on any `Task` object to pa
 }
 ```
 
-The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers **MAY** return a different `requestState` value on each task-bearing message (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`); clients **MUST** always use the most recently received value in their next request. If the most recent task-bearing message contained no `requestState`, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it.
+The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers are free to encode the state in any format (e.g. base64-encoded JSON, encrypted JWT, serialized binary). If a client request contains a `requestState` field, servers **MUST** treat `requestState` as an attacker-controlled input. If `requestState` influences authorization, resource acces, or business logic, servers **MUST** protect its integrity (e.g. HMAC or AEAD) and **MUST** reject state that fails verification. Integrity protection **MAY** be omitted only when tampering can cause nothing worse than request failure.
 
-Upon receiving a `notifications/tasks/status` notification for a task status update, clients **MUST** update their tracked `requestState` value with any value provided in the notification, as they would do with a standard response.
+To prevent replay, servers **SHOULD** include the following inside the integrity-protected `requestState` payload and verify each on receipt:
+
+- The authenticated principal, rejecting state presented by a different principal.
+- A short expiry (TTL), rejecting state presented after it lapses.
+- An identifier for the originating request, e.g. the method name and a digest of its salient parameters, rejecting state presented on a request that does not match.
+
+<Warning>
+Note that these measures bound the replay window and prevent cross-user and cross-task reuse, but do not by themselves guarantee isolation. Servers for which a given `requestState` must be consumed at most once (e.g., one-time redemptions) **MUST** enforce that invariant server-side.
+</Warning>
+
+Servers **MAY** return a different `requestState` value on each task-bearing message (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`); clients **MUST** always use the most recently received value in their next request. If the most recent task-bearing message contained no `requestState`, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it. Upon receiving a `notifications/tasks/status` notification for a task status update, clients **MUST** update their tracked `requestState` value with any value provided in the notification, as they would do with a standard response.
 
 #### Task Status
 
@@ -918,6 +928,7 @@ A server that returns the standard `CallToolResult` shape — i.e., never elects
 - **Task ID unguessability.** A server **MAY** use task IDs as bearer tokens for a server's stored state. Servers **MUST** generate them with sufficient entropy that a third party cannot enumerate or guess them.
 - **Cross-caller correlation.** Because there is no `tasks/list`, a server cannot inadvertently leak the existence of one caller's tasks to another. This is an improvement over the `2025-11-25` tasks specification, in which a poorly-scoped list could expose unrelated task IDs.
 - **Input-request trust model.** `inputRequests` carry elicitation and sampling payloads from the server through the client to the user or model. Hosts **MUST** apply the same trust model to these payloads as they would to standard elicitation/sampling requests. A task is not a higher-trust channel.
+- **Request state security.** `requestState` is intended to be an opaque value unmodifiable by the client. Servers **MUST** treat `requestState` as an attacker-controlled input and protect it appropriately (see [Request State Management](#request-state-management)).
 
 ## Reference Implementation
 
