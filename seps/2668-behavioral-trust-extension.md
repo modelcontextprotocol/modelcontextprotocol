@@ -1,4 +1,4 @@
-# # SEP-2668: Behavioral Trust Extension for MCP Registry
+# SEP-2668: Behavioral Trust Extension for MCP Registry
 
 **SEP Number:** 2668
 **Status:** Draft
