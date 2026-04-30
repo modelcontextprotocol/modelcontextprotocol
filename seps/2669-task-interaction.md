@@ -294,21 +294,14 @@ All three methods accept `taskId` as their routing key. The same security model 
 
 ## Reference Implementation
 
-A complete reference implementation is deployed in production:
+A reference implementation covering all three methods is available. Key implementation patterns:
 
-- **Package:** `libs/monet-mcp` (`monet_mcp.tasks` subpackage) in the [Monet repository](https://microsoft.ghe.com/bic/monet)
-- **Implementation spec:** `docs/design/2026-04-28-mcp-tasks-extensions.md` (covers SDK-level ADRs, `@task_tool` decorator, MCP SDK patching)
-- **Wire-protocol spec:** `docs/design/2026-04-29-mcp-tasks-spec.md` (consolidated spec covering base Tasks + these extensions)
+- `tasks/steer` uses per-task async queues for message delivery at safe points
+- `tasks/pause` tracks pause state alongside the standard task store and injects `paused` status into wire responses
+- Cooperative pause is implemented via async events checked at yield points in tool handlers
+- All three methods are registered as custom MCP request handlers
 
-Key implementation details:
-- `tasks/steer` uses per-task `asyncio.Queue` for message delivery
-- `tasks/pause` tracks pause state out-of-band from the MCP SDK's `TaskStore` (which doesn't support `paused` natively) via `TaskExtensionState`
-- Cooperative pause is implemented via `asyncio.Event` checked at `safe_yield()` points in tool handlers
-- All three methods are registered as custom MCP request handlers via SDK monkey-patching (pending upstream SDK support)
-
-### Production deployment
-
-These methods are deployed across multiple agent services handling subagent delegation. Implementation experience:
+Implementation experience across multiple agent services:
 
 - Steer reduced task cancellation-and-restart by approximately 40% — users redirect mid-run instead of starting over
 - Server-initiated pause enabled browser automation to hold VMs after completing tasks, which was not possible without a protocol-level pause signal

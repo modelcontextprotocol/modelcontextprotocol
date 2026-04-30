@@ -229,13 +229,9 @@ Fully backward compatible with SEP-2663. No changes to existing methods, status 
 
 ## Reference Implementation
 
-A complete implementation is deployed in production in the [Monet repository](https://microsoft.ghe.com/bic/monet) (`libs/monet-mcp`, `monet_mcp.tasks` subpackage). Key details:
+A reference implementation covering all three methods is available. Key patterns: per-task async queues for steer delivery, async events for cooperative pause at yield points, custom MCP request handlers.
 
-- `tasks/steer`: per-task `asyncio.Queue` for message delivery
-- `tasks/pause`: out-of-band pause state tracking via `TaskExtensionState`, cooperative halt via `asyncio.Event` at `safe_yield()` points
-- All methods registered as custom MCP request handlers
-
-Production findings: steer reduced task cancellation-and-restart by ~40%; server-initiated pause enabled browser automation VM holding.
+Implementation experience: steer reduced task cancellation-and-restart by ~40%; server-initiated pause enabled browser automation VM holding.
 
 ## Acknowledgments
 
