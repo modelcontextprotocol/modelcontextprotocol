@@ -91,6 +91,7 @@ interface TaskSteerRequest extends JSONRPCRequest {
   params: {
     taskId: string;
     message: string;
+    requestState?: string;
   };
 }
 ```
@@ -122,6 +123,7 @@ interface TaskPauseRequest extends JSONRPCRequest {
   method: "tasks/pause";
   params: {
     taskId: string;
+    requestState?: string;
   };
 }
 ```
@@ -153,6 +155,7 @@ interface TaskResumeRequest extends JSONRPCRequest {
   method: "tasks/resume";
   params: {
     taskId: string;
+    requestState?: string;
   };
 }
 ```
@@ -233,11 +236,6 @@ A complete implementation is deployed in production in the [Monet repository](ht
 - All methods registered as custom MCP request handlers
 
 Production findings: steer reduced task cancellation-and-restart by ~40%; server-initiated pause enabled browser automation VM holding.
-
-## Open Questions
-
-1. Should the spec define a SHOULD-level default steer queue depth (e.g., 16 messages)?
-2. Should extension methods carry `requestState` for stateless server routing?
 
 ## Acknowledgments
 

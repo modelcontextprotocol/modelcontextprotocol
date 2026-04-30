@@ -82,6 +82,11 @@ interface TaskSteerRequest extends JSONRPCRequest {
      * Delivered at the next server-determined safe point.
      */
     message: string;
+
+    /**
+     * Opaque server state, round-tripped by the client.
+     */
+    requestState?: string;
   };
 }
 ```
@@ -96,7 +101,7 @@ type TaskSteerResult = Result;  // empty acknowledgment, resultType: "complete"
 
 - **Ack-only, eventually consistent.** Follows the same pattern as `tasks/update` and `tasks/cancel`. The server acks immediately; the steer message is queued for delivery at the next safe point.
 - **Safe point is server-determined.** The protocol does not prescribe what constitutes a safe point — for an LLM-based agent it may be between inference steps or tool calls; for a pipeline it may be between stages; for a batch job it may be at explicit checkpoints. The server defines this based on its execution model.
-- **Queue semantics.** Multiple steer messages MAY be queued. Delivery order MUST match submission order. There is no protocol-defined queue depth limit; servers SHOULD document their limits.
+- **Queue semantics.** Multiple steer messages MAY be queued. Delivery order MUST match submission order.
 - **Accepted on `working` and `paused` tasks.** A task in `paused` state accepts `tasks/steer` — messages are queued for delivery when the task resumes.
 - **Rejected on terminal tasks.** A task in `completed`, `failed`, or `cancelled` status MUST reject `tasks/steer`. The error code is `-32602` (Invalid params).
 - **Silent ack for invalid `taskId`.** Consistent with `tasks/update` and `tasks/cancel`, the server MUST ack even for invalid or nonexistent task IDs.
@@ -119,6 +124,11 @@ interface TaskPauseRequest extends JSONRPCRequest {
      * ID of the task to pause.
      */
     taskId: string;
+
+    /**
+     * Opaque server state, round-tripped by the client.
+     */
+    requestState?: string;
   };
 }
 ```
@@ -159,6 +169,11 @@ interface TaskResumeRequest extends JSONRPCRequest {
      * ID of the task to resume.
      */
     taskId: string;
+
+    /**
+     * Opaque server state, round-tripped by the client.
+     */
+    requestState?: string;
   };
 }
 ```
@@ -269,10 +284,6 @@ A client negotiating only `io.modelcontextprotocol/tasks` (without `steer` or `p
 
 Steer messages are natural language instructions delivered to the task's execution context. Servers MUST treat steer message content with the same trust model as tool arguments — it is user-supplied input that may contain injection attempts. Servers SHOULD NOT execute steer messages as code or pass them to system prompts without appropriate sandboxing.
 
-### Denial of service via steer queue
-
-A client (or attacker with a valid `taskId`) could send a large number of steer messages to exhaust server memory. Servers SHOULD enforce a queue depth limit and reject messages that exceed it. The specific limit is implementation-defined.
-
 ### `paused` state and resource holding
 
 Server-initiated pause could be used to hold resources (VMs, database connections) indefinitely. Servers SHOULD enforce TTL-based cleanup for paused tasks, consistent with SEP-2663's `ttlSeconds` field. Clients SHOULD monitor for tasks that remain paused beyond expected durations.
@@ -302,12 +313,6 @@ These methods are deployed across multiple agent services handling subagent dele
 - Steer reduced task cancellation-and-restart by approximately 40% — users redirect mid-run instead of starting over
 - Server-initiated pause enabled browser automation to hold VMs after completing tasks, which was not possible without a protocol-level pause signal
 - Queue-based steer delivery at safe points ensures tool execution is never interrupted mid-computation
-
-## Open Questions
-
-1. **Steer queue depth limit.** Should the spec define a SHOULD-level default (e.g., 16 messages), or leave it entirely to implementations?
-
-2. **`requestState` on extension methods.** The base spec includes `requestState` on `tasks/get`, `tasks/update`, and `tasks/cancel` for stateless server routing. This extension does not include `requestState` on `tasks/steer`, `tasks/pause`, or `tasks/resume`. Should it? The trade-off is consistency (all task methods carry `requestState`) vs simplicity (these methods are less latency-sensitive than polling).
 
 ## Acknowledgments
 
