@@ -1,10 +1,10 @@
 # SEP-2448: Server Execution Telemetry
 
-- **Status**: TBD
+- **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-03-23
 - **Author(s)**: Sankara Avula (@savula15), Evan Tahler (@evantahler), Yash Sheth (@yashsheth46) and Guru Sattanathan (@avoguru)
-- **Sponsor**: TBD
+- **Sponsor**: Kurtis Van Gent (@kurtisvg)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2448
 
 ## Abstract
