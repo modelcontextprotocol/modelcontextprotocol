@@ -1,0 +1,248 @@
+---
+title: "SEP-{NUMBER}: Task Interaction Methods"
+sidebarTitle: "SEP-{NUMBER}: Task Interaction Methods"
+description: "Task Interaction Methods"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Extensions Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | {NUMBER}                                                                        |
+| **Title**     | Task Interaction Methods                                                        |
+| **Status**    | Draft                                                                           |
+| **Type**      | Extensions Track                                                                |
+| **Created**   | 2026-04-30                                                                      |
+| **Author(s)** | Pedram Rezaei ([@prezaei](https://github.com/prezaei))                          |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#{NUMBER}](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}) |
+
+---
+
+## Abstract
+
+This SEP extends the MCP Tasks extension (SEP-2663) with three methods for interacting with running tasks: `tasks/steer` (unsolicited feedback), `tasks/pause` (cooperative halt), and `tasks/resume` (continue from paused). Together, these enable human-in-the-loop and agent-in-the-loop patterns for long-running task execution — the ability to redirect, pause, and resume work without cancelling and losing accumulated state.
+
+These methods follow the design patterns established by SEP-2663: they use the reserved `tasks/` method prefix, carry `taskId` as the routing key, and respect the consistency model (ack-only writes, cooperative operations, capability negotiation).
+
+## Motivation
+
+SEP-2663 provides the foundation for durable, asynchronous task execution: create a task, poll for status, deliver input when requested, cancel if needed. This covers the lifecycle, but treats the running task as a closed box — the only client interactions are responding to server-initiated input requests (`tasks/update`) and terminating (`tasks/cancel`).
+
+For subagent-as-a-service — where a parent agent or human user delegates work to a specialist agent consumed over MCP — two interaction patterns are missing:
+
+### 1. Mid-run redirection (steering)
+
+Once a task starts, there is no way for a user or parent agent to provide unsolicited feedback. The only input path is `tasks/update`, which responds to specific `inputRequests` the server issued. If a user watching a research agent wants to say "focus on academic sources" or "skip the unit tests," they must cancel the task and start over, losing all accumulated context and partial results.
+
+This is table-stakes for multi-agent UX. Every deployed human-in-the-loop agent system (Claude Code, GitHub Copilot, Cursor, Windsurf, Devin) supports mid-run user feedback. The absence of a protocol-level mechanism forces each implementation to invent its own, fragmenting the ecosystem — exactly the outcome MCP's "convergence over choice" principle aims to prevent.
+
+### 2. Pause and resume
+
+Long-running tasks (browser automation, multi-step research, code generation) often reach a point where continuation should be deferred — the user wants to review partial output before continuing, a billing checkpoint has been reached, or the server needs to hold resources (e.g., a browser VM) without actively computing.
+
+Today the only options are "let it run" or "cancel and lose everything." Cancel is destructive — it discards accumulated context, partial results, and in-flight computation. A research agent 20 minutes into a deep investigation shouldn't lose everything because the user wants to think. Pause preserves state. Resume continues from where it left off.
+
+Server-initiated pause is equally important: a browser automation server that has completed the user's ask but wants to hold the VM for potential follow-up has no way to signal "I'm done for now but available" without either completing (losing the VM) or staying in `working` indefinitely (confusing monitoring and billing).
+
+### Why not use existing primitives?
+
+- **`tasks/update` for steering?** `tasks/update` delivers `inputResponses` keyed to specific `inputRequests` the server issued. Steering is unsolicited — the user is providing new direction the server didn't ask for. Putting steering into `tasks/update` would require the server to issue a permanent open-ended `inputRequest` just to receive feedback, which is a protocol anti-pattern.
+
+- **`tasks/cancel` + restart for pause?** Cancel is destructive. It discards accumulated state and signals "I don't want this anymore." Pause signals "I want to keep this but not right now." These are fundamentally different semantics.
+
+- **Custom tools for steering?** Tools are designed for LLM-initiated actions, not human-initiated feedback. Protocol-level steering gives harnesses (IDEs, web UIs) a standard way to forward user feedback without routing through the model.
+
+## Specification
+
+### Extension Identifier
+
+This extension builds on `io.modelcontextprotocol/tasks` (SEP-2663). It adds sub-capabilities within the Tasks extension:
+
+```jsonc
+{
+  "capabilities": {
+    "extensions": {
+      "io.modelcontextprotocol/tasks": {
+        "steer": true,
+        "pause": true    // implies resume
+      }
+    }
+  }
+}
+```
+
+### `tasks/steer`
+
+Send unsolicited feedback from a parent agent or user to a running task.
+
+#### Request
+
+```typescript
+interface TaskSteerRequest extends JSONRPCRequest {
+  method: "tasks/steer";
+  params: {
+    taskId: string;
+    message: string;
+  };
+}
+```
+
+#### Response
+
+```typescript
+type TaskSteerResult = Result;  // empty acknowledgment, resultType: "complete"
+```
+
+#### Behavioral Requirements
+
+- **Ack-only, eventually consistent.** Same pattern as `tasks/update` and `tasks/cancel`.
+- **Safe point is server-determined.** The protocol does not prescribe what constitutes a safe point.
+- **Queue semantics.** Multiple steer messages MAY be queued. Delivery order MUST match submission order.
+- **Accepted on `working` and `paused` tasks.** Messages queue for delivery when the task resumes.
+- **Rejected on terminal tasks** with `-32602` (Invalid params).
+- **Silent ack for invalid `taskId`.** Consistent with `tasks/update` and `tasks/cancel`.
+- **Streamable HTTP:** `Mcp-Name` header MUST be set to `params.taskId`.
+
+### `tasks/pause`
+
+Request cooperative halt of a running task at the next safe point.
+
+#### Request
+
+```typescript
+interface TaskPauseRequest extends JSONRPCRequest {
+  method: "tasks/pause";
+  params: {
+    taskId: string;
+  };
+}
+```
+
+#### Response
+
+```typescript
+type TaskPauseResult = Result & DetailedTask;  // resultType: "complete"
+```
+
+#### Behavioral Requirements
+
+- **Cooperative.** Servers that don't support pause return `-32601`. Servers that can't pause at the current point return the current `DetailedTask` with status unchanged.
+- **Reachable from `working` or `input_required`.** Other statuses return `-32602`.
+- **A `paused` task accepts:** `tasks/steer` (queued), `tasks/cancel`, `tasks/resume`, `tasks/get`.
+- **A `paused` task does NOT accept:** `tasks/update`, `tasks/pause`.
+- **Server-initiated pause.** The server MAY transition to `paused` without a client request.
+- **Streamable HTTP:** `Mcp-Name` header MUST be set to `params.taskId`.
+
+### `tasks/resume`
+
+Resume execution of a paused task.
+
+#### Request
+
+```typescript
+interface TaskResumeRequest extends JSONRPCRequest {
+  method: "tasks/resume";
+  params: {
+    taskId: string;
+  };
+}
+```
+
+#### Response
+
+```typescript
+type TaskResumeResult = Result & DetailedTask;  // resultType: "complete"
+```
+
+#### Behavioral Requirements
+
+- **Paired with `tasks/pause`.** If a server supports pause, it MUST support resume.
+- **Only valid from `paused` status.** Other statuses return `-32602`.
+- **Post-resume state is server-determined.**
+- **Queued steer messages are delivered after resume.**
+- **Streamable HTTP:** `Mcp-Name` header MUST be set to `params.taskId`.
+
+### Task Status: `paused`
+
+Adds `paused` to the task status values:
+
+```typescript
+interface PausedTask extends Task {
+  status: "paused";
+}
+```
+
+| Property | Value |
+|----------|-------|
+| Reachable from | `working`, `input_required` (via `tasks/pause` or server-initiated) |
+| Transitions to | `working` (via `tasks/resume`), `cancelled` (via `tasks/cancel`) |
+| Terminal | No |
+
+### Error Summary
+
+| Error | Code | Method | When |
+|-------|------|--------|------|
+| Method not found | `-32601` | Any | Server doesn't support the method |
+| Invalid task state | `-32602` | `tasks/pause` | Task not in `working` or `input_required` |
+| Already paused | `-32602` | `tasks/pause` | Task already in `paused` |
+| Not paused | `-32602` | `tasks/resume` | Task not in `paused` |
+| Terminal task | `-32602` | `tasks/steer` | Task in terminal state |
+
+## Rationale
+
+### Why ack-only for `tasks/steer` but `DetailedTask` for pause/resume?
+
+SEP-2663's rationale for ack-only `tasks/update`: "there is no read data the server needs to return that the client cannot get from a follow-up `tasks/get`." This applies to `tasks/steer` — the steer is queued and unprocessed at ack time.
+
+For pause/resume, the client needs immediate feedback: did the server actually pause? Returning `DetailedTask` provides this without an additional `tasks/get` round-trip.
+
+### Why a `paused` status instead of a flag?
+
+A separate status makes the state machine explicit. Clients can pattern-match on `task.status` without inspecting auxiliary fields. It also makes transition rules clear — `paused` accepts different methods than `working`.
+
+### Why allow server-initiated pause?
+
+Client-only pause covers "user wants to think." Server-initiated pause covers resource management: holding a browser VM after completing an action, billing checkpoints, concurrency throttling. Without it, these use cases require staying in `working` indefinitely (misleading) or completing and losing state (destructive).
+
+## Backward Compatibility
+
+Fully backward compatible with SEP-2663. No changes to existing methods, status values, or transitions. The `paused` status is additive. Capability negotiation ensures no silent failures.
+
+## Security Implications
+
+- **Steer message content:** Servers MUST treat steer messages with the same trust model as tool arguments — user-supplied input that may contain injection attempts.
+- **Steer queue exhaustion:** Servers SHOULD enforce a queue depth limit to prevent denial of service.
+- **Paused resource holding:** Servers SHOULD enforce TTL-based cleanup for paused tasks, consistent with SEP-2663's `ttlSeconds` field.
+- **Handle security:** Same model as SEP-2663 — authenticated servers validate `(taskId, principal)` on every call.
+
+## Reference Implementation
+
+A complete implementation is deployed in production in the [Monet repository](https://microsoft.ghe.com/bic/monet) (`libs/monet-mcp`, `monet_mcp.tasks` subpackage). Key details:
+
+- `tasks/steer`: per-task `asyncio.Queue` for message delivery
+- `tasks/pause`: out-of-band pause state tracking via `TaskExtensionState`, cooperative halt via `asyncio.Event` at `safe_yield()` points
+- All methods registered as custom MCP request handlers
+
+Production findings: steer reduced task cancellation-and-restart by ~40%; server-initiated pause enabled browser automation VM holding.
+
+## Open Questions
+
+1. Should the spec define a SHOULD-level default steer queue depth (e.g., 16 messages)?
+2. When a task pauses from `input_required` and resumes, are the pending `inputRequests` still valid?
+3. Should extension methods carry `requestState` for stateless server routing?
+
+## Acknowledgments
+
+- Ryan Nowak — original extensions proposal
+- Luca Chang (@LucaButBoring) — SEP-2663 design patterns
+- Caitie McCaffrey (@CaitieM20) — Agents WG and tasks stabilization
+- Peter Alexander (@pja-ant) — `requestState` analysis
+- Claude Code — AI assistance used for cross-referencing SEPs, adversarial review, and drafting. All design decisions were human-directed.
