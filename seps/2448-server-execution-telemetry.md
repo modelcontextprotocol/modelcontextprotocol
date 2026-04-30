@@ -113,6 +113,8 @@ Clients **MAY** explicitly request span passback by setting `_meta.otel` on a `t
 
 The traceparent field ([W3C Trace Context](https://www.w3.org/TR/trace-context/)) is passed alongside but outside the otel key. Trace context propagation via traceparent in MCP requests follows the mechanism defined in SEP-414.
 
+**Interaction with `traceparent` trace-flags.** `otel.traces.request` is independent of the W3C Trace Context sampled bit. When `otel.traces.request` is `true`, servers SHOULD return passback spans regardless of the `traceparent` trace-flags value, subject to server policy (e.g. sampling, throttling, or capability restrictions). The trace-flags bit conveys the client's upstream sampling decision for its own trace pipeline; it does not override an explicit passback request. When `otel.traces.request` is `false` or absent, servers MAY use the trace-flags bit as one signal among others when deciding whether to record server-side spans.
+
 ### Server Response
 
 When span passback is requested, servers **MUST** return spans under `_meta.otel` in the JSON-RPC response.
@@ -204,6 +206,7 @@ The server determines which spans to return. The following best practices guide 
 2. Servers SHOULD surface spans for major execution stages such as authentication, policy evaluation, and tool handler invocation as direct children of the root span. These provide a top-level breakdown of where time was spent and what decisions were made, without requiring the client to understand internal implementation details.
 3. Span names and attributes SHOULD use generic labels rather than exposing internal service names, credentials, policy definitions, or business payloads. Servers SHOULD sanitize spans before returning them.
 4. When the tool is not executed (due to policy denial, authentication failure, or other pre-execution checks), servers MAY still return spans for the processing stages that did execute. Servers MAY include `_meta` span data in JSON-RPC error responses. Span status MAY be set independently of JSON-RPC error semantics.
+5. Span names and attributes SHOULD align with the [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/) where applicable, so passback spans are consistent across server implementations and ingestible by clients without per-vendor mapping.
 
 ## Rationale
 
@@ -227,6 +230,23 @@ This SEP introduces no backward-incompatible changes. It adds a new optional cap
 - Servers that do not support telemetry passback omit `serverExecutionTelemetry` from their capabilities, and clients therefore do not request passback.
 - Clients that do not support telemetry passback omit `otel` from request `_meta`, and servers therefore continue normal behavior.
 - The change is purely additive and does not alter existing message semantics.
+
+## Open Questions and Future Work
+
+The following items are intentionally out of scope for this SEP and are anticipated to be addressed in follow-up specifications. They are documented here so implementers understand the boundaries of what this SEP defines versus what remains to be standardized.
+
+- **Payload size guidance.** Recommended caps for span payload size, truncation behavior, drop-priority order, and a corresponding server signal indicating telemetry was truncated. This SEP intentionally leaves size limits transport and deployment dependent. The `detailed: false` default is the primary guard against oversized payloads today.
+
+- **Continuous / incremental passback.** This SEP covers single-response passback on `tools/call` and `resources/read`. A notification-style channel for delivering spans during long-running or streamed operations (e.g. progress notifications, streamable HTTP) is a separate design and MAY be addressed in a follow-up SEP.
+
+- **Server-side telemetry policy signaling.** A structured response signal for servers to communicate the applied policy back to clients, including:
+  - **Throttling.** A server field indicating that spans were withheld or rate-limited, with a reason and optional retry hint, so clients can reason about gaps in returned telemetry.
+
+  - **Sampling composition.** Server-side sampling semantics, how a server's sampling ratio composes with `traceparent` trace flags and explicit `otel.traces.request: true`, and what the server reports back when a given call was not sampled.
+
+  - **Preference reconciliation.** A way for the server to communicate the delta between what the client requested and what was returned (sampled, truncated, redacted, etc.) so the client can correctly interpret the payload.
+
+- **Semantic convention alignment.** Enumerating which [OpenTelemetry MCP semantic convention](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/) span names and attributes are REQUIRED vs. RECOMMENDED for passback spans, beyond the general alignment guidance in the "Public Span Model - Best Practices" section.
 
 ## Reference Implementation
 
