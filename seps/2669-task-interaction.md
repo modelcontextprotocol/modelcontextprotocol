@@ -1,11 +1,11 @@
-# SEP-{NUMBER}: Task Interaction Methods
+# SEP-2669: Task Interaction Methods
 
 - **Status**: Draft
 - **Type**: Extensions Track
 - **Created**: 2026-04-30
 - **Author(s)**: Pedram Rezaei (@prezaei)
 - **Sponsor**: None (seeking sponsor — @CaitieM20 / @LucaButBoring from the Agents WG are natural fits)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2669
 
 ## Abstract
 
