@@ -377,7 +377,7 @@ Clients poll for task completion by sending `tasks/get` requests.
 
 Clients **SHOULD** respect the `pollIntervalMilliseconds` provided in responses when determining polling frequency. The `pollIntervalMilliseconds` **MAY** change over the lifetime of a task. Servers **MAY** rate-limit clients polling more frequently than the recorded `pollIntervalMilliseconds`.
 
-Clients **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`).
+Clients **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`). Clients **SHOULD** persist task IDs and their associated `requestState` (if any) to durable storage so that polling can resume after a crash or restart.
 
 #### Request
 
@@ -404,6 +404,8 @@ type GetTaskResult = Result & DetailedTask;
 ```
 
 The response carries the appropriate response variant for the task's current status (see [Task Status](#task-status)). The `resultType` field **MUST** be set to `"complete"` on this object as it is the standard result shape for the `tasks/get` request.
+
+If the task has a non-null `ttlSeconds`, clients **MAY** treat the TTL as a backstop: if the task's observable status has not reflected the update after `createdAt` plus `ttlSeconds` has elapsed, the client **MAY** consider the task to no longer be usable. Conversely, servers **MAY** mark a task as `failed` at any point after the TTL elapses, and subsequently delete it at any time.
 
 ### Task Input Requests
 
