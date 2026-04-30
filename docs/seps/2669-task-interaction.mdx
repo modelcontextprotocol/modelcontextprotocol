@@ -42,7 +42,7 @@ For subagent-as-a-service — where a parent agent or human user delegates work 
 
 Once a task starts, there is no way for a user or parent agent to provide unsolicited feedback. The only input path is `tasks/update`, which responds to specific `inputRequests` the server issued. If a user watching a research agent wants to say "focus on academic sources" or "skip the unit tests," they must cancel the task and start over, losing all accumulated context and partial results.
 
-This is table-stakes for multi-agent UX. Every deployed human-in-the-loop agent system (Claude Code, GitHub Copilot, Cursor, Windsurf, Devin) supports mid-run user feedback. The absence of a protocol-level mechanism forces each implementation to invent its own, fragmenting the ecosystem — exactly the outcome MCP's "convergence over choice" principle aims to prevent.
+This is table-stakes for multi-agent UX. Every deployed human-in-the-loop agent system (GitHub Copilot, Cursor, Windsurf, Devin) supports mid-run user feedback. The absence of a protocol-level mechanism forces each implementation to invent its own, fragmenting the ecosystem — exactly the outcome MCP's "convergence over choice" principle aims to prevent.
 
 ### 2. Pause and resume
 
@@ -245,4 +245,3 @@ Production findings: steer reduced task cancellation-and-restart by ~40%; server
 - Luca Chang (@LucaButBoring) — SEP-2663 design patterns
 - Caitie McCaffrey (@CaitieM20) — Agents WG and tasks stabilization
 - Peter Alexander (@pja-ant) — `requestState` analysis
-- Claude Code — AI assistance used for cross-referencing SEPs, adversarial review, and drafting. All design decisions were human-directed.
