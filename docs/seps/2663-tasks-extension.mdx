@@ -985,12 +985,11 @@ The eventual-consistency on the ack is the same separation as for `tasks/update`
 
 The experimental tasks feature in the `2025-11-25` release is **not wire-compatible** with this extension. Specifically:
 
-- `tasks/result` is removed. Clients calling `tasks/result` against an extension-supporting server **MUST** receive `-32601` (Method Not Found).
-- The `task` parameter on `CallToolRequest` is removed. Servers receiving requests with this parameter under the extension **MUST** ignore it (treat the field as unknown) rather than using it as an opt-in.
-- The `tasks.requests.*` and `tasks.cancel`/`tasks.list` capability declarations are not part of this extension. A server that previously advertised these **MUST** migrate to declaring `io.modelcontextprotocol/tasks` and **MUST NOT** continue to advertise the legacy capabilities under any protocol version that includes this extension.
-- The result polymorphism — `CallToolResult` or `CreateTaskResult` in response to `tools/call` — is gated on extension negotiation. Under earlier protocol versions or without negotiation, a server **MUST NOT** return `CreateTaskResult`.
+- `tasks/result` is removed. Clients calling `tasks/result` against a server with this extension in the `2026-06-30` specification **MUST** receive `-32601` (Method Not Found).
+- The `task` parameter on `CallToolRequest` is removed. Servers receiving requests with a `task` parameter under this extension in the `2026-06-30` specification **MUST** ignore it (treat the field as unknown) rather than using it as an opt-in.
+- The `tasks.requests.*` and `tasks.cancel`/`tasks.list` capability declarations are not part of this extension. A server that previously advertised these **MUST** migrate to declaring `io.modelcontextprotocol/tasks` as of the `2026-06-30` specification and **MUST NOT** continue to advertise the legacy capabilities under any protocol version that includes this extension.
 
-Implementations that need to bridge legacy clients **SHOULD** shim at the SDK level: a server can implement both the experimental and extension surfaces in parallel during the migration window, dispatching based on which capability the client negotiated.
+Implementations that need to bridge legacy clients can shim at the SDK level: a server can implement both the experimental and extension surfaces in parallel, dispatching based on which capability and protocol version the client negotiated.
 
 A server that returns the standard `CallToolResult` shape — i.e., never elects to create a task — remains fully spec-compliant under this extension. Clients that have negotiated the extension **MUST** handle both result shapes for any augmented request.
 
