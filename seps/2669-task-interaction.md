@@ -85,7 +85,8 @@ interface TaskSteerRequest extends JSONRPCRequest {
     message: string;
 
     /**
-     * Opaque server state, round-tripped by the client.
+     * Opaque best-effort state, round-tripped by the client.
+     * Servers MUST tolerate receiving a stale value gracefully.
      */
     requestState?: string;
   };
@@ -127,7 +128,8 @@ interface TaskPauseRequest extends JSONRPCRequest {
     taskId: string;
 
     /**
-     * Opaque server state, round-tripped by the client.
+     * Opaque best-effort state, round-tripped by the client.
+     * Servers MUST tolerate receiving a stale value gracefully.
      */
     requestState?: string;
   };
@@ -172,7 +174,8 @@ interface TaskResumeRequest extends JSONRPCRequest {
     taskId: string;
 
     /**
-     * Opaque server state, round-tripped by the client.
+     * Opaque best-effort state, round-tripped by the client.
+     * Servers MUST tolerate receiving a stale value gracefully.
      */
     requestState?: string;
   };
