@@ -1,0 +1,213 @@
+# SEP-2668: Behavioral Trust Extension for MCP Registry
+
+**SEP Number:** 2668
+**Status:** Draft
+**Type:** Extension
+**Created:** 2026-04-30
+**Author:** @vdineshk
+**Sponsor:** unsponsored (seeking sponsor)
+**Related:** SEP-2663 (reviewer @LucaButBoring invited this SEP), A2A discussion #1631, AIS-1 issue #5
+
+## Abstract
+
+MCP server registries currently surface only static metadata — descriptions, tool lists, author information. No standard exists for exposing empirically-measured runtime behavioral data (success rates, latency percentiles, error patterns) in a machine-readable format that registries and agents can consume. This SEP defines a Behavioral Trust Extension: a discoverable endpoint schema and registry server-card field that allow agents and orchestrators to query independently-attested trust scores before connecting to MCP servers. The extension is additive and composable — no changes to the core MCP protocol are required. A reference implementation tracking 4,584 servers is live and verifiable.
+
+## Motivation
+
+When an agent selects an MCP server today, it has access to:
+
+- Static registry metadata (description, tool list, author)
+- Nothing about whether the server actually works reliably under real agent traffic
+
+This gap is well-documented across multiple active MCP governance threads:
+
+- **A2A protocol discussion #1631:** The A2A `evidence_ref` schema slot was explicitly left open pending a standard behavioral attestation format. No format exists.
+- **AIS-1 (Agent Identity Standard, issue #5):** The `behavioralTrustProfile` property in DID Documents requires a canonical behavioral attestation source.
+- **SEP-2663 review:** Reviewer @LucaButBoring identified that trust/behavioral frameworks "belong in the registry API or potentially server cards" and stated: "I would welcome a formal SEP for that, regardless of whether it builds on top of this one or if it runs separately."
+
+A survey of 4,584 MCP servers in the wild (as of 2026-04-30) shows:
+
+- 0 servers expose any form of behavioral attestation endpoint
+- 0 registries surface runtime behavioral data in server cards
+- Trust decisions are made entirely on static metadata
+
+The infrastructure to fill this gap exists and is operational. What is missing is a standard.
+
+## Specification
+
+### 1. Discovery Endpoint
+
+Behavioral trust providers MAY expose a discovery endpoint at the well-known path:
+
+```http
+GET /.well-known/mcp-behavioral-trust
+Content-Type: application/json
+Cache-Control: public, max-age=3600
+```
+
+Response schema (`mcp-behavioral-trust-discovery-v1.0`):
+
+```json
+{
+  "schema_version": "mcp-behavioral-trust-discovery-v1.0",
+  "claimed": "2026-04-30",
+  "capabilities": [
+    "behavioral_score",
+    "latency_percentiles",
+    "error_classification",
+    "uptime_tracking"
+  ],
+  "protocol_compatibility": [
+    "a2a-evidence-ref",
+    "ais1-behavioralTrustProfile",
+    "erc-8004-endpoint-health"
+  ],
+  "apis": {
+    "behavioral_evidence": "/v1/behavioral-evidence"
+  },
+  "data": {
+    "servers_tracked": 4584,
+    "observation_window_days": 30
+  },
+  "operator": "dominion-observatory.sgdata.workers.dev",
+  "region": "global"
+}
+```
+
+### 2. Behavioral Evidence Endpoint
+
+The `behavioral_evidence` API MUST accept GET requests with a `server_url` query parameter:
+
+```http
+GET /v1/behavioral-evidence?server_url=<url-encoded-server-url>
+Content-Type: application/json
+```
+
+Response schema (`mcp-behavioral-evidence-v1.0`):
+
+```json
+{
+  "schema_version": "mcp-behavioral-evidence-v1.0",
+  "server_url": "https://example.com/mcp",
+  "evidence_type": "empirical_behavioral_observation",
+  "protocol_compatibility": ["a2a-evidence-ref", "erc-8004-endpoint-health"],
+  "attestation_ref": "https://provider.example/attestation/sha256:abc123",
+  "behavioral_evidence": {
+    "trust_score": 87.4,
+    "trust_tier": "TRUSTED",
+    "success_rate": 0.923,
+    "avg_latency_ms": 145,
+    "p95_latency_ms": 380,
+    "uptime_30d": 0.994,
+    "observations": 1247,
+    "first_observed": "2026-04-08T00:00:00Z",
+    "last_observed": "2026-04-30T00:00:00Z",
+    "has_auth_requirement": false,
+    "last_error": null
+  }
+}
+```
+
+Trust tiers (RECOMMENDED):
+
+| Tier       | Score range | Meaning                                |
+| ---------- | ----------- | -------------------------------------- |
+| TRUSTED    | 80–100      | Highly reliable under agent traffic    |
+| CAUTION    | 50–79       | Mixed signals; proceed with monitoring |
+| UNTRUSTED  | 0–49        | Repeated failures or unavailability    |
+| UNOBSERVED | n/a         | No data collected yet                  |
+
+### 3. Registry Server Card Extension
+
+MCP registries MAY include a `behavioral_trust` field in server card objects:
+
+```json
+{
+  "name": "example-mcp-server",
+  "url": "https://example.com/mcp",
+  "behavioral_trust": {
+    "score": 87.4,
+    "tier": "TRUSTED",
+    "source": "https://dominion-observatory.sgdata.workers.dev",
+    "schema": "mcp-behavioral-evidence-v1.0",
+    "evidence_url": "https://dominion-observatory.sgdata.workers.dev/v1/behavioral-evidence?server_url=https%3A%2F%2Fexample.com%2Fmcp",
+    "updated_at": "2026-04-30T00:00:00Z"
+  }
+}
+```
+
+### 4. Cross-Protocol Compatibility
+
+The `attestation_ref` field is designed for interoperability:
+
+- **A2A `evidence_ref`:** The `attestation_ref` URI MAY be used directly as an A2A `evidence_ref` value (discussion #1631).
+- **AIS-1 `behavioralTrustProfile`:** The discovery endpoint URL MAY be included as the `behavioralTrustProfile` value in a W3C DID Document.
+- **ERC-8004:** The `behavioral_evidence` object covers the endpoint health monitoring gap identified in ERC-8004 issue #73 and #77.
+
+## Rationale
+
+### Why `/.well-known/mcp-behavioral-trust`?
+
+Follows RFC 8615 (Well-Known URIs). The `.well-known` path:
+
+- Enables automatic discovery by registry crawlers without prior configuration
+- Separates the trust provider from individual server implementations
+- Allows any third party to operate a behavioral trust provider
+
+### Why not in the core MCP protocol?
+
+Behavioral trust is observational metadata, not protocol signaling. It belongs at the registry/metadata layer. This matches explicit direction from SEP-2663 maintainer review: "registry API or potentially server cards."
+
+### Why a third-party attestation model?
+
+Individual servers cannot self-attest credibly (obvious conflict of interest). Independent observation by a neutral third-party is the only model that produces trustworthy data. The reference implementation demonstrates this is operationally feasible at scale (4,584 servers, continuous observation since 2026-04-08).
+
+### Why `mcp-behavioral-evidence-v1.0` as schema version string?
+
+Explicit versioning allows parallel evolution. Consumers can negotiate schema versions. The `v1.0` string is already in use by the reference implementation.
+
+## Backward Compatibility
+
+Fully additive. No changes required to:
+
+- Core MCP protocol messages
+- Existing registry APIs
+- Existing server implementations
+- Existing client implementations
+
+All new fields (`behavioral_trust` in server cards, `/.well-known/mcp-behavioral-trust`) are optional. Clients that do not understand behavioral trust ignore these fields.
+
+## Safety Considerations
+
+- **Score manipulation:** This version defines the schema. Cryptographic signing of attestation documents is recommended for production deployments and deferred to a future version.
+- **Privacy:** Server behavioral data (latency, error rates, availability) is observable by any connecting agent. This extension standardizes how already-public information is surfaced. No new privacy surface is introduced.
+- **Centralization risk:** The spec deliberately allows multiple competing providers. The registry `source` field identifies the provider. Registries MAY aggregate data from multiple providers.
+- **Stale data:** The `updated_at` field enables consumers to apply freshness policies. Providers SHOULD update behavioral evidence at least every 24 hours.
+
+## Reference Implementation
+
+Live at: https://dominion-observatory.sgdata.workers.dev
+
+| Endpoint                                       | Status |
+| ---------------------------------------------- | ------ |
+| `GET /.well-known/mcp-behavioral-trust`        | ✅ 200 |
+| `GET /v1/behavioral-evidence?server_url=<url>` | ✅ 200 |
+
+- **Servers tracked:** 4,584
+- **Schema version:** `mcp-behavioral-evidence-v1.0`
+- **Observation start:** 2026-04-08
+- **Source:** https://github.com/vdineshk/dominion-observatory
+
+Per SEP process: a reference implementation is required before a SEP can reach 'Final' status. This implementation satisfies that requirement at Draft stage.
+
+## Unresolved Questions
+
+- Should the discovery path be `/.well-known/mcp-behavioral-trust` (generic) or `/.well-known/mcp-trust` (shorter)? Open for WG feedback.
+- Should the registry server card field be `behavioral_trust` or `trust` (to accommodate future non-behavioral trust signals)?
+- Relationship to the Tuesday Agents WG discussion on agent modeling in MCP — does this SEP inform or depend on that work?
+
+## Acknowledgements
+
+- @LucaButBoring for identifying the behavioral trust gap in SEP-2663 review and explicitly inviting this SEP.
+- A2A project discussion #1631 for the `evidence_ref` schema slot that motivated compatible design.
+- AIS-1 maintainers for the `behavioralTrustProfile` DID property that anchors agent identity to behavioral attestation.
