@@ -170,11 +170,12 @@ interface Task {
   pollIntervalMilliseconds?: number;
 
   /**
-   * Optional request state passed back from the server to the client.
-   * Used for server-side state management per SEP-2322 Multi Round-Trip Requests.
-   * Servers MAY return a different requestState value on each task-bearing message
+   * Optional opaque state passed back from the server to the client as a
+   * best-effort optimization (e.g. routing hint, cached metadata).
+   * Servers MAY return a different value on each task-bearing message
    * (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`);
-   * clients MUST always include the most recently received value on the next request.
+   * clients MUST echo the most recently received value on the next request.
+   * Servers MUST tolerate receiving a stale value gracefully.
    */
   requestState?: string;
 }
@@ -249,7 +250,7 @@ export type DetailedTask =
 
 #### Request State Management
 
-Servers **MAY** set an optional `requestState` string on any `Task` object to pass opaque routing or state information back to the client. When a client receives a `Task` with a `requestState` value, it **MUST** echo back the exact value of that field in the `requestState` field of subsequent `tasks/get`, `tasks/update`, and `tasks/cancel` requests for the same task. The server can use this echoed value to recover routing context or session state without maintaining per-task server-side session data, enabling stateless, load-balanced deployments.
+Servers **MAY** set an optional `requestState` string on any `Task` object to pass opaque routing or state information back to the client. When a client receives a `Task` with a `requestState` value, it **MUST** echo back the exact value of that field in the `requestState` field of subsequent `tasks/get`, `tasks/update`, and `tasks/cancel` requests for the same task. The server can use this echoed value to recover routing context or cache task metadata without maintaining per-task server-side session data, enabling stateless, load-balanced deployments. `requestState` is a best-effort optimization — servers **MUST NOT** depend on receiving the latest value for correctness, and **MUST** tolerate receiving a stale or outdated value gracefully (e.g. by falling back to a canonical lookup).
 
 **Response (with requestState):**
 
@@ -332,7 +333,9 @@ To prevent replay, servers **SHOULD** include the following inside the integrity
   redemptions) **MUST** enforce that invariant server-side.
 </Warning>
 
-Servers **MAY** return a different `requestState` value on each task-bearing message (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`); clients **MUST** always use the most recently received value in their next request. If the most recent task-bearing message contained no `requestState`, the client **MUST NOT** include it in the next request. Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it. Upon receiving a `notifications/tasks/status` notification for a task status update, clients **MUST** update their tracked `requestState` value with any value provided in the notification, as they would do with a standard response.
+Servers **MAY** return a different `requestState` value on each task-bearing message (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`); clients **MUST** always use the most recently received value in their next request. If the most recent task-bearing message contained no `requestState`, the client **MUST NOT** include it in the next request. However, because multiple `tasks/get` requests or `notifications/tasks/status` notifications may be in flight concurrently, the value a client tracks as "most recently received" reflects client-side arrival order, which may differ from server-side generation order. Servers **MUST** therefore accept any `requestState` value they have previously issued for a given task, not only the most recent one, and **MUST NOT** use `requestState` rotation as a correctness mechanism (e.g. sequence enforcement). `UpdateTaskResult` and `CancelTaskResult` are empty acknowledgements and do not carry `requestState`, so the server cannot rotate state through write operations — the next `tasks/get` after an update will necessarily echo the pre-update value.
+
+Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it. Upon receiving a `notifications/tasks/status` notification for a task status update, clients **MUST** update their tracked `requestState` value with any value provided in the notification, as they would do with a `tasks/get` response.
 
 #### Task Status
 
