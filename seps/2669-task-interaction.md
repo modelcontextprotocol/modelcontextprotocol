@@ -54,10 +54,10 @@ This extension builds on `io.modelcontextprotocol/tasks` (SEP-2663). It does not
     "extensions": {
       "io.modelcontextprotocol/tasks": {
         "steer": true,
-        "pause": true    // implies resume
-      }
-    }
-  }
+        "pause": true, // implies resume
+      },
+    },
+  },
 }
 ```
 
@@ -95,7 +95,7 @@ interface TaskSteerRequest extends JSONRPCRequest {
 #### Response
 
 ```typescript
-type TaskSteerResult = Result;  // empty acknowledgment, resultType: "complete"
+type TaskSteerResult = Result; // empty acknowledgment, resultType: "complete"
 ```
 
 #### Behavioral Requirements
@@ -204,14 +204,20 @@ The `Mcp-Name` header MUST be set to `params.taskId`.
 This extension adds `paused` to the task status values:
 
 ```typescript
-type TaskStatus = "working" | "input_required" | "completed" | "cancelled" | "failed" | "paused";
+type TaskStatus =
+  | "working"
+  | "input_required"
+  | "completed"
+  | "cancelled"
+  | "failed"
+  | "paused";
 ```
 
-| Property | Value |
-|----------|-------|
-| Reachable from | `working`, `input_required` (via `tasks/pause` or server-initiated) |
+| Property       | Value                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------ |
+| Reachable from | `working`, `input_required` (via `tasks/pause` or server-initiated)                                    |
 | Transitions to | `working` (via `tasks/resume`), `cancelled` (via `tasks/cancel`), `failed` (server error while paused) |
-| Terminal | No |
+| Terminal       | No                                                                                                     |
 
 A `PausedTask` variant is added to `DetailedTask`:
 
@@ -235,13 +241,13 @@ type DetailedTask =
 
 ### Error Summary
 
-| Error | Code | Method | When |
-|-------|------|--------|------|
-| Method not found | `-32601` | Any | Server doesn't support the method |
-| Invalid task state | `-32602` | `tasks/pause` | Task not in `working` or `input_required` |
-| Already paused | `-32602` | `tasks/pause` | Task already in `paused` |
-| Not paused | `-32602` | `tasks/resume` | Task not in `paused` |
-| Terminal task | `-32602` | `tasks/steer` | Task in `completed`, `failed`, or `cancelled` |
+| Error              | Code     | Method         | When                                          |
+| ------------------ | -------- | -------------- | --------------------------------------------- |
+| Method not found   | `-32601` | Any            | Server doesn't support the method             |
+| Invalid task state | `-32602` | `tasks/pause`  | Task not in `working` or `input_required`     |
+| Already paused     | `-32602` | `tasks/pause`  | Task already in `paused`                      |
+| Not paused         | `-32602` | `tasks/resume` | Task not in `paused`                          |
+| Terminal task      | `-32602` | `tasks/steer`  | Task in `completed`, `failed`, or `cancelled` |
 
 `tasks/steer` silently acks for invalid `taskId`, consistent with `tasks/update` and `tasks/cancel`.
 
