@@ -1,10 +1,12 @@
-# SEP-XXXX: Behavioral Trust Extension for MCP Registry
+# # SEP-2668: Behavioral Trust Extension for MCP Registry
 
-**SEP Number:** XXXX
+**SEP Number:** 2668
 **Status:** Draft
 **Type:** Extension
-Created: 2026-04-30 Author: @vdineshk Sponsor: unsponsored (seeking sponsor) Related: SEP-2663 (reviewer @LucaButBoring invited this SEP), A2A discussion #1631, AIS-1 issue #5
-
+**Created:** 2026-04-30
+**Author:** @vdineshk
+**Sponsor:** unsponsored (seeking sponsor)
+**Related:** SEP-2663 (reviewer @LucaButBoring invited this SEP), A2A discussion #1631, AIS-1 issue #5
 
 
 Abstract
