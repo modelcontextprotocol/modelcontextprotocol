@@ -94,7 +94,7 @@ Servers MAY expose additional frontmatter fields via the resource's `_meta` obje
 
 ### Discovery
 
-A server is not required to make its skills enumerable. A skill's URI is directly readable via `resources/read` whether or not it appears in any index, and hosts MUST support loading a skill given only its URI (see [Hosts: Model-Driven Resource Loading](#hosts-model-driven-resource-loading)). This is the baseline: if a model has the URI — from server instructions, from another skill, from the user — it can read the skill.
+A server is not required to make its skills enumerable. A skill's URI is directly readable via `resources/read` whether or not it appears in any index, and hosts MUST support loading a skill given only its URI (see [Hosts: End-to-End Integration](#hosts-end-to-end-integration)). This is the baseline: if a model has the URI — from server instructions, from another skill, from the user — it can read the skill.
 
 On top of that baseline, two discovery mechanisms are defined. A server MAY support either or both.
 
@@ -192,9 +192,33 @@ Internal references within a skill (e.g., `SKILL.md` linking to `references/GUID
 
 The following are recommendations for interoperable implementations. They are not part of the normative specification.
 
-### Hosts: Model-Driven Resource Loading
+### Hosts: End-to-End Integration
 
-Hosts SHOULD expose a tool to the model that reads MCP resources by server and URI, enabling the model to load skill content on demand:
+This section sketches one way a host might wire MCP-served skills into an existing skills implementation. It is illustrative, not prescriptive — hosts are free to structure tools, naming, and routing however suits their architecture. The goal is that, from the model's perspective, an MCP-served skill is indistinguishable from a filesystem skill.
+
+**Registry.** At startup and on connection change, the host assembles a single internal skill registry from every origin it supports: filesystem skill directories, and `skill://index.json` from each connected MCP server that declares the `io.modelcontextprotocol/skills` extension. Each registry entry records the skill's `name`, `description`, and origin — for a filesystem skill, the local directory; for an MCP skill, the server identity and the `SKILL.md` resource URI. Origin is host bookkeeping; it is not exposed to the model.
+
+**Context.** The host surfaces the `name` and `description` of each enabled registry entry in the model's context — the same list the model already sees for filesystem skills, now with MCP-served entries mixed in. The host's UI presents the same merged list for user inspection and per-skill enable/disable, with provenance shown so users can see which server a skill came from.
+
+**Loading.** The host exposes a single skill-loading tool to the model, keyed by skill name:
+
+```json
+{
+  "name": "read_skill",
+  "description": "Load a skill's SKILL.md into context.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string", "description": "The skill name" }
+    },
+    "required": ["name"]
+  }
+}
+```
+
+When the model calls `read_skill`, the host looks up the name in its registry and routes on origin: a filesystem skill is read from disk; an MCP skill is fetched via `resources/read` against the originating server. The model neither knows nor cares which path was taken. Hosts that already expose a name-keyed skill-loading tool for filesystem skills extend it rather than introducing a parallel one.
+
+**Supporting files.** Once a `SKILL.md` is in context, the model may encounter relative references to supporting files (`references/GUIDE.md`, `scripts/extract.py`). For filesystem skills the model reads these with the host's ordinary file-read tool; for MCP skills there is no local file. The host therefore also exposes a general-purpose resource-reading tool:
 
 ```json
 {
@@ -207,29 +231,18 @@ Hosts SHOULD expose a tool to the model that reads MCP resources by server and U
         "type": "string",
         "description": "Name of the connected MCP server"
       },
-      "uri": {
-        "type": "string",
-        "description": "The resource URI, e.g. skill://git-workflow/SKILL.md"
-      }
+      "uri": { "type": "string", "description": "The resource URI" }
     },
     "required": ["server", "uri"]
   }
 }
 ```
 
-The signature shown is illustrative. Including the server name is one disambiguation strategy for identical `skill://` URIs served by different connected servers; hosts MAY instead prefix URIs on conflict, scope by session, or use any other scheme appropriate to their architecture. The tool is general-purpose — it reads any MCP resource — and benefits resource use cases beyond skills.
+The host arranges for the model to know, when it loads an MCP-served `SKILL.md`, which server it came from and what its base URI is — for example by stating both in the `read_skill` tool result — so the model can resolve `references/GUIDE.md` to `skill://<skill-path>/references/GUIDE.md` and issue `read_resource` against the right server. A host may instead fold this into its file-read tool by mounting each server's `skill://` namespace into a virtual path and translating reads under that path into `resources/read` calls, in which case no separate `read_resource` tool is needed and the model treats every supporting file as a local path. Either way the resolution rule is the same: relative references resolve against the skill's root directory, exactly as on a filesystem.
 
-Hosts SHOULD load the frontmatter (`name`, `description`) of available and enabled skills into the model's context so the model can judge relevance and construct a `read_resource` call when a skill applies. Hosts SHOULD surface available skills in their UI for user inspection and per-skill enable/disable, analogous to how tools are typically exposed.
+**Unenumerated skills.** Because enumeration is optional, a host should also accept skill URIs it has never seen listed — handed to the model by the user, by server instructions, or by another skill. A `read_resource` call for an unlisted `skill://` URI is forwarded to the named server, which either serves it or returns not-found. A host may additionally let `read_skill` accept a full URI for this case.
 
-A typical flow: the host reads `skill://index.json` from each connected server and surfaces the `name` and `description` of each entry in the model's context. The model calls `read_resource` with a concrete URI — one returned by enumeration, one handed to it by the user (who may have resolved it from a template entry in the host UI), or one obtained out-of-band — when a skill is relevant to the task.
-
-Because enumeration is optional, a `read_resource` call for a `skill://` URI that the host has never seen listed is normal and expected. The host forwards it to the named server; the server either serves the resource or returns a not-found error.
-
-### Hosts: Unified Treatment of Filesystem and MCP Skills
-
-Hosts that support both filesystem-based skills (loaded from local directories) and MCP-served skills SHOULD treat them identically, as though the set of connected servers' `skill://` resources were mounted into a virtual filesystem alongside local skill directories.
-
-Concretely: the same discovery surface, the same loading tool, and the same relative-path resolution. A model that has learned to follow `references/GUIDE.md` from a local `SKILL.md` should find that MCP-served skills behave the same way. Divergence between the two paths is a source of model confusion and implementation complexity.
+The `read_resource` signature above includes `server` because two connected servers may both serve `skill://refunds/SKILL.md`. That is one disambiguation strategy; a host may instead rewrite URIs with a per-server prefix, scope by session, or anything else appropriate to its architecture. The tool is general-purpose — it reads any MCP resource — and is useful beyond skills.
 
 ### SDKs: Convenience Wrappers
 
