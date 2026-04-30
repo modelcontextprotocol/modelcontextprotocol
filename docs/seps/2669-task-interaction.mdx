@@ -139,6 +139,7 @@ type TaskPauseResult = Result & DetailedTask;  // resultType: "complete"
 - **A `paused` task accepts:** `tasks/steer` (queued), `tasks/cancel`, `tasks/resume`, `tasks/get`.
 - **A `paused` task does NOT accept:** `tasks/update`, `tasks/pause`.
 - **Server-initiated pause.** The server MAY transition to `paused` without a client request.
+- **`inputRequests` survive pause/resume.** When a task transitions from `input_required` to `paused` and back, the pending `inputRequests` MUST remain valid with the same keys and semantics. The server MUST NOT invalidate or replace `inputRequests` as a side effect of pause/resume. If the server needs different input after resume, it MUST transition to `input_required` with new keys.
 - **Streamable HTTP:** `Mcp-Name` header MUST be set to `params.taskId`.
 
 ### `tasks/resume`
@@ -236,8 +237,7 @@ Production findings: steer reduced task cancellation-and-restart by ~40%; server
 ## Open Questions
 
 1. Should the spec define a SHOULD-level default steer queue depth (e.g., 16 messages)?
-2. When a task pauses from `input_required` and resumes, are the pending `inputRequests` still valid?
-3. Should extension methods carry `requestState` for stateless server routing?
+2. Should extension methods carry `requestState` for stateless server routing?
 
 ## Acknowledgments
 

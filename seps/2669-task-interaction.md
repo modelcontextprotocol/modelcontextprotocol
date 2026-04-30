@@ -139,6 +139,7 @@ The `resultType` field MUST be `"complete"`. The response carries the current `D
 - **A `paused` task accepts:** `tasks/steer` (queued for delivery on resume), `tasks/cancel`, `tasks/resume`, `tasks/get`.
 - **A `paused` task does NOT accept:** `tasks/update` (resume first, then provide input), `tasks/pause` (already paused — return `-32602`).
 - **Server-initiated pause.** The server MAY transition a task to `paused` without a client `tasks/pause` request. Use cases include: resource management (holding a VM after completing the user's ask), billing checkpoints, or concurrency throttling. The client discovers the transition via `tasks/get` polling or `notifications/tasks/status`.
+- **`inputRequests` survive pause/resume.** When a task transitions from `input_required` to `paused` and back, the pending `inputRequests` MUST remain valid with the same keys and semantics. The server MUST NOT invalidate or replace `inputRequests` as a side effect of pause/resume. If the server needs different input after resume, it MUST transition to `input_required` with new keys.
 
 #### Streamable HTTP
 
@@ -306,9 +307,7 @@ These methods are deployed across multiple agent services handling subagent dele
 
 1. **Steer queue depth limit.** Should the spec define a SHOULD-level default (e.g., 16 messages), or leave it entirely to implementations?
 
-2. **`input_required` → `paused` → resumed state.** When a task pauses from `input_required` and later resumes, are the pending `inputRequests` still valid? The current spec says "server-determined," but clients preparing input responses need to know whether to hold or discard them.
-
-3. **`requestState` on extension methods.** The base spec includes `requestState` on `tasks/get`, `tasks/update`, and `tasks/cancel` for stateless server routing. This extension does not include `requestState` on `tasks/steer`, `tasks/pause`, or `tasks/resume`. Should it? The trade-off is consistency (all task methods carry `requestState`) vs simplicity (these methods are less latency-sensitive than polling).
+2. **`requestState` on extension methods.** The base spec includes `requestState` on `tasks/get`, `tasks/update`, and `tasks/cancel` for stateless server routing. This extension does not include `requestState` on `tasks/steer`, `tasks/pause`, or `tasks/resume`. Should it? The trade-off is consistency (all task methods carry `requestState`) vs simplicity (these methods are less latency-sensitive than polling).
 
 ## Acknowledgments
 
