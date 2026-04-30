@@ -23,12 +23,13 @@ description: "Task Interaction Methods"
 | **Author(s)** | Pedram Rezaei ([@prezaei](https://github.com/prezaei))                          |
 | **Sponsor**   | None (seeking sponsor)                                                          |
 | **PR**        | [#2669](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2669) |
+| **Requires**  | [SEP-2663](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663) (in-review) |
 
 ---
 
 ## Abstract
 
-This SEP extends the MCP Tasks extension (SEP-2663) with three methods for interacting with running tasks: `tasks/steer` (unsolicited feedback), `tasks/pause` (cooperative halt), and `tasks/resume` (continue from paused). Together, these enable human-in-the-loop and agent-in-the-loop patterns for long-running task execution — the ability to redirect, pause, and resume work without cancelling and losing accumulated state.
+This SEP extends the MCP Tasks extension ([SEP-2663](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663), currently in-review) with three methods for interacting with running tasks: `tasks/steer` (unsolicited feedback), `tasks/pause` (cooperative halt), and `tasks/resume` (continue from paused). Together, these enable human-in-the-loop and agent-in-the-loop patterns for long-running task execution — the ability to redirect, pause, and resume work without cancelling and losing accumulated state.
 
 These methods follow the design patterns established by SEP-2663: they use the reserved `tasks/` method prefix, carry `taskId` as the routing key, and respect the consistency model (ack-only writes, cooperative operations, capability negotiation).
 
@@ -42,7 +43,7 @@ For subagent-as-a-service — where a parent agent or human user delegates work 
 
 Once a task starts, there is no way for a user or parent agent to provide unsolicited feedback. The only input path is `tasks/update`, which responds to specific `inputRequests` the server issued. If a user watching a research agent wants to say "focus on academic sources" or "skip the unit tests," they must cancel the task and start over, losing all accumulated context and partial results.
 
-This is table-stakes for multi-agent UX. Every deployed human-in-the-loop agent system (GitHub Copilot, Cursor, Windsurf, Devin) supports mid-run user feedback. The absence of a protocol-level mechanism forces each implementation to invent its own, fragmenting the ecosystem — exactly the outcome MCP's "convergence over choice" principle aims to prevent.
+This is table-stakes for multi-agent UX. Deployed human-in-the-loop agent systems (GitHub Copilot, Cursor, Windsurf, Devin) each implement their own form of mid-run feedback, but with no standard mechanism. The absence of a protocol-level primitive forces each to invent its own, fragmenting the ecosystem — exactly the outcome MCP's "convergence over choice" principle aims to prevent.
 
 ### 2. Pause and resume
 
@@ -108,7 +109,7 @@ type TaskSteerResult = Result;  // empty acknowledgment, resultType: "complete"
 - **Safe point is server-determined.** The protocol does not prescribe what constitutes a safe point.
 - **Queue semantics.** Multiple steer messages MAY be queued. Delivery order MUST match submission order.
 - **Accepted on `working` and `paused` tasks.** Messages queue for delivery when the task resumes.
-- **Rejected on terminal tasks** with `-32602` (Invalid params).
+- **Rejected on terminal tasks** with `-32602` (Invalid params). This diverges from `tasks/update`/`tasks/cancel` (which ack unconditionally) because delivering queued messages to a completed task would create confusion about whether the steer had any effect.
 - **Silent ack for invalid `taskId`.** Consistent with `tasks/update` and `tasks/cancel`.
 - **Streamable HTTP:** `Mcp-Name` header MUST be set to `params.taskId`.
 
@@ -179,15 +180,25 @@ type TaskResumeResult = Result & DetailedTask;  // resultType: "complete"
 Adds `paused` to the task status values:
 
 ```typescript
+type TaskStatus = "working" | "input_required" | "completed" | "cancelled" | "failed" | "paused";
+
 interface PausedTask extends Task {
   status: "paused";
 }
+
+type DetailedTask =
+  | WorkingTask
+  | InputRequiredTask
+  | CompletedTask
+  | FailedTask
+  | CancelledTask
+  | PausedTask;
 ```
 
 | Property | Value |
 |----------|-------|
 | Reachable from | `working`, `input_required` (via `tasks/pause` or server-initiated) |
-| Transitions to | `working` (via `tasks/resume`), `cancelled` (via `tasks/cancel`) |
+| Transitions to | `working` (via `tasks/resume`), `cancelled` (via `tasks/cancel`), `failed` (server error while paused) |
 | Terminal | No |
 
 ### Error Summary
@@ -227,11 +238,11 @@ Fully backward compatible with SEP-2663. No changes to existing methods, status 
 - **Paused resource holding:** Servers SHOULD enforce TTL-based cleanup for paused tasks, consistent with SEP-2663's `ttlSeconds` field.
 - **Handle security:** Same model as SEP-2663 — authenticated servers validate `(taskId, principal)` on every call.
 
-## Reference Implementation
+## Open Questions
 
-A reference implementation covering all three methods is available. Key patterns: per-task async queues for steer delivery, async events for cooperative pause at yield points, custom MCP request handlers.
+1. **`paused` visibility for non-extension clients.** When a server supports pause and a base-spec-only client polls via `tasks/get`, should the server suppress `paused` status and return the pre-pause status instead? Or should base-spec clients be required to handle unknown status values gracefully?
 
-Implementation experience: steer reduced task cancellation-and-restart by ~40%; server-initiated pause enabled browser automation VM holding.
+2. **Steer interaction with `input_required`.** Can a steer message resolve a pending `inputRequest`, or are steer and input-response strictly separate channels?
 
 ## Acknowledgments
 
