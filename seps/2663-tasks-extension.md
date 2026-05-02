@@ -514,8 +514,8 @@ Each notification carries a complete `DetailedTask` for the current status, iden
     "status": "completed",
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
-    "ttl": 60,
-    "pollInterval": 5000,
+    "ttlSeconds": 60,
+    "pollIntervalMilliseconds": 5000,
     "result": {
       "content": [
         {
