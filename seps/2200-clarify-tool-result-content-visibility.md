@@ -86,9 +86,10 @@ This SEP proposes the following updates to the MCP specification (draft):
    - Clients SHOULD choose the field that best matches their experience:
      - Conversational/agent UX: prefer `content`.
      - Programmatic/code mode: prefer `structuredContent`.
-   - When providing tool results to a model context, clients SHOULD use `content` when present
-     and only fall back to `structuredContent` if `content` is empty or omitted.
-   - If the preferred field is missing or empty, clients MAY fall back to the other field.
+   - When providing tool results to a model context, clients SHOULD use `content` and only fall
+     back to `structuredContent` if `content` is empty.
+   - For programmatic/code mode, clients SHOULD use `structuredContent` when present and MAY fall
+     back to `content` if `structuredContent` is absent.
    - Clients SHOULD NOT forward both fields verbatim to the model as separate inputs.
 
 4. **MCP Apps and model visibility**

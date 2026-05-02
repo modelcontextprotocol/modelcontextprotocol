@@ -177,7 +177,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "content": {
-                    "description": "A list of content objects that represent the model-oriented result of the tool call.\n\nClients SHOULD use this field when providing tool results to conversational or agentic model\ncontext, if it is present.",
+                    "description": "A list of content objects that represent the model-oriented result of the tool call.\n\nClients SHOULD use this field when providing tool results to conversational or agentic model\ncontext.",
                     "items": {
                         "$ref": "#/$defs/ContentBlock"
                     },

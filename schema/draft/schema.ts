@@ -1551,7 +1551,7 @@ export interface CallToolResult extends Result {
    * A list of content objects that represent the model-oriented result of the tool call.
    *
    * Clients SHOULD use this field when providing tool results to conversational or agentic model
-   * context, if it is present.
+   * context.
    */
   content: ContentBlock[];
 
