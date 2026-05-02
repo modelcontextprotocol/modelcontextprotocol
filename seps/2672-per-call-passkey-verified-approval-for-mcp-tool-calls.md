@@ -1,11 +1,11 @@
-# SEP-0000: Per-Call Passkey Verified Approval for MCP Tool Calls
+# SEP-2672: Per-Call Passkey Verified Approval for MCP Tool Calls
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-05-02
 - **Author(s)**: Paul Pini Sherbaum (@pinialt)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2672
 
 ## Abstract
 
