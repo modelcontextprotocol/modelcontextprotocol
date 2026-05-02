@@ -376,6 +376,8 @@ The embedded `task` is the seed state for the task, typically (though not necess
 
 A server **MUST NOT** return `CreateTaskResult` until the task is durably created — that is, until a `tasks/get` for the returned `taskId` would resolve. In eventually-consistent environments, the server **MUST** wait for consistency before responding. This requirement eliminates the need for clients to speculatively poll for task creation.
 
+Server implementations that use multi round-trip requests in conjunction with task creation (for example, a tool that requires elicitation over `IncompleteResult` before creating a task) **SHOULD** resolve all MRTR exchanges _synchronously_ before responding with a `CreateTaskResult`.
+
 ### Task Polling
 
 Clients poll for task completion by sending `tasks/get` requests.
@@ -961,6 +963,10 @@ In the `2025-11-25` design of tasks, `tasks/cancel` returned a task describing t
 The eventual-consistency on the ack is the same separation as for `tasks/update`: The server may record the cancellation request and respond before the worker has actually transitioned the task, without allowing the client to interpret the ack as strongly-consistent.
 
 ### Composition with Multi Round-Trip Requests
+
+The following new requirement is introduced:
+
+> Server implementations that use multi round-trip requests in conjunction with task creation (for example, a tool that requires elicitation over `IncompleteResult` before creating a task) **SHOULD** resolve all MRTR exchanges _synchronously_ before responding with a `CreateTaskResult`.
 
 A `tools/call` that supports both MRTR ([SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)) and this extension may use them sequentially by sending one or more `IncompleteResult` exchanges to gather input synchronously, followed by a `CreateTaskResult` to hand off to asynchronous execution. This composition is a consequence of the `resultType` discriminator — each response is independently typed and the client switches behavior based on the value it receives, _without_ maintaining any state between the two modes. Prohibiting this would require imposing an artificial constraint with no protocol-level mechanism to enforce it, since the client is unaware that the server will create a task ahead of time.
 
