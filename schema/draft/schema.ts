@@ -1548,12 +1548,21 @@ export interface ListToolsResultResponse extends JSONRPCResultResponse {
  */
 export interface CallToolResult extends Result {
   /**
-   * A list of content objects that represent the unstructured result of the tool call.
+   * A list of content objects that represent the model-oriented result of the tool call.
+   *
+   * Clients SHOULD use this field when providing tool results to conversational or agentic model
+   * context.
    */
   content: ContentBlock[];
 
   /**
-   * An optional JSON object that represents the structured result of the tool call.
+   * An optional JSON object that represents the structured, machine-oriented result of the tool
+   * call.
+   *
+   * When both this field and {@link CallToolResult.content} are present, they SHOULD be
+   * semantically equivalent. For backwards compatibility, tools that return structured content
+   * SHOULD also return a `content` representation of the same information. JSON-serialized text is
+   * acceptable, but not required.
    */
   structuredContent?: { [key: string]: unknown };
 
@@ -1753,6 +1762,9 @@ export interface Tool extends BaseMetadata, Icons {
   /**
    * An optional JSON Schema object defining the structure of the tool's output returned in
    * the structuredContent field of a {@link CallToolResult}.
+   *
+   * This schema applies to structuredContent and does not constrain the format of
+   * {@link CallToolResult.content}.
    *
    * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
    * Currently restricted to `type: "object"` at the root level.
@@ -2467,7 +2479,7 @@ export interface ToolResultContent {
   toolUseId: string;
 
   /**
-   * The unstructured result content of the tool use.
+   * The model-oriented result content of the tool use.
    *
    * This has the same format as {@link CallToolResult.content} and can include text, images,
    * audio, resource links, and embedded resources.
@@ -2475,9 +2487,10 @@ export interface ToolResultContent {
   content: ContentBlock[];
 
   /**
-   * An optional structured result object.
+   * An optional structured, machine-oriented result object.
    *
-   * If the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema.
+   * If the tool defined an {@link Tool.outputSchema}, this SHOULD conform to that schema unless
+   * {@link ToolResultContent.isError} is true.
    */
   structuredContent?: { [key: string]: unknown };
 
