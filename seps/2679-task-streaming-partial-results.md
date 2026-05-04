@@ -5,7 +5,7 @@
 - **Created**: 2026-05-03
 - **Author(s)**: Raman Marozau <raman@stdiobus.com> (https://github.com/morozow)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: Pending — to be filed against [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol)
+- **PR**: [#2679](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2679)
 
 ## Abstract
 
