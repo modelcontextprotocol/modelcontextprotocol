@@ -105,8 +105,8 @@ type TaskSteerResult = Result; // empty acknowledgment, resultType: "complete"
 - **Safe point is server-determined.** The protocol does not prescribe what constitutes a safe point — for an LLM-based agent it may be between inference steps or tool calls; for a pipeline it may be between stages; for a batch job it may be at explicit checkpoints. The server defines this based on its execution model.
 - **Queue semantics.** Multiple steer messages MAY be queued. Delivery order MUST match submission order.
 - **Accepted on `working` and `paused` tasks.** A task in `paused` state accepts `tasks/steer` — messages are queued for delivery when the task resumes.
-- **Rejected on terminal tasks.** A task in `completed`, `failed`, or `cancelled` status MUST reject `tasks/steer` with `-32602` (Invalid params). This diverges from `tasks/update`/`tasks/cancel` (which ack unconditionally) because delivering queued messages to a completed task would create confusion about whether the steer had any effect.
-- **Silent ack for invalid `taskId`.** Consistent with `tasks/update` and `tasks/cancel`, the server MUST ack even for invalid or nonexistent task IDs.
+- **Rejected on terminal tasks.** A task in `completed`, `failed`, or `cancelled` status MUST reject `tasks/steer` with `-32602` (Invalid params), because delivering queued messages to a completed task would create confusion about whether the steer had any effect.
+- **Errors for invalid requests.** Consistent with `tasks/update` and `tasks/cancel`, servers SHOULD return `-32602` for unknown `taskId` or `requestState` integrity failures.
 
 #### Streamable HTTP
 
@@ -251,8 +251,10 @@ type DetailedTask =
 | Already paused     | `-32602` | `tasks/pause`  | Task already in `paused`                      |
 | Not paused         | `-32602` | `tasks/resume` | Task not in `paused`                          |
 | Terminal task      | `-32602` | `tasks/steer`  | Task in `completed`, `failed`, or `cancelled` |
+| Unknown task ID    | `-32602` | Any            | `taskId` does not correspond to a known task (SHOULD) |
+| Invalid requestState | `-32602` | Any          | `requestState` fails integrity verification (SHOULD) |
 
-`tasks/steer` silently acks for invalid `taskId`, consistent with `tasks/update` and `tasks/cancel`.
+Consistent with SEP-2663's error model for `tasks/update` and `tasks/cancel`: servers SHOULD return errors for clearly invalid requests rather than silently acking.
 
 ## Rationale
 
