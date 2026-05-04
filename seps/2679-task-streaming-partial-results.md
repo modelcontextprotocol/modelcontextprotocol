@@ -357,6 +357,7 @@ A fork of the TypeScript SDK ([https://github.com/modelcontextprotocol/typescrip
 ### 3. End-to-End Example
 
 A complete example demonstrating:
+
 - An MCP server with a task-augmented tool that streams LLM output token by token.
 - An MCP client that displays streaming text as it arrives, then retrieves the final result.
 - Wire-format traces showing the full JSON-RPC message sequence.
