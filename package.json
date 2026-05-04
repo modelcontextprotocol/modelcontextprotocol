@@ -58,7 +58,7 @@
     "tsx": "^4.21.0",
     "typedoc": "^0.28.19",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.0",
+    "typescript-eslint": "^8.59.1",
     "typescript-json-schema": "^0.67.1",
     "unified": "^11.0.5"
   },
