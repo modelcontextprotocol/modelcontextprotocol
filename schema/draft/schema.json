@@ -205,7 +205,8 @@
                 }
             },
             "required": [
-                "content"
+                "content",
+                "resultType"
             ],
             "type": "object"
         },
@@ -654,7 +655,8 @@
                 }
             },
             "required": [
-                "completion"
+                "completion",
+                "resultType"
             ],
             "type": "object"
         },
@@ -842,6 +844,7 @@
                 }
             },
             "required": [
+                "resultType",
                 "task"
             ],
             "type": "object"
@@ -939,10 +942,10 @@
         "ElicitRequestParams": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitRequestURLParams"
+                    "$ref": "#/$defs/ElicitRequestFormParams"
                 },
                 {
-                    "$ref": "#/$defs/ElicitRequestFormParams"
+                    "$ref": "#/$defs/ElicitRequestURLParams"
                 }
             ],
             "description": "The parameters for a request to elicit additional information from the user via the client."
@@ -1199,7 +1202,8 @@
                 }
             },
             "required": [
-                "messages"
+                "messages",
+                "resultType"
             ],
             "type": "object"
         },
@@ -1279,6 +1283,9 @@
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
+            "required": [
+                "resultType"
+            ],
             "type": "object"
         },
         "GetTaskPayloadResultResponse": {
@@ -1509,6 +1516,9 @@
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
+            "required": [
+                "resultType"
+            ],
             "type": "object"
         },
         "InitializeRequest": {
@@ -1590,6 +1600,7 @@
             "required": [
                 "capabilities",
                 "protocolVersion",
+                "resultType",
                 "serverInfo"
             ],
             "type": "object"
@@ -1987,7 +1998,8 @@
                 }
             },
             "required": [
-                "prompts"
+                "prompts",
+                "resultType"
             ],
             "type": "object"
         },
@@ -2060,7 +2072,8 @@
                 }
             },
             "required": [
-                "resourceTemplates"
+                "resourceTemplates",
+                "resultType"
             ],
             "type": "object"
         },
@@ -2133,7 +2146,8 @@
                 }
             },
             "required": [
-                "resources"
+                "resources",
+                "resultType"
             ],
             "type": "object"
         },
@@ -2237,6 +2251,7 @@
                 }
             },
             "required": [
+                "resultType",
                 "tasks"
             ],
             "type": "object"
@@ -2310,6 +2325,7 @@
                 }
             },
             "required": [
+                "resultType",
                 "tools"
             ],
             "type": "object"
@@ -2577,6 +2593,9 @@
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
+            "required": [
+                "resultType"
+            ],
             "type": "object"
         },
         "ParseError": {
@@ -2931,7 +2950,8 @@
                 }
             },
             "required": [
-                "contents"
+                "contents",
+                "resultType"
             ],
             "type": "object"
         },
@@ -3295,6 +3315,9 @@
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 }
             },
+            "required": [
+                "resultType"
+            ],
             "type": "object"
         },
         "ResultType": {
@@ -4364,58 +4387,6 @@
                 "input",
                 "name",
                 "type"
-            ],
-            "type": "object"
-        },
-        "URLElicitationRequiredError": {
-            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
-            "properties": {
-                "error": {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/Error"
-                        },
-                        {
-                            "properties": {
-                                "code": {
-                                    "const": -32042,
-                                    "type": "integer"
-                                },
-                                "data": {
-                                    "additionalProperties": {},
-                                    "properties": {
-                                        "elicitations": {
-                                            "items": {
-                                                "$ref": "#/$defs/ElicitRequestURLParams"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "elicitations"
-                                    ],
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "code",
-                                "data"
-                            ],
-                            "type": "object"
-                        }
-                    ]
-                },
-                "id": {
-                    "$ref": "#/$defs/RequestId"
-                },
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "error",
-                "jsonrpc"
             ],
             "type": "object"
         },
