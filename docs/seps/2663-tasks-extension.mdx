@@ -472,7 +472,7 @@ interface UpdateTaskRequest extends JSONRPCRequest {
 type UpdateTaskResult = Result; // empty acknowledgement
 ```
 
-The server **MUST** acknowledge the request with an empty result, even if the task ID does not represent a valid task. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks/status`) reflects them. Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
+On success, the server **MUST** acknowledge the request with an empty result. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks/status`) reflects them. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task, or if the `requestState` fails integrity verification (see [Request State Management](#request-state-management)). Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
 
 A server **SHOULD** ignore any `inputResponses` responses mapped to a key that is not currently outstanding for the task — including keys that were never issued, keys that have already been answered, and keys whose corresponding request has been superseded. A server **MAY** accept a partial set of responses (a strict subset of currently-outstanding keys); in that case the task remains in `input_required` until the remaining responses arrive.
 
@@ -505,7 +505,7 @@ interface CancelTaskRequest extends JSONRPCRequest {
 type CancelTaskResult = Result; // empty acknowledgement
 ```
 
-The server **MUST** acknowledge the request with an empty result, even if the task ID does not represent a valid task. Cancellation processing is _eventually consistent_ — the task's observable status **MAY** remain `working` (or some other non-terminal status) after the ack, and **MAY** ultimately reach a terminal status other than `cancelled` if the work finished before cancellation could take effect.
+On success, the server **MUST** acknowledge the request with an empty result. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task, or if the `requestState` fails integrity verification (see [Request State Management](#request-state-management)). Cancellation processing is _eventually consistent_ — the task's observable status **MAY** remain `working` (or some other non-terminal status) after the ack, and **MAY** ultimately reach a terminal status other than `cancelled` if the work finished before cancellation could take effect.
 
 Cancellation is **cooperative**: The request signals intent, and the server decides whether and when to honor it. A server is not obligated to actually stop the work; it is only obligated to acknowledge the request. Eventual transition to `cancelled` is not guaranteed.
 
@@ -850,8 +850,11 @@ Tasks use two error reporting mechanisms:
 
 Servers **MUST** return standard JSON-RPC errors for the following protocol error cases:
 
-- Invalid or nonexistent `taskId` in `tasks/get`: `-32602` (Invalid params)
-  - Note: `tasks/update` and `tasks/cancel` acknowledge requests for any task ID without error; see [Task Input Requests](#task-input-requests) and [Task Cancellation](#task-cancellation).
+- Invalid or nonexistent `taskId`: `-32602` (Invalid params)
+  - Servers **MUST** return this error for `tasks/get`.
+  - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel`.
+- Invalid `requestState` (integrity verification failure): `-32602` (Invalid params)
+  - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel` when `requestState` fails integrity verification (see [Request State Management](#request-state-management)).
 - Internal errors: `-32603` (Internal error)
 
 Servers **SHOULD** provide informative error messages to describe the cause of errors.
@@ -982,6 +985,8 @@ This also aligns with long-running operation APIs in general, which typically re
 In the `2025-11-25` design of tasks, `tasks/cancel` returned a task describing the task's state immediately after the cancellation attempt. That return shape implies a synchronous read — the server must consult task state to populate it — but cancellation is inherently asynchronous in many applications (a separate worker decides whether and when to honor it), so the returned task object would in many cases simply repeat what the next `tasks/get` would show. Reducing `tasks/cancel` to an ack matches the operation's actual semantics: The request is a signal, not a state query. Clients that want to know the post-cancel status do so via `tasks/get` on the same code path they use for all other state observation.
 
 The eventual-consistency on the ack is the same separation as for `tasks/update`: The server may record the cancellation request and respond before the worker has actually transitioned the task, without allowing the client to interpret the ack as strongly-consistent.
+
+While `tasks/update` and `tasks/cancel` use ack-only response shapes for the reasons above, servers **SHOULD** still return errors for clearly invalid requests — such as an unknown `taskId` or a `requestState` that fails integrity verification. The ack-only design is about avoiding synchronous reads of task state in the success path, not about suppressing errors that the server can detect at request time. Returning errors for invalid inputs gives clients a faster signal that something is wrong, rather than forcing them to discover the problem indirectly through subsequent `tasks/get` polls.
 
 ### Composition with Multi Round-Trip Requests
 
