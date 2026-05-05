@@ -330,7 +330,6 @@ Skill content is instructional text delivered to a model, which makes it a promp
 - **Skills are data, not directives.** Hosts MUST NOT treat skill resources as higher-authority than other context. Explicit user policy governs whether a skill is loaded at all.
 - **Provenance and inspection.** Hosts SHOULD indicate which server a skill originates from when presenting it, SHOULD let users inspect a skill's content before it is loaded into model context, and MAY gate loading behind per-skill or per-server user approval.
 - **Archive safety.** Archive-distributed skills are an unpacking attack surface. Hosts MUST validate archives per the [Agent Skills archive safety requirements](https://agentskills.io/well-known-uri#archive-safety): reject path traversal and absolute paths, reject links resolving outside the skill directory, and bound total unpacked size to prevent decompression bombs.
-- **Not a third-party marketplace.** This extension is for servers to ship skills that describe their own tools, not for distributing arbitrary third-party content through a connected server.
 
 ## Reference Implementation
 
