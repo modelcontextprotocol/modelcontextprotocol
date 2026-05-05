@@ -83,6 +83,20 @@ Servers send log messages using `notifications/message` notifications:
 }
 ```
 
+When using
+[Streamable HTTP](/specification/2025-11-25/basic/transports#streamable-http),
+log message notifications follow the same stream routing rules as other
+server-to-client notifications:
+
+- Log messages produced while handling a specific client JSON-RPC request
+  **SHOULD** be sent on that request's POST-initiated SSE stream, when such a
+  stream is used.
+- Log messages that are not associated with a concurrently-running client
+  request **MAY** be sent on a standalone GET-initiated SSE stream, when the
+  client has opened one.
+- The server **MUST NOT** broadcast the same log notification across multiple
+  connected streams.
+
 ## Message Flow
 
 ```mermaid
