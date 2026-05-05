@@ -244,15 +244,15 @@ type DetailedTask =
 
 ### Error Summary
 
-| Error              | Code     | Method         | When                                          |
-| ------------------ | -------- | -------------- | --------------------------------------------- |
-| Method not found   | `-32601` | Any            | Server doesn't support the method             |
-| Invalid task state | `-32602` | `tasks/pause`  | Task not in `working` or `input_required`     |
-| Already paused     | `-32602` | `tasks/pause`  | Task already in `paused`                      |
-| Not paused         | `-32602` | `tasks/resume` | Task not in `paused`                          |
-| Terminal task      | `-32602` | `tasks/steer`  | Task in `completed`, `failed`, or `cancelled` |
-| Unknown task ID    | `-32602` | Any            | `taskId` does not correspond to a known task (SHOULD) |
-| Invalid requestState | `-32602` | Any          | `requestState` fails integrity verification (SHOULD) |
+| Error                | Code     | Method         | When                                                  |
+| -------------------- | -------- | -------------- | ----------------------------------------------------- |
+| Method not found     | `-32601` | Any            | Server doesn't support the method                     |
+| Invalid task state   | `-32602` | `tasks/pause`  | Task not in `working` or `input_required`             |
+| Already paused       | `-32602` | `tasks/pause`  | Task already in `paused`                              |
+| Not paused           | `-32602` | `tasks/resume` | Task not in `paused`                                  |
+| Terminal task        | `-32602` | `tasks/steer`  | Task in `completed`, `failed`, or `cancelled`         |
+| Unknown task ID      | `-32602` | Any            | `taskId` does not correspond to a known task (SHOULD) |
+| Invalid requestState | `-32602` | Any            | `requestState` fails integrity verification (SHOULD)  |
 
 Consistent with SEP-2663's error model for `tasks/update` and `tasks/cancel`: servers SHOULD return errors for clearly invalid requests rather than silently acking.
 
