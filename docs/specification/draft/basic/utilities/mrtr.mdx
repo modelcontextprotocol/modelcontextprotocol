@@ -112,9 +112,9 @@ Keys correspond to the keys in the `InputRequests` map; values are the client's 
 }
 ```
 
-#### IncompleteResult
+#### InputRequiredResult
 
-An [`IncompleteResult`](/specification/draft/schema#incompleteresult) is a type of [`Result`](https://modelcontextprotocol.io/specification/2025-11-25/basic#responses),
+An [`InputRequiredResult`](/specification/draft/schema#InputRequiredResult) is a type of [`Result`](https://modelcontextprotocol.io/specification/2025-11-25/basic#responses),
 indicating that additional input is needed before the request can be completed.
 
 - `inputRequests` _(optional)_: An [`InputRequests`](/specification/draft/schema#inputrequests) map of server-initiated requests that the client must fulfill.
@@ -125,7 +125,7 @@ indicating that additional input is needed before the request can be completed.
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       // Elicitation request.
       "github_login": {
@@ -172,16 +172,16 @@ indicating that additional input is needed before the request can be completed.
 
 ### Supported Requests
 
-Servers **MAY** send `IncompleteResult` responses on the following client requests:
+Servers **MAY** send `InputRequiredResult` responses on the following client requests:
 
-| Client Request                                                                       | Supports IncompleteResult |
-| ------------------------------------------------------------------------------------ | ------------------------- |
-| [`prompts/get`](/specification/draft/server/prompts#getting-a-prompt)                | Yes                       |
-| [`resources/read`](/specification/draft/server/resources#reading-resources)          | Yes                       |
-| [`tools/call`](/specification/draft/server/tools#calling-tools)                      | Yes                       |
-| [`tasks/result`](/specification/draft/basic/utilities/tasks#retrieving-task-results) | Yes                       |
+| Client Request                                                                       | Supports InputRequiredResult |
+| ------------------------------------------------------------------------------------ | ---------------------------- |
+| [`prompts/get`](/specification/draft/server/prompts#getting-a-prompt)                | Yes                          |
+| [`resources/read`](/specification/draft/server/resources#reading-resources)          | Yes                          |
+| [`tools/call`](/specification/draft/server/tools#calling-tools)                      | Yes                          |
+| [`tasks/result`](/specification/draft/basic/utilities/tasks#retrieving-task-results) | Yes                          |
 
-Servers **MUST NOT** send `IncompleteResult` responses on any other client requests.
+Servers **MUST NOT** send `InputRequiredResult` responses on any other client requests.
 
 ### Basic Workflow
 
@@ -198,7 +198,7 @@ sequenceDiagram
     participant S as Server
     C->>S: tools/call (id: 1)
     note over S: Server needs more info via Elicitation
-    S-->>C: IncompleteResult (id: 1, ElicitRequest, requestState)
+    S-->>C: InputRequiredResult (id: 1, ElicitRequest, requestState)
     note over C,S: Initial Request Terminated
 
     C->>U: Prompts user for input
@@ -215,12 +215,12 @@ what is directly present in the retry request.
 
 #### Server Requirements (Basic Workflow)
 
-1. Servers **MAY** respond to any [supported client request](#supported-requests) with an `IncompleteResult`.
-1. The `IncompleteResult` **MAY** include an `inputRequests` field.
+1. Servers **MAY** respond to any [supported client request](#supported-requests) with an `InputRequiredResult`.
+1. The `InputRequiredResult` **MAY** include an `inputRequests` field.
    - `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of the request.
    - `inputRequests` values are request objects that **MUST** be one of [`ElicitRequest`](/specification/draft/schema#elicitrequest), [`CreateMessageRequest`](/specification/draft/schema#createmessagerequest), or [`ListRootsRequest`](/specification/draft/schema#listrootsrequest)
 
-1. The `IncompleteResult` **MAY** include a `requestState` field. If specified, this field is an opaque string meaningful only to the server. Servers are free to encode the state in any format (e.g. base64-encoded JSON, encrypted JWT, serialized binary).
+1. The `InputRequiredResult` **MAY** include a `requestState` field. If specified, this field is an opaque string meaningful only to the server. Servers are free to encode the state in any format (e.g. base64-encoded JSON, encrypted JWT, serialized binary).
 1. If a client request contains a `requestState` field, servers **MUST** treat `requestState` as an attacker-controlld input. If `requestState` influences authorization, resource acces, or business logic, servers **MUST** protect its integrigty (e.g. HMAC or AEAD)
    and **MUST** reject state that fails verification. Integrity protection **MAY** be omitted only wen tampering can cause nothing worse than request failure.
 1. To prevent replay, servers **SHOULD** include the following inside the integrity-protected `requestState` payload and verify each on recepit:
@@ -234,17 +234,17 @@ what is directly present in the retry request.
        (e.g., one-time redemtpions) **MUST** enforce that invariant server-side.
      </Warning>
 
-1. Servers **MUST** include at least one of `inputRequests` or `requestState` in every `IncompleteResult` response.
+1. Servers **MUST** include at least one of `inputRequests` or `requestState` in every `InputRequiredResult` response.
 1. Servers **MUST NOT** send an `inputRequests` that the client has not declared support for in its capabilities. For example, if a client does not declare support for `elicitation`, the server **MUST NOT** include any `elicitation/create` requests in the `inputRequests` field.
-1. Servers **MUST NOT** assume that clients will fulfill the `inputRequests` or retry the original request. Servers **MAY** choose to return an `IncompleteResult` on multiple attempts at the same request if they want to repeatedly prompt the user for information until they have what they need to complete the request.
+1. Servers **MUST NOT** assume that clients will fulfill the `inputRequests` or retry the original request. Servers **MAY** choose to return an `InputRequiredResult` on multiple attempts at the same request if they want to repeatedly prompt the user for information until they have what they need to complete the request.
 
 #### Client Requirements (Basic Workflow)
 
-1. If a client receives an `IncompleteResult` that contains the `inputRequests` field, the client **MUST** construct the requested
-   inputs before retrying the original request. If the `IncompleteResult` does _not_ contain the `inputRequests` field,
+1. If a client receives an `InputRequiredResult` that contains the `inputRequests` field, the client **MUST** construct the requested
+   inputs before retrying the original request. If the `InputRequiredResult` does _not_ contain the `inputRequests` field,
    the client **MAY** retry the original request immediately.
-1. If an `IncompleteResult` contains the `requestState` field, the client **MUST** echo back the exact value of that field when retrying the original request.
-   Clients **MUST NOT** inspect, parse, modify, or make any assumptions about the `requestState` contents. If the `IncompleteResult` does not contain a `requestState` field, the client **MUST NOT** include one in the retry.
+1. If an `InputRequiredResult` contains the `requestState` field, the client **MUST** echo back the exact value of that field when retrying the original request.
+   Clients **MUST NOT** inspect, parse, modify, or make any assumptions about the `requestState` contents. If the `InputRequiredResult` does not contain a `requestState` field, the client **MUST NOT** include one in the retry.
 1. The JSON-RPC `id` **MUST** be different between the initial request and the retry, as they are independent requests.
 1. Both the `inputRequests` and `requestState` fields affect only the client's retry of the original request. They **MUST NOT** be used for any other request that the client may be sending in parallel.
 
@@ -267,7 +267,7 @@ sequenceDiagram
     S-->>C: Result (id: 2, status: input_required)
 
     C->>S: tasks/result (id: 3, taskId)
-    S-->>C: IncompleteResult (id: 3, ElicitRequest)
+    S-->>C: InputRequiredResult (id: 3, ElicitRequest)
 
     C->>U: Prompts user for input
     U-->>C: Provides responses
@@ -305,7 +305,7 @@ Protocol errors (malformed JSON, invalid schema, internal server errors) **SHOUL
 If additional, unexpected parameters are provided in the `InputResponses` object, the server **SHOULD** ignore any information it does not recognize or need.
 
 If the client fails to send all the information requested in a previous `InputRequests`, and the missing information is necessary for the server to process the request,
-the server **SHOULD** respond with a new `IncompleteResult` requesting the missing information again, rather than returning an error.
+the server **SHOULD** respond with a new `InputRequiredResult` requesting the missing information again, rather than returning an error.
 
 ### Security Considerations
 

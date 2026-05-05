@@ -315,9 +315,7 @@ The client would then send the responses in the following form:
 The schema looks like this:
 
 ```typescript
-// Incomplete response.  May be sent in response to any client-initiated
-// request.
-export interface IncompleteResult extends Result {
+export interface InputRequiredResult extends Result {
   // Requests issued by the server that must be complete before the
   // client can retry the original request.
   inputRequests?: InputRequests;
@@ -332,7 +330,7 @@ export interface IncompleteResult extends Result {
 // These parameters may be included in any client-initiated request.
 export interface InputResponseRequestParams extends RequestParams {
   // New field to carry the responses for the server's requests from the
-  // IncompleteResult message. For each key in the response's inputRequests
+  // InputRequiredResult message. For each key in the response's inputRequests
   // field, the same key must appear here with the associated response.
   inputResponses?: InputResponses;
   // Request state passed back to the server from the client.
@@ -357,7 +355,7 @@ export interface Result {
 
 export type ResultType =
   | "complete" // the request completed successfully and the result contains the final content.
-  | "incomplete"; // the request is incomplete and the result contains an {@link IncompleteResult} object
+  | "input_required"; // the request is incomplete and the result contains an {@link InputRequiredResult} object
 ```
 
 We anticipate this field will be useful for future extensibility, as it allows us to introduce new types of results and can also apply to `tasks` as well.
@@ -370,33 +368,33 @@ tools and another for persistent tools.
 Many `ClientRequest` don't have clear use cases where a Server would need to
 request more information from the Client. This SEP builds upon [SEP-2260](https://modelcontextprotocol.io/seps/2260-Require-Server-requests-to-be-associated-with-Client-requests) and further restricts when a Server can send a Server-Initiated Request to the Client.
 
-Servers MAY send `IncompleteResult` responses on the following Client Requests:
+Servers MAY send `InputRequiredResult` responses on the following Client Requests:
 
-| ClientRequest           | ServerResult           | IncompleteResult Supported |
-| ----------------------- | ---------------------- | -------------------------- |
-| `GetPromptRequest`      | `GetPromptResult`      | Yes                        |
-| `ReadResourceRequest`   | `ReadResourceResult`   | Yes                        |
-| `CallToolRequest`       | `CallToolResult`       | Yes                        |
-| `GetTaskPayloadRequest` | `GetTaskPayloadResult` | Yes                        |
+| ClientRequest           | ServerResult           | InputRequiredResult Supported |
+| ----------------------- | ---------------------- | ----------------------------- |
+| `GetPromptRequest`      | `GetPromptResult`      | Yes                           |
+| `ReadResourceRequest`   | `ReadResourceResult`   | Yes                           |
+| `CallToolRequest`       | `CallToolResult`       | Yes                           |
+| `GetTaskPayloadRequest` | `GetTaskPayloadResult` | Yes                           |
 
-Servers MUST NOT send `IncompleteResult` responses on any other Client Requests. The below table represents what `ClientRequest`s this excludes at the writing of this SEP.
+Servers MUST NOT send `InputRequiredResult` responses on any other Client Requests. The below table represents what `ClientRequest`s this excludes at the writing of this SEP.
 
-| ClientRequest                  | IncompleteResult Supported |
-| ------------------------------ | -------------------------- |
-| `PingRequest`                  | No                         |
-| `InitializeRequest`            | No                         |
-| `CompleteRequest`              | No                         |
-| `SetLevelRequest`              | No                         |
-| `ListPromptsRequest`           | No                         |
-| `ListResourcesRequest`         | No                         |
-| `ListResourceTemplatesRequest` | No                         |
-| `SubscribeRequest`             | No                         |
-| `UnsubscribeRequest`           | No                         |
-| `ListToolsRequest`             | No                         |
-| `GetTaskRequest`               | No                         |
-| `ListTasksRequest`             | No                         |
-| `CancelTaskRequest`            | No                         |
-| `TaskInputResponseRequest`     | No                         |
+| ClientRequest                  | InputRequiredResult Supported |
+| ------------------------------ | ----------------------------- |
+| `PingRequest`                  | No                            |
+| `InitializeRequest`            | No                            |
+| `CompleteRequest`              | No                            |
+| `SetLevelRequest`              | No                            |
+| `ListPromptsRequest`           | No                            |
+| `ListResourcesRequest`         | No                            |
+| `ListResourceTemplatesRequest` | No                            |
+| `SubscribeRequest`             | No                            |
+| `UnsubscribeRequest`           | No                            |
+| `ListToolsRequest`             | No                            |
+| `GetTaskRequest`               | No                            |
+| `ListTasksRequest`             | No                            |
+| `CancelTaskRequest`            | No                            |
+| `TaskInputResponseRequest`     | No                            |
 
 ### Ephemeral Tool Workflow
 
@@ -431,7 +429,7 @@ sequenceDiagram
     participant S as Server (Stateless)
     C->>S: tools/call (id: 1)
     note right of S: Server needs more info<br/>Generates requestState
-    S-->>C: IncompleteResult (id: 1, inputRequests, requestState)
+    S-->>C: InputRequiredResult (id: 1, inputRequests, requestState)
     note over C,S: Initial Request Terminated
 
     C->>U: Prompts user for input
@@ -482,7 +480,7 @@ Note: This is a contrived example, just to illustrate the flow.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",
@@ -605,7 +603,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       "resolution": {
         "method": "elicitation/create",
@@ -666,7 +664,7 @@ server-side storage.
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       "duplicate_of": {
         "method": "elicitation/create",
@@ -828,14 +826,14 @@ The workflow here would look like this:
 
 1. **Server Behavior:**
    - Servers MAY respond to any client-initiated request with a
-     `IncompleteResult`. This message MAY be sent either
+     `InputRequiredResult`. This message MAY be sent either
      as a standalone response or as the final message on an SSE stream,
      although implementations are encouraged to prefer the former.
      If using an SSE stream, servers MUST NOT send any message on the
      stream after the incomplete response message.
-   - The `Incomplete` message MAY include an
+   - The `InputRequiredResult` MAY include an
      `inputRequests` field.
-   - The `Incomplete` message MAY include a
+   - The `InputRequiredResult` MAY include a
      `requestState` field. If specified, this field is an opaque
      string that is meaningful only to the server. Servers are free to
      encode the state in any format (e.g., plain JSON, base64-encoded
@@ -857,17 +855,17 @@ The workflow here would look like this:
      validate any client-supplied data.
 
 2. **Client Behavior:**
-   - If a client receives an `IncompleteResult` message,
+   - If a client receives an `InputRequiredResult` message,
      if the message contains the `inputRequests` field, then the client
      MUST construct the requested input before retrying the original
      request. In contrast, if the message does _not_ contain the
      `inputRequests` field, then the client MAY retry the original
      request immediately.
-   - If a client receives a `IncompleteResult` message
+   - If a client receives a `InputRequiredResult` message
      that contains the `requestState` field, it MUST echo back the
      exact value of that field when retrying the original request.
      Clients MUST NOT inspect, parse, modify, or make any assumptions
-     about the `requestState` contents. If the `IncompleteResult` does
+     about the `requestState` contents. If the `InputRequiredResult` does
      not contain a `requestState` field, the client MUST NOT include one
      in the retry.
 
@@ -1014,7 +1012,7 @@ The below example walks through the entire Task Message flow for a Echo Tool whi
   "id": 3,
   "jsonrpc": "2.0",
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       "echo_input": {
         "method": "elicitation/create",
@@ -1204,9 +1202,9 @@ As with any received request, the server SHOULD validate the data provided by th
 
 If additional parameters are provided in the `inputResponses` object The server SHOULD treat these as optional parameters. Therefore it SHOULD ignore any unexpected information in the `inputResponses` object that it does not recognize or need.
 
-The client may also fail to send all the information requested in previous `inputRequests`. If the missing information requested is necessary for the server to process the request, then it SHOULD respond with a new `IncompleteResult`.
+The client may also fail to send all the information requested in previous `inputRequests`. If the missing information requested is necessary for the server to process the request, then it SHOULD respond with a new `InputRequiredResult`.
 
-We discussed having a specific application level error code returned, however the client may not have enough information to recover in all scenarios. Therefore, we decided to rely on the existing mechanics of requesting more input via `IncompleteResult` to ensure a client can always recover by having the server request the necessary information again.
+We discussed having a specific application level error code returned, however the client may not have enough information to recover in all scenarios. Therefore, we decided to rely on the existing mechanics of requesting more input via `InputRequiredResult` to ensure a client can always recover by having the server request the necessary information again.
 
 Malicious clients could intentionally send incorrect information in the `inputResponses` object, and generate load on the server by causing it to repeatedly request the same information. However, this is not a new concern introduced by this workflow, since malicious clients could already generate load by sending malformed requests. Server implementors can use standard techniques like rate limiting and throttling to protect themselves from such attacks.
 
@@ -1243,7 +1241,7 @@ In the ephemeral workflow, this would look like the following:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",

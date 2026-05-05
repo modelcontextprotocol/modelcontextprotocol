@@ -160,7 +160,7 @@ To invoke a tool, clients send a `tools/call` request:
 
 ### Incomplete Tool Results
 
-Servers **MAY** respond to `tools/call` with an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
+Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
 
 When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
 
@@ -171,7 +171,7 @@ When retrying the request with input responses, clients include `inputResponses`
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
-    "resultType": "incomplete",
+    "resultType": "input_required",
     "inputRequests": {
       "github_login": {
         "method": "elicitation/create",

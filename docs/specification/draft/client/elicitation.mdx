@@ -96,7 +96,7 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 
 ### Elicitation Requests
 
-Servers **MAY** request information from a user during the processing of a client request, by sending an [`IncompleteResult`](/specification/draft/basic/utilities/mrtr#incompleteresult)
+Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult)
 containing an `elicitation/create` request.
 
 All elicitation requests **MUST** include the following parameters:
@@ -450,7 +450,7 @@ sequenceDiagram
 
     Client->>Server: tools/call(id: 1)
     note over Server: Server needs more info
-    Server-->>Client: IncompleteResult(elicitation/create (mode: form))
+    Server-->>Client: InputRequiredResult(elicitation/create (mode: form))
 
     Note over User,Client: Present elicitation UI
     User-->>Client: Provide requested information
@@ -471,7 +471,7 @@ sequenceDiagram
 
     Client->>Server: tools/call(id: 1)
     Note over Server: Server needs more info <br/> Server creates requestState encoding url info.
-    Server-->>Client: IncompleteResult(elicitation/create (mode: url), requestState)
+    Server-->>Client: InputRequiredResult(elicitation/create (mode: url), requestState)
 
     Client->>User: Present consent to open URL
     User-->>Client: Provide consent
@@ -619,7 +619,7 @@ sequenceDiagram
     Note over Server: Needs 3rd-party authorization for user
     Note over Server: Store state (bind the elicitation request to the user)
     Note over Server: generate requestState that encodes information about the original request and user.
-    Server->>Client: IncompleteResult<br/>(mode: "url", url: "https://mcp.example.com/connect?...", requestState)
+    Server->>Client: InputRequiredResult<br/>(mode: "url", url: "https://mcp.example.com/connect?...", requestState)
 
     Client->>User: Present consent to open URL
     User->>Client: Provide consent

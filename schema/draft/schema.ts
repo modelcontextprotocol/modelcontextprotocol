@@ -143,10 +143,10 @@ export interface Notification {
  * determine how to parse the response.
  *
  * complete - the request completed successfully and the result contains the final content.
- * incomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.
+ * input_required - the request requires additional input and the result contains an {@link InputRequiredResult} object with instructions for the client to provide additional input before retrying the original request.
  * @category Common Types
  */
-export type ResultType = "complete" | "incomplete";
+export type ResultType = "complete" | "input_required";
 
 /**
  * Common result fields.
@@ -384,19 +384,19 @@ export interface InputResponses {
 }
 
 /**
- * An IncompleteResult sent by the server to indicate that additional input is needed
+ * An InputRequiredResult sent by the server to indicate that additional input is needed
  * before the request can be completed.
  *
  * At least one of `inputRequests` or `requestState` MUST be present.
- * @example Incomplete result with elicitation and sampling input requests and request state
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-elicitation-and-sampling-and-request-state.json}
+ * @example InputRequiredResult with elicitation and sampling input requests and request state
+ * {@includeCode ./examples/InputRequiredResult/input-required-result-with-elicitation-and-sampling-and-request-state.json}
  *
- * @example Incomplete result with request state only (load shedding)
- * {@includeCode ./examples/IncompleteResult/incomplete-result-with-request-state-only.json}
+ * @example InputRequiredResult with request state only (load shedding)
+ * {@includeCode ./examples/InputRequiredResult/input-required-result-with-request-state-only.json}
  *
  * @category Multi Round-Trip
  */
-export interface IncompleteResult extends Result {
+export interface InputRequiredResult extends Result {
   /* Requests issued by the server that must be complete before the
    * client can retry the original request.
    */
@@ -414,7 +414,7 @@ export interface IncompleteResult extends Result {
  */
 export interface InputResponseRequestParams extends RequestParams {
   /* New field to carry the responses for the server's requests from the
-   * IncompleteResult message.  For each key in the response's inputRequests
+   * InputRequiredResult message.  For each key in the response's inputRequests
    * field, the same key must appear here with the associated response.
    */
   inputResponses?: InputResponses;
@@ -1126,7 +1126,7 @@ export interface ReadResourceResult extends Result {
  * @category `resources/read`
  */
 export interface ReadResourceResultResponse extends JSONRPCResultResponse {
-  result: ReadResourceResult | IncompleteResult;
+  result: ReadResourceResult | InputRequiredResult;
 }
 
 /**
@@ -1459,7 +1459,7 @@ export interface GetPromptResult extends Result {
  * @category `prompts/get`
  */
 export interface GetPromptResultResponse extends JSONRPCResultResponse {
-  result: GetPromptResult | IncompleteResult;
+  result: GetPromptResult | InputRequiredResult;
 }
 
 /**
@@ -1654,7 +1654,7 @@ export interface CallToolResult extends Result {
  * @category `tools/call`
  */
 export interface CallToolResultResponse extends JSONRPCResultResponse {
-  result: CallToolResult | IncompleteResult;
+  result: CallToolResult | InputRequiredResult;
 }
 
 /**
@@ -2007,7 +2007,7 @@ export interface GetTaskPayloadRequest extends JSONRPCRequest {
  * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
  *
  * When the task is in `input_required` status, the server MUST return an
- * {@link IncompleteResult} containing `inputRequests` that the client must
+ * {@link InputRequiredResult} containing `inputRequests` that the client must
  * fulfill via a {@link TaskInputResponseRequest | tasks/input_response} request.
  *
  * @example Completed task payload
@@ -2021,7 +2021,7 @@ export interface GetTaskPayloadResult extends Result {
 
 /**
  * A successful response for a {@link GetTaskPayloadRequest | tasks/result} request.
- * May be either a complete result or an {@link IncompleteResult} indicating
+ * May be either a complete result or an {@link InputRequiredResult} indicating
  * that additional input is needed via {@link TaskInputResponseRequest | tasks/input_response}.
  *
  * @example Completed task payload response
@@ -2033,7 +2033,7 @@ export interface GetTaskPayloadResult extends Result {
  * @category `tasks/result`
  */
 export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
-  result: GetTaskPayloadResult | IncompleteResult;
+  result: GetTaskPayloadResult | InputRequiredResult;
 }
 
 /**
@@ -2058,7 +2058,7 @@ export interface TaskInputResponseRequest extends JSONRPCRequest {
 export interface TaskInputResponseRequestParams extends RequestParams {
   /**
    * The client's responses to the server's input requests from
-   * the {@link IncompleteResult} returned by {@link GetTaskPayloadRequest | tasks/result}.
+   * the {@link InputRequiredResult} returned by {@link GetTaskPayloadRequest | tasks/result}.
    */
   inputResponses: InputResponses;
 }
@@ -3368,4 +3368,4 @@ export type ServerResult =
   | GetTaskPayloadResult
   | ListTasksResult
   | CancelTaskResult
-  | IncompleteResult;
+  | InputRequiredResult;

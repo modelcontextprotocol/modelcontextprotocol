@@ -223,7 +223,7 @@
                 "result": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/IncompleteResult"
+                            "$ref": "#/$defs/InputRequiredResult"
                         },
                         {
                             "$ref": "#/$defs/CallToolResult"
@@ -1220,7 +1220,7 @@
                 "result": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/IncompleteResult"
+                            "$ref": "#/$defs/InputRequiredResult"
                         },
                         {
                             "$ref": "#/$defs/GetPromptResult"
@@ -1272,7 +1272,7 @@
         },
         "GetTaskPayloadResult": {
             "additionalProperties": {},
-            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.\n\nWhen the task is in `input_required` status, the server MUST return an\n{@link IncompleteResult} containing `inputRequests` that the client must\nfulfill via a {@link TaskInputResponseRequesttasks/input_response} request.",
+            "description": "The result returned for a {@link GetTaskPayloadRequesttasks/result} request.\nThe structure matches the result type of the original request.\nFor example, a {@link CallToolRequesttools/call} task would return the {@link CallToolResult} structure.\n\nWhen the task is in `input_required` status, the server MUST return an\n{@link InputRequiredResult} containing `inputRequests` that the client must\nfulfill via a {@link TaskInputResponseRequesttasks/input_response} request.",
             "properties": {
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
@@ -1289,7 +1289,7 @@
             "type": "object"
         },
         "GetTaskPayloadResultResponse": {
-            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.\nMay be either a complete result or an {@link IncompleteResult} indicating\nthat additional input is needed via {@link TaskInputResponseRequesttasks/input_response}.",
+            "description": "A successful response for a {@link GetTaskPayloadRequesttasks/result} request.\nMay be either a complete result or an {@link InputRequiredResult} indicating\nthat additional input is needed via {@link TaskInputResponseRequesttasks/input_response}.",
             "properties": {
                 "id": {
                     "$ref": "#/$defs/RequestId"
@@ -1301,7 +1301,7 @@
                 "result": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/IncompleteResult"
+                            "$ref": "#/$defs/InputRequiredResult"
                         },
                         {
                             "$ref": "#/$defs/GetTaskPayloadResult"
@@ -1498,29 +1498,6 @@
             ],
             "type": "object"
         },
-        "IncompleteResult": {
-            "description": "An IncompleteResult sent by the server to indicate that additional input is needed\nbefore the request can be completed.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
-                "inputRequests": {
-                    "$ref": "#/$defs/InputRequests"
-                },
-                "requestState": {
-                    "type": "string"
-                },
-                "resultType": {
-                    "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
-                }
-            },
-            "required": [
-                "resultType"
-            ],
-            "type": "object"
-        },
         "InitializeRequest": {
             "description": "This request is sent from the client to the server when it first connects, asking it to begin initialization.",
             "properties": {
@@ -1665,6 +1642,29 @@
                 "$ref": "#/$defs/InputRequest"
             },
             "description": "A map of server-initiated requests that the client must fulfill.\nKeys are server-assigned identifiers; values are the request objects.",
+            "type": "object"
+        },
+        "InputRequiredResult": {
+            "description": "An InputRequiredResult sent by the server to indicate that additional input is needed\nbefore the request can be completed.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "inputRequests": {
+                    "$ref": "#/$defs/InputRequests"
+                },
+                "requestState": {
+                    "type": "string"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                }
+            },
+            "required": [
+                "resultType"
+            ],
             "type": "object"
         },
         "InputResponse": {
@@ -2968,7 +2968,7 @@
                 "result": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/IncompleteResult"
+                            "$ref": "#/$defs/InputRequiredResult"
                         },
                         {
                             "$ref": "#/$defs/ReadResourceResult"
@@ -3321,10 +3321,10 @@
             "type": "object"
         },
         "ResultType": {
-            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.\n\ncomplete - the request completed successfully and the result contains the final content.\nincomplete - the request is incomplete and the result contains an {@link IncompleteResult} object with instructions for the client to provide additional input before retrying the original request.",
+            "description": "Indicates the type of a {@link Result} object, allowing the client to\ndetermine how to parse the response.\n\ncomplete - the request completed successfully and the result contains the final content.\ninput_required - the request requires additional input and the result contains an {@link InputRequiredResult} object with instructions for the client to provide additional input before retrying the original request.",
             "enum": [
                 "complete",
-                "incomplete"
+                "input_required"
             ],
             "type": "string"
         },
@@ -3586,7 +3586,7 @@
                     "$ref": "#/$defs/Result"
                 },
                 {
-                    "$ref": "#/$defs/IncompleteResult"
+                    "$ref": "#/$defs/InputRequiredResult"
                 },
                 {
                     "$ref": "#/$defs/InitializeResult"
@@ -3898,7 +3898,7 @@
                 },
                 "inputResponses": {
                     "$ref": "#/$defs/InputResponses",
-                    "description": "The client's responses to the server's input requests from\nthe {@link IncompleteResult} returned by {@link GetTaskPayloadRequesttasks/result}."
+                    "description": "The client's responses to the server's input requests from\nthe {@link InputRequiredResult} returned by {@link GetTaskPayloadRequesttasks/result}."
                 }
             },
             "required": [
