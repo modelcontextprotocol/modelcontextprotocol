@@ -17,7 +17,7 @@ Today, MCP clients discover server features by calling `tools/list`, `prompts/li
 
 This approach has several limitations:
 
-1. **Stateless and HTTP-based transports**: Clients communicating over stateless transports (e.g., pure HTTP request/response without SSE or WebSocket) cannot receive server-push notifications. These clients have no guidance on when to re-poll and must either poll excessively or risk stale data.
+1. **HTTP-based transports require SSE Streams**: Many clients and servers have challenges supporting long lived SSE streams which are necessary for notifications. The goal is to make SSE streams and optional optimization, but support protocol functionality without them. A TTL allows clients to poll on a predictable schedule without relying on server-push notifications.
 
 2. **Implementation complexity**: Both clients and servers must implement notification subscription and delivery infrastructure. Many simple servers have feature lists that change infrequently (or never), yet must still support the notification machinery if they want clients to stay current.
 
@@ -78,6 +78,8 @@ A client records the local time at which the response was received (`t_received`
 
 Clients SHOULD NOT treat TTL as a polling interval that triggers automatic background refetches. The TTL is a **freshness hint**: the client checks freshness when it needs the list, and re-fetches only if stale. Implementations that do choose to poll SHOULD apply jitter and backoff.
 
+Clients MAY re-fetch if they have reason to believe the data has changed, even if the TTL has not yet expired. Examples include receiving an unexpected error on a tool call indicating that the the method was not found or the parameters were invalid.
+
 ### Interaction with `list_changed` notifications
 
 TTL and `list_changed` notifications are complementary:
@@ -120,11 +122,11 @@ When a list result includes `nextCursor` (indicating more pages), the `ttl` appl
 
 ### No new capability flag
 
-No new capability flag is needed. The `ttl` field is optional on the response object. Servers that do not wish to provide a TTL simply omit the field. Clients that do not understand the field ignore it per standard JSON handling of unknown properties.
+No new capability flag is needed. The `ttl` field is optional on the response object. Servers that do not wish to provide a TTL simply omit the field. 
 
 ### Error handling
 
-- If `ttl` is present but is not a non-negative integer, the client SHOULD ignore it and behave as if it were absent.
+- If `ttl` is present but is a negative integer, the client SHOULD ignore it and behave as if it were absent.
 - Clients MUST NOT treat a missing `ttl` as an implicit TTL of 0 or any other value.
 
 ## Rationale
