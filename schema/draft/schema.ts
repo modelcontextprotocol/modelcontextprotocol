@@ -139,12 +139,29 @@ export interface Notification {
 }
 
 /**
+ * Indicates the type of a {@link Result} object, allowing the client to
+ * determine how to parse the response.
+ *
+ * complete - the request completed successfully and the result contains the final content.
+ * input_required - the request requires additional input and the result contains an {@link InputRequiredResult} object with instructions for the client to provide additional input before retrying the original request.
+ * @category Common Types
+ */
+export type ResultType = "complete" | "input_required";
+
+/**
  * Common result fields.
  *
  * @category Common Types
  */
 export interface Result {
   _meta?: MetaObject;
+  /**
+   * Indicates the type of the result, which allows the client to determine
+   * how to parse the result object.
+   *
+   * @default "complete"
+   */
+  resultType: ResultType;
   [key: string]: unknown;
 }
 
@@ -319,31 +336,6 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
-// Implementation-specific JSON-RPC error codes [-32000, -32099]
-/** @internal */
-export const URL_ELICITATION_REQUIRED = -32042;
-
-/**
- * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
- *
- * @example Authorization required
- * {@includeCode ./examples/URLElicitationRequiredError/authorization-required.json}
- *
- * @internal
- */
-export interface URLElicitationRequiredError extends Omit<
-  JSONRPCErrorResponse,
-  "error"
-> {
-  error: Error & {
-    code: typeof URL_ELICITATION_REQUIRED;
-    data: {
-      elicitations: ElicitRequestURLParams[];
-      [key: string]: unknown;
-    };
-  };
-}
-
 /* Empty result */
 /**
  * A result that indicates success but carries no data.
@@ -351,6 +343,85 @@ export interface URLElicitationRequiredError extends Omit<
  * @category Common Types
  */
 export type EmptyResult = Result;
+
+/** @internal */
+export type InputRequest =
+  | CreateMessageRequest
+  | ListRootsRequest
+  | ElicitRequest;
+
+/** @internal */
+export type InputResponse =
+  | CreateMessageResult
+  | ListRootsResult
+  | ElicitResult;
+
+/**
+ * A map of server-initiated requests that the client must fulfill.
+ * Keys are server-assigned identifiers; values are the request objects.
+ *
+ * @example Elicitation and sampling input requests
+ * {@includeCode ./examples/InputRequests/elicitation-and-sampling-input-requests.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputRequests {
+  [key: string]: InputRequest;
+}
+
+/**
+ * A map of client responses to server-initiated requests.
+ * Keys correspond to the keys in the {@link InputRequests} map;
+ * values are the client's result for each request.
+ *
+ * @example Elicitation and sampling input responses
+ * {@includeCode ./examples/InputResponses/elicitation-and-sampling-input-responses.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputResponses {
+  [key: string]: InputResponse;
+}
+
+/**
+ * An InputRequiredResult sent by the server to indicate that additional input is needed
+ * before the request can be completed.
+ *
+ * At least one of `inputRequests` or `requestState` MUST be present.
+ * @example InputRequiredResult with elicitation and sampling input requests and request state
+ * {@includeCode ./examples/InputRequiredResult/input-required-result-with-elicitation-and-sampling-and-request-state.json}
+ *
+ * @example InputRequiredResult with request state only (load shedding)
+ * {@includeCode ./examples/InputRequiredResult/input-required-result-with-request-state-only.json}
+ *
+ * @category Multi Round-Trip
+ */
+export interface InputRequiredResult extends Result {
+  /* Requests issued by the server that must be complete before the
+   * client can retry the original request.
+   */
+  inputRequests?: InputRequests;
+  /* Request state to be passed back to the server when the client
+   * retries the original request.
+   * Note: The client must treat this as an opaque blob; it must not
+   * interpret it in any way.
+   */
+  requestState?: string;
+}
+
+/* Request parameter type that includes input responses and request state.
+ * These parameters may be included in any client-initiated request.
+ */
+export interface InputResponseRequestParams extends RequestParams {
+  /* New field to carry the responses for the server's requests from the
+   * InputRequiredResult message.  For each key in the response's inputRequests
+   * field, the same key must appear here with the associated response.
+   */
+  inputResponses?: InputResponses;
+  /* Request state passed back to the server from the client.
+   */
+  requestState?: string;
+}
 
 /* Cancellation */
 /**
@@ -1038,8 +1109,8 @@ export interface ResourceRequestParams extends RequestParams {
  *
  * @category `resources/read`
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ReadResourceRequestParams extends ResourceRequestParams {}
+export interface ReadResourceRequestParams
+  extends ResourceRequestParams, InputResponseRequestParams {}
 
 /**
  * Sent from the client to the server, to read a specific resource URI.
@@ -1081,7 +1152,7 @@ export interface ReadResourceResult extends TTLResult {
  * @category `resources/read`
  */
 export interface ReadResourceResultResponse extends JSONRPCResultResponse {
-  result: ReadResourceResult;
+  result: ReadResourceResult | InputRequiredResult;
 }
 
 /**
@@ -1365,7 +1436,7 @@ export interface ListPromptsResultResponse extends JSONRPCResultResponse {
  *
  * @category `prompts/get`
  */
-export interface GetPromptRequestParams extends RequestParams {
+export interface GetPromptRequestParams extends InputResponseRequestParams {
   /**
    * The name of the prompt or prompt template.
    */
@@ -1414,7 +1485,7 @@ export interface GetPromptResult extends Result {
  * @category `prompts/get`
  */
 export interface GetPromptResultResponse extends JSONRPCResultResponse {
-  result: GetPromptResult;
+  result: GetPromptResult | InputRequiredResult;
 }
 
 /**
@@ -1609,7 +1680,7 @@ export interface CallToolResult extends Result {
  * @category `tools/call`
  */
 export interface CallToolResultResponse extends JSONRPCResultResponse {
-  result: CallToolResult;
+  result: CallToolResult | InputRequiredResult;
 }
 
 /**
@@ -1623,7 +1694,8 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
  *
  * @category `tools/call`
  */
-export interface CallToolRequestParams extends TaskAugmentedRequestParams {
+export interface CallToolRequestParams
+  extends InputResponseRequestParams, TaskAugmentedRequestParams {
   /**
    * The name of the tool.
    */
@@ -1937,7 +2009,11 @@ export interface GetTaskResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * A request to retrieve the result of a completed task.
+ * A request to retrieve the result of a completed task, or to discover
+ * what input is needed for a task in `input_required` status.
+ *
+ * @example Get task payload request
+ * {@includeCode ./examples/GetTaskPayloadRequest/get-task-payload-request.json}
  *
  * @category `tasks/result`
  */
@@ -1956,6 +2032,13 @@ export interface GetTaskPayloadRequest extends JSONRPCRequest {
  * The structure matches the result type of the original request.
  * For example, a {@link CallToolRequest | tools/call} task would return the {@link CallToolResult} structure.
  *
+ * When the task is in `input_required` status, the server MUST return an
+ * {@link InputRequiredResult} containing `inputRequests` that the client must
+ * fulfill via a {@link TaskInputResponseRequest | tasks/input_response} request.
+ *
+ * @example Completed task payload
+ * {@includeCode ./examples/GetTaskPayloadResult/completed-task-payload.json}
+ *
  * @category `tasks/result`
  */
 export interface GetTaskPayloadResult extends Result {
@@ -1964,11 +2047,55 @@ export interface GetTaskPayloadResult extends Result {
 
 /**
  * A successful response for a {@link GetTaskPayloadRequest | tasks/result} request.
+ * May be either a complete result or an {@link InputRequiredResult} indicating
+ * that additional input is needed via {@link TaskInputResponseRequest | tasks/input_response}.
+ *
+ * @example Completed task payload response
+ * {@includeCode ./examples/GetTaskPayloadResultResponse/completed-task-payload-response.json}
+ *
+ * @example Input required task payload response
+ * {@includeCode ./examples/GetTaskPayloadResultResponse/input-required-task-payload-response.json}
  *
  * @category `tasks/result`
  */
 export interface GetTaskPayloadResultResponse extends JSONRPCResultResponse {
-  result: GetTaskPayloadResult;
+  result: GetTaskPayloadResult | InputRequiredResult;
+}
+
+/**
+ * A request from the client to deliver input responses for a task
+ * that is in `input_required` status.
+ *
+ * @example Task input response request
+ * {@includeCode ./examples/TaskInputResponseRequest/task-input-response-request.json}
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequest extends JSONRPCRequest {
+  method: "tasks/input_response";
+  params: TaskInputResponseRequestParams;
+}
+
+/**
+ * Parameters for a `tasks/input_response` request.
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseRequestParams extends RequestParams {
+  /**
+   * The client's responses to the server's input requests from
+   * the {@link InputRequiredResult} returned by {@link GetTaskPayloadRequest | tasks/result}.
+   */
+  inputResponses: InputResponses;
+}
+
+/**
+ * A successful response for a {@link TaskInputResponseRequest | tasks/input_response} request.
+ *
+ * @category `tasks/input_response`
+ */
+export interface TaskInputResponseResultResponse extends JSONRPCResultResponse {
+  result: Result;
 }
 
 /**
@@ -2157,7 +2284,7 @@ export type LoggingLevel =
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageRequestParams extends TaskAugmentedRequestParams {
+export interface CreateMessageRequestParams {
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -2226,7 +2353,7 @@ export interface ToolChoice {
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageRequest extends JSONRPCRequest {
+export interface CreateMessageRequest {
   method: "sampling/createMessage";
   params: CreateMessageRequestParams;
 }
@@ -2247,7 +2374,7 @@ export interface CreateMessageRequest extends JSONRPCRequest {
  *
  * @category `sampling/createMessage`
  */
-export interface CreateMessageResult extends Result, SamplingMessage {
+export interface CreateMessageResult extends SamplingMessage {
   /**
    * The name of the model that generated the message.
    */
@@ -2265,18 +2392,6 @@ export interface CreateMessageResult extends Result, SamplingMessage {
    * This field is an open string to allow for provider-specific stop reasons.
    */
   stopReason?: "endTurn" | "stopSequence" | "maxTokens" | "toolUse" | string;
-}
-
-/**
- * A successful response from the client for a {@link CreateMessageRequest | sampling/createMessage} request.
- *
- * @example Sampling result response
- * {@includeCode ./examples/CreateMessageResultResponse/sampling-result-response.json}
- *
- * @category `sampling/createMessage`
- */
-export interface CreateMessageResultResponse extends JSONRPCResultResponse {
-  result: CreateMessageResult;
 }
 
 /**
@@ -2742,7 +2857,7 @@ export interface PromptReference extends BaseMetadata {
  *
  * @category `roots/list`
  */
-export interface ListRootsRequest extends JSONRPCRequest {
+export interface ListRootsRequest {
   method: "roots/list";
   params?: RequestParams;
 }
@@ -2760,20 +2875,8 @@ export interface ListRootsRequest extends JSONRPCRequest {
  *
  * @category `roots/list`
  */
-export interface ListRootsResult extends Result {
+export interface ListRootsResult {
   roots: Root[];
-}
-
-/**
- * A successful response from the client for a {@link ListRootsRequest | roots/list} request.
- *
- * @example List roots result response
- * {@includeCode ./examples/ListRootsResultResponse/list-roots-result-response.json}
- *
- * @category `roots/list`
- */
-export interface ListRootsResultResponse extends JSONRPCResultResponse {
-  result: ListRootsResult;
 }
 
 /**
@@ -2829,7 +2932,7 @@ export interface RootsListChangedNotification extends JSONRPCNotification {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
+export interface ElicitRequestFormParams {
   /**
    * The elicitation mode.
    */
@@ -2862,7 +2965,7 @@ export interface ElicitRequestFormParams extends TaskAugmentedRequestParams {
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequestURLParams extends TaskAugmentedRequestParams {
+export interface ElicitRequestURLParams {
   /**
    * The elicitation mode.
    */
@@ -2904,7 +3007,7 @@ export type ElicitRequestParams =
  *
  * @category `elicitation/create`
  */
-export interface ElicitRequest extends JSONRPCRequest {
+export interface ElicitRequest {
   method: "elicitation/create";
   params: ElicitRequestParams;
 }
@@ -3167,7 +3270,7 @@ export type EnumSchema =
   | LegacyTitledEnumSchema;
 
 /**
- * The result returned by the client for an {@link ElicitRequest | elicitation/create} request.
+ * The result returned by the client for an {@link ElicitRequest| elicitation/create} request.
  *
  * @example Input single field
  * {@includeCode ./examples/ElicitResult/input-single-field.json}
@@ -3180,7 +3283,7 @@ export type EnumSchema =
  *
  * @category `elicitation/create`
  */
-export interface ElicitResult extends Result {
+export interface ElicitResult {
   /**
    * The user action in response to the elicitation.
    * - `"accept"`: User submitted the form/confirmed the action
@@ -3195,18 +3298,6 @@ export interface ElicitResult extends Result {
    * Omitted for out-of-band mode responses.
    */
   content?: { [key: string]: string | number | boolean | string[] };
-}
-
-/**
- * A successful response from the client for a {@link ElicitRequest | elicitation/create} request.
- *
- * @example Elicitation result response
- * {@includeCode ./examples/ElicitResultResponse/elicitation-result-response.json}
- *
- * @category `elicitation/create`
- */
-export interface ElicitResultResponse extends JSONRPCResultResponse {
-  result: ElicitResult;
 }
 
 /**
@@ -3246,7 +3337,8 @@ export type ClientRequest =
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
-  | CancelTaskRequest;
+  | CancelTaskRequest
+  | TaskInputResponseRequest;
 
 /** @internal */
 export type ClientNotification =
@@ -3259,9 +3351,6 @@ export type ClientNotification =
 /** @internal */
 export type ClientResult =
   | EmptyResult
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
@@ -3271,9 +3360,6 @@ export type ClientResult =
 /** @internal */
 export type ServerRequest =
   | PingRequest
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -3307,4 +3393,5 @@ export type ServerResult =
   | GetTaskResult
   | GetTaskPayloadResult
   | ListTasksResult
-  | CancelTaskResult;
+  | CancelTaskResult
+  | InputRequiredResult;
