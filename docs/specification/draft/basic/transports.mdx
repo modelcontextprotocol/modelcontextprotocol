@@ -62,7 +62,7 @@ guide below.
 
 In the **Streamable HTTP** transport, the server operates as an independent process that
 can handle multiple client connections. This transport uses HTTP POST and GET requests.
-Server can optionally make use of
+The server can optionally make use of
 [Server-Sent Events](https://en.wikipedia.org/wiki/Server-sent_events) (SSE) to stream
 multiple server messages. This permits basic MCP servers, as well as more feature-rich
 servers supporting streaming and server-to-client notifications and requests.
@@ -556,7 +556,7 @@ When constructing a `tools/call` request via HTTP transport, the client **MUST**
 
 Intermediate servers that do not recognize an `Mcp-Param-{Name}` header **MUST** forward it and otherwise ignore it, as required by the [HTTP Semantics RFC](https://www.rfc-editor.org/rfc/rfc9110.html#name-field-names).
 
-Servers **MUST** reject requests with a recognized `Mcp-Param-{Name}` headers that contain invalid
+Servers **MUST** reject requests with a recognized `Mcp-Param-{Name}` header that contains invalid
 characters (see [Value Encoding](#value-encoding)).
 
 Any server that processes the message body **MUST** validate that encoded header values,
@@ -603,7 +603,7 @@ protocol version 2024-11-05) as follows:
    - If it succeeds, the client can assume this is a server supporting the new Streamable
      HTTP transport.
    - If it fails with the following HTTP status codes "400 Bad Request", "404 Not
-     Found" or "405 Method Not Allowed":
+     Found", or "405 Method Not Allowed":
      - Issue a GET request to the server URL, expecting that this will open an SSE stream
        and return an `endpoint` event as the first event.
      - When the `endpoint` event arrives, the client can assume this is a server running

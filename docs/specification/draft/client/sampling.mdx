@@ -104,14 +104,12 @@ Clients that support sampling **MUST** declare the `sampling` capability during
 
 ### Creating Messages
 
-To request a language model generation, servers send a `sampling/createMessage` request:
+To request a language model generation during the processing of a client request, servers send an `IncompleteResponse` containing a `sampling/createMessage` request:
 
 **Request:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "sampling/createMessage",
   "params": {
     "messages": [
@@ -145,8 +143,6 @@ To request a language model generation, servers send a `sampling/createMessage` 
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "role": "assistant",
     "content": {
@@ -170,8 +166,9 @@ sequenceDiagram
     participant User
     participant LLM
 
-    Note over Server,Client: Initial request with tools
-    Server->>Client: sampling/createMessage<br/>(messages + tools)
+    Client->>Server: tools/call(id:1)
+    note right of Server: Server needs more info
+    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -182,13 +179,13 @@ sequenceDiagram
 
     Client->>User: Present tool calls for review
     User-->>Client: Approve tool calls
-    Client-->>Server: Return tool_use response
+    Client-->>Server: tools/call(id:2, Return tool_use response)
 
     Note over Server: Execute tool(s)
     Server->>Server: Run get_weather("Paris")<br/>Run get_weather("London")
 
     Note over Server,Client: Continue with tool results
-    Server->>Client: sampling/createMessage<br/>(history + tool_results + tools)
+    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(history + tool_results + tools))
 
     Client->>User: Present continuation
     User-->>Client: Approve
@@ -198,7 +195,7 @@ sequenceDiagram
 
     Client->>User: Present response
     User-->>Client: Approve
-    Client-->>Server: Return final response
+    Client-->>Server: tools/call(id:3, Return final response)
 
     Note over Server: Server processes result<br/>(may continue conversation...)
 ```
@@ -209,8 +206,6 @@ To request LLM generation with tool use capabilities, servers include `tools` an
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "sampling/createMessage",
   "params": {
     "messages": [
@@ -250,8 +245,6 @@ To request LLM generation with tool use capabilities, servers include `tools` an
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "role": "assistant",
     "content": [
@@ -291,8 +284,6 @@ After receiving tool use requests from the LLM, the server typically:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
   "method": "sampling/createMessage",
   "params": {
     "messages": [
@@ -368,8 +359,6 @@ After receiving tool use requests from the LLM, the server typically:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
   "result": {
     "role": "assistant",
     "content": {
@@ -505,8 +494,9 @@ sequenceDiagram
     participant User
     participant LLM
 
-    Note over Server,Client: Server initiates sampling
-    Server->>Client: sampling/createMessage
+    Client->>Server: tool/call(id:1)
+    note right of Server: Server needs more info
+    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -520,8 +510,8 @@ sequenceDiagram
     Client->>User: Present response for approval
     User-->>Client: Review and approve/modify
 
-    Note over Server,Client: Complete request
-    Client-->>Server: Return approved response
+    Note over Server,Client: Replay Request with approved response
+    Client-->>Server: tools/call(id:3, Return approved response)
 ```
 
 ## Data Types
@@ -666,36 +656,8 @@ Sampling results will contain the following fields:
 
 ## Error Handling
 
-Clients **SHOULD** return errors for common failure cases:
-
-- User rejected sampling request: `-1`
-- Tool result missing in request: `-32602` (Invalid params)
-- Tool results mixed with other content: `-32602` (Invalid params)
-- Sampling request not associated with a client-to-server request: `-32602` (Invalid params)
-
-Example errors:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 3,
-  "error": {
-    "code": -1,
-    "message": "User rejected sampling request"
-  }
-}
-```
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "error": {
-    "code": -32602,
-    "message": "Tool result missing in request"
-  }
-}
-```
+If an error occurs or the user declines the sampling request, the client does not need to replay the initial call with an
+error message, as the server is not waiting for a response with the `IncompleteResponse` pattern.
 
 ## Security Considerations
 

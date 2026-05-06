@@ -1,7 +1,11 @@
 {
-  "jsonrpc": "2.0",
-  "id": "sampling-example",
-  "result": {
+  "github_login": {
+    "action": "accept",
+    "content": {
+      "name": "octocat"
+    }
+  },
+  "capital_of_france": {
     "role": "assistant",
     "content": {
       "type": "text",
