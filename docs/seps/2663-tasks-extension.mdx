@@ -607,9 +607,7 @@ Each notification carries a complete `DetailedTask` for the current status, iden
 }
 ```
 
-The notification includes the full task object, allowing clients to access the complete task state and final results without making an additional `tasks/get` request.
-
-Clients **MUST NOT** rely on receiving this notification, and **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
+The notification includes the full task object, allowing clients to access the complete task state and final results without polling the `tasks/get` method. Clients **MAY** continue polling `tasks/get` in addition to subscribing to task status notifications, but need not do so.
 
 ### Streamable HTTP: Routing Headers
 
