@@ -184,7 +184,7 @@ export interface Result {
    * server implementing an earlier protocol version (which does not include
    * `resultType`), the client MUST treat the absent field as `"complete"`.
    */
-  resultType: ResultType;
+  resultType?: ResultType;
   [key: string]: unknown;
 }
 
