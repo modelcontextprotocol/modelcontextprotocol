@@ -133,10 +133,28 @@ revision when it is promoted to Current under the [versioning guide][versioning]
 - The `changelog.mdx` for the next revision gains an entry under a "Deprecated" heading. This SEP
   introduces "Deprecated" and "Removed" as standing changelog headings alongside the existing
   Major/Minor/Other groupings.
-- Tier 1 SDKs (per [SEP-1730][sep-1730]) SHOULD mark the corresponding API surface deprecated using
-  their language's native mechanism (for example `@Deprecated` in Java, `[Obsolete]` in .NET, the
-  `Deprecated:` doc convention in Go) in their next release after the revision is released as
-  Current.
+
+### Tier 1 SDK obligations
+
+A feature lifecycle is only as effective as the implementations that surface it to consumers. The
+specification artifacts above record that a feature is Deprecated; Tier 1 SDKs (per
+[SEP-1730][sep-1730]) deliver that record to the implementers who would otherwise discover the
+removal by breakage. Once the revision in which a feature becomes Deprecated is released as
+Current, Tier 1 SDKs:
+
+- MUST mark the corresponding API surface deprecated using the language's native mechanism (for
+  example `@Deprecated` in Java, `[Obsolete]` in .NET, `@deprecated` JSDoc in TypeScript, the
+  `Deprecated:` doc convention in Go) in their next release, referencing the deprecation SEP and
+  the earliest removal date where the mechanism permits.
+- SHOULD emit a runtime warning when a deprecated feature is exercised, using the language's
+  idiomatic mechanism (for example Python's `DeprecationWarning`, Node.js's
+  `process.emitWarning`, or a configurable logger). A runtime warning reaches consumers who never
+  read API documentation and is an observable signal a conformance test can assert against.
+
+These obligations are conformance criteria for Tier 1 status. A Tier 1 SDK that persistently fails
+to surface a Deprecated feature is subject to the [Tier Relegation Process][sep-1730-relegation]
+in [SEP-1730][sep-1730]. Item 4 of [Removing a feature](#removing-a-feature) is the separate
+confirmation that Tier 1 SDKs have shipped the migration path before removal proceeds.
 
 ### Removing a feature
 
@@ -271,7 +289,7 @@ purpose).
 
 ## Backward Compatibility
 
-This SEP introduces a process and does not change protocol behaviour. The
+This SEP introduces a process and does not change protocol behavior. The
 [Transition](#transition) section assigns a Deprecated state and earliest removal date to two
 features that are already informally deprecated, making their status explicit without shortening
 any implied timeline.
@@ -303,9 +321,15 @@ That pull request serves as the running-code validation before this SEP advances
 
 ## Open Questions
 
-- **Specification revision support window.** The NYC meeting also discussed how long Tier-1 SDKs
+- **Specification revision support window.** The NYC meeting also discussed how long Tier 1 SDKs
   must support a given specification _revision_ (as distinct from a feature within one). That
-  policy is related but separate and may belong in an amendment to [SEP-1730][sep-1730].
+  policy belongs in an amendment to [SEP-1730][sep-1730], but it determines whether the deprecation
+  window in this policy is observable in practice. If a Tier 1 SDK supports only the latest
+  revision, a consumer that updates the SDK between releases can move directly from one that
+  predates the deprecation to one that postdates the removal, never seeing the Deprecated marker
+  in [Tier 1 SDK obligations](#tier-1-sdk-obligations). Requiring Tier 1 SDKs to support all
+  revisions released as Current within a trailing window at least equal to the twelve-month
+  deprecation floor closes that gap. The SEP-1730 amendment should be pursued alongside this SEP.
 - **Telemetry source for the "negligible adoption" criterion.** The policy permits deprecation on
   adoption grounds, but the project has no shared telemetry today. Until one exists, this criterion
   relies on SDK maintainer attestation.
@@ -314,9 +338,9 @@ That pull request serves as the running-code validation before this SEP advances
   shorter windows for less mature features, which would have allowed the JSON-RPC batching reversal
   cited in [Motivation](#motivation) without a year-long deprecation. Whether MCP should adopt an
   Experimental tier with a shorter or zero window is left for a follow-up SEP.
-- **Runtime deprecation signal.** Signaling under this policy is documentation-only (`@deprecated`
-  JSDoc, prose notice, changelog). Implementers that do not use an official SDK and do not read the
-  changelog receive no warning before removal. A wire-level signal (for example a `_meta`
+- **Wire-level deprecation signal.** [Tier 1 SDK obligations](#tier-1-sdk-obligations) puts the
+  deprecation warning into official SDKs; implementers that do not use one and do not read the
+  changelog still receive no warning before removal. A wire-level signal (for example a `_meta`
   deprecation field on responses, comparable to the Kubernetes `Warning` header) would close that
   gap but is a Standards Track change outside the scope of this Process SEP.
 
@@ -327,6 +351,7 @@ That pull request serves as the running-code validation before this SEP advances
 [sep-guidelines]: https://modelcontextprotocol.io/community/sep-guidelines
 [governance-decisions]: https://modelcontextprotocol.io/community/governance#decision-process
 [sep-1730]: https://modelcontextprotocol.io/seps/1730-sdks-tiering-system
+[sep-1730-relegation]: https://modelcontextprotocol.io/seps/1730-sdks-tiering-system#tier-relegation-process
 [sep-1400]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1400
 [issue-1540]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1540
 [sep-2577]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577
