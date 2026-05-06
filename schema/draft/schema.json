@@ -2433,6 +2433,28 @@
                 }
             ]
         },
+        "NotFoundError": {
+            "description": "A JSON-RPC error indicating that the requested entity was not found on a non-resource method.\n\nTriggered by: FileNotFoundError, KeyError, NotFoundError on non-resource methods.",
+            "properties": {
+                "code": {
+                    "const": -32001,
+                    "description": "The error type that occurred.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
+                },
+                "message": {
+                    "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ],
+            "type": "object"
+        },
         "Notification": {
             "properties": {
                 "method": {
@@ -3100,6 +3122,28 @@
             ],
             "type": "object"
         },
+        "ResourceNotFoundError": {
+            "description": "A JSON-RPC error indicating that a requested resource was not found.\n\nTriggered by: FileNotFoundError, KeyError, NotFoundError on resources/ methods.",
+            "properties": {
+                "code": {
+                    "const": -32002,
+                    "description": "The error type that occurred.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
+                },
+                "message": {
+                    "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ],
+            "type": "object"
+        },
         "ResourceRequestParams": {
             "description": "Common params for resource-related requests.",
             "properties": {
@@ -3430,6 +3474,28 @@
                     "type": "object"
                 }
             },
+            "type": "object"
+        },
+        "ServerError": {
+            "description": "A JSON-RPC error indicating a server-level failure such as a permission denial, timeout, or rate limit exceeded.\n\nTriggered by: PermissionError, TimeoutError, or rate limit exceeded.",
+            "properties": {
+                "code": {
+                    "const": -32000,
+                    "description": "The error type that occurred.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Additional information about the error. The value of this member is defined by the sender (e.g. detailed error information, nested errors etc.)."
+                },
+                "message": {
+                    "description": "A short description of the error. The message SHOULD be limited to a concise single sentence.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "code",
+                "message"
+            ],
             "type": "object"
         },
         "ServerNotification": {

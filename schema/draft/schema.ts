@@ -320,6 +320,43 @@ export interface InternalError extends Error {
 }
 
 // Implementation-specific JSON-RPC error codes [-32000, -32099]
+export const SERVER_ERROR = -32000;
+export const NOT_FOUND = -32001;
+export const RESOURCE_NOT_FOUND = -32002;
+
+/**
+ * A JSON-RPC error indicating a server-level failure such as a permission denial, timeout, or rate limit exceeded.
+ *
+ * Triggered by: PermissionError, TimeoutError, or rate limit exceeded.
+ *
+ * @category Errors
+ */
+export interface ServerError extends Error {
+  code: typeof SERVER_ERROR;
+}
+
+/**
+ * A JSON-RPC error indicating that the requested entity was not found on a non-resource method.
+ *
+ * Triggered by: FileNotFoundError, KeyError, NotFoundError on non-resource methods.
+ *
+ * @category Errors
+ */
+export interface NotFoundError extends Error {
+  code: typeof NOT_FOUND;
+}
+
+/**
+ * A JSON-RPC error indicating that a requested resource was not found.
+ *
+ * Triggered by: FileNotFoundError, KeyError, NotFoundError on resources/ methods.
+ *
+ * @category Errors
+ */
+export interface ResourceNotFoundError extends Error {
+  code: typeof RESOURCE_NOT_FOUND;
+}
+
 /** @internal */
 export const URL_ELICITATION_REQUIRED = -32042;
 
