@@ -94,7 +94,7 @@ TTL and server-push notifications (`list_changed`, `notifications/resources/upda
 - A server MAY provide `ttl` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
 - A server MAY advertise `listChanged: true` **and** provide `ttl`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
 - A server MAY advertise `listChanged: true` without providing `ttl`. Behavior is unchanged from today.
-- A server SHOULD use one of the mechanisms (TTL or notifications) rather than neither, to ensure clients have some way to stay up to date.
+- Servers are encouraged to use at least one of the mechanisms (TTL or notifications) so clients have some way to stay up to date.
 
 ```mermaid
 sequenceDiagram
