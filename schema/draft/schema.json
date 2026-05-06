@@ -4015,7 +4015,7 @@
                 },
                 "inputSchema": {
                     "additionalProperties": {},
-                    "description": "A JSON Schema object defining the expected parameters for the tool.\nWhile tools receive arguments as objects, this can be any valid JSON Schema to allow for\nsophisticated object validation patterns (like with \"oneOf\", \"anyOf\", etc.)\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
+                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
                     "properties": {
                         "$schema": {
                             "type": "string"

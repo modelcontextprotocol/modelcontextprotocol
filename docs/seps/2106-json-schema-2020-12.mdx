@@ -111,7 +111,7 @@ inputSchema: {
 inputSchema: {
   $schema?: string;
   type: "object";
-  [key: string]: any;
+  [key: string]: unknown;
 };
 ```
 
@@ -139,7 +139,7 @@ outputSchema?: {
 ```typescript
 outputSchema?: {
   $schema?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 ```
 
@@ -314,27 +314,66 @@ MCP can learn from OpenAPI's experience rather than repeating the same evolution
 
 ## Backward Compatibility
 
-This change is **backward compatible**:
+This change is **wire-format backward compatible** but has nuances depending on the direction of the version mismatch.
 
-1. **Existing schemas remain valid**: All current `type: "object"` schemas continue to work without modification.
+### Compatibility Matrix
 
-2. **Existing clients unaffected**: Clients that expect object responses will continue to receive them from tools that return objects.
+|                           | New client (post-SEP)                                        | Old client (pre-SEP)                                                                                                              |
+| ------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| **New server (post-SEP)** | Fully compatible.                                            | Compatible **only when the server returns object-typed `structuredContent`**. Arrays/primitives in `structuredContent` may break. |
+| **Old server (pre-SEP)**  | Fully compatible. Existing object-only schemas remain valid. | Unchanged.                                                                                                                        |
 
-3. **Graceful degradation**: Tools returning arrays should also include a `TextContent` block with serialized JSON for clients that don't support `structuredContent`.
+The asymmetry: a new server that takes advantage of array or primitive `structuredContent` (or composition keywords in `inputSchema`) cannot assume an old client will accept the response. Old clients written against the previous wire format may reject `structuredContent` that is not a JSON object, or fail to validate `inputSchema` containing keywords beyond `type`/`properties`/`required`.
+
+To remain interoperable with older clients, **servers using array or primitive `structuredContent` MUST also emit a `TextContent` block containing the serialized JSON** (as already recommended in the tools specification). Clients that do not understand non-object `structuredContent` can fall back to the text content.
+
+### TypeScript / SDK Migration
+
+Widening the `structuredContent` field type from `{ [key: string]: unknown }` to `unknown` is a **source-breaking change for typed consumers**, even though the wire format is unchanged. Code such as:
+
+```typescript
+const result = await client.callTool({ name: "get_weather", arguments: { ... } });
+const temp = result.structuredContent?.temperature;        // previously compiled (type: unknown)
+const city = result.structuredContent?.["city"] as string; // previously compiled
+```
+
+will no longer type-check after the change, because TypeScript forbids property access on `unknown` without a narrowing guard:
+
+```typescript
+const sc = result.structuredContent;
+if (sc && typeof sc === "object" && !Array.isArray(sc)) {
+  const temp = (sc as Record<string, unknown>).temperature;
+}
+```
+
+This break is intentional — the previous type was a lie whenever a tool returned a non-object — but SDK maintainers SHOULD:
+
+- Document the migration in SDK release notes.
+- Where ergonomic, provide typed helpers (e.g. generics over a tool's `outputSchema`) so consumers do not need to write narrowing guards by hand.
 
 ### Migration Path
 
-No migration is required. Existing tools and clients continue to function. New tools can optionally use the expanded schema capabilities.
+- **Servers**: No migration is required to keep working as before. To use array or primitive `structuredContent`, also emit a serialized `TextContent` fallback.
+- **Clients**: Old clients continue to work against object-only servers. To consume the new flexibility, accept any JSON value in `structuredContent` and validate against `outputSchema` if present.
+- **SDKs**: Update generated types to mirror the new schema (`unknown` for `structuredContent`, open-ended `inputSchema`/`outputSchema`) and call out the source-breaking type change in release notes.
 
 ## Security Implications
 
-No new security considerations. JSON Schema validation already handles:
+JSON Schema validation already handles type checking, value constraints, and required field validation, and implementations MUST continue to validate all inputs and outputs against declared schemas. Allowing the full JSON Schema 2020-12 vocabulary surfaces two areas that warrant explicit guidance.
 
-- Type checking
-- Value constraints
-- Required field validation
+### `$ref` Dereferencing (SSRF and Fetch-DoS)
 
-Implementations should continue to validate all inputs and outputs against declared schemas.
+JSON Schema 2020-12 permits `$ref` to point at an absolute URI, not just a JSON Pointer into the same document. A naive implementation that resolves every `$ref` it encounters by issuing an HTTP request gives an attacker a server-side request forgery / fetch amplification primitive: a malicious tool definition can cause the host to fetch arbitrary URLs, including internal metadata endpoints or large payloads designed to exhaust resources.
+
+To mitigate this:
+
+- Implementations **MUST NOT** automatically dereference `$ref` values that resolve to a network URI (i.e. anything that is not a same-document JSON Pointer such as `#/$defs/Foo` or an internal `$anchor`).
+- "Automatically" here means "as part of normal validation or schema processing, without explicit operator action." Implementations **MAY** offer an opt-in mode that fetches non-local `$ref`s, but it MUST be disabled by default and SHOULD enforce an allowlist of hosts (or at minimum reject loopback, link-local, and private network addresses), apply timeouts and size limits, and log dereferenced URIs.
+- Schemas that fail to validate due to an unresolved external `$ref` SHOULD be rejected rather than silently treated as permissive.
+
+### Composition-Keyword Resource Use
+
+Composition keywords (`anyOf`, `oneOf`, `allOf`, `if`/`then`/`else`) and `$defs` enable expressive schemas, but pathological combinations can be expensive to validate. Implementations SHOULD apply reasonable bounds — for example, a maximum schema depth, a cap on the total number of subschemas, or a per-validation time budget — to prevent a malicious tool definition from acting as a CPU DoS vector against the validator.
 
 ## Reference Implementation
 

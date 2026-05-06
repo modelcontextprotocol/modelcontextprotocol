@@ -1740,8 +1740,12 @@ export interface Tool extends BaseMetadata, Icons {
 
   /**
    * A JSON Schema object defining the expected parameters for the tool.
-   * While tools receive arguments as objects, this can be any valid JSON Schema to allow for
-   * sophisticated object validation patterns (like with "oneOf", "anyOf", etc.)
+   *
+   * Tool arguments are always JSON objects, so `type: "object"` is required at the root.
+   * Beyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including
+   * composition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords
+   * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
+   * standard validation or annotation keywords.
    *
    * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
    */

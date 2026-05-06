@@ -3,9 +3,9 @@
   "title": "Resource Finder",
   "description": "Find a resource by ID or name",
   "inputSchema": {
+    "type": "object",
     "oneOf": [
       {
-        "type": "object",
         "properties": {
           "id": {
             "type": "string",
@@ -15,7 +15,6 @@
         "required": ["id"]
       },
       {
-        "type": "object",
         "properties": {
           "name": {
             "type": "string",
