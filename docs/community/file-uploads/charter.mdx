@@ -1,0 +1,111 @@
+---
+title: File Uploads Charter
+description: Charter for the MCP File Uploads Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The File Uploads Working Group exists to define how MCP tools and elicitation requests declare file
+inputs so that hosts can present native file pickers and pass user-selected file content to servers.
+Today, servers that need a file from the user resort to prose instructions asking for base64 strings
+or local paths, which produces inconsistent UX and pushes encoding details onto end users. This WG
+will specify a minimal, schema-level mechanism for declaring file inputs and the wire format for
+delivering them, anchored on [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356).
+
+## Scope
+
+### In Scope
+
+- **Specification Work**: SEPs defining declarative file input descriptors on tool input schemas and
+  elicitation request schemas, the wire encoding for file content, and host-side handling
+  requirements.
+- **Reference Implementations**: SDK types and helpers for `FileInputDescriptor`, data URI encoding,
+  and a sample host flow demonstrating picker invocation and value substitution.
+- **Cross-Cutting Concerns**: Coordination with the MCP Apps WG where embedded UI surfaces present
+  their own file pickers, and with the Security WG on host-side validation requirements.
+- **Documentation**: Specification sections covering file input declaration and a migration guide
+  for servers currently using ad-hoc base64 instructions.
+
+### Out of Scope
+
+- Server-to-client file delivery, which is already covered by Resources and `BlobResourceContents`.
+- Changes to the transport layer or session model.
+
+The WG may evaluate approaches such as streaming, chunked transfer, or presigned upload URLs as part
+of its design work; whether those land in the initial SEP or a follow-up is a WG decision rather
+than a charter constraint.
+
+### Related Groups
+
+- **MCP Apps WG** — embedded app UIs may surface their own file pickers; the descriptor format
+  should be reusable in that context.
+- **Security WG** — host-side validation requirements for user-supplied file content (the SEP
+  references [OWASP ASVS V5](https://owasp.org/www-project-application-security-verification-standard/)
+  for general upload hygiene).
+- **Tool Annotations IG** — file input descriptors are a form of input-parameter metadata and should
+  remain consistent with the broader annotation taxonomy.
+
+## Leadership
+
+| Role | Name           | Organization | GitHub                                   | Term    |
+| ---- | -------------- | ------------ | ---------------------------------------- | ------- |
+| Lead | Den Delimarsky | Anthropic    | [@localden](https://github.com/localden) | Initial |
+
+Sponsored by Den Delimarsky ([@localden](https://github.com/localden)) and Nick Cooper
+([@nickcoai](https://github.com/nickcoai)).
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name           | Organization | GitHub                                   | Discord | Level     |
+| -------------- | ------------ | ---------------------------------------- | ------- | --------- |
+| Den Delimarsky | Anthropic    | [@localden](https://github.com/localden) |         | Lead      |
+| Nick Cooper    | OpenAI       | [@nickcoai](https://github.com/nickcoai) |         | WG Member |
+| Olivier Chafik | Anthropic    | [@ochafik](https://github.com/ochafik)   |         | WG Member |
+
+## Operations
+
+| Meeting         | Frequency | Duration | Purpose                               |
+| --------------- | --------- | -------- | ------------------------------------- |
+| Working Session | Biweekly  | 30 min   | Technical discussion, proposal review |
+
+Discord: `#file-uploads-wg`
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                                                                                        | Status | Target Date | Champion                               |
+| ----------------------------------------------------------------------------------------------------------- | ------ | ----------- | -------------------------------------- |
+| [SEP-2356: Declarative file inputs](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356) | Draft  | End May     | [@ochafik](https://github.com/ochafik) |
+| TypeScript SDK reference implementation                                                                     | —      | End May     | [@ochafik](https://github.com/ochafik) |
+| Reference implementation in a second Tier-1 SDK                                                             | —      | End June    | TBD                                    |
+
+### Success Criteria
+
+- An accepted SEP defining the file input descriptor and wire encoding.
+- Reference implementations in at least two Tier-1 SDKs.
+- At least one production host rendering a native file picker from the descriptor.
+- Conformance test coverage for the new schema keyword.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-04-23 | Initial charter |

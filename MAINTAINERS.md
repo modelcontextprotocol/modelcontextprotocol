@@ -49,9 +49,10 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Go SDK
 
-- [Rob Findley](https://github.com/findleyr)
+- [Maciej Kisiel](https://github.com/maciej-kisiel)
+- [Yaroslav Shevchuk](https://github.com/yarolegovich)
+- [Guglielmo Colombo](https://github.com/guglielmo-san)
 - [Jonathan Amsterdam](https://github.com/jba)
-- [Sam Thanawalla](https://github.com/samthanawalla)
 
 ### C# SDK
 
