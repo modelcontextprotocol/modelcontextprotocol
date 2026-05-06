@@ -10,7 +10,7 @@
 
 ## Abstract
 
-This SEP defines an extension that allows a server respond to a `tools/call` request with an asynchronous _task handle_ instead of a final result, allowing the client to retrieve the eventual result by polling. The extension introduces three methods: `tasks/get`, `tasks/update`, and `tasks/cancel`; a polymorphic-result discriminator (`resultType: "task"`); and a `Task` shape that carries a task status, in-progress server-to-client requests, and a final result or error. Task creation is server-directed: the client signals support by including the extension in its per-request capabilities, and the server decides on a per-request basis whether to materialize a task.
+This SEP defines an extension that allows a server to respond to a `tools/call` request with an asynchronous _task handle_ instead of a final result, allowing the client to retrieve the eventual result by polling. The extension introduces three methods: `tasks/get`, `tasks/update`, and `tasks/cancel`; a polymorphic-result discriminator (`resultType: "task"`); and a `Task` shape that carries a task status, in-progress server-to-client requests, and a final result or error. Task creation is server-directed: the client signals support by including the extension in its per-request capabilities, and the server decides on a per-request basis whether to materialize a task.
 
 Tasks will become a foundational building block of MCP and are expected to be supported in future protocol versions. The experimental `tasks` feature in the `2025-11-25` specification served as a stopgap until the protocol's extension mechanism was available. Now that [extensions](https://modelcontextprotocol.io/extensions/overview) have been [formalized](./2133-extensions.md), moving tasks to an official extension gives the feature time to incubate and evolve based on additional real-world implementation feedback, without being constrained by the core specification's release cadence. Once the extension has stabilized and achieved broad adoption, it is intended to be promoted into the core protocol.
 
@@ -19,7 +19,8 @@ This proposal _removes_ the version of [tasks](https://modelcontextprotocol.io/s
 - [SEP-2260: Require Server requests to be associated with a Client request](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md)
 - [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
 - [SEP-2243: HTTP Header Standardization for Streamable HTTP Transport](./2243-http-standardization.md)
-- [SEP-2567: Sessionless MCP via Explicit State Handles](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567).
+- [SEP-2567: Sessionless MCP via Explicit State Handles](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567)
+- [SEP-2575: Make MCP Stateless](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575)
 
 ## Motivation
 
@@ -309,7 +310,9 @@ To prevent replay, servers **SHOULD** include the following inside the integrity
 - An identifier for the originating request, e.g. the method name and a digest of its salient parameters, rejecting state presented on a request that does not match.
 
 <Warning>
+
 Note that these measures bound the replay window and prevent cross-user and cross-task reuse, but do not by themselves guarantee isolation. Servers for which a given `requestState` must be consumed at most once (e.g., one-time redemptions) **MUST** enforce that invariant server-side.
+
 </Warning>
 
 Servers **MAY** return a different `requestState` value on each task-bearing message (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`); clients **MUST** always use the most recently received value in their next request. If the most recent task-bearing message contained no `requestState`, the client **MUST NOT** include it in the next request. However, because multiple `tasks/get` requests or `notifications/tasks/status` notifications may be in flight concurrently, the value a client tracks as "most recently received" reflects client-side arrival order, which may differ from server-side generation order. Servers **MUST** therefore accept any `requestState` value they have previously issued for a given task, not only the most recent one, and **MUST NOT** use `requestState` rotation as a correctness mechanism (e.g. sequence enforcement). `UpdateTaskResult` and `CancelTaskResult` are empty acknowledgements and do not carry `requestState`, so the server cannot rotate state through write operations — the next `tasks/get` after an update will necessarily echo the pre-update value.
@@ -334,8 +337,6 @@ A server returns `CreateTaskResult` in lieu of the standard result shape for a r
 // resultType: "task"
 type CreateTaskResult = Result & Task;
 ```
-
-Note that `CreateTaskResult` _does not_ contain `result`/`error`/`inputRequests`. Client implementations **MUST NOT** use these fields if they are found on `CreateTaskResult`, and **MAY** handle this as an invalid protocol response.
 
 **Example Request (CallToolRequest):**
 
