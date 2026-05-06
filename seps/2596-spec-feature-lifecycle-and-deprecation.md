@@ -51,9 +51,9 @@ proposes those mechanics.
 
 This policy governs **features** of the MCP core specification: protocol messages, capabilities,
 transports, schema types, and normative behavioral requirements. It does not govern the
-independent lifecycle of SDK-specific APIs, registry policies, extensions (which are versioned
-independently per [SEP-2133][sep-2133]), or the revision lifecycle of the specification document
-itself (Draft, Current, Final), which is defined in the [versioning guide][versioning].
+independent lifecycle of SDK-specific APIs, registry policies, or the revision lifecycle of the
+specification document itself (Draft, Current, Final), which is defined in the [versioning
+guide][versioning].
 
 Note that "Final" is used in two senses in this document: a specification _revision_ is Final when
 superseded by a later one (per the versioning guide), and a _SEP_ reaches Final when its status
@@ -67,7 +67,7 @@ A specification feature is in exactly one of three states:
 | State          | Meaning                                                                                                                                                       | Implementer expectation                                                                                                     |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | **Active**     | The feature is part of the Current specification revision with no planned removal.                                                                            | Implement per the feature's normative requirements.                                                                         |
-| **Deprecated** | The feature remains in the specification but is scheduled for removal. A migration path is documented (see below).                                                        | New implementations SHOULD NOT adopt the feature. Existing implementations SHOULD migrate before the earliest removal date. |
+| **Deprecated** | The feature remains in the specification but is scheduled for removal. A migration path is documented (see below).                                            | New implementations SHOULD NOT adopt the feature. Existing implementations SHOULD migrate before the earliest removal date. |
 | **Removed**    | The feature has been deleted from `draft` and will be absent from the next Current revision. It remains documented in the Final revision it last appeared in. | Implementations targeting that next Current revision MUST NOT depend on the feature.                                        |
 
 The term "soft-deprecated" is retired. Existing uses in the specification are reclassified as
@@ -95,11 +95,8 @@ guidelines][sep-guidelines]. The deprecation SEP MUST:
 2. State the rationale against the criteria above.
 3. Document the migration path, or state explicitly that none is required. If the migration path
    names a replacement feature, that feature MUST already be Active in a specification revision
-   that has been released as Current. Where the migration path leads outside the core
-   specification, the equivalent bar applies: for an extension under [SEP-2133][sep-2133], its
-   Extensions Track SEP MUST have reached Final and the extension MUST be published in an `ext-*`
-   (not `experimental-ext-*`) repository; for an SDK convention, it MUST have a reference implementation available in a stable release of a single Tier 1 SDK and have a corresponding conformance test. A feature is not deprecated under this policy while its documented
-   replacement is still pending.
+   that has been released as Current. A feature is not deprecated under this policy while its
+   documented replacement is still pending.
 4. Specify the **earliest removal date**: a calendar date (`YYYY-MM-DD`) on or after which the
    feature may be removed. This date MUST be at least twelve months after the date the deprecation
    SEP reaches Final and MAY be adjusted before Final to maintain that floor. The feature is
@@ -136,9 +133,7 @@ The removal SEP MUST:
 3. Confirm that the migration target named in the deprecation SEP, if any, remains Active in the
    revision from which removal is proposed. (It was Active when the deprecation landed per
    [Deprecating a feature](#deprecating-a-feature); this re-checks that it has not itself been
-   deprecated in the interim.) Where the migration target is outside the core specification,
-   confirm instead that it still meets the bar in item 3 of [Deprecating a
-   feature](#deprecating-a-feature).
+   deprecated in the interim.)
 4. Confirm that all Tier 1 SDKs (per [SEP-1730][sep-1730]) have shipped a stable release in which a
    user can complete the documented migration without depending on the deprecated feature. This
    does not require the SDK to have removed the feature; it requires the replacement (or the
@@ -154,22 +149,6 @@ earliest removal date remain as the planning signal even if removal is deferred.
 When the removal SEP reaches Final, the feature is deleted from `schema/draft/schema.ts` (where
 present) and the draft specification prose, and `changelog.mdx` gains an entry under the "Removed"
 heading that links to both SEPs and the last Final revision in which the feature was present.
-
-### Relocating a feature to an extension
-
-A feature that sees low usage in core but remains valuable to some implementers MAY be relocated to
-an optional extension under [SEP-2133][sep-2133] rather than retired outright. Relocation follows
-the same two-SEP procedure:
-
-- The deprecation SEP names the extension as the migration target. Per item 3 of [Deprecating a
-  feature](#deprecating-a-feature), the extension's Extensions Track SEP MUST have reached Final
-  and the extension MUST be published in an `ext-*` repository before the deprecation lands.
-- The removal SEP deletes the feature from core. The changelog entry under "Removed" records the
-  relocation and links the extension so that implementations that still need the feature can
-  obtain it there.
-
-This is the expected path for the cases in [Motivation](#motivation) where surface area is moved
-out of core rather than abandoned, such as [SEP-2577][sep-2577].
 
 ### Expedited removal
 
@@ -329,7 +308,6 @@ That pull request serves as the running-code validation before this SEP advances
 [sep-guidelines]: https://modelcontextprotocol.io/community/sep-guidelines
 [governance-decisions]: https://modelcontextprotocol.io/community/governance#decision-process
 [sep-1730]: https://modelcontextprotocol.io/seps/1730-sdks-tiering-system
-[sep-2133]: https://modelcontextprotocol.io/seps/2133-extensions
 [sep-1400]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1400
 [issue-1540]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1540
 [sep-2577]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577
