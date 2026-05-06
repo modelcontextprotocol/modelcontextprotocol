@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes adding an optional `ttl` (time-to-live) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and poll on a predictable schedule, reducing reliance on server-push `list_changed` notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
+This SEP proposes adding an optional `ttl` (time-to-live) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and reduce reliance on server-push notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
 
 ## Motivation
 
