@@ -507,6 +507,8 @@ On success, the server **MUST** acknowledge the request with an empty result. Se
 
 Cancellation is **cooperative**: The request signals intent, and the server decides whether and when to honor it. A server is not obligated to actually stop the work; it is only obligated to acknowledge the request. Eventual transition to `cancelled` is not guaranteed.
 
+Clients **MAY** delete all state associated with the task as soon as they send a cancellation (e.g., it no longer needs to retain the most recent `requestState` value or the list of `inputRequests` keys that it has already responded to). The client does not need to poll `tasks/get` again to wait for the task to reach the `cancelled` state.
+
 The `resultType` field **MUST** be set to `"complete"` on `CancelTaskResult` as it is the standard result shape for the `tasks/cancel` request.
 
 ### Task Status Notifications
