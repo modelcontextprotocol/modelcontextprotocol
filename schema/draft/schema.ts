@@ -924,7 +924,14 @@ export interface PaginatedResult extends Result {
    * If present, there may be more results available.
    */
   nextCursor?: Cursor;
+}
 
+/**
+ * A result that supports a time-to-live (TTL) hint for client-side caching.
+ *
+ * @internal
+ */
+export interface TTLResult extends Result {
   /**
    * An optional hint from the server indicating how long (in seconds) the client MAY
    * cache this response before re-fetching. Semantics are analogous to HTTP
@@ -932,11 +939,12 @@ export interface PaginatedResult extends Result {
    *
    * - If absent, the client has no server-provided freshness guidance and SHOULD rely on
    *   notifications or its own heuristics.
-   * - If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT
+   * - If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT
    *   serve a cached copy.
-   * - If positive, the client SHOULD consider the list fresh for this many seconds after
+   * - If positive, the client SHOULD consider the result fresh for this many seconds after
    *   receiving the response. The client SHOULD NOT re-fetch before the TTL expires
-   *   unless it receives a `list_changed` notification.
+   *   unless it receives a relevant notification (e.g., `list_changed` or
+   *   `notifications/resources/updated`).
    */
   ttl?: number;
 }
@@ -962,7 +970,7 @@ export interface ListResourcesRequest extends PaginatedRequest {
  *
  * @category `resources/list`
  */
-export interface ListResourcesResult extends PaginatedResult {
+export interface ListResourcesResult extends PaginatedResult, TTLResult {
   resources: Resource[];
 }
 
@@ -998,7 +1006,8 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResult extends PaginatedResult {
+export interface ListResourceTemplatesResult
+  extends PaginatedResult, TTLResult {
   resourceTemplates: ResourceTemplate[];
 }
 
@@ -1055,9 +1064,12 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  * @example File resource contents
  * {@includeCode ./examples/ReadResourceResult/file-resource-contents.json}
  *
+ * @example File resource contents with TTL
+ * {@includeCode ./examples/ReadResourceResult/file-resource-contents-with-ttl.json}
+ *
  * @category `resources/read`
  */
-export interface ReadResourceResult extends Result {
+export interface ReadResourceResult extends TTLResult {
   contents: (TextResourceContents | BlobResourceContents)[];
 }
 
@@ -1066,6 +1078,9 @@ export interface ReadResourceResult extends Result {
  *
  * @example Read resource result response
  * {@includeCode ./examples/ReadResourceResultResponse/read-resource-result-response.json}
+ *
+ * @example Read resource result response with TTL
+ * {@includeCode ./examples/ReadResourceResultResponse/read-resource-result-response-with-ttl.json}
  *
  * @category `resources/read`
  */
@@ -1330,7 +1345,7 @@ export interface ListPromptsRequest extends PaginatedRequest {
  *
  * @category `prompts/list`
  */
-export interface ListPromptsResult extends PaginatedResult {
+export interface ListPromptsResult extends PaginatedResult, TTLResult {
   prompts: Prompt[];
 }
 
@@ -1531,7 +1546,7 @@ export interface ListToolsRequest extends PaginatedRequest {
  *
  * @category `tools/list`
  */
-export interface ListToolsResult extends PaginatedResult {
+export interface ListToolsResult extends PaginatedResult, TTLResult {
   tools: Tool[];
 }
 

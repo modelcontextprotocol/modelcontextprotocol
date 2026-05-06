@@ -1,6 +1,6 @@
 # SEP-2549: TTL for List Results
 
-- **Status**: Draft
+- **Status**: Accepted with Changes
 - **Type**: Standards Track
 - **Created**: 2026-04-09
 - **Author(s)**: Caitie McCaffrey (@CaitieM20)
@@ -9,11 +9,20 @@
 
 ## Abstract
 
-This SEP proposes adding an optional `ttl` (time-to-live) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and poll on a predictable schedule, reducing reliance on server-push `list_changed` notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
+This SEP proposes adding an optional `ttl` (time-to-live) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and poll on a predictable schedule, reducing reliance on server-push `list_changed` notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
 
 ## Motivation
 
-Today, MCP clients discover server features by calling `tools/list`, `prompts/list`, `resources/list`, and `resources/templates/list`. These calls return the current set of features. To learn about changes, clients rely on `notifications/tools/list_changed`, `notifications/prompts/list_changed`, and `notifications/resources/list_changed` push notifications from the server.
+Today, MCP clients discover server features by invoking methods on the server. These calls return the current set of features. To learn about changes, clients rely on push notifications from the server. The below table maps the Server Method to Notification Type. 
+
+| Server Methods | Notification Type |
+|--------------- |-------------------|
+| `tools/list`   | `notifications/tools/list_changed` |
+| `prompts/list` | `notifications/prompts/list_changed` |
+| `resources/list` | `notifications/resources/list_changed` |
+| `resources/templates/list` | `notifications/resources/list_changed` |
+| `resources/read` | `notifications/resources/updated` |
+
 
 This approach has several limitations:
 
@@ -29,21 +38,19 @@ Adding a TTL field to list responses solves all of these problems with a minimal
 
 ## Specification
 
-### New field: `ttl`
+### New interface: `TTLResult`
 
-An optional `ttl` field is added to the base `PaginatedResult` interface. Because `ListToolsResult`, `ListPromptsResult`, `ListResourcesResult`, and `ListResourceTemplatesResult` all extend `PaginatedResult`, the field is inherited by all four list result types.
+A new `TTLResult` interface is introduced as a standalone type extending `Result`. It owns the `ttl` field.
 
 #### Schema change (TypeScript)
 
 ```typescript
-/** @internal */
-export interface PaginatedResult extends Result {
-  /**
-   * An opaque token representing the pagination position after the last
-   * returned result. If present, there may be more results available.
-   */
-  nextCursor?: Cursor;
-
+/**
+ * A result that supports a time-to-live (TTL) hint for client-side caching.
+ *
+ * @internal
+ */
+export interface TTLResult extends Result {
   /**
    * An optional hint from the server indicating how long (in seconds) the
    * client MAY cache this response before re-fetching. Semantics are
@@ -51,15 +58,16 @@ export interface PaginatedResult extends Result {
    *
    * - If absent, the client has no server-provided freshness guidance and
    *   SHOULD rely on notifications or its own heuristics.
-   * - If 0, the client SHOULD re-fetch every time the list is needed and
+   * - If 0, the client SHOULD re-fetch every time the result is needed and
    *   SHOULD NOT serve a cached copy.
-   * - If positive, the client SHOULD consider the list fresh for this many
+   * - If positive, the client SHOULD consider the result fresh for this many
    *   seconds after receiving the response. The client SHOULD NOT re-fetch
-   *   before the TTL expires unless it receives a list_changed notification.
+   *   before the TTL expires unless it receives a relevant notification
+   *   (e.g., `list_changed` or `notifications/resources/updated`).
    */
   ttl?: number;
 }
-```
+
 
 > **Open Question — TTL format**: An alternative representation is an ISO 8601 duration string (e.g., `"PT5M"` for 5 minutes). Integer seconds are simpler, consistent with HTTP `max-age`, and easier to compare arithmetically. ISO 8601 durations are more human-readable and used in some Azure/AWS APIs. Community input is welcome on which format to adopt. The remainder of this specification uses integer seconds for illustration.
 
@@ -67,10 +75,10 @@ export interface PaginatedResult extends Result {
 
 | Condition                                                    | Client behavior                                                                                      |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `ttl` absent                                                 | No freshness hint. Client SHOULD rely on `list_changed` notifications or poll at its own discretion. |
-| `ttl` = 0                                                    | Do not cache. Client SHOULD re-fetch every time the list is needed.                                  |
+| `ttl` absent                                                 | No freshness hint. Client SHOULD rely on `list_changed` / `resources/updated` notifications or poll at its own discretion. |
+| `ttl` = 0                                                    | Do not cache. Client SHOULD re-fetch every time the result is needed.                                |
 | `ttl` > 0                                                    | Client SHOULD consider the response fresh for `ttl` seconds from receipt. Client SHOULD NOT re-fetch before the TTL expires. |
-| `list_changed` notification received while TTL is active     | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL. |
+| Relevant notification received while TTL is active           | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL. |
 
 #### Freshness calculation
 
@@ -80,9 +88,8 @@ Clients SHOULD NOT treat TTL as a polling interval that triggers automatic backg
 
 Clients MAY re-fetch if they have reason to believe the data has changed, even if the TTL has not yet expired. Examples include receiving an unexpected error on a tool call indicating that the the method was not found or the parameters were invalid.
 
-### Interaction with `list_changed` notifications
-
-TTL and `list_changed` notifications are complementary:
+### Interaction with notifications
+TTL and server-push notifications (`list_changed`, `notifications/resources/updated`) are complementary:
 
 - A server MAY provide `ttl` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
 - A server MAY advertise `listChanged: true` **and** provide `ttl`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
@@ -130,12 +137,6 @@ No new capability flag is needed. The `ttl` field is optional on the response ob
 - Clients MUST NOT treat a missing `ttl` as an implicit TTL of 0 or any other value.
 
 ## Rationale
-
-### Why add TTL to `PaginatedResult` rather than each result type individually?
-
-All four list result types extend `PaginatedResult`. Adding the field there avoids repetition and ensures any future list result types also inherit TTL support. This is consistent with how `nextCursor` is already defined.
-
-`ListTasksResult` also inherits from `PaginatedResult`, but in the move to stateless transports this feature will be removed. So for simplicity we are adding it to `PaginatedResult` now and will remove it from `ListTaskResult` in a future SEP.
 
 ### Why not replace `list_changed` notifications?
 

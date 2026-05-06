@@ -1934,7 +1934,7 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the list fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a `list_changed` notification.",
+                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
                     "type": "integer"
                 }
             },
@@ -2006,7 +2006,7 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the list fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a `list_changed` notification.",
+                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
                     "type": "integer"
                 }
             },
@@ -2078,7 +2078,7 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the list fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a `list_changed` notification.",
+                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
                     "type": "integer"
                 }
             },
@@ -2212,10 +2212,6 @@
                         "$ref": "#/$defs/Task"
                     },
                     "type": "array"
-                },
-                "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the list fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a `list_changed` notification.",
-                    "type": "integer"
                 }
             },
             "required": [
@@ -2286,7 +2282,7 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the list fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a `list_changed` notification.",
+                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
                     "type": "integer"
                 }
             },
@@ -2551,10 +2547,6 @@
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
-                },
-                "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the list is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the list fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a `list_changed` notification.",
-                    "type": "integer"
                 }
             },
             "type": "object"
@@ -2897,6 +2889,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "ttl": {
+                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
+                    "type": "integer"
                 }
             },
             "required": [
@@ -3737,6 +3733,19 @@
                 "jsonrpc",
                 "result"
             ],
+            "type": "object"
+        },
+        "TTLResult": {
+            "description": "A result that supports a time-to-live (TTL) hint for client-side caching.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "ttl": {
+                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
+                    "type": "integer"
+                }
+            },
             "type": "object"
         },
         "Task": {
