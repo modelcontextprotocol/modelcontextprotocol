@@ -525,6 +525,60 @@ export interface TaskStatusNotification extends JSONRPCNotification {
 }
 ```
 
+To begin listening for task status notifications, clients send a `subscriptions/listen` request to the server including a list of task IDs the client is interested in (see [SEP-2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575)):
+
+```typescript
+export interface SubscriptionsListenRequest extends Request {
+  method: "subscriptions/listen";
+  params: {
+    // Other existing fields...
+    notifications: {
+      tasksStatus?: string[];
+      // Other existing fields...
+    };
+  };
+}
+```
+
+In its acknowledgement notification, the server includes the list of task IDs it has agreed to send task status notifications for, if any:
+
+```typescript
+export interface SubscriptionsAcknowledgedNotification extends Notification {
+  method: "notifications/subscriptions/acknowledged";
+  params: {
+    notifications: {
+      /**
+       * Subscribe to notifications/tasks/status for specific task IDs.
+       */
+      tasksStatus?: string[];
+      // Other existing fields...
+    };
+  };
+}
+```
+
+If a client requests task status notifications but does not declare the `io.modelcontextprotocol/tasks` extension capability, the server **MUST** return a JSON-RPC error specifying the missing capabilities:
+
+```jsonl
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "error": {
+    // MISSING_REQUIRED_CLIENT_CAPABILITY
+    "code": -32003,
+    // Message provided for example purposes only. The content of this example message is non-normative.
+    "message": "Missing required client capability",
+    "data": {
+      "requiredCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}
+```
+
 Each notification carries a complete `DetailedTask` for the current status, identical to what `tasks/get` would have returned at that moment.
 
 **Notification:**
@@ -556,8 +610,6 @@ Each notification carries a complete `DetailedTask` for the current status, iden
 The notification includes the full task object, allowing clients to access the complete task state and final results without making an additional `tasks/get` request.
 
 Clients **MUST NOT** rely on receiving this notification, and **SHOULD** continue to poll via `tasks/get` to ensure they receive status updates.
-
-In the Streamable HTTP transport, if a server sends this notification, it **MUST** send it on an SSE stream associated with a `tasks/get` request.
 
 ### Streamable HTTP: Routing Headers
 
