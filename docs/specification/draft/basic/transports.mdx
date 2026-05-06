@@ -22,6 +22,12 @@ It is also possible for clients and servers to implement
 In the **stdio** transport:
 
 - The client launches the MCP server as a subprocess.
+- The server process **SHOULD** have approximately the same lifetime as the host
+  application instance that launched it.
+- Clients **SHOULD NOT** use an individual task, thread, or conversation as the default
+  lifetime boundary for the server process.
+- While the server process remains connected to the host application, it **SHOULD** be
+  prepared to handle requests associated with multiple tasks, threads, or conversations.
 - The server reads JSON-RPC messages from its standard input (`stdin`) and sends messages
   to its standard output (`stdout`).
 - Messages are individual JSON-RPC requests, notifications, or responses.
