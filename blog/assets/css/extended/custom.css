@@ -1,3 +1,380 @@
+/* ─── Color tokens ───────────────────────────────────────────────────────── */
+/* --link is the one brand accent. indigo-600 light / indigo-400 dark both
+   clear WCAG AA against the theme background. PaperMod renders prose links
+   with `box-shadow: 0 1px 0` in currentColor, which is invisible when link
+   text matches body text — this gives them a distinguishable hue. */
+:root {
+    --link: #4f46e5;
+    --hairline: rgba(112, 112, 112, 0.08);
+}
+
+.dark {
+    --link: #818cf8;
+    --hairline: rgba(206, 206, 206, 0.08);
+}
+
+/* ─── Links ──────────────────────────────────────────────────────────────── */
+.post-content a {
+    color: var(--link);
+}
+
+.post-content a code {
+    color: var(--link);
+    box-shadow: 0 -1px 0 var(--link) inset;
+}
+
+/* ─── Keyboard focus ─────────────────────────────────────────────────────── */
+/* PaperMod zeroes outlines on #theme-toggle, .top-link, input, textarea with
+   no replacement. :focus-visible keeps mouse clicks ring-free while giving
+   keyboard/switch users a visible indicator. */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 2px;
+    transition: outline-offset 0.1s ease-out;
+}
+
+#theme-toggle:focus-visible,
+.top-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+/* ─── Search box ─────────────────────────────────────────────────────────── */
+/* Match the docs site's search affordance: 1px ~30% gray ring, 36px tall,
+   12px radius, 14px text, normal weight. PaperMod's default is a thick
+   2px --tertiary border with bold text. Focus indicator is the border-color
+   shift alone — no outline ring, which would make the box appear to jump
+   size given it's already 100% width. */
+#searchbox input {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: normal;
+    background: var(--theme);
+    border: 1px solid rgba(112, 112, 112, 0.3);
+    border-radius: 12px;
+    transition: border-color 0.15s ease;
+}
+
+#searchbox input::placeholder {
+    color: var(--secondary);
+}
+
+#searchbox input:focus,
+#searchbox input:focus-visible {
+    outline: none;
+    border-color: rgba(112, 112, 112, 0.5);
+    border-radius: 12px;
+}
+
+.dark #searchbox input {
+    border-color: rgba(206, 206, 206, 0.2);
+}
+
+.dark #searchbox input:focus,
+.dark #searchbox input:focus-visible {
+    border-color: rgba(206, 206, 206, 0.4);
+}
+
+/* ─── Skip link ──────────────────────────────────────────────────────────── */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 8px;
+    z-index: 100;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: var(--theme);
+    border-radius: 4px;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 8px;
+}
+
+/* ─── Homepage intro card ────────────────────────────────────────────────── */
+/* PaperMod forces min-height: 320px regardless of content. With a two-line
+   intro that is ~240px of dead scroll before the first post card on mobile. */
+.first-entry {
+    min-height: auto;
+}
+
+/* ─── Reading rhythm ─────────────────────────────────────────────────────── */
+.post-content {
+    line-height: 1.7;
+}
+
+.post-content h2 {
+    margin-top: 56px;
+}
+
+.post-content h3 {
+    margin-top: 40px;
+}
+
+.post-title {
+    letter-spacing: -0.02em;
+    margin-bottom: 0;
+}
+
+/* PaperMod's spacing in the post header is uneven: title→description is 12px
+   (margin-bottom:2px + margin-top:10px), description→meta is 5px, meta→content
+   is --content-gap (20px). Normalize the intra-header gaps to the same 20px. */
+.post-description {
+    margin: var(--content-gap) 0 0;
+}
+
+.post-header .post-meta {
+    margin-top: var(--content-gap);
+}
+
+/* PaperMod's .toc has margin: 0 2px 40px 2px — zero top (so byline→TOC is
+   already --content-gap via .post-header's margin-bottom) but 40px bottom. */
+.toc {
+    margin-bottom: var(--content-gap);
+}
+
+/* PaperMod's .post-footer (the tags row) has margin-top: 56px. */
+.post-footer {
+    margin-top: var(--content-gap);
+}
+
+/* ─── Card hover ─────────────────────────────────────────────────────────── */
+@media (hover: hover) {
+    .post-entry {
+        transition: border-color 0.15s ease;
+    }
+
+    .post-entry:hover {
+        border-color: var(--primary);
+    }
+}
+
+/* ─── Archives page ──────────────────────────────────────────────────────── */
+.archive-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 7px;
+    margin-inline-start: 8px;
+    vertical-align: 3px;
+    font-size: 13px;
+    font-weight: normal;
+    font-variant-numeric: tabular-nums;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+/* ─── Post footer tags ───────────────────────────────────────────────────── */
+.post-tags a {
+    text-transform: lowercase;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+/* Match the docs site's framed layout: a hairline rule below the nav and
+   above the footer. modelcontextprotocol.io uses border-gray-500/5 on the
+   navbar and border-gray-100 on the footer — both nearly invisible until
+   you look for them. Nav link size/weight matches the docs site's
+   .nav-tabs (text-sm font-medium = 14px / 500). */
+.header {
+    border-bottom: 1px solid var(--hairline);
+}
+
+/* modelcontextprotocol.io displays its wordmark at h-7 (28px); the effective
+   letter cap-height inside that image is ~18px. PaperMod's default 24px
+   .logo a text reads one size louder than the docs header. */
+.logo a {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.logo a .logo-svg {
+    margin-inline-end: 8px;
+    vertical-align: -7px;
+}
+
+#menu a {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#menu a:hover {
+    color: var(--link);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+/* Shared treatment for the homepage "All posts" link and the list-page
+   paginator. PaperMod's default .pagination a is an inverted high-contrast
+   pill (bg:--primary, color:--theme) — restyle to match .paginav and the
+   tag chips. */
+.all-posts-link,
+.pagination a {
+    display: inline-block;
+    padding: 8px 16px;
+    color: var(--primary);
+    font-size: 14px;
+    line-height: inherit;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+    .all-posts-link:hover,
+    .pagination a:hover {
+        border-color: var(--primary);
+    }
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+/* PaperMod's .footer is max-width constrained to the content column. The
+   ::before rule escapes that box via the 100vw-centered trick so the
+   separator spans the full viewport like the header's does. */
+/* width:100% — same flex-item fix as .main below. PaperMod's margin:auto +
+   max-width shrinks to content as a flex item; explicit width restores the
+   block-flow "cap at max-width, center" behavior. */
+.footer {
+    position: relative;
+    padding-top: 24px;
+    width: 100%;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 1px;
+    background: var(--hairline);
+}
+
+/* PaperMod sets white-space:nowrap on .footer span:last-child for its short
+   "Powered by Hugo" line. Our copyright is two sentences — let it wrap.
+   Selector matches PaperMod's specificity (0,2,1) to actually override it. */
+.footer > span:last-child {
+    display: block;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.footer-nav {
+    margin-bottom: 8px;
+}
+
+.footer-nav a {
+    border-bottom: none;
+}
+
+.footer-nav a:hover {
+    color: var(--link);
+    border-bottom: none;
+}
+
+.footer-sep {
+    color: var(--border);
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+    /* "Model Context Protocol Blog" at 18px is ~216px of text. With the
+       glyph it's tight at phone widths, and .nav's flex-wrap means the
+       title can sit on its own line when the menu drops below — but the
+       title itself never wraps. Shrink it so both fit. */
+    .logo a {
+        font-size: 16px;
+    }
+
+    .logo a .logo-svg {
+        width: 24px;
+        height: 24px;
+        vertical-align: -6px;
+    }
+
+    /* .nav inherits the 60px desktop header-height as line-height. With three
+       stacked rows (logo, text nav, icons) that's 180px of header before any
+       padding. Tighten everything. */
+    .nav {
+        line-height: 40px;
+        padding-bottom: 8px;
+    }
+
+    /* PaperMod's #menu is white-space:nowrap + overflow-x:auto — a horizontal
+       scroller. With four nav items plus RSS/GitHub/LinkedIn icons plus the
+       theme toggle, it's wider than most phones. Let it wrap instead.
+       PaperMod spaces items with li+li margin-inline-start, which leaves the
+       visually-first item on a wrapped row indented — gap doesn't. */
+    #menu {
+        white-space: normal;
+        flex-wrap: wrap;
+        gap: 0 var(--gap);
+        overflow-x: visible;
+        line-height: 32px;
+    }
+
+    #menu li + li {
+        margin-inline-start: 0;
+    }
+
+    /* Text nav (Docs/Posts/Archives/Search) on one row, icon row below. */
+    .menu-break {
+        flex-basis: 100%;
+        height: 0;
+    }
+
+    /* Footer: eight links + separators wrap across 2–3 lines at phone width. */
+    .footer {
+        padding-top: 20px;
+    }
+
+    .footer-nav {
+        line-height: 2;
+        margin-bottom: 12px;
+    }
+}
+
+/* Hidden at desktop — icons sit inline after the text nav. */
+.menu-break {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    .menu-break {
+        display: block;
+    }
+}
+
+/* ─── Sticky footer layout ───────────────────────────────────────────────── */
+/* PaperMod sizes .main with calc(100vh - 60px - 60px), assuming a single-line
+   footer. Ours is taller (nav row, extra padding), so that calc overshoots
+   and forces a small scroll even when content fits the viewport. Flex column
+   on body lets the footer sit at the bottom regardless of its actual height.
+   100dvh avoids the mobile-address-bar jump; 100vh is the fallback. */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* .main has margin:auto + max-width. As a flex item, margin:auto makes it
+   shrink-to-fit then center (vs block flow where it just centers a capped
+   box). Explicit width:100% restores the block-flow behavior so pages like
+   /search/ don't start at placeholder-width and grow as results appear. */
+.main {
+    flex: 1;
+    min-height: auto;
+    width: 100%;
+}
+
+/* ─── Page chrome ────────────────────────────────────────────────────────── */
 /* Override list page background to white in light mode */
 .list {
     background: var(--theme);
@@ -16,4 +393,45 @@
 /* Prevent awkward wrapping in post metadata. See https://github.com/adityatelange/hugo-PaperMod/issues/1789 */
 .post-meta {
     display: block !important;
+}
+
+.post-description {
+    color: var(--secondary);
+    font-style: italic;
+}
+
+/* Split prev/next post nav into two separate buttons (PaperMod joins them in one box) */
+/* Match the 10px margin-bottom that .post-footer > * puts between the tags
+   row and these buttons, so the prev/next pair sits on the same grid. */
+.paginav {
+    background: none;
+    border: none;
+    gap: 10px;
+}
+
+.paginav a {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    overflow: hidden;
+}
+
+.paginav a > span:not(.title) {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* PaperMod uses box-shadow as a fake underline, which runs the full width of
+   our now-block-level span. Swap to text-decoration so it tracks the text. */
+.paginav span:hover:not(.title) {
+    box-shadow: none;
+    text-decoration: underline;
+}
+
+#menu a.menu-icon {
+    display: flex;
+    align-items: center;
+    height: 100%;
 }

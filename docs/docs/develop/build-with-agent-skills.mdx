@@ -1,0 +1,107 @@
+---
+title: "Build with Agent Skills"
+description: "Use agent skills to guide AI coding assistants through MCP server design and implementation"
+---
+
+[Agent skills](https://agentskills.io/home) are portable instruction sets that
+give AI coding assistants domain knowledge for a task. For MCP development,
+they encode the design decisions (deployment model, tool patterns, auth) so
+your agent can interrogate your use case and scaffold a server that fits.
+
+## Available skills
+
+A reference set of MCP development skills is available as the
+[`mcp-server-dev` plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev).
+It provides three composing skills:
+
+| Skill              | Purpose                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `build-mcp-server` | Entry point. Interrogates the use case, picks a deployment model and tool-design pattern, routes to specialized skills. |
+| `build-mcp-app`    | Adds interactive UI widgets (forms, pickers, dashboards) rendered inline in chat.                                       |
+| `build-mcpb`       | Packages a local stdio server with its runtime so users can install it without Node or Python.                          |
+
+Each skill ships a `SKILL.md` file plus a `references/` folder of supporting
+material (auth flows, tool-design patterns, widget templates, manifest schemas)
+that the agent reads on demand. The files follow the open format and work with
+any agent that implements the standard. For example, to install them in Claude
+Code:
+
+```bash
+/plugin marketplace add anthropics/claude-plugins-official
+/plugin install mcp-server-dev
+```
+
+For other agents, check your skills or extensions catalog, or clone the
+[skill directories](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev/skills)
+(`SKILL.md` plus `references/`) into your agent's skills location.
+
+## Start a build
+
+With the skills installed, ask your agent to help you build an MCP server. The
+entry skill triggers on natural-language requests, or you can invoke it
+directly using your agent's skill-invocation syntax.
+
+The skill runs a short discovery phase before writing any code. Expect
+questions about:
+
+- **What it connects to** — a cloud API, a local process, the filesystem, hardware
+- **Who will use it** — just you, your team, or anyone who installs it
+- **Action surface size** — a handful of operations versus wrapping a large API
+- **User interaction needs** — plain text results, structured input via
+  [elicitation](/specification/draft/client/elicitation), or rich UI widgets
+- **Upstream auth** — API keys, OAuth 2.0, or none
+
+If your opening message already covers these, the agent skips ahead to the
+recommendation.
+
+## Deployment paths
+
+Based on discovery, the skill recommends one of four paths and scaffolds
+accordingly:
+
+**Remote [Streamable HTTP](/specification/draft/basic/transports#streamable-http)**
+is the default for anything wrapping a cloud API. Zero install friction, one
+deployment serves all users, and OAuth flows work properly because the server
+can handle redirects and token storage. The reference skill includes scaffolds
+for Cloudflare Workers and portable Express/FastMCP setups.
+
+**[MCP apps](/extensions/apps/overview)** extend a server with interactive
+widgets rendered in chat, such as searchable pickers, charts, and live
+dashboards. The skill hands off to `build-mcp-app` when
+[elicitation's](/specification/draft/client/elicitation) flat-form constraints
+don't fit.
+
+**[MCP Bundles (MCPB)](https://github.com/modelcontextprotocol/mcpb)** package a
+local server together with its runtime as a single `.mcpb` archive, so users
+can install it without setting up Node or Python. Use this path when the server
+must touch the user's machine: reading local files, driving desktop apps, or
+talking to localhost services. The skill hands off to `build-mcpb`.
+
+**Local [stdio](/specification/draft/basic/transports#stdio)** remains available
+for prototyping, with a noted upgrade path to MCPB when you're ready to
+distribute.
+
+## Next steps
+
+Once your agent scaffolds the server, iterate on tool descriptions and error
+handling, then test and ship:
+
+<CardGroup cols={2}>
+  <Card
+    title="MCP Inspector"
+    icon="magnifying-glass"
+    href="/docs/tools/inspector"
+  >
+    Test your server's tools, resources, and prompts interactively
+  </Card>
+  <Card
+    title="Connect to a client"
+    icon="plug"
+    href="/docs/develop/connect-local-servers"
+  >
+    Wire your server into an MCP client via local or remote configuration
+  </Card>
+  <Card title="Publish to the Registry" icon="box" href="/registry/quickstart">
+    Make your server discoverable in the MCP Registry
+  </Card>
+</CardGroup>

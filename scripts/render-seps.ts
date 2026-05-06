@@ -6,7 +6,7 @@
  * 1. Reads all SEP markdown files from the seps/ directory
  * 2. Parses their metadata (title, status, type, authors, etc.)
  * 3. Generates an index page with a tabular overview
- * 4. Generates individual MDX files for each SEP in docs/community/seps/
+ * 4. Generates individual MDX files for each SEP in docs/seps/
  *
  * Usage: npx tsx scripts/render-seps.ts [--check]
  *   --check: Verify generated files are up to date (exit 1 if not)
@@ -14,10 +14,12 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
+
+const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const SEPS_DIR = path.join(__dirname, "..", "seps");
-const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "community", "seps");
+const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "seps");
 const DOCS_JSON_PATH = path.join(__dirname, "..", "docs", "docs.json");
 
 interface SEPMetadata {
@@ -38,18 +40,14 @@ interface SEPMetadata {
  * Parse SEP metadata from markdown content
  */
 function parseSEPMetadata(content: string, filename: string): SEPMetadata | null {
-  // Skip template and README files
-  if (filename === "TEMPLATE.md" || filename === "README.md") {
+  // Skip template, README, and 0000- placeholder drafts
+  if (filename === "TEMPLATE.md" || filename === "README.md" || filename.startsWith("0000-")) {
     return null;
   }
 
   // Extract SEP number and slug from filename (e.g., "1850-pr-based-sep-workflow.md")
   const filenameMatch = filename.match(/^(\d+)-(.+)\.md$/);
   if (!filenameMatch) {
-    // Skip files that don't match SEP naming convention (like 0000-*.md drafts)
-    if (filename.match(/^0000-/)) {
-      return null;
-    }
     console.warn(`Warning: Skipping ${filename} - doesn't match SEP naming convention`);
     return null;
   }
@@ -179,7 +177,7 @@ function generateIndexPage(seps: SEPMetadata[]): string {
   const tableRows = sortedSeps
     .map((sep) => {
       const statusBadge = `<Badge color="${getStatusBadgeColor(sep.status)}" shape="pill">${sep.status}</Badge>`;
-      return `| [SEP-${sep.number}](/community/seps/${sep.number}-${sep.slug}) | ${sep.title} | ${statusBadge} | ${sep.type} | ${sep.created} |`;
+      return `| [SEP-${sep.number}](/seps/${sep.number}-${sep.slug}) | ${sep.title} | ${statusBadge} | ${sep.type} | ${sep.created} |`;
     })
     .join("\n");
 
@@ -253,8 +251,10 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
   const statusOrder = ["Final", "Accepted", "In-Review", "Draft", "Withdrawn", "Rejected", "Superseded", "Dormant"];
 
   for (const sep of seps) {
-    // Normalize status to title case
-    const status = sep.status.charAt(0).toUpperCase() + sep.status.slice(1).toLowerCase();
+    // Normalize status to title case (handling hyphenated statuses like "In-Review")
+    const status = sep.status.split('-').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join('-');
     if (!groups[status]) {
       groups[status] = [];
     }
@@ -284,7 +284,7 @@ function groupSepsByStatus(seps: SEPMetadata[]): Record<string, SEPMetadata[]> {
 }
 
 /**
- * Update docs.json to include SEPs in navigation, grouped by status
+ * Update docs.json to include SEPs as a top-level tab, grouped by status
  */
 function updateDocsJson(seps: SEPMetadata[]): string {
   const docsJson = JSON.parse(fs.readFileSync(DOCS_JSON_PATH, "utf-8"));
@@ -298,7 +298,7 @@ function updateDocsJson(seps: SEPMetadata[]): string {
   for (const [status, statusSeps] of Object.entries(groupedSeps)) {
     if (statusSeps.length === 0) continue;
 
-    const pages = statusSeps.map((sep) => `community/seps/${sep.number}-${sep.slug}`);
+    const pages = statusSeps.map((sep) => `seps/${sep.number}-${sep.slug}`);
 
     sepSubgroups.push({
       group: status,
@@ -306,24 +306,31 @@ function updateDocsJson(seps: SEPMetadata[]): string {
     });
   }
 
-  // Find the Community tab and add/update SEPs group
+  const sepsTab = {
+    tab: "SEPs",
+    pages: ["seps/index", ...sepSubgroups],
+  };
+
+  // Remove any legacy SEPs group from the Community tab
   const communityTab = docsJson.navigation.tabs.find((tab: { tab: string }) => tab.tab === "Community");
   if (communityTab) {
-    // Check if SEPs group already exists
-    const sepsGroupIndex = communityTab.pages.findIndex(
-      (item: { group?: string } | string) => typeof item === "object" && item.group === "SEPs"
+    communityTab.pages = communityTab.pages.filter(
+      (item: { group?: string } | string) => !(typeof item === "object" && item.group === "SEPs")
     );
+  }
 
-    const sepsGroup = {
-      group: "SEPs",
-      pages: ["community/seps/index", ...sepSubgroups],
-    };
+  // Find existing SEPs tab
+  const sepsTabIndex = docsJson.navigation.tabs.findIndex((tab: { tab: string }) => tab.tab === "SEPs");
 
-    if (sepsGroupIndex >= 0) {
-      communityTab.pages[sepsGroupIndex] = sepsGroup;
+  if (sepsTabIndex >= 0) {
+    docsJson.navigation.tabs[sepsTabIndex] = sepsTab;
+  } else {
+    // Insert before the Community tab if present, otherwise append
+    const communityIndex = docsJson.navigation.tabs.findIndex((tab: { tab: string }) => tab.tab === "Community");
+    if (communityIndex >= 0) {
+      docsJson.navigation.tabs.splice(communityIndex, 0, sepsTab);
     } else {
-      // Insert after Governance group (index 1)
-      communityTab.pages.splice(2, 0, sepsGroup);
+      docsJson.navigation.tabs.push(sepsTab);
     }
   }
 
@@ -387,7 +394,7 @@ async function main() {
       // Format MDX files with Prettier
       const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
       if (mdxTempFiles.length > 0) {
-        execSync(`npx prettier --write ${mdxTempFiles.join(" ")}`, { stdio: "pipe" });
+        execFileSync(npx, ["prettier", "--write", ...mdxTempFiles], { stdio: "pipe" });
       }
 
       // Compare formatted temp files with existing files
@@ -427,7 +434,7 @@ async function main() {
       .map(({ path: p }) => path.relative(process.cwd(), p));
     if (filesToFormat.length > 0) {
       console.log("\nFormatting generated files with Prettier...");
-      execSync(`npx prettier --write ${filesToFormat.join(" ")}`, { stdio: "inherit" });
+      execFileSync(npx, ["prettier", "--write", ...filesToFormat], { stdio: "inherit" });
     }
 
     console.log("\nSEP documentation generated successfully!");

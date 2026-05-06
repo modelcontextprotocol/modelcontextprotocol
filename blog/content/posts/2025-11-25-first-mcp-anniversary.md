@@ -1,9 +1,16 @@
 ---
+title: "One Year of MCP: November 2025 Spec Release"
 date: "2025-11-25T00:00:00+00:00"
 publishDate: "2025-11-25T00:00:00+00:00"
-title: "One Year of MCP: November 2025 Spec Release"
-author: "MCP Core Maintainers"
-tags: ["mcp", "spec", "release", "protocol", "anniversary"]
+description: MCP turns one — a look back at the year, plus the full details of the November 2025 specification release.
+author:
+  - MCP Core Maintainers
+tags:
+  - mcp
+  - spec
+  - release
+  - protocol
+  - anniversary
 ShowToc: true
 ---
 

@@ -1,0 +1,18 @@
+{{- /*
+  PaperMod gates OpenGraph, Twitter Cards, and schema.org JSON-LD on
+  hugo.IsProduction (head.html:152). The hugo-build composite action sets
+  HUGO_ENVIRONMENT=development for preview builds, so PR previews get none
+  of it — which makes structured-data validation impossible before merge.
+
+  This partial inverts the gate: emit in development only, so previews get
+  the same metadata as production without double-emitting when
+  hugo.IsProduction is true.
+
+  (PaperMod's gated block also includes google_analytics.html, but that's
+  a local no-op stub — not re-emitted here.)
+*/ -}}
+{{- if not (hugo.IsProduction | or (eq site.Params.env "production")) -}}
+{{- partial "templates/opengraph.html" . -}}
+{{- partial "templates/twitter_cards.html" . -}}
+{{- partial "templates/schema_json.html" . -}}
+{{- end -}}

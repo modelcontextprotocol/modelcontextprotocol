@@ -1,9 +1,15 @@
-+++
-date = '2025-11-28T11:00:00Z'
-title = 'SEPs Are Moving to Pull Requests'
-author = 'David Soria Parra (Lead Maintainer)'
-tags = ['announcement', 'governance', 'community', 'sep']
-+++
+---
+title: SEPs Are Moving to Pull Requests
+date: "2025-11-28T11:00:00Z"
+description: SEPs are moving from GitHub Issues to pull requests against the seps/ directory — why, and what changes for contributors.
+author:
+  - David Soria Parra (Lead Maintainer)
+tags:
+  - announcement
+  - governance
+  - community
+  - sep
+---
 
 We're updating how Specification Enhancement Proposals (SEPs) are submitted and managed. Starting today, SEPs will be created as pull requests to the [`seps/` directory](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/seps) instead of GitHub issues.
 

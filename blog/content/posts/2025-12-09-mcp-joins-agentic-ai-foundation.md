@@ -1,9 +1,16 @@
 ---
+title: MCP joins the Agentic AI Foundation
 date: "2025-12-09T09:00:00+00:00"
 publishDate: "2025-12-09T09:00:00+00:00"
-title: "MCP joins the Agentic AI Foundation"
-author: "David Soria Parra (Lead Core Maintainer)"
-tags: ["mcp", "announcement", "linux-foundation", "aaif", "governance"]
+description: Anthropic is donating MCP to the newly formed Agentic AI Foundation under the Linux Foundation, ensuring vendor-neutral governance for the protocol's future.
+author:
+  - David Soria Parra (Lead Core Maintainer)
+tags:
+  - mcp
+  - announcement
+  - linux-foundation
+  - aaif
+  - governance
 ShowToc: true
 ---
 

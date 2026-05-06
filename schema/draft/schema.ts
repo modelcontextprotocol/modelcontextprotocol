@@ -589,7 +589,7 @@ export interface ClientCapabilities {
    * @example Extensions — UI extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
-  extensions?: { [key: string]: object };
+  extensions?: { [key: string]: JSONObject };
 }
 
 /**
@@ -706,7 +706,7 @@ export interface ServerCapabilities {
    * @example Extensions — UI extension support
    * {@includeCode ./examples/ServerCapabilities/extensions-ui.json}
    */
-  extensions?: { [key: string]: object };
+  extensions?: { [key: string]: JSONObject };
 }
 
 /**
@@ -1847,6 +1847,7 @@ export interface Task {
 
   /**
    * Actual retention duration from creation in milliseconds, null for unlimited.
+   * @nullable
    */
   ttl: number | null;
 
@@ -2646,6 +2647,8 @@ export interface CompleteResult extends Result {
   completion: {
     /**
      * An array of completion values. Must not exceed 100 items.
+     *
+     * @maxItems 100
      */
     values: string[];
     /**
