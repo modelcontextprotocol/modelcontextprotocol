@@ -324,8 +324,7 @@
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/ping",
                       "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/tasks",
-                      "specification/draft/basic/utilities/mrtr"
+                      "specification/draft/basic/utilities/tasks"
                     ]
                   }
                 ]
@@ -428,6 +427,12 @@
             "pages": [
               "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+            ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2694-resumable-task-event-streams"
             ]
           },
           {
