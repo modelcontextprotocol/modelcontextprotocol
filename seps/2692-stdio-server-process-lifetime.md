@@ -3,9 +3,9 @@
 - **Status**: Draft
 - **Type**: Informational
 - **Created**: 2026-05-06
-- **Author(s)**: Nick Cooper <nickc@openai.com>
-- **Sponsor**: @nickcoai
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2692
+- **Author(s)**: Nick Cooper (@nickcoai)
+- **Sponsor**: Nick Cooper @nickcoai
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{2692}
 
 ## Abstract
 
