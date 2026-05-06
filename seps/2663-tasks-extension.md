@@ -385,7 +385,7 @@ Clients poll for task completion by sending `tasks/get` requests.
 
 Clients **SHOULD** respect the `pollIntervalMilliseconds` provided in responses when determining polling frequency. The `pollIntervalMilliseconds` **MAY** change over the lifetime of a task. Servers **MAY** rate-limit clients polling more frequently than the recorded `pollIntervalMilliseconds`.
 
-Clients **SHOULD** continue polling until the task reaches a terminal status (`completed`, `failed`, or `cancelled`). Clients **SHOULD** persist task IDs and their associated `requestState` (if any) to durable storage so that polling can resume after a crash or restart.
+Clients **SHOULD** continue polling until the task reaches a terminal status or until invoking `tasks/cancel`. Clients **SHOULD** persist task IDs and their associated `requestState` (if any) to durable storage so that polling can resume after a crash or restart.
 
 #### Request
 
