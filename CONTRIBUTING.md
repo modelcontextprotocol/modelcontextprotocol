@@ -3,13 +3,13 @@
 Thank you for your interest in contributing to the Model Context Protocol specification, schemas, or docs!
 This document outlines how to contribute to this project.
 
-Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explains how and where discussions about changes happen.
+Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explain how and where discussions about changes happen.
 
 ## General prerequisites
 
 The following software is required to work on the spec:
 
-- Node.js 20 or above
+- Node.js 24 or above
 - TypeScript
 - TypeScript JSON Schema (for generating JSON schema)
 - [Mintlify](https://mintlify.com/) (optional, for docs)
@@ -102,21 +102,13 @@ When contributing to the documentation:
 
 ## Specification Proposal Guidelines
 
-### Principles of MCP
+Specification changes follow the [SEP process](https://modelcontextprotocol.io/community/sep-guidelines).
+Before drafting a proposal, review the [MCP design principles](https://modelcontextprotocol.io/community/design-principles)
+— proposals that align with these principles move faster through review.
 
-1. **Simple + Minimal**: It is much easier to add things to a specification than it is to
-   remove them. To maintain simplicity, we keep a high bar for adding new concepts and
-   primitives as each addition requires maintenance and compatibility consideration.
-2. **Concrete**: Specification changes need to be based on specific implementation
-   challenges and not on speculative ideas.
-
-### Stages of a specification proposal
-
-1. **Define**: Explore the problem space, validate that other MCP users face a similar
-   issue, and then clearly define the problem.
-2. **Prototype**: Build an example solution to the problem and demonstrate its practical
-   application.
-3. **Write**: Based on the prototype, write a specification proposal.
+The shortest summary: explore the problem space and validate that others share the problem,
+build a prototype that demonstrates a solution, then write the SEP based on what the
+prototype taught you.
 
 ## Submitting Changes
 

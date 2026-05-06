@@ -1,0 +1,12 @@
+# Configuration for actions/labeler
+# https://github.com/actions/labeler
+
+blog:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "blog/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/docs/**"

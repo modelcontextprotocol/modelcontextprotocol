@@ -13,8 +13,9 @@
 {{- print " dark" }}
 {{- end -}}
 " id="top">
+    <a class="skip-link" href="#main-content">Skip to content</a>
     {{- partialCached "header.html" . .Page -}}
-    <main class="main">
+    <main class="main" id="main-content">
         {{- block "main" . }}{{ end }}
     </main>
     {{ partialCached "footer.html" . .Layout .Kind (.Param "hideFooter") (.Param "ShowCodeCopyButtons") -}}

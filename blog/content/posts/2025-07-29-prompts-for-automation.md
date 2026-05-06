@@ -1,11 +1,17 @@
-+++
-date = '2025-08-04T18:00:00+01:00'
-publishDate = '2025-08-04T18:00:00+01:00'
-draft = false
-title = 'MCP Prompts: Building Workflow Automation'
-author = 'Inna Harper (Core Maintainer)'
-tags = ['automation', 'mcp', 'prompts', 'tutorial']
-+++
+---
+title: "MCP Prompts: Building Workflow Automation"
+date: "2025-08-04T18:00:00+01:00"
+publishDate: "2025-08-04T18:00:00+01:00"
+draft: false
+description: A practical guide to building workflow automation with MCP prompts and resource templates, demonstrated through a meal planning example.
+author:
+  - Inna Harper (Core Maintainer)
+tags:
+  - automation
+  - mcp
+  - prompts
+  - tutorial
+---
 
 [MCP (Model Context Protocol)](https://modelcontextprotocol.io/specification/2025-06-18) prompts enable workflow automation by combining AI capabilities with structured data access. This post demonstrates how to build automations using MCP's [prompts](https://modelcontextprotocol.io/specification/2025-06-18/server/prompts) and [resource templates](https://modelcontextprotocol.io/specification/2025-06-18/server/resources#resource-templates) through a practical example.
 

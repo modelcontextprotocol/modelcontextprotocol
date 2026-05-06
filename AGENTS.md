@@ -41,6 +41,10 @@ JSON examples live in `schema/[version]/examples/[TypeName]/`:
 - Files validate against their directory's type: `Tool/example-name.json` → Tool schema
 - Referenced in `schema.ts` via `@includeCode` JSDoc tags
 
+## Agent Skills
+
+When adding a new skill, also add a directory symlink at `docs/.mintlify/skills/<name>` pointing to `../../../plugins/<plugin-name>/skills/<name>` so Mintlify's `.well-known/agent-skills/` and MCP server auto-scan exposes it.
+
 ## Useful Commands
 
 ```bash
@@ -67,6 +71,19 @@ npm run check:seps       # Check SEP documents
 # Workflow
 npm run prep             # Full prep before committing (check, generate, format)
 ```
+
+## Issue Creation
+
+Blank issues are disabled. `gh issue create` and the API bypass the template
+chooser, so when filing via CLI or API you **must** use one of the forms in
+`.github/ISSUE_TEMPLATE/` and fill in its required fields.
+
+Before filing, check `.github/ISSUE_TEMPLATE/config.yml` — some categories
+are redirected out of this repo entirely:
+
+- **SEPs** are pull requests adding a file to `seps/`, not issues
+- **SDK bugs** belong in the individual SDK repository
+- **Claude MCP behavior** belongs in `anthropics/claude-ai-mcp`
 
 ## Commit Guidelines
 

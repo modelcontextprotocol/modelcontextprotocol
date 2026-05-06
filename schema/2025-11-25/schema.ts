@@ -1375,6 +1375,7 @@ export interface Task {
 
   /**
    * Actual retention duration from creation in milliseconds, null for unlimited.
+   * @nullable
    */
   ttl: number | null;
 

@@ -1,9 +1,15 @@
 ---
+title: Exploring the Future of MCP Transports
 date: "2025-12-19T09:00:00+00:01"
 publishDate: "2025-12-19T09:00:00+00:00"
-title: "Exploring the Future of MCP Transports"
-author: "Kurtis Van Gent (Transport WG Maintainer), Shaun Smith (Transport WG Maintainer)"
-tags: ["mcp", "governance", "transports"]
+description: The Transport Working Group's plan to evolve MCP beyond Streamable HTTP for enterprise-scale remote deployments.
+author:
+  - Kurtis Van Gent (Transport WG Maintainer)
+  - Shaun Smith (Transport WG Maintainer)
+tags:
+  - mcp
+  - governance
+  - transports
 ShowToc: true
 ---
 

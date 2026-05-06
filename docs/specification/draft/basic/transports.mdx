@@ -4,8 +4,6 @@ title: Transports
 
 <div id="enable-section-numbers" />
 
-<Info>**Protocol Revision**: draft</Info>
-
 MCP uses JSON-RPC to encode messages. JSON-RPC messages **MUST** be UTF-8 encoded.
 
 The protocol currently defines two standard transport mechanisms for client-server
@@ -64,7 +62,7 @@ guide below.
 
 In the **Streamable HTTP** transport, the server operates as an independent process that
 can handle multiple client connections. This transport uses HTTP POST and GET requests.
-Server can optionally make use of
+The server can optionally make use of
 [Server-Sent Events](https://en.wikipedia.org/wiki/Server-sent_events) (SSE) to stream
 multiple server messages. This permits basic MCP servers, as well as more feature-rich
 servers supporting streaming and server-to-client notifications and requests.
@@ -93,18 +91,20 @@ MCP endpoint.
 1. The client **MUST** use HTTP POST to send JSON-RPC messages to the MCP endpoint.
 2. The client **MUST** include an `Accept` header, listing both `application/json` and
    `text/event-stream` as supported content types.
-3. The body of the HTTP POST request **MUST** be a single JSON-RPC _request_, _notification_, or _response_.
-4. If the input is a JSON-RPC _response_ or _notification_:
+3. The client **MUST** include the [standard MCP request headers](#standard-mcp-request-headers)
+   on each POST request.
+4. The body of the HTTP POST request **MUST** be a single JSON-RPC _request_, _notification_, or _response_ to a server-sent request.
+5. If the body is a JSON-RPC _notification_ or _response_ to a server-sent request:
    - If the server accepts the input, the server **MUST** return HTTP status code 202
      Accepted with no body.
    - If the server cannot accept the input, it **MUST** return an HTTP error status code
      (e.g., 400 Bad Request). The HTTP response body **MAY** comprise a JSON-RPC _error
      response_ that has no `id`.
-5. If the input is a JSON-RPC _request_, the server **MUST** either
+6. If the body is a JSON-RPC _request_, the server **MUST** either
    return `Content-Type: text/event-stream`, to initiate an SSE stream, or
    `Content-Type: application/json`, to return one JSON object. The client **MUST**
    support both these cases.
-6. If the server initiates an SSE stream:
+7. If the server initiates an SSE stream:
    - The server **SHOULD** immediately send an SSE event consisting of an event
      ID and an empty `data` field in order to prime the client to reconnect
      (using that event ID as `Last-Event-ID`).
@@ -119,7 +119,7 @@ MCP endpoint.
    - The SSE stream **SHOULD** eventually include a JSON-RPC _response_ for the
      JSON-RPC _request_ sent in the POST body.
    - The server **MAY** send JSON-RPC _requests_ and _notifications_ before sending the
-     JSON-RPC _response_. These messages **SHOULD** relate to the originating client
+     JSON-RPC _response_. These messages **MUST** relate to the originating client
      _request_.
    - The server **MAY** terminate the SSE stream if the [session](#session-management)
      expires.
@@ -145,9 +145,11 @@ MCP endpoint.
    **MUST** include an `Allow` header listing the methods it does support (e.g.,
    `Allow: POST`).
 4. If the server initiates an SSE stream:
-   - The server **MAY** send JSON-RPC _requests_ and _notifications_ on the stream.
+   - The server **MAY** send JSON-RPC _notifications_ and _pings_ on the stream.
    - These messages **SHOULD** be unrelated to any concurrently-running JSON-RPC
-     _request_ from the client.
+     _request_ from the client, **except** that `roots/list`,
+     `sampling/createMessage`, and `elicitation/create` requests **MUST NOT** be
+     sent on standalone streams.
    - The server **MUST NOT** send a JSON-RPC _response_ on the stream **unless**
      [resuming](#resumability-and-redelivery) a stream associated with a previous client
      request.
@@ -285,6 +287,290 @@ version `2025-03-26`.
 If the server receives a request with an invalid or unsupported
 `MCP-Protocol-Version`, it **MUST** respond with `400 Bad Request`.
 
+### Standard MCP Request Headers
+
+The Streamable HTTP transport requires clients to include the following headers on POST
+requests, mirrored from the JSON-RPC request body:
+
+| Header Name  | Source Field                  | Required For                                           |
+| ------------ | ----------------------------- | ------------------------------------------------------ |
+| `Mcp-Method` | `method`                      | All requests and notifications                         |
+| `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
+
+These headers are **REQUIRED** for compliance.
+
+#### Examples
+
+**`tools/call` request:**
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: tools/call
+Mcp-Name: get_weather
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "Seattle, WA"
+    }
+  }
+}
+```
+
+**`resources/read` request:**
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: resources/read
+Mcp-Name: file:///projects/myapp/config.json
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "resources/read",
+  "params": {
+    "uri": "file:///projects/myapp/config.json"
+  }
+}
+```
+
+**`initialize` request (no `Mcp-Name` needed):**
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Method: initialize
+
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "ExampleClient",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+**Notification:**
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: notifications/initialized
+
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized"
+}
+```
+
+#### Case Sensitivity
+
+Header names (called "field names" in [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-names))
+are case-insensitive. Clients and servers **MUST** use case-insensitive comparisons for
+header names. Header _values_ (such as method names) are case-sensitive.
+
+#### Server Validation
+
+Servers that process the request body **MUST** reject requests where the values specified
+in the headers do not match the corresponding values in the request body. This prevents
+potential security vulnerabilities when different components in the network rely on
+different sources of truth (e.g., a load balancer routing on the header value while the
+MCP server executes based on the body value).
+
+When rejecting a request due to header validation failure, servers **MUST** return HTTP
+status `400 Bad Request` and **SHOULD** include a JSON-RPC error response using the following error code:
+
+| Code     | Name             | Description                                                                                                            |
+| -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+
+This error code is in the JSON-RPC implementation-defined server error range (`-32000` to
+`-32099`).
+
+**Example error response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32001,
+    "message": "Header mismatch: Mcp-Name header value 'foo' does not match body value 'bar'"
+  }
+}
+```
+
+Validation failure conditions include:
+
+- A required standard header (`Mcp-Method`, `Mcp-Name`) is missing
+- A header value does not match the corresponding request body value
+- A header value contains invalid characters
+
+<Note>
+
+Intermediaries **MUST** return an appropriate HTTP error status (e.g., `400 Bad Request`)
+for validation failures but are not required to return a JSON-RPC error response.
+
+</Note>
+
+### Custom Headers from Tool Parameters
+
+MCP servers **MAY** designate specific tool parameters to be mirrored into HTTP headers
+using an `x-mcp-header` extension property in the parameter's schema within the tool's
+`inputSchema`. See [Tool Definitions](/specification/draft/server/tools#x-mcp-header) for
+details on how to annotate tool parameters.
+
+While the use of `x-mcp-header` is optional for servers, clients **MUST** support this
+feature. When a server's tool definition includes `x-mcp-header` annotations, conforming
+clients **MUST** mirror the designated parameter values into HTTP headers.
+
+#### Schema Extension
+
+The `x-mcp-header` property specifies the name portion used to construct the header name
+`Mcp-Param-{name}`.
+
+**Constraints on `x-mcp-header` values**:
+
+- **MUST NOT** be empty
+- **MUST** contain only ASCII characters (excluding space and `:`)
+- **MUST** be case-insensitively unique among all `x-mcp-header` values in the
+  `inputSchema`
+- **MUST** only be applied to parameters with primitive types (number, string, boolean)
+
+Clients **MUST** reject tool definitions where any `x-mcp-header` value violates these
+constraints. Rejection means the client **MUST** exclude the invalid tool from the result
+of `tools/list`. Clients **SHOULD** log a warning when rejecting a tool definition,
+including the tool name and the reason for rejection.
+
+**Example tool definition:**
+
+```json
+{
+  "name": "execute_sql",
+  "description": "Execute SQL on Google Cloud Spanner",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "region": {
+        "type": "string",
+        "description": "The region to execute the query in",
+        "x-mcp-header": "Region"
+      },
+      "query": {
+        "type": "string",
+        "description": "The SQL query to execute"
+      }
+    },
+    "required": ["region", "query"]
+  }
+}
+```
+
+**Resulting HTTP request:**
+
+```http
+POST /mcp HTTP/1.1
+Content-Type: application/json
+Mcp-Session-Id: 1f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c
+Mcp-Method: tools/call
+Mcp-Name: execute_sql
+Mcp-Param-Region: us-west1
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "execute_sql",
+    "arguments": {
+      "region": "us-west1",
+      "query": "SELECT * FROM users"
+    }
+  }
+}
+```
+
+#### Value Encoding
+
+Clients **MUST** encode parameter values before including them in HTTP headers to ensure
+safe transmission and prevent injection attacks.
+
+**Type conversion**: Convert the parameter value to its string representation:
+
+- `string`: Use the value as-is
+- `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+- `boolean`: Convert to lowercase `"true"` or `"false"`
+
+Per [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-values), HTTP
+header field values must consist of visible ASCII characters (0x21-0x7E), space (0x20),
+and horizontal tab (0x09). When a value cannot be safely represented as a plain ASCII
+header value (e.g., it contains non-ASCII characters, control characters, or has
+leading/trailing whitespace), clients **MUST** use Base64 encoding of the UTF-8
+representation with the following format:
+
+```text
+Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
+```
+
+The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded.
+Servers and intermediaries that need to inspect these values **MUST** decode them
+accordingly.
+
+**Encoding examples:**
+
+| Original Value   | Reason                  | Encoded Header Value                                  |
+| ---------------- | ----------------------- | ----------------------------------------------------- |
+| `"us-west1"`     | Plain ASCII             | `Mcp-Param-Region: us-west1`                          |
+| `"Hello, 世界"`  | Contains non-ASCII      | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "`     | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
+| `"line1\nline2"` | Contains newline        | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+
+#### Client Behavior
+
+When constructing a `tools/call` request via HTTP transport, the client **MUST**:
+
+1. Extract the values for any standard headers from the request body (e.g., `method`,
+   `params.name`, `params.uri`)
+2. Append the `Mcp-Method` header and, if applicable, `Mcp-Name` header to the request
+3. Inspect the tool's `inputSchema` for properties marked with `x-mcp-header` and extract
+   the value for each parameter
+4. Encode the values according to the [Value Encoding](#value-encoding) rules
+5. Append a `Mcp-Param-{Name}: {Value}` header to the request
+
+#### Server Behavior for Custom Headers
+
+Intermediate servers that do not recognize an `Mcp-Param-{Name}` header **MUST** forward it and otherwise ignore it, as required by the [HTTP Semantics RFC](https://www.rfc-editor.org/rfc/rfc9110.html#name-field-names).
+
+Servers **MUST** reject requests with a recognized `Mcp-Param-{Name}` header that contains invalid
+characters (see [Value Encoding](#value-encoding)).
+
+Any server that processes the message body **MUST** validate that encoded header values,
+after decoding if Base64-encoded, match the corresponding values in the request body.
+Servers **MUST** reject requests with a `400 Bad Request` HTTP status and JSON-RPC error
+code `-32001` (`HeaderMismatch`) if any validation fails.
+
+| Scenario                                 | Client Behavior                | Server Behavior                          |
+| ---------------------------------------- | ------------------------------ | ---------------------------------------- |
+| Parameter value provided                 | Client MUST include the header | Server MUST validate header matches body |
+| Parameter value is `null`                | Client MUST omit the header    | Server MUST NOT expect the header        |
+| Parameter not in arguments               | Client MUST omit the header    | Server MUST NOT expect the header        |
+| Client omits header but value is in body | Non-conforming client          | Server MUST reject the request           |
+
 ### SSE Stream Configuration
 
 When initiating SSE streams, servers **SHOULD** include the `X-Accel-Buffering: no`
@@ -317,7 +603,7 @@ protocol version 2024-11-05) as follows:
    - If it succeeds, the client can assume this is a server supporting the new Streamable
      HTTP transport.
    - If it fails with the following HTTP status codes "400 Bad Request", "404 Not
-     Found" or "405 Method Not Allowed":
+     Found", or "405 Method Not Allowed":
      - Issue a GET request to the server URL, expecting that this will open an SSE stream
        and return an `endpoint` event as the first event.
      - When the `endpoint` event arrives, the client can assume this is a server running
