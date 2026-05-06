@@ -100,7 +100,12 @@ Progressive discovery extends beyond individual tools to entire servers. Rather 
 
 1. Maintain a registry of available servers and their high-level descriptions.
 2. Connect to a server only when the model determines it needs that server's capabilities.
-3. Disconnect servers that are no longer relevant to the current task, freeing context.
+3. Disconnect servers when an explicit host policy determines they are no longer needed,
+   such as server disablement or application shutdown.
+
+For stdio servers, the end of a task or conversation should not by itself be the default
+disconnect signal. A connected stdio server should generally remain available across
+multiple conversations while the host application still needs it.
 
 ```mermaid
 sequenceDiagram
