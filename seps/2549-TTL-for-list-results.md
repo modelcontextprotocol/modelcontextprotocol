@@ -52,32 +52,34 @@ A new `TTLResult` interface is introduced as a standalone type extending `Result
  */
 export interface TTLResult extends Result {
   /**
-   * An optional hint from the server indicating how long (in seconds) the
+   * A hint from the server indicating how long (in seconds) the
    * client MAY cache this response before re-fetching. Semantics are
    * analogous to HTTP Cache-Control max-age.
    *
-   * - If absent, the client has no server-provided freshness guidance and
-   *   SHOULD rely on notifications or its own heuristics.
-   * - If 0, the client SHOULD re-fetch every time the result is needed and
-   *   SHOULD NOT serve a cached copy.
+   * - If 0, The response SHOULD be considered immediately stale, The client
+   *   MAY re-fetch every time the result is needed. 
    * - If positive, the client SHOULD consider the result fresh for this many
-   *   seconds after receiving the response. The client SHOULD NOT re-fetch
-   *   before the TTL expires unless it receives a relevant notification
-   *   (e.g., `list_changed` or `notifications/resources/updated`).
+   *   seconds after receiving the response.
    */
-  ttl?: number;
+  ttl: number & { readonly minimum: 0 };
 }
+```
 
 
 > **Open Question — TTL format**: An alternative representation is an ISO 8601 duration string (e.g., `"PT5M"` for 5 minutes). Integer seconds are simpler, consistent with HTTP `max-age`, and easier to compare arithmetically. ISO 8601 durations are more human-readable and used in some Azure/AWS APIs. Community input is welcome on which format to adopt. The remainder of this specification uses integer seconds for illustration.
 
 ### Semantics
+A TTL is a freshness estimate, not a guarantee. Servers MAY change the underlying list before the TTL expires; servers that do so and have advertised listChanged SHOULD send the corresponding notification.
+
+Servers MUST provide a `ttl` on `Results` returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. 
+
+`ttl` MUST be >= 0. If a server returns a negative value, clients SHOULD ignore it and treat it as 0 (immediately stale).
+
 
 | Condition                                                    | Client behavior                                                                                      |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `ttl` absent                                                 | No freshness hint. Client SHOULD rely on `list_changed` / `resources/updated` notifications or poll at its own discretion. |
-| `ttl` = 0                                                    | Do not cache. Client SHOULD re-fetch every time the result is needed.                                |
-| `ttl` > 0                                                    | Client SHOULD consider the response fresh for `ttl` seconds from receipt. Client SHOULD NOT re-fetch before the TTL expires. |
+| `ttl` = 0                                                    | The response SHOULD be considered immediately stale, The Client MAY re-fetch every time the result is needed. |
+| `ttl` > 0                                                    | Client SHOULD consider the response fresh for `ttl` seconds from receipt. |
 | Relevant notification received while TTL is active           | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL. |
 
 #### Freshness calculation
@@ -88,13 +90,13 @@ Clients SHOULD NOT treat TTL as a polling interval that triggers automatic backg
 
 Clients MAY re-fetch if they have reason to believe the data has changed, even if the TTL has not yet expired. Examples include receiving an unexpected error on a tool call indicating that the the method was not found or the parameters were invalid.
 
+Clients MAY serve stale responses if errors occur in re-fetching results(e.g., network issues, server downtime). The TTL is a hint for how long the client can safely rely on the data, but real-world conditions may require flexibility.
+
 ### Interaction with notifications
-TTL and server-push notifications (`list_changed`, `notifications/resources/updated`) are complementary:
+TTL and server-push notifications are complementary:
 
 - A server MAY provide `ttl` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
 - A server MAY advertise `listChanged: true` **and** provide `ttl`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
-- A server MAY advertise `listChanged: true` without providing `ttl`. Behavior is unchanged from today.
-- Servers are encouraged to use at least one of the mechanisms (TTL or notifications) so clients have some way to stay up to date.
 
 ```mermaid
 sequenceDiagram
@@ -127,14 +129,10 @@ When a list result includes `nextCursor` (indicating more pages), the `ttl` appl
 - The TTL SHOULD only appear on every page with the same value. Clients SHOULD use the TTL from the last page they fetched to determine freshness.
 - When the TTL expires, the client SHOULD re-fetch from the beginning (without a cursor) to get the full updated list.
 
-### No new capability flag
-
-No new capability flag is needed. The `ttl` field is optional on the response object. Servers that do not wish to provide a TTL simply omit the field. 
-
 ### Error handling
 
-- If `ttl` is present but is a negative integer, the client SHOULD ignore it and behave as if it were absent.
-- Clients MUST NOT treat a missing `ttl` as an implicit TTL of 0 or any other value.
+- If `ttl` is present but is a negative integer, the client SHOULD ignore it and behave as if it were 0 (immediately stale).
+
 
 ## Rationale
 
@@ -161,7 +159,7 @@ MCP is transport-agnostic. While HTTP-based transports could theoretically use `
 
 This change is fully backward compatible:
 
-- The `ttl` field is optional. Existing servers that do not provide it continue to work unchanged.
+- Existing servers that do not provide it continue to work unchanged. If a `ttl` field is missing, clients SHOULD assume a default ttl of 0 (immediately stale) and rely on their own caching heuristincs or notifications, which is the current behavior.
 - Existing clients that do not understand the field will ignore it, as MCP result objects permit additional properties via `[key: string]: unknown` on the `Result` base type.
 - No existing fields or behaviors are modified or removed.
 - No capability negotiation is required.

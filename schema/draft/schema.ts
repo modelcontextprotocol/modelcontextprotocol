@@ -933,20 +933,16 @@ export interface PaginatedResult extends Result {
  */
 export interface TTLResult extends Result {
   /**
-   * An optional hint from the server indicating how long (in seconds) the client MAY
-   * cache this response before re-fetching. Semantics are analogous to HTTP
-   * `Cache-Control: max-age`.
+   * A hint from the server indicating how long (in seconds) the
+   * client MAY cache this response before re-fetching. Semantics are
+   * analogous to HTTP Cache-Control max-age.
    *
-   * - If absent, the client has no server-provided freshness guidance and SHOULD rely on
-   *   notifications or its own heuristics.
-   * - If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT
-   *   serve a cached copy.
-   * - If positive, the client SHOULD consider the result fresh for this many seconds after
-   *   receiving the response. The client SHOULD NOT re-fetch before the TTL expires
-   *   unless it receives a relevant notification (e.g., `list_changed` or
-   *   `notifications/resources/updated`).
+   * - If 0, The response SHOULD be considered immediately stale, 
+   *   The client MAY re-fetch every time the result is needed. 
+   * - If positive, the client SHOULD consider the result fresh for this many
+   *   seconds after receiving the response.
    */
-  ttl?: number;
+  ttl: number & { readonly minimum: 0 };
 }
 
 /* Resources */

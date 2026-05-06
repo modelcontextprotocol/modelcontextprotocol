@@ -1934,12 +1934,29 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "minimum": {
+                                    "const": 0,
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "minimum"
+                            ],
+                            "type": "object"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale, \n  The client MAY re-fetch every time the result is needed. \n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response."
                 }
             },
             "required": [
-                "prompts"
+                "prompts",
+                "ttl"
             ],
             "type": "object"
         },
@@ -2006,12 +2023,29 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "minimum": {
+                                    "const": 0,
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "minimum"
+                            ],
+                            "type": "object"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale, \n  The client MAY re-fetch every time the result is needed. \n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response."
                 }
             },
             "required": [
-                "resourceTemplates"
+                "resourceTemplates",
+                "ttl"
             ],
             "type": "object"
         },
@@ -2078,12 +2112,29 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "minimum": {
+                                    "const": 0,
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "minimum"
+                            ],
+                            "type": "object"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale, \n  The client MAY re-fetch every time the result is needed. \n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response."
                 }
             },
             "required": [
-                "resources"
+                "resources",
+                "ttl"
             ],
             "type": "object"
         },
@@ -2282,12 +2333,29 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "minimum": {
+                                    "const": 0,
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "minimum"
+                            ],
+                            "type": "object"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale, \n  The client MAY re-fetch every time the result is needed. \n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response."
                 }
             },
             "required": [
-                "tools"
+                "tools",
+                "ttl"
             ],
             "type": "object"
         },
@@ -2891,12 +2959,29 @@
                     "type": "array"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "minimum": {
+                                    "const": 0,
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "minimum"
+                            ],
+                            "type": "object"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale, \n  The client MAY re-fetch every time the result is needed. \n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response."
                 }
             },
             "required": [
-                "contents"
+                "contents",
+                "ttl"
             ],
             "type": "object"
         },
@@ -3742,10 +3827,29 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "ttl": {
-                    "description": "An optional hint from the server indicating how long (in seconds) the client MAY\ncache this response before re-fetching. Semantics are analogous to HTTP\n`Cache-Control: max-age`.\n\n- If absent, the client has no server-provided freshness guidance and SHOULD rely on\n  notifications or its own heuristics.\n- If `0`, the client SHOULD re-fetch every time the result is needed and SHOULD NOT\n  serve a cached copy.\n- If positive, the client SHOULD consider the result fresh for this many seconds after\n  receiving the response. The client SHOULD NOT re-fetch before the TTL expires\n  unless it receives a relevant notification (e.g., `list_changed` or\n  `notifications/resources/updated`).",
-                    "type": "integer"
+                    "allOf": [
+                        {
+                            "properties": {
+                                "minimum": {
+                                    "const": 0,
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "minimum"
+                            ],
+                            "type": "object"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale, \n  The client MAY re-fetch every time the result is needed. \n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response."
                 }
             },
+            "required": [
+                "ttl"
+            ],
             "type": "object"
         },
         "Task": {
