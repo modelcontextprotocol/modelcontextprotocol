@@ -148,10 +148,15 @@ sequenceDiagram
 
 ### Interaction with pagination
 
-When a list result includes `nextCursor` (indicating more pages), the `ttlMs` applies to the **entire paginated list**, not to individual pages. Specifically:
+When a list result is paginated (includes `nextCursor`), each page is an independently cacheable response — consistent with how HTTP `Cache-Control` treats paginated resources. Specifically:
 
-- The TTL SHOULD only appear on every page with the same value. Clients SHOULD use the TTL from the last page they fetched to determine freshness.
-- When the TTL expires, the client SHOULD re-fetch from the beginning (without a cursor) to get the full updated list.
+- Each page response carries its own `ttlMs` value. The freshness clock for each page starts at the time that page was received.
+- Servers MAY return different `ttlMs` values on different pages (e.g., a longer TTL for early pages of a stable list, a shorter TTL for the final page).
+- There is no cross-page consistency guarantee. If the underlying data changes between page fetches, clients may observe duplicates or gaps — the same trade-off that applies to HTTP paginated APIs.
+- Clients that require a consistent snapshot of the full list SHOULD re-fetch from the beginning (without a cursor).
+- If a cursor becomes invalid (e.g., the server returns an error for a previously valid cursor), the client SHOULD discard all cached pages and re-fetch from the beginning.
+
+Servers MUST apply the same cacheScope to all response pages for a given list request. For example, if the first page of a `tools/list` response has `cacheScope: "private"`, all subsequent pages for that request MUST also be treated as `"private"`.
 
 ### Error handling
 
