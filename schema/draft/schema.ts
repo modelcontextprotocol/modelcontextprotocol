@@ -1802,7 +1802,23 @@ export interface CallToolRequest extends JSONRPCRequest {
 export type FileTransport = "https";
 
 /**
- * A declaration that a tool or elicitation field is file-valued.
+ * Transfer mode for a file-valued input.
+ *
+ * @category Files
+ */
+export type FileInputTransferMode = "inline" | "upload";
+
+/**
+ * Value of the `x-mcp-file` JSON Schema extension keyword. When present on a
+ * `{"type": "string", "format": "uri"}` property, it marks the property as a
+ * file input that clients SHOULD render as a native file picker.
+ *
+ * Selected files are carried as URI strings. The URI can be either an RFC 2397
+ * `data:` URI or, when out-of-band transfer is used, a file URI prepared through
+ * `files/prepareUpload`.
+ *
+ * Descriptor fields guide client file selection and transfer behavior; servers
+ * MUST still validate inputs independently.
  *
  * @category Files
  */
@@ -1812,21 +1828,23 @@ export interface FileInputDescriptor {
    */
   accept?: string[];
   /**
-   * Maximum size in bytes for each individual file.
+   * Maximum accepted size in bytes for each individual file.
+   *
+   * For inline `data:` URI values, this is the decoded byte size. For file URI
+   * values, this is the uploaded file byte size enforced during upload
+   * negotiation and subsequent request validation.
    */
-  maxFileSize?: number;
+  maxSize?: number;
   /**
-   * Human-readable guidance for the user about why this file is being requested.
+   * Transfer modes allowed for this file input.
+   *
+   * If omitted, the client may choose any supported transfer mode. If present,
+   * the client MUST use one of the listed modes. `"inline"` means an RFC 2397
+   * `data:` URI. `"upload"` means the client MUST use `files/prepareUpload`
+   * and provide the returned file URI.
    */
-  purpose?: string;
+  transferModes?: FileInputTransferMode[];
 }
-
-/**
- * A map from field name to the file input declaration for that field.
- *
- * @category Files
- */
-export type FileInputMap = { [fieldName: string]: FileInputDescriptor };
 
 /**
  * Out-of-band URI payload for a file or resource.
@@ -2977,8 +2995,7 @@ export interface ElicitRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions that allow primitive form fields.
  *
  * @category `elicitation/create`
  */
@@ -3002,6 +3019,13 @@ export interface StringSchema {
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
   default?: string;
+  /**
+   * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
+   * render a native file picker and populate the field with either an RFC 2397
+   * `data:` URI or, when out-of-band transfer is used, a file URI prepared
+   * through `files/prepareUpload`.
+   */
+  "x-mcp-file"?: FileInputDescriptor;
 }
 
 /**
