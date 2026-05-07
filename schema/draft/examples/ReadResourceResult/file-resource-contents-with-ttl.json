@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "contents": [
     {
       "uri": "file:///project/src/main.rs",
@@ -6,5 +7,6 @@
       "text": "fn main() {\n    println!(\"Hello world!\");\n}"
     }
   ],
-  "ttl": 60
+  "ttl": 60,
+  "cacheScope": "private"
 }

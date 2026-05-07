@@ -56,9 +56,9 @@ Adding a TTL field to list responses solves all of these problems with a minimal
 
 ## Specification
 
-### New interface: `TTLResult`
+### New interface: `CacheableResult`
 
-A new `TTLResult` interface is introduced as a standalone type extending `Result`. It owns the `ttl` field.
+A new `CacheableResult` interface is introduced as a standalone type extending `Result`. It owns the `ttl` and `cacheScope` fields.
 
 #### Schema change (TypeScript)
 
@@ -68,7 +68,7 @@ A new `TTLResult` interface is introduced as a standalone type extending `Result
  *
  * @internal
  */
-export interface TTLResult extends Result {
+export interface CacheableResult extends Result {
   /**
    * A hint from the server indicating how long (in seconds) the
    * client MAY cache this response before re-fetching. Semantics are
@@ -80,6 +80,20 @@ export interface TTLResult extends Result {
    *   seconds after receiving the response.
    */
   ttl: number & { readonly minimum: 0 };
+
+  /**
+   * Indicates the intended scope of the cached response, analogous to HTTP
+   * Cache-Control: public vs Cache-Control: private.
+   *
+   * - "public": Any client or intermediary (e.g., shared gateway, proxy)
+   *   MAY cache the response and serve it to any user.
+   * - "private": Only the requesting user's client MAY cache the response.
+   *   Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached
+   *   copy to a different user.
+   *
+   * Defaults to "public" if absent.
+   */
+  cacheScope?: "public" | "private";
 }
 ```
 
@@ -98,6 +112,8 @@ Servers MUST provide a `ttl` on `Results` returned by `tools/list`, `prompts/lis
 | `ttl` = 0                                          | The response SHOULD be considered immediately stale, The Client MAY re-fetch every time the result is needed. |
 | `ttl` > 0                                          | Client SHOULD consider the response fresh for `ttl` seconds from receipt.                                     |
 | Relevant notification received while TTL is active | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL.         |
+| `cacheScope` absent or `"public"`                  | Any client or shared intermediary (gateway, proxy) MAY cache and serve the response to any user.              |
+| `cacheScope` = `"private"`                         | Only the requesting user's client MAY cache. Shared caches MUST NOT serve a cached copy to a different user.  |
 
 #### Freshness calculation
 
@@ -108,6 +124,17 @@ Clients SHOULD NOT treat TTL as a polling interval that triggers automatic backg
 Clients MAY re-fetch if they have reason to believe the data has changed, even if the TTL has not yet expired. Examples include receiving an unexpected error on a tool call indicating that the the method was not found or the parameters were invalid.
 
 Clients MAY serve stale responses if errors occur in re-fetching results(e.g., network issues, server downtime). The TTL is a hint for how long the client can safely rely on the data, but real-world conditions may require flexibility.
+
+### Cache scope
+
+The optional `cacheScope` field controls who may cache a response:
+
+- **`"public"` (default)**: The response does not contain user-specific data. Any client, shared gateway, or caching proxy MAY store and serve the cached response to any user. This is appropriate for lists of tools, prompts, and resource templates that are identical for all users.
+- **`"private"`**: The response contains user-specific data. Only the requesting user's client MAY cache it. Shared caches (e.g., multi-tenant API gateways) MUST NOT serve a `"private"` cached response to a different user. This is appropriate for `resources/read` results that depend on the authenticated user, or for filtered list results that vary per user.
+
+When `cacheScope` is absent, clients and intermediaries SHOULD treat it as `"public"`.
+
+This design mirrors HTTP `Cache-Control: public` vs `Cache-Control: private`, applying the same well-understood semantics at the MCP protocol level.
 
 ### Interaction with notifications
 

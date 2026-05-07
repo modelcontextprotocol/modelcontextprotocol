@@ -1002,18 +1002,34 @@ export interface PaginatedResult extends Result {
  *
  * @internal
  */
-export interface TTLResult extends Result {
+export interface CacheableResult extends Result {
   /**
    * A hint from the server indicating how long (in seconds) the
    * client MAY cache this response before re-fetching. Semantics are
    * analogous to HTTP Cache-Control max-age.
    *
-   * - If 0, The response SHOULD be considered immediately stale, 
-   *   The client MAY re-fetch every time the result is needed. 
+   * - If 0, The response SHOULD be considered immediately stale,
+   *   The client MAY re-fetch every time the result is needed.
    * - If positive, the client SHOULD consider the result fresh for this many
    *   seconds after receiving the response.
+   *
+   * @minimum 0
    */
-  ttl: number & { readonly minimum: 0 };
+  ttl?: number;
+
+  /**
+   * Indicates the intended scope of the cached response, analogous to HTTP
+   * `Cache-Control: public` vs `Cache-Control: private`.
+   *
+   * - `"public"`: Any client or intermediary (e.g., shared gateway, proxy)
+   *   MAY cache the response and serve it to any user.
+   * - `"private"`: Only the requesting user's client MAY cache the response.
+   *   Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached
+   *   copy to a different user.
+   *
+   * Defaults to `"public"` if absent.
+   */
+  cacheScope?: "public" | "private";
 }
 
 /* Resources */
@@ -1037,7 +1053,7 @@ export interface ListResourcesRequest extends PaginatedRequest {
  *
  * @category `resources/list`
  */
-export interface ListResourcesResult extends PaginatedResult, TTLResult {
+export interface ListResourcesResult extends PaginatedResult, CacheableResult {
   resources: Resource[];
 }
 
@@ -1074,7 +1090,7 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
  * @category `resources/templates/list`
  */
 export interface ListResourceTemplatesResult
-  extends PaginatedResult, TTLResult {
+  extends PaginatedResult, CacheableResult {
   resourceTemplates: ResourceTemplate[];
 }
 
@@ -1136,7 +1152,7 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  *
  * @category `resources/read`
  */
-export interface ReadResourceResult extends TTLResult {
+export interface ReadResourceResult extends CacheableResult {
   contents: (TextResourceContents | BlobResourceContents)[];
 }
 
@@ -1412,7 +1428,7 @@ export interface ListPromptsRequest extends PaginatedRequest {
  *
  * @category `prompts/list`
  */
-export interface ListPromptsResult extends PaginatedResult, TTLResult {
+export interface ListPromptsResult extends PaginatedResult, CacheableResult {
   prompts: Prompt[];
 }
 
@@ -1613,7 +1629,7 @@ export interface ListToolsRequest extends PaginatedRequest {
  *
  * @category `tools/list`
  */
-export interface ListToolsResult extends PaginatedResult, TTLResult {
+export interface ListToolsResult extends PaginatedResult, CacheableResult {
   tools: Tool[];
 }
 

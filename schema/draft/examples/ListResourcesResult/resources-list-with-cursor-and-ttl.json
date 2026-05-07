@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "resources": [
     {
       "uri": "file:///project/src/main.rs",
@@ -16,5 +17,6 @@
     }
   ],
   "nextCursor": "eyJwYWdlIjogM30=",
-  "ttl": 600
+  "ttl": 600,
+  "cacheScope": "private"
 }
