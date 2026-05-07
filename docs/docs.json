@@ -420,7 +420,8 @@
               "seps/2133-extensions",
               "seps/2148-contributor-ladder",
               "seps/2149-working-group-charter-template",
-              "seps/2243-http-standardization"
+              "seps/2243-http-standardization",
+              "seps/2567-sessionless-mcp"
             ]
           },
           {
