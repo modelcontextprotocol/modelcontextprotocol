@@ -348,6 +348,7 @@
                   {
                     "group": "Utilities",
                     "pages": [
+                      "specification/draft/server/utilities/caching",
                       "specification/draft/server/utilities/completion",
                       "specification/draft/server/utilities/logging",
                       "specification/draft/server/utilities/pagination"

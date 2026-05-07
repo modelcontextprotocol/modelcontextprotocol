@@ -4,29 +4,28 @@
 - **Type**: Standards Track
 - **Created**: 2026-04-09
 - **Author(s)**: Caitie McCaffrey (@CaitieM20)
-- **Sponsor**: @CaitieM20 
+- **Sponsor**: @CaitieM20
 - **PR**: https://github.com/modelcontextprotocol/specification/pull/2549
 
 ## Abstract
 
-This SEP proposes adding an optional `ttlMs` (time-to-live in milliseconds) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and reduce reliance on server-push notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
+This SEP proposes adding fields to support caching result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. Two fields will be added `ttlMs` and `cacheScope`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and reduce reliance on server-push notifications while remaining fully backward compatible. The `cacheScope` field controls who may cache a response. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
 
 ## Motivation
 
-Today, MCP clients discover server features by invoking methods on the server. These calls return the current set of features. To learn about changes, clients rely on push notifications from the server. The below table maps the Server Method to Notification Type. 
+Today, MCP clients discover server features by invoking methods on the server. These calls return the current set of features. To learn about changes, clients rely on push notifications from the server. The below table maps the Server Method to Notification Type.
 
-| Server Methods | Notification Type |
-|--------------- |-------------------|
-| `tools/list`   | `notifications/tools/list_changed` |
-| `prompts/list` | `notifications/prompts/list_changed` |
-| `resources/list` | `notifications/resources/list_changed` |
+| Server Methods             | Notification Type                      |
+| -------------------------- | -------------------------------------- |
+| `tools/list`               | `notifications/tools/list_changed`     |
+| `prompts/list`             | `notifications/prompts/list_changed`   |
+| `resources/list`           | `notifications/resources/list_changed` |
 | `resources/templates/list` | `notifications/resources/list_changed` |
-| `resources/read` | `notifications/resources/updated` |
-
+| `resources/read`           | `notifications/resources/updated`      |
 
 This approach has several limitations:
 
-1. **HTTP-based transports require SSE Streams**: Many clients and servers have challenges supporting long lived SSE streams which are necessary for notifications. The goal is to make SSE streams and optional optimization, but support protocol functionality without them. A TTL allows clients to poll on a predictable schedule without relying on server-push notifications.
+1. **HTTP-based transports require SSE Streams**: Many clients and servers have challenges supporting long lived SSE streams which are necessary for notifications. The goal is to make SSE streams an optional optimization, but support protocol functionality without them. A TTL allows clients to poll on a predictable schedule without relying on server-push notifications.
 
 2. **Implementation complexity**: Both clients and servers must implement notification subscription and delivery infrastructure. Many simple servers have feature lists that change infrequently (or never), yet must still support the notification machinery if they want clients to stay current.
 
@@ -57,7 +56,7 @@ export interface CacheableResult extends Result {
    * analogous to HTTP Cache-Control max-age.
    *
    * - If 0, The response SHOULD be considered immediately stale, The client
-   *   MAY re-fetch every time the result is needed. 
+   *   MAY re-fetch every time the result is needed.
    * - If positive, the client SHOULD consider the result fresh for this many
    *   milliseconds after receiving the response.
    */
@@ -75,25 +74,25 @@ export interface CacheableResult extends Result {
    *
    * Defaults to "public" if absent.
    */
-  cacheScope?: "public" | "private";
+  cacheScope: "public" | "private";
 }
 ```
 
 ### Semantics
+
 A TTL is a freshness estimate, not a guarantee. Servers MAY change the underlying list before the TTL expires; servers that do so and have advertised listChanged SHOULD send the corresponding notification.
 
-Servers MUST provide a `ttlMs` on `Results` returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. 
+Servers MUST provide a `ttlMs` on `Results` returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`.
 
 `ttlMs` MUST be >= 0. If a server returns a negative value, clients SHOULD ignore it and treat it as 0 (immediately stale).
 
-
-| Condition                                                    | Client behavior                                                                                      |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `ttlMs` = 0                                                  | The response SHOULD be considered immediately stale, The Client MAY re-fetch every time the result is needed. |
-| `ttlMs` > 0                                                  | Client SHOULD consider the response fresh for `ttlMs` milliseconds from receipt. |
-| Relevant notification received while TTL is active           | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL. |
-| `cacheScope` absent or `"public"`                            | Any client or shared intermediary (gateway, proxy) MAY cache and serve the response to any user.     |
-| `cacheScope` = `"private"`                                   | Only the requesting user's client MAY cache. Shared caches MUST NOT serve a cached copy to a different user. |
+| Condition                                          | Client behavior                                                                                               |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `ttlMs` = 0                                        | The response SHOULD be considered immediately stale, The Client MAY re-fetch every time the result is needed. |
+| `ttlMs` > 0                                        | Client SHOULD consider the response fresh for `ttlMs` milliseconds from receipt.                              |
+| Relevant notification received while TTL is active | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL.         |
+| `cacheScope` = `"public"`                          | Any client or shared intermediary (gateway, proxy) MAY cache and serve the response to any user.              |
+| `cacheScope` = `"private"`                         | Only the requesting user's client MAY cache. Shared caches MUST NOT serve a cached copy to a different user.  |
 
 #### Freshness calculation
 
@@ -107,19 +106,18 @@ Clients MAY serve stale responses if errors occur in re-fetching results(e.g., n
 
 ### Cache scope
 
-The optional `cacheScope` field controls who may cache a response:
+The `cacheScope` field controls who may cache a response:
 
-- **`"public"` (default)**: The response does not contain user-specific data. Any client, shared gateway, or caching proxy MAY store and serve the cached response to any user. This is appropriate for lists of tools, prompts, and resource templates that are identical for all users.
+- **`"public"`**: The response does not contain user-specific data. Any client, shared gateway, or caching proxy MAY store and serve the cached response to any user. This is appropriate for lists of tools, prompts, and resource templates that are identical for all users.
 - **`"private"`**: The response contains user-specific data. Only the requesting user's client MAY cache it. Shared caches (e.g., multi-tenant API gateways) MUST NOT serve a `"private"` cached response to a different user. This is appropriate for `resources/read` results that depend on the authenticated user, or for filtered list results that vary per user.
-
-When `cacheScope` is absent, clients and intermediaries SHOULD treat it as `"public"`.
 
 This design mirrors HTTP `Cache-Control: public` vs `Cache-Control: private`, applying the same well-understood semantics at the MCP protocol level.
 
 ### Interaction with notifications
+
 TTL and server-push notifications are complementary:
 
-- A server MAY provide `ttlMs` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
+- A server MAY provide `ttlMs` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL.
 - A server MAY advertise `listChanged: true` **and** provide `ttlMs`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
 
 ```mermaid
@@ -162,7 +160,6 @@ Servers MUST apply the same cacheScope to all response pages for a given list re
 
 - If `ttlMs` is present but is a negative integer, the client SHOULD ignore it and behave as if it were 0 (immediately stale).
 
-
 ## Rationale
 
 ### Why not replace `list_changed` notifications?
@@ -170,20 +167,21 @@ Servers MUST apply the same cacheScope to all response pages for a given list re
 Notifications provide immediate invalidation which is valuable for long-lived connections. TTL provides a complementary mechanism optimized for stateless transports and for reducing unnecessary polling. Both mechanisms serve different use cases and coexist naturally.
 
 ### Why integer milliseconds for TTL?
+
 We chose integer milliseconds over seconds as we want one unit for ttl across the MCP protocol. Tasks has uses cases for sub-second TTLs, and using milliseconds allows for a consistent representation across all TTLs in MCP.
 
 Many existing systems use integer seconds for TTLs, but some (e.g., gRPC retry pushback) use milliseconds. The key is to choose a single, consistent unit for all TTLs in MCP. Integer milliseconds provides the necessary precision while remaining simple to implement and understand.
 
-| System                         | Mechanism              | Notes                                                              |
-| ------------------------------ | ---------------------- | ------------------------------------------------------------------ |
-| HTTP `Cache-Control: max-age`  | Integer seconds        | The most widely deployed freshness hint in web infrastructure      |
-| DNS TTL                        | Integer seconds        | Controls how long resolvers cache DNS records                      |
-| GraphQL `@cacheControl`        | `maxAge` integer secs  | Per-field cache hints in GraphQL responses                         |
-| gRPC `grpc-retry-pushback-ms`  | Milliseconds           | Server-provided retry hint (different use case, similar pattern)   |
+| System                        | Mechanism             | Notes                                                            |
+| ----------------------------- | --------------------- | ---------------------------------------------------------------- |
+| HTTP `Cache-Control: max-age` | Integer seconds       | The most widely deployed freshness hint in web infrastructure    |
+| DNS TTL                       | Integer seconds       | Controls how long resolvers cache DNS records                    |
+| GraphQL `@cacheControl`       | `maxAge` integer secs | Per-field cache hints in GraphQL responses                       |
+| gRPC `grpc-retry-pushback-ms` | Milliseconds          | Server-provided retry hint (different use case, similar pattern) |
 
 ### Why not use HTTP caching directly?
 
-MCP is transport-agnostic. While HTTP-based transports could theoretically use `Cache-Control` headers, MCP also operates over stdio,  and supports pluggable transports where HTTP headers may not be available. Embedding the TTL in the JSON response body ensures it works uniformly across all transports.
+MCP is transport-agnostic. While HTTP-based transports could theoretically use `Cache-Control` headers, MCP also operates over stdio, and supports pluggable transports where HTTP headers may not be available. Embedding the TTL in the JSON response body ensures it works uniformly across all transports.
 
 ## Backward Compatibility
 
@@ -191,6 +189,7 @@ This change is fully backward compatible:
 
 - Existing servers that do not provide it continue to work unchanged. If a `ttlMs` field is missing, clients SHOULD assume a default ttlMs of 0 (immediately stale) and rely on their own caching heuristincs or notifications, which is the current behavior.
 - Existing clients that do not understand the field will ignore it, as MCP result objects permit additional properties via `[key: string]: unknown` on the `Result` base type.
+- `cacheScope` is required because there is no safe default for older servers. The server must explicitly declare the intended cache scope to prevent unintended caching of user-specific data.
 - No existing fields or behaviors are modified or removed.
 - No capability negotiation is required.
 

@@ -394,14 +394,7 @@ async function main() {
       // Format MDX files with Prettier
       const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
       if (mdxTempFiles.length > 0) {
-        const checkBatchSize = 10;
-        for (let i = 0; i < mdxTempFiles.length; i += checkBatchSize) {
-          const batch = mdxTempFiles.slice(i, i + checkBatchSize);
-          execFileSync(npx, ["prettier", "--write", ...batch], {
-            stdio: "pipe",
-            shell: process.platform === "win32",
-          });
-        }
+        execFileSync(npx, ["prettier", "--write", ...mdxTempFiles], { stdio: "pipe" });
       }
 
       // Compare formatted temp files with existing files
@@ -441,14 +434,7 @@ async function main() {
       .map(({ path: p }) => path.relative(process.cwd(), p));
     if (filesToFormat.length > 0) {
       console.log("\nFormatting generated files with Prettier...");
-      const writeBatchSize = 10;
-      for (let i = 0; i < filesToFormat.length; i += writeBatchSize) {
-        const batch = filesToFormat.slice(i, i + writeBatchSize);
-        execFileSync(npx, ["prettier", "--write", ...batch], {
-          stdio: "inherit",
-          shell: process.platform === "win32",
-        });
-      }
+      execFileSync(npx, ["prettier", "--write", ...filesToFormat], { stdio: "inherit" });
     }
 
     console.log("\nSEP documentation generated successfully!");

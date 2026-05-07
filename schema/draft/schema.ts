@@ -1015,7 +1015,7 @@ export interface CacheableResult extends Result {
    *
    * @minimum 0
    */
-  ttlMs?: number;
+  ttlMs: number;
 
   /**
    * Indicates the intended scope of the cached response, analogous to HTTP
@@ -1027,9 +1027,8 @@ export interface CacheableResult extends Result {
    *   Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached
    *   copy to a different user.
    *
-   * Defaults to `"public"` if absent.
    */
-  cacheScope?: "public" | "private";
+  cacheScope: "public" | "private";
 }
 
 /* Resources */

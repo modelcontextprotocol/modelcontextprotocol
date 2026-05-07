@@ -126,7 +126,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "cacheScope": {
-                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.\n\nDefaults to `\"public\"` if absent.",
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
                     "enum": [
                         "private",
                         "public"
@@ -145,7 +145,9 @@
                 }
             },
             "required": [
-                "resultType"
+                "cacheScope",
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2012,7 +2014,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "cacheScope": {
-                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.\n\nDefaults to `\"public\"` if absent.",
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
                     "enum": [
                         "private",
                         "public"
@@ -2041,8 +2043,10 @@
                 }
             },
             "required": [
+                "cacheScope",
                 "prompts",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2099,7 +2103,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "cacheScope": {
-                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.\n\nDefaults to `\"public\"` if absent.",
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
                     "enum": [
                         "private",
                         "public"
@@ -2128,8 +2132,10 @@
                 }
             },
             "required": [
+                "cacheScope",
                 "resourceTemplates",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2186,7 +2192,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "cacheScope": {
-                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.\n\nDefaults to `\"public\"` if absent.",
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
                     "enum": [
                         "private",
                         "public"
@@ -2215,8 +2221,10 @@
                 }
             },
             "required": [
+                "cacheScope",
                 "resources",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2378,7 +2386,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "cacheScope": {
-                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.\n\nDefaults to `\"public\"` if absent.",
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
                     "enum": [
                         "private",
                         "public"
@@ -2407,8 +2415,10 @@
                 }
             },
             "required": [
+                "cacheScope",
                 "resultType",
-                "tools"
+                "tools",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -3013,7 +3023,7 @@
                     "$ref": "#/$defs/MetaObject"
                 },
                 "cacheScope": {
-                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.\n\nDefaults to `\"public\"` if absent.",
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
                     "enum": [
                         "private",
                         "public"
@@ -3045,8 +3055,10 @@
                 }
             },
             "required": [
+                "cacheScope",
                 "contents",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },

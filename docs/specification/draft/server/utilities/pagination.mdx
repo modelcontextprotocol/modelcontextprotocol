@@ -95,6 +95,15 @@ The following MCP operations support pagination:
      thus **MUST NOT** be treated as the end of results)
    - Don't persist cursors across sessions
 
+## Interaction with Caching
+
+When servers provide [TTL-based caching hints](/specification/draft/server/utilities/caching),
+each page is an independently cacheable response. The `ttlMs` value on each page
+determines that page's freshness independently of other pages.
+
+See [Caching — Interaction with Pagination](/specification/draft/server/utilities/caching#interaction-with-pagination)
+for full details on how TTL, cursors, and page freshness interact.
+
 ## Error Handling
 
 Invalid cursors **SHOULD** result in an error with code -32602 (Invalid params).
