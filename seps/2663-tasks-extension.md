@@ -17,9 +17,9 @@ Tasks will become a foundational building block of MCP and are expected to be su
 This proposal _removes_ the version of [tasks](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks) specified in the `2025-11-25` release. It is shaped by implementation feedback since that release, and by several changes to the base protocol included in the `2026-06-30` specification:
 
 - [SEP-2260: Require Server requests to be associated with a Client request](./2260-Require-Server-requests-to-be-associated-with-Client-requests.md)
-- [SEP-2322: Multi Round-Trip Requests](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)
+- [SEP-2322: Multi Round-Trip Requests](./2322-MRTR.md)
 - [SEP-2243: HTTP Header Standardization for Streamable HTTP Transport](./2243-http-standardization.md)
-- [SEP-2567: Sessionless MCP via Explicit State Handles](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567)
+- [SEP-2567: Sessionless MCP via Explicit State Handles](./2567-sessionless-mcp.md)
 - [SEP-2575: Make MCP Stateless](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575)
 
 ## Motivation
@@ -96,7 +96,7 @@ This specification may be extended to support tasks over other request types in 
 
 ### Polymorphic Results
 
-A request that is eligible for task-augmentation may return one of two distinct result shapes — the request's standard result, or a `CreateTaskResult`. The discriminator is the `resultType` field on the result object, introduced by [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322):
+A request that is eligible for task-augmentation may return one of two distinct result shapes — the request's standard result, or a `CreateTaskResult`. The discriminator is the `resultType` field on the result object, introduced by [SEP-2322](./2322-MRTR.md):
 
 ```typescript
 // "task" is introduced by this extension.
@@ -398,7 +398,7 @@ interface GetTaskRequest extends JSONRPCRequest {
 
     /**
      * Optional opaque request-state token round-tripped from a prior server response
-     * (per SEP-2322).
+     * (per MRTR).
      */
     requestState?: string;
   };
@@ -432,14 +432,14 @@ interface UpdateTaskRequest extends JSONRPCRequest {
 
     /**
      * Responses to outstanding inputRequests previously surfaced by the
-     * server. Shape per SEP-2322. Each key MUST correspond to a currently-
+     * server. Shape per MRTR. Each key MUST correspond to a currently-
      * outstanding inputRequest key.
      */
     inputResponses: InputResponses;
 
     /**
      * Optional opaque request-state token round-tripped from a prior server response
-     * (per SEP-2322).
+     * (per MRTR).
      */
     requestState?: string;
   };
@@ -472,7 +472,7 @@ interface CancelTaskRequest extends JSONRPCRequest {
 
     /**
      * Optional opaque request-state token round-tripped from a prior server response
-     * (per SEP-2322).
+     * (per MRTR).
      */
     requestState?: string;
   };
@@ -672,7 +672,7 @@ On each request while the task is in a `"working"` status, the server returns a 
 }
 ```
 
-Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this, and may additionally provide a `requestState` if it so chooses. On the next `tasks/get` request from the client, the server sends the elicitation payload via the `inputRequests` field. Note that while task `inputRequests` share structural similarities with [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322) multi round-trip requests, they are a distinct mechanism: task `inputRequests` are surfaced via `tasks/get` and fulfilled via `tasks/update`, not via retries of the original method. A server that needs client input _before_ returning a `CreateTaskResult` (e.g. to decide whether to proceed) uses the multi round-trip request flow on the original request; a server that needs client input _during_ task execution uses the `inputRequests`/`inputResponses` mechanism described here.
+Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this, and may additionally provide a `requestState` if it so chooses. On the next `tasks/get` request from the client, the server sends the elicitation payload via the `inputRequests` field. Note that while task `inputRequests` share structural similarities with [SEP-2322](./2322-MRTR.md) multi round-trip requests, they are a distinct mechanism: task `inputRequests` are surfaced via `tasks/get` and fulfilled via `tasks/update`, not via retries of the original method. A server that needs client input _before_ returning a `CreateTaskResult` (e.g. to decide whether to proceed) uses the multi round-trip request flow on the original request; a server that needs client input _during_ task execution uses the `inputRequests`/`inputResponses` mechanism described here.
 
 ```json
 {
@@ -994,7 +994,7 @@ An [alternative proposal](https://github.com/modelcontextprotocol/modelcontextpr
 
 However, as we look to [move away](https://blog.modelcontextprotocol.io/posts/2025-12-19-mcp-transport-future/) from stateful protocol interactions and given the current experimental state of tasks in general, it seems worth proposing a somewhat more radical change that reduces the complexity of the overall specification and makes tasks more "native" to MCP at this time. In particular, the choice to allow unsolicited tasks (in _addition_ to immediate results) means promoting tasks to a first-class concept intended for all persistent operations, as opposed to being a parallel and somewhat specialized concept.
 
-This happens to align with the proposed [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322), but the two are not coupled with one another.
+This happens to align with the proposed [SEP-2322](./2322-MRTR.md), but the two are not coupled with one another.
 
 ### Splitting Reads (`tasks/get`) and Writes (`tasks/update`)
 
@@ -1026,7 +1026,7 @@ The following new requirement is introduced:
 
 > Server implementations that use multi round-trip requests in conjunction with task creation (for example, a tool that requires elicitation over `IncompleteResult` before creating a task) **SHOULD** resolve all MRTR exchanges _synchronously_ before responding with a `CreateTaskResult`.
 
-A `tools/call` that supports both MRTR ([SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)) and this extension may use them sequentially by sending one or more `IncompleteResult` exchanges to gather input synchronously, followed by a `CreateTaskResult` to hand off to asynchronous execution. This composition is a consequence of the `resultType` discriminator — each response is independently typed and the client switches behavior based on the value it receives, _without_ maintaining any state between the two modes. Prohibiting this would require imposing an artificial constraint with no protocol-level mechanism to enforce it, since the client is unaware that the server will create a task ahead of time.
+A `tools/call` that supports both MRTR ([SEP-2322](./2322-MRTR.md)) and this extension may use them sequentially by sending one or more `IncompleteResult` exchanges to gather input synchronously, followed by a `CreateTaskResult` to hand off to asynchronous execution. This composition is a consequence of the `resultType` discriminator — each response is independently typed and the client switches behavior based on the value it receives, _without_ maintaining any state between the two modes. Prohibiting this would require imposing an artificial constraint with no protocol-level mechanism to enforce it, since the client is unaware that the server will create a task ahead of time.
 
 The two flows maintain separate state despite sharing field names. The MRTR phase ends when the server returns any non-`"incomplete"` `resultType`, at which point its `requestState` and `inputRequests` keys are consumed. The task phase begins with `CreateTaskResult` and maintains _its own_ `requestState` and `inputRequests` keys independently. Key uniqueness for task `inputRequests` is scoped to the lifetime of the task and does not extend to keys from the preceding MRTR phase. Clients do not need to deduplicate across the two flows.
 
