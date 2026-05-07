@@ -1,6 +1,6 @@
 # SEP-2567: Sessionless MCP via Explicit State Handles
 
-- **Status**: Draft
+- **Status**: Accepted
 - **Type**: Standards Track
 - **Created**: 2026-03-11
 - **Author(s)**: Peter Alexander (@pja-ant)
