@@ -19,7 +19,7 @@
         ]
       }
     ],
-    "ttl": 3600,
+    "ttlMs": 3600000,
     "cacheScope": "public"
   }
 }

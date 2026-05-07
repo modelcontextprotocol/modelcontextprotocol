@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP proposes adding an optional `ttl` (time-to-live) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and reduce reliance on server-push notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
+This SEP proposes adding an optional `ttlMs` (time-to-live in milliseconds) field to the result objects returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. The TTL tells clients how long the response may be considered fresh before re-fetching. This allows clients to cache feature lists and reduce reliance on server-push notifications while remaining fully backward compatible. TTL supplements rather than replaces the existing notification mechanism — both can coexist.
 
 ## Motivation
 
@@ -40,7 +40,7 @@ Adding a TTL field to list responses solves all of these problems with a minimal
 
 ### New interface: `CacheableResult`
 
-A new `CacheableResult` interface is introduced as a standalone type extending `Result`. It owns the `ttl` and `cacheScope` fields.
+A new `CacheableResult` interface is introduced as a standalone type extending `Result`. It owns the `ttlMs` and `cacheScope` fields.
 
 #### Schema change (TypeScript)
 
@@ -52,16 +52,16 @@ A new `CacheableResult` interface is introduced as a standalone type extending `
  */
 export interface CacheableResult extends Result {
   /**
-   * A hint from the server indicating how long (in seconds) the
+   * A hint from the server indicating how long (in milliseconds) the
    * client MAY cache this response before re-fetching. Semantics are
    * analogous to HTTP Cache-Control max-age.
    *
    * - If 0, The response SHOULD be considered immediately stale, The client
    *   MAY re-fetch every time the result is needed. 
    * - If positive, the client SHOULD consider the result fresh for this many
-   *   seconds after receiving the response.
+   *   milliseconds after receiving the response.
    */
-  ttl: number & { readonly minimum: 0 };
+  ttlMs: number & { readonly minimum: 0 };
 
   /**
    * Indicates the intended scope of the cached response, analogous to HTTP
@@ -79,28 +79,25 @@ export interface CacheableResult extends Result {
 }
 ```
 
-
-> **Open Question — TTL format**: An alternative representation is an ISO 8601 duration string (e.g., `"PT5M"` for 5 minutes). Integer seconds are simpler, consistent with HTTP `max-age`, and easier to compare arithmetically. ISO 8601 durations are more human-readable and used in some Azure/AWS APIs. Community input is welcome on which format to adopt. The remainder of this specification uses integer seconds for illustration.
-
 ### Semantics
 A TTL is a freshness estimate, not a guarantee. Servers MAY change the underlying list before the TTL expires; servers that do so and have advertised listChanged SHOULD send the corresponding notification.
 
-Servers MUST provide a `ttl` on `Results` returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. 
+Servers MUST provide a `ttlMs` on `Results` returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list`. 
 
-`ttl` MUST be >= 0. If a server returns a negative value, clients SHOULD ignore it and treat it as 0 (immediately stale).
+`ttlMs` MUST be >= 0. If a server returns a negative value, clients SHOULD ignore it and treat it as 0 (immediately stale).
 
 
 | Condition                                                    | Client behavior                                                                                      |
 | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `ttl` = 0                                                    | The response SHOULD be considered immediately stale, The Client MAY re-fetch every time the result is needed. |
-| `ttl` > 0                                                    | Client SHOULD consider the response fresh for `ttl` seconds from receipt. |
+| `ttlMs` = 0                                                  | The response SHOULD be considered immediately stale, The Client MAY re-fetch every time the result is needed. |
+| `ttlMs` > 0                                                  | Client SHOULD consider the response fresh for `ttlMs` milliseconds from receipt. |
 | Relevant notification received while TTL is active           | The notification invalidates the cached response. Client SHOULD re-fetch regardless of remaining TTL. |
 | `cacheScope` absent or `"public"`                            | Any client or shared intermediary (gateway, proxy) MAY cache and serve the response to any user.     |
 | `cacheScope` = `"private"`                                   | Only the requesting user's client MAY cache. Shared caches MUST NOT serve a cached copy to a different user. |
 
 #### Freshness calculation
 
-A client records the local time at which the response was received (`t_received`). The response is considered **fresh** while `now < t_received + ttl`. Once the TTL expires the response is **stale** and the client SHOULD re-fetch on next access.
+A client records the local time at which the response was received (`t_received`). The response is considered **fresh** while `now < t_received + ttlMs`. Once the TTL expires the response is **stale** and the client SHOULD re-fetch on next access.
 
 Clients SHOULD NOT treat TTL as a polling interval that triggers automatic background refetches. The TTL is a **freshness hint**: the client checks freshness when it needs the list, and re-fetches only if stale. Implementations that do choose to poll SHOULD apply jitter and backoff.
 
@@ -122,8 +119,8 @@ This design mirrors HTTP `Cache-Control: public` vs `Cache-Control: private`, ap
 ### Interaction with notifications
 TTL and server-push notifications are complementary:
 
-- A server MAY provide `ttl` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
-- A server MAY advertise `listChanged: true` **and** provide `ttl`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
+- A server MAY provide `ttlMs` without advertising `listChanged: true` in its capabilities. In this case the client relies entirely on TTL. 
+- A server MAY advertise `listChanged: true` **and** provide `ttlMs`. In this case the client can use the TTL to avoid unnecessary refetches between notifications, and the notification acts as an immediate invalidation signal.
 
 ```mermaid
 sequenceDiagram
@@ -131,7 +128,7 @@ sequenceDiagram
     participant S as Server
 
     C->>S: tools/list
-    S-->>C: { tools: [...], ttl: 300 }
+    S-->>C: { tools: [...], ttlMs: 300000 }
     Note over C: Cache response, fresh for 5 min
 
     Note over C: 2 minutes later...
@@ -140,25 +137,25 @@ sequenceDiagram
     Note over C: 3 minutes later (TTL expired)...
     C->>C: Need tools list → cache stale
     C->>S: tools/list
-    S-->>C: { tools: [...], ttl: 300 }
+    S-->>C: { tools: [...], ttlMs: 300000 }
 
     Note over S: Tools change before TTL expires
     S-->>C: notifications/tools/list_changed
     Note over C: Invalidate cache immediately
     C->>S: tools/list
-    S-->>C: { tools: [...], ttl: 300 }
+    S-->>C: { tools: [...], ttlMs: 300000 }
 ```
 
 ### Interaction with pagination
 
-When a list result includes `nextCursor` (indicating more pages), the `ttl` applies to the **entire paginated list**, not to individual pages. Specifically:
+When a list result includes `nextCursor` (indicating more pages), the `ttlMs` applies to the **entire paginated list**, not to individual pages. Specifically:
 
 - The TTL SHOULD only appear on every page with the same value. Clients SHOULD use the TTL from the last page they fetched to determine freshness.
 - When the TTL expires, the client SHOULD re-fetch from the beginning (without a cursor) to get the full updated list.
 
 ### Error handling
 
-- If `ttl` is present but is a negative integer, the client SHOULD ignore it and behave as if it were 0 (immediately stale).
+- If `ttlMs` is present but is a negative integer, the client SHOULD ignore it and behave as if it were 0 (immediately stale).
 
 
 ## Rationale
@@ -167,7 +164,10 @@ When a list result includes `nextCursor` (indicating more pages), the `ttl` appl
 
 Notifications provide immediate invalidation which is valuable for long-lived connections. TTL provides a complementary mechanism optimized for stateless transports and for reducing unnecessary polling. Both mechanisms serve different use cases and coexist naturally.
 
-### Prior art
+### Why integer milliseconds for TTL?
+We chose integer milliseconds over seconds as we want one unit for ttl across the MCP protocol. Tasks has uses cases for sub-second TTLs, and using milliseconds allows for a consistent representation across all TTLs in MCP.
+
+Many existing systems use integer seconds for TTLs, but some (e.g., gRPC retry pushback) use milliseconds. The key is to choose a single, consistent unit for all TTLs in MCP. Integer milliseconds provides the necessary precision while remaining simple to implement and understand.
 
 | System                         | Mechanism              | Notes                                                              |
 | ------------------------------ | ---------------------- | ------------------------------------------------------------------ |
@@ -175,8 +175,6 @@ Notifications provide immediate invalidation which is valuable for long-lived co
 | DNS TTL                        | Integer seconds        | Controls how long resolvers cache DNS records                      |
 | GraphQL `@cacheControl`        | `maxAge` integer secs  | Per-field cache hints in GraphQL responses                         |
 | gRPC `grpc-retry-pushback-ms`  | Milliseconds           | Server-provided retry hint (different use case, similar pattern)   |
-
-Integer seconds is the most common representation across these systems.
 
 ### Why not use HTTP caching directly?
 
@@ -186,7 +184,7 @@ MCP is transport-agnostic. While HTTP-based transports could theoretically use `
 
 This change is fully backward compatible:
 
-- Existing servers that do not provide it continue to work unchanged. If a `ttl` field is missing, clients SHOULD assume a default ttl of 0 (immediately stale) and rely on their own caching heuristincs or notifications, which is the current behavior.
+- Existing servers that do not provide it continue to work unchanged. If a `ttlMs` field is missing, clients SHOULD assume a default ttlMs of 0 (immediately stale) and rely on their own caching heuristincs or notifications, which is the current behavior.
 - Existing clients that do not understand the field will ignore it, as MCP result objects permit additional properties via `[key: string]: unknown` on the `Result` base type.
 - No existing fields or behaviors are modified or removed.
 - No capability negotiation is required.
@@ -196,13 +194,6 @@ This change is fully backward compatible:
 _No reference implementation yet._
 
 ---
-
-## Open Questions
-
-1. **TTL format — integer seconds vs. ISO 8601 duration**:
-   - Integer seconds (e.g., `300`) are simpler, consistent with HTTP `max-age` and DNS TTLs, and trivial to compare.
-   - ISO 8601 duration strings (e.g., `"PT5M"`) are more human-readable and self-documenting.
-   - Current recommendation: integer seconds, but community feedback is welcome.
 
 ## Security Implications
 

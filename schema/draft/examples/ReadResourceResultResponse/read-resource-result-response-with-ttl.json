@@ -10,7 +10,7 @@
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
     ],
-    "ttl": 60,
+    "ttlMs": 60000,
     "cacheScope": "private"
   }
 }

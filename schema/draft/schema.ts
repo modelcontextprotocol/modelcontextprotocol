@@ -1004,18 +1004,18 @@ export interface PaginatedResult extends Result {
  */
 export interface CacheableResult extends Result {
   /**
-   * A hint from the server indicating how long (in seconds) the
+   * A hint from the server indicating how long (in milliseconds) the
    * client MAY cache this response before re-fetching. Semantics are
    * analogous to HTTP Cache-Control max-age.
    *
    * - If 0, The response SHOULD be considered immediately stale,
    *   The client MAY re-fetch every time the result is needed.
    * - If positive, the client SHOULD consider the result fresh for this many
-   *   seconds after receiving the response.
+   *   milliseconds after receiving the response.
    *
    * @minimum 0
    */
-  ttl?: number;
+  ttlMs?: number;
 
   /**
    * Indicates the intended scope of the cached response, analogous to HTTP

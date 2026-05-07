@@ -138,8 +138,8 @@
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
-                "ttl": {
-                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response.",
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2034,8 +2034,8 @@
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
-                "ttl": {
-                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response.",
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2121,8 +2121,8 @@
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
-                "ttl": {
-                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response.",
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2208,8 +2208,8 @@
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
-                "ttl": {
-                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response.",
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2400,8 +2400,8 @@
                     },
                     "type": "array"
                 },
-                "ttl": {
-                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response.",
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -3038,8 +3038,8 @@
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
                 },
-                "ttl": {
-                    "description": "A hint from the server indicating how long (in seconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  seconds after receiving the response.",
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
                     "minimum": 0,
                     "type": "integer"
                 }

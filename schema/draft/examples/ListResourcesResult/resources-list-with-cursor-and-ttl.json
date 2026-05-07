@@ -17,6 +17,6 @@
     }
   ],
   "nextCursor": "eyJwYWdlIjogM30=",
-  "ttl": 600,
+  "ttlMs": 600000,
   "cacheScope": "private"
 }
