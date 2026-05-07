@@ -47,8 +47,12 @@ available prompts changes.
 
 Servers that declare the `prompts` capability **MUST** respond to `prompts/list` requests
 with the set of prompts currently available to the requesting client. This set **MAY** be
-empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the prompts the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 ## Protocol Messages
 
@@ -144,6 +148,8 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
   }
 }
 ```
+
+Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult) to indicate that additional input is needed before the prompt can be resolved. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
 
 ### List Changed Notification
 
