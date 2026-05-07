@@ -70,17 +70,9 @@ Describe any security concerns related to this proposal, including:
 
 If there are no security implications, state that explicitly.
 
-## Reference Implementation
+## Prototype Implementation
 
-Link to or describe a reference implementation. A reference implementation is required before any SEP can be given "Final" status.
-
-The principle of "rough consensus and running code" is useful when resolving discussions of protocol details.
-
-Include:
-
-- Links to prototype code or pull requests
-- Pointers to example usage
-- Test results or validation
+Link to a prototype demonstrating the proposal — for example, a branch or fork of an official SDK, a standalone proof-of-concept, or a reference server/client. A prototype is required before a SEP can be accepted; it does not need to be production-ready.
 
 ---
 
