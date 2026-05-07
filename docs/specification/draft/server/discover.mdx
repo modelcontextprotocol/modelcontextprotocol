@@ -64,6 +64,18 @@ identity:
 | `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                     |
 | `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                    |
 
+The `serverInfo.description` field describes the server itself: what kind of
+capabilities it provides and when a client or host might choose to connect to
+it. The `instructions` field describes how to use the server effectively after
+it is discovered, such as workflow guidance, constraints, or important
+relationships between tools, resources, and prompts.
+
+Servers that provide `instructions` should keep them focused on server-level
+usage guidance and avoid duplicating individual tool, resource, or prompt
+descriptions. Clients and hosts may use `serverInfo.description` for discovery,
+server selection, or progressive disclosure, and may use `instructions` as
+model-facing context once the server is loaded.
+
 ## When to Call
 
 Calling `server/discover` is optional for clients — a client may invoke any
