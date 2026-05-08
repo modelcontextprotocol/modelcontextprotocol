@@ -12,7 +12,7 @@
 
 ## Abstract
 
-This proposal specifies the expected behavior of MCP HTTP clients when a remote MCP server returns `HTTP 401` with a `WWW-Authenticate: Bearer error="invalid_token"` challenge and the client holds a usable refresh token for that authorization server. The proposal complements [SEP-2207 (OIDC-Flavored Refresh Token Guidance)](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2207-oidc-refresh-token-guidance.md), which standardized how clients *request* refresh tokens via `offline_access`, by specifying how clients should *use* those refresh tokens to recover transparently from token expiry — without surfacing the failure to the model or requiring user reauthentication.
+This proposal specifies the expected behavior of MCP HTTP clients when a remote MCP server returns `HTTP 401` with a `WWW-Authenticate: Bearer error="invalid_token"` challenge and the client holds a usable refresh token for that authorization server. The proposal complements [SEP-2207 (OIDC-Flavored Refresh Token Guidance)](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2207-oidc-refresh-token-guidance.md), which standardized how clients _request_ refresh tokens via `offline_access`, by specifying how clients should _use_ those refresh tokens to recover transparently from token expiry — without surfacing the failure to the model or requiring user reauthentication.
 
 ## Motivation
 
@@ -82,7 +82,7 @@ These are existing requirements from RFC 6750, RFC 9728, and SEP-2207. They are 
 
 ### Why this complements SEP-2207 rather than amending it
 
-SEP-2207 is exclusively concerned with refresh token *issuance* — establishing a contract between the client and the authorization server about when and how refresh tokens are produced. The current proposal is exclusively concerned with refresh token *use* on 401 — establishing a contract between the client and the resource server (via the standardized 401 challenge) about how the client should recover. The two concerns are independent and merit separate normative treatment, while sharing the underlying assumption that `offline_access` has been requested.
+SEP-2207 is exclusively concerned with refresh token _issuance_ — establishing a contract between the client and the authorization server about when and how refresh tokens are produced. The current proposal is exclusively concerned with refresh token _use_ on 401 — establishing a contract between the client and the resource server (via the standardized 401 challenge) about how the client should recover. The two concerns are independent and merit separate normative treatment, while sharing the underlying assumption that `offline_access` has been requested.
 
 ### Why "SHOULD" rather than "MUST"
 
@@ -135,7 +135,7 @@ This proposal is fully backward-compatible:
 
 3. **Conditional Access bypass concerns.** If an authorization server enforces step-up authentication (MFA, compliant device, named locations) at sign-in, those policies are evaluated when the refresh-token grant runs. Conditional Access policies that require re-prompting on each access-token issuance can return a `400 invalid_grant` with `error_description` indicating step-up required, at which point the client falls through to the "surface `needs_reauth`" path. This SEP does not weaken Conditional Access; the AS retains full enforcement authority via the refresh-token grant evaluation.
 
-4. **Tool side-effect duplication.** If a tool call triggered a non-idempotent server-side side effect *before* the 401 was returned (rare, since the 401 is typically returned at the auth boundary before tool execution), the silent retry would invoke the tool twice. Mitigation: servers should perform auth at the entry of the request handler, before any side-effecting code runs. If a deployment cannot guarantee this, the server-side response should be `403` or `409` rather than `401 invalid_token` to keep silent refresh out of the path.
+4. **Tool side-effect duplication.** If a tool call triggered a non-idempotent server-side side effect _before_ the 401 was returned (rare, since the 401 is typically returned at the auth boundary before tool execution), the silent retry would invoke the tool twice. Mitigation: servers should perform auth at the entry of the request handler, before any side-effecting code runs. If a deployment cannot guarantee this, the server-side response should be `403` or `409` rather than `401 invalid_token` to keep silent refresh out of the path.
 
 ## Reference Implementation
 
