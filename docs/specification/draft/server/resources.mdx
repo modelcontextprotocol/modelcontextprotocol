@@ -218,62 +218,28 @@ capability **SHOULD** send a notification:
 
 ### Subscriptions
 
-Clients can subscribe to change notifications for specific resources using
-[`subscriptions/listen`](/specification/draft/schema#subscriptionslistenrequest).
-The request opens a long-lived stream; the server delivers
-`notifications/resources/updated` on that stream whenever a watched resource changes.
-
-**Listen request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "subscriptions/listen",
-  "params": {
-    "notifications": {
-      "resourceSubscriptions": ["file:///project/src/main.rs"]
-    }
-  }
-}
-```
-
-The server **MUST** send a `notifications/subscriptions/acknowledged` notification
-to confirm the stream is active before sending any other notifications on it:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/subscriptions/acknowledged",
-  "params": {
-    "_meta": {
-      "io.modelcontextprotocol/subscriptionId": "4"
-    },
-    "notifications": {
-      "resourceSubscriptions": ["file:///project/src/main.rs"]
-    }
-  }
-}
-```
-
-**Update notification** (delivered on the stream):
+Clients subscribe to change notifications for specific resources by sending a
+[`subscriptions/listen`][subscriptions-listen] request with the resource URIs listed in
+`notifications.resourceSubscriptions`. The server delivers
+`notifications/resources/updated` on the resulting stream whenever a watched resource
+changes.
 
 ```json
 {
   "jsonrpc": "2.0",
   "method": "notifications/resources/updated",
   "params": {
-    "_meta": {
-      "io.modelcontextprotocol/subscriptionId": "4"
-    },
+    "_meta": { "io.modelcontextprotocol/subscriptionId": "4" },
     "uri": "file:///project/src/main.rs"
   }
 }
 ```
 
-To end the subscription, close the stream (HTTP) or send
-`notifications/cancelled` referencing the listen request ID (stdio). See
-[Cancellation](/specification/draft/basic/utilities/cancellation) for details.
+See [Subscriptions][subscriptions] for the full protocol mechanics (acknowledgment,
+`subscriptionId` correlation, and cancellation).
+
+[subscriptions-listen]: /specification/draft/schema#subscriptionslistenrequest
+[subscriptions]: /specification/draft/basic/utilities/subscriptions
 
 ## Message Flow
 
@@ -295,7 +261,7 @@ sequenceDiagram
     Server-->>Client: Resource contents
 
     Note over Client,Server: Subscribe to changes
-    Client->>Server: subscriptions/listen
+    Client->>Server: subscriptions/listen (resourceSubscriptions)
     Server--)Client: notifications/subscriptions/acknowledged
 
     Note over Client,Server: Resource updated

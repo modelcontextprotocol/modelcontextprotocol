@@ -323,6 +323,7 @@
                     "pages": [
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/progress",
+                      "specification/draft/basic/utilities/subscriptions",
                       "specification/draft/basic/utilities/tasks",
                       "specification/draft/basic/utilities/mrtr"
                     ]
