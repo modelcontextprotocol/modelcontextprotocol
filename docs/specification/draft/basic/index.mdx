@@ -239,6 +239,13 @@ without relying on any prior connection state. See
 | `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request                |
 | `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request   |
 
+A server **MUST NOT** rely on capabilities the client has not declared. If
+processing a request requires a capability the client did not include in
+`io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
+[`MissingRequiredClientCapabilityError`](/specification/draft/schema#missingrequiredclientcapabilityerror)
+(`-32003`) whose `data.requiredCapabilities` lists the missing capabilities. On
+HTTP, the response status **MUST** be `400 Bad Request`.
+
 On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
 the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
 client can correlate the notification with the originating subscription request.
