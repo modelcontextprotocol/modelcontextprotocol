@@ -313,10 +313,8 @@ aggregate tools from multiple servers **MAY** encounter naming collisions (for
 example, two servers each exposing a `search` tool) and **SHOULD** implement a
 disambiguation strategy such as prefixing tool names with a server identifier.
 
-The server `name` returned during
-[initialization](/specification/draft/basic/lifecycle#initialization) is not
-guaranteed to be unique across servers and **SHOULD NOT** be relied upon for
-disambiguation.
+The server `name` (from `serverInfo`) is not guaranteed to be unique across
+servers and **SHOULD NOT** be relied upon for disambiguation.
 
 </Note>
 

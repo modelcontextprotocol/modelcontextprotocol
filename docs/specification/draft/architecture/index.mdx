@@ -114,13 +114,14 @@ implementation:
 ## Capability Negotiation
 
 The Model Context Protocol uses a capability-based negotiation system where clients and
-servers explicitly declare their supported features during initialization. Capabilities
-determine which protocol features and primitives are available during a connection.
+servers declare their supported features on each request. Clients include their
+capabilities in `_meta.io.modelcontextprotocol/clientCapabilities` on every request;
+servers advertise their capabilities via [`server/discover`](/specification/draft/schema#discoverrequest).
 
-- Servers declare capabilities like resource subscriptions, tool support, and prompt
+- Servers declare capabilities like tool support, resource subscriptions, and prompt
   templates
-- Clients declare capabilities like sampling support and notification handling
-- Both parties must respect declared capabilities throughout the connection
+- Clients declare capabilities like sampling support and elicitation handling
+- Both parties must respect declared capabilities throughout the interaction
 - Additional capabilities can be negotiated through extensions to the protocol
 
 ```mermaid
