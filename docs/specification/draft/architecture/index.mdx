@@ -7,8 +7,8 @@ title: Architecture
 The Model Context Protocol (MCP) follows a client-host-server architecture where each
 host can run multiple client instances. This architecture enables users to integrate AI
 capabilities across applications while maintaining clear security boundaries and
-isolating concerns. Built on JSON-RPC, MCP provides a stateful session protocol focused
-on context exchange and sampling coordination between clients and servers.
+isolating concerns. Built on JSON-RPC, MCP provides a protocol focused on context
+exchange and sampling coordination between clients and servers.
 
 ## Core Components
 
@@ -60,7 +60,7 @@ The host process acts as the container and coordinator:
 
 Each client is created by the host and maintains an isolated server connection:
 
-- Establishes one stateful session per server
+- Establishes one connection per server
 - Handles protocol negotiation and capability exchange
 - Routes protocol messages bidirectionally
 - Manages subscriptions and notifications
@@ -115,12 +115,12 @@ implementation:
 
 The Model Context Protocol uses a capability-based negotiation system where clients and
 servers explicitly declare their supported features during initialization. Capabilities
-determine which protocol features and primitives are available during a session.
+determine which protocol features and primitives are available during a connection.
 
 - Servers declare capabilities like resource subscriptions, tool support, and prompt
   templates
 - Clients declare capabilities like sampling support and notification handling
-- Both parties must respect declared capabilities throughout the session
+- Both parties must respect declared capabilities throughout the connection
 - Additional capabilities can be negotiated through extensions to the protocol
 
 ```mermaid
@@ -130,10 +130,10 @@ sequenceDiagram
     participant Server
 
     Host->>+Client: Initialize client
-    Client->>+Server: Initialize session with capabilities
+    Client->>+Server: Initialize with capabilities
     Server-->>Client: Respond with supported capabilities
 
-    Note over Host,Server: Active Session with Negotiated Features
+    Note over Host,Server: Active Connection with Negotiated Features
 
     loop Client Requests
         Host->>Client: User- or model-initiated action
@@ -155,11 +155,11 @@ sequenceDiagram
     end
 
     Host->>Client: Terminate
-    Client->>-Server: End session
+    Client->>-Server: End connection
     deactivate Server
 ```
 
-Each capability unlocks specific protocol features for use during the session. For
+Each capability unlocks specific protocol features for use during the connection. For
 example:
 
 - Implemented [server features](/specification/draft/server) must be advertised in the

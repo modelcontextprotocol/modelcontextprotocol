@@ -7,8 +7,7 @@ title: Overview
 The Model Context Protocol consists of several key components that work together:
 
 - **Base Protocol**: Core JSON-RPC message types
-- **Lifecycle Management**: Connection initialization, capability negotiation, and
-  session control
+- **Lifecycle Management**: Connection initialization and capability negotiation
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Sampling and root directory lists provided by clients
@@ -45,8 +44,8 @@ these types of messages:
 
 - Requests **MUST** include a string or integer ID.
 - Unlike base JSON-RPC, the ID **MUST NOT** be `null`.
-- The request ID **MUST NOT** have been previously used by the requestor within the same
-  session.
+- The request ID **MUST NOT** match the ID of any other request the sender has issued and
+  not yet received a response for.
 
 ### Responses
 
@@ -62,13 +61,25 @@ Responses are sent in reply to requests, containing either the result or error o
   id: string | number;
   result: {
     [key: string]: unknown;
-  }
+  };
+  resultType: string;
 }
 ```
 
 - Result responses **MUST** include the same ID as the request they correspond to.
 - Result responses **MUST** include a `result` field.
 - The `result` **MAY** follow any JSON object structure.
+- The `resultType` field **MUST** be included to indicate the type of the result. If no `resultType` is specified, "complete" should be assumed.
+
+##### ResultType
+
+The `resultType` field in a result response indicates the type of the result being returned. MCP supports poly-morphic result types,
+allowing servers to return different structures based on the outcome of the request. The `resultType` field is a string that clients
+can use to determine how to parse and handle the `result` object.
+
+- A `resultType` of `"complete"` the request completed successfully and the result contains the final content.
+- A `resultType` of `"input_required"` the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
+- If `resultType` is not specified, clients **MUST** assume a default value of `"complete"` for backwards compatibility.
 
 #### Error Responses
 
