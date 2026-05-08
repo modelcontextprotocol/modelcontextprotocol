@@ -82,11 +82,12 @@ The client **SHOULD** select a mutually supported version from the `supported`
 list and retry the request, or surface an error to the user if no compatible
 version exists.
 
-A client **MAY** call
-[`server/discover`](/specification/draft/schema#discoverrequest) before sending
-any other requests to learn the server's supported versions up front. This is
-optional — a client is free to invoke any RPC inline and handle
-`UnsupportedProtocolVersionError` if its preferred version is not supported.
+Servers **MUST** implement
+[`server/discover`](/specification/draft/server/discover). Clients
+**MAY** call it before sending any other requests to learn the server's
+supported versions up front, but are not required to — a client is free to
+invoke any RPC inline and handle `UnsupportedProtocolVersionError` if its
+preferred version is not supported.
 
 ### Backward Compatibility with Initialization-Based Versions
 
@@ -101,7 +102,7 @@ both kinds of servers can detect which is present:
   the legacy version for subsequent requests.
 - **STDIO.** Because there is no per-request status code to drive fallback,
   a client that supports both eras **SHOULD** probe with
-  [`server/discover`](/specification/draft/schema#discoverrequest) first,
+  [`server/discover`](/specification/draft/server/discover) first,
   setting its preferred modern version in `_meta`. If the server returns
   `Method not found` or `UnsupportedProtocolVersionError`, fall back to the
   legacy `initialize` handshake.

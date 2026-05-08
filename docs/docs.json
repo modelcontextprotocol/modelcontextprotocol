@@ -342,6 +342,7 @@
                 "group": "Server Features",
                 "pages": [
                   "specification/draft/server/index",
+                  "specification/draft/server/discover",
                   "specification/draft/server/prompts",
                   "specification/draft/server/resources",
                   "specification/draft/server/tools",
