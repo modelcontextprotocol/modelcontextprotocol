@@ -1080,7 +1080,7 @@ For comprehensive security guidance, including attack vectors, mitigation strate
 - **Multi‑tenant/realm mix-ups**. Pin to a single issuer/tenant unless explicitly multi‑tenant. Reject tokens from other realms even if signed by the same authorization server.
 - **Audience/resource indicator misuse**. Don't configure or accept generic audiences (like `api`) or unrelated resources. Require the audience/resource to match your configured server.
 - **Error detail leakage**. Return generic messages to clients, but log detailed reasons with correlation IDs internally to aid troubleshooting without exposing internals.
-- **Session identifier hardening**. Treat `Mcp-Session-Id` as untrusted input; never tie authorization to it. Regenerate on auth changes and validate lifecycle server‑side.
+- **Request identifier hardening**. Never tie authorization decisions to request or subscription identifiers. Authorization **MUST** be based solely on the bearer token presented on each request.
 
 ## Related Standards and Documentation
 

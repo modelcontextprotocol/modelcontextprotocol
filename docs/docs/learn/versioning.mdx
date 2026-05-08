@@ -28,11 +28,13 @@ The **current** protocol version is [**2025-11-25**](/specification/2025-11-25/)
 
 ## Negotiation
 
-Version negotiation happens during
-[initialization](/specification/latest/basic/lifecycle#initialization). Clients and
-servers **MAY** support multiple protocol versions simultaneously, but they **MUST**
-agree on a single version to use for the session.
+Version negotiation is per-request: the client declares the protocol version it is using
+in the `io.modelcontextprotocol/protocolVersion` field of each request's `_meta`. If the
+server does not support that version, it responds with an
+`UnsupportedProtocolVersionError` listing the versions it does support. The client can
+then retry with a compatible version, or surface an error if no compatible version
+exists.
 
-The protocol provides appropriate error handling if version negotiation fails, allowing
-clients to gracefully terminate connections when they cannot find a version compatible
-with the server.
+Clients and servers **MAY** support multiple protocol versions simultaneously. See the
+[Lifecycle specification](/specification/draft/basic/lifecycle#protocol-version-negotiation)
+for the full negotiation flow.
