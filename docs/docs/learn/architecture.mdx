@@ -84,7 +84,7 @@ Conceptually the data layer is the inner layer, while the transport layer is the
 The data layer implements a [JSON-RPC 2.0](https://www.jsonrpc.org/) based exchange protocol that defines the message structure and semantics.
 This layer includes:
 
-- **Lifecycle management**: Handles connection initialization, capability negotiation, and connection termination between clients and servers
+- **Lifecycle management**: Handles protocol version negotiation and per-request capability declaration
 - **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
 - **Client features**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
 - **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
@@ -108,7 +108,7 @@ MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol
 
 #### Lifecycle management
 
-MCP is a <Tooltip tip="A subset of MCP can be made stateless using the Streamable HTTP transport">stateful protocol</Tooltip> that requires lifecycle management. The purpose of lifecycle management is to negotiate the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> that both client and server support. Detailed information can be found in the [specification](/specification/latest/basic/lifecycle), and the [example](#example) showcases the initialization sequence.
+MCP is a stateless protocol: every request is self-contained and carries all the metadata the server needs to process it. Protocol version, client identity, and <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> travel in the `_meta` field of each request rather than being negotiated once at connection start. Detailed information can be found in the [specification](/specification/draft/basic/lifecycle), and the [example](#example) demonstrates the per-request model.
 
 #### Primitives
 
@@ -150,110 +150,34 @@ The protocol supports real-time notifications to enable dynamic updates between 
 This section provides a step-by-step walkthrough of an MCP client-server interaction, focusing on the data layer protocol. We'll demonstrate the lifecycle sequence, tool operations, and notifications using JSON-RPC 2.0 messages.
 
 <Steps>
-<Step title="Initialization (Lifecycle Management)">
-
-MCP begins with lifecycle management through a capability negotiation handshake. As described in the [lifecycle management](#lifecycle-management) section, the client sends an `initialize` request to establish the connection and negotiate supported features.
-
-<CodeGroup>
-  ```json Initialize Request
-  {
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "initialize",
-    "params": {
-      "protocolVersion": "2025-06-18",
-      "capabilities": {
-        "elicitation": {}
-      },
-      "clientInfo": {
-        "name": "example-client",
-        "version": "1.0.0"
-      }
-    }
-  }
-  ```
-  ```json Initialize Response
-  {
-    "jsonrpc": "2.0",
-    "id": 1,
-    "result": {
-      "protocolVersion": "2025-06-18",
-      "capabilities": {
-        "tools": {
-          "listChanged": true
-        },
-        "resources": {}
-      },
-      "serverInfo": {
-        "name": "example-server",
-        "version": "1.0.0"
-      }
-    }
-  }
-  ```
-</CodeGroup>
-
-#### Understanding the Initialization Exchange
-
-The initialization process is a key part of MCP's lifecycle management and serves several critical purposes:
-
-1. **Protocol Version Negotiation**: The `protocolVersion` field (e.g., "2025-06-18") ensures both client and server are using compatible protocol versions. This prevents communication errors that could occur when different versions attempt to interact. If a mutually compatible version is not negotiated, the connection should be terminated.
-
-2. **Capability Discovery**: The `capabilities` object allows each party to declare what features they support, including which [primitives](#primitives) they can handle (tools, resources, prompts) and whether they support features like [notifications](#notifications). This enables efficient communication by avoiding unsupported operations.
-
-3. **Identity Exchange**: The `clientInfo` and `serverInfo` objects provide identification and versioning information for debugging and compatibility purposes.
-
-In this example, the capability negotiation demonstrates how MCP primitives are declared:
-
-**Client Capabilities**:
-
-- `"elicitation": {}` - The client declares it can work with user interaction requests (can receive `elicitation/create` method calls)
-
-**Server Capabilities**:
-
-- `"tools": {"listChanged": true}` - The server supports the tools primitive AND can send `tools/list_changed` notifications when its tool list changes
-- `"resources": {}` - The server also supports the resources primitive (can handle `resources/list` and `resources/read` methods)
-
-After successful initialization, the client sends a notification to indicate it's ready:
-
-```json Notification
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/initialized"
-}
-```
-
-#### How This Works in AI Applications
-
-During initialization, the AI application's MCP client manager establishes connections to configured servers and stores their capabilities for later use. The application uses this information to determine which servers can provide specific types of functionality (tools, resources, prompts) and whether they support real-time updates.
-
-```python Pseudo-code for AI application initialization
-# Pseudo Code
-async with stdio_client(server_config) as (read, write):
-    async with ClientSession(read, write) as session:
-        init_response = await session.initialize()
-        if init_response.capabilities.tools:
-            app.register_mcp_server(session, supports_tools=True)
-        app.set_server_ready(session)
-```
-
-</Step>
-
 <Step title="Tool Discovery (Primitives)">
-Now that the connection is established, the client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism — it allows clients to understand what tools are available on the server before attempting to use them.
+
+The client can discover available tools by sending a `tools/list` request. Every request carries a `_meta` field with the protocol version, client identity, and capabilities — there is no prior handshake. The server uses these fields to understand who it is talking to and which protocol version applies.
 
 <CodeGroup>
   ```json Tools List Request
   {
     "jsonrpc": "2.0",
-    "id": 2,
-    "method": "tools/list"
+    "id": 1,
+    "method": "tools/list",
+    "params": {
+      "_meta": {
+        "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+        "io.modelcontextprotocol/clientInfo": {
+          "name": "example-client",
+          "version": "1.0.0"
+        },
+        "io.modelcontextprotocol/clientCapabilities": {
+          "elicitation": {}
+        }
+      }
+    }
   }
   ```
   ```json Tools List Response
   {
     "jsonrpc": "2.0",
-    "id": 2,
+    "id": 1,
     "result": {
       "tools": [
         {
@@ -300,7 +224,11 @@ Now that the connection is established, the client can discover available tools 
 
 #### Understanding the Tool Discovery Request
 
-The `tools/list` request is simple, containing no parameters.
+The `_meta` field carries three required fields on every request:
+
+- **`io.modelcontextprotocol/protocolVersion`**: The protocol version the client is using (e.g., `"DRAFT-2026-v1"`). The server responds with an error if it doesn't support that version, listing the versions it does support.
+- **`io.modelcontextprotocol/clientInfo`**: Client name and version for identification and debugging.
+- **`io.modelcontextprotocol/clientCapabilities`**: The capabilities the client supports for this request (e.g., `"elicitation": {}` declares the client can handle `elicitation/create` calls). The server uses this to know which primitives it can use when responding.
 
 #### Understanding the Tool Discovery Response
 
@@ -315,7 +243,7 @@ Each tool object in the response includes several key fields:
 
 #### How This Works in AI Applications
 
-The AI application fetches available tools from all connected MCP servers and combines them into a unified tool registry that the language model can access. This allows the LLM to understand what actions it can perform and automatically generates the appropriate tool calls during conversations.
+The AI application fetches available tools from all connected MCP servers and combines them into a unified tool registry that the language model can access. This allows the LLM to understand what actions it can perform and automatically generates the appropriate tool calls during conversations. Each request to the server includes the client's identity and capabilities, so the server can tailor its response without needing any prior connection state.
 
 ```python Pseudo-code for AI application tool discovery
 # Pseudo-code using MCP Python SDK patterns
@@ -339,7 +267,7 @@ The `tools/call` request follows a structured format that ensures type safety an
   ```json Tool Call Request
   {
     "jsonrpc": "2.0",
-    "id": 3,
+    "id": 2,
     "method": "tools/call",
     "params": {
       "name": "weather_current",
@@ -353,7 +281,7 @@ The `tools/call` request follows a structured format that ensures type safety an
   ```json Tool Call Response
   {
     "jsonrpc": "2.0",
-    "id": 3,
+    "id": 2,
     "result": {
       "content": [
         {
@@ -422,7 +350,7 @@ When the server's available tools change—such as when new functionality become
 
 1. **No Response Required**: Notice there's no `id` field in the notification. This follows JSON-RPC 2.0 notification semantics where no response is expected or sent.
 
-2. **Capability-Based**: This notification is only sent by servers that declared `"listChanged": true` in their tools capability during initialization (as shown in Step 1).
+2. **Capability-Based**: This notification is only sent by servers that declared `"listChanged": true` in their tools capability (as advertised in the `tools/list` response in Step 1).
 
 3. **Event-Driven**: The server decides when to send notifications based on internal state changes, making MCP connections dynamic and responsive.
 
@@ -433,7 +361,7 @@ Upon receiving this notification, the client typically reacts by requesting the 
 ```json Request
 {
   "jsonrpc": "2.0",
-  "id": 4,
+  "id": 3,
   "method": "tools/list"
 }
 ```
