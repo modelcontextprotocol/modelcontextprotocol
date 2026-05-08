@@ -447,12 +447,6 @@ export interface SubscriptionsListenRequest extends Request {
        * resource URIs. Replaces the resources/subscribe RPC.
        */
       resourceSubscriptions?: string[];
-
-      /**
-       * If set, receive notifications/message at or above this level.
-       * If absent, no log messages are sent on this stream.
-       */
-      logLevel?: LoggingLevel;
     };
   };
 }
@@ -493,7 +487,6 @@ export interface SubscriptionsAcknowledgedNotification extends Notification {
       promptsListChanged?: boolean;
       resourcesListChanged?: boolean;
       resourceSubscriptions?: string[];
-      logLevel?: LoggingLevel;
     };
   };
 }

@@ -53,17 +53,6 @@ emit `notifications/message` for a request that does not include this field.
 The server sends `notifications/message` notifications on the response stream at or
 above the requested level before the final response.
 
-### Long-lived log stream
-
-To receive a continuous stream of log messages, send a
-[`subscriptions/listen`][subscriptions] request with `logLevel` set in the
-`notifications` filter. The server delivers `notifications/message` on that stream
-for the duration of the subscription.
-
-See [Subscriptions][subscriptions] for the full protocol mechanics.
-
-[subscriptions]: /specification/draft/basic/utilities/subscriptions
-
 ## Protocol Messages
 
 ### Log Message Notifications
