@@ -227,7 +227,9 @@ Note that the JSON-RPC `id` **MUST** be different between the initial request an
 ### List Changed Notification
 
 When the list of available tools changes, servers that declared the `listChanged`
-capability **SHOULD** send a notification:
+capability **SHOULD** send a notification to clients that have opened a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+`toolsListChanged: true`:
 
 ```json
 {
@@ -256,10 +258,14 @@ sequenceDiagram
     Server-->>Client: Tool result
     Client->>LLM: Process result
 
-    Note over Client,Server: Updates
-    Server--)Client: tools/list_changed
-    Client->>Server: tools/list
-    Server-->>Client: Updated tools
+    opt listChanged
+      Client->>Server: subscriptions/listen (toolsListChanged: true)
+      Server--)Client: notifications/subscriptions/acknowledged
+      Note over Client,Server: Updates
+      Server--)Client: notifications/tools/list_changed
+      Client->>Server: tools/list
+      Server-->>Client: Updated tools
+    end
 ```
 
 ## Data Types
