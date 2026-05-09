@@ -142,7 +142,7 @@ export interface TaskAugmentedRequestParams extends RequestParams {
  * @category Common Types
  */
 export interface RequestParams {
-  _meta?: RequestMetaObject;
+  _meta: RequestMetaObject;
 }
 
 /** @internal */
@@ -1215,12 +1215,6 @@ export interface SubscriptionFilter {
  * @category `subscriptions/listen`
  */
 export interface SubscriptionsListenRequestParams extends RequestParams {
-  /**
-   * `_meta` is required because `protocolVersion`, `clientInfo`, and
-   * `clientCapabilities` are required for every request. (Overrides the
-   * optional `_meta` from the base {@link RequestParams}.)
-   */
-  _meta: RequestMetaObject;
   /**
    * The notifications the client opts in to on this stream. The server
    * **MUST NOT** send notification types the client has not explicitly

@@ -172,6 +172,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "name"
             ],
             "type": "object"
@@ -593,6 +594,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "argument",
                 "ref"
             ],
@@ -1240,6 +1242,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "name"
             ],
             "type": "object"
@@ -1631,6 +1634,9 @@
                     "type": "string"
                 }
             },
+            "required": [
+                "_meta"
+            ],
             "type": "object"
         },
         "InputResponses": {
@@ -2564,6 +2570,9 @@
                     "type": "string"
                 }
             },
+            "required": [
+                "_meta"
+            ],
             "type": "object"
         },
         "PaginatedResult": {
@@ -2862,6 +2871,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "uri"
             ],
             "type": "object"
@@ -2998,6 +3008,9 @@
                     "$ref": "#/$defs/RequestMetaObject"
                 }
             },
+            "required": [
+                "_meta"
+            ],
             "type": "object"
         },
         "Resource": {
@@ -3158,6 +3171,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "uri"
             ],
             "type": "object"
@@ -3715,8 +3729,7 @@
             "description": "Parameters for a {@link SubscriptionsListenRequestsubscriptions/listen} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/RequestMetaObject",
-                    "description": "`_meta` is required because `protocolVersion`, `clientInfo`, and\n`clientCapabilities` are required for every request. (Overrides the\noptional `_meta` from the base {@link RequestParams}.)"
+                    "$ref": "#/$defs/RequestMetaObject"
                 },
                 "notifications": {
                     "$ref": "#/$defs/SubscriptionFilter",
@@ -3784,6 +3797,9 @@
                     "description": "If specified, the caller is requesting task-augmented execution for this request.\nThe request will return a {@link CreateTaskResult} immediately, and the actual result can be\nretrieved later via {@link GetTaskPayloadRequesttasks/result}.\n\nTask augmentation is subject to capability negotiation - receivers MUST declare support\nfor task augmentation of specific request types in their capabilities."
                 }
             },
+            "required": [
+                "_meta"
+            ],
             "type": "object"
         },
         "TaskInputResponseRequest": {
@@ -3824,6 +3840,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "inputResponses"
             ],
             "type": "object"
