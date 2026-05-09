@@ -96,12 +96,29 @@ with their originating subscription.
 }
 ```
 
+## Multiple Concurrent Subscriptions
+
+A client **MAY** have multiple active subscriptions concurrently — for example,
+one listening for tools-list changes and another for resource updates. Each
+subscription is identified by the JSON-RPC request ID of its
+`subscriptions/listen` request, and every notification on the stream carries
+that ID in `io.modelcontextprotocol/subscriptionId` so clients can demultiplex
+them.
+
 ## Cancellation
 
-To end a subscription:
+A subscription ends when:
 
-- **Streamable HTTP**: Close the SSE response stream.
-- **stdio**: Send `notifications/cancelled` referencing the listen request ID.
+- The **client** cancels it — close the SSE stream (HTTP) or send
+  `notifications/cancelled` referencing the listen request ID (stdio).
+- The **server** tears it down (e.g., during shutdown) — it closes the
+  underlying transport connection.
+- The underlying transport closes (HTTP timeout, TCP disconnect, stdio process
+  exit).
+
+On **stdio**, if the connection is terminated and then re-established, the
+client **MUST** re-send `subscriptions/listen` to re-establish its
+subscriptions — the server holds no subscription state across reconnections.
 
 See [Cancellation][cancellation] for the full rules.
 

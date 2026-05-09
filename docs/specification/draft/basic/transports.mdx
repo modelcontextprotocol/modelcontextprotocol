@@ -101,6 +101,14 @@ portable one, so honoring it reduces the need for forced termination.
 The server **MAY** initiate shutdown by closing its output stream to the
 client and exiting.
 
+### Unexpected Termination
+
+If the server process exits unexpectedly, the client **SHOULD** restart it.
+Because the protocol is stateless, any in-flight requests are simply lost and
+the client can retry them against the fresh process. Active
+[`subscriptions/listen`][subscriptions-listen] streams must also be
+re-established after restart.
+
 [sigterm]: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
 [terminateprocess]: https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess
 [job-objects]: https://learn.microsoft.com/windows/win32/procthread/job-objects
