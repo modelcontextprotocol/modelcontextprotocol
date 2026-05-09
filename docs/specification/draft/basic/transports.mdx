@@ -267,6 +267,10 @@ listing its supported versions. See
 [Lifecycle: Protocol Version Negotiation][lifecycle-version]
 for the negotiation flow.
 
+If the server does not implement the requested RPC method, it **MUST** respond
+with `404 Not Found` and a JSON-RPC error with code `-32601`
+(`Method not found`).
+
 For backward compatibility, if the server does _not_ receive an
 `MCP-Protocol-Version` header and has no other way to identify the version,
 the server **SHOULD** assume protocol version `2025-03-26`.

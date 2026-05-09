@@ -82,9 +82,3 @@ is useful in two scenarios:
 
 See [Protocol Version Negotiation](/specification/draft/basic/lifecycle#protocol-version-negotiation)
 for the full version-selection flow.
-
-## Unsupported RPCs
-
-If a client calls an RPC the server does not implement, the server **MUST**
-return a `Method not found` JSON-RPC error (`-32601`). On HTTP the response
-status **MUST** be `404 Not Found`.
