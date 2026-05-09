@@ -104,8 +104,10 @@ both kinds of servers can detect which is present:
   a client that supports both eras **SHOULD** probe with
   [`server/discover`](/specification/draft/server/discover) first,
   setting its preferred modern version in `_meta`. If the server returns
-  `Method not found` or `UnsupportedProtocolVersionError`, fall back to the
-  legacy `initialize` handshake.
+  `Method not found` (`-32601`), fall back to the legacy `initialize`
+  handshake. If the server returns `UnsupportedProtocolVersionError`, the
+  server speaks a version of MCP without `initialize` — use one of its
+  advertised `supportedVersions` instead of falling back to `initialize`.
 
 A client that only supports modern (per-request-metadata) versions does not
 need to probe — it simply sends its preferred version and handles
