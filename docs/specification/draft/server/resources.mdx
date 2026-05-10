@@ -82,8 +82,12 @@ either, or both:
 
 Servers that declare the `resources` capability **MUST** respond to `resources/list`
 requests with the set of resources currently available to the requesting client. This set
-**MAY** be empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+**MAY** be empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the resources the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 ## Protocol Messages
 
@@ -171,6 +175,8 @@ To retrieve resource contents, clients send a `resources/read` request:
 Servers **MAY** return multiple resource contents in response to a single
 `resources/read` request. For example, a server could return the contents of
 several files when a directory resource is read.
+
+Servers **MAY** also respond to `resources/read` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult) to indicate that additional input is needed before the resource can be read. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
 
 Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resource directly from the web. See the [Common URI Schemes section](#https%3A%2F%2F) for more information.
 

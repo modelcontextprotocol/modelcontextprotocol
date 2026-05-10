@@ -15,7 +15,7 @@ the client or server can initiate a ping by sending a `ping` request.
 <Warning>
 
 `ping` is an MCP-level liveness check and **MAY** be sent by either party at any
-time on an established session/connection.
+time on an established connection.
 
 In Streamable HTTP, implementations **SHOULD** prefer transport-level SSE
 keepalive mechanisms for idle-connection maintenance; `ping` remains available
