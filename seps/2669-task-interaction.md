@@ -298,7 +298,7 @@ Steer messages are natural language instructions delivered to the task's executi
 
 ### `paused` state and resource holding
 
-Server-initiated pause could be used to hold resources (VMs, database connections) indefinitely. Servers SHOULD enforce TTL-based cleanup for paused tasks, consistent with SEP-2663's `ttlSeconds` field. Clients SHOULD monitor for tasks that remain paused beyond expected durations.
+Server-initiated pause could be used to hold resources (VMs, database connections) indefinitely. Servers SHOULD enforce TTL-based cleanup for paused tasks, consistent with SEP-2663's `ttlMs` field. Clients SHOULD monitor for tasks that remain paused beyond expected durations.
 
 ### Handle security
 
