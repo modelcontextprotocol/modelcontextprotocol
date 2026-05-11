@@ -12,6 +12,12 @@
       }
     },
     "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {},
       "io.modelcontextprotocol/related-task": {
         "taskId": "echo_dc792e24-01b5-4c0a-abcb-0559848ca3c5"
       }
