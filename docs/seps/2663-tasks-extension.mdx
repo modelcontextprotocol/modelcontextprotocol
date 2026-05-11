@@ -169,16 +169,6 @@ interface Task {
    * the lifetime of a task.
    */
   pollIntervalMs?: number;
-
-  /**
-   * Optional opaque state passed back from the server to the client as a
-   * best-effort optimization (e.g. routing hint, cached metadata).
-   * Servers MAY return a different value on each task-bearing message
-   * (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`);
-   * clients MUST echo the most recently received value on the next request.
-   * Servers MUST tolerate receiving a stale value gracefully.
-   */
-  requestState?: string;
 }
 
 /**
@@ -249,94 +239,6 @@ export type DetailedTask =
   | CancelledTask;
 ```
 
-#### Request State Management
-
-Servers **MAY** set an optional `requestState` string on any `Task` object to pass opaque routing or state information back to the client. When a client receives a `Task` with a `requestState` value, it **MUST** echo back the exact value of that field in the `requestState` field of subsequent `tasks/get`, `tasks/update`, and `tasks/cancel` requests for the same task. The server can use this echoed value to recover routing context or cache task metadata without maintaining per-task server-side session data, enabling stateless, load-balanced deployments. `requestState` is a best-effort optimization — servers **MUST NOT** depend on receiving the latest value for correctness, and **MUST** tolerate receiving a stale or outdated value gracefully (e.g. by falling back to a canonical lookup).
-
-**Response (with requestState):**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 6,
-  "result": {
-    "resultType": "complete",
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "status": "input_required",
-    "createdAt": "2025-11-25T10:30:00Z",
-    "lastUpdatedAt": "2025-11-25T10:45:00Z",
-    "ttlMs": 3600000,
-    "pollIntervalMs": 5000,
-    "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0=",
-    "inputRequests": {
-      "elicit-name": {
-        "method": "elicitation/create",
-        "params": {
-          "message": "Please enter your name.",
-          "requestedSchema": {
-            "type": "object",
-            "properties": { "name": { "type": "string" } },
-            "required": ["name"]
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**Follow-up Request (echoing requestState):**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 7,
-  "method": "tasks/update",
-  "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0=",
-    "inputResponses": {
-      "elicit-name": {
-        "action": "accept",
-        "content": { "input": "Jane Doe" }
-      }
-    }
-  }
-}
-```
-
-**`tasks/cancel` Request (echoing requestState):**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 7,
-  "method": "tasks/cancel",
-  "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "eyJzZXJ2ZXJJZCI6ICJub2RlLTQyIn0="
-  }
-}
-```
-
-The `requestState` value is opaque to the client — clients **MUST NOT** inspect, parse, modify, or make assumptions about its contents. Servers are free to encode the state in any format (e.g. base64-encoded JSON, encrypted JWT, serialized binary). If a client request contains a `requestState` field, servers **MUST** treat `requestState` as an attacker-controlled input. If `requestState` influences authorization, resource acces, or business logic, servers **MUST** protect its integrity (e.g. HMAC or AEAD) and **MUST** reject state that fails verification. Integrity protection **MAY** be omitted only when tampering can cause nothing worse than request failure.
-
-To prevent replay, servers **SHOULD** include the following inside the integrity-protected `requestState` payload and verify each on receipt:
-
-- The authenticated principal, rejecting state presented by a different principal.
-- A short expiry (TTL), rejecting state presented after it lapses.
-- An identifier for the originating request, e.g. the method name and a digest of its salient parameters, rejecting state presented on a request that does not match.
-
-<Warning>
-
-Note that these measures bound the replay window and prevent cross-user and cross-task reuse, but do not by themselves guarantee isolation. Servers for which a given `requestState` must be consumed at most once (e.g., one-time redemptions) **MUST** enforce that invariant server-side.
-
-</Warning>
-
-Servers **MAY** return a different `requestState` value on each task-bearing message (`CreateTaskResult`, `tasks/get`, `notifications/tasks/status`); clients **MUST** always use the most recently received value in their next request. If the most recent task-bearing message contained no `requestState`, the client **MUST NOT** include it in the next request. However, because multiple `tasks/get` requests or `notifications/tasks/status` notifications may be in flight concurrently, the value a client tracks as "most recently received" reflects client-side arrival order, which may differ from server-side generation order. Servers **MUST** therefore accept any `requestState` value they have previously issued for a given task, not only the most recent one, and **MUST NOT** use `requestState` rotation as a correctness mechanism (e.g. sequence enforcement). `UpdateTaskResult` and `CancelTaskResult` are empty acknowledgements and do not carry `requestState`, so the server cannot rotate state through write operations — the next `tasks/get` after an update will necessarily echo the pre-update value.
-
-Servers that include `requestState` **SHOULD** encrypt it to protect confidentiality and integrity, and **MUST** validate any received `requestState` before acting on it. Upon receiving a `notifications/tasks/status` notification for a task status update, clients **MUST** update their tracked `requestState` value with any value provided in the notification, as they would do with a `tasks/get` response.
-
 #### Task Status
 
 Tasks can be in one of the following states:
@@ -403,7 +305,7 @@ Clients poll for task completion by sending `tasks/get` requests.
 
 Clients **SHOULD** respect the `pollIntervalMs` provided in responses when determining polling frequency. The `pollIntervalMs` **MAY** change over the lifetime of a task. Servers **MAY** rate-limit clients polling more frequently than the recorded `pollIntervalMs`.
 
-Clients **SHOULD** continue polling until the task reaches a terminal status or until invoking `tasks/cancel`. Clients **SHOULD** persist task IDs and their associated `requestState` (if any) to durable storage so that polling can resume after a crash or restart.
+Clients **SHOULD** continue polling until the task reaches a terminal status or until invoking `tasks/cancel`. Clients **SHOULD** persist task IDs to durable storage so that polling can resume after a crash or restart.
 
 #### Request
 
@@ -413,12 +315,6 @@ interface GetTaskRequest extends JSONRPCRequest {
   params: {
     /** Identifier of the task to query. */
     taskId: string;
-
-    /**
-     * Optional opaque request-state token round-tripped from a prior server response
-     * (per MRTR).
-     */
-    requestState?: string;
   };
 }
 ```
@@ -454,12 +350,6 @@ interface UpdateTaskRequest extends JSONRPCRequest {
      * outstanding inputRequest key.
      */
     inputResponses: InputResponses;
-
-    /**
-     * Optional opaque request-state token round-tripped from a prior server response
-     * (per MRTR).
-     */
-    requestState?: string;
   };
 }
 ```
@@ -470,7 +360,7 @@ interface UpdateTaskRequest extends JSONRPCRequest {
 type UpdateTaskResult = Result; // empty acknowledgement
 ```
 
-On success, the server **MUST** acknowledge the request with an empty result. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks/status`) reflects them. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task, or if the `requestState` fails integrity verification (see [Request State Management](#request-state-management)). Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
+On success, the server **MUST** acknowledge the request with an empty result. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks/status`) reflects them. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task. Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
 
 A server **SHOULD** ignore any `inputResponses` responses mapped to a key that is not currently outstanding for the task — including keys that were never issued, keys that have already been answered, and keys whose corresponding request has been superseded. A server **MAY** accept a partial set of responses (a strict subset of currently-outstanding keys); in that case the task remains in `input_required` until the remaining responses arrive.
 
@@ -487,12 +377,6 @@ interface CancelTaskRequest extends JSONRPCRequest {
   method: "tasks/cancel";
   params: {
     taskId: string;
-
-    /**
-     * Optional opaque request-state token round-tripped from a prior server response
-     * (per MRTR).
-     */
-    requestState?: string;
   };
 }
 ```
@@ -503,11 +387,11 @@ interface CancelTaskRequest extends JSONRPCRequest {
 type CancelTaskResult = Result; // empty acknowledgement
 ```
 
-On success, the server **MUST** acknowledge the request with an empty result. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task, or if the `requestState` fails integrity verification (see [Request State Management](#request-state-management)). Cancellation processing is _eventually consistent_ — the task's observable status **MAY** remain `working` (or some other non-terminal status) after the ack, and **MAY** ultimately reach a terminal status other than `cancelled` if the work finished before cancellation could take effect.
+On success, the server **MUST** acknowledge the request with an empty result. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task. Cancellation processing is _eventually consistent_ — the task's observable status **MAY** remain `working` (or some other non-terminal status) after the ack, and **MAY** ultimately reach a terminal status other than `cancelled` if the work finished before cancellation could take effect.
 
 Cancellation is **cooperative**: The request signals intent, and the server decides whether and when to honor it. A server is not obligated to actually stop the work; it is only obligated to acknowledge the request. Eventual transition to `cancelled` is not guaranteed.
 
-Clients **MAY** delete all state associated with the task as soon as they send a cancellation (e.g., it no longer needs to retain the most recent `requestState` value or the list of `inputRequests` keys that it has already responded to). The client does not need to poll `tasks/get` again to wait for the task to reach the `cancelled` state.
+Clients **MAY** delete all state associated with the task as soon as they send a cancellation (e.g., it no longer needs to retain the list of `inputRequests` keys that it has already responded to). The client does not need to poll `tasks/get` again to wait for the task to reach the `cancelled` state.
 
 The `resultType` field **MUST** be set to `"complete"` on `CancelTaskResult` as it is the standard result shape for the `tasks/cancel` request.
 
@@ -651,8 +535,7 @@ The server determines (via bespoke logic) that it wants to create a task to repr
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
     "ttlMs": 3600000,
-    "pollIntervalMs": 5000,
-    "requestState": "SGVsbG8sIHdvcmxkCg=="
+    "pollIntervalMs": 5000
   }
 }
 ```
@@ -665,8 +548,7 @@ Once the client receives the `CreateTaskResult`, it begins polling `tasks/get`:
   "id": 3,
   "method": "tasks/get",
   "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "SGVsbG8sIHdvcmxkCg=="
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
   }
 }
 ```
@@ -684,13 +566,12 @@ On each request while the task is in a `"working"` status, the server returns a 
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
     "ttlMs": 3600000,
-    "pollIntervalMs": 5000,
-    "requestState": "SGVsbG8sIEknbSBzdGlsbCB3b3JraW5nCg=="
+    "pollIntervalMs": 5000
   }
 }
 ```
 
-Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this, and may additionally provide a `requestState` if it so chooses. On the next `tasks/get` request from the client, the server sends the elicitation payload via the `inputRequests` field. Note that while task `inputRequests` share structural similarities with [SEP-2322](./2322-MRTR.md) multi round-trip requests, they are a distinct mechanism: task `inputRequests` are surfaced via `tasks/get` and fulfilled via `tasks/update`, not via retries of the original method. A server that needs client input _before_ returning a `CreateTaskResult` (e.g. to decide whether to proceed) uses the multi round-trip request flow on the original request; a server that needs client input _during_ task execution uses the `inputRequests`/`inputResponses` mechanism described here.
+Eventually, the server reaches the point at which it needs to send an elicitation to the user. It sets the task status to `"input_required"` to signal this. On the next `tasks/get` request from the client, the server sends the elicitation payload via the `inputRequests` field. Note that while task `inputRequests` share structural similarities with [SEP-2322](./2322-MRTR.md) multi round-trip requests, they are a distinct mechanism: task `inputRequests` are surfaced via `tasks/get` and fulfilled via `tasks/update`, not via retries of the original method. A server that needs client input _before_ returning a `CreateTaskResult` (e.g. to decide whether to proceed) uses the multi round-trip request flow on the original request; a server that needs client input _during_ task execution uses the `inputRequests`/`inputResponses` mechanism described here.
 
 ```json
 {
@@ -698,8 +579,7 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
   "id": 4,
   "method": "tasks/get",
   "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "SGVsbG8sIEknbSBzdGlsbCB3b3JraW5nCg=="
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
   }
 }
 ```
@@ -731,8 +611,7 @@ Eventually, the server reaches the point at which it needs to send an elicitatio
           }
         }
       }
-    },
-    "requestState": "SGVsbG8sIEkgbmVlZCB5b3VyIG5hbWUgYnR3Cg=="
+    }
   }
 }
 ```
@@ -745,8 +624,7 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
   "id": 5,
   "method": "tasks/get",
   "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "SGVsbG8sIEkgbmVlZCB5b3VyIG5hbWUgYnR3Cg=="
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
   }
 }
 ```
@@ -778,8 +656,7 @@ For thoroughness, let's consider a case where the client happens to poll `tasks/
           }
         }
       }
-    },
-    "requestState": "SGVsbG8sIEkgbmVlZCB5b3VyIG5hbWUgYnR3Cg=="
+    }
   }
 }
 ```
@@ -800,8 +677,7 @@ The user enters their name, and the client makes a `tasks/update` request with t
           "input": "Luca"
         }
       }
-    },
-    "requestState": "SGVsbG8sIEkgbmVlZCB5b3VyIG5hbWUgYnR3Cg=="
+    }
   }
 }
 ```
@@ -826,8 +702,7 @@ Asynchronously, the server processes it and moves the task back into the `workin
   "id": 7,
   "method": "tasks/get",
   "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "SGVsbG8sIEkgbmVlZCB5b3VyIG5hbWUgYnR3Cg=="
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
   }
 }
 ```
@@ -843,8 +718,7 @@ Asynchronously, the server processes it and moves the task back into the `workin
     "createdAt": "2025-11-25T10:30:00Z",
     "lastUpdatedAt": "2025-11-25T10:50:00Z",
     "ttlMs": 3600000,
-    "pollIntervalMs": 5000,
-    "requestState": "SGVsbG8sIEknbSB3b3JraW5nIGFnYWluCg=="
+    "pollIntervalMs": 5000
   }
 }
 ```
@@ -857,8 +731,7 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
   "id": 8,
   "method": "tasks/get",
   "params": {
-    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
-    "requestState": "SGVsbG8sIEknbSB3b3JraW5nIGFnYWluCg=="
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840"
   }
 }
 ```
@@ -883,8 +756,7 @@ Eventually, the server completes the request, so it stores the final `CallToolRe
         }
       ],
       "isError": false
-    },
-    "requestState": "QWxsIGRvbmUgZm9yIG5vdwo="
+    }
   }
 }
 ```
@@ -903,8 +775,6 @@ Servers **MUST** return standard JSON-RPC errors for the following protocol erro
 - Invalid or nonexistent `taskId`: `-32602` (Invalid params)
   - Servers **MUST** return this error for `tasks/get`.
   - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel`.
-- Invalid `requestState` (integrity verification failure): `-32602` (Invalid params)
-  - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel` when `requestState` fails integrity verification (see [Request State Management](#request-state-management)).
 - Internal errors: `-32603` (Internal error)
 
 Servers **SHOULD** provide informative error messages to describe the cause of errors.
@@ -1036,7 +906,7 @@ In the `2025-11-25` design of tasks, `tasks/cancel` returned a task describing t
 
 The eventual-consistency on the ack is the same separation as for `tasks/update`: The server may record the cancellation request and respond before the worker has actually transitioned the task, without allowing the client to interpret the ack as strongly-consistent.
 
-While `tasks/update` and `tasks/cancel` use ack-only response shapes for the reasons above, servers **SHOULD** still return errors for clearly invalid requests — such as an unknown `taskId` or a `requestState` that fails integrity verification. The ack-only design is about avoiding synchronous reads of task state in the success path, not about suppressing errors that the server can detect at request time. Returning errors for invalid inputs gives clients a faster signal that something is wrong, rather than forcing them to discover the problem indirectly through subsequent `tasks/get` polls.
+While `tasks/update` and `tasks/cancel` use ack-only response shapes for the reasons above, servers **SHOULD** still return errors for clearly invalid requests — such as an unknown `taskId`. The ack-only design is about avoiding synchronous reads of task state in the success path, not about suppressing errors that the server can detect at request time. Returning errors for invalid inputs gives clients a faster signal that something is wrong, rather than forcing them to discover the problem indirectly through subsequent `tasks/get` polls.
 
 ### Composition with Multi Round-Trip Requests
 
@@ -1046,7 +916,7 @@ The following new requirement is introduced:
 
 A `tools/call` that supports both MRTR ([SEP-2322](./2322-MRTR.md)) and this extension may use them sequentially by sending one or more `InputRequiredResult` exchanges to gather input synchronously, followed by a `CreateTaskResult` to hand off to asynchronous execution. This composition is a consequence of the `resultType` discriminator — each response is independently typed and the client switches behavior based on the value it receives, _without_ maintaining any state between the two modes. Prohibiting this would require imposing an artificial constraint with no protocol-level mechanism to enforce it, since the client is unaware that the server will create a task ahead of time.
 
-The two flows maintain separate state despite sharing field names. The MRTR phase ends when the server returns any non-`"input_required"` `resultType`, at which point its `requestState` and `inputRequests` keys are consumed. The task phase begins with `CreateTaskResult` and maintains _its own_ `requestState` and `inputRequests` keys independently. Key uniqueness for task `inputRequests` is scoped to the lifetime of the task and does not extend to keys from the preceding MRTR phase. Clients do not need to deduplicate across the two flows.
+The two flows maintain separate state despite sharing field names. The MRTR phase ends when the server returns any non-`"input_required"` `resultType`, at which point its `inputRequests` keys are consumed. The task phase begins with `CreateTaskResult` and maintains _its own_ `inputRequests` keys independently. Key uniqueness for task `inputRequests` is scoped to the lifetime of the task and does not extend to keys from the preceding MRTR phase. Clients do not need to deduplicate across the two flows.
 
 ## Backward Compatibility
 
@@ -1065,7 +935,6 @@ A server that returns the standard `CallToolResult` shape — i.e., never elects
 - **Task ID unguessability.** A server **MAY** use task IDs as bearer tokens for a server's stored state. Servers **MUST** generate them with sufficient entropy that a third party cannot enumerate or guess them.
 - **Cross-caller correlation.** Because there is no `tasks/list`, a server cannot inadvertently leak the existence of one caller's tasks to another. This is an improvement over the `2025-11-25` tasks specification, in which a poorly-scoped list could expose unrelated task IDs.
 - **Input-request trust model.** `inputRequests` carry elicitation and sampling payloads from the server through the client to the user or model. Hosts **MUST** apply the same trust model to these payloads as they would to standard elicitation/sampling requests. A task is not a higher-trust channel.
-- **Request state security.** `requestState` is intended to be an opaque value unmodifiable by the client. Servers **MUST** treat `requestState` as an attacker-controlled input and protect it appropriately (see [Request State Management](#request-state-management)).
 
 ## Reference Implementation
 
