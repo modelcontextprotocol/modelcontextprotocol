@@ -83,12 +83,6 @@ interface TaskSteerRequest extends JSONRPCRequest {
      * Delivered at the next server-determined safe point.
      */
     message: string;
-
-    /**
-     * Opaque best-effort state, round-tripped by the client.
-     * Servers MUST tolerate receiving a stale value gracefully.
-     */
-    requestState?: string;
   };
 }
 ```
@@ -106,7 +100,7 @@ type TaskSteerResult = Result; // empty acknowledgment, resultType: "complete"
 - **Queue semantics.** Multiple steer messages MAY be queued. Delivery order MUST match submission order.
 - **Accepted on `working` and `paused` tasks.** A task in `paused` state accepts `tasks/steer` — messages are queued for delivery when the task resumes.
 - **Rejected on terminal tasks.** A task in `completed`, `failed`, or `cancelled` status MUST reject `tasks/steer` with `-32602` (Invalid params), because delivering queued messages to a completed task would create confusion about whether the steer had any effect.
-- **Errors for invalid requests.** Consistent with `tasks/update` and `tasks/cancel`, servers SHOULD return `-32602` for unknown `taskId` or `requestState` integrity failures.
+- **Errors for invalid requests.** Consistent with `tasks/update` and `tasks/cancel`, servers SHOULD return `-32602` for unknown `taskId`.
 
 #### Streamable HTTP
 
@@ -126,12 +120,6 @@ interface TaskPauseRequest extends JSONRPCRequest {
      * ID of the task to pause.
      */
     taskId: string;
-
-    /**
-     * Opaque best-effort state, round-tripped by the client.
-     * Servers MUST tolerate receiving a stale value gracefully.
-     */
-    requestState?: string;
   };
 }
 ```
@@ -172,12 +160,6 @@ interface TaskResumeRequest extends JSONRPCRequest {
      * ID of the task to resume.
      */
     taskId: string;
-
-    /**
-     * Opaque best-effort state, round-tripped by the client.
-     * Servers MUST tolerate receiving a stale value gracefully.
-     */
-    requestState?: string;
   };
 }
 ```
@@ -244,17 +226,16 @@ type DetailedTask =
 
 ### Error Summary
 
-| Error                | Code     | Method         | When                                                  |
-| -------------------- | -------- | -------------- | ----------------------------------------------------- |
-| Method not found     | `-32601` | Any            | Server doesn't support the method                     |
-| Invalid task state   | `-32602` | `tasks/pause`  | Task not in `working` or `input_required`             |
-| Already paused       | `-32602` | `tasks/pause`  | Task already in `paused`                              |
-| Not paused           | `-32602` | `tasks/resume` | Task not in `paused`                                  |
-| Terminal task        | `-32602` | `tasks/steer`  | Task in `completed`, `failed`, or `cancelled`         |
-| Unknown task ID      | `-32602` | Any            | `taskId` does not correspond to a known task (SHOULD) |
-| Invalid requestState | `-32602` | Any            | `requestState` fails integrity verification (SHOULD)  |
+| Error              | Code     | Method         | When                                                  |
+| ------------------ | -------- | -------------- | ----------------------------------------------------- |
+| Method not found   | `-32601` | Any            | Server doesn't support the method                     |
+| Invalid task state | `-32602` | `tasks/pause`  | Task not in `working` or `input_required`             |
+| Already paused     | `-32602` | `tasks/pause`  | Task already in `paused`                              |
+| Not paused         | `-32602` | `tasks/resume` | Task not in `paused`                                  |
+| Terminal task      | `-32602` | `tasks/steer`  | Task in `completed`, `failed`, or `cancelled`         |
+| Unknown task ID    | `-32602` | Any            | `taskId` does not correspond to a known task (SHOULD) |
 
-Consistent with SEP-2663's error model for `tasks/update` and `tasks/cancel`: servers SHOULD return errors for clearly invalid requests rather than silently acking.
+Consistent with SEP-2663's error model: servers SHOULD return errors for clearly invalid requests.
 
 ## Rationale
 
@@ -315,4 +296,4 @@ All three methods accept `taskId` as their routing key. The same security model 
 - Ryan Nowak (@rynowak) — original extensions proposal identifying steering, pause/resume, and rich output as the key gaps
 - Luca Chang (@LucaButBoring) — SEP-2663 design patterns that this extension follows
 - Caitie McCaffrey (@CaitieM20) — Agents WG sponsorship and tasks stabilization work
-- Peter Alexander (@pja-ant) — `requestState` analysis that informed the ack-only pattern choice
+- Peter Alexander (@pja-ant) — design feedback that informed the ack-only pattern choice
