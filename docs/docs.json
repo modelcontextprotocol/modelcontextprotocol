@@ -99,6 +99,12 @@
               "extensions/auth/oauth-client-credentials",
               "extensions/auth/enterprise-managed-authorization"
             ]
+          },
+          {
+            "group": "MCP Tasks",
+            "pages": [
+              "extensions/tasks/overview"
+            ]
           }
         ]
       },
@@ -324,7 +330,6 @@
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/progress",
                       "specification/draft/basic/utilities/subscriptions",
-                      "specification/draft/basic/utilities/tasks",
                       "specification/draft/basic/utilities/mrtr"
                     ]
                   }
@@ -674,6 +679,10 @@
     {
       "source": "/docs/extensions/apps",
       "destination": "/extensions/apps/overview"
+    },
+    {
+      "source": "/docs/extensions/tasks",
+      "destination": "/extensions/tasks/overview"
     },
     {
       "source": "/community/seps",
