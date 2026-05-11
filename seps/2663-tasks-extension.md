@@ -460,7 +460,7 @@ The `resultType` field **MUST** be set to `"complete"` on `UpdateTaskResult` as 
 
 ### Task Cancellation
 
-A client sends a `tasks/cancel` request to signal its intent to cancel an in-progress task.
+A client sends a `tasks/cancel` request to signal its intent to cancel an in-progress task. The `notifications/cancelled` notification **MUST NOT** be used for task cancellation.
 
 #### Request
 
