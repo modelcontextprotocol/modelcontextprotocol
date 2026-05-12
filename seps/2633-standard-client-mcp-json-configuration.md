@@ -263,7 +263,7 @@ This enables shareable configurations: a recipient copies the file, authenticate
 
 ### Version Pinning
 
-**Always pin packages to specific versions:**
+MCP server entries using stdio SHOULD pin packages to specific versions:
 
 - **npm**: `@scope/package@0.6.2` (not `@latest` or `@^1.0.0`)
 - **PyPI**: `package==0.5.0` (not `package` or `package>=0.5`)
