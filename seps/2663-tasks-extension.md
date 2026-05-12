@@ -82,9 +82,31 @@ The client and server declare support for the tasks extension in their respectiv
 
 No extension-specific settings are currently defined; an empty object indicates support.
 
-A server that has negotiated this extension **MAY** return `CreateTaskResult` in lieu of `CallToolResult` in response to any supported request at its own discretion and on a per-request basis. The server is the sole decider; clients do not signal task preference on the request itself. The client declaring the extension capability does not suggest that it requires a `CreateTaskResult` in response to that request.
+A server that has negotiated this extension **MAY** return `CreateTaskResult` in lieu of a standard result (e.g. `CallToolResult`) in response to any supported request at its own discretion and on a per-request basis. The server is the sole decider; clients do not signal task preference on the request itself. The client declaring the extension capability does not suggest that it requires a `CreateTaskResult` in response to that request.
 
 A server **MUST NOT** return `CreateTaskResult` to a client that did not include the extension capability on its request, regardless of prior declarations. A client that has negotiated this extension **MUST** be prepared to handle either `CallToolResult` or `CreateTaskResult` in response to any supported request it issues. A client that receives `CreateTaskResult` in response to an unsupported request type **MUST** interpret this as an invalid response to the request.
+
+If a server is unable to service a request to a client that does not declare this extension capability without returning `CreateTaskResult`, the server **MUST** return an error with the code `-32003` (Missing Required Client Capability), indicating the required extension in the error response:
+
+```jsonl
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    // MISSING_REQUIRED_CLIENT_CAPABILITY
+    "code": -32003,
+    // Message provided for example purposes only. The content of this example message is non-normative.
+    "message": "Missing required client capability",
+    "data": {
+      "requiredCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}
+```
 
 ### Supported Methods
 
