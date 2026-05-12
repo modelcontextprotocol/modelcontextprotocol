@@ -2509,16 +2509,16 @@
         "NumberSchema": {
             "properties": {
                 "default": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "description": {
                     "type": "string"
                 },
                 "maximum": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "minimum": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "title": {
                     "type": "string"

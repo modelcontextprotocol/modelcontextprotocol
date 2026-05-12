@@ -20,6 +20,31 @@ const ALL_SCHEMAS = [...LEGACY_SCHEMAS, ...MODERN_SCHEMAS];
 const CHECK_MODE = process.argv.includes('--check');
 
 /**
+ * Fix NumberSchema properties that should be `number` type instead of `integer`.
+ *
+ * The `--defaultNumberType integer` flag used during schema generation converts
+ * all TypeScript `number` types to JSON Schema `integer`. This is correct for
+ * most fields (request IDs, ports, etc.) but wrong for `NumberSchema.minimum`,
+ * `NumberSchema.maximum`, and `NumberSchema.default`, which must accept number
+ * values because they define constraints for schemas with `"type": "number"`.
+ */
+function fixNumberSchemaTypes(schemaPath: string): void {
+  let content = readFileSync(schemaPath, 'utf-8');
+  const schema = JSON.parse(content);
+
+  const numberSchema = schema.$defs?.NumberSchema ?? schema.definitions?.NumberSchema;
+  if (numberSchema?.properties) {
+    for (const prop of ['minimum', 'maximum', 'default']) {
+      if (numberSchema.properties[prop]?.type === 'integer') {
+        numberSchema.properties[prop].type = 'number';
+      }
+    }
+  }
+
+  writeFileSync(schemaPath, JSON.stringify(schema, null, 2) + '\n', 'utf-8');
+}
+
+/**
  * Apply JSON Schema 2020-12 transformations to a schema file
  */
 function applyJsonSchema202012Transformations(schemaPath: string): void {
@@ -76,6 +101,18 @@ async function generateSchema(version: string, check: boolean = false): Promise<
         expectedSchema = expectedSchema.replace(/#\/definitions\//g, '#/$defs/');
       }
 
+      // Fix NumberSchema properties that were incorrectly converted to integer
+      const parsedSchema = JSON.parse(expectedSchema);
+      const numberSchema = parsedSchema.$defs?.NumberSchema ?? parsedSchema.definitions?.NumberSchema;
+      if (numberSchema?.properties) {
+        for (const prop of ['minimum', 'maximum', 'default']) {
+          if (numberSchema.properties[prop]?.type === 'integer') {
+            numberSchema.properties[prop].type = 'number';
+          }
+        }
+      }
+      expectedSchema = JSON.stringify(parsedSchema, null, 2) + '\n';
+
       // Compare
       if (existingSchema.trim() !== expectedSchema.trim()) {
         console.error(`  ✗ Schema ${version} is out of date!`);
@@ -98,6 +135,9 @@ async function generateSchema(version: string, check: boolean = false): Promise<
       console.error(`Failed to generate schema for ${version}`);
       throw error;
     }
+
+    // Fix NumberSchema properties that were incorrectly converted to integer
+    fixNumberSchemaTypes(schemaJson);
 
     // Apply transformations for non-legacy schemas
     if (!LEGACY_SCHEMAS.includes(version)) {
