@@ -181,7 +181,7 @@ interface Task {
 Tasks can be in one of the following states:
 
 - `working`: The request is currently being processed.
-- `input_required`: The server needs input from the client. The `tasks/get` response will include outstanding requests in the `inputRequests` field, and the client should provide responses via the `inputResponses` field in subsequent `tasks/update` requests.
+- `input_required`: The server needs input from the client before the task can proceed. The `tasks/get` response will include outstanding requests in the `inputRequests` field. The client **MUST** inspect this field and **SHOULD** provide responses via the `inputResponses` field in subsequent `tasks/update` requests.
 - `completed`: The request completed successfully and results are available in the `result` field. This includes tool calls that returned results with `isError: true`.
 - `failed`: The request failed due to a JSON-RPC error during execution. The task will include the `error` field with the JSON-RPC error details. This status **MUST NOT** be used for non-JSON-RPC errors.
 - `cancelled`: The request was cancelled before completion.
@@ -348,6 +348,10 @@ If the task has a non-null `ttlMs`, clients **MAY** treat the TTL as a backstop:
 ### Task Update Requests
 
 When a task requires input from the client (indicated by the `input_required` status), the server includes outstanding requests in the `inputRequests` field of the `tasks/get` response (see [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/draft/basic/utilities/mrtr)). The client provides responses via the `inputResponses` field in one or more subsequent `tasks/update` requests.
+
+When a client observes a `tasks/get` response (or `notifications/tasks` notification) with `status: "input_required"`, the client **SHOULD** fulfill the outstanding requests in `inputRequests` by sending one or more `tasks/update` requests with corresponding `inputResponses`. After sending a `tasks/update`, the client **SHOULD** continue observing the task's status via polling (`tasks/get`) or notifications (`notifications/tasks`) until it reaches a terminal state.
+
+Clients **MUST** treat each entry in `inputRequests` as they would the equivalent standalone server-to-client request — for example, an elicitation request surfaced via `inputRequests` is subject to the same trust model and user-facing behavior as a direct `elicitation/create` request. Clients **SHOULD** deduplicate `inputRequests` keys across consecutive polls to avoid presenting the same request to the user or model more than once.
 
 Each request key in `inputRequests` **MUST** be unique over the lifetime of a single task. A server **MUST NOT** reuse a key for a subsequent server-to-client request after a response for that key has been delivered, and **MUST NOT** use the same key to refer to two distinct requests over a task's lifetime. This guarantees that `inputResponses` keyed by the same identifier always refer to the request the client expects, eliminates ambiguity for clients deduplicating across polls, and lets servers ignore `inputResponses` for unknown or already-satisfied requests.
 
