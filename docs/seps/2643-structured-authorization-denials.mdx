@@ -44,9 +44,9 @@ This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for
 
 ### Authorization Denial Envelope
 
-An MCP server that denies a JSON-RPC request on authorization grounds MAY return a JSON-RPC error whose `code` is `<AUTHORIZATION_DENIAL_TBD>` (integer value to be assigned, see Open Questions) and whose `data` contains an `authorization` object populated as defined in this section. The envelope is transport-agnostic and applies to both HTTP and stdio transports.
+An MCP server that denies a JSON-RPC request on authorization grounds MAY return a JSON-RPC error whose `code` is `<AUTHORIZATION_DENIAL_TBD>` (integer value to be assigned, see Open Questions) and whose `data` contains an `authorization` object populated as defined in this section. The envelope is transport-agnostic.
 
-The conceptual shape is:
+The shape of the payload is:
 
 ```json
 {
@@ -117,7 +117,7 @@ Authorization of the retry is determined by the credential presented with the re
 
 This use case covers denials where the client's credential is valid and does not need to change. Remediation requires an out-of-band user interaction at a URL, such as approving access or selecting resources, that changes server-side state. A representative example is a file picker in a cloud storage service, where the user's OAuth token is unchanged and the server records an approval tied to the user.
 
-This use case composes with the MCP URL elicitation error (`URLElicitationRequiredError`, JSON-RPC error code `-32042`). The envelope MUST include a `remediationHints` entry of type `url`, and the URL elicitation remains in `data.elicitations`.
+This use case composes with the MCP URL elicitation error (`URLElicitationRequiredError`, JSON-RPC error code `-32042`). The envelope MUST include a `remediationHints` entry of type `url`, and the URL elicitation remains in `data.elicitations` for backwards compatibility.
 
 Example denial:
 
@@ -223,7 +223,7 @@ Content-Type: application/json
 
 #### Example 2 — Rich Authorization Requests remediation
 
-When a denied request requires authorization beyond what OAuth scopes can express, the `WWW-Authenticate` challenge can signal that authorization is insufficient but cannot carry the structured requirements themselves. The server MAY supply those requirements inside the envelope so the client can construct its next authorization request directly, without navigating the metadata discovery chain. This approach mirrors the error-signaling pattern defined in [OAuth 2.0 RAR Metadata and Error Signaling](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/) at the JSON-RPC layer.
+When a denied request requires authorization beyond what OAuth scopes can express, the `WWW-Authenticate` challenge can signal that authorization is insufficient but cannot carry the structured requirements themselves. The server MAY supply those requirements inside the envelope so the client can construct its next authorization request directly, without additional metadata discovery. This approach mirrors the error-signaling pattern defined in [OAuth 2.0 RAR Metadata and Error Signaling](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/) at the JSON-RPC layer.
 
 An HTTP MCP server that denies a request because the access token lacks sufficient authorization details MAY return a `remediationHints` entry of type `oauth_authorization_details`. The entry's `authorization_details` member, when present, SHALL be an OAuth Rich Authorization Requests `authorization_details` array as defined in RFC 9396. The server MUST still return an HTTP authorization challenge via `WWW-Authenticate`, which remains authoritative for remediation and discovery. The JSON-RPC remediation hint is supplemental and exists to carry an actionable `authorization_details` object inside the response body.
 
@@ -307,7 +307,7 @@ Content-Type: application/json
       "currency": "EUR",
       "creditorName": "Merchant A",
       "creditorAccount": "DE02100100109307118603",
-      "remittanceInformation": "Ref Number Merchant"
+      "remittanceInformationUnstructured": "Ref Number Merchant"
     },
     "_meta": {
       "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_9f2c"
@@ -391,7 +391,7 @@ Content-Type: application/json
       "currency": "EUR",
       "creditorName": "Merchant A",
       "creditorAccount": "DE02100100109307118603",
-      "remittanceInformation": "Invoice 4711"
+      "remittanceInformationUnstructured": "Invoice 4711"
     },
     "_meta": {
       "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_ab7c"

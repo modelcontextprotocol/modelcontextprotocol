@@ -288,7 +288,7 @@ Content-Type: application/json
       "currency": "EUR",
       "creditorName": "Merchant A",
       "creditorAccount": "DE02100100109307118603",
-      "remittanceInformation": "Ref Number Merchant"
+      "remittanceInformationUnstructured": "Ref Number Merchant"
     },
     "_meta": {
       "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_9f2c"
@@ -372,7 +372,7 @@ Content-Type: application/json
       "currency": "EUR",
       "creditorName": "Merchant A",
       "creditorAccount": "DE02100100109307118603",
-      "remittanceInformation": "Invoice 4711"
+      "remittanceInformationUnstructured": "Invoice 4711"
     },
     "_meta": {
       "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_ab7c"

@@ -434,15 +434,15 @@
             ]
           },
           {
-            "group": "Approved",
-            "pages": [
-              "seps/2322-MRTR"
-            ]
-          },
-          {
             "group": "Draft",
             "pages": [
               "seps/2643-structured-authorization-denials"
+            ]
+          },
+          {
+            "group": "Approved",
+            "pages": [
+              "seps/2322-MRTR"
             ]
           }
         ]
