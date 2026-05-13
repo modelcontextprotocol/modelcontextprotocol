@@ -3,6 +3,14 @@
   "id": "read-resource-example",
   "method": "resources/read",
   "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    },
     "uri": "file:///project/src/main.rs"
   }
 }

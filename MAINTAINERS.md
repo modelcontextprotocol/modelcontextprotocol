@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** April 8, 2026
+**Last updated:** May 1, 2026
 
 ## Lead Maintainers
 
@@ -12,7 +12,6 @@ This document lists current maintainers in the Model Context Protocol project.
 ## Core Maintainers
 
 - [Caitie McCaffrey](https://github.com/CaitieM20)
-- [Che Liu](https://github.com/pwwpche)
 - [Clare Liguori](https://github.com/clareliguori)
 - [Kurtis Van Gent](https://github.com/kurtisvg)
 - [Nick Aldridge](https://github.com/000-000-000-000-000)
@@ -23,6 +22,8 @@ This document lists current maintainers in the Model Context Protocol project.
 ## Emeritus
 
 - [Justin Spahr-Summers](https://github.com/jspahrsummers) (Co-Inventor, Lead Maintainer Emeritus)
+- [Basil Hosmer](https://github.com/bhosmer-ant) (Core Maintainer Emeritus)
+- [Che Liu](https://github.com/pwwpche) (Core Maintainer Emeritus)
 
 ## SDK Maintainers
 
