@@ -366,7 +366,7 @@ type UpdateTaskResult = Result; // empty acknowledgement
 
 On success, the server **MUST** acknowledge the request with an empty result. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks/status`) reflects them. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task. Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
 
-A server **SHOULD** ignore any `inputResponses` responses mapped to a key that is not currently outstanding for the task — including keys that were never issued, keys that have already been answered, and keys whose corresponding request has been superseded. A server **MAY** accept a partial set of responses (a strict subset of currently-outstanding keys); in that case the task remains in `input_required` until the remaining responses arrive.
+A server **SHOULD** ignore any `inputResponses` responses mapped to a key that is not currently outstanding for the task — including keys that were never issued, keys that have already been answered, and keys whose corresponding request has been superseded. A server **MAY** accept a partial set of responses (a strict subset of currently-outstanding keys);
 
 The `resultType` field **MUST** be set to `"complete"` on `UpdateTaskResult` as it is the standard result shape for the `tasks/update` request.
 
