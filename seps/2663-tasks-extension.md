@@ -1,6 +1,6 @@
 # SEP-2663: Tasks Extension
 
-- **Status**: In-Review
+- **Status**: Accepted
 - **Type**: Extensions Track
 - **Created**: 2026-04-27
 - **Author(s)**: Luca Chang (@LucaButBoring), Caitie McCaffrey (@CaitieM20); on behalf of the Agents Working Group
