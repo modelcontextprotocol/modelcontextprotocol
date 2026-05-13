@@ -329,6 +329,14 @@ interface GetTaskRequest extends JSONRPCRequest {
 
 #### Response
 
+Upon receiving a `tasks/get` request, the server **MUST** check the status of the task and respond accordingly:
+
+1. If the status is `working`, the server **MUST** return a a `Task` object with status `working`.
+2. If the status is `input_required`, the server **MUST** return a `Task` object with status `input_required` and an `inputRequests` field defined in [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/draft/basic/utilities/mrtr). The `inputRequests` field **MUST** contain all outstanding requests from the server to the client that need to be fulfilled before the task can proceed.
+3. If the status is `completed`, the server **MUST** return a `Task` object with status `completed` and a `result` field containing the final result of the task.
+4. If the status is `cancelled`, the server **MUST** return a `Task` object with status `cancelled`.
+5. If the status is `failed`, the server **MUST** return a `Task` object with status `failed` and the error that occurred during execution.
+
 ```typescript
 type GetTaskResult = Result & DetailedTask;
 ```
