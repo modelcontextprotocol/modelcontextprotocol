@@ -1,8 +1,16 @@
 {
   "jsonrpc": "2.0",
-  "id": 7,
+  "id": "call-tool-with-file-input",
   "method": "tools/call",
   "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    },
     "name": "describe_image",
     "arguments": {
       "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg=="

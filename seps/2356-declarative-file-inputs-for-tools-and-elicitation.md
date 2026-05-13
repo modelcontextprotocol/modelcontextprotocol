@@ -112,57 +112,85 @@ encodes the user's selection as a data URI, and invokes the tool:
 The payload above is a real 1×1 PNG, not truncated. The file travels inline
 with no separate upload step.
 
-### Elicitation surface: request → response
+### Elicitation surface: input request → input response
 
-The server asks the user for a file mid-flow. The same `x-mcp-file` keyword
-applies to `requestedSchema` properties:
+The server asks the user for a file mid-flow. Under [Multi Round-Trip
+Requests][mrtr] (MRTR), an `elicitation/create` request is delivered as a
+value inside an [`InputRequiredResult`][input-required-result] returned from
+the originating client request, not as a standalone server-initiated
+JSON-RPC request. The same `x-mcp-file` keyword applies to `requestedSchema`
+properties; the MRTR envelope around it is unchanged from any other
+elicitation.
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 12,
-  "method": "elicitation/create",
-  "params": {
-    "mode": "form",
-    "message": "Please select a profile photo.",
-    "requestedSchema": {
-      "type": "object",
-      "properties": {
-        "photo": {
-          "type": "string",
-          "format": "uri",
-          "title": "Profile photo",
-          "x-mcp-file": {
-            "accept": ["image/*"],
-            "maxSize": 2097152
-          }
-        }
-      },
-      "required": ["photo"]
-    }
-  }
-}
-```
-
-The client renders a form with a file picker for `photo`, the user chooses a
-file, and the client responds with the file encoded as a data URI in the same
-string slot the schema already defined:
+The client invokes a tool. The server determines it needs a file from the
+user and responds with `resultType: "input_required"`:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 12,
   "result": {
-    "action": "accept",
-    "content": {
-      "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg=="
+    "resultType": "input_required",
+    "inputRequests": {
+      "profile_photo": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please select a profile photo.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "photo": {
+                "type": "string",
+                "format": "uri",
+                "title": "Profile photo",
+                "x-mcp-file": {
+                  "accept": ["image/*"],
+                  "maxSize": 2097152
+                }
+              }
+            },
+            "required": ["photo"]
+          }
+        }
+      }
     }
   }
 }
 ```
 
-That's the entire mechanism. The rest of this document specifies the keyword's
-constraints, wire encoding, and error handling.
+The client renders a form with a file picker for `photo`, the user chooses a
+file, and the client retries the original tool call with a new request `id`,
+carrying the file encoded as a data URI in the corresponding `inputResponses`
+entry:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "method": "tools/call",
+  "params": {
+    "name": "create_profile",
+    "arguments": { "displayName": "Mona" },
+    "inputResponses": {
+      "profile_photo": {
+        "action": "accept",
+        "content": {
+          "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNkYGBgAAAABQABWaDDsAAAAABJRU5ErkJggg=="
+        }
+      }
+    }
+  }
+}
+```
+
+That's the entire mechanism. The `x-mcp-file` keyword decorates a property of
+`requestedSchema`; the MRTR envelope around it is the same as for any other
+elicitation. The rest of this document specifies the keyword's constraints,
+wire encoding, and error handling.
+
+[mrtr]: ../docs/specification/draft/basic/utilities/mrtr.mdx
+[input-required-result]: ../docs/specification/draft/schema.mdx#inputrequiredresult
 
 ## Specification
 
@@ -389,18 +417,29 @@ specific to file inputs and is deferred to [Future Work](#future-work).
 
 #### Elicitation results
 
-An `ElicitResult` is a JSON-RPC _response_, so the server cannot reject it
-with `-32602`. When a file field in `ElicitResult.content` violates a
-constraint, the server **SHOULD** do one of the following:
+Under [MRTR][mrtr], an `ElicitResult` is carried as a value in
+`inputResponses` on the client's retry of the originating request (or on
+`tasks/input_response` in the persistent workflow). The server validates that
+value when it processes the retried request.
 
-- Issue a fresh `elicitation/create` request whose `message` explains the
-  violation, giving the user a chance to retry.
+When a file field in an `inputResponses` entry violates a constraint, the
+server **SHOULD** do one of the following, consistent with MRTR's
+error-handling guidance:
+
+- Return another `InputRequiredResult` whose `inputRequests` re-issues the
+  `elicitation/create` request with a `message` explaining the violation,
+  giving the user a chance to retry. The server **MAY** carry already-validated
+  fields forward in `requestState` so the user only re-enters the failing
+  field.
 - Fail the operation that initiated the elicitation. For an elicitation nested
   inside a tool call, return a `CallToolResult` with `isError: true` and a
   textual explanation.
 
 Servers **SHOULD** prefer re-eliciting when the violation is user-correctable
-and failing the enclosing operation when it is not.
+and failing the enclosing operation when it is not. Servers **SHOULD NOT**
+reject the retried request with a protocol-level JSON-RPC error solely
+because a file failed validation; protocol errors are reserved for
+structurally malformed `inputResponses`.
 
 ## Rationale
 
