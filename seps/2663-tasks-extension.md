@@ -131,7 +131,7 @@ Client implementors are advised that existing code returning a fixed shape (e.g.
 
 ### Tasks
 
-A `Task` carries operational metadata about ongoing work. Derived shapes inline status-specific payload fields and are used by `tasks/get` responses and `notifications/tasks` notifications:
+A `Task` carries operational metadata about ongoing work.
 
 ```typescript
 interface Task {
@@ -174,7 +174,21 @@ interface Task {
    */
   pollIntervalMs?: number;
 }
+```
 
+#### Task Status
+
+Tasks can be in one of the following states:
+
+- `working`: The request is currently being processed.
+- `input_required`: The server needs input from the client. The `tasks/get` response will include outstanding requests in the `inputRequests` field, and the client should provide responses via the `inputResponses` field in subsequent `tasks/update` requests.
+- `completed`: The request completed successfully and results are available in the `result` field. This includes tool calls that returned results with `isError: true`.
+- `failed`: The request failed due to a JSON-RPC error during execution. The task will include the `error` field with the JSON-RPC error details. This status **MUST NOT** be used for non-JSON-RPC errors.
+- `cancelled`: The request was cancelled before completion.
+
+Derived shapes of `Task` inline status-specific payload fields and are used by `tasks/get` responses and `notifications/tasks` notifications:
+
+```ts
 /**
  * A task that is in a normal working state.
  * Used by tasks/get and notifications/tasks.
@@ -242,16 +256,6 @@ export type DetailedTask =
   | FailedTask
   | CancelledTask;
 ```
-
-#### Task Status
-
-Tasks can be in one of the following states:
-
-- `working`: The request is currently being processed.
-- `input_required`: The server needs input from the client. The `tasks/get` response will include outstanding requests in the `inputRequests` field, and the client should provide responses via the `inputResponses` field in subsequent `tasks/update` requests.
-- `completed`: The request completed successfully and results are available in the `result` field. This includes tool calls that returned results with `isError: true`.
-- `failed`: The request failed due to a JSON-RPC error during execution. The task will include the `error` field with the JSON-RPC error details. This status **MUST NOT** be used for non-JSON-RPC errors.
-- `cancelled`: The request was cancelled before completion.
 
 ### Task Creation
 
