@@ -27,7 +27,9 @@
         "pages": [
           {
             "group": "Get started",
-            "pages": ["docs/getting-started/intro"]
+            "pages": [
+              "docs/getting-started/intro"
+            ]
           },
           {
             "group": "About MCP",
@@ -64,11 +66,17 @@
           },
           {
             "group": "Developer tools",
-            "pages": ["docs/tools/inspector", "docs/tools/debugging"]
+            "pages": [
+              "docs/tools/inspector",
+              "docs/tools/debugging"
+            ]
           },
           {
             "group": "Examples",
-            "pages": ["clients", "examples"]
+            "pages": [
+              "clients",
+              "examples"
+            ]
           }
         ]
       },
@@ -79,7 +87,10 @@
           "extensions/client-matrix",
           {
             "group": "MCP Apps",
-            "pages": ["extensions/apps/overview", "extensions/apps/build"]
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
           },
           {
             "group": "Authorization Extensions",
@@ -369,7 +380,9 @@
           },
           {
             "group": "Consuming",
-            "pages": ["registry/registry-aggregators"]
+            "pages": [
+              "registry/registry-aggregators"
+            ]
           },
           "registry/terms-of-service"
         ]
@@ -422,11 +435,15 @@
           },
           {
             "group": "Draft",
-            "pages": ["seps/2106-json-schema-2020-12"]
+            "pages": [
+              "seps/2106-json-schema-2020-12"
+            ]
           },
           {
             "group": "Approved",
-            "pages": ["seps/2322-MRTR"]
+            "pages": [
+              "seps/2322-MRTR"
+            ]
           }
         ]
       },
@@ -444,7 +461,10 @@
           },
           {
             "group": "Propose Changes",
-            "pages": ["community/design-principles", "community/sep-guidelines"]
+            "pages": [
+              "community/design-principles",
+              "community/sep-guidelines"
+            ]
           },
           {
             "group": "Governance",
@@ -469,7 +489,9 @@
           },
           {
             "group": "Roadmap",
-            "pages": ["development/roadmap"]
+            "pages": [
+              "development/roadmap"
+            ]
           }
         ]
       }
@@ -663,6 +685,9 @@
     }
   ],
   "contextual": {
-    "options": ["copy", "view"]
+    "options": [
+      "copy",
+      "view"
+    ]
   }
 }
