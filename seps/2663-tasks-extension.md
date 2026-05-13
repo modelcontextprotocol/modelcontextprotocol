@@ -332,7 +332,7 @@ interface GetTaskRequest extends JSONRPCRequest {
 Upon receiving a `tasks/get` request, the server **MUST** check the status of the task and respond accordingly:
 
 1. If the status is `working`, the server **MUST** return a a `Task` object with status `working`.
-2. If the status is `input_required`, the server **MUST** return a `Task` object with status `input_required` and an `inputRequests` field defined in [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/draft/basic/utilities/mrtr). The `inputRequests` field **MUST** contain all outstanding requests from the server to the client that need to be fulfilled before the task can proceed.
+2. If the status is `input_required`, the server **MUST** return a `Task` object with status `input_required` and an `inputRequests` field defined in [Multi Round-Trip Requests](./2322-MRTR.md). The `inputRequests` field **MUST** contain all outstanding requests from the server to the client that need to be fulfilled before the task can proceed.
 3. If the status is `completed`, the server **MUST** return a `Task` object with status `completed` and a `result` field containing the final result of the task.
 4. If the status is `cancelled`, the server **MUST** return a `Task` object with status `cancelled`.
 5. If the status is `failed`, the server **MUST** return a `Task` object with status `failed` and the error that occurred during execution.
@@ -347,7 +347,7 @@ If the task has a non-null `ttlMs`, clients **MAY** treat the TTL as a backstop:
 
 ### Task Update Requests
 
-When a task requires input from the client (indicated by the `input_required` status), the server includes outstanding requests in the `inputRequests` field of the `tasks/get` response (see [Multi Round-Trip Requests](https://modelcontextprotocol.io/specification/draft/basic/utilities/mrtr)). The client provides responses via the `inputResponses` field in one or more subsequent `tasks/update` requests.
+When a task requires input from the client (indicated by the `input_required` status), the server includes outstanding requests in the `inputRequests` field of the `tasks/get` response (see [Multi Round-Trip Requests](./2322-MRTR.md)). The client provides responses via the `inputResponses` field in one or more subsequent `tasks/update` requests.
 
 When a client observes a `tasks/get` response (or `notifications/tasks` notification) with `status: "input_required"`, the client **SHOULD** fulfill the outstanding requests in `inputRequests` by sending one or more `tasks/update` requests with corresponding `inputResponses`. After sending a `tasks/update`, the client **SHOULD** continue observing the task's status via polling (`tasks/get`) or notifications (`notifications/tasks`) until it reaches a terminal state.
 
