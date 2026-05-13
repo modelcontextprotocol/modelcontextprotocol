@@ -65,28 +65,29 @@ The conformance suite itself is not restricted to official SDKs. Any implementat
 
 For a Standards Track SEP in scope to transition from `Accepted` to `Final`:
 
-1. **A conformance scenario** tagged with the SEP number is merged into the conformance repository, targeting the date-prefixed draft spec version the SEP is slated for (e.g. `YYYY-MM-draft`).
+1. **A conformance scenario** tagged with the SEP number is merged into the conformance repository, targeting the conformance repository's draft spec-version tag for the upcoming release.
 2. **A traceability file** accompanies the scenario. See below.
 3. **The scenario passes** against the SEP's reference implementation.
 
-When that spec version is released, the scenario's spec-version tag is updated from `YYYY-MM-draft` to the dated version as part of the normal release process. The conformance harness and the SDK under test must both recognize the draft tag as a negotiable protocol version so that the new requirements are actually exercised.
+When that spec version is released, the scenario's spec-version tag is updated from the draft tag to the dated version as part of the normal release process. The conformance harness and the SDK under test must both recognize the draft tag as a negotiable protocol version so that the new requirements are actually exercised.
 
 ### Traceability file
 
-The traceability file is a structured file (`sep-NNNN.yaml`) co-located with the scenario in the conformance repository. It maps each normative requirement in the SEP's Specification section to the check that exercises it, or documents why it is excluded:
+The traceability file is a structured file (`sep-NNNN.yaml`) in the conformance repository. It maps each normative requirement in the SEP's Specification section to the check that exercises it, or documents why it is excluded:
 
 ```yaml
 sep: 1234
 spec_url: https://modelcontextprotocol.io/specification/draft/section#anchor
 requirements:
-  - text: "MUST include `foo` in the response"
-    check: sep-1234-foo-present
-  - text: "MUST NOT send `bar` before initialization"
-    check: sep-1234-bar-absent
-  - text: "SHOULD include `qux` when available"
-    check: sep-1234-qux-present
-  - text: "MUST reject requests with invalid `baz`"
-    check: sep-1234-baz-rejected
+  - check: sep-1234-foo-present
+    text: "MUST include `foo` in the response"
+  - check: sep-1234-bar-absent
+    text: "MUST NOT send `bar` before initialization"
+  - check: sep-1234-qux-present
+    text: "SHOULD include `qux` when available"
+  - check: sep-1234-baz-rejected
+    text: "MUST reject requests with invalid `baz`"
+
   - text: "MUST retry on 503"
     excluded: "Requires fault injection; not currently supported by framework"
     issue: https://github.com/modelcontextprotocol/conformance/issues/N
@@ -189,7 +190,7 @@ Before this SEP itself can be marked `Final`, the following conformance-reposito
 
 - Structured traceability file format (`sep-NNNN.yaml`) and schema
 - Scenario scaffolding tool
-- Conformance harness supports date-prefixed draft versions (e.g. `YYYY-MM-draft`) as negotiable protocol versions
+- Conformance harness supports a draft spec-version tag as a negotiable protocol version
 - `MAINTAINERS.md` published and the repository listed in MCP governance documentation
 
 These are this SEP's own reference implementation checklist, not ongoing process requirements.
