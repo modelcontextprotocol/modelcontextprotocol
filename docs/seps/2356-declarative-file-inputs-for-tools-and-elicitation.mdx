@@ -232,7 +232,10 @@ interface FileInputDescriptor {
 
 Clients that encounter `x-mcp-file` on a schema that does not match the permitted
 shape **SHOULD** ignore the keyword and render the field as an ordinary input.
-For example, the keyword below is misplaced (the property is not
+Where ignoring the keyword leaves the tool unusable (for example, the
+malformed property is `required` and the user cannot reasonably fill a bare
+URI field), the client **MAY** instead omit the tool from its list. For
+example, the keyword below is misplaced (the property is not
 `format: "uri"`) and a client treats `notes` as a plain string field:
 
 ```json
@@ -285,37 +288,60 @@ arguments in either encoding. Servers **MUST** reject any other scheme and
 **MUST NOT** dereference it.
 
 If a server needs the original filename, it **SHOULD** declare a separate
-ordinary string argument for it; the description on that argument is
-sufficient for hosts to know what to populate.
+ordinary string argument for it. The host populates both arguments from the
+same selection, so the two values cannot drift; the model never authors
+either one. The description on the filename argument is sufficient for
+hosts to know what to populate. See
+[Why not carry the filename in the URI?](#why-not-carry-the-filename-in-the-uri)
+for why the filename does not travel inside the data URI.
 
 ### Host integration on the tool surface
 
-Tools are model-controlled; the model populates `arguments`. For an
-`x-mcp-file` argument on the tool surface, the typical flow is that the model
-leaves the argument absent and the host fills it from a user gesture:
+Tools are model-controlled; the model populates `arguments`. How the host
+presents an `x-mcp-file` argument to the model depends on how the host
+surfaces tools.
 
-1. The model emits a `tools/call` with the `x-mcp-file` argument absent.
-2. The host detects the unfilled slot at the human-in-the-loop confirmation
-   step it already presents for tool calls.
-3. The host renders a file picker, encodes the user's selection per
-   [Wire encoding](#wire-encoding), and substitutes the value before
-   dispatching the request to the server.
-4. The host **MUST NOT** include the encoded data URI value in model context.
+Where the host surfaces tools such that the model emits `arguments` directly
+as output tokens, hosts **SHOULD NOT** present `x-mcp-file`-annotated
+properties to the model verbatim. Models will attempt to populate any
+property they can see, either by hallucinating a value or by reading a file
+through some other tool and re-emitting the bytes through the token stream.
+Such hosts **SHOULD** either omit the property from the model-visible schema
+(noting in the tool description that a file attachment is consumed) or
+replace it with a sentinel the model can emit to request host-side
+substitution. The host then fills the slot:
+
+1. The model emits a `tools/call` with the `x-mcp-file` argument absent (or
+   set to the sentinel).
+2. The host detects the unfilled slot before dispatch.
+3. The host obtains the file: from a file the user already attached to the
+   conversation, from a picker the host renders, or from a list of
+   candidates the host offers the model to choose from. Hosts **SHOULD**
+   require an affirmative selection rather than binding an attached file
+   silently, but the form that selection takes is implementation-defined.
+4. The host encodes the selection per [Wire encoding](#wire-encoding) and
+   substitutes the value before dispatching the request to the server.
+5. The host **MUST NOT** include the encoded data URI value in model context.
    The bytes do not pass through the model in either direction.
 
-Hosts **MAY** offer a file the user has already attached to the conversation
-as a picker default, but **MUST NOT** bind it to a server's `x-mcp-file` slot
-without an explicit per-invocation confirmation that displays the destination
-server.
+Where the model constructs `arguments` programmatically, for example via a
+code-execution environment that invokes an MCP client library, hosts
+**SHOULD** present the schema unchanged. The model populates the slot in
+code without the bytes entering the token stream, and the host forwards the
+value per the paragraph below.
 
-Hosts **MAY** instead forward a `data:` URI the model supplied directly in the
-slot, subject to the host's existing tool-approval policy. This is appropriate
-where the model has code-execution or filesystem access via other tools and
-constructs the bytes itself (for example, the output of an image pipeline it
-ran). The exfiltration surface in that arrangement is the model's existing
-tool access, which this SEP does not change. Hosts that forward a
-model-supplied value **MUST NOT** dereference, resolve, or substitute content
-for it; the value is forwarded verbatim or discarded. See [Security
+In either arrangement, the server-facing `tools/call` **MUST** carry the
+encoded value per [Wire encoding](#wire-encoding).
+
+When a host forwards a `data:` URI the model supplied directly in the slot,
+it does so subject to the host's existing tool-approval policy. This covers
+both the programmatic arrangement above and the case where the model has
+code-execution or filesystem access via other tools and constructs the bytes
+itself (for example, the output of an image pipeline it ran). The
+exfiltration surface in that arrangement is the model's existing tool
+access, which this SEP does not change. Hosts that forward a model-supplied
+value **MUST NOT** dereference, resolve, or substitute content for it; the
+value is forwarded verbatim or discarded. See [Security
 Implications](#host-side-file-access-protecting-the-user-from-the-server).
 
 Hosts that recognize `x-mcp-file` but cannot present a picker (CLI without a
@@ -349,7 +375,12 @@ surface the upload URL to the operator. This path, including the completion
 notification, is specified in [URL Mode Elicitation][url-elicit] and is
 unchanged by this SEP.
 
+Hosts that support [MCP Apps][mcp-apps] **MAY** also satisfy a large-file
+flow by having the server render an upload widget; that mechanism is
+out-of-band relative to `tools/call` and is not constrained by this SEP.
+
 [url-elicit]: ../docs/specification/draft/client/elicitation.mdx
+[mcp-apps]: ../docs/extensions/apps/overview.mdx
 
 ### Server-side validation
 
@@ -420,6 +451,30 @@ design is simpler:
 
 The analogy to HTML is instructive: `<input type="file" accept="image/*">`
 puts the file hint directly on the element, not in a parallel attribute map.
+
+### Why not a custom `format` value?
+
+`format` is the JSON Schema mechanism for naming a semantic string type, and
+unrecognized values are silently ignored by validators rather than rejected,
+which avoids the strict-mode keyword problem entirely
+([§Implementation Notes](#implementation-notes)). It was the first design
+considered. It does not work as the sole mechanism for two reasons:
+
+- **`format` is a single string, not an object.** The descriptor needs to
+  carry `accept` (a list) and `maxSize` (an integer). There is no place to
+  put them in `format`, so a sidecar map would still be required, which
+  reintroduces the dual-keying problem the inline keyword avoids.
+- **Replacing `format: "uri"` regresses graceful degradation.** This SEP
+  keeps `format: "uri"` so a non-recognizing client renders a familiar URL
+  input. A custom value such as `format: "data-uri"` is opaque to a
+  non-recognizing client, which falls back to a bare text field with no
+  affordance at all. The current split, a standard `format: "uri"` for
+  degradation plus `x-mcp-file` for the descriptor, lets both jobs use the
+  best available mechanism.
+
+OpenAPI's `format: "binary"` (3.0) is the closest prior art and it carries
+neither MIME nor size constraints; OpenAPI 3.1 dropped it in favor of
+`contentMediaType` and `contentEncoding`, which the next entry addresses.
 
 ### Why not `contentEncoding` / `contentMediaType`?
 
@@ -667,8 +722,13 @@ Each item below has a backward-compatible path documented in
 
 - **Multi-file inputs.** Via a general elicitation `ArraySchema` SEP; the
   keyword applies unchanged to array items once that lands.
-- **Additional wire schemes.** Via a `schemes` declaration on the descriptor;
-  the `format: "uri"` carrier already admits any scheme.
+- **Additional wire schemes and remote files.** Via a `schemes` declaration on
+  the descriptor; the `format: "uri"` carrier already admits any scheme.
+  Remote files (`https:`, signed object-storage URLs) and resource references
+  (`mcp+resource:`) carry the MIME type and filename as response headers or
+  resource metadata rather than inline, so the descriptor's `accept` and
+  `maxSize` constraints transfer unchanged. The schema surface does not
+  change; only the negotiation of which schemes a server accepts is new.
 - **`PromptArgument` support.** Via an additive `"x-mcp-file"` field on
   `PromptArgument` with the same data-URI carrier.
 - **Out-of-band transfer and file outputs.** [SEP-2631][sep-2631] proposes
