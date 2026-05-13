@@ -1,0 +1,10 @@
+{
+  "resultType": "complete",
+  "content": [
+    {
+      "type": "text",
+      "text": "Argument 'image' exceeds maxSize: received 15728640 bytes, limit is 5242880."
+    }
+  ],
+  "isError": true
+}

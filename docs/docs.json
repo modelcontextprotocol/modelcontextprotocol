@@ -434,6 +434,12 @@
             ]
           },
           {
+            "group": "Draft",
+            "pages": [
+              "seps/2356-declarative-file-inputs-for-tools-and-elicitation"
+            ]
+          },
+          {
             "group": "Approved",
             "pages": [
               "seps/2322-MRTR"
