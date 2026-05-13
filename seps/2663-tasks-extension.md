@@ -131,7 +131,7 @@ Client implementors are advised that existing code returning a fixed shape (e.g.
 
 ### Tasks
 
-A `Task` carries operational metadata about ongoing work. Derived shapes inline status-specific payload fields and are used by `tasks/get` responses and `notifications/tasks/status` notifications:
+A `Task` carries operational metadata about ongoing work. Derived shapes inline status-specific payload fields and are used by `tasks/get` responses and `notifications/tasks` notifications:
 
 ```typescript
 interface Task {
@@ -177,7 +177,7 @@ interface Task {
 
 /**
  * A task that is in a normal working state.
- * Used by tasks/get and notifications/tasks/status.
+ * Used by tasks/get and notifications/tasks.
  */
 export interface WorkingTask extends Task {
   status: "working";
@@ -185,7 +185,7 @@ export interface WorkingTask extends Task {
 
 /**
  * A task that is waiting for input from the client.
- * Used by tasks/get and notifications/tasks/status.
+ * Used by tasks/get and notifications/tasks.
  */
 export interface InputRequiredTask extends Task {
   status: "input_required";
@@ -198,7 +198,7 @@ export interface InputRequiredTask extends Task {
 
 /**
  * A task that has completed successfully.
- * Used by tasks/get and notifications/tasks/status.
+ * Used by tasks/get and notifications/tasks.
  */
 export interface CompletedTask extends Task {
   status: "completed";
@@ -212,7 +212,7 @@ export interface CompletedTask extends Task {
 
 /**
  * A task that has failed due to a JSON-RPC error.
- * Used by tasks/get and notifications/tasks/status.
+ * Used by tasks/get and notifications/tasks.
  */
 export interface FailedTask extends Task {
   status: "failed";
@@ -224,7 +224,7 @@ export interface FailedTask extends Task {
 
 /**
  * A task that has been cancelled.
- * Used by tasks/get and notifications/tasks/status.
+ * Used by tasks/get and notifications/tasks.
  */
 export interface CancelledTask extends Task {
   status: "cancelled";
@@ -232,7 +232,7 @@ export interface CancelledTask extends Task {
 
 /**
  * A union type representing a task with optional inlined result/error/inputRequests fields.
- * This type is used by tasks/get and notifications/tasks/status to provide complete task state
+ * This type is used by tasks/get and notifications/tasks to provide complete task state
  * including terminal results or pending input requests.
  */
 export type DetailedTask =
@@ -364,7 +364,7 @@ interface UpdateTaskRequest extends JSONRPCRequest {
 type UpdateTaskResult = Result; // empty acknowledgement
 ```
 
-On success, the server **MUST** acknowledge the request with an empty result. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks/status`) reflects them. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task. Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
+On success, the server **MUST** acknowledge the request with an empty result. The acknowledgement is _eventually consistent_: the server **MAY** accept the responses and return the ack before the task's observable status (via `tasks/get` or `notifications/tasks`) reflects them. Servers **SHOULD** return a JSON-RPC error if the `taskId` does not correspond to a known task. Clients **SHOULD** track `inputRequests` keys to avoid responding to requests more than once.
 
 A server **SHOULD** ignore any `inputResponses` responses mapped to a key that is not currently outstanding for the task — including keys that were never issued, keys that have already been answered, and keys whose corresponding request has been superseded. A server **MAY** accept a partial set of responses (a strict subset of currently-outstanding keys);
 
@@ -401,13 +401,13 @@ The `resultType` field **MUST** be set to `"complete"` on `CancelTaskResult` as 
 
 ### Task Status Notifications
 
-Servers **MAY** push status updates via `notifications/tasks/status` notifications in addition to servicing client polls:
+Servers **MAY** push status updates via `notifications/tasks` notifications in addition to servicing client polls:
 
 ```typescript
 export type TaskStatusNotificationParams = NotificationParams & Task;
 
 export interface TaskStatusNotification extends JSONRPCNotification {
-  method: "notifications/tasks/status";
+  method: "notifications/tasks";
   params: TaskStatusNotificationParams;
 }
 ```
@@ -420,7 +420,7 @@ export interface SubscriptionsListenRequest extends Request {
   params: {
     // Other existing fields...
     notifications: {
-      tasksStatus?: string[];
+      taskIds?: string[];
       // Other existing fields...
     };
   };
@@ -435,9 +435,9 @@ export interface SubscriptionsAcknowledgedNotification extends Notification {
   params: {
     notifications: {
       /**
-       * Subscribe to notifications/tasks/status for specific task IDs.
+       * Subscribe to notifications/tasks for specific task IDs.
        */
-      tasksStatus?: string[];
+      taskIds?: string[];
       // Other existing fields...
     };
   };
@@ -473,7 +473,7 @@ Each notification carries a complete `DetailedTask` for the current status, iden
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "notifications/tasks/status",
+  "method": "notifications/tasks",
   "params": {
     "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
     "status": "completed",
