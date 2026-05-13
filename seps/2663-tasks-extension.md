@@ -333,7 +333,7 @@ The response carries the appropriate response variant for the task's current sta
 
 If the task has a non-null `ttlMs`, clients **MAY** treat the TTL as a backstop: if the task's observable status has not reflected the update after `createdAt` plus `ttlMs` has elapsed, the client **MAY** consider the task to no longer be usable. Conversely, servers **MAY** mark a task as `failed` at any point after the TTL elapses, and subsequently delete it at any time. The value of `ttlMs` **MAY** change over the lifetime of a task.
 
-### Task Input Requests
+### Task Update Requests
 
 When a task requires input from the client (indicated by the `input_required` status), the server includes outstanding requests in the `inputRequests` field of the `tasks/get` response. The client provides responses via the `inputResponses` field in one or more subsequent `tasks/update` requests.
 
