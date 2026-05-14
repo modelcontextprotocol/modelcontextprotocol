@@ -32,7 +32,7 @@ Implementations are free to expose tasks through any interface pattern that suit
 
 ## Capabilities
 
-Servers and clients that support task-augmented requests **MUST** declare a `tasks` capability during initialization. The `tasks` capability is structured by request category, with boolean properties indicating which specific request types support task augmentation.
+Servers and clients that support task-augmented requests **MUST** declare a `tasks` capability. Servers include it in their [`DiscoverResult`](/specification/draft/schema#discoverresult); clients include it in `_meta.io.modelcontextprotocol/clientCapabilities` on each request. The `tasks` capability is structured by request category, with boolean properties indicating which specific request types support task augmentation.
 
 ### Server Capabilities
 
@@ -92,7 +92,7 @@ Clients declare if they support tasks, and if so, which client-side requests can
 
 ### Capability Negotiation
 
-During the initialization phase, both parties exchange their `tasks` capabilities to establish which operations support task-based execution. Requestors **SHOULD** only augment requests with a task if the corresponding capability has been declared by the receiver.
+Requestors **SHOULD** only augment requests with a task if the corresponding capability has been declared by the receiver. Clients discover server `tasks` capabilities via `server/discover`; servers learn client `tasks` capabilities from `clientCapabilities` in each request's `_meta`.
 
 For example, if a server's capabilities include `tasks.requests.tools.call: {}`, then clients may augment `tools/call` requests with a task. If a client's capabilities include `tasks.requests.sampling.createMessage: {}`, then servers may augment `sampling/createMessage` requests with a task.
 
@@ -492,7 +492,7 @@ With the Streamable HTTP (SSE) transport, servers often close SSE streams after 
 
 Servers can handle this by enqueueing messages to the client to side-channel task-related messages alongside other responses.
 
-Servers have flexibility in how they manage SSE streams during task polling and result retrieval, and clients **SHOULD** expect messages to be delivered on any SSE stream, including the HTTP GET stream.
+Servers have flexibility in how they manage SSE streams during task polling and result retrieval, and clients **SHOULD** expect messages to be delivered on any SSE stream opened via a POST response.
 One possible approach is maintaining an SSE stream on `tasks/result` (see notes on the `input_required` status).
 Where possible, servers **SHOULD NOT** upgrade to an SSE stream in response to a `tasks/get` request, as the client has indicated it wishes to poll for a result.
 
