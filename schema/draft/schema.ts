@@ -71,6 +71,38 @@ export interface RequestMetaObject extends MetaObject {
    * If specified, the caller is requesting out-of-band progress notifications for this request (as represented by {@link ProgressNotification | notifications/progress}). The value of this parameter is an opaque token that will be attached to any subsequent notifications. The receiver is not obligated to provide these notifications.
    */
   progressToken?: ProgressToken;
+  /**
+   * The MCP Protocol Version being used for this request. Required.
+   *
+   * For the HTTP transport, this value MUST match the `MCP-Protocol-Version`
+   * header; otherwise the server MUST return a `400 Bad Request`. If the
+   * server does not support the requested version, it MUST return an
+   * {@link UnsupportedProtocolVersionError}.
+   */
+  "io.modelcontextprotocol/protocolVersion": string;
+  /**
+   * Identifies the client software making the request. Required.
+   *
+   * The {@link Implementation} schema requires `name` and `version`; other
+   * fields are optional.
+   */
+  "io.modelcontextprotocol/clientInfo": Implementation;
+  /**
+   * The client's capabilities for this specific request. Required.
+   *
+   * Capabilities are declared per-request rather than once at initialization;
+   * an empty object means the client supports no optional capabilities.
+   * Servers MUST NOT infer capabilities from prior requests.
+   */
+  "io.modelcontextprotocol/clientCapabilities": ClientCapabilities;
+  /**
+   * The desired log level for this request. Optional.
+   *
+   * If absent, the server MUST NOT send any {@link LoggingMessageNotification | notifications/message}
+   * notifications for this request. The client opts in to log messages by
+   * explicitly setting a level. Replaces the former `logging/setLevel` RPC.
+   */
+  "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 }
 
 /**
@@ -110,7 +142,7 @@ export interface TaskAugmentedRequestParams extends RequestParams {
  * @category Common Types
  */
 export interface RequestParams {
-  _meta?: RequestMetaObject;
+  _meta: RequestMetaObject;
 }
 
 /** @internal */
@@ -336,6 +368,70 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
+/**
+ * Error code returned when a server requires a client capability that was
+ * not declared in the request's `clientCapabilities`.
+ *
+ * @category Errors
+ */
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+
+/**
+ * Returned when the request's protocol version is unknown to the server or
+ * unsupported (e.g., a known experimental or draft version the server has
+ * chosen not to implement). For HTTP, the response status code MUST be
+ * `400 Bad Request`.
+ *
+ * @example Unsupported protocol version
+ * {@includeCode ./examples/UnsupportedProtocolVersionError/unsupported-version.json}
+ *
+ * @category Errors
+ */
+export interface UnsupportedProtocolVersionError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof INVALID_PARAMS;
+    data: {
+      /**
+       * Protocol versions the server supports. The client should choose a
+       * mutually supported version from this list and retry.
+       */
+      supported: string[];
+      /**
+       * The protocol version that was requested by the client.
+       */
+      requested: string;
+    };
+  };
+}
+
+/**
+ * Returned when processing a request requires a capability the client did not
+ * declare in `clientCapabilities`. For HTTP, the response status code MUST be
+ * `400 Bad Request`.
+ *
+ * @example Missing elicitation capability
+ * {@includeCode ./examples/MissingRequiredClientCapabilityError/missing-elicitation-capability.json}
+ *
+ * @category Errors
+ */
+export interface MissingRequiredClientCapabilityError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof MISSING_REQUIRED_CLIENT_CAPABILITY;
+    data: {
+      /**
+       * The capabilities the server requires from the client to process this request.
+       */
+      requiredCapabilities: ClientCapabilities;
+    };
+  };
+}
+
 /* Empty result */
 /**
  * A result that indicates success but carries no data.
@@ -455,8 +551,6 @@ export interface CancelledNotificationParams extends NotificationParams {
  *
  * This notification indicates that the result will be unused, so any associated processing SHOULD cease.
  *
- * A client MUST NOT attempt to cancel its `initialize` request.
- *
  * For task cancellation, use the {@link CancelTaskRequest | tasks/cancel} request instead of this notification.
  *
  * @example User-requested cancellation
@@ -469,95 +563,72 @@ export interface CancelledNotification extends JSONRPCNotification {
   params: CancelledNotificationParams;
 }
 
-/* Initialization */
+/* Discovery */
 /**
- * Parameters for an `initialize` request.
+ * A request from the client asking the server to advertise its supported
+ * protocol versions, capabilities, and other metadata. Servers **MUST**
+ * implement `server/discover`. Clients **MAY** call it but are not required
+ * to — version negotiation can also happen inline via per-request `_meta`.
  *
- * @example Full client capabilities
- * {@includeCode ./examples/InitializeRequestParams/full-client-capabilities.json}
+ * @example Discover request
+ * {@includeCode ./examples/DiscoverRequest/server-discover-request.json}
  *
- * @category `initialize`
+ * @category `server/discover`
  */
-export interface InitializeRequestParams extends RequestParams {
-  /**
-   * The latest version of the Model Context Protocol that the client supports. The client MAY decide to support older versions as well.
-   */
-  protocolVersion: string;
-  capabilities: ClientCapabilities;
-  clientInfo: Implementation;
+export interface DiscoverRequest extends JSONRPCRequest {
+  method: "server/discover";
+  params?: RequestParams;
 }
 
 /**
- * This request is sent from the client to the server when it first connects, asking it to begin initialization.
+ * The result returned by the server for a {@link DiscoverRequest | server/discover} request.
  *
- * @example Initialize request
- * {@includeCode ./examples/InitializeRequest/initialize-request.json}
+ * @example Server capabilities discovery
+ * {@includeCode ./examples/DiscoverResult/server-capabilities-discovery.json}
  *
- * @category `initialize`
+ * @category `server/discover`
  */
-export interface InitializeRequest extends JSONRPCRequest {
-  method: "initialize";
-  params: InitializeRequestParams;
-}
-
-/**
- * The result returned by the server for an {@link InitializeRequest | initialize} request.
- *
- * @example Full server capabilities
- * {@includeCode ./examples/InitializeResult/full-server-capabilities.json}
- *
- * @category `initialize`
- */
-export interface InitializeResult extends Result {
+export interface DiscoverResult extends Result {
   /**
-   * The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.
+   * MCP Protocol Versions this server supports. The client should choose a
+   * version from this list for use in subsequent requests.
    */
-  protocolVersion: string;
+  supportedVersions: string[];
+  /**
+   * The capabilities of the server.
+   */
   capabilities: ServerCapabilities;
-  serverInfo: Implementation;
-
   /**
-   * Instructions describing how to use the server and its features.
+   * Information about the server software implementation.
+   */
+  serverInfo: Implementation;
+  /**
+   * Natural-language guidance describing the server and its features.
    *
-   * Instructions should focus on information that helps the model use the server effectively (e.g., cross-tool relationships, workflow patterns, constraints), but should not duplicate information already in tool descriptions.
-   *
-   * Clients MAY add this information to the system prompt.
-   *
-   * @example Server with workflow instructions
-   * {@includeCode ./examples/InitializeResult/with-instructions.json}
+   * This can be used by clients to improve an LLM's understanding of
+   * available tools (e.g., by including it in a system prompt). It should
+   * focus on information that helps the model use the server effectively
+   * and should not duplicate information already in tool descriptions.
    */
   instructions?: string;
 }
 
 /**
- * A successful response from the server for a {@link InitializeRequest | initialize} request.
+ * A successful response from the server for a {@link DiscoverRequest | server/discover} request.
  *
- * @example Initialize result response
- * {@includeCode ./examples/InitializeResultResponse/initialize-result-response.json}
+ * @example Discover result response
+ * {@includeCode ./examples/DiscoverResultResponse/discover-result-response.json}
  *
- * @category `initialize`
+ * @category `server/discover`
  */
-export interface InitializeResultResponse extends JSONRPCResultResponse {
-  result: InitializeResult;
-}
-
-/**
- * This notification is sent from the client to the server after initialization has finished.
- *
- * @example Initialized notification
- * {@includeCode ./examples/InitializedNotification/initialized-notification.json}
- *
- * @category `notifications/initialized`
- */
-export interface InitializedNotification extends JSONRPCNotification {
-  method: "notifications/initialized";
-  params?: NotificationParams;
+export interface DiscoverResultResponse extends JSONRPCResultResponse {
+  result: DiscoverResult;
 }
 
 /**
  * Capabilities a client may support. Known capabilities are defined here, in this schema, but this is not a closed set: any client can define its own, additional capabilities.
  *
- * @category `initialize`
+ * @category `server/discover`
  */
 export interface ClientCapabilities {
   /**
@@ -569,16 +640,9 @@ export interface ClientCapabilities {
    *
    * @example Roots — minimum baseline support
    * {@includeCode ./examples/ClientCapabilities/roots-minimum-baseline-support.json}
-   *
-   * @example Roots — list changed notifications
-   * {@includeCode ./examples/ClientCapabilities/roots-list-changed-notifications.json}
    */
-  roots?: {
-    /**
-     * Whether the client supports notifications for changes to the roots list.
-     */
-    listChanged?: boolean;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  roots?: {};
   /**
    * Present if the client supports sampling from an LLM.
    *
@@ -666,7 +730,7 @@ export interface ClientCapabilities {
 /**
  * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
  *
- * @category `initialize`
+ * @category `server/discover`
  */
 export interface ServerCapabilities {
   /**
@@ -869,7 +933,7 @@ export interface BaseMetadata {
 /**
  * Describes the MCP implementation.
  *
- * @category `initialize`
+ * @category `server/discover`
  */
 export interface Implementation extends BaseMetadata, Icons {
   /**
@@ -892,32 +956,6 @@ export interface Implementation extends BaseMetadata, Icons {
    * @format uri
    */
   websiteUrl?: string;
-}
-
-/* Ping */
-/**
- * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
- *
- * @example Ping request
- * {@includeCode ./examples/PingRequest/ping-request.json}
- *
- * @category `ping`
- */
-export interface PingRequest extends JSONRPCRequest {
-  method: "ping";
-  params?: RequestParams;
-}
-
-/**
- * A successful response for a {@link PingRequest | ping} request.
- *
- * @example Ping result response
- * {@includeCode ./examples/PingResultResponse/ping-result-response.json}
- *
- * @category `ping`
- */
-export interface PingResultResponse extends JSONRPCResultResponse {
-  result: EmptyResult;
 }
 
 /* Progress notifications */
@@ -1184,72 +1222,92 @@ export interface ResourceListChangedNotification extends JSONRPCNotification {
 }
 
 /**
- * Parameters for a `resources/subscribe` request.
+ * The set of notification types a client may opt in to on a
+ * {@link SubscriptionsListenRequest | subscriptions/listen} request.
  *
- * @example Subscribe to file resource
- * {@includeCode ./examples/SubscribeRequestParams/subscribe-to-file-resource.json}
+ * Each notification type is **opt-in**; the server **MUST NOT** send
+ * notification types the client has not explicitly requested here.
  *
- * @category `resources/subscribe`
+ * @category `subscriptions/listen`
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface SubscribeRequestParams extends ResourceRequestParams {}
-
-/**
- * Sent from the client to request {@link ResourceUpdatedNotification | resources/updated} notifications from the server whenever a particular resource changes.
- *
- * @example Subscribe request
- * {@includeCode ./examples/SubscribeRequest/subscribe-request.json}
- *
- * @category `resources/subscribe`
- */
-export interface SubscribeRequest extends JSONRPCRequest {
-  method: "resources/subscribe";
-  params: SubscribeRequestParams;
+export interface SubscriptionFilter {
+  /**
+   * If true, receive {@link ToolListChangedNotification | notifications/tools/list_changed}.
+   */
+  toolsListChanged?: boolean;
+  /**
+   * If true, receive {@link PromptListChangedNotification | notifications/prompts/list_changed}.
+   */
+  promptsListChanged?: boolean;
+  /**
+   * If true, receive {@link ResourceListChangedNotification | notifications/resources/list_changed}.
+   */
+  resourcesListChanged?: boolean;
+  /**
+   * Subscribe to {@link ResourceUpdatedNotification | notifications/resources/updated} for these resource URIs.
+   * Replaces the former `resources/subscribe` RPC.
+   */
+  resourceSubscriptions?: string[];
 }
 
 /**
- * A successful response from the server for a {@link SubscribeRequest | resources/subscribe} request.
+ * Parameters for a {@link SubscriptionsListenRequest | subscriptions/listen} request.
  *
- * @example Subscribe result response
- * {@includeCode ./examples/SubscribeResultResponse/subscribe-result-response.json}
- *
- * @category `resources/subscribe`
+ * @category `subscriptions/listen`
  */
-export interface SubscribeResultResponse extends JSONRPCResultResponse {
-  result: EmptyResult;
+export interface SubscriptionsListenRequestParams extends RequestParams {
+  /**
+   * The notifications the client opts in to on this stream. The server
+   * **MUST NOT** send notification types the client has not explicitly
+   * requested.
+   */
+  notifications: SubscriptionFilter;
 }
 
 /**
- * Parameters for a `resources/unsubscribe` request.
+ * Sent from the client to open a long-lived channel for receiving notifications
+ * outside the context of a specific request. Replaces the previous HTTP GET
+ * endpoint and ensures consistent behavior between HTTP and STDIO.
  *
- * @category `resources/unsubscribe`
+ * @example Listen for tools and resource list changes
+ * {@includeCode ./examples/SubscriptionsListenRequest/listen-for-list-changes.json}
+ *
+ * @category `subscriptions/listen`
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface UnsubscribeRequestParams extends ResourceRequestParams {}
-
-/**
- * Sent from the client to request cancellation of {@link ResourceUpdatedNotification | resources/updated} notifications from the server. This should follow a previous {@link SubscribeRequest | resources/subscribe} request.
- *
- * @example Unsubscribe request
- * {@includeCode ./examples/UnsubscribeRequest/unsubscribe-request.json}
- *
- * @category `resources/unsubscribe`
- */
-export interface UnsubscribeRequest extends JSONRPCRequest {
-  method: "resources/unsubscribe";
-  params: UnsubscribeRequestParams;
+export interface SubscriptionsListenRequest extends JSONRPCRequest {
+  method: "subscriptions/listen";
+  params: SubscriptionsListenRequestParams;
 }
 
 /**
- * A successful response from the server for a {@link UnsubscribeRequest | resources/unsubscribe} request.
+ * Parameters for a {@link SubscriptionsAcknowledgedNotification | notifications/subscriptions/acknowledged} notification.
  *
- * @example Unsubscribe result response
- * {@includeCode ./examples/UnsubscribeResultResponse/unsubscribe-result-response.json}
- *
- * @category `resources/unsubscribe`
+ * @category `notifications/subscriptions/acknowledged`
  */
-export interface UnsubscribeResultResponse extends JSONRPCResultResponse {
-  result: EmptyResult;
+export interface SubscriptionsAcknowledgedNotificationParams extends NotificationParams {
+  /**
+   * The subset of requested notification types the server agreed to honor.
+   * Only includes notification types the server actually supports; if the
+   * client requested an unsupported type (e.g., `promptsListChanged` when
+   * the server has no prompts), it is omitted from this set.
+   */
+  notifications: SubscriptionFilter;
+}
+
+/**
+ * Sent by the server as the first message on a
+ * {@link SubscriptionsListenRequest | subscriptions/listen} stream to acknowledge
+ * that the subscription has been established and to report which notification
+ * types it agreed to honor.
+ *
+ * @example Listen acknowledged
+ * {@includeCode ./examples/SubscriptionsAcknowledgedNotification/listen-acknowledged.json}
+ *
+ * @category `notifications/subscriptions/acknowledged`
+ */
+export interface SubscriptionsAcknowledgedNotification extends JSONRPCNotification {
+  method: "notifications/subscriptions/acknowledged";
+  params: SubscriptionsAcknowledgedNotificationParams;
 }
 
 /**
@@ -1270,7 +1328,7 @@ export interface ResourceUpdatedNotificationParams extends NotificationParams {
 }
 
 /**
- * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a {@link SubscribeRequest | resources/subscribe} request.
+ * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This is only sent for resources the client opted in to via the `resourceSubscriptions` field of a {@link SubscriptionsListenRequest | subscriptions/listen} request.
  *
  * @example File resource updated notification
  * {@includeCode ./examples/ResourceUpdatedNotification/file-resource-updated-notification.json}
@@ -2191,46 +2249,6 @@ export interface TaskStatusNotification extends JSONRPCNotification {
 /* Logging */
 
 /**
- * Parameters for a `logging/setLevel` request.
- *
- * @example Set log level to "info"
- * {@includeCode ./examples/SetLevelRequestParams/set-log-level-to-info.json}
- *
- * @category `logging/setLevel`
- */
-export interface SetLevelRequestParams extends RequestParams {
-  /**
-   * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as {@link LoggingMessageNotification | notifications/message}.
-   */
-  level: LoggingLevel;
-}
-
-/**
- * A request from the client to the server, to enable or adjust logging.
- *
- * @example Set logging level request
- * {@includeCode ./examples/SetLevelRequest/set-logging-level-request.json}
- *
- * @category `logging/setLevel`
- */
-export interface SetLevelRequest extends JSONRPCRequest {
-  method: "logging/setLevel";
-  params: SetLevelRequestParams;
-}
-
-/**
- * A successful response from the server for a {@link SetLevelRequest | logging/setLevel} request.
- *
- * @example Set logging level result response
- * {@includeCode ./examples/SetLevelResultResponse/set-logging-level-result-response.json}
- *
- * @category `logging/setLevel`
- */
-export interface SetLevelResultResponse extends JSONRPCResultResponse {
-  result: EmptyResult;
-}
-
-/**
  * Parameters for a `notifications/message` notification.
  *
  * @example Log database connection failed
@@ -2254,7 +2272,7 @@ export interface LoggingMessageNotificationParams extends NotificationParams {
 }
 
 /**
- * JSONRPCNotification of a log message passed from server to client. If no `logging/setLevel` request has been sent from the client, the server MAY decide which messages to send automatically.
+ * JSONRPCNotification of a log message passed from server to client. The client opts in by setting `"io.modelcontextprotocol/logLevel"` in a request's `_meta`.
  *
  * @example Log database connection failed
  * {@includeCode ./examples/LoggingMessageNotification/log-database-connection-failed.json}
@@ -2922,21 +2940,6 @@ export interface Root {
 }
 
 /**
- * A notification from the client to the server, informing it that the list of roots has changed.
- * This notification should be sent whenever the client adds, removes, or modifies any root.
- * The server should then request an updated list of roots using the {@link ListRootsRequest}.
- *
- * @example Roots list changed
- * {@includeCode ./examples/RootsListChangedNotification/roots-list-changed.json}
- *
- * @category `notifications/roots/list_changed`
- */
-export interface RootsListChangedNotification extends JSONRPCNotification {
-  method: "notifications/roots/list_changed";
-  params?: NotificationParams;
-}
-
-/**
  * The parameters for a request to elicit non-sensitive information from the user via a form in the client.
  *
  * @example Elicit single field
@@ -3336,17 +3339,14 @@ export interface ElicitationCompleteNotification extends JSONRPCNotification {
 /* Client messages */
 /** @internal */
 export type ClientRequest =
-  | PingRequest
-  | InitializeRequest
+  | DiscoverRequest
   | CompleteRequest
-  | SetLevelRequest
   | GetPromptRequest
   | ListPromptsRequest
   | ListResourcesRequest
   | ListResourceTemplatesRequest
   | ReadResourceRequest
-  | SubscribeRequest
-  | UnsubscribeRequest
+  | SubscriptionsListenRequest
   | CallToolRequest
   | ListToolsRequest
   | GetTaskRequest
@@ -3359,8 +3359,6 @@ export type ClientRequest =
 export type ClientNotification =
   | CancelledNotification
   | ProgressNotification
-  | InitializedNotification
-  | RootsListChangedNotification
   | TaskStatusNotification;
 
 /** @internal */
@@ -3374,7 +3372,6 @@ export type ClientResult =
 /* Server messages */
 /** @internal */
 export type ServerRequest =
-  | PingRequest
   | GetTaskRequest
   | GetTaskPayloadRequest
   | ListTasksRequest
@@ -3390,12 +3387,13 @@ export type ServerNotification =
   | ToolListChangedNotification
   | PromptListChangedNotification
   | ElicitationCompleteNotification
+  | SubscriptionsAcknowledgedNotification
   | TaskStatusNotification;
 
 /** @internal */
 export type ServerResult =
   | EmptyResult
-  | InitializeResult
+  | DiscoverResult
   | CompleteResult
   | GetPromptResult
   | ListPromptsResult

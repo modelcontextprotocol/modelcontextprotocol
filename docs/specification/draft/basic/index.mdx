@@ -7,8 +7,7 @@ title: Overview
 The Model Context Protocol consists of several key components that work together:
 
 - **Base Protocol**: Core JSON-RPC message types
-- **Lifecycle Management**: Connection initialization, capability negotiation, and
-  session control
+- **Lifecycle Management**: Protocol version negotiation and per-request capability declaration
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Sampling and root directory lists provided by clients
@@ -45,8 +44,8 @@ these types of messages:
 
 - Requests **MUST** include a string or integer ID.
 - Unlike base JSON-RPC, the ID **MUST NOT** be `null`.
-- The request ID **MUST NOT** have been previously used by the requestor within the same
-  session.
+- The request ID **MUST NOT** match the ID of any other request the sender has issued and
+  not yet received a response for.
 
 ### Responses
 
@@ -225,6 +224,34 @@ may reserve particular names for purpose-specific metadata, as declared in those
 
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
+
+**Per-request protocol fields:**
+
+Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
+in `_meta`. Servers use these to identify the client and the protocol version in use
+without relying on any prior connection state. See
+[Lifecycle][lifecycle] for version negotiation rules.
+
+| Key                                          | Type                 | Required | Description                                                 |
+| -------------------------------------------- | -------------------- | -------- | ----------------------------------------------------------- |
+| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"DRAFT-2026-v1"`) |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                     |
+| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request                |
+| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request   |
+
+A server **MUST NOT** rely on capabilities the client has not declared. If
+processing a request requires a capability the client did not include in
+`io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
+[`MissingRequiredClientCapabilityError`](/specification/draft/schema#missingrequiredclientcapabilityerror)
+(`-32003`) whose `data.requiredCapabilities` lists the missing capabilities. On
+HTTP, the response status **MUST** be `400 Bad Request`.
+
+On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
+the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
+client can correlate the notification with the originating subscription request.
+
+[lifecycle]: /specification/draft/basic/lifecycle
+[subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
 
 **OpenTelemetry trace context:**
 

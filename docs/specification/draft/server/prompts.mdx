@@ -29,8 +29,8 @@ model.
 
 ## Capabilities
 
-Servers that support prompts **MUST** declare the `prompts` capability during
-[initialization](/specification/draft/basic/lifecycle#initialization):
+Servers that support prompts **MUST** declare the `prompts` capability in their
+[`DiscoverResult`](/specification/draft/schema#discoverresult):
 
 ```json
 {
@@ -47,8 +47,12 @@ available prompts changes.
 
 Servers that declare the `prompts` capability **MUST** respond to `prompts/list` requests
 with the set of prompts currently available to the requesting client. This set **MAY** be
-empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the prompts the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 ## Protocol Messages
 
@@ -150,7 +154,9 @@ Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/s
 ### List Changed Notification
 
 When the list of available prompts changes, servers that declared the `listChanged`
-capability **SHOULD** send a notification:
+capability **SHOULD** send a notification to clients that have opened a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+`promptsListChanged: true`:
 
 ```json
 {
@@ -175,9 +181,10 @@ sequenceDiagram
     Server-->>Client: Prompt content
 
     opt listChanged
-      Client->>+Server: GET /mcp<br>(starts background SSE stream)
+      Client->>Server: subscriptions/listen (promptsListChanged: true)
+      Server--)Client: notifications/subscriptions/acknowledged
       Note over Client,Server: Changes
-      Server--)Client: prompts/list_changed<br>(notification on background SSE stream)
+      Server--)Client: notifications/prompts/list_changed
       Client->>Server: prompts/list
       Server-->>Client: Updated prompts
     end

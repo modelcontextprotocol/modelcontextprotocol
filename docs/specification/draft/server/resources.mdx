@@ -35,55 +35,35 @@ Servers that support resources **MUST** declare the `resources` capability:
 {
   "capabilities": {
     "resources": {
-      "subscribe": true,
       "listChanged": true
     }
   }
 }
 ```
 
-The capability supports two optional features:
+The capability supports one optional feature:
 
-- `subscribe`: whether the client can subscribe to be notified of changes to individual
-  resources.
 - `listChanged`: whether the server will emit notifications when the list of available
   resources changes.
 
-Both `subscribe` and `listChanged` are optional&mdash;servers can support neither,
-either, or both:
+`listChanged` is optional&mdash;servers may omit it:
 
 ```json
 {
   "capabilities": {
-    "resources": {} // Neither feature supported
-  }
-}
-```
-
-```json
-{
-  "capabilities": {
-    "resources": {
-      "subscribe": true // Only subscriptions supported
-    }
-  }
-}
-```
-
-```json
-{
-  "capabilities": {
-    "resources": {
-      "listChanged": true // Only list change notifications supported
-    }
+    "resources": {}
   }
 }
 ```
 
 Servers that declare the `resources` capability **MUST** respond to `resources/list`
 requests with the set of resources currently available to the requesting client. This set
-**MAY** be empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+**MAY** be empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the resources the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 ## Protocol Messages
 
@@ -238,49 +218,28 @@ capability **SHOULD** send a notification:
 
 ### Subscriptions
 
-The protocol supports optional subscriptions to resource changes. Clients can subscribe
-to specific resources and receive notifications when they change:
-
-**Subscribe Request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "resources/subscribe",
-  "params": {
-    "uri": "file:///project/src/main.rs"
-  }
-}
-```
-
-**Update Notification:**
+Clients subscribe to change notifications for specific resources by sending a
+[`subscriptions/listen`][subscriptions-listen] request with the resource URIs listed in
+`notifications.resourceSubscriptions`. The server delivers
+`notifications/resources/updated` on the resulting stream whenever a watched resource
+changes.
 
 ```json
 {
   "jsonrpc": "2.0",
   "method": "notifications/resources/updated",
   "params": {
+    "_meta": { "io.modelcontextprotocol/subscriptionId": "4" },
     "uri": "file:///project/src/main.rs"
   }
 }
 ```
 
-**Unsubscribe Request:**
+See [Subscriptions][subscriptions] for the full protocol mechanics (acknowledgment,
+`subscriptionId` correlation, and cancellation).
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "method": "resources/unsubscribe",
-  "params": {
-    "uri": "file:///project/src/main.rs"
-  }
-}
-```
-
-Clients **SHOULD** send `resources/unsubscribe` when they no longer need updates
-for a resource.
+[subscriptions-listen]: /specification/draft/schema#subscriptionslistenrequest
+[subscriptions]: /specification/draft/basic/utilities/subscriptions
 
 ## Message Flow
 
@@ -301,18 +260,14 @@ sequenceDiagram
     Client->>Server: resources/read
     Server-->>Client: Resource contents
 
-    Note over Client,Server: Subscriptions
-    Client->>Server: resources/subscribe
-    Server-->>Client: Subscription confirmed
+    Note over Client,Server: Subscribe to changes
+    Client->>Server: subscriptions/listen (resourceSubscriptions)
+    Server--)Client: notifications/subscriptions/acknowledged
 
-    Note over Client,Server: Updates
+    Note over Client,Server: Resource updated
     Server--)Client: notifications/resources/updated
     Client->>Server: resources/read
     Server-->>Client: Updated contents
-
-    Note over Client,Server: Unsubscribe
-    Client->>Server: resources/unsubscribe
-    Server-->>Client: Unsubscribe confirmed
 ```
 
 ## Data Types
