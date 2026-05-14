@@ -16,7 +16,7 @@ This SEP proposes clarifying and extending `tools/call` error handling so that m
 
 Building on SEP-1303 (input validation errors), this SEP focuses on: (1) **tool resolution** failures (unknown tool names, tools that are present but not callable due to server policy/disablement), and (2) **output validation** failures for tools that declare an `outputSchema` but return missing or non-conforming `structuredContent`.
 
-The goal is to make these failures consistently visible to language models (and other clients), improving self-correction and recovery behavior, and aligning the specification with existing behavior in the Python and TypeScript SDKs.
+The goal is to make these failures consistently visible to language models (and other clients), improving self-correction and recovery behavior.
 
 ## Motivation
 
@@ -28,7 +28,7 @@ In practice, additional `tools/call` failure modes are similarly actionable (or 
 - **Tool not callable**: Servers may have tools that are temporarily unavailable, restricted, or disabled by policy. Returning a tool execution error allows the model to pick an alternative path or avoid repeated failing attempts.
 - **Output schema failures**: If a tool declares `outputSchema` but fails to produce valid `structuredContent`, returning a tool execution error allows the model/client to fall back to unstructured output, retry with different parameters, or report a clear diagnostic.
 
-Today, the documentation is not sufficiently explicit about these scenarios, and some parts of the draft schema documentation imply that "errors in finding the tool" should be protocol errors. This causes inconsistent implementations and pushes "out-of-the-box" behavior into client-specific policy, which many hosts will not implement.
+Today, the draft schema documentation states that "errors in finding the tool" should be protocol errors, and SEP-1303 retained that categorization when it went Final. This SEP proposes reversing that decision so that resolution failures are model-visible. The current split causes inconsistent implementations and pushes "out-of-the-box" behavior into client-specific policy, which many hosts will not implement.
 
 ## Specification
 
@@ -42,7 +42,7 @@ Today, the documentation is not sufficiently explicit about these scenarios, and
 
 Given a `tools/call` request that satisfies the `CallToolRequest` schema (i.e., it is not malformed at the protocol level), servers:
 
-1. **MUST** report tool input validation failures as Tool Execution Errors, per SEP-1303.
+1. **MUST** report tool input validation failures as Tool Execution Errors (extending the categorization established by SEP-1303).
    - This includes failures of JSON Schema validation against the tool's `inputSchema` as well as additional programmatic validation (ranges, invariants, cross-field checks, etc.).
 
 2. **MUST** report tool resolution failures as Tool Execution Errors, including:
@@ -51,15 +51,17 @@ Given a `tools/call` request that satisfies the `CallToolRequest` schema (i.e., 
 
 3. **MUST** report tool execution failures as Tool Execution Errors, including:
    - Exceptions thrown by the tool implementation.
-   - Timeouts or cancellations that occur during tool execution (if the server can still return a `CallToolResult`).
+   - Timeouts or server-internal aborts that occur during tool execution (if the server can still return a `CallToolResult`). Client-initiated cancellation continues to follow the [cancellation utility](/specification/draft/basic/utilities/cancellation).
 
 4. **SHOULD** report output validation failures as Tool Execution Errors when a tool declares an `outputSchema`, including:
    - `structuredContent` is missing when the server/tool intended to provide structured output.
    - `structuredContent` is present but does not conform to `outputSchema`.
    - `structuredContent` is present but is not an object (root must be `type: "object"`).
 
+   Note: `tools.mdx` already requires "Servers MUST provide structured results that conform to `outputSchema`" and "Clients SHOULD validate." This requirement is defense-in-depth: when a server fails to conform, it SHOULD also report the failure as a Tool Execution Error rather than returning silently invalid output.
+
 5. **MUST** use Protocol Errors only for protocol-level failures, such as:
-   - Malformed requests that fail to satisfy the `CallToolRequest` schema (e.g., missing `params`, wrong types, unexpected fields at the request layer).
+   - Malformed requests that fail to satisfy the `CallToolRequest` schema (e.g., missing `params`, wrong types).
    - JSON-RPC method-level failures (e.g., `tools/call` method not supported / not implemented).
    - Server failures that prevent constructing a `CallToolResult` at all (e.g., unrecoverable internal errors before tool invocation can be represented as a result).
 
@@ -154,6 +156,7 @@ This SEP intends to update the draft specification text in:
   - Add explicit categories for "tool not callable" and "output schema validation failures" as Tool Execution Errors.
   - Keep Protocol Errors focused on malformed `CallToolRequest` and server-level failures.
 - `schema/draft/schema.ts` documentation for `CallToolResult.isError` to remove/adjust language suggesting that "errors in finding the tool" should be protocol errors, aligning it with the above requirements.
+- `schema/draft/schema.ts` documentation for `InvalidParamsError` (Tools bullet) and the associated example files (`examples/InvalidParamsError/unknown-tool.json`, `examples/InvalidParamsError/invalid-tool-arguments.json`) so the generated Schema Reference matches.
 
 #### Proposed draft wording for `docs/specification/draft/server/tools.mdx` (Error Handling)
 
@@ -187,7 +190,7 @@ This SEP proposes changing the `CallToolResult.isError` documentation to treat "
 
 ## Rationale
 
-- **Aligns with existing SDK behavior**: As noted in the Nov 7 discussion, both the Python and TypeScript SDKs already return `CallToolResult` with `isError: true` for unknown tools, disabled tools, and various output schema failures. Making this behavior normative improves interoperability and reduces host-specific divergence.
+- **Proposes a clearer direction for SDK behavior**: As noted in the Nov 7 discussion, the Python SDK returns `CallToolResult` with `isError: true` for unknown tools, disabled tools, and various output schema failures. The TypeScript SDK previously did the same, but [typescript-sdk#1389](https://github.com/modelcontextprotocol/typescript-sdk/pull/1389) (merged March 2026) reverted it to protocol errors to conform with the current spec text. This SEP would reverse that direction, making tool execution errors the normative behavior and reducing host-specific divergence.
 - **Improves model recovery**: Even when the model cannot "fix" the underlying cause (e.g., tool disabled), it can adapt (use a different tool, ask the user, or take a different path). Hiding these failures behind protocol errors often prevents that.
 - **Preserves protocol integrity**: Protocol errors remain appropriate for malformed requests and method-level failures; this SEP does not attempt to redefine JSON-RPC semantics.
 
@@ -196,6 +199,8 @@ This SEP proposes changing the `CallToolResult.isError` documentation to treat "
 This SEP does not change JSON-RPC framing or introduce new required fields.
 
 However, it is a **behavioral change** for servers that currently return Protocol Errors for tool resolution and output validation failures. Clients that rely on a JSON-RPC error response for these cases will need to handle `CallToolResult.isError: true` equivalently.
+
+Notably, [typescript-sdk#1389](https://github.com/modelcontextprotocol/typescript-sdk/pull/1389) (merged March 2026) recently changed the TypeScript SDK to return protocol errors for unknown tools, conforming to the current spec. Accepting this SEP would require reverting that change. [python-sdk#1872](https://github.com/modelcontextprotocol/python-sdk/pull/1872) proposes a similar alignment for the Python SDK and would also need to be reconsidered.
 
 Mitigations:
 
@@ -208,10 +213,7 @@ Mitigations:
 
 ## Reference Implementation
 
-Existing implementations already behave this way:
-
-- Python SDK wraps exceptions and returns `CallToolResult` with `isError: true` in many cases (see discussion link in Related section).
-- TypeScript SDK has similar behavior (see discussion link in Related section).
+The Python SDK currently wraps exceptions and returns `CallToolResult` with `isError: true` for unknown tools and other failures. The TypeScript SDK previously did the same, but [typescript-sdk#1389](https://github.com/modelcontextprotocol/typescript-sdk/pull/1389) (merged March 2026) reverted it to protocol errors for unknown tools to conform with the current spec text. Accepting this SEP would require re-reverting the TypeScript SDK.
 
 This SEP's reference implementation would be a documentation + SDK conformance update:
 
