@@ -37,7 +37,7 @@
               "docs/learn/architecture",
               "docs/learn/server-concepts",
               "docs/learn/client-concepts",
-              "specification/versioning"
+              "docs/learn/versioning"
             ]
           },
           {
@@ -45,8 +45,15 @@
             "pages": [
               "docs/develop/connect-local-servers",
               "docs/develop/connect-remote-servers",
+              "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
-              "docs/develop/build-client",
+              {
+                "group": "Clients",
+                "pages": [
+                  "docs/develop/build-client",
+                  "docs/develop/clients/client-best-practices"
+                ]
+              },
               "docs/sdk",
               {
                 "group": "Security",
@@ -60,7 +67,15 @@
           {
             "group": "Developer tools",
             "pages": [
-              "docs/tools/inspector"
+              "docs/tools/inspector",
+              "docs/tools/debugging"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
             ]
           }
         ]
@@ -307,9 +322,10 @@
                     "group": "Utilities",
                     "pages": [
                       "specification/draft/basic/utilities/cancellation",
-                      "specification/draft/basic/utilities/ping",
                       "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/tasks"
+                      "specification/draft/basic/utilities/subscriptions",
+                      "specification/draft/basic/utilities/tasks",
+                      "specification/draft/basic/utilities/mrtr"
                     ]
                   }
                 ]
@@ -326,6 +342,7 @@
                 "group": "Server Features",
                 "pages": [
                   "specification/draft/server/index",
+                  "specification/draft/server/discover",
                   "specification/draft/server/prompts",
                   "specification/draft/server/resources",
                   "specification/draft/server/tools",
@@ -402,13 +419,18 @@
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
               "seps/2133-extensions",
-              "seps/2148-contributor-ladder"
+              "seps/2148-contributor-ladder",
+              "seps/2149-working-group-charter-template",
+              "seps/2243-http-standardization",
+              "seps/2567-sessionless-mcp"
             ]
           },
           {
             "group": "Accepted",
             "pages": [
-              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+              "seps/2207-oidc-refresh-token-guidance",
+              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
+              "seps/2575-stateless-mcp"
             ]
           },
           {
@@ -416,18 +438,32 @@
             "pages": [
               "seps/2145-standardize-tools-call-failure-reporting"
             ]
+          },
+          {
+            "group": "Approved",
+            "pages": [
+              "seps/2322-MRTR"
+            ]
           }
         ]
       },
       {
         "tab": "Community",
         "pages": [
-          "community/contributing",
-          "community/communication",
           {
-            "group": "Principles & Direction",
+            "group": "Get Involved",
             "pages": [
-              "community/design-principles"
+              "community/contributing",
+              "community/communication",
+              "community/working-interest-groups",
+              "community/charter-template"
+            ]
+          },
+          {
+            "group": "Propose Changes",
+            "pages": [
+              "community/design-principles",
+              "community/sep-guidelines"
             ]
           },
           {
@@ -435,23 +471,26 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
-              "community/sep-guidelines",
               "community/sdk-tiers",
-              "community/working-interest-groups",
               "community/antitrust"
+            ]
+          },
+          {
+            "group": "Working Group Charters",
+            "pages": [
+              "community/file-uploads/charter",
+              "community/inspector-v2/charter",
+              "community/interceptors/charter",
+              "community/sdk/charter",
+              "community/server-card/charter",
+              "community/skills-over-mcp/charter",
+              "community/triggers-events/charter"
             ]
           },
           {
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
-            ]
-          },
-          {
-            "group": "Examples",
-            "pages": [
-              "clients",
-              "examples"
             ]
           }
         ]
@@ -475,6 +514,10 @@
   },
   "redirects": [
     {
+      "source": "/specification/versioning",
+      "destination": "/docs/learn/versioning"
+    },
+    {
       "source": "/specification/latest",
       "destination": "/specification/2025-11-25",
       "permanent": false
@@ -487,6 +530,22 @@
     {
       "source": "/tutorials/building-a-client",
       "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-a-client-node",
+      "destination": "/docs/develop/build-client"
+    },
+    {
+      "source": "/tutorials/building-mcp-with-llms",
+      "destination": "/docs/develop/build-with-agent-skills"
+    },
+    {
+      "source": "/faqs",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/docs/tutorials/use-local-mcp-server",
+      "destination": "/docs/develop/connect-local-servers"
     },
     {
       "source": "/quickstart",
@@ -525,8 +584,40 @@
       "destination": "/specification/2025-06-18/basic/transports"
     },
     {
-      "source": "/docs/tools/debugging",
-      "destination": "/legacy/tools/debugging"
+      "source": "/legacy/tools/debugging",
+      "destination": "/docs/tools/debugging"
+    },
+    {
+      "source": "/legacy/concepts/architecture",
+      "destination": "/specification/latest/architecture"
+    },
+    {
+      "source": "/legacy/concepts/elicitation",
+      "destination": "/specification/latest/client/elicitation"
+    },
+    {
+      "source": "/legacy/concepts/prompts",
+      "destination": "/specification/latest/server/prompts"
+    },
+    {
+      "source": "/legacy/concepts/resources",
+      "destination": "/specification/latest/server/resources"
+    },
+    {
+      "source": "/legacy/concepts/roots",
+      "destination": "/specification/latest/client/roots"
+    },
+    {
+      "source": "/legacy/concepts/sampling",
+      "destination": "/specification/latest/client/sampling"
+    },
+    {
+      "source": "/legacy/concepts/tools",
+      "destination": "/specification/latest/server/tools"
+    },
+    {
+      "source": "/legacy/concepts/transports",
+      "destination": "/specification/latest/basic/transports"
     },
     {
       "source": "/legacy/tools/inspector",

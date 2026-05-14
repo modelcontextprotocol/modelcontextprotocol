@@ -5,10 +5,11 @@ title: Roots
 <div id="enable-section-numbers" />
 
 The Model Context Protocol (MCP) provides a standardized way for clients to expose
-filesystem "roots" to servers. Roots define the boundaries of where servers can operate
-within the filesystem, allowing them to understand which directories and files they have
-access to. Servers can request the list of roots from supporting clients and receive
-notifications when that list changes.
+filesystem "roots" to servers. Roots inform servers about the directories and files the
+client considers relevant, so that servers can focus their operations accordingly. They
+are informational guidance rather than an access-control mechanism. The protocol does
+not enforce that servers stay within roots. Servers can request the list of roots from
+supporting clients.
 
 ## User Interaction Model
 
@@ -38,34 +39,28 @@ to support this pattern.
 
 ## Capabilities
 
-Clients that support roots **MUST** declare the `roots` capability during
-[initialization](/specification/draft/basic/lifecycle#initialization):
+Clients that support roots **MUST** declare the `roots` capability in
+`_meta.io.modelcontextprotocol/clientCapabilities` on each request:
 
 ```json
 {
   "capabilities": {
-    "roots": {
-      "listChanged": true
-    }
+    "roots": {}
   }
 }
 ```
-
-`listChanged` indicates whether the client will emit notifications when the list of roots
-changes.
 
 ## Protocol Messages
 
 ### Listing Roots
 
-To retrieve roots, servers send a `roots/list` request:
+To retrieve roots during the processing of a client request, servers send an `IncompleteResponse`
+containing a `roots/list` request:
 
 **Request:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "roots/list"
 }
 ```
@@ -74,8 +69,6 @@ To retrieve roots, servers send a `roots/list` request:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "roots": [
       {
@@ -87,17 +80,6 @@ To retrieve roots, servers send a `roots/list` request:
 }
 ```
 
-### Root List Changes
-
-When roots change, clients that support `listChanged` **MUST** send a notification:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/roots/list_changed"
-}
-```
-
 ## Message Flow
 
 ```mermaid
@@ -106,13 +88,9 @@ sequenceDiagram
     participant Client
 
     Note over Server,Client: Discovery
-    Server->>Client: roots/list
-    Client-->>Server: Available roots
-
-    Note over Server,Client: Changes
-    Client--)Server: notifications/roots/list_changed
-    Server->>Client: roots/list
-    Client-->>Server: Updated roots
+    Client->>Server: tool/call(id: 1)
+    Server-->>Client: IncompleteResponse(roots/list)
+    Client->>Server: tool/call(id: 2, Available roots)
 ```
 
 ## Data Types
@@ -153,27 +131,8 @@ Example roots for different use cases:
 
 ## Error Handling
 
-Clients **SHOULD** return standard JSON-RPC errors for common failure cases:
-
-- Client does not support roots: `-32601` (Method not found)
-- Server sends a `roots/list` request with no associated client-to-server request: `-32602` (Invalid params)
-- Internal errors: `-32603`
-
-Example error:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32601,
-    "message": "Roots not supported",
-    "data": {
-      "reason": "Client does not have roots capability"
-    }
-  }
-}
-```
+If an error occurs, the client does not need to replay the initial call with an error message
+as the server is not waiting for a response with the `IncompleteResponse` pattern.
 
 ## Security Considerations
 
@@ -198,6 +157,5 @@ Example error:
 
 2. Servers **SHOULD**:
    - Check for roots capability before usage
-   - Handle root list changes gracefully
    - Respect root boundaries in operations
    - Cache root information appropriately
