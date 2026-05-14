@@ -191,7 +191,7 @@
                     "type": "array"
                 },
                 "isError": {
-                    "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nAny errors that originate from the tool SHOULD be reported inside the result\nobject, with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. Otherwise, the LLM would not be able to see that an error occurred\nand self-correct.\n\nHowever, any errors in _finding_ the tool, an error indicating that the\nserver does not support tool calls, or any other exceptional conditions,\nshould be reported as an MCP error response.",
+                    "description": "Whether the tool call ended in an error.\n\nIf not set, this is assumed to be false (the call was successful).\n\nTool-related errors — including tool resolution failures (unknown tool,\ntool not callable), input validation failures, output validation failures,\nand exceptions during execution — SHOULD be reported inside the result\nobject with `isError` set to true, _not_ as an MCP protocol-level error\nresponse. This allows the LLM to see the error and self-correct.\n\nProtocol-level errors (e.g., the server does not support `tools/call`,\nor the request is malformed at the `CallToolRequest` schema level)\nshould still be reported as MCP error responses.",
                     "type": "boolean"
                 },
                 "resultType": {
@@ -1669,7 +1669,7 @@
             "type": "object"
         },
         "InvalidParamsError": {
-            "description": "A JSON-RPC error indicating that the method parameters are invalid or malformed.\n\nIn MCP, this error is returned in various contexts when request parameters fail validation:\n\n- **Tools**: Unknown tool name or invalid tool arguments\n- **Prompts**: Unknown prompt name or missing required arguments\n- **Pagination**: Invalid or expired cursor values\n- **Logging**: Invalid log level\n- **Tasks**: Invalid or nonexistent task ID, invalid cursor, or attempting to cancel a task already in a terminal status\n- **Elicitation**: Server requests an elicitation mode not declared in client capabilities\n- **Sampling**: Missing tool result or tool results mixed with other content",
+            "description": "A JSON-RPC error indicating that the method parameters are invalid or malformed.\n\nIn MCP, this error is returned in various contexts when request parameters fail validation:\n\n- **Tools**: Malformed `CallToolRequest` parameters (e.g., missing `params.name`, wrong types). Note: unknown tool names and invalid tool arguments are reported as Tool Execution Errors via `CallToolResult` with `isError: true`, not as protocol errors.\n- **Prompts**: Unknown prompt name or missing required arguments\n- **Pagination**: Invalid or expired cursor values\n- **Logging**: Invalid log level\n- **Tasks**: Invalid or nonexistent task ID, invalid cursor, or attempting to cancel a task already in a terminal status\n- **Elicitation**: Server requests an elicitation mode not declared in client capabilities\n- **Sampling**: Missing tool result or tool results mixed with other content",
             "properties": {
                 "code": {
                     "const": -32602,

@@ -326,7 +326,7 @@ export interface MethodNotFoundError extends Error {
  *
  * In MCP, this error is returned in various contexts when request parameters fail validation:
  *
- * - **Tools**: Unknown tool name or invalid tool arguments
+ * - **Tools**: Malformed `CallToolRequest` parameters (e.g., missing `params.name`, wrong types). Note: unknown tool names and invalid tool arguments are reported as Tool Execution Errors via `CallToolResult` with `isError: true`, not as protocol errors.
  * - **Prompts**: Unknown prompt name or missing required arguments
  * - **Pagination**: Invalid or expired cursor values
  * - **Logging**: Invalid log level
@@ -335,12 +335,6 @@ export interface MethodNotFoundError extends Error {
  * - **Sampling**: Missing tool result or tool results mixed with other content
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
- *
- * @example Unknown tool
- * {@includeCode ./examples/InvalidParamsError/unknown-tool.json}
- *
- * @example Invalid tool arguments
- * {@includeCode ./examples/InvalidParamsError/invalid-tool-arguments.json}
  *
  * @example Unknown prompt
  * {@includeCode ./examples/InvalidParamsError/unknown-prompt.json}
@@ -1691,14 +1685,15 @@ export interface CallToolResult extends Result {
    *
    * If not set, this is assumed to be false (the call was successful).
    *
-   * Any errors that originate from the tool SHOULD be reported inside the result
-   * object, with `isError` set to true, _not_ as an MCP protocol-level error
-   * response. Otherwise, the LLM would not be able to see that an error occurred
-   * and self-correct.
+   * Tool-related errors — including tool resolution failures (unknown tool,
+   * tool not callable), input validation failures, output validation failures,
+   * and exceptions during execution — SHOULD be reported inside the result
+   * object with `isError` set to true, _not_ as an MCP protocol-level error
+   * response. This allows the LLM to see the error and self-correct.
    *
-   * However, any errors in _finding_ the tool, an error indicating that the
-   * server does not support tool calls, or any other exceptional conditions,
-   * should be reported as an MCP error response.
+   * Protocol-level errors (e.g., the server does not support `tools/call`,
+   * or the request is malformed at the `CallToolRequest` schema level)
+   * should still be reported as MCP error responses.
    */
   isError?: boolean;
 }
