@@ -135,8 +135,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
@@ -228,8 +227,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "structuredContent": {
                     "additionalProperties": {},
@@ -664,8 +662,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 }
             },
             "required": [
@@ -850,8 +847,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "task": {
                     "$ref": "#/$defs/Task"
@@ -929,8 +925,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "serverInfo": {
                     "$ref": "#/$defs/Implementation",
@@ -1297,8 +1292,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 }
             },
             "required": [
@@ -1379,8 +1373,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 }
             },
             "required": [
@@ -1632,8 +1625,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 }
             },
             "required": [
@@ -1978,8 +1970,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
@@ -2067,8 +2058,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
@@ -2156,8 +2146,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
@@ -2262,8 +2251,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "tasks": {
                     "items": {
@@ -2344,8 +2332,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "tools": {
                     "items": {
@@ -2678,8 +2665,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 }
             },
             "required": [
@@ -2997,8 +2983,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
@@ -3395,8 +3380,7 @@
                 },
                 "resultType": {
                     "$ref": "#/$defs/ResultType",
-                    "default": "complete",
-                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`."
                 }
             },
             "required": [
