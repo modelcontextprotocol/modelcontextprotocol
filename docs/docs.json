@@ -99,6 +99,12 @@
               "extensions/auth/oauth-client-credentials",
               "extensions/auth/enterprise-managed-authorization"
             ]
+          },
+          {
+            "group": "MCP Tasks",
+            "pages": [
+              "extensions/tasks/overview"
+            ]
           }
         ]
       },
@@ -324,7 +330,6 @@
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/progress",
                       "specification/draft/basic/utilities/subscriptions",
-                      "specification/draft/basic/utilities/tasks",
                       "specification/draft/basic/utilities/mrtr"
                     ]
                   }
@@ -424,7 +429,8 @@
               "seps/2149-working-group-charter-template",
               "seps/2243-http-standardization",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
-              "seps/2567-sessionless-mcp"
+              "seps/2567-sessionless-mcp",
+              "seps/2663-tasks-extension"
             ]
           },
           {
@@ -665,6 +671,10 @@
     {
       "source": "/docs/extensions/apps",
       "destination": "/extensions/apps/overview"
+    },
+    {
+      "source": "/docs/extensions/tasks",
+      "destination": "/extensions/tasks/overview"
     },
     {
       "source": "/community/seps",
