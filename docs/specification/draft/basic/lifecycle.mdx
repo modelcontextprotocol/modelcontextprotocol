@@ -96,18 +96,28 @@ A server that wishes to support both legacy clients (which expect an
 **MAY** implement both behaviors. A client that needs to interoperate with
 both kinds of servers can detect which is present:
 
-- **HTTP.** Try a modern request directly. If the server returns
-  `400 Bad Request` (or any other version error indicating the server does not
-  implement the modern protocol), fall back to `initialize` and continue with
-  the legacy version for subsequent requests.
+- **HTTP.** Try a modern request directly. On `400 Bad Request`, inspect the
+  response body before deciding to fall back: a `400` is also used by modern
+  servers for `UnsupportedProtocolVersionError`,
+  `MissingRequiredClientCapabilityError`, and header-validation failures, so
+  the status alone does not indicate a legacy server.
+  - If the body contains a recognized modern JSON-RPC error such as
+    [`UnsupportedProtocolVersionError`](/specification/draft/schema#unsupportedprotocolversionerror),
+    the server speaks a modern version of MCP — retry using one of its
+    advertised `supported` versions, or correct the request. Do **not** fall
+    back to `initialize`.
+  - If the response body is empty or is not a recognized modern JSON-RPC
+    error, fall back to `initialize` and continue with the legacy version
+    for subsequent requests.
 - **STDIO.** Because there is no per-request status code to drive fallback,
   a client that supports both eras **SHOULD** probe with
   [`server/discover`](/specification/draft/server/discover) first,
   setting its preferred modern version in `_meta`. If the server returns
   `Method not found` (`-32601`), fall back to the legacy `initialize`
   handshake. If the server returns `UnsupportedProtocolVersionError`, the
-  server speaks a version of MCP without `initialize` — use one of its
-  advertised `supportedVersions` instead of falling back to `initialize`.
+  server speaks a version of MCP without `initialize` — use one of the
+  versions in its advertised `supported` list instead of falling back to
+  `initialize`.
 
 A client that only supports modern (per-request-metadata) versions does not
 need to probe — it simply sends its preferred version and handles
