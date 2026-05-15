@@ -349,6 +349,7 @@
                   {
                     "group": "Utilities",
                     "pages": [
+                      "specification/draft/server/utilities/caching",
                       "specification/draft/server/utilities/completion",
                       "specification/draft/server/utilities/logging",
                       "specification/draft/server/utilities/pagination"
@@ -430,6 +431,7 @@
             "pages": [
               "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
+              "seps/2549-TTL-for-list-results",
               "seps/2575-stateless-mcp"
             ]
           },
