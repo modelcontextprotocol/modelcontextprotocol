@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "resourceTemplates": [
     {
       "uriTemplate": "file:///{path}",
@@ -14,5 +15,8 @@
         }
       ]
     }
-  ]
+  ],
+  "nextCursor": "next-page-cursor",
+  "ttlMs": 3600000,
+  "cacheScope": "public"
 }

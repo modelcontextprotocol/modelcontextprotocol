@@ -1,6 +1,6 @@
 {
   "jsonrpc": "2.0",
-  "id": "read-resource-example",
+  "id": "read-resource-with-ttl-example",
   "result": {
     "resultType": "complete",
     "contents": [
@@ -9,6 +9,8 @@
         "mimeType": "text/x-rust",
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
-    ]
+    ],
+    "ttlMs": 60000,
+    "cacheScope": "private"
   }
 }
