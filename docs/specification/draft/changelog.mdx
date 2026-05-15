@@ -23,6 +23,11 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 
 7. Multi Round-Trip Requests (MRTR) pattern introduced which replaces the previous approach of sending server-initiated requests, such as `roots/list`, `sampling/createMessage`, or `elicitation/create`. Servers return `inputRequests`, a new resultType containing the additional information needed to process the request. Clients respond with `inputResponses` on the next request providing the requested information. ([SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)).
 
+8. Deprecate the Roots, Sampling, and Logging features
+   ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+   These features remain fully functional during the deprecation window but new
+   implementations should not add support for them.
+
 ## Minor changes
 
 1. Add `extensions` field to `ClientCapabilities` and `ServerCapabilities` to support optional [extensions](/docs/extensions/overview) beyond the core protocol.
