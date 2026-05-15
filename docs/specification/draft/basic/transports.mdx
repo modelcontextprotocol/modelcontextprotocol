@@ -208,7 +208,7 @@ When the server returns an SSE response stream
 - The server **MUST NOT** send independent JSON-RPC _requests_ on this stream.
   Server-to-client interactions (sampling, elicitation, list-roots) are
   embedded as input requests inside an
-  [`IncompleteResult`][incomplete-result] per
+  [`InputRequiredResult`][input-required-result] per
   [SEP-2322 (MRTR)][sep-2322], not delivered as separate requests on
   this or any other stream.
 - The final JSON-RPC _response_ **SHOULD** terminate the stream.
@@ -236,7 +236,7 @@ streams via `Last-Event-ID` are not supported.
 
 [notifications-progress]: /specification/draft/basic/utilities/progress
 [notifications-message]: /specification/draft/server/utilities/logging
-[incomplete-result]: /specification/draft/schema#inputrequiredresult
+[input-required-result]: /specification/draft/schema#inputrequiredresult
 [sep-2322]: /seps/2322-MRTR
 [subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
 [tasks]: /specification/draft/basic/utilities/tasks

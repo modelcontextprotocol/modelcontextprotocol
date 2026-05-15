@@ -191,7 +191,10 @@ export interface Result {
    * Indicates the type of the result, which allows the client to determine
    * how to parse the result object.
    *
-   * @default "complete"
+   * Servers implementing this protocol version MUST include this field.
+   * For backward compatibility, when a client receives a result from a
+   * server implementing an earlier protocol version (which does not include
+   * `resultType`), the client MUST treat the absent field as `"complete"`.
    */
   resultType: ResultType;
   [key: string]: unknown;

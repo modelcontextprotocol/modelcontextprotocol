@@ -104,7 +104,7 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 ### Creating Messages
 
-To request a language model generation during the processing of a client request, servers send an `IncompleteResponse` containing a `sampling/createMessage` request:
+To request a language model generation during the processing of a client request, servers send an `InputRequiredResult` containing a `sampling/createMessage` request:
 
 **Request:**
 
@@ -168,7 +168,7 @@ sequenceDiagram
 
     Client->>Server: tools/call(id:1)
     note right of Server: Server needs more info
-    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(messages + tools))
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -185,7 +185,7 @@ sequenceDiagram
     Server->>Server: Run get_weather("Paris")<br/>Run get_weather("London")
 
     Note over Server,Client: Continue with tool results
-    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(history + tool_results + tools))
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(history + tool_results + tools))
 
     Client->>User: Present continuation
     User-->>Client: Approve
@@ -496,7 +496,7 @@ sequenceDiagram
 
     Client->>Server: tool/call(id:1)
     note right of Server: Server needs more info
-    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(messages + tools))
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -657,7 +657,7 @@ Sampling results will contain the following fields:
 ## Error Handling
 
 If an error occurs or the user declines the sampling request, the client does not need to replay the initial call with an
-error message, as the server is not waiting for a response with the `IncompleteResponse` pattern.
+error message, as the server is not waiting for a response with the `InputRequiredResult` pattern.
 
 ## Security Considerations
 
