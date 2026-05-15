@@ -1,6 +1,6 @@
 # SEP-2577: Deprecate Roots, Sampling, and Logging
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-04-14
 - **Author(s)**: Kurtis Van Gent (@kurtisvg)
