@@ -4,6 +4,14 @@ title: Logging
 
 <div id="enable-section-numbers" />
 
+<Warning>
+  **Deprecated**: The Logging feature is deprecated as of protocol version
+  `DRAFT-2026-v1`. It will continue to be supported in any version of MCP
+  released within 1 year of `DRAFT-2026-v1`, according to the deprecation policy
+  outlined in
+  [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596).
+</Warning>
+
 The Model Context Protocol (MCP) provides a standardized way for servers to send
 structured log messages to clients. Clients control logging verbosity per-request via
 `_meta`, with servers sending notifications containing severity levels, optional logger

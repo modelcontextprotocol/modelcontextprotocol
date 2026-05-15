@@ -430,6 +430,7 @@
               "seps/2243-http-standardization",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
               "seps/2567-sessionless-mcp",
+              "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2663-tasks-extension"
             ]
           },
