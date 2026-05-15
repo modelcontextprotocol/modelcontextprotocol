@@ -216,9 +216,11 @@ When the server returns an SSE response stream
 Long-lived notification streams are obtained by sending a
 [`subscriptions/listen`][subscriptions-listen]
 request. The server's response is itself an SSE stream that stays open and
-delivers `notifications/tools/list_changed`,
-`notifications/resources/updated`, `notifications/message`, etc. for the
-notification types the client opted in to.
+delivers the change notifications the client opted in to (such as
+`notifications/tools/list_changed` or `notifications/resources/updated`).
+Request-scoped notifications like `notifications/progress` and
+`notifications/message` are **not** delivered on the listen stream — they
+flow only on the response stream of the request they relate to.
 
 When initiating an SSE stream, servers **SHOULD** include the
 `X-Accel-Buffering: no` header in the HTTP response. This instructs reverse
