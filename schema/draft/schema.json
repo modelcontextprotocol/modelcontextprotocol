@@ -119,6 +119,38 @@
             ],
             "type": "object"
         },
+        "CacheableResult": {
+            "description": "A result that supports a time-to-live (TTL) hint for client-side caching.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
+                "resultType": {
+                    "$ref": "#/$defs/ResultType",
+                    "default": "complete",
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "cacheScope",
+                "resultType",
+                "ttlMs"
+            ],
+            "type": "object"
+        },
         "CallToolRequest": {
             "description": "Used by the client to invoke a tool provided by the server.",
             "properties": {
@@ -1926,6 +1958,14 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
@@ -1940,11 +1980,18 @@
                     "$ref": "#/$defs/ResultType",
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
                 }
             },
             "required": [
+                "cacheScope",
                 "prompts",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2000,6 +2047,14 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
@@ -2014,11 +2069,18 @@
                     "$ref": "#/$defs/ResultType",
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
                 }
             },
             "required": [
+                "cacheScope",
                 "resourceTemplates",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2074,6 +2136,14 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
@@ -2088,11 +2158,18 @@
                     "$ref": "#/$defs/ResultType",
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
                 }
             },
             "required": [
+                "cacheScope",
                 "resources",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2253,6 +2330,14 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
                     "type": "string"
@@ -2267,11 +2352,18 @@
                         "$ref": "#/$defs/Tool"
                     },
                     "type": "array"
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
                 }
             },
             "required": [
+                "cacheScope",
                 "resultType",
-                "tools"
+                "tools",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -2882,6 +2974,14 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
                 "contents": {
                     "items": {
                         "anyOf": [
@@ -2899,11 +2999,18 @@
                     "$ref": "#/$defs/ResultType",
                     "default": "complete",
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object."
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
                 }
             },
             "required": [
+                "cacheScope",
                 "contents",
-                "resultType"
+                "resultType",
+                "ttlMs"
             ],
             "type": "object"
         },

@@ -27,6 +27,8 @@
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

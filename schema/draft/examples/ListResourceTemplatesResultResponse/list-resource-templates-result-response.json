@@ -18,6 +18,8 @@
           }
         ]
       }
-    ]
+    ],
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

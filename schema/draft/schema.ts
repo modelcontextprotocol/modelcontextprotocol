@@ -1035,6 +1035,40 @@ export interface PaginatedResult extends Result {
   nextCursor?: Cursor;
 }
 
+/**
+ * A result that supports a time-to-live (TTL) hint for client-side caching.
+ *
+ * @internal
+ */
+export interface CacheableResult extends Result {
+  /**
+   * A hint from the server indicating how long (in milliseconds) the
+   * client MAY cache this response before re-fetching. Semantics are
+   * analogous to HTTP Cache-Control max-age.
+   *
+   * - If 0, The response SHOULD be considered immediately stale,
+   *   The client MAY re-fetch every time the result is needed.
+   * - If positive, the client SHOULD consider the result fresh for this many
+   *   milliseconds after receiving the response.
+   *
+   * @minimum 0
+   */
+  ttlMs: number;
+
+  /**
+   * Indicates the intended scope of the cached response, analogous to HTTP
+   * `Cache-Control: public` vs `Cache-Control: private`.
+   *
+   * - `"public"`: Any client or intermediary (e.g., shared gateway, proxy)
+   *   MAY cache the response and serve it to any user.
+   * - `"private"`: Only the requesting user's client MAY cache the response.
+   *   Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached
+   *   copy to a different user.
+   *
+   */
+  cacheScope: "public" | "private";
+}
+
 /* Resources */
 /**
  * Sent from the client to request a list of resources the server has.
@@ -1051,12 +1085,12 @@ export interface ListResourcesRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListResourcesRequest | resources/list} request.
  *
- * @example Resources list with cursor
- * {@includeCode ./examples/ListResourcesResult/resources-list-with-cursor.json}
+ * @example Resources list with cursor and TTL
+ * {@includeCode ./examples/ListResourcesResult/resources-list-with-cursor-and-ttl.json}
  *
  * @category `resources/list`
  */
-export interface ListResourcesResult extends PaginatedResult {
+export interface ListResourcesResult extends PaginatedResult, CacheableResult {
   resources: Resource[];
 }
 
@@ -1087,12 +1121,13 @@ export interface ListResourceTemplatesRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListResourceTemplatesRequest | resources/templates/list} request.
  *
- * @example Resource templates list
- * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list.json}
+ * @example Resource templates list with cursor and TTL
+ * {@includeCode ./examples/ListResourceTemplatesResult/resource-templates-list-with-cursor-and-ttl.json}
  *
  * @category `resources/templates/list`
  */
-export interface ListResourceTemplatesResult extends PaginatedResult {
+export interface ListResourceTemplatesResult
+  extends PaginatedResult, CacheableResult {
   resourceTemplates: ResourceTemplate[];
 }
 
@@ -1149,9 +1184,12 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  * @example File resource contents
  * {@includeCode ./examples/ReadResourceResult/file-resource-contents.json}
  *
+ * @example File resource contents with TTL
+ * {@includeCode ./examples/ReadResourceResult/file-resource-contents-with-ttl.json}
+ *
  * @category `resources/read`
  */
-export interface ReadResourceResult extends Result {
+export interface ReadResourceResult extends CacheableResult {
   contents: (TextResourceContents | BlobResourceContents)[];
 }
 
@@ -1160,6 +1198,9 @@ export interface ReadResourceResult extends Result {
  *
  * @example Read resource result response
  * {@includeCode ./examples/ReadResourceResultResponse/read-resource-result-response.json}
+ *
+ * @example Read resource result response with TTL
+ * {@includeCode ./examples/ReadResourceResultResponse/read-resource-result-response-with-ttl.json}
  *
  * @category `resources/read`
  */
@@ -1439,12 +1480,12 @@ export interface ListPromptsRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListPromptsRequest | prompts/list} request.
  *
- * @example Prompts list with cursor
- * {@includeCode ./examples/ListPromptsResult/prompts-list-with-cursor.json}
+ * @example Prompts list with cursor and TTL
+ * {@includeCode ./examples/ListPromptsResult/prompts-list-with-cursor-and-ttl.json}
  *
  * @category `prompts/list`
  */
-export interface ListPromptsResult extends PaginatedResult {
+export interface ListPromptsResult extends PaginatedResult, CacheableResult {
   prompts: Prompt[];
 }
 
@@ -1640,12 +1681,12 @@ export interface ListToolsRequest extends PaginatedRequest {
 /**
  * The result returned by the server for a {@link ListToolsRequest | tools/list} request.
  *
- * @example Tools list with cursor
- * {@includeCode ./examples/ListToolsResult/tools-list-with-cursor.json}
+ * @example Tools list with cursor and TTL
+ * {@includeCode ./examples/ListToolsResult/tools-list-with-cursor-and-ttl.json}
  *
  * @category `tools/list`
  */
-export interface ListToolsResult extends PaginatedResult {
+export interface ListToolsResult extends PaginatedResult, CacheableResult {
   tools: Tool[];
 }
 
