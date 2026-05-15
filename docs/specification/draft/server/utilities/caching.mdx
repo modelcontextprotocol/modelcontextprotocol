@@ -149,8 +149,8 @@ page is an independently cacheable response&mdash;consistent with how HTTP
 ## Security Considerations
 
 A `cacheScope` of `"public"` indicates that the response does not contain user-specific data and can be safely shared. However, servers MUST ensure that responses marked as `"public"` can lead to primitives being exposed across users and auth context.
-Server implementors should ensure that:
+Server implementors:
 
-- the `cacheScope` correctly reflects the intended visibility of the primitive.
-- Server authors MUST apply appropriate per-primitive access controls, and MUST NOT rely on
+- should ensure that the `cacheScope` correctly reflects the intended visibility of the primitive.
+- MUST apply appropriate per-primitive access controls, and MUST NOT rely on
   `cacheScope` alone to prevent unauthorized access to primitives.
