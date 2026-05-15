@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "tools": [
     {
       "name": "get_weather",

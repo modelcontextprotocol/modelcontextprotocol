@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "list-prompts-example",
   "result": {
+    "resultType": "complete",
     "prompts": [
       {
         "name": "code_review",

@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "get-prompt-example",
   "result": {
+    "resultType": "complete",
     "description": "Code review prompt",
     "messages": [
       {

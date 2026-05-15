@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "list-tools-example",
   "result": {
+    "resultType": "complete",
     "tools": [
       {
         "name": "get_weather",

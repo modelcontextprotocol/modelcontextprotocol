@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "prompts": [
     {
       "name": "code_review",
