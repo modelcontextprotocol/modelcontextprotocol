@@ -228,16 +228,13 @@ buffer. Without this header, proxies may accumulate messages before sending
 them to the client, introducing unwanted latency and potentially breaking the
 real-time nature of SSE communication.
 
-For workloads that need durability across connection drops, use the
-[tasks primitive][tasks]; resumable SSE
-streams via `Last-Event-ID` are not supported.
+Resumable SSE streams via `Last-Event-ID` are not supported.
 
 [notifications-progress]: /specification/draft/basic/utilities/progress
 [notifications-message]: /specification/draft/server/utilities/logging
 [incomplete-result]: /specification/draft/schema#inputrequiredresult
 [sep-2322]: /seps/2322-MRTR
 [subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
-[tasks]: /specification/draft/basic/utilities/tasks
 
 ### Cancellation
 

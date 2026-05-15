@@ -427,7 +427,8 @@
               "seps/2148-contributor-ladder",
               "seps/2149-working-group-charter-template",
               "seps/2243-http-standardization",
-              "seps/2567-sessionless-mcp"
+              "seps/2567-sessionless-mcp",
+              "seps/2663-tasks-extension"
             ]
           },
           {
@@ -435,8 +436,7 @@
             "pages": [
               "seps/2207-oidc-refresh-token-guidance",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
-              "seps/2575-stateless-mcp",
-              "seps/2663-tasks-extension"
+              "seps/2575-stateless-mcp"
             ]
           },
           {
