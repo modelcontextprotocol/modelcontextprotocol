@@ -271,6 +271,11 @@ For example: `MCP-Protocol-Version: 2025-11-25`
 The protocol version sent by the client **SHOULD** be the one [negotiated during
 initialization](/specification/2025-11-25/basic/lifecycle#version-negotiation).
 
+The initial `initialize` request negotiates the protocol version through
+`params.protocolVersion` in the JSON-RPC body. If an HTTP client also sends an
+`MCP-Protocol-Version` header on that initial request, the header **MUST NOT**
+override the body value used for version negotiation.
+
 For backwards compatibility, if the server does _not_ receive an `MCP-Protocol-Version`
 header, and has no other way to identify the version - for example, by relying on the
 protocol version negotiated during initialization - the server **SHOULD** assume protocol

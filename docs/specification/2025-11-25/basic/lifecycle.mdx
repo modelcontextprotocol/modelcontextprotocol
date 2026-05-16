@@ -167,6 +167,11 @@ to indicate it is ready to begin normal operations:
 In the `initialize` request, the client **MUST** send a protocol version it supports.
 This **SHOULD** be the _latest_ version supported by the client.
 
+For HTTP transports, the `initialize` request body is the authoritative input to
+version negotiation. The `MCP-Protocol-Version` HTTP header is not required on
+the initial `initialize` request and, if present, **MUST NOT** override the
+`params.protocolVersion` value in the request body.
+
 If the server supports the requested protocol version, it **MUST** respond with the same
 version. Otherwise, the server **MUST** respond with another protocol version it
 supports. This **SHOULD** be the _latest_ version supported by the server.
