@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "list-resources-example",
   "result": {
+    "resultType": "complete",
     "resources": [
       {
         "uri": "file:///project/src/main.rs",
@@ -18,6 +19,8 @@
         ]
       }
     ],
-    "nextCursor": "eyJwYWdlIjogM30="
+    "nextCursor": "eyJwYWdlIjogM30=",
+    "ttlMs": 600000,
+    "cacheScope": "private"
   }
 }
