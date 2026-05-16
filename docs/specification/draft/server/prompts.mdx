@@ -29,8 +29,8 @@ model.
 
 ## Capabilities
 
-Servers that support prompts **MUST** declare the `prompts` capability during
-[initialization](/specification/draft/basic/lifecycle#initialization):
+Servers that support prompts **MUST** declare the `prompts` capability in their
+[`DiscoverResult`](/specification/draft/schema#discoverresult):
 
 ```json
 {
@@ -154,7 +154,9 @@ Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/s
 ### List Changed Notification
 
 When the list of available prompts changes, servers that declared the `listChanged`
-capability **SHOULD** send a notification:
+capability **SHOULD** send a notification to clients that have opened a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+`promptsListChanged: true`:
 
 ```json
 {
@@ -179,9 +181,10 @@ sequenceDiagram
     Server-->>Client: Prompt content
 
     opt listChanged
-      Client->>+Server: GET /mcp<br>(starts background SSE stream)
+      Client->>Server: subscriptions/listen (promptsListChanged: true)
+      Server--)Client: notifications/subscriptions/acknowledged
       Note over Client,Server: Changes
-      Server--)Client: prompts/list_changed<br>(notification on background SSE stream)
+      Server--)Client: notifications/prompts/list_changed
       Client->>Server: prompts/list
       Server-->>Client: Updated prompts
     end

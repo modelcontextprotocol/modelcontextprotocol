@@ -7,7 +7,7 @@ title: Overview
 The Model Context Protocol consists of several key components that work together:
 
 - **Base Protocol**: Core JSON-RPC message types
-- **Lifecycle Management**: Connection initialization and capability negotiation
+- **Lifecycle Management**: Protocol version negotiation and per-request capability declaration
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Sampling and root directory lists provided by clients
@@ -60,26 +60,26 @@ Responses are sent in reply to requests, containing either the result or error o
   jsonrpc: "2.0";
   id: string | number;
   result: {
+    resultType: string;
     [key: string]: unknown;
   };
-  resultType: string;
 }
 ```
 
 - Result responses **MUST** include the same ID as the request they correspond to.
 - Result responses **MUST** include a `result` field.
 - The `result` **MAY** follow any JSON object structure.
-- The `resultType` field **MUST** be included to indicate the type of the result. If no `resultType` is specified, "complete" should be assumed.
+- The `result` **MUST** include a `resultType` field to indicate the type of the result.
 
 ##### ResultType
 
-The `resultType` field in a result response indicates the type of the result being returned. MCP supports poly-morphic result types,
+The `resultType` field in a result indicates the type of the result being returned. MCP supports polymorphic result types,
 allowing servers to return different structures based on the outcome of the request. The `resultType` field is a string that clients
 can use to determine how to parse and handle the `result` object.
 
-- A `resultType` of `"complete"` the request completed successfully and the result contains the final content.
-- A `resultType` of `"input_required"` the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
-- If `resultType` is not specified, clients **MUST** assume a default value of `"complete"` for backwards compatibility.
+- A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
+- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
+- For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
 
 #### Error Responses
 
@@ -224,6 +224,34 @@ may reserve particular names for purpose-specific metadata, as declared in those
 
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
+
+**Per-request protocol fields:**
+
+Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
+in `_meta`. Servers use these to identify the client and the protocol version in use
+without relying on any prior connection state. See
+[Lifecycle][lifecycle] for version negotiation rules.
+
+| Key                                          | Type                 | Required | Description                                                 |
+| -------------------------------------------- | -------------------- | -------- | ----------------------------------------------------------- |
+| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"DRAFT-2026-v1"`) |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                     |
+| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request                |
+| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request   |
+
+A server **MUST NOT** rely on capabilities the client has not declared. If
+processing a request requires a capability the client did not include in
+`io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
+[`MissingRequiredClientCapabilityError`](/specification/draft/schema#missingrequiredclientcapabilityerror)
+(`-32003`) whose `data.requiredCapabilities` lists the missing capabilities. On
+HTTP, the response status **MUST** be `400 Bad Request`.
+
+On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
+the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
+client can correlate the notification with the originating subscription request.
+
+[lifecycle]: /specification/draft/basic/lifecycle
+[subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
 
 **OpenTelemetry trace context:**
 

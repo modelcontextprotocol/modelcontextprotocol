@@ -4,6 +4,14 @@ title: Sampling
 
 <div id="enable-section-numbers" />
 
+<Warning>
+  **Deprecated**: The Sampling feature is deprecated as of protocol version
+  `DRAFT-2026-v1`. It will continue to be supported in any version of MCP
+  released within 1 year of `DRAFT-2026-v1`, according to the deprecation policy
+  outlined in
+  [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596).
+</Warning>
+
 The Model Context Protocol (MCP) provides a standardized way for servers to request LLM
 sampling ("completions" or "generations") from language models via clients. This flow
 allows clients to maintain control over model access, selection, and permissions while
@@ -55,8 +63,8 @@ Clients **MUST** declare support for tool use via the `sampling.tools` capabilit
 
 ## Capabilities
 
-Clients that support sampling **MUST** declare the `sampling` capability during
-[initialization](/specification/draft/basic/lifecycle#initialization):
+Clients that support sampling **MUST** declare the `sampling` capability in
+`_meta.io.modelcontextprotocol/clientCapabilities` on each request:
 
 **Basic sampling:**
 
@@ -104,7 +112,7 @@ Clients that support sampling **MUST** declare the `sampling` capability during
 
 ### Creating Messages
 
-To request a language model generation during the processing of a client request, servers send an `IncompleteResponse` containing a `sampling/createMessage` request:
+To request a language model generation during the processing of a client request, servers send an `InputRequiredResult` containing a `sampling/createMessage` request:
 
 **Request:**
 
@@ -168,7 +176,7 @@ sequenceDiagram
 
     Client->>Server: tools/call(id:1)
     note right of Server: Server needs more info
-    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(messages + tools))
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -185,7 +193,7 @@ sequenceDiagram
     Server->>Server: Run get_weather("Paris")<br/>Run get_weather("London")
 
     Note over Server,Client: Continue with tool results
-    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(history + tool_results + tools))
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(history + tool_results + tools))
 
     Client->>User: Present continuation
     User-->>Client: Approve
@@ -496,7 +504,7 @@ sequenceDiagram
 
     Client->>Server: tool/call(id:1)
     note right of Server: Server needs more info
-    Server->>Client: IncompleteResponse(<br/>sampling/createMessage<br/>(messages + tools))
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -657,7 +665,7 @@ Sampling results will contain the following fields:
 ## Error Handling
 
 If an error occurs or the user declines the sampling request, the client does not need to replay the initial call with an
-error message, as the server is not waiting for a response with the `IncompleteResponse` pattern.
+error message, as the server is not waiting for a response with the `InputRequiredResult` pattern.
 
 ## Security Considerations
 

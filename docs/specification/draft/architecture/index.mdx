@@ -5,10 +5,12 @@ title: Architecture
 <div id="enable-section-numbers" />
 
 The Model Context Protocol (MCP) follows a client-host-server architecture where each
-host can run multiple client instances. This architecture enables users to integrate AI
-capabilities across applications while maintaining clear security boundaries and
-isolating concerns. Built on JSON-RPC, MCP provides a protocol focused on context
-exchange and sampling coordination between clients and servers.
+host can run multiple client instances. MCP is a stateless protocol: every request is
+self-contained and carries its own protocol version, client identity, and capabilities.
+This architecture enables users to integrate AI capabilities across applications while
+maintaining clear security boundaries and isolating concerns. Built on JSON-RPC, MCP
+provides a protocol focused on context exchange and sampling coordination between
+clients and servers.
 
 ## Core Components
 
@@ -58,10 +60,10 @@ The host process acts as the container and coordinator:
 
 ### Clients
 
-Each client is created by the host and maintains an isolated server connection:
+Each client is created by the host and communicates with exactly one server:
 
-- Establishes one connection per server
-- Handles protocol negotiation and capability exchange
+- Communicates with exactly one server
+- Attaches protocol version and capabilities to every request
 - Routes protocol messages bidirectionally
 - Manages subscriptions and notifications
 - Maintains security boundaries between servers
@@ -75,7 +77,7 @@ Servers provide specialized context and capabilities:
 
 - Expose resources, tools and prompts via MCP primitives
 - Operate independently with focused responsibilities
-- Request sampling through client interfaces
+- Request client input (sampling, elicitation, roots) via `InputRequiredResult` within a reply
 - Must respect security constraints
 - Can be local processes or remote services
 
@@ -100,7 +102,7 @@ implementation:
    servers**
    - Servers receive only necessary contextual information
    - Full conversation history stays with the host
-   - Each server connection maintains isolation
+   - Each server maintains isolation
    - Cross-server interactions are controlled by the host
    - Host process enforces security boundaries
 
@@ -114,13 +116,16 @@ implementation:
 ## Capability Negotiation
 
 The Model Context Protocol uses a capability-based negotiation system where clients and
-servers explicitly declare their supported features during initialization. Capabilities
-determine which protocol features and primitives are available during a connection.
+servers declare their supported features on each request. Clients include their
+capabilities in `_meta.io.modelcontextprotocol/clientCapabilities` on every request.
+Servers advertise their capabilities in response to
+[`server/discover`](/specification/draft/server/discover), which clients may call before
+any other request for up-front capability discovery.
 
-- Servers declare capabilities like resource subscriptions, tool support, and prompt
+- Servers declare capabilities like tool support, resource subscriptions, and prompt
   templates
-- Clients declare capabilities like sampling support and notification handling
-- Both parties must respect declared capabilities throughout the connection
+- Clients declare capabilities like sampling support and elicitation handling
+- Both parties must respect declared capabilities throughout the interaction
 - Additional capabilities can be negotiated through extensions to the protocol
 
 ```mermaid
@@ -129,43 +134,40 @@ sequenceDiagram
     participant Client
     participant Server
 
-    Host->>+Client: Initialize client
-    Client->>+Server: Initialize with capabilities
-    Server-->>Client: Respond with supported capabilities
-
-    Note over Host,Server: Active Connection with Negotiated Features
+    opt Discovery
+        Client->>Server: server/discover
+        Server-->>Client: supported versions + capabilities
+    end
 
     loop Client Requests
         Host->>Client: User- or model-initiated action
-        Client->>Server: Request (tools/resources)
+        Client->>Server: Request (with _meta: version, clientInfo, clientCapabilities)
+        alt Server requires client input
+            Server-->>Client: InputRequiredResult (e.g. sampling/createMessage)
+            Client->>Host: Forward to AI
+            Host-->>Client: AI response
+            Client->>Server: Original request (with input)
+        end
         Server-->>Client: Response
         Client-->>Host: Update UI or respond to model
     end
 
-    loop Server Requests
-        Server->>Client: Request (sampling)
-        Client->>Host: Forward to AI
-        Host-->>Client: AI response
-        Client-->>Server: Response
+    opt Subscriptions
+        Client->>Server: subscriptions/listen (toolsListChanged, resourceSubscriptions, …)
+        Server--)Client: notifications/subscriptions/acknowledged
+        loop Stream
+            Server--)Client: notifications/* (tagged with subscriptionId)
+        end
     end
-
-    loop Notifications
-        Server--)Client: Resource updates
-        Client--)Server: Status changes
-    end
-
-    Host->>Client: Terminate
-    Client->>-Server: End connection
-    deactivate Server
 ```
 
-Each capability unlocks specific protocol features for use during the connection. For
-example:
+Each capability unlocks specific protocol features on a per-request basis. For example:
 
 - Implemented [server features](/specification/draft/server) must be advertised in the
   server's capabilities
-- Emitting resource subscription notifications requires the server to declare
-  subscription support
+- Receiving resource update notifications requires opening a
+  [`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream
+  with the desired resource URIs
 - Tool invocation requires the server to declare tool capabilities
 - [Sampling](/specification/draft/client) requires the client to declare support in its
   capabilities
