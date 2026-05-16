@@ -1,0 +1,125 @@
+---
+title: Subscriptions
+---
+
+<div id="enable-section-numbers" />
+
+`subscriptions/listen` opens a long-lived notification stream from the server to the
+client. Unlike one-off requests, the stream stays open and delivers notifications until
+the client cancels it. It replaces the former `resources/subscribe` RPC and the HTTP GET
+endpoint.
+
+## Opening a Stream
+
+The client sends a `subscriptions/listen` request with a `notifications` filter
+specifying which event types it wants to receive. The server **MUST NOT** send
+notification types the client has not explicitly requested.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "subscriptions/listen",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    },
+    "notifications": {
+      "toolsListChanged": true,
+      "resourceSubscriptions": ["file:///project/config.json"]
+    }
+  }
+}
+```
+
+### Notification Filter
+
+| Field                   | Type       | Description                                                       |
+| ----------------------- | ---------- | ----------------------------------------------------------------- |
+| `toolsListChanged`      | `boolean`  | Receive `notifications/tools/list_changed` when tools change      |
+| `promptsListChanged`    | `boolean`  | Receive `notifications/prompts/list_changed` when prompts change  |
+| `resourcesListChanged`  | `boolean`  | Receive `notifications/resources/list_changed` when list changes  |
+| `resourceSubscriptions` | `string[]` | Receive `notifications/resources/updated` for these resource URIs |
+
+All fields are optional. Omitting a field is equivalent to not subscribing to that
+notification type.
+
+## Acknowledgment
+
+The server **MUST** send `notifications/subscriptions/acknowledged` as the first
+message on the stream. The `notifications` field in the acknowledgment reflects the
+subset the server agreed to honor — notification types the server does not support are
+omitted.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/subscriptions/acknowledged",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "1"
+    },
+    "notifications": {
+      "toolsListChanged": true,
+      "resourceSubscriptions": ["file:///project/config.json"]
+    }
+  }
+}
+```
+
+The client **SHOULD** check the acknowledged filter against what it requested and handle
+any unsupported types gracefully.
+
+## Receiving Notifications
+
+All notifications delivered on the stream carry
+`io.modelcontextprotocol/subscriptionId` in `_meta`, matching the ID of the
+`subscriptions/listen` request that opened the stream. On stdio, where all messages
+share a single channel, clients **MUST** use this field to correlate notifications
+with their originating subscription.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/resources/updated",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "1"
+    },
+    "uri": "file:///project/config.json"
+  }
+}
+```
+
+## Multiple Concurrent Subscriptions
+
+A client **MAY** have multiple active subscriptions concurrently — for example,
+one listening for tools-list changes and another for resource updates. Each
+subscription is identified by the JSON-RPC request ID of its
+`subscriptions/listen` request, and every notification on the stream carries
+that ID in `io.modelcontextprotocol/subscriptionId` so clients can demultiplex
+them.
+
+## Cancellation
+
+A subscription ends when:
+
+- The **client** cancels it — close the SSE stream (HTTP) or send
+  `notifications/cancelled` referencing the listen request ID (stdio).
+- The **server** tears it down (e.g., during shutdown) — it closes the
+  underlying transport connection.
+- The underlying transport closes (HTTP timeout, TCP disconnect, stdio process
+  exit).
+
+On **stdio**, if the connection is terminated and then re-established, the
+client **MUST** re-send `subscriptions/listen` to re-establish its
+subscriptions — the server holds no subscription state across reconnections.
+
+See [Cancellation][cancellation] for the full rules.
+
+[cancellation]: /specification/draft/basic/utilities/cancellation
