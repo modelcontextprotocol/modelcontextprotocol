@@ -255,8 +255,14 @@ the date this SEP reaches Final. Every subsequent deprecation follows [Deprecati
 feature](#deprecating-a-feature) in full, and removal of the grandfathered features follows
 [Removing a feature](#removing-a-feature) without exception.
 
-The [versioning guide][versioning] is updated to reference this policy, and `deprecated.mdx` is
-created seeded with the two features above.
+When this SEP reaches Final the following land in `draft/` directly, with no separate
+implementation gate: the [versioning guide][versioning] is updated to reference this policy;
+`deprecated.mdx` is created seeded with the two features above; the "Deprecated" heading is added
+to `changelog.mdx` with both entries; and each feature gains the `@deprecated` schema annotation
+and prose notice described in [Deprecating a feature](#deprecating-a-feature). For
+`includeContext` the annotation is on the property as a whole, since per-value `@deprecated` tags
+are not expressible on a string-literal union; the HTTP+SSE transport has no `schema.ts` types and
+is annotated in the transport prose only.
 
 ## Rationale
 
@@ -332,22 +338,9 @@ be unsafe, which is what the [Expedited removal](#expedited-removal) clause is f
 
 ## Reference Implementation
 
-For a Process SEP the reference implementation is the policy applied to a real case. The
-[Transition](#transition) section applies it to the two existing informal deprecations, and a
-follow-up pull request will:
-
-- Add a `@deprecated` JSDoc note to the `includeContext` property in `schema/draft/schema.ts`
-  identifying `"thisServer"` and `"allServers"` as deprecated (the property is a string-literal
-  union, so per-value tags are not possible).
-- Add a deprecation notice to the HTTP+SSE section of `docs/specification/draft/basic/transports.mdx`
-  (the transport has no `schema.ts` types).
-- Introduce the "Deprecated" heading in `docs/specification/draft/changelog.mdx` with both entries.
-- Create `docs/specification/draft/deprecated.mdx`, the
-  [registry](#the-deprecated-registry), seeded with the two grandfathered features, and add it to
-  the specification navigation.
-- Update `docs/docs/learn/versioning.mdx` to link to this policy.
-
-That pull request serves as the running-code validation before this SEP advances to Final.
+This SEP defines a process and has no reference implementation. The specification edits that apply
+the policy to the two existing informal deprecations are described in [Transition](#transition) and
+land directly in `draft/` when this SEP reaches Final.
 
 ---
 
