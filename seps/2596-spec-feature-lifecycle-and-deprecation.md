@@ -73,6 +73,10 @@ A specification feature is in exactly one of three states:
 The term "soft-deprecated" is retired. Existing uses in the specification are reclassified as
 Deprecated under this policy (see [Transition](#transition)).
 
+Removal from the specification does not oblige an SDK to drop the feature from releases that
+continue to support an earlier revision in which it was Active or Deprecated; that timeline is
+governed by the SDK's own revision-support policy (see [Open Questions](#open-questions)).
+
 A Deprecated feature MAY be restored to Active by a SEP that supersedes the deprecation SEP and
 documents the changed circumstances. Restoration follows the same approval path as deprecation. If
 the feature is later deprecated again, the minimum deprecation window in [Deprecating a
@@ -95,9 +99,10 @@ guidelines][sep-guidelines]. The deprecation SEP MUST:
    the specification prose.
 2. State the rationale against the criteria above.
 3. Document the migration path, or state explicitly that none is required. If the migration path
-   names a replacement feature, that feature MUST already be Active in a specification revision
-   that has been released as Current. A feature is not deprecated under this policy while its
-   documented replacement is still pending.
+   names a replacement feature, that feature MUST be Active in the revision in which the
+   deprecation takes effect; the replacement and the deprecation MAY land in the same revision. A
+   feature is not deprecated under this policy while its documented replacement is still only in
+   `draft`.
 4. Specify the **minimum deprecation window**: the number of months, at least twelve, that the
    feature MUST remain Deprecated before it is eligible for removal. The window is measured from
    the release of the specification revision in which the feature is first marked Deprecated, not
@@ -144,7 +149,9 @@ Current, Tier 1 SDKs:
 - MUST mark the corresponding API surface deprecated using the language's native mechanism (for
   example `@Deprecated` in Java, `[Obsolete]` in .NET, `@deprecated` JSDoc in TypeScript, the
   `Deprecated:` doc convention in Go) in their next release, referencing the deprecation SEP and
-  the earliest removal date where the mechanism permits.
+  the earliest removal date where the mechanism permits. The marker applies to the SDK API surface
+  and is not conditioned on the specification revision a consumer targets; surfacing it to
+  consumers still on an earlier revision is intentional forward signal.
 - SHOULD emit a runtime warning when a deprecated feature is exercised, using the language's
   idiomatic mechanism (for example Python's `DeprecationWarning`, Node.js's
   `process.emitWarning`, or a configurable logger). A runtime warning reaches developers who never
@@ -296,7 +303,10 @@ maintainers; this SEP keeps the twelve-month floor because removal is permissive
 automatic ([Removing a feature](#removing-a-feature)), so a feature stays Deprecated as long as the
 ecosystem needs rather than the SDKs racing the calendar. Measuring the window from the
 revision release rather than from the SEP date keeps it observable: it is the same clock SDK
-authors and implementers already track for the revision itself. The window spans at least two of
+authors and implementers already track for the revision itself. Because the deprecation only takes
+effect when its revision is released, a replacement introduced in that same revision is proven over
+the twelve-month window itself; a separate prior revision is not required for that purpose. The
+window spans at least two of
 the six-month release cycles discussed at the same meeting: one for SDK maintainers to ship
 migration support and one for downstream adoption. Core Maintainers may leave a feature Deprecated
 for longer; twelve months is the minimum.
