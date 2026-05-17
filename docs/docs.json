@@ -442,6 +442,12 @@
               "seps/2549-TTL-for-list-results",
               "seps/2575-stateless-mcp"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2484-conformance-tests-required-for-final-seps"
+            ]
           }
         ]
       },
