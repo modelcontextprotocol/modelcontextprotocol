@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "description": "Code review prompt",
   "messages": [
     {
