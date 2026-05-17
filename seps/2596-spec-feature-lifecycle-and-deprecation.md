@@ -152,9 +152,7 @@ Current, Tier 1 SDKs:
 
 These obligations are conformance criteria for Tier 1 status. A Tier 1 SDK that persistently fails
 to surface a Deprecated feature is subject to the [Tier Relegation Process][sep-1730-relegation]
-in [SEP-1730][sep-1730]. The Tier 1 SDK migration-readiness check in [Removing a
-feature](#removing-a-feature) is the separate confirmation that SDKs have shipped the migration
-path before removal proceeds.
+in [SEP-1730][sep-1730].
 
 ### Removing a feature
 
@@ -170,12 +168,12 @@ feature the Core Maintainers MUST confirm, and record alongside the changelog en
    which removal is proposed. (It was Active when the deprecation landed per [Deprecating a
    feature](#deprecating-a-feature); this re-checks that it has not itself been deprecated in the
    interim.)
-3. All Tier 1 SDKs (per [SEP-1730][sep-1730]) have shipped a stable release in which a user can
-   complete the documented migration without depending on the deprecated feature. This does not
-   require the SDK to have removed the feature; it requires the replacement (or the ability to
-   operate without the feature, where no replacement is specified) to be available in a stable SDK
-   release. Core Maintainers may waive this confirmation under the [governance decision
-   process][governance-decisions], with the rationale recorded alongside the changelog entry.
+
+There is no separate confirmation that Tier 1 SDKs have shipped the migration path: the
+[SEP-1730][sep-1730] six-month implementation requirement, applied to a replacement that has been
+Active for at least the twelve-month window, already obliges every Tier 1 SDK to have done so well
+before the earliest removal, and an SDK that has not is handled by the [Tier Relegation
+Process][sep-1730-relegation] rather than by holding the specification.
 
 A SEP is required only to change a scheduled retirement, not to execute one. **Extending** the
 window (moving the earliest removal later, or restoring the feature to Active per [Feature
@@ -216,7 +214,6 @@ Deprecated and its earliest removal.
 | Decide a removal during release preparation    | Core Maintainers, per the [governance decision process][governance-decisions] |
 | Approve an extension or restoration SEP        | Core Maintainers, per the [governance decision process][governance-decisions] |
 | Approve expedited removal                      | Core Maintainers, per the [governance decision process][governance-decisions] |
-| Waive the Tier-1 SDK migration check (removal) | Core Maintainers, per the [governance decision process][governance-decisions] |
 
 As with all Core Maintainer decisions, Lead Maintainers retain veto authority over each of the
 approvals above, per the [governance roles][governance-roles] definition.
@@ -295,9 +292,9 @@ demanding a SEP to ratify a change already made.
 The [NYC maintainer meeting][nyc-2026-03-31] floated a "one year supported plus one year
 deprecation" model and recorded reluctance to commit to longer windows given how quickly the
 agentic space is moving. The same discussion flagged even that model as a possible burden on SDK
-maintainers; this SEP keeps the twelve-month floor because the Tier-1 SDK migration-readiness
-check in [Removing a feature](#removing-a-feature) is the relief valve for that burden, allowing
-removal to wait on the SDKs rather than the SDKs racing the calendar. Measuring the window from the
+maintainers; this SEP keeps the twelve-month floor because removal is permissive rather than
+automatic ([Removing a feature](#removing-a-feature)), so a feature stays Deprecated as long as the
+ecosystem needs rather than the SDKs racing the calendar. Measuring the window from the
 revision release rather than from the SEP date keeps it observable: it is the same clock SDK
 authors and implementers already track for the revision itself. The window spans at least two of
 the six-month release cycles discussed at the same meeting: one for SDK maintainers to ship
