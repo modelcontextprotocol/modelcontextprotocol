@@ -129,7 +129,7 @@ Current, Tier 1 SDKs:
   the earliest removal date where the mechanism permits.
 - SHOULD emit a runtime warning when a deprecated feature is exercised, using the language's
   idiomatic mechanism (for example Python's `DeprecationWarning`, Node.js's
-  `process.emitWarning`, or a configurable logger). A runtime warning reaches consumers who never
+  `process.emitWarning`, or a configurable logger). A runtime warning reaches developers who never
   read API documentation and is an observable signal a conformance test can assert against.
 
 These obligations are conformance criteria for Tier 1 status. A Tier 1 SDK that persistently fails
