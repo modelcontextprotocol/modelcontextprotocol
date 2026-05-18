@@ -3,6 +3,9 @@ name: Deploy Hugo site to GitHub Pages
 on:
   push:
     branches: ["main"]
+    paths:
+      - "blog/**"
+      - ".github/workflows/deploy-blog.yml"
   workflow_dispatch:
 
 permissions:
@@ -40,7 +43,7 @@ jobs:
           base-url: https://blog.modelcontextprotocol.io/
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./blog/public
 
