@@ -182,37 +182,21 @@ in [SEP-1730][sep-1730].
 
 ### Removing a feature
 
-Removal does not require its own SEP. The decision to deprecate, taken through the deprecation SEP,
-already commits the project to retirement and fixes the earliest removal; a second SEP to carry
-out a retirement that has already been argued and scheduled is ceremony rather than deliberation.
-Removal is therefore a Core Maintainer decision taken during release preparation, on or after the
-earliest removal, under the [governance decision process][governance-decisions]. Before removing a
-feature the Core Maintainers MUST confirm, and record alongside the changelog entry below, that:
+1. Once a feature is set for removal, the removal is executed at the discretion of the Core
+   Maintainers after the minimum deprecation window has elapsed, during release preparation,
+   under the [governance decision process][governance-decisions]. Removal does not require its
+   own SEP. Before removing a feature the Core Maintainers MUST confirm that the migration target
+   named in the deprecation SEP, if any, is still Active.
+2. A SEP is required for any other change to a deprecation or removal, for example extending or
+   shortening the timeline ([Expedited removal](#expedited-removal)) or restoring the feature to
+   Active ([Feature states](#feature-states)).
 
-1. The minimum deprecation window has elapsed (the earliest removal has been reached).
-2. The migration target named in the deprecation SEP, if any, remains Active in the revision from
-   which removal is proposed. (It was Active when the deprecation landed per [Deprecating a
-   feature](#deprecating-a-feature); this re-checks that it has not itself been deprecated in the
-   interim.)
+Note that features may remain Deprecated, without removal, for much longer than the minimum
+deprecation window.
 
-There is no separate confirmation that Tier 1 SDKs have shipped the migration path: the
-[SEP-1730][sep-1730] six-month implementation requirement, applied to a replacement that has been
-Active for at least the twelve-month window, already obliges every Tier 1 SDK to have done so well
-before the earliest removal, and an SDK that has not is handled by the [Tier Relegation
-Process][sep-1730-relegation] rather than by holding the specification.
-
-A SEP is required only to change a scheduled retirement, not to execute one. **Extending** the
-window (moving the earliest removal later, or restoring the feature to Active per [Feature
-states](#feature-states)) and **shortening** it below the twelve-month floor ([Expedited
-removal](#expedited-removal)) each require a SEP, because each overturns a decision the deprecation
-SEP already made. A routine removal on schedule overturns nothing, so the release-preparation
-decision and the confirmations above are sufficient.
-
-A feature MAY remain Deprecated indefinitely. The earliest removal sets the point at which removal
-becomes permissible; it does not oblige removal to happen. Where ecosystem migration is slower than
-anticipated the Core Maintainers may simply not take the removal decision; the deprecation notice,
-the [registry](#the-deprecated-registry) entry, and the earliest removal remain as the planning
-signal.
+SDKs implement deprecation as part of the [SDK Tiering System][sep-1730] (see [Tier 1 SDK
+obligations](#tier-1-sdk-obligations)); removal imposes no additional requirements on SDK
+maintainers.
 
 When a removal decision is taken, the feature is deleted from `schema/draft/schema.ts` (where
 present) and the draft specification prose; `changelog.mdx` for that revision gains an entry under
