@@ -1,0 +1,92 @@
+---
+title: Interceptors Charter
+description: Charter for the MCP Interceptors Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Interceptors Working Group exists to standardize how context operations are intercepted, validated, and transformed at key points in the agentic lifecycle. This covers MCP-defined operations such as tool invocations, resource access, prompt handling, sampling, and elicitation, as well as any other operation that shapes agent context — including LLM completions and custom application-specific workflows. The ecosystem is developing a sprawling landscape of sidecars, proxies, and gateways for cross-cutting concerns that are largely non-reusable and non-interoperable, creating an M × N integration problem. The WG will produce specification extensions and reference implementations that define interceptors as a new MCP primitive with two types — validators (inspect and return pass/fail decisions) and mutators (transform context payloads) — discoverable and invocable through MCP's existing JSON-RPC patterns across deployment models including in-process, sidecar, and remote service.
+
+## Scope
+
+### In Scope
+
+- **Specification Work**: SEPs defining the interceptor primitive — validator and mutator types, lifecycle event hooks for MCP operations (tool calls, resource reads, prompt gets, sampling, elicitation) and extensible to non-MCP context operations (LLM completions, custom workflows), trust-boundary-aware execution model, priority-based chain ordering, and audit mode semantics.
+- **Reference Implementations**: Multi-language SDK libraries for building interceptors, sample interceptors (PII redaction, schema validation, audit logging), a common interceptor sidecar/proxy runtime, and a CLI client for interceptor invocation and testing.
+- **Cross-Cutting Concerns**: Transport-level interception points, gateway-based deployment patterns, and interplay with routing and policy layers (see Related Groups).
+- **Documentation**: Specification sections covering interceptor authoring, deployment models (in-process, sidecar, remote service), chain configuration, and migration guidance from ad-hoc middleware approaches.
+
+### Out of Scope
+
+- Client-specific hook implementation details (e.g., Claude Code's internal hook execution engine) — the WG standardizes the protocol-level interface, not host internals.
+- Transport-layer wire format or session model changes (owned by the Transports WG).
+- General-purpose middleware or proxy infrastructure beyond what the MCP protocol requires.
+
+### Related Groups
+
+- **Transports WG** — interceptors operate on MCP message flows whose delivery behavior depends on the transport; coordination needed on transport-level interception points.
+- **Gateways IG** — gateways are a key deployment model for interceptors; coordination needed on gateway-based interceptor patterns and shared concerns around routing, policy, and observability.
+
+## Leadership
+
+| Role | Name                     | Organization | GitHub                                       | Term    |
+| ---- | ------------------------ | ------------ | -------------------------------------------- | ------- |
+| Lead | Sambhav Kothari          | Bloomberg    | [@sambhav](https://github.com/sambhav)       | Initial |
+| Lead | Peder Holdgaard Pedersen | Saxo Bank    | [@PederHP](https://github.com/PederHP)       | Initial |
+| Lead | Kurt Degiorgio           | Bloomberg    | [@degiorgio](https://github.com/degiorgio)   | Initial |
+| Lead | Uk-Jae Jeong             | Bloomberg    | [@jeongukjae](https://github.com/jeongukjae) | Initial |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                               |
+| --------------- | --------- | ---------- | ------------------------------------- |
+| Working Session | Biweekly  | 60 minutes | Technical discussion, proposal review |
+
+## Resources
+
+- Experimental extension repository: [modelcontextprotocol/experimental-ext-interceptors](https://github.com/modelcontextprotocol/experimental-ext-interceptors)
+- Motivation: [SEP-1763](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1763)
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                                                  | Status      | Target Date | Champion |
+| --------------------------------------------------------------------- | ----------- | ----------- | -------- |
+| SEP-1763: Interceptors                                                | Draft       |             | TBD      |
+| Sample interceptors (PII redaction, schema validation, audit logging) | In Progress |             | TBD      |
+| Common interceptor sidecar runtime                                    | Ideating    |             | TBD      |
+| CLI client for interceptor invocation and testing                     | Ideating    |             | TBD      |
+| Reference implementation in Go SDK                                    | In Progress |             | TBD      |
+| Reference implementation in C# SDK                                    | In Progress |             | TBD      |
+
+### Success Criteria
+
+- An accepted SEP defining the interceptor primitive (validators, mutators), lifecycle event hooks, and trust-boundary-aware chain execution.
+- Reference implementations in at least two Tier-1 SDKs (Go, C#).
+- A common interceptor sidecar runtime enabling platform teams to deploy interceptors without modifying individual MCP servers.
+- CLI tooling for interceptor invocation and testing.
+- Demonstrated interoperability across deployment models (in-process, sidecar, remote service).
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-04-21 | Initial charter |
