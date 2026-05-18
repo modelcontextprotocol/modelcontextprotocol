@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "prompts": [
     {
       "name": "code_review",
@@ -20,5 +21,7 @@
       ]
     }
   ],
-  "nextCursor": "next-page-cursor"
+  "nextCursor": "next-page-cursor",
+  "ttlMs": 600000,
+  "cacheScope": "public"
 }

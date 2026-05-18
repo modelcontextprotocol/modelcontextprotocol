@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "call-tool-example",
   "result": {
+    "resultType": "complete",
     "content": [
       {
         "type": "text",

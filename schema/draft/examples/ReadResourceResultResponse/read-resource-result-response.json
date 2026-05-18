@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "read-resource-example",
   "result": {
+    "resultType": "complete",
     "contents": [
       {
         "uri": "file:///project/src/main.rs",

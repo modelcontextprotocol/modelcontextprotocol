@@ -1,4 +1,5 @@
 {
+  "resultType": "complete",
   "completion": {
     "values": ["python", "pytorch", "pyside"],
     "total": 10,
