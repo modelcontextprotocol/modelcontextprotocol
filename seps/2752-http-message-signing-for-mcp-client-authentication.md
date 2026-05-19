@@ -1,11 +1,11 @@
-# SEP-0000: HTTP Message Signing for MCP Client Authentication
+# SEP-2752: HTTP Message Signing for MCP Client Authentication
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-05-19
 - **Author(s)**: Neeraj Prasad (@njdawn)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2752
 
 ## Abstract
 
