@@ -32,9 +32,9 @@ This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for
 
 ## Motivation
 
-1. **Stdio has no defined authorization challenge mechanism**: The MCP specification defines authorization procedures for the HTTP transport, including OAuth 2.1 flows, `WWW-Authenticate` challenges, and Protected Resource Metadata discovery. These mechanisms explicitly exclude stdio, which the specification directs to rely on credentials retrieved from the environment instead. As a result, a stdio MCP server that needs to reject a request on authorization grounds has no standard mechanism to communicate that the failure is an authorization problem, to indicate the nature of the required remediation, or to carry structured data the client can act on.
+1. **Stdio has no defined authorization challenge mechanism**: The MCP specification defines authorization procedures for the HTTP transport, including OAuth 2.1 flows, `WWW-Authenticate` challenges, and Protected Resource Metadata discovery. These mechanisms explicitly exclude stdio, which the specification directs to rely on credentials retrieved from the environment instead. As a result, a stdio MCP server that needs to reject a request on authorization grounds has no standard mechanism to communicate that the failure is an authorization problem, to indicate the nature of the required remediation, or to carry structured data the client can act on. Additionally, current guidance is that stdio servers that require OAuth remediation steps must handle the OAuth flow themselves and act as the OAuth client. This obscures the identity of the MCP client from other participants in the system.
 
-2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The server may deny a request because user approval, resource selection, or another server-side state must be established through direct user interaction. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover this case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, but it is not itself an authorization denial signaling mechanism.
+2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The MCP server may deny a request because it has insufficient information to contact an external system, needs confirmation from the user, or another piece of server-side state must be established before the request can succeed. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover this case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, but it is not itself an authorization denial signaling mechanism.
 
 3. **Support for structured remediation data at denial**: OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. Adopted OAuth standards do not yet provide a way to carry such structured requirements back to the client at denial time. An IETF individual draft, `draft-zehavi-oauth-rar-metadata`, proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization_details`, with the structured data placed in a JSON response body. The draft is HTTP-specific, and this SEP proposes to adopt the same pattern at the JSON-RPC layer so it applies across MCP transports.
 
@@ -276,7 +276,7 @@ Cache-Control: no-store
 }
 ```
 
-The client uses the `authorization_details` from the remediation hint to construct an OAuth authorization request:
+The client uses the `authorization_details` from the remediation hint to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
 
 ```http
 GET /authorize?
