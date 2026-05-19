@@ -1,11 +1,11 @@
-# SEP-0000: Declaring Authentication Methods for Remote MCP Servers
+# SEP-2742: Declaring Authentication Methods for Remote MCP Servers
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-05-19
 - **Author(s)**: Tobin South (@tobinsouth)
 - **Sponsor**: None (seeking sponsor — Server Card WG / Auth IG)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2742
 
 ## Abstract
 
