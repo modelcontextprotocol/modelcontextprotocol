@@ -454,7 +454,8 @@
             "pages": [
               "seps/2106-json-schema-2020-12",
               "seps/2164-resource-not-found-error",
-              "seps/2484-conformance-tests-required-for-final-seps"
+              "seps/2484-conformance-tests-required-for-final-seps",
+              "seps/2596-spec-feature-lifecycle-and-deprecation"
             ]
           }
         ]
