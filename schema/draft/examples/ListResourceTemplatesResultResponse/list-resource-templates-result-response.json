@@ -2,6 +2,7 @@
   "jsonrpc": "2.0",
   "id": "list-resource-templates-example",
   "result": {
+    "resultType": "complete",
     "resourceTemplates": [
       {
         "uriTemplate": "file:///{path}",
@@ -17,6 +18,8 @@
           }
         ]
       }
-    ]
+    ],
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }

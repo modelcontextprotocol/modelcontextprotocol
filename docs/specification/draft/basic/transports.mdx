@@ -121,8 +121,8 @@ legacy version that requires an `initialize` handshake **SHOULD** probe with
 any other request. If the server returns `Method not found` (`-32601`), the
 client falls back to the legacy `initialize` handshake. If the server returns
 `UnsupportedProtocolVersionError`, it speaks a version of MCP without
-`initialize` — the client **SHOULD** retry using one of the advertised
-`supportedVersions` rather than falling back to `initialize`. See
+`initialize` — the client **SHOULD** retry using one of the versions in the
+advertised `supported` list rather than falling back to `initialize`. See
 [Lifecycle: Backward Compatibility][lifecycle-compat]
 for details.
 
@@ -208,7 +208,7 @@ When the server returns an SSE response stream
 - The server **MUST NOT** send independent JSON-RPC _requests_ on this stream.
   Server-to-client interactions (sampling, elicitation, list-roots) are
   embedded as input requests inside an
-  [`IncompleteResult`][incomplete-result] per
+  [`InputRequiredResult`][input-required-result] per
   [SEP-2322 (MRTR)][sep-2322], not delivered as separate requests on
   this or any other stream.
 - The final JSON-RPC _response_ **SHOULD** terminate the stream.
@@ -216,9 +216,11 @@ When the server returns an SSE response stream
 Long-lived notification streams are obtained by sending a
 [`subscriptions/listen`][subscriptions-listen]
 request. The server's response is itself an SSE stream that stays open and
-delivers `notifications/tools/list_changed`,
-`notifications/resources/updated`, `notifications/message`, etc. for the
-notification types the client opted in to.
+delivers the change notifications the client opted in to (such as
+`notifications/tools/list_changed` or `notifications/resources/updated`).
+Request-scoped notifications like `notifications/progress` and
+`notifications/message` are **not** delivered on the listen stream — they
+flow only on the response stream of the request they relate to.
 
 When initiating an SSE stream, servers **SHOULD** include the
 `X-Accel-Buffering: no` header in the HTTP response. This instructs reverse
@@ -228,16 +230,13 @@ buffer. Without this header, proxies may accumulate messages before sending
 them to the client, introducing unwanted latency and potentially breaking the
 real-time nature of SSE communication.
 
-For workloads that need durability across connection drops, use the
-[tasks primitive][tasks]; resumable SSE
-streams via `Last-Event-ID` are not supported.
+Resumable SSE streams via `Last-Event-ID` are not supported.
 
 [notifications-progress]: /specification/draft/basic/utilities/progress
 [notifications-message]: /specification/draft/server/utilities/logging
-[incomplete-result]: /specification/draft/schema#inputrequiredresult
+[input-required-result]: /specification/draft/schema#inputrequiredresult
 [sep-2322]: /seps/2322-MRTR
 [subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
-[tasks]: /specification/draft/basic/utilities/tasks
 
 ### Cancellation
 
@@ -279,11 +278,15 @@ for the negotiation flow.
 
 If the server does not implement the requested RPC method, it **MUST** respond
 with `404 Not Found` and a JSON-RPC error with code `-32601`
-(`Method not found`).
+(`Method not found`). The JSON-RPC error body distinguishes this case from a
+`404` returned by a legacy [HTTP+SSE][http-sse] server that does not host the
+modern MCP endpoint (see [Backward Compatibility](#backward-compatibility-1)).
 
-For backward compatibility, if the server does _not_ receive an
-`MCP-Protocol-Version` header and has no other way to identify the version,
-the server **SHOULD** assume protocol version `2025-03-26`.
+A server that supports clients implementing protocol versions earlier than
+`2025-06-18` (which did not define the `MCP-Protocol-Version` header) **MAY**
+treat a request that omits the header as protocol version `2025-03-26`. A
+server that does not support such clients **MUST** reject a request without
+the header per [Server Validation](#server-validation).
 
 [unsupported-version]: /specification/draft/schema#unsupportedprotocolversionerror
 [lifecycle-version]: /specification/draft/basic/lifecycle#protocol-version-negotiation
@@ -576,12 +579,20 @@ a JSON-RPC error response.
 
 A client that supports both modern (per-request-metadata) MCP versions and a
 legacy version that requires an `initialize` handshake **MAY** detect which
-era the server implements by attempting a modern request first. If the
-server returns `400 Bad Request` (or any other version error indicating the
-server does not implement the modern protocol), the client falls back to
-`initialize` and continues with the legacy version for subsequent requests.
-See [Lifecycle: Backward Compatibility][lifecycle-compat]
-for details.
+era the server implements by attempting a modern request first. On
+`400 Bad Request`, the client **SHOULD** inspect the response body before
+falling back: modern servers also use `400` for
+[`UnsupportedProtocolVersionError`][unsupported-version],
+`MissingRequiredClientCapabilityError`, and header-validation failures.
+
+- If the body contains a recognized modern JSON-RPC error, the server speaks
+  a modern version of MCP — retry using the advertised `supported` versions
+  or correct the request, rather than falling back.
+- If the body is empty or is not a recognized modern JSON-RPC error, fall
+  back to `initialize` and continue with the legacy version for subsequent
+  requests.
+
+See [Lifecycle: Backward Compatibility][lifecycle-compat] for details.
 
 Separately, clients and servers can maintain backward compatibility with the
 deprecated [HTTP+SSE transport][http-sse] (from
@@ -602,8 +613,10 @@ protocol version 2024-11-05) as follows:
    defined above:
    - If it succeeds, the client can assume this is a server supporting the
      new Streamable HTTP transport.
-   - If it fails with HTTP status codes "400 Bad Request", "404 Not Found",
-     or "405 Method Not Allowed":
+   - If it fails with HTTP status code `400 Bad Request`, `404 Not Found`,
+     or `405 Method Not Allowed` **and** the response body is not a
+     recognized modern JSON-RPC error (a modern server returns one for
+     unsupported version, unknown method, or header-validation failure):
      - Issue a GET request to the server URL, expecting that this will open
        an SSE stream and return an `endpoint` event as the first event.
      - When the `endpoint` event arrives, the client can assume this is a

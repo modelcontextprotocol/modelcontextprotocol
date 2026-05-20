@@ -4,6 +4,14 @@ title: Roots
 
 <div id="enable-section-numbers" />
 
+<Warning>
+  **Deprecated**: The Roots feature is deprecated as of protocol version
+  `DRAFT-2026-v1`. It will continue to be supported in any version of MCP
+  released within 1 year of `DRAFT-2026-v1`, according to the deprecation policy
+  outlined in
+  [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596).
+</Warning>
+
 The Model Context Protocol (MCP) provides a standardized way for clients to expose
 filesystem "roots" to servers. Roots inform servers about the directories and files the
 client considers relevant, so that servers can focus their operations accordingly. They
@@ -54,7 +62,7 @@ Clients that support roots **MUST** declare the `roots` capability in
 
 ### Listing Roots
 
-To retrieve roots during the processing of a client request, servers send an `IncompleteResponse`
+To retrieve roots during the processing of a client request, servers send an `InputRequiredResult`
 containing a `roots/list` request:
 
 **Request:**
@@ -89,7 +97,7 @@ sequenceDiagram
 
     Note over Server,Client: Discovery
     Client->>Server: tool/call(id: 1)
-    Server-->>Client: IncompleteResponse(roots/list)
+    Server-->>Client: InputRequiredResult(roots/list)
     Client->>Server: tool/call(id: 2, Available roots)
 ```
 
@@ -132,7 +140,7 @@ Example roots for different use cases:
 ## Error Handling
 
 If an error occurs, the client does not need to replay the initial call with an error message
-as the server is not waiting for a response with the `IncompleteResponse` pattern.
+as the server is not waiting for a response with the `InputRequiredResult` pattern.
 
 ## Security Considerations
 

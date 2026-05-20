@@ -174,12 +174,11 @@ indicating that additional input is needed before the request can be completed.
 
 Servers **MAY** send `InputRequiredResult` responses on the following client requests:
 
-| Client Request                                                                       | Supports InputRequiredResult |
-| ------------------------------------------------------------------------------------ | ---------------------------- |
-| [`prompts/get`](/specification/draft/server/prompts#getting-a-prompt)                | Yes                          |
-| [`resources/read`](/specification/draft/server/resources#reading-resources)          | Yes                          |
-| [`tools/call`](/specification/draft/server/tools#calling-tools)                      | Yes                          |
-| [`tasks/result`](/specification/draft/basic/utilities/tasks#retrieving-task-results) | Yes                          |
+| Client Request                                                              | Supports InputRequiredResult |
+| --------------------------------------------------------------------------- | ---------------------------- |
+| [`prompts/get`](/specification/draft/server/prompts#getting-a-prompt)       | Yes                          |
+| [`resources/read`](/specification/draft/server/resources#reading-resources) | Yes                          |
+| [`tools/call`](/specification/draft/server/tools#calling-tools)             | Yes                          |
 
 Servers **MUST NOT** send `InputRequiredResult` responses on any other client requests.
 
@@ -247,55 +246,6 @@ what is directly present in the retry request.
    Clients **MUST NOT** inspect, parse, modify, or make any assumptions about the `requestState` contents. If the `InputRequiredResult` does not contain a `requestState` field, the client **MUST NOT** include one in the retry.
 1. The JSON-RPC `id` **MUST** be different between the initial request and the retry, as they are independent requests.
 1. Both the `inputRequests` and `requestState` fields affect only the client's retry of the original request. They **MUST NOT** be used for any other request that the client may be sending in parallel.
-
-### Tasks Workflow
-
-For long-running operations that require server-side state, the persistent workflow leverages [Tasks](/specification/draft/basic/utilities/tasks). The `input_required` task status indicates that additional information is needed.
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant C as Client
-    participant S as Server
-    C->>S: tools/call (id: 1, task config)
-    S-->>C: Result (id: 1, taskId, status: working)
-
-    note over C,S: Client polls for task status while server processes request
-
-    note over S: Server needs more info via Elicitation <br/> sets state to input_required
-    C->>S: tasks/get (id: 2, taskId)
-    S-->>C: Result (id: 2, status: input_required)
-
-    C->>S: tasks/result (id: 3, taskId)
-    S-->>C: InputRequiredResult (id: 3, ElicitRequest)
-
-    C->>U: Prompts user for input
-    U-->>C: Provides responses
-
-    C->>S: tasks/input_response (id: 4, taskId, ElicitResult)
-    S-->>C: Result (id: 4, acknowledged)
-
-    note over C,S: Processing resumes, Client polls
-    C->>S: tasks/get (id: 5, taskId)
-    S-->>C: Result (id: 5, status: completed)
-
-    C->>S: tasks/result (id: 6, taskId)
-    S-->>C: Result (id: 6, final content)
-```
-
-#### Server Requirements (Tasks)
-
-1. Servers **MAY** respond to `tasks/get` by indicating that the task is in status `input_required`.
-1. Servers **MUST** include an `inputRequests` field in the `tasks/result` response when the task is in status `input_required`.
-1. `inputRequests` keys are server assigned identifiers and **MUST** be unique within the scope of a `Task`.
-
-1. Servers **MAY** include a `requestState` field in the `tasks/result` response when the task is in status `input_required`.
-
-#### Client Requirements (Tasks)
-
-1. When `tasks/get` shows status `input_required`, clients **MUST** call `tasks/result` to get the `inputRequests` and optional `requestState`.
-1. Clients **SHOULD** construct the results of those requests and call [`tasks/input_response`](/specification/draft/basic/utilities/tasks#providing-input-for-tasks) with the `inputResponses` & `requestState` (if present).
-1. Clients **MAY** choose not to fulfill the input requests, in which case they **MAY** cancel the task.
 
 ### Error Handling
 
