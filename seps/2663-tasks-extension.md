@@ -798,6 +798,10 @@ Servers **MUST** return standard JSON-RPC errors for the following protocol erro
   - Servers **MUST** return this error for `tasks/get`.
   - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel`.
 - Internal errors: `-32603` (Internal error)
+- Missing required client capabilities: `-32003` (Missing Required Client Capability)
+  - Servers **MUST** return this error for non-declaring clients requesting task notifications on `subscriptions/listen`.
+  - Servers **MUST** return this error for non-declaring clients issuing `tasks/get`, `tasks/update`, and `tasks/cancel` requests.
+    - Server implementations supporting the `2025-11-25` Tasks specification simultaneously with this extension **SHOULD** continue to permit `tasks/get` requests from clients declaring the `tasks` capability from the `2025-11-25` specification release.
 
 Servers **SHOULD** provide informative error messages to describe the cause of errors.
 
