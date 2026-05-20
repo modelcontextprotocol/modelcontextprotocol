@@ -3715,7 +3715,7 @@
                         {
                             "properties": {
                                 "code": {
-                                    "const": -32602,
+                                    "const": -32004,
                                     "type": "integer"
                                 },
                                 "data": {

@@ -362,6 +362,14 @@ export interface InternalError extends Error {
 export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
 
 /**
+ * Error code returned when the request's protocol version is not supported
+ * by the server.
+ *
+ * @category Errors
+ */
+export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+
+/**
  * Returned when the request's protocol version is unknown to the server or
  * unsupported (e.g., a known experimental or draft version the server has
  * chosen not to implement). For HTTP, the response status code MUST be
@@ -377,7 +385,7 @@ export interface UnsupportedProtocolVersionError extends Omit<
   "error"
 > {
   error: Error & {
-    code: typeof INVALID_PARAMS;
+    code: typeof UNSUPPORTED_PROTOCOL_VERSION;
     data: {
       /**
        * Protocol versions the server supports. The client should choose a
