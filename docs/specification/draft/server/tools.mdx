@@ -340,6 +340,8 @@ HTTP header.
 - **MUST** be case-insensitively unique among all `x-mcp-header` values in the
   `inputSchema`
 - **MUST** only be applied to parameters with primitive types (number, string, boolean)
+- **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
+  only top-level properties
 
 Clients **MUST** reject tool definitions where any `x-mcp-header` value violates these
 constraints. Rejection means the client **MUST** exclude the invalid tool from the result

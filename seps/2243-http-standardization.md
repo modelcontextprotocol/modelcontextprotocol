@@ -164,6 +164,7 @@ The `x-mcp-header` property specifies the name portion used to construct the hea
 - MUST NOT contain control characters, including carriage return (CR, `\r`) or line feed (LF, `\n`)
 - MUST be case-insensitively unique among all `x-mcp-header` values in the `inputSchema`
 - MUST only be applied to parameters with primitive types (number, string, boolean)
+- MAY be applied to properties at any nesting depth within the `inputSchema`, not only top-level properties
 
 Clients MUST reject tool definitions where any `x-mcp-header` value violates these constraints. Rejection means the client MUST exclude the invalid tool from the result of `tools/list`. Clients SHOULD log a warning when rejecting a tool definition, including the tool name and the reason for rejection. This behavior ensures that a single malformed tool definition does not prevent other valid tools from being used.
 
