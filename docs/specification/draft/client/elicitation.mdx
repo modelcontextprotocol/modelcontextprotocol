@@ -46,22 +46,6 @@ MCP clients **MUST**:
 
 </Warning>
 
-<Warning>
-
-**Request Association Requirement**
-
-Servers **MUST** send server-to-client requests (such as
-`roots/list`, `sampling/createMessage`, or `elicitation/create`) only in
-association with an originating client request (e.g., during `tools/call`,
-`resources/read`, or `prompts/get` processing).
-
-Standalone server-initiated requests of these types on independent
-communication streams (unrelated to any client request) are not supported and
-**MUST NOT** be implemented. Future transport implementations are not required
-to support this pattern.
-
-</Warning>
-
 ## Capabilities
 
 Clients that support elicitation **MUST** declare the `elicitation` capability in
@@ -96,7 +80,7 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 
 ### Elicitation Requests
 
-Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult)
+Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult)
 containing an `elicitation/create` request.
 
 All elicitation requests **MUST** include the following parameters:
@@ -257,8 +241,6 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "elicitation/create",
   "params": {
     "mode": "form",
@@ -280,8 +262,6 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "action": "accept",
     "content": {
@@ -297,8 +277,6 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
   "method": "elicitation/create",
   "params": {
     "mode": "form",
@@ -331,8 +309,6 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
   "result": {
     "action": "accept",
     "content": {
@@ -382,8 +358,6 @@ The same request could direct the user into an OAuth authorization flow, or a pa
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 3,
   "method": "elicitation/create",
   "params": {
     "mode": "url",
@@ -398,8 +372,6 @@ The same request could direct the user into an OAuth authorization flow, or a pa
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 3,
   "result": {
     "action": "accept"
   }

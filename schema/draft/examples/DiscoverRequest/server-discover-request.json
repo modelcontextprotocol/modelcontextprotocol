@@ -1,5 +1,15 @@
 {
   "jsonrpc": "2.0",
   "id": "discover-1",
-  "method": "server/discover"
+  "method": "server/discover",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  }
 }

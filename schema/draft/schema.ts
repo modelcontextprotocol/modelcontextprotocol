@@ -48,7 +48,8 @@ export const JSONRPC_VERSION = "2.0";
  * **Prefix:**
  * - Optional — if specified, MUST be a series of _labels_ separated by dots (`.`), followed by a slash (`/`).
  * - Labels MUST start with a letter and end with a letter or digit. Interior characters may be letters, digits, or hyphens (`-`).
- * - Any prefix consisting of zero or more labels, followed by `modelcontextprotocol` or `mcp`, followed by any label, is **reserved** for MCP use. For example: `modelcontextprotocol.io/`, `mcp.dev/`, `api.modelcontextprotocol.org/`, and `tools.mcp.com/` are all reserved.
+ * - Implementations SHOULD use reverse DNS notation (e.g., `com.example/` rather than `example.com/`).
+ * - Any prefix where the second label is `modelcontextprotocol` or `mcp` is **reserved** for MCP use. For example: `io.modelcontextprotocol/`, `dev.mcp/`, `org.modelcontextprotocol.api/`, and `com.mcp.tools/` are all reserved. However, `com.example.mcp/` is NOT reserved, as the second label is `example`.
  *
  * **Name:**
  * - Unless empty, MUST start and end with an alphanumeric character (`[a-z0-9A-Z]`).
@@ -362,6 +363,14 @@ export interface InternalError extends Error {
 export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
 
 /**
+ * Error code returned when the request's protocol version is not supported
+ * by the server.
+ *
+ * @category Errors
+ */
+export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+
+/**
  * Returned when the request's protocol version is unknown to the server or
  * unsupported (e.g., a known experimental or draft version the server has
  * chosen not to implement). For HTTP, the response status code MUST be
@@ -377,7 +386,7 @@ export interface UnsupportedProtocolVersionError extends Omit<
   "error"
 > {
   error: Error & {
-    code: typeof INVALID_PARAMS;
+    code: typeof UNSUPPORTED_PROTOCOL_VERSION;
     data: {
       /**
        * Protocol versions the server supports. The client should choose a
@@ -558,7 +567,7 @@ export interface CancelledNotification extends JSONRPCNotification {
  */
 export interface DiscoverRequest extends JSONRPCRequest {
   method: "server/discover";
-  params?: RequestParams;
+  params: RequestParams;
 }
 
 /**
@@ -941,7 +950,7 @@ export interface PaginatedRequestParams extends RequestParams {
 
 /** @internal */
 export interface PaginatedRequest extends JSONRPCRequest {
-  params?: PaginatedRequestParams;
+  params: PaginatedRequestParams;
 }
 
 /** @internal */
@@ -1101,9 +1110,6 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  *
  * @example File resource contents
  * {@includeCode ./examples/ReadResourceResult/file-resource-contents.json}
- *
- * @example File resource contents with TTL
- * {@includeCode ./examples/ReadResourceResult/file-resource-contents-with-ttl.json}
  *
  * @category `resources/read`
  */
