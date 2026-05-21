@@ -442,6 +442,21 @@
               "seps/2549-TTL-for-list-results",
               "seps/2575-stateless-mcp"
             ]
+          },
+          {
+            "group": "In-Review",
+            "pages": [
+              "seps/2468-recommend-issuer-claim-for-auth"
+            ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2106-json-schema-2020-12",
+              "seps/2164-resource-not-found-error",
+              "seps/2484-conformance-tests-required-for-final-seps",
+              "seps/2596-spec-feature-lifecycle-and-deprecation"
+            ]
           }
         ]
       },
