@@ -92,6 +92,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "resources": [
       {
         "uri": "file:///project/src/main.rs",
@@ -108,7 +109,9 @@ supports [pagination](/specification/draft/server/utilities/pagination).
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -137,13 +140,16 @@ To retrieve resource contents, clients send a `resources/read` request:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "resultType": "complete",
     "contents": [
       {
         "uri": "file:///project/src/main.rs",
         "mimeType": "text/x-rust",
         "text": "fn main() {\n    println!(\"Hello world!\");\n}"
       }
-    ]
+    ],
+    "ttlMs": 60000,
+    "cacheScope": "private"
   }
 }
 ```
@@ -183,6 +189,7 @@ This operation supports [pagination](/specification/draft/server/utilities/pagin
   "jsonrpc": "2.0",
   "id": 3,
   "result": {
+    "resultType": "complete",
     "resourceTemplates": [
       {
         "uriTemplate": "file:///{path}",
@@ -199,7 +206,9 @@ This operation supports [pagination](/specification/draft/server/utilities/pagin
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```

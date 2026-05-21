@@ -1111,9 +1111,6 @@ export interface ReadResourceRequest extends JSONRPCRequest {
  * @example File resource contents
  * {@includeCode ./examples/ReadResourceResult/file-resource-contents.json}
  *
- * @example File resource contents with TTL
- * {@includeCode ./examples/ReadResourceResult/file-resource-contents-with-ttl.json}
- *
  * @category `resources/read`
  */
 export interface ReadResourceResult extends CacheableResult {
