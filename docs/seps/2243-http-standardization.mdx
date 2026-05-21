@@ -176,7 +176,8 @@ The `x-mcp-header` property specifies the name portion used to construct the hea
 **Constraints on `x-mcp-header` values**:
 
 - MUST NOT be empty
-- MUST contain only ASCII characters (excluding space and `:`)
+- MUST match HTTP field-name token syntax (`1*tchar`, [RFC 9110 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-5.1))
+- MUST NOT contain control characters, including carriage return (CR, `\r`) or line feed (LF, `\n`)
 - MUST be case-insensitively unique among all `x-mcp-header` values in the `inputSchema`
 - MUST only be applied to parameters with primitive types (number, string, boolean)
 
