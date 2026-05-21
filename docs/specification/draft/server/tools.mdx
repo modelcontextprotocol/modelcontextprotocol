@@ -112,10 +112,7 @@ To discover available tools, clients send a `tools/list` request. This operation
             "mimeType": "image/png",
             "sizes": ["48x48"]
           }
-        ],
-        "execution": {
-          "taskSupport": "optional"
-        }
+        ]
       }
     ],
     "nextCursor": "next-page-cursor"
@@ -162,13 +159,13 @@ To invoke a tool, clients send a `tools/call` request:
 }
 ```
 
-### Incomplete Tool Results
+### Input Required Tool Results
 
 Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
 
 When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
 
-**Incomplete Response:**
+**Input Required Response:**
 
 ```json
 {
@@ -227,7 +224,9 @@ Note that the JSON-RPC `id` **MUST** be different between the initial request an
 ### List Changed Notification
 
 When the list of available tools changes, servers that declared the `listChanged`
-capability **SHOULD** send a notification:
+capability **SHOULD** send a notification to clients that have opened a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+`toolsListChanged: true`:
 
 ```json
 {
@@ -256,10 +255,14 @@ sequenceDiagram
     Server-->>Client: Tool result
     Client->>LLM: Process result
 
-    Note over Client,Server: Updates
-    Server--)Client: tools/list_changed
-    Client->>Server: tools/list
-    Server-->>Client: Updated tools
+    opt listChanged
+      Client->>Server: subscriptions/listen (toolsListChanged: true)
+      Server--)Client: notifications/subscriptions/acknowledged
+      Note over Client,Server: Updates
+      Server--)Client: notifications/tools/list_changed
+      Client->>Server: tools/list
+      Server-->>Client: Updated tools
+    end
 ```
 
 ## Data Types
@@ -285,8 +288,6 @@ A tool definition includes:
   - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: Optional properties describing tool behavior
-- `execution`: Optional object describing execution-related properties
-  - `taskSupport`: Indicates whether this tool supports [task-augmented execution](/specification/draft/basic/utilities/tasks#tool-level-negotiation). Values: `"forbidden"` (default), `"optional"`, or `"required"`
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to
@@ -313,10 +314,8 @@ aggregate tools from multiple servers **MAY** encounter naming collisions (for
 example, two servers each exposing a `search` tool) and **SHOULD** implement a
 disambiguation strategy such as prefixing tool names with a server identifier.
 
-The server `name` returned during
-[initialization](/specification/draft/basic/lifecycle#initialization) is not
-guaranteed to be unique across servers and **SHOULD NOT** be relied upon for
-disambiguation.
+The server `name` (from `serverInfo`) is not guaranteed to be unique across
+servers and **SHOULD NOT** be relied upon for disambiguation.
 
 </Note>
 
@@ -474,7 +473,7 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 #### Structured Content
 
-**Structured** content is returned as a JSON object in the `structuredContent` field of a result.
+**Structured** content is returned as a JSON value in the `structuredContent` field of a result. This can be any JSON value (object, array, string, number, boolean, or null) that conforms to the tool's `outputSchema` if one is defined.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
 
@@ -542,6 +541,53 @@ Example valid response for this tool:
       "conditions": "Partly cloudy",
       "humidity": 65
     }
+  }
+}
+```
+
+Example tool with array output schema:
+
+```json
+{
+  "name": "list_users",
+  "title": "User List",
+  "description": "Returns a list of all users",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "outputSchema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["id", "name", "email"]
+    }
+  }
+}
+```
+
+Example valid response for a tool with array output:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 2 users: Alice (alice@example.com) and Bob (bob@example.com)."
+      }
+    ],
+    "structuredContent": [
+      { "id": "1", "name": "Alice", "email": "alice@example.com" },
+      { "id": "2", "name": "Bob", "email": "bob@example.com" }
+    ]
   }
 }
 ```

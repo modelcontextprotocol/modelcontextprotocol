@@ -99,6 +99,12 @@
               "extensions/auth/oauth-client-credentials",
               "extensions/auth/enterprise-managed-authorization"
             ]
+          },
+          {
+            "group": "MCP Tasks",
+            "pages": [
+              "extensions/tasks/overview"
+            ]
           }
         ]
       },
@@ -322,9 +328,8 @@
                     "group": "Utilities",
                     "pages": [
                       "specification/draft/basic/utilities/cancellation",
-                      "specification/draft/basic/utilities/ping",
                       "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/tasks",
+                      "specification/draft/basic/utilities/subscriptions",
                       "specification/draft/basic/utilities/mrtr"
                     ]
                   }
@@ -342,12 +347,14 @@
                 "group": "Server Features",
                 "pages": [
                   "specification/draft/server/index",
+                  "specification/draft/server/discover",
                   "specification/draft/server/prompts",
                   "specification/draft/server/resources",
                   "specification/draft/server/tools",
                   {
                     "group": "Utilities",
                     "pages": [
+                      "specification/draft/server/utilities/caching",
                       "specification/draft/server/utilities/completion",
                       "specification/draft/server/utilities/logging",
                       "specification/draft/server/utilities/pagination"
@@ -421,20 +428,34 @@
               "seps/2148-contributor-ladder",
               "seps/2149-working-group-charter-template",
               "seps/2243-http-standardization",
-              "seps/2567-sessionless-mcp"
+              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
+              "seps/2567-sessionless-mcp",
+              "seps/2577-deprecate-roots-sampling-and-logging",
+              "seps/2663-tasks-extension"
             ]
           },
           {
             "group": "Accepted",
             "pages": [
               "seps/2207-oidc-refresh-token-guidance",
-              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+              "seps/2322-MRTR",
+              "seps/2549-TTL-for-list-results",
+              "seps/2575-stateless-mcp"
             ]
           },
           {
-            "group": "Approved",
+            "group": "In-Review",
             "pages": [
-              "seps/2322-MRTR"
+              "seps/2468-recommend-issuer-claim-for-auth"
+            ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2106-json-schema-2020-12",
+              "seps/2164-resource-not-found-error",
+              "seps/2484-conformance-tests-required-for-final-seps",
+              "seps/2596-spec-feature-lifecycle-and-deprecation"
             ]
           }
         ]
@@ -666,6 +687,10 @@
     {
       "source": "/docs/extensions/apps",
       "destination": "/extensions/apps/overview"
+    },
+    {
+      "source": "/docs/extensions/tasks",
+      "destination": "/extensions/tasks/overview"
     },
     {
       "source": "/community/seps",

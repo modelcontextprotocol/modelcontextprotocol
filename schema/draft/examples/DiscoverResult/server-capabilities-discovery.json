@@ -1,0 +1,13 @@
+{
+  "resultType": "complete",
+  "supportedVersions": ["DRAFT-2026-v1"],
+  "capabilities": {
+    "tools": {},
+    "resources": {}
+  },
+  "serverInfo": {
+    "name": "ExampleServer",
+    "version": "1.0.0"
+  },
+  "instructions": "This server provides weather and resource utilities. Prefer `get_weather` for forecast lookups."
+}

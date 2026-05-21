@@ -35,47 +35,23 @@ Servers that support resources **MUST** declare the `resources` capability:
 {
   "capabilities": {
     "resources": {
-      "subscribe": true,
       "listChanged": true
     }
   }
 }
 ```
 
-The capability supports two optional features:
+The capability supports one optional feature:
 
-- `subscribe`: whether the client can subscribe to be notified of changes to individual
-  resources.
 - `listChanged`: whether the server will emit notifications when the list of available
   resources changes.
 
-Both `subscribe` and `listChanged` are optional&mdash;servers can support neither,
-either, or both:
+`listChanged` is optional&mdash;servers may omit it:
 
 ```json
 {
   "capabilities": {
-    "resources": {} // Neither feature supported
-  }
-}
-```
-
-```json
-{
-  "capabilities": {
-    "resources": {
-      "subscribe": true // Only subscriptions supported
-    }
-  }
-}
-```
-
-```json
-{
-  "capabilities": {
-    "resources": {
-      "listChanged": true // Only list change notifications supported
-    }
+    "resources": {}
   }
 }
 ```
@@ -242,49 +218,28 @@ capability **SHOULD** send a notification:
 
 ### Subscriptions
 
-The protocol supports optional subscriptions to resource changes. Clients can subscribe
-to specific resources and receive notifications when they change:
-
-**Subscribe Request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "resources/subscribe",
-  "params": {
-    "uri": "file:///project/src/main.rs"
-  }
-}
-```
-
-**Update Notification:**
+Clients subscribe to change notifications for specific resources by sending a
+[`subscriptions/listen`][subscriptions-listen] request with the resource URIs listed in
+`notifications.resourceSubscriptions`. The server delivers
+`notifications/resources/updated` on the resulting stream whenever a watched resource
+changes.
 
 ```json
 {
   "jsonrpc": "2.0",
   "method": "notifications/resources/updated",
   "params": {
+    "_meta": { "io.modelcontextprotocol/subscriptionId": "4" },
     "uri": "file:///project/src/main.rs"
   }
 }
 ```
 
-**Unsubscribe Request:**
+See [Subscriptions][subscriptions] for the full protocol mechanics (acknowledgment,
+`subscriptionId` correlation, and cancellation).
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "method": "resources/unsubscribe",
-  "params": {
-    "uri": "file:///project/src/main.rs"
-  }
-}
-```
-
-Clients **SHOULD** send `resources/unsubscribe` when they no longer need updates
-for a resource.
+[subscriptions-listen]: /specification/draft/schema#subscriptionslistenrequest
+[subscriptions]: /specification/draft/basic/utilities/subscriptions
 
 ## Message Flow
 
@@ -305,18 +260,14 @@ sequenceDiagram
     Client->>Server: resources/read
     Server-->>Client: Resource contents
 
-    Note over Client,Server: Subscriptions
-    Client->>Server: resources/subscribe
-    Server-->>Client: Subscription confirmed
+    Note over Client,Server: Subscribe to changes
+    Client->>Server: subscriptions/listen (resourceSubscriptions)
+    Server--)Client: notifications/subscriptions/acknowledged
 
-    Note over Client,Server: Updates
+    Note over Client,Server: Resource updated
     Server--)Client: notifications/resources/updated
     Client->>Server: resources/read
     Server-->>Client: Updated contents
-
-    Note over Client,Server: Unsubscribe
-    Client->>Server: resources/unsubscribe
-    Server-->>Client: Unsubscribe confirmed
 ```
 
 ## Data Types
@@ -427,8 +378,13 @@ taking the above guidance in to account.
 
 Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
 
-- Resource not found: `-32002`
+- Resource not found: `-32602` (Invalid Params)
 - Internal errors: `-32603`
+
+For backwards compatibility, clients **SHOULD** also accept `-32002` as a
+resource not found error, as earlier protocol versions used this code.
+
+Servers **MUST NOT** return an empty `contents` array for a non-existent resource. An empty array is ambiguous—it could mean the resource exists but has no content, or that it doesn't exist at all.
 
 Example error:
 
@@ -437,7 +393,7 @@ Example error:
   "jsonrpc": "2.0",
   "id": 5,
   "error": {
-    "code": -32002,
+    "code": -32602,
     "message": "Resource not found",
     "data": {
       "uri": "file:///nonexistent.txt"

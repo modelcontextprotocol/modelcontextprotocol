@@ -4,10 +4,18 @@ title: Logging
 
 <div id="enable-section-numbers" />
 
+<Warning>
+  **Deprecated**: The Logging feature is deprecated as of protocol version
+  `DRAFT-2026-v1`. It will continue to be supported in any version of MCP
+  released within 1 year of `DRAFT-2026-v1`, according to the deprecation policy
+  outlined in
+  [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596).
+</Warning>
+
 The Model Context Protocol (MCP) provides a standardized way for servers to send
-structured log messages to clients. Clients can control logging verbosity by setting
-minimum log levels, with servers sending notifications containing severity levels,
-optional logger names, and arbitrary JSON-serializable data.
+structured log messages to clients. Clients control logging verbosity per-request via
+`_meta`, with servers sending notifications containing severity levels, optional logger
+names, and arbitrary JSON-serializable data.
 
 ## User Interaction Model
 
@@ -42,24 +50,23 @@ The protocol follows the standard syslog severity levels specified in
 | alert     | Action must be taken immediately | Data corruption detected   |
 | emergency | System is unusable               | Complete system failure    |
 
+## Requesting Log Messages
+
+### Per-request log level
+
+To receive log messages for a specific request, include
+`io.modelcontextprotocol/logLevel` in the request's `_meta`. The server **MUST NOT**
+emit `notifications/message` for a request that does not include this field.
+
+When the field is present, the server **MAY** send `notifications/message`
+notifications at or above the requested level on the response stream of that
+request, before the final response. `notifications/message` is request-scoped:
+the server **MUST NOT** deliver it on a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
+stream or on any stream other than the one carrying the response to the request
+that set the log level.
+
 ## Protocol Messages
-
-### Setting Log Level
-
-To configure the minimum log level, clients **MAY** send a `logging/setLevel` request:
-
-**Request:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "logging/setLevel",
-  "params": {
-    "level": "info"
-  }
-}
-```
 
 ### Log Message Notifications
 
@@ -83,34 +90,14 @@ Servers send log messages using `notifications/message` notifications:
 }
 ```
 
-## Message Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-
-    Note over Client,Server: Configure Logging
-    Client->>Server: logging/setLevel (info)
-    Server-->>Client: Empty Result
-
-    Note over Client,Server: Server Activity
-    Server--)Client: notifications/message (info)
-    Server--)Client: notifications/message (warning)
-    Server--)Client: notifications/message (error)
-
-    Note over Client,Server: Level Change
-    Client->>Server: logging/setLevel (error)
-    Server-->>Client: Empty Result
-    Note over Server: Only sends error level<br/>and above
-```
-
 ## Error Handling
 
-Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
+If the `io.modelcontextprotocol/logLevel` value carried in a request's `_meta`
+is not a recognized [log level](#log-levels), the server **SHOULD** reject that
+request with a standard JSON-RPC error:
 
 - Invalid log level: `-32602` (Invalid params)
-- Configuration errors: `-32603` (Internal error)
+- Internal errors: `-32603` (Internal error)
 
 ## Implementation Considerations
 
