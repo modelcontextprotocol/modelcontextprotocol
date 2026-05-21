@@ -81,6 +81,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "prompts": [
       {
         "name": "code_review",
@@ -102,7 +103,9 @@ supports [pagination](/specification/draft/server/utilities/pagination).
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 600000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -135,6 +138,7 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "resultType": "complete",
     "description": "Code review prompt",
     "messages": [
       {

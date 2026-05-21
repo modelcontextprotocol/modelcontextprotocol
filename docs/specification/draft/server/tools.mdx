@@ -91,6 +91,7 @@ To discover available tools, clients send a `tools/list` request. This operation
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "tools": [
       {
         "name": "get_weather",
@@ -115,7 +116,9 @@ To discover available tools, clients send a `tools/list` request. This operation
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
