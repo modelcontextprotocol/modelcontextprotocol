@@ -414,14 +414,17 @@ Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 
 The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
 
+To avoid ambiguity, clients MUST also Base64-encode any plain-ASCII value that matches the sentinel pattern (i.e., starts with `=?base64?` and ends with `?=`).
+
 **Examples**:
 
-| Original Value   | Reason                  | Encoded Header Value                                  |
-| ---------------- | ----------------------- | ----------------------------------------------------- |
-| `"us-west1"`     | Plain ASCII             | `Mcp-Param-Region: us-west1`                          |
-| `"Hello, 世界"`  | Contains non-ASCII      | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
-| `" padded "`     | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
-| `"line1\nline2"` | Contains newline        | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+| Original Value         | Reason                   | Encoded Header Value                                  |
+| ---------------------- | ------------------------ | ----------------------------------------------------- |
+| `"us-west1"`           | Plain ASCII              | `Mcp-Param-Region: us-west1`                          |
+| `"Hello, 世界"`        | Contains non-ASCII       | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "`           | Leading/trailing spaces  | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
+| `"line1\nline2"`       | Contains newline         | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+| `"=?base64?literal?="` | Matches sentinel pattern | `Mcp-Param-Val: =?base64?PT9iYXNlNjQ/bGl0ZXJhbD89?=`  |
 
 #### Client Behavior
 
