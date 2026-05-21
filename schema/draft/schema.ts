@@ -567,7 +567,7 @@ export interface CancelledNotification extends JSONRPCNotification {
  */
 export interface DiscoverRequest extends JSONRPCRequest {
   method: "server/discover";
-  params?: RequestParams;
+  params: RequestParams;
 }
 
 /**
@@ -950,7 +950,7 @@ export interface PaginatedRequestParams extends RequestParams {
 
 /** @internal */
 export interface PaginatedRequest extends JSONRPCRequest {
-  params?: PaginatedRequestParams;
+  params: PaginatedRequestParams;
 }
 
 /** @internal */
