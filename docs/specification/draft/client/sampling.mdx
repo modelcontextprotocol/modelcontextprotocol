@@ -488,7 +488,7 @@ sequenceDiagram
     participant User
     participant LLM
 
-    Client->>Server: tool/call(id:1)
+    Client->>Server: tools/call(id:1)
     note right of Server: Server needs more info
     Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
