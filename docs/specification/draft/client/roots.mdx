@@ -81,10 +81,10 @@ sequenceDiagram
     participant Server
     participant Client
 
-    Note over Server,Client: Discovery
-    Client->>Server: tool/call(id: 1)
+    Note over Server,Client: Initial Request
+    Client->>Server: tools/call(id: 1)
     Server-->>Client: InputRequiredResult(roots/list)
-    Client->>Server: tool/call(id: 2, Available roots)
+    Client->>Server: tools/call(id: 2, inputResponses{key: roots} + requestState)
 ```
 
 ## Data Types
