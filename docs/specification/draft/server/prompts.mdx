@@ -262,6 +262,25 @@ Audio content allows including audio information in messages:
 The audio data MUST be base64-encoded and include a valid MIME type. This enables
 multi-modal interactions where audio context is important.
 
+#### Resource Links
+
+Prompt messages **MAY** include links to 
+[Resources](/specification/draft/server/resources), to provide additional context or
+data without embedding the resource contents directly. In this case, the prompt message
+returns a URI that can be fetched by the client:
+
+```json
+{
+  "type": "resource_link",
+  "uri": "file:///project/src/main.rs",
+  "name": "main.rs",
+  "description": "Primary application entry point",
+  "mimeType": "text/x-rust"
+}
+
+Resource links support the same [Resource annotations](/specification/draft/server/resources#annotations)
+as regular resources to help clients understand how to use them.
+
 #### Embedded Resources
 
 Embedded resources allow referencing server-side resources directly in messages:
