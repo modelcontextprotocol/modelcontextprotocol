@@ -610,6 +610,16 @@ a JSON-RPC error response.
 
 </Note>
 
+<Note>
+
+Intermediaries that enforce policy based on mirrored headers (e.g., routing
+or rate-limiting by tenant) **SHOULD** verify that the `MCP-Protocol-Version`
+header indicates a version that requires header–body validation. If the
+version is older or the header is absent, the intermediary **SHOULD** reject
+the request rather than trusting unvalidated header values.
+
+</Note>
+
 ### Backward Compatibility
 
 A client that supports both modern (per-request-metadata) MCP versions and a

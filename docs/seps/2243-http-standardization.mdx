@@ -495,6 +495,8 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
 
 > **Note**: Intermediaries MUST return an appropriate HTTP error status (e.g., `400 Bad Request`) for validation failures but are not required to return a JSON-RPC error response.
 
+> **Note**: Intermediaries that enforce policy based on mirrored headers (e.g., routing or rate-limiting by tenant) SHOULD verify that the `MCP-Protocol-Version` header indicates a version that requires header–body validation. If the version is older or the header is absent, the intermediary SHOULD reject the request rather than trusting unvalidated header values.
+
 **Custom Header Handling**:
 
 Custom headers (those defined via `x-mcp-header`) follow the same validation rules as standard headers:
