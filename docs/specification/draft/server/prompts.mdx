@@ -264,12 +264,12 @@ multi-modal interactions where audio context is important.
 
 #### Resource Links
 
-Prompt messages **MAY** include links to 
+Prompt messages **MAY** include links to
 [Resources](/specification/draft/server/resources), to provide additional context or
 data without embedding the resource contents directly. In this case, the prompt message
 returns a URI that can be fetched by the client:
 
-```json
+````json
 {
   "type": "resource_link",
   "uri": "file:///project/src/main.rs",
@@ -294,7 +294,7 @@ Embedded resources allow referencing server-side resources directly in messages:
     "text": "Resource content"
   }
 }
-```
+````
 
 Resources can contain either text or binary (blob) data and **MUST** include:
 
