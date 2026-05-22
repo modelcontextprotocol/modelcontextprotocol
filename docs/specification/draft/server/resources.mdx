@@ -35,18 +35,24 @@ Servers that support resources **MUST** declare the `resources` capability:
 {
   "capabilities": {
     "resources": {
-      "listChanged": true
+      "listChanged": true,
+      "subscribe": true
     }
   }
 }
 ```
 
-The capability supports one optional feature:
+The capability supports two optional features:
 
 - `listChanged`: whether the server will emit notifications when the list of available
   resources changes.
+- `subscribe` : whether the server supports resource-specific update notifications 
+  for resources requested through subscriptions/listen using the resourceSubscriptions
+  filter.
 
-`listChanged` is optional&mdash;servers may omit it:
+Servers may advertise either feature independently, together or neither. 
+
+Serves that support neither `listChanged` or `subscribe` may omit it:
 
 ```json
 {
@@ -55,6 +61,9 @@ The capability supports one optional feature:
   }
 }
 ```
+
+
+
 
 Servers that declare the `resources` capability **MUST** respond to `resources/list`
 requests with the set of resources currently available to the requesting client. This set
