@@ -343,11 +343,13 @@ HTTP header.
 - **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
   only top-level properties
 
-Clients **MUST** reject tool definitions where any `x-mcp-header` value violates these
-constraints. Rejection means the client **MUST** exclude the invalid tool from the result
-of `tools/list`. Clients **SHOULD** log a warning when rejecting a tool definition,
-including the tool name and the reason for rejection. This ensures that a single
-malformed tool definition does not prevent other valid tools from being used.
+Clients using the Streamable HTTP transport **MUST** reject tool definitions where any
+`x-mcp-header` value violates these constraints. Rejection means the client **MUST**
+exclude the invalid tool from the result of `tools/list`. Clients **SHOULD** log a
+warning when rejecting a tool definition, including the tool name and the reason for
+rejection. This ensures that a single malformed tool definition does not prevent other
+valid tools from being used. Clients using other transports (e.g., stdio) **MAY** ignore
+`x-mcp-header` annotations entirely.
 
 **Example tool definition with `x-mcp-header`:**
 
