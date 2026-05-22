@@ -439,6 +439,8 @@ When constructing a `tools/call` request via HTTP transport, the client MUST:
 1. Encode the values according to the rules in [Value Encoding](#value-encoding)
 1. Append a `Mcp-Param-{Name}: {Value}` header to the request:
 
+> **Implementation Note**: If the client does not have the tool's `inputSchema` (e.g., `tools/list` has not yet been called) or the cached schema is stale (e.g., its TTL has expired), the client SHOULD send the request without custom `Mcp-Param-*` headers. If the server rejects the request because required custom headers are missing, the client SHOULD call `tools/list` to obtain the current `inputSchema`, then retry the original request with the appropriate headers. Clients MAY pre-load tool definitions via other means (e.g., from a previous session or configuration) to enable header emission without a prior `tools/list` call.
+
 #### Server Behavior
 
 When receiving a request, the server MUST reject requests with `Mcp-Param-{Name}` headers that contain invalid characters (see "Character Restrictions" in the [Value Encoding](#value-encoding) section).
