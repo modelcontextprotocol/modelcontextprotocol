@@ -75,10 +75,11 @@ is useful in two scenarios:
 - **Up-front version selection.** The client learns the server's supported
   versions before sending any other request, avoiding a round-trip error.
 - **STDIO backward-compatibility probe.** On stdio, there is no per-request
-  HTTP status code to drive fallback. A client that supports both modern
+  HTTP status code to drive fallback, so a client that supports both modern
   (per-request `_meta`) and legacy (`initialize` handshake) servers **SHOULD**
-  send `server/discover` first. If the server returns `Method not found`
-  (`-32601`), the client falls back to the `initialize` handshake.
+  send `server/discover` first to detect which era the server speaks. See
+  [Lifecycle: Backward Compatibility](/specification/draft/basic/lifecycle#backward-compatibility-with-initialization-based-versions)
+  for the rule that determines when to fall back.
 
 See [Protocol Version Negotiation](/specification/draft/basic/lifecycle#protocol-version-negotiation)
 for the full version-selection flow. For HTTP-specific status codes returned for
