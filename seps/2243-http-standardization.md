@@ -42,6 +42,8 @@ These headers are **required** for compliance with the MCP version in which they
 
 > **Rationale**: This requirement prevents potential security vulnerabilities and error conditions that could arise when different components in the network rely on different sources of truth. For example, a load balancer or gateway might use the header values to make routing decisions, while the MCP server uses the body values for execution. This requirement applies to any network intermediary that processes the message body, as well as the MCP server itself.
 
+> **Implementation Note**: When validating numeric parameter values, servers SHOULD compare the header value and the body value as numbers rather than as strings, treating them as equal if they differ by no more than a relative precision of 1E-9. This avoids false mismatches caused by differences in number-to-string conversion across implementations (e.g., `42` vs `42.0`, or `1e2` vs `100`).
+
 **Case Sensitivity**: Header names (called "field names" in [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-names)) are case-insensitive. Clients and servers MUST use case-insensitive comparisons for header names.
 
 #### Example: tools/call Request

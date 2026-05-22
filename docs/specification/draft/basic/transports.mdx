@@ -545,6 +545,17 @@ different components in the network rely on different sources of truth
 (e.g., a load balancer routing on the header value while the MCP server
 executes based on the body value).
 
+<Note>
+
+When validating numeric parameter values, servers **SHOULD** compare the
+header value and the body value as numbers rather than as strings, treating
+them as equal if they differ by no more than a relative precision of 1E-9.
+This avoids false mismatches caused by differences in number-to-string
+conversion across implementations (e.g., `42` vs `42.0`, or `1e2` vs
+`100`).
+
+</Note>
+
 When rejecting a request due to header validation failure, servers **MUST**
 return HTTP status `400 Bad Request` and **SHOULD** include a JSON-RPC error
 response using the following error code:
