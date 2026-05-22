@@ -415,7 +415,7 @@ When a value cannot be safely represented as a plain ASCII header value, clients
 Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 ```
 
-The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. Servers and intermediaries that need to inspect these values MUST decode them accordingly.
+The prefix `=?base64?` and suffix `?=` indicate that the value is Base64-encoded. These markers are case-sensitive and MUST appear exactly as shown (lowercase). Servers and intermediaries that need to inspect these values MUST decode them accordingly.
 
 To avoid ambiguity, clients MUST also Base64-encode any plain-ASCII value that matches the sentinel pattern (i.e., starts with `=?base64?` and ends with `?=`).
 
