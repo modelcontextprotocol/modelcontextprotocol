@@ -11,14 +11,14 @@ Many production deployments of MCP servers sit behind a reverse proxy or API gat
 
 MCP clients and servers exchange several protocol headers that must be forwarded unchanged through any intermediary.
 
-| Header | Direction | Purpose |
-| --- | --- | --- |
-| `Mcp-Session-Id` | Both | Stateful session token; required for session resumption |
-| `Mcp-Protocol-Version` | Client → Server | Negotiated protocol version; must reach the upstream |
-| `Authorization` | Client → Server | Bearer token or API key credential |
-| `Accept` | Client → Server | `text/event-stream` signals the client wants SSE |
-| `Last-Event-ID` | Client → Server | SSE resume point after a reconnect |
-| `Content-Type` | Both | Must not be rewritten; `application/json` for JSON-RPC requests |
+| Header                 | Direction       | Purpose                                                         |
+| ---------------------- | --------------- | --------------------------------------------------------------- |
+| `Mcp-Session-Id`       | Both            | Stateful session token; required for session resumption         |
+| `Mcp-Protocol-Version` | Client → Server | Negotiated protocol version; must reach the upstream            |
+| `Authorization`        | Client → Server | Bearer token or API key credential                              |
+| `Accept`               | Client → Server | `text/event-stream` signals the client wants SSE                |
+| `Last-Event-ID`        | Client → Server | SSE resume point after a reconnect                              |
+| `Content-Type`         | Both            | Must not be rewritten; `application/json` for JSON-RPC requests |
 
 Proxies that strip or rename these headers will cause protocol negotiation failures, authentication errors, or broken SSE streams.
 
@@ -62,7 +62,7 @@ http:
     mcp-headers:
       headers:
         customRequestHeaders:
-          X-Forwarded-For: ""   # let Traefik fill this
+          X-Forwarded-For: "" # let Traefik fill this
   services:
     mcp:
       loadBalancer:
@@ -171,10 +171,10 @@ spec:
 
 MCP streaming calls can run for seconds to minutes while tools execute. Default proxy timeouts are often too short.
 
-| Timeout | Recommended value | Rationale |
-| --- | --- | --- |
-| Read/response timeout | 300–3600 s | Allow time for slow tool executions |
-| Keep-alive timeout | Match read timeout | Prevent premature connection close |
+| Timeout                                 | Recommended value     | Rationale                                        |
+| --------------------------------------- | --------------------- | ------------------------------------------------ |
+| Read/response timeout                   | 300–3600 s            | Allow time for slow tool executions              |
+| Keep-alive timeout                      | Match read timeout    | Prevent premature connection close               |
 | Idle connection timeout (load balancer) | ≥ read timeout + 60 s | Add buffer so the LB doesn't kill active streams |
 
 A `504 Gateway Timeout` from the proxy while an SSE stream is open typically means the read timeout was reached. The client will attempt to reconnect using `Last-Event-ID`, so ensure the upstream supports event replay or can handle reconnects gracefully.
@@ -216,7 +216,9 @@ def is_safe_upstream_url(url: str) -> bool:
 ```
 
 <Warning>
-Resolve the hostname at request time, not only at configuration time. An attacker can use a DNS name that initially resolves to a safe address and later resolves to an internal address (DNS rebinding).
+  Resolve the hostname at request time, not only at configuration time. An
+  attacker can use a DNS name that initially resolves to a safe address and
+  later resolves to an internal address (DNS rebinding).
 </Warning>
 
 ### Disable redirects on the upstream connection
@@ -227,13 +229,13 @@ Ensure the HTTP client used to contact the upstream MCP server does not follow `
 
 MCP request and response bodies can contain sensitive data including user queries, file contents returned by resources, and tool outputs. Apply appropriate controls before logging.
 
-| Field | Recommended action |
-| --- | --- |
-| `Authorization` header | Redact entirely |
-| `Mcp-Session-Id` header | Log the hash (SHA-256), not the raw value |
-| JSON-RPC `params` | Log method name and param keys only; redact values |
-| Tool result content | Log only content type and byte length |
-| SSE event data | Do not log raw event data in production |
+| Field                   | Recommended action                                 |
+| ----------------------- | -------------------------------------------------- |
+| `Authorization` header  | Redact entirely                                    |
+| `Mcp-Session-Id` header | Log the hash (SHA-256), not the raw value          |
+| JSON-RPC `params`       | Log method name and param keys only; redact values |
+| Tool result content     | Log only content type and byte length              |
+| SSE event data          | Do not log raw event data in production            |
 
 Structured logging libraries typically offer field-level redaction. Set up redaction rules before enabling request logging in a production environment.
 
