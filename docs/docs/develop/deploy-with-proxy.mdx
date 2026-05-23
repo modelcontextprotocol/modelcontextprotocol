@@ -1,0 +1,262 @@
+---
+title: Deploying MCP Servers Behind a Reverse Proxy
+description: Operational guidance for running MCP servers behind reverse proxies and API gateways, including SSE buffering, header forwarding, session affinity, and SSRF protection.
+---
+
+## Overview
+
+Many production deployments of MCP servers sit behind a reverse proxy or API gateway for TLS termination, authentication offloading, routing, or rate-limiting. MCP's use of HTTP and [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) for streaming responses introduces proxy-specific requirements that differ from conventional REST API deployments. This guide covers the configuration changes needed to ensure reliable, secure operation.
+
+## Required Header Forwarding
+
+MCP clients and servers exchange several protocol headers that must be forwarded unchanged through any intermediary.
+
+| Header | Direction | Purpose |
+| --- | --- | --- |
+| `Mcp-Session-Id` | Both | Stateful session token; required for session resumption |
+| `Mcp-Protocol-Version` | Client → Server | Negotiated protocol version; must reach the upstream |
+| `Authorization` | Client → Server | Bearer token or API key credential |
+| `Accept` | Client → Server | `text/event-stream` signals the client wants SSE |
+| `Last-Event-ID` | Client → Server | SSE resume point after a reconnect |
+| `Content-Type` | Both | Must not be rewritten; `application/json` for JSON-RPC requests |
+
+Proxies that strip or rename these headers will cause protocol negotiation failures, authentication errors, or broken SSE streams.
+
+### nginx
+
+```nginx
+location /mcp/ {
+    proxy_pass          http://mcp-upstream;
+    proxy_http_version  1.1;
+
+    # Required MCP headers
+    proxy_set_header    Host               $host;
+    proxy_set_header    X-Real-IP          $remote_addr;
+    proxy_set_header    Authorization      $http_authorization;
+    proxy_set_header    Mcp-Session-Id     $http_mcp_session_id;
+    proxy_set_header    Mcp-Protocol-Version $http_mcp_protocol_version;
+    proxy_set_header    Accept             $http_accept;
+    proxy_set_header    Last-Event-ID      $http_last_event_id;
+}
+```
+
+### Caddy
+
+```caddy
+reverse_proxy /mcp/* http://mcp-upstream {
+    header_up Authorization    {http.request.header.Authorization}
+    header_up Mcp-Session-Id   {http.request.header.Mcp-Session-Id}
+    header_up Mcp-Protocol-Version {http.request.header.Mcp-Protocol-Version}
+    header_up Last-Event-ID    {http.request.header.Last-Event-ID}
+    transport http {
+        versions 1.1
+    }
+}
+```
+
+### Traefik (middlewares)
+
+```yaml
+http:
+  middlewares:
+    mcp-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-For: ""   # let Traefik fill this
+  services:
+    mcp:
+      loadBalancer:
+        passHostHeader: true
+```
+
+Traefik forwards most headers by default, but verify that `Mcp-Session-Id` and `Last-Event-ID` are not listed in any `accessControlAllowHeaders` allowlist that would otherwise strip them.
+
+## Server-Sent Events (SSE) Configuration
+
+MCP uses SSE for streaming tool responses, progress notifications, and log messages. SSE is a persistent, unidirectional HTTP/1.1 connection with `Content-Type: text/event-stream`. Proxies that buffer response bodies will delay or block all streaming output.
+
+### Disable response buffering
+
+**nginx**
+
+```nginx
+location /mcp/ {
+    proxy_pass              http://mcp-upstream;
+    proxy_buffering         off;
+    proxy_cache             off;
+    proxy_read_timeout      3600s;  # keep long-lived connections open
+    proxy_send_timeout      3600s;
+    keepalive_timeout       3600s;
+    proxy_set_header        Connection "";  # allow keep-alive upstream
+}
+```
+
+**Caddy**
+
+Caddy does not buffer streaming responses by default. Verify you have no `buffer` directive on the `reverse_proxy` block.
+
+**AWS Application Load Balancer**
+
+ALB does not buffer SSE natively. However, the default idle timeout is 60 seconds. Increase it to match your expected longest streaming call:
+
+```
+aws elbv2 modify-load-balancer-attributes \
+  --load-balancer-arn <arn> \
+  --attributes Key=idle_timeout.timeout_seconds,Value=3600
+```
+
+**Cloudflare**
+
+Cloudflare Workers and Cloudflare Tunnel both support streaming without buffering. If you use Cloudflare's caching layer in front of the proxy, add a Cache Rule to bypass caching for your MCP endpoint:
+
+```
+URI path starts with /mcp/ → Cache Status: Bypass
+```
+
+### Avoid gzip/brotli compression of SSE streams
+
+Compressing an SSE stream forces the proxy to buffer chunks before flushing. Disable compression on the SSE content type:
+
+**nginx**
+
+```nginx
+gzip_types text/plain application/json;  # do not include text/event-stream
+```
+
+**Caddy**
+
+```caddy
+encode {
+    match {
+        not header Content-Type text/event-stream
+    }
+    gzip
+}
+```
+
+## Session Affinity
+
+When you run multiple upstream MCP server instances, stateful sessions (those identified by `Mcp-Session-Id`) must always reach the same instance. Routing a session to a different instance causes a `404 Session Not Found` or equivalent error.
+
+### nginx upstream hash
+
+```nginx
+upstream mcp_servers {
+    hash $http_mcp_session_id consistent;
+    server mcp-1:8080;
+    server mcp-2:8080;
+    server mcp-3:8080;
+}
+```
+
+### AWS ALB — sticky sessions
+
+Enable target-group stickiness and set the stickiness cookie duration to match your session timeout. Note that ALB cookie-based stickiness uses its own cookie rather than `Mcp-Session-Id`; the two are independent. Configure your session timeout on the MCP server to be shorter than the cookie TTL so sessions expire before the cookie does.
+
+### Kubernetes — sessionAffinity
+
+```yaml
+apiVersion: v1
+kind: Service
+spec:
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600
+```
+
+`ClientIP` affinity is a coarse approximation. For production traffic from shared NAT or corporate proxies, prefer a custom ingress that hashes on the `Mcp-Session-Id` header instead.
+
+## Connection Timeouts
+
+MCP streaming calls can run for seconds to minutes while tools execute. Default proxy timeouts are often too short.
+
+| Timeout | Recommended value | Rationale |
+| --- | --- | --- |
+| Read/response timeout | 300–3600 s | Allow time for slow tool executions |
+| Keep-alive timeout | Match read timeout | Prevent premature connection close |
+| Idle connection timeout (load balancer) | ≥ read timeout + 60 s | Add buffer so the LB doesn't kill active streams |
+
+A `504 Gateway Timeout` from the proxy while an SSE stream is open typically means the read timeout was reached. The client will attempt to reconnect using `Last-Event-ID`, so ensure the upstream supports event replay or can handle reconnects gracefully.
+
+## SSRF Protection for User-Configured Backends
+
+If your deployment allows end-users or operators to configure the URL of an upstream MCP server (for example, a gateway that proxies to user-supplied servers), you must validate those URLs before forwarding requests. Without this check, an attacker can supply an internal network address and use the proxy as a pivot to reach services that are not publicly accessible.
+
+### URL allowlist / denylist
+
+```python
+import ipaddress
+import urllib.parse
+
+BLOCKED_CIDRS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("169.254.0.0/16"),  # link-local / cloud metadata
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("::1/128"),
+]
+
+def is_safe_upstream_url(url: str) -> bool:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in ("https",):
+        return False
+    try:
+        addr = ipaddress.ip_address(parsed.hostname)
+        return not any(addr in net for net in BLOCKED_CIDRS)
+    except ValueError:
+        # hostname — resolve and check each returned address
+        import socket
+        results = socket.getaddrinfo(parsed.hostname, None)
+        return all(
+            not any(ipaddress.ip_address(r[4][0]) in net for net in BLOCKED_CIDRS)
+            for r in results
+        )
+```
+
+<Warning>
+Resolve the hostname at request time, not only at configuration time. An attacker can use a DNS name that initially resolves to a safe address and later resolves to an internal address (DNS rebinding).
+</Warning>
+
+### Disable redirects on the upstream connection
+
+Ensure the HTTP client used to contact the upstream MCP server does not follow `3xx` redirects automatically, or validates redirect targets against the same allowlist.
+
+## Payload Logging Guidance
+
+MCP request and response bodies can contain sensitive data including user queries, file contents returned by resources, and tool outputs. Apply appropriate controls before logging.
+
+| Field | Recommended action |
+| --- | --- |
+| `Authorization` header | Redact entirely |
+| `Mcp-Session-Id` header | Log the hash (SHA-256), not the raw value |
+| JSON-RPC `params` | Log method name and param keys only; redact values |
+| Tool result content | Log only content type and byte length |
+| SSE event data | Do not log raw event data in production |
+
+Structured logging libraries typically offer field-level redaction. Set up redaction rules before enabling request logging in a production environment.
+
+## TLS Considerations
+
+Terminate TLS at the proxy and use plain HTTP internally only if the network path between the proxy and upstream is fully trusted (for example, a private VPC subnet). If the upstream is on a shared network or a different host, use TLS end-to-end and validate the upstream certificate.
+
+Do not configure the proxy to accept self-signed certificates from upstream without pinning: an attacker who can intercept intra-datacenter traffic can perform a machine-in-the-middle attack.
+
+## Healthcheck Endpoint
+
+Expose a dedicated healthcheck path from your MCP server (for example, `GET /health`) that does not require authentication and does not initiate a session. Configure your load balancer to probe this endpoint and drain connections from unhealthy instances gracefully. Avoid probing `/mcp/` with the load balancer's healthchecker: the health probe will consume a session slot and any session affinity hash on `Mcp-Session-Id` will be undefined.
+
+## Summary Checklist
+
+Before going to production, verify:
+
+- [ ] All required MCP headers are forwarded upstream (see table above)
+- [ ] SSE response buffering is disabled for the MCP endpoint
+- [ ] Read and idle timeouts are ≥ your longest expected tool execution time
+- [ ] Session affinity is configured when running multiple upstream instances
+- [ ] gzip/brotli compression is disabled for `text/event-stream` responses
+- [ ] SSRF protection is in place if users can supply backend URLs
+- [ ] Sensitive headers and payload fields are redacted before logging
+- [ ] TLS is used end-to-end or the intra-network path is fully trusted
+- [ ] A dedicated unauthenticated healthcheck endpoint is configured
