@@ -92,7 +92,7 @@ Example retry after a denial carrying `authzctx_7c5d1d79`:
 }
 ```
 
-Authorization of the retry is determined by the credential presented with the request, and the server MUST NOT reject a retry solely because the handle is absent or cannot be resolved.
+The `authorizationContextId` is a correlation handle. Servers MAY use it for state lookup (for example, a URL-elicitation outcome in Use Case 1) and for audit and telemetry. To preserve backward compatibility with clients that do not implement this SEP, servers MUST NOT reject a retry whose handle is absent or unresolvable. Authorization is always determined by the credential presented with the request.
 
 ### Use Case 1 — Server-side state remediation via URL approval
 
@@ -149,7 +149,13 @@ After the user completes the approval, the client retries the original request, 
 
 This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. The replacement may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that yields a new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
 
-On the HTTP transport, the `WWW-Authenticate` challenge remains authoritative for driving the client's reauthorization. When the challenge fully describes the required remediation (for example `insufficient_scope` with the required scopes), the envelope functions as pure classification metadata carrying `reason` and an optional `authorizationContextId`. When the required authorization cannot be fully described at the transport layer, the envelope MAY carry a structured remediation hint as described in Example 2 below.
+The envelope and the transport challenge are complementary signals:
+
+- The envelope always carries the `reason` classification, and additionally carries the `authorizationContextId` when the server issues one.
+- The envelope MAY additionally carry `remediationHints` describing structured remediation data.
+- When the transport declares its own remediation (for example, an HTTP `WWW-Authenticate` challenge), the transport-level signal is authoritative for driving reauthorization. The envelope is complementary metadata.
+
+In UC2 on HTTP, this means: when the `WWW-Authenticate` challenge fully describes the remediation (Example 1, `insufficient_scope`), no `remediationHints` are included. When the challenge cannot fully describe the required authorization (Example 2, RAR), the envelope carries an `oauth_authorization_details` hint.
 
 For the stdio transport, where the MCP specification defines no transport-level authorization challenge, the envelope is the sole authorization denial signal. The client or its hosting environment is responsible for acquiring or refreshing credentials out of band before the request is retried.
 
