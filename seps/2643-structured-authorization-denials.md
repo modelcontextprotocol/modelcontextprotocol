@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for the Model Context Protocol. The envelope complements transport-level authorization challenges (HTTP `WWW-Authenticate` with Protected Resource Metadata), carrying failure classification, a retry correlation handle, and an extensible set of structured remediation hints for cases the transport cannot easily express. This SEP defines two initial remediation hint types and illustrates their use through three scenarios: URL-based approval composed with [MCP URL-mode elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation), credential replacement using scopes and [OAuth Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396), and additional short-lived credentials for per-transaction operations like payment initiation in banking. Further remediation hint types can be defined in follow-on SEPs without changes to the envelope. This SEP is fully backward compatible. Existing OAuth clients and libraries do not need to change as the envelope is additive.
+This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for the Model Context Protocol. The envelope complements transport-level authorization challenges (HTTP `WWW-Authenticate` with Protected Resource Metadata), carrying failure classification, a retry correlation handle, and an extensible set of structured remediation hints for cases the transport cannot easily express. This SEP defines two initial remediation hint types and illustrates their use through two scenarios: URL-based approval composed with [MCP URL-mode elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation), and credential replacement using scopes and [OAuth Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Further remediation hint types can be defined in follow-on SEPs without changes to the envelope. This SEP is fully backward compatible. Existing OAuth clients and libraries do not need to change as the envelope is additive.
 
 ## Motivation
 
@@ -18,8 +18,6 @@ This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for
 2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The MCP server may deny a request because it has insufficient information to contact an external system, needs confirmation from the user, or another piece of server-side state must be established before the request can succeed. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover this case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, but it is not itself an authorization denial signaling mechanism.
 
 3. **Support for structured remediation data at denial**: OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. Adopted OAuth standards do not yet provide a way to carry such structured requirements back to the client at denial time. An IETF individual draft, `draft-zehavi-oauth-rar-metadata`, proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization_details`, with the structured data placed in a JSON response body. The draft is HTTP-specific, and this SEP proposes to adopt the same pattern at the JSON-RPC layer so it applies across MCP transports.
-
-4. **Support for additive credential flows**: OAuth 2.0 defines token lifetime through the `expires_in` parameter but does not define the lifecycle relationship between a newly-issued credential and any existing credential the client already holds. General-purpose clients therefore typically default to replacing the bearer token on new issuance, which does not support use cases where a short-lived credential for a specific operation is issued in addition to a long-lived credential held by the client. An example is a banking client that holds a long-lived account-information token and must obtain a separate short-lived per-payment authorization for each transaction, while continuing to use the long-lived token for other operations.
 
 ## Specification
 
@@ -40,7 +38,6 @@ The shape of the payload is:
       "authorization": {
         "reason": "insufficient_authorization",
         "authorizationContextId": "authzctx_6f2b0d3e",
-        "credentialDisposition": "<replacement | additional>",
         "remediationHints": [
           {
             "type": "<remediation-type>"
@@ -57,12 +54,6 @@ The fields of the `authorization` object are defined as follows:
 
 - `reason` (string, REQUIRED). Indicates that the failure is an authorization denial and classifies its general nature. This SEP defines a single value, `insufficient_authorization`. Additional values MAY be defined by future SEPs.
 - `authorizationContextId` (string, OPTIONAL). A server-issued correlation handle. When the server includes this field, the client MUST echo it on retry as described in "Retry Echo via `_meta`". The handle is not authorization material, and the server MUST NOT rely on it for authorization decisions when the credential presented on retry is sufficient on its own.
-- `credentialDisposition` (string, OPTIONAL). Describes the lifecycle relationship between a credential newly issued through the remediation flow and any existing credential held by the client. Defined values:
-  - `replacement` (default). The newly-issued credential supersedes any existing credential for the same grant context. This matches current OAuth behavior and is the implicit default when `credentialDisposition` is absent.
-  - `additional`. The newly-issued credential coexists with the existing credential. The client MUST retain the existing credential for its original purpose. The newly-issued credential's usable scope is determined by its grant, and the client selects the appropriate credential per request.
-
-  The lifetime of an additional credential is governed by its OAuth `expires_in` value. Client-side management of additional credentials (storage, selection per request, cleanup after expiry) is an implementation concern outside the scope of this SEP. Servers that require single-use semantics for an additional credential SHOULD enforce single-use at the resource server.
-
 - `remediationHints` (array of objects, OPTIONAL). Structured remediation hints carried at the JSON-RPC layer that complement any transport-level authorization challenge. Each hint is an object with:
   - a `type` field (string, REQUIRED), naming the remediation mechanism, and
   - zero or more additional members whose names and shapes are determined by the value of `type`.
@@ -303,103 +294,21 @@ Content-Type: application/json
 }
 ```
 
-### Use Case 3 — Additional short-lived credential
-
-This use case covers denials where the client's existing credential remains valid for its original purpose but is not sufficient for a specific, typically sensitive operation. Unlike Use Case 2, the remediation does not replace the existing credential. The client obtains a new short-lived credential scoped to the operation and continues to use the original credential for other requests. A representative example is a banking client that holds a long-lived account-information token and must obtain a separate short-lived authorization for each payment, typically bound to transaction-specific details such as the payment's amount and payee.
-
-This use case differs from Use Case 2 by credential lifecycle rather than by remediation mechanism. The structured remediation payload MAY be identical to the Rich Authorization Requests remediation shown in Use Case 2 Example 2 (for example an `oauth_authorization_details` hint carrying an RFC 9396 `authorization_details` array). What distinguishes Use Case 3 is that the resulting credential coexists with the existing one, which the server signals by setting `credentialDisposition` to `additional` in the envelope.
-
-#### Example
-
-Consider an MCP server that exposes both account-information tools requiring a long-lived `accounts:read` credential and a `payments.initiate` tool that requires per-transaction authorization. The client's current token is valid for `accounts:read` but does not carry authorization for the specific payment, and the call is denied:
-
-```json
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_authorization_details",
-    resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource/payments",
-    scope="payments:initiate"
-Content-Type: application/json
-Cache-Control: no-store
-
-{
-  "jsonrpc": "2.0",
-  "id": 45,
-  "error": {
-    "code": "<AUTHORIZATION_DENIAL_TBD>",
-    "message": "This payment requires an additional transaction-specific authorization.",
-    "data": {
-      "authorization": {
-        "reason": "insufficient_authorization",
-        "credentialDisposition": "additional",
-        "authorizationContextId": "authzctx_pay_ab7c",
-        "remediationHints": [
-          {
-            "type": "oauth_authorization_details",
-            "authorization_details": [
-              {
-                "type": "payment_initiation",
-                "actions": ["initiate"],
-                "locations": ["https://mcp.example.com/payments"],
-                "instructedAmount": {
-                  "currency": "EUR",
-                  "amount": "123.50"
-                },
-                "creditorName": "Merchant A",
-                "creditorAccount": {
-                  "iban": "DE02100100109307118603"
-                },
-                "remittanceInformationUnstructured": "Invoice 4711"
-              }
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-The client uses the `authorization_details` from the remediation hint to obtain a new access token scoped to the specific payment. It retains its existing `accounts:read` token for subsequent account-information calls and retries the `payments.initiate` request with the newly-issued token:
-
-```http
-POST /mcp HTTP/1.1
-Host: mcp.example.com
-Authorization: Bearer at_pay_new
-Content-Type: application/json
-
-{
-  "jsonrpc": "2.0",
-  "id": 46,
-  "method": "tools/call",
-  "params": {
-    "name": "payments.initiate",
-    "arguments": {
-      "amount": "123.50",
-      "currency": "EUR",
-      "creditorName": "Merchant A",
-      "creditorAccount": "DE02100100109307118603",
-      "remittanceInformationUnstructured": "Invoice 4711"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_ab7c"
-    }
-  }
-}
-```
-
-Subsequent account-information calls from the same client continue to use the original `accounts:read` token.
-
 ## Rationale
 
 This SEP standardizes the smallest set of facts that an MCP client and server need to communicate after an authorization denial: what classification the failure has, how the retry is correlated, and what remediation posture the server can describe. Any further extensions, whether a new remediation type or a new transport binding, can be added additively for future needs without changing the envelope itself. For example, a future `remediationHints` type could describe a Client Initiated Backchannel Authentication (CIBA) flow, in which per-operation approvals occur on a separate channel such as a push notification rather than interrupting the foreground session.
 
 The SEP composes with existing MCP primitives rather than inventing parallel shapes. Use Case 1 reuses MCP URL elicitation (`URLElicitationRequiredError`) and adds the envelope as sibling metadata inside the same error response. Clients that already understand URL elicitation continue to work unchanged, and clients that additionally understand the envelope receive transport-agnostic classification and a correlation handle.
 
+### Future Extensions: Multi-Token Management
+
+A class of authorization remediation is intentionally out of scope for this SEP. When remediation produces a credential intended to coexist with an existing credential rather than replace it, a generic MCP client needs additional facts that the OAuth surface does not yet provide. A stable reference identifying the authorization object would let the client compare and reuse credentials across requests, and an explicit usage-semantics signal would let the client retain or discard the resulting credential safely. A representative example is a banking client that holds a long-lived account-information credential and must obtain a separate short-lived authorization for each payment, while continuing to use the long-lived credential for other operations. A planned extension of [`draft-zehavi-oauth-rar-metadata`](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/) introduces an `authorization_hint` member as the stable reference and a `usage_semantics` member to describe credential usage, and complementary work in the MCP Fine-Grained Authorization Working Group is exploring client-side strategies for managing multiple credentials. A follow-on SEP will address this additive-credential case and the associated client-side multi-credential semantics once that metadata and the client-side model converge. The envelope defined here is designed to accommodate the follow-on additively, through new remediation hint types or new envelope fields, without changing the structure introduced by this SEP.
+
 ### Alternatives Considered
 
 **URL elicitation as the universal remediation primitive**
 
-An alternative was considered in which all denial remediation would be modeled through MCP URL elicitation, so that every authorization denial surfaces as a URL the user opens in a browser. This was rejected as a universal primitive because URL elicitation's standardized follow-up is `notifications/elicitation/complete`, not the return of a credential to the client. URL elicitation therefore cannot safely model flows in which the remediation produces a new access token. The SEP adopts URL elicitation partially, for Use Case 1, where the remediation is server-side state set through user interaction and the client's credential does not change. Use Cases 2 and 3, which produce new credentials, rely on OAuth rather than URL elicitation.
+An alternative was considered in which all denial remediation would be modeled through MCP URL elicitation, so that every authorization denial surfaces as a URL the user opens in a browser. This was rejected as a universal primitive because URL elicitation's standardized follow-up is `notifications/elicitation/complete`, not the return of a credential to the client. URL elicitation therefore cannot safely model flows in which the remediation produces a new access token. The SEP adopts URL elicitation partially, for Use Case 1, where the remediation is server-side state set through user interaction and the client's credential does not change. Use Case 2, which produces a new credential, relies on OAuth rather than URL elicitation.
 
 ## Backward Compatibility
 
@@ -420,10 +329,6 @@ The MCP URL elicitation specification's [safe URL handling](https://modelcontext
 ### Correlation handle is not authorization material
 
 The `authorizationContextId` field is a correlation handle, not authorization material. The credential on the retry, not just the handle, is what determines whether the request is authorized.
-
-### Single-use enforcement for `credentialDisposition: additional`
-
-For `credentialDisposition: additional`, single-use or per-operation constraints on the additional credential are not security boundaries when expressed client-side. Servers that require them SHOULD enforce them at the resource server.
 
 ### Information disclosure through remediation hints
 
