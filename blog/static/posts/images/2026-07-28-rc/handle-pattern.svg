@@ -1,0 +1,40 @@
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--fg)"/>
+    </marker>
+  </defs>
+  <style>
+    :root { --fg:#18181b; --muted:#71717a; --line:#d4d4d8; --accent:#0ea5e9; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg:#e4e4e7; --muted:#a1a1aa; --line:#3f3f46; --accent:#38bdf8; }
+    }
+    .lane { stroke: var(--line); stroke-width: 1.5; }
+    .head { fill: none; stroke: var(--fg); stroke-width: 1.5; rx: 8; }
+    .hlbl { fill: var(--fg); font-size: 14px; text-anchor: middle; dominant-baseline: middle; font-weight: 500; }
+    .msg  { stroke: var(--fg); stroke-width: 1.5; fill: none; }
+    .mlbl { fill: var(--fg); font-size: 13px; text-anchor: middle; font-family: ui-monospace,Menlo,monospace; }
+    .hndl { fill: var(--accent); font-weight: 600; }
+    .cap  { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+    .cap .hndl { font-family: ui-monospace,Menlo,monospace; }
+  </style>
+
+  <rect class="head" x="80"  y="20" width="120" height="34"/>
+  <text class="hlbl" x="140" y="37">Model</text>
+  <rect class="head" x="440" y="20" width="120" height="34"/>
+  <text class="hlbl" x="500" y="37">MCP server</text>
+
+  <line class="lane" x1="140" y1="54" x2="140" y2="280"/>
+  <line class="lane" x1="500" y1="54" x2="500" y2="280"/>
+
+  <text class="mlbl" x="320" y="90">create_basket()</text>
+  <line class="msg" x1="140" y1="102" x2="500" y2="102" marker-end="url(#arr)"/>
+
+  <text class="mlbl" x="320" y="160">{ basket_id: <tspan class="hndl">"b_123"</tspan> }</text>
+  <line class="msg" x1="500" y1="172" x2="140" y2="172" marker-end="url(#arr)"/>
+
+  <text class="mlbl" x="320" y="230">add_item(basket_id: <tspan class="hndl">"b_123"</tspan>, sku: &#8230;)</text>
+  <line class="msg" x1="140" y1="242" x2="500" y2="242" marker-end="url(#arr)"/>
+
+  <text class="cap" x="320" y="310">The model threads <tspan class="hndl">"b_123"</tspan> back as an ordinary argument</text>
+</svg>

@@ -1,0 +1,97 @@
+<svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--fg)"/>
+    </marker>
+    <marker id="arr-removed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--removed)"/>
+    </marker>
+  </defs>
+  <style>
+    :root { --fg:#18181b; --muted:#71717a; --line:#d4d4d8; --accent:#0ea5e9; --removed:#f59e0b; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg:#e4e4e7; --muted:#a1a1aa; --line:#3f3f46; --accent:#38bdf8; --removed:#fbbf24; }
+    }
+    .box { fill: none; stroke: var(--fg); stroke-width: 1.5; rx: 8; }
+    .box-muted { fill: none; stroke: var(--muted); stroke-width: 1.5; rx: 8; }
+    .lbl { fill: var(--fg); font-size: 14px; text-anchor: middle; dominant-baseline: middle; }
+    .lbl-sm { fill: var(--muted); font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
+    .lbl-removed { fill: var(--removed); font-size: 12px; dominant-baseline: middle; font-weight: 500; }
+    .ver { fill: var(--fg); font-size: 12px; text-anchor: middle; font-family: ui-monospace,Menlo,monospace; font-weight: 600; }
+    .badge { fill: none; stroke: var(--accent); stroke-width: 1.5; rx: 6; }
+    .badge-txt { fill: var(--fg); font-size: 11px; text-anchor: middle; dominant-baseline: middle; letter-spacing: 0.08em; font-weight: 600; }
+    .ln { stroke: var(--fg); stroke-width: 1.5; fill: none; }
+    .ln-removed { stroke: var(--removed); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+    .cyl { fill: none; stroke: var(--removed); stroke-width: 1.5; }
+  </style>
+
+  <line x1="480" y1="12" x2="480" y2="408" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 6"/>
+
+  <g id="before">
+    <rect class="badge" x="194" y="12" width="72" height="22"/>
+    <text class="badge-txt" x="230" y="24">BEFORE</text>
+    <text class="ver" x="230" y="52">2025-11-25</text>
+
+    <g transform="translate(0,36)">
+    <rect class="box" x="180" y="52" width="100" height="34"/>
+    <text class="lbl" x="230" y="69">Client</text>
+
+    <line class="ln" x1="230" y1="86" x2="230" y2="118" marker-end="url(#arr)"/>
+
+    <rect class="box" x="160" y="120" width="140" height="34"/>
+    <text class="lbl" x="230" y="137">Load balancer</text>
+
+    <line class="ln-removed" x1="230" y1="154" x2="230" y2="216" marker-end="url(#arr-removed)"/>
+    <text class="lbl-removed" x="244" y="186" text-anchor="start">Sticky route</text>
+
+    <rect class="box-muted" x="70"  y="218" width="100" height="34"/>
+    <text class="lbl-sm" x="120" y="235">MCP server</text>
+    <rect class="box" x="180" y="218" width="100" height="34"/>
+    <text class="lbl" x="230" y="235">MCP server</text>
+    <rect class="box-muted" x="290" y="218" width="100" height="34"/>
+    <text class="lbl-sm" x="340" y="235">MCP server</text>
+
+    <line class="ln-removed" x1="120" y1="252" x2="120" y2="278"/>
+    <line class="ln-removed" x1="230" y1="252" x2="230" y2="278"/>
+    <line class="ln-removed" x1="340" y1="252" x2="340" y2="278"/>
+    <line class="ln-removed" x1="120" y1="278" x2="340" y2="278"/>
+    <line class="ln-removed" x1="230" y1="278" x2="230" y2="298"/>
+
+    <g transform="translate(170,306)">
+      <ellipse class="cyl" cx="60" cy="0"  rx="60" ry="9"/>
+      <path   class="cyl" d="M0,0 v42 a60,9 0 0 0 120,0 v-42"/>
+      <text class="lbl-removed" x="60" y="20" text-anchor="middle">Shared session</text>
+      <text class="lbl-removed" x="60" y="36" text-anchor="middle">store</text>
+    </g>
+    </g>
+  </g>
+
+  <g id="after" transform="translate(500,0)">
+    <rect class="badge" x="194" y="12" width="72" height="22"/>
+    <text class="badge-txt" x="230" y="24">AFTER</text>
+    <text class="ver" x="230" y="52">2026-07-28</text>
+
+    <g transform="translate(0,36)">
+    <rect class="box" x="180" y="52" width="100" height="34"/>
+    <text class="lbl" x="230" y="69">Client</text>
+
+    <line class="ln" x1="230" y1="86" x2="230" y2="118" marker-end="url(#arr)"/>
+
+    <rect class="box" x="160" y="120" width="140" height="34"/>
+    <text class="lbl" x="230" y="137">Load balancer</text>
+
+    <path class="ln" d="M230,154 V180 H120 V216" marker-end="url(#arr)"/>
+    <path class="ln" d="M230,180 V216" marker-end="url(#arr)"/>
+    <path class="ln" d="M230,180 H340 V216" marker-end="url(#arr)"/>
+
+    <rect class="box" x="70"  y="218" width="100" height="34"/>
+    <text class="lbl" x="120" y="235">MCP server</text>
+    <rect class="box" x="180" y="218" width="100" height="34"/>
+    <text class="lbl" x="230" y="235">MCP server</text>
+    <rect class="box" x="290" y="218" width="100" height="34"/>
+    <text class="lbl" x="340" y="235">MCP server</text>
+
+    <text class="lbl-sm" x="230" y="328">Any request, any instance</text>
+    </g>
+  </g>
+</svg>

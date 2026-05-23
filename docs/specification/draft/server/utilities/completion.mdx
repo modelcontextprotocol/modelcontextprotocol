@@ -46,6 +46,7 @@ what is being completed through a reference type:
 {
   "jsonrpc": "2.0",
   "id": 1,
+  "resultType": "complete",
   "method": "completion/complete",
   "params": {
     "ref": {
@@ -123,10 +124,10 @@ For prompts or URI templates with multiple arguments, clients should include pre
 
 The protocol supports two types of completion references:
 
-| Type           | Description                 | Example                                             |
-| -------------- | --------------------------- | --------------------------------------------------- |
-| `ref/prompt`   | References a prompt by name | `{"type": "ref/prompt", "name": "code_review"}`     |
-| `ref/resource` | References a resource URI   | `{"type": "ref/resource", "uri": "file:///{path}"}` |
+| Type           | Description                               | Example                                             |
+| -------------- | ----------------------------------------- | --------------------------------------------------- |
+| `ref/prompt`   | References a prompt by name               | `{"type": "ref/prompt", "name": "code_review"}`     |
+| `ref/resource` | References a resource URI or URI template | `{"type": "ref/resource", "uri": "file:///{path}"}` |
 
 ### Completion Results
 
@@ -156,7 +157,8 @@ sequenceDiagram
 
 ### CompleteRequest
 
-- `ref`: A `PromptReference` or `ResourceReference`
+- `ref`: A `PromptReference` or `ResourceTemplateReference`. For
+  `ResourceTemplateReference`, `uri` is a URI or URI template.
 - `argument`: Object containing:
   - `name`: Argument name
   - `value`: Current value

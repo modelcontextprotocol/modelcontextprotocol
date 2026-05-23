@@ -31,20 +31,6 @@ However, implementations are free to expose roots through any interface pattern 
 suits their needs&mdash;the protocol itself does not mandate any specific user
 interaction model.
 
-<Warning>
-
-Servers **MUST** send server-to-client requests (such as `roots/list`,
-`sampling/createMessage`, or `elicitation/create`) only in association with an
-originating client request (e.g., during `tools/call`, `resources/read`, or
-`prompts/get` processing).
-
-Standalone server-initiated requests of these types on independent
-communication streams (unrelated to any client request) are not supported and
-**MUST NOT** be implemented. Future transport implementations are not required
-to support this pattern.
-
-</Warning>
-
 ## Capabilities
 
 Clients that support roots **MUST** declare the `roots` capability in
@@ -95,10 +81,10 @@ sequenceDiagram
     participant Server
     participant Client
 
-    Note over Server,Client: Discovery
-    Client->>Server: tool/call(id: 1)
+    Note over Server,Client: Initial Request
+    Client->>Server: tools/call(id: 1)
     Server-->>Client: InputRequiredResult(roots/list)
-    Client->>Server: tool/call(id: 2, Available roots)
+    Client->>Server: tools/call(id: 2, inputResponses{key: roots} + requestState)
 ```
 
 ## Data Types

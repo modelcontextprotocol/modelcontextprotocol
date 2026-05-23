@@ -91,6 +91,7 @@ To discover available tools, clients send a `tools/list` request. This operation
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "tools": [
       {
         "name": "get_weather",
@@ -115,7 +116,9 @@ To discover available tools, clients send a `tools/list` request. This operation
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -161,7 +164,7 @@ To invoke a tool, clients send a `tools/call` request:
 
 ### Input Required Tool Results
 
-Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
+Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
 
 When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
 
