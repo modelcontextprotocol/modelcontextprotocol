@@ -1,11 +1,11 @@
-# SEP-{0000}: Tool Call Attestation
+# SEP-2787: Tool Call Attestation
 
 - **Status**: Draft
 - **Type**: Extensions Track
 - **Created**: 2026-05-23
 - **Author(s)**: heysoup.co Team
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2787
 - **Extension Identifier**: `soup/tool-call-attestation` (to be assigned upon acceptance as an official extension)
 - **Working Group**: Security Interest Group (proposed)
 
