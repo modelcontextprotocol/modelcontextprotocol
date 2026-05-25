@@ -85,7 +85,7 @@ If a server advertises `required: true`, clients MUST include a valid attestatio
 
 The attestation is a signed JSON object sent as part of the `tools/call` request metadata. It is self-contained: the verifier does not need a connection to the issuer.
 
-```typescript
+````typescript
 /** @meta/_meta/attestation — sent alongside tools/call */
 interface Attestation {
   /** Protocol version. MUST be 1. */
@@ -223,7 +223,7 @@ The signature is computed over a deterministic JSON representation:
 # Example: Python-style canonicalization
 payload = canonical_json({k: v for k, v in attestation.items() if k != "signature"})
 signature = hex(hmac_sha256(secret, payload))  # for HS256
-```
+````
 
 ### Transport Encoding
 
@@ -250,7 +250,9 @@ For JSON-RPC (STDIO, SSE), the attestation is carried in the `_meta` field of th
     "name": "delete_file",
     "arguments": { "path": "/archive/2024-Q3.md" },
     "_meta": {
-      "attestation": { /* Attestation object */ }
+      "attestation": {
+        /* Attestation object */
+      }
     }
   }
 }
@@ -271,24 +273,25 @@ MCP servers that negotiate the `soup/tool-call-attestation` extension MUST imple
 5. **Tool call match**: Find the entry in `toolCalls` where `serverFingerprint` matches the receiving server's identity. If no such entry exists, reject with `server_mismatch`. Then verify that the entry's `name` matches the `name` parameter of the `tools/call` request. If not, reject with `tool_mismatch`. This prevents cross-server replay and tool-substitution in a single step.
 
 6. **Acknowledgement processing (if applicable)**: If the attestation includes an `ack` field:
-  - Decrypt `ack.callback` using the server's private key to obtain the callback URL.
-  - **Authenticated pre-flight check**: Send an OPTIONS request to the callback URL. The request MUST include two headers:
-    - `X-Ack-Challenge`: A randomly generated challenge nonce (implementation-defined format, base64url token recommended).
-    - `X-Ack-Attestation-Nonce`: The value of `attestation.nonce` as-is.
-    
-    The issuer MUST respond with a signed JSON payload: `{ "issuer": "<iss>", "challenge": "<challenge from header>", "attestation_nonce": "<nonce from header>", "signature": "<signature>" }`, where the signature is computed over `issuer`, `challenge`, and `attestation_nonce` using the issuer's signing key — the same key and algorithm (`alg`) that signed the attestation envelope. The server verifies this signature using the key identified by `attestation.alg` and `attestation.iss`, and confirms both nonces match what it sent.
-    
-    The issuer uses the attestation nonce to verify that the attestation still belongs to a valid window (e.g., checking the last 6 characters against active window UUIDs). Window rotation is an issuer implementation detail — the SEP only specifies the wire format.
-    
-    - If the signature is valid and both nonces match, the server proceeds.
-    - If the response is missing, the signature is invalid, or either nonce mismatches, treat as OPTIONS failure.
-  - **On OPTIONS failure** (timeout, non-2xx, or invalid signature):
-    - If `ack.required` is true, the server MUST reject the tool call with `ack_delivery_failed`. The tool is never executed — the issuer's audit is authoritative. The nonce is consumed.
-    - If `ack.required` is false or omitted, the server SHOULD log the failure and proceed. The compliance trail is degraded.
-  - Execute the tool call.
-  - Sign `ack.token` as-is with the server's private key. Construct a POST request to the callback URL containing `{ "token": "<signed token>", "result": <tool result or digest thereof> }`. The server SHOULD retry the POST on transient failure (e.g., network error, timeout). The issuer SHOULD respond with `200 { "status": "accepted" }` on success; the server SHOULD treat any 2xx as success.
-  - The `ack.token` is opaque and encrypted to the issuer's public key. The server MUST NOT attempt to decrypt it. Its purpose is to bind the server's identity to the tool result so the issuer can confirm which server acknowledged which result.
-  - If the POST fails after all retries and the authenticated pre-flight succeeded, the server SHOULD log and return the tool result — the issuer was reachable and authentic at execution time, so the loss is transient.
+
+- Decrypt `ack.callback` using the server's private key to obtain the callback URL.
+- **Authenticated pre-flight check**: Send an OPTIONS request to the callback URL. The request MUST include two headers:
+  - `X-Ack-Challenge`: A randomly generated challenge nonce (implementation-defined format, base64url token recommended).
+  - `X-Ack-Attestation-Nonce`: The value of `attestation.nonce` as-is.
+
+  The issuer MUST respond with a signed JSON payload: `{ "issuer": "<iss>", "challenge": "<challenge from header>", "attestation_nonce": "<nonce from header>", "signature": "<signature>" }`, where the signature is computed over `issuer`, `challenge`, and `attestation_nonce` using the issuer's signing key — the same key and algorithm (`alg`) that signed the attestation envelope. The server verifies this signature using the key identified by `attestation.alg` and `attestation.iss`, and confirms both nonces match what it sent.
+
+  The issuer uses the attestation nonce to verify that the attestation still belongs to a valid window (e.g., checking the last 6 characters against active window UUIDs). Window rotation is an issuer implementation detail — the SEP only specifies the wire format.
+  - If the signature is valid and both nonces match, the server proceeds.
+  - If the response is missing, the signature is invalid, or either nonce mismatches, treat as OPTIONS failure.
+
+- **On OPTIONS failure** (timeout, non-2xx, or invalid signature):
+  - If `ack.required` is true, the server MUST reject the tool call with `ack_delivery_failed`. The tool is never executed — the issuer's audit is authoritative. The nonce is consumed.
+  - If `ack.required` is false or omitted, the server SHOULD log the failure and proceed. The compliance trail is degraded.
+- Execute the tool call.
+- Sign `ack.token` as-is with the server's private key. Construct a POST request to the callback URL containing `{ "token": "<signed token>", "result": <tool result or digest thereof> }`. The server SHOULD retry the POST on transient failure (e.g., network error, timeout). The issuer SHOULD respond with `200 { "status": "accepted" }` on success; the server SHOULD treat any 2xx as success.
+- The `ack.token` is opaque and encrypted to the issuer's public key. The server MUST NOT attempt to decrypt it. Its purpose is to bind the server's identity to the tool result so the issuer can confirm which server acknowledged which result.
+- If the POST fails after all retries and the authenticated pre-flight succeeded, the server SHOULD log and return the tool result — the issuer was reachable and authentic at execution time, so the loss is transient.
 
 If the server cannot decrypt `ack.callback` (e.g., mismatched key), behavior depends on `ack.required`: if true, reject with `ack_delivery_failed`; if false or omitted, log and proceed.
 
@@ -322,17 +325,17 @@ Attestation failures are tool execution errors (the tool was not executed due to
 
 Attestation failures are communicated as tool results with `isError: true`. The structured error payload in the content text uses the following `reason` values:
 
-| Reason | Description |
-|--------|-------------|
-| `signature_invalid` | Signature does not match the canonical payload |
-| `nonce_replay` | Nonce has been seen within the TTL window |
-| `expired` | `iat + exp` has passed |
-| `tool_mismatch` | Tool name does not match the `tools/call` request |
-| `server_mismatch` | No `toolCalls` entry matches the receiving server's fingerprint |
-| `key_unavailable` | Key identified by `alg` and `secretVersion` is not available |
+| Reason                     | Description                                                           |
+| -------------------------- | --------------------------------------------------------------------- |
+| `signature_invalid`        | Signature does not match the canonical payload                        |
+| `nonce_replay`             | Nonce has been seen within the TTL window                             |
+| `expired`                  | `iat + exp` has passed                                                |
+| `tool_mismatch`            | Tool name does not match the `tools/call` request                     |
+| `server_mismatch`          | No `toolCalls` entry matches the receiving server's fingerprint       |
+| `key_unavailable`          | Key identified by `alg` and `secretVersion` is not available          |
 | `resource_digest_mismatch` | Content fetched at `args.resource` does not match the attested digest |
-| `attestation_required` | Server requires attestation but none was provided |
-| `ack_delivery_failed` | The `ack` POST could not be delivered and `required` is true |
+| `attestation_required`     | Server requires attestation but none was provided                     |
+| `ack_delivery_failed`      | The `ack` POST could not be delivered and `required` is true          |
 
 ## Rationale
 
@@ -374,7 +377,7 @@ A standard JWT would work with a custom claim definition and no canonical JSON e
 
 ### Relationship to Authorization
 
-Attestation is orthogonal to MCP's existing Authorization framework. Authorization proves *who* is allowed to call a tool. Attestation proves *why* they are calling it and *that* they called it. A deployment may use both: OAuth for transport-level auth and attestation for intent-bound audit.
+Attestation is orthogonal to MCP's existing Authorization framework. Authorization proves _who_ is allowed to call a tool. Attestation proves _why_ they are calling it and _that_ they called it. A deployment may use both: OAuth for transport-level auth and attestation for intent-bound audit.
 
 ## Backward Compatibility
 
@@ -416,7 +419,7 @@ The optional `ack` field (see Attestation Envelope) closes the compliance loop b
 
 4. **Privacy**: `ack.callback` is encrypted to the MCP server's public key — a passive observer or the client cannot discover the issuer's callback endpoint. `ack.token` is encrypted to the issuer's public key — even the MCP server cannot read its contents.
 
-Limitations: The acknowledgement proves *who* handled the call but not *truthfulness* — a compromised server can sign a lie about what result it produced. The `ack` is a lightweight compliance confirmation, not a non-repudiation receipt. Full acknowledgement semantics (retry, timeout, error codes, non-repudiation) may be addressed in a follow-up SEP.
+Limitations: The acknowledgement proves _who_ handled the call but not _truthfulness_ — a compromised server can sign a lie about what result it produced. The `ack` is a lightweight compliance confirmation, not a non-repudiation receipt. Full acknowledgement semantics (retry, timeout, error codes, non-repudiation) may be addressed in a follow-up SEP.
 
 ## Reference Implementation
 
@@ -436,11 +439,11 @@ The following identifiers and conventions are defined as part of this extension,
 
 The following algorithm identifiers are used in the `alg` field of the `Attestation` envelope:
 
-| Identifier | Algorithm | Reference |
-|------------|-----------|-----------|
-| `HS256` | HMAC-SHA256 | RFC 7518 §3.2 |
-| `ES256` | ECDSA using P-256 and SHA-256 | RFC 7518 §3.4 |
-| `RS256` | RSASSA-PKCS1-v1_5 using SHA-256 | RFC 7518 §3.1 |
+| Identifier | Algorithm                       | Reference     |
+| ---------- | ------------------------------- | ------------- |
+| `HS256`    | HMAC-SHA256                     | RFC 7518 §3.2 |
+| `ES256`    | ECDSA using P-256 and SHA-256   | RFC 7518 §3.4 |
+| `RS256`    | RSASSA-PKCS1-v1_5 using SHA-256 | RFC 7518 §3.1 |
 
 These identifiers are drawn from the JSON Web Signature (JWS) registry [RFC 7518](https://www.rfc-editor.org/rfc/rfc7518). No new algorithm registrations are required.
 
