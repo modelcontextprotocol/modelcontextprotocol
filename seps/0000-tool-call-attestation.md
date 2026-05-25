@@ -1,0 +1,463 @@
+# SEP-{0000}: Tool Call Attestation
+
+- **Status**: Draft
+- **Type**: Extensions Track
+- **Created**: 2026-05-23
+- **Author(s)**: heysoup.co Team
+- **Sponsor**: None (seeking sponsor)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **Extension Identifier**: `soup/tool-call-attestation` (to be assigned upon acceptance as an official extension)
+- **Working Group**: Security Interest Group (proposed)
+
+## Abstract
+
+This SEP proposes an optional **Tool Call Attestation** capability for MCP that allows clients to attach a signed, self-contained envelope to `tools/call` requests. The envelope cryptographically binds the agent's identity, the tool name and arguments, and a human-readable intent justification into a verifiable payload that MCP servers can check before execution.
+
+The attestation is opaque to the MCP transport — it travels as metadata on existing requests and requires no new RPC methods, no breaking changes, and no mandatory server-side processing. Clients that need compliance-grade audit trails (EU AI Act Article 12, AI Liability Directive) can produce attestations; MCP servers can verify them; both can ignore them if not required.
+
+Two signing modes are defined:
+
+- **HS256** (HMAC-SHA256 with a shared secret): Simple, suitable for self-hosted or single-tenant deployments where the client and server share a trust domain.
+- **ES256 / RS256** (asymmetric): Allows the attestation to be verified without a shared secret. The verifier only needs the issuer's public key.
+
+## Specification of Requirements
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals, as shown here.
+
+## Motivation
+
+### Regulatory Gap
+
+The EU AI Act (Regulation 2024/1689) takes full effect August 2, 2026. Article 12 requires high-risk AI systems to automatically record every event with sufficient detail to reconstruct the system's operation. Article 26(6) mandates minimum 6-month log retention. The AI Liability Directive creates a rebuttable presumption of causality if the operator cannot produce an adequate audit trail.
+
+MCP today provides transport (STDIO, HTTP/SSE) and an Authorization framework, but **no mechanism to bind a tool call to an agent's identity, documented intent, or expected state mutation**. Every MCP tool call executes without cryptographic attestation. There is no standard way for an MCP server to verify that a tool call was authorized by a known identity with a recorded business justification.
+
+Without this capability, MCP deployments in regulated environments face fragmentation — each implementation ships a proprietary attestation header, undermining interoperability across the ecosystem.
+
+### Existing Practice
+
+Several MCP implementations already carry agent identity or session tokens in `_meta`. However, none standardize:
+
+- The schema of the signed attestation payload.
+- The verification rules (nonce replay protection, TTL enforcement, key selection).
+- The transport encoding for attestations across HTTP and JSON-RPC.
+
+This SEP fills that gap by defining a minimal, composable attestation envelope that can be adopted incrementally.
+
+## Specification
+
+### Capability Negotiation
+
+MCP servers that support attestation advertise it in their `serverCapabilities` during initialization using the `extensions` field (per SEP-2133):
+
+```typescript
+interface ServerCapabilities {
+  // ... existing fields
+  extensions?: {
+    "soup/tool-call-attestation"?: {
+      /** Supported signing algorithms */
+      algorithms: Array<"HS256" | "ES256" | "RS256">;
+      /** Server requires attestation on all tool calls */
+      required?: boolean;
+      /** Server can find its entry in a multi-server array */
+      multiServer?: boolean;
+    };
+  };
+}
+```
+
+Clients that wish to use attestation include a matching extension in `clientCapabilities`:
+
+```typescript
+interface ClientCapabilities {
+  // ... existing fields
+  extensions?: {
+    "soup/tool-call-attestation"?: {
+      algorithms: Array<"HS256" | "ES256" | "RS256">;
+    };
+  };
+}
+```
+
+If a server advertises `required: true`, clients MUST include a valid attestation on every `tools/call` request or the server MUST reject the call with an error.
+
+### Attestation Envelope
+
+The attestation is a signed JSON object sent as part of the `tools/call` request metadata. It is self-contained: the verifier does not need a connection to the issuer.
+
+```typescript
+/** @meta/_meta/attestation — sent alongside tools/call */
+interface Attestation {
+  /** Protocol version. MUST be 1. */
+  version: 1;
+
+  /** Signing algorithm used for `signature`.
+   *  "HS256": HMAC-SHA256 (shared secret).
+   *  "ES256": ECDSA P-256 SHA-256.
+   *  "RS256": RSASSA-PKCS1-v1_5 SHA-256.
+   */
+  alg: "HS256" | "ES256" | "RS256";
+
+  /** Issuer identifier. Opaque string meaningful to the verifier.
+   *  Example: "issuer://a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+   */
+  iss: string;
+
+  /** Subject identifier. The agent or entity making the call.
+   *  Example: "agent:deploy-bot"
+   */
+  sub: string;
+
+  /** Human-readable justification for the tool call(s).
+   *  MUST be non-empty when present.
+   */
+  intent: string;
+
+  /** One or more tool calls signed by this attestation.
+   *  Each MCP server verifies only the entry where
+   *  serverFingerprint matches its own identity.
+   */
+  toolCalls: Array<{
+    name: string;
+    /** Tool arguments serialized as canonical JSON string.
+     *
+     *  If the string starts with `"resource: https://..."` (or any
+     *  other protocol), the arguments are stored at that URL and
+     *  MUST NOT be attested inline. Instead, the issuer fetches
+     *  the content from the URL, computes SHA-256, and attests
+     *  the resolved form `{ "resource": "<url>", "digest": "sha256:<hex>" }`.
+     *  This keeps the attestation size independent of argument payload.
+     *
+     *  If the string does NOT start with `"resource: "`, the value
+     *  is attested inline as-is. The verifier parses and re-serializes
+     *  canonical JSON for signature verification, then passes the
+     *  parsed object to the tool handler.
+     */
+    args: string;
+    serverFingerprint: string;
+  }>;
+
+  /** Version of the signing key. Enables key rotation without
+   *  invalidating in-flight attestations. Verifiers MUST use
+   *  this value to select the correct key for verification.
+   */
+  secretVersion: string;
+
+  /** ISO 8601 UTC timestamp of when the attestation was issued. */
+  iat: string;
+
+  /** Seconds from iat until this attestation expires.
+   *  Verifiers MUST reject expired attestations.
+   *  RECOMMENDED maximum: 300 (5 minutes).
+   */
+  exp: number;
+
+  /** Cryptographic nonce unique to this attestation.
+   *  Verifiers MUST reject previously seen nonces within
+   *  the TTL window. RECOMMENDED: 16+ bytes base64url-encoded.
+   *
+   *  The last 6 characters are reserved as a window appendix
+   *  used during `ack` pre-flight. The issuer may use the
+   *  appendix for stateless window validity checks without
+   *  additional storage — e.g., `HMAC(raw_nonce, window_uuid)[:6]`
+   *  tried against each active window UUID. If no window
+   *  matches, the OPTIONS pre-flight fails. Servers MUST NOT
+   *  interpret the appendix — it is opaque to them. The full
+   *  nonce (including appendix) is included in canonical JSON
+   *  for signature verification.
+   */
+  nonce: string;
+
+  /** HMAC or public-key signature computed over the canonical
+   *  JSON representation (sorted keys, no whitespace) of all
+   *  above fields EXCEPT this one.
+   *  Encoding depends on the signing algorithm:
+   *  - HS256: hex-encoded HMAC-SHA256 output (64 hex chars).
+   *  - ES256: hex-encoded raw r||s concatenation (128 hex chars).
+   *    Implementations MUST NOT use DER encoding.
+   *  - RS256: hex-encoded RSASSA-PKCS1-v1_5 output.
+   */
+  signature: string;
+
+  /** Optional. Acknowledgement proof that closes the compliance loop.
+   *  Two-part encrypted payload:
+   *
+   *  - `callback`: Encrypted to the MCP server's public key.
+   *    Contains the URL to POST the acknowledgement to.
+   *    The server decrypts this to discover where to send.
+   *
+   *  - `token`: Encrypted to the issuer's public key.
+   *    Opaque proof token. The server MUST NOT attempt to
+   *    decrypt it. Instead, the server signs the token as-is
+   *    with its own private key and POSTs it alongside the
+   *    tool result to the decrypted callback URL.
+   *
+   *  - `required`: If true, the server MUST fail the tool
+   *    call if the acknowledgement POST cannot be delivered.
+   *  If false or omitted (default), failure degrades
+   *  the compliance trail but does not block execution.
+   *
+   *  NOTE: `ack` requires asymmetric signing (ES256/RS256).
+   *  If `alg` is HS256 and `ack` is present, the server MUST
+   *  reject the attestation — the issuer has no public key
+   *  for callback encryption or OPTIONS signature verification.
+   *
+   *  Both `callback` and `token` values are base64url-encoded ciphertext.
+   */
+  ack?: {
+    callback: string;
+    token: string;
+    required?: boolean;
+  };
+
+### Canonical JSON for Signing
+
+The signature is computed over a deterministic JSON representation:
+
+1. Start with all fields of the `Attestation` object EXCEPT `signature`. The `ack` field (if present) is included — it is signed as part of the attestation.
+2. **Resource dereference**: For each entry in `toolCalls`, if `args` is a string that starts with `"resource: "`, the issuer MUST fetch the content at that URL, compute `sha256(content)`, and replace `args` with the canonical JSON string of `{ "resource": "<url>", "digest": "sha256:<hex>" }`. This is done BEFORE serialization — the signature covers the resolved form, not the resource reference.
+3. Serialize using **sorted keys** (lexicographic order at every nesting level), **no whitespace**, **no trailing newline**.
+4. The resulting UTF-8 byte string is the signing payload.
+
+```python
+# Example: Python-style canonicalization
+payload = canonical_json({k: v for k, v in attestation.items() if k != "signature"})
+signature = hex(hmac_sha256(secret, payload))  # for HS256
+```
+
+### Transport Encoding
+
+#### HTTP Transport
+
+For HTTP transports, the attestation is carried in a request header:
+
+```
+X-MCP-Attestation: <base64url(canonicalJSON(attestation))>
+```
+
+The server decodes the header, verifies the signature, checks the nonce and TTL, then processes the tool call.
+
+#### JSON-RPC Transport
+
+For JSON-RPC (STDIO, SSE), the attestation is carried in the `_meta` field of the `tools/call` request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "delete_file",
+    "arguments": { "path": "/archive/2024-Q3.md" },
+    "_meta": {
+      "attestation": { /* Attestation object */ }
+    }
+  }
+}
+```
+
+### Verification Rules
+
+MCP servers that negotiate the `soup/tool-call-attestation` extension MUST implement the following verification:
+
+1. **Signature verification**: Decode the canonical JSON, verify the signature using the key identified by `alg` and `secretVersion`. For HS256, the shared secret must be pre-configured or derived. For ES256/RS256, the issuer's public key must be retrievable (e.g., from a key server, pre-shared, or published at a well-known URL matching `iss`).
+
+2. **Nonce replay check**: Reject attestations whose `nonce` has been seen within `iat + exp`. RECOMMENDED: an in-memory bloom filter with background GC, or a bounded cache with the TTL window as the eviction horizon.
+
+3. **TTL check**: Reject if `iat + exp < now()`. Allow up to 30 seconds of clock skew between issuer and verifier. Beyond that, the attestation MUST be rejected.
+
+4. **Resource verification (if applicable)**: For the matched `toolCalls` entry, if `args` is a JSON object containing `resource` and `digest` keys, the server MUST fetch the content at `args.resource`, compute `sha256(content)`, and compare against `args.digest`. If the digests do not match, the server MUST reject with `resource_digest_mismatch`. If the resource is unreachable, the server MAY reject or proceed at its discretion (network conditions vary).
+
+5. **Tool call match**: Find the entry in `toolCalls` where `serverFingerprint` matches the receiving server's identity. If no such entry exists, reject with `server_mismatch`. Then verify that the entry's `name` matches the `name` parameter of the `tools/call` request. If not, reject with `tool_mismatch`. This prevents cross-server replay and tool-substitution in a single step.
+
+6. **Acknowledgement processing (if applicable)**: If the attestation includes an `ack` field:
+  - Decrypt `ack.callback` using the server's private key to obtain the callback URL.
+  - **Authenticated pre-flight check**: Send an OPTIONS request to the callback URL. The request MUST include two headers:
+    - `X-Ack-Challenge`: A randomly generated challenge nonce (implementation-defined format, base64url token recommended).
+    - `X-Ack-Attestation-Nonce`: The value of `attestation.nonce` as-is.
+    
+    The issuer MUST respond with a signed JSON payload: `{ "issuer": "<iss>", "challenge": "<challenge from header>", "attestation_nonce": "<nonce from header>", "signature": "<signature>" }`, where the signature is computed over `issuer`, `challenge`, and `attestation_nonce` using the issuer's signing key — the same key and algorithm (`alg`) that signed the attestation envelope. The server verifies this signature using the key identified by `attestation.alg` and `attestation.iss`, and confirms both nonces match what it sent.
+    
+    The issuer uses the attestation nonce to verify that the attestation still belongs to a valid window (e.g., checking the last 6 characters against active window UUIDs). Window rotation is an issuer implementation detail — the SEP only specifies the wire format.
+    
+    - If the signature is valid and both nonces match, the server proceeds.
+    - If the response is missing, the signature is invalid, or either nonce mismatches, treat as OPTIONS failure.
+  - **On OPTIONS failure** (timeout, non-2xx, or invalid signature):
+    - If `ack.required` is true, the server MUST reject the tool call with `ack_delivery_failed`. The tool is never executed — the issuer's audit is authoritative. The nonce is consumed.
+    - If `ack.required` is false or omitted, the server SHOULD log the failure and proceed. The compliance trail is degraded.
+  - Execute the tool call.
+  - Sign `ack.token` as-is with the server's private key. Construct a POST request to the callback URL containing `{ "token": "<signed token>", "result": <tool result or digest thereof> }`. The server SHOULD retry the POST on transient failure (e.g., network error, timeout). The issuer SHOULD respond with `200 { "status": "accepted" }` on success; the server SHOULD treat any 2xx as success.
+  - The `ack.token` is opaque and encrypted to the issuer's public key. The server MUST NOT attempt to decrypt it. Its purpose is to bind the server's identity to the tool result so the issuer can confirm which server acknowledged which result.
+  - If the POST fails after all retries and the authenticated pre-flight succeeded, the server SHOULD log and return the tool result — the issuer was reachable and authentic at execution time, so the loss is transient.
+
+If the server cannot decrypt `ack.callback` (e.g., mismatched key), behavior depends on `ack.required`: if true, reject with `ack_delivery_failed`; if false or omitted, log and proceed.
+
+Servers that do not advertise `multiServer: true` MAY reject attestations where `toolCalls.length > 1`.
+
+If any check fails, the server MUST return a tool result with `isError: true` and a structured error payload in the content:
+
+```typescript
+{
+  result: {
+    isError: true,
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({
+          attestation_error: true,
+          reason: "signature_invalid" | "nonce_replay" | "expired" |
+                  "tool_mismatch" | "server_mismatch" | "key_unavailable" |
+                  "resource_digest_mismatch" | "attestation_required" |
+                  "ack_delivery_failed"
+        })
+      }
+    ]
+  }
+}
+```
+
+Attestation failures are tool execution errors (the tool was not executed due to a failed security check), not protocol errors. They MUST be communicated as tool results, not JSON-RPC errors. This preserves the distinction MCP makes between protocol-level issues (malformed request, unknown method) and execution-level issues (policy rejection, security check failure).
+
+### Error Reasons
+
+Attestation failures are communicated as tool results with `isError: true`. The structured error payload in the content text uses the following `reason` values:
+
+| Reason | Description |
+|--------|-------------|
+| `signature_invalid` | Signature does not match the canonical payload |
+| `nonce_replay` | Nonce has been seen within the TTL window |
+| `expired` | `iat + exp` has passed |
+| `tool_mismatch` | Tool name does not match the `tools/call` request |
+| `server_mismatch` | No `toolCalls` entry matches the receiving server's fingerprint |
+| `key_unavailable` | Key identified by `alg` and `secretVersion` is not available |
+| `resource_digest_mismatch` | Content fetched at `args.resource` does not match the attested digest |
+| `attestation_required` | Server requires attestation but none was provided |
+| `ack_delivery_failed` | The `ack` POST could not be delivered and `required` is true |
+
+## Rationale
+
+### Why Optional Capability
+
+Making attestation optional rather than mandatory ensures backward compatibility. Existing MCP clients and servers continue to work unchanged. New deployments can opt-in gradually. This follows the same pattern as MCP's existing Authorization framework — defined in the spec but negotiated at initialization.
+
+### Why Two Signing Modes
+
+**HS256** (symmetric HMAC) is the simplest deployment: the client and server share a secret. It is appropriate for self-hosted OSS deployments where both sides are in the same trust domain. No public key infrastructure is needed.
+
+**ES256/RS256** (asymmetric) supports deployments where the client and server are in different trust domains. The verifier only needs the issuer's public key, which can be published, pre-shared as a fingerprint, or retrieved from a registry. This is the mode required for multi-tenant or enterprise scenarios where the issuer is a separate service (notary, compliance gateway, credential authority).
+
+### Why Nonce + TTL Instead of Prevents-Replay
+
+A nonce cache bounded by the attestation TTL is simpler and more robust than relying on monotonically increasing counters across potentially unreliable clients. The TTL prevents unbounded nonce storage. Thirty-second clock skew tolerance covers typical NTP drift margins.
+
+### Why toolCalls Array
+
+Using an array instead of a single `toolName`/`toolArgs`/`serverFingerprint` trio handles two use cases without protocol bloat. First, the common case is a single call — `toolCalls` has one entry, the server verifies against it, done. Second, multi-step workflows where an agent orchestrates across several MCP servers get a single attestation for the entire plan. Each server finds its own entry via `serverFingerprint`, and the shared nonce prevents partial replay. The signature covers the whole array — no entry can be inserted or removed after issuance.
+
+### Why Resource References for Args
+
+Large tool call arguments (e.g., file contents, image data, verbose configuration) would inflate the attestation envelope if included inline. By allowing `args` to reference an external URL that the issuer dereferences and hashes, the attestation remains small and constant-size regardless of payload. The issuer acts as a notary that verifies content at signing time — the attestation proves "the content at this URL had this digest when the attestation was issued," not just "the agent claimed it had this digest." This keeps the verification path trustless: the verifier fetches the URL independently and confirms the digest matches the attested value.
+
+### Relationship to JWT
+
+The attestation envelope is structurally a JWT — signed payload with explicit `alg`, `iss`, `sub`, `iat`, and `exp` fields. The key differences are intentional:
+
+1. **No base64 encoding**: The envelope lives in `_meta`, which is already JSON. Wrapping JWT's three-part base64 encoding inside `_meta` adds a decode step with no security benefit. Parsing native JSON is one step fewer.
+
+2. **Canonical JSON enforcement**: Standard JWT verification compares the exact base64-encoded payload string. This SEP requires the verifier to re-serialize and verify, which catches accidental or malicious non-canonical encodings that standard JWT would accept.
+
+3. **Resource dereference**: Attesting large arguments by URL + digest is outside JWT's scope. It would require a custom claim with a new verification rule — which is exactly what this SEP defines.
+
+4. **`ack` protocol**: JWT has no mechanism for server-signed post-execution acknowledgement with encrypted callback and proof token. Building this as a JWT extension claim set would produce a profile specification functionally equivalent to this SEP.
+
+A standard JWT would work with a custom claim definition and no canonical JSON enforcement. This SEP deviates where the `_meta` transport and compliance use case demand it, and aligns with JWT everywhere else.
+
+### Relationship to Authorization
+
+Attestation is orthogonal to MCP's existing Authorization framework. Authorization proves *who* is allowed to call a tool. Attestation proves *why* they are calling it and *that* they called it. A deployment may use both: OAuth for transport-level auth and attestation for intent-bound audit.
+
+## Backward Compatibility
+
+**Fully backward compatible.** The attestation extension is negotiated at initialization via the `extensions` field. Servers that do not advertise `soup/tool-call-attestation` never receive attestation metadata. Clients that do not support it never send it. Existing MCP implementations are completely unaffected.
+
+Attestation errors are returned as tool execution errors (`isError: true`), not JSON-RPC protocol errors. This is consistent with how MCP handles other security-related tool execution failures and introduces no new JSON-RPC error codes.
+
+## Security Implications
+
+### Attestation Replay
+
+The nonce + TTL mechanism prevents replay within the validity window. However, if the verifier's nonce cache is lost (e.g., process restart), previously valid attestations could be replayed until their TTL expires. Servers SHOULD persist nonce state for the maximum expected TTL if crash recovery is a concern.
+
+### Key Compromise
+
+If the issuer's signing key (HS256 shared secret or ES256/RS256 private key) is compromised, an attacker can forge attestations. Recovery requires key rotation — the `secretVersion` field allows verifiers to distinguish attestations signed with the old key from those signed with the new key during the rotation window.
+
+### Clock Skew Attacks
+
+Verifiers allow up to 30 seconds of clock skew. An attacker who can skew the verifier's clock can extend the replay window. Servers SHOULD monitor clock drift and reject attestations if system time diverges from NTP by more than 30 seconds.
+
+### Privacy Considerations
+
+The `intent` field is human-readable and signed. It is visible to both the client and the MCP server in plaintext. Deployments handling sensitive intent descriptions SHOULD consider whether additional encryption of the intent field is required — this is out of scope for the current SEP but could be addressed in a future extension.
+
+The `serverFingerprint` field identifies which MCP server was the target of a tool call. In multi-tenant or cross-org deployments, the set of servers an agent calls may reveal deployment topology, vendor relationships, or internal tooling choices. Deployments SHOULD evaluate whether the fingerprint alone constitutes sensitive metadata in their regulatory context.
+
+The `iss` field identifies the attestation issuer. In deployments where the issuer is a dedicated notary or compliance service, the issuer's identity is public by design — the attestation is meant to be verifiable by third parties. However, the issuer's request volume (inferred from attestation issuance rate) may leak operational metadata. Issuers concerned about traffic analysis MAY consider deploying behind a privacy-preserving relay.
+
+### Acknowledgement Protocol
+
+The optional `ack` field (see Attestation Envelope) closes the compliance loop by allowing the issuer to learn whether the attested tool call actually executed and what result it produced. The design provides:
+
+1. **Issuer authentication (pre-flight)**: Before executing the tool, the server sends an OPTIONS request to the callback URL with a nonce. The issuer responds with a signed payload. The server verifies this signature using the same key that signed the attestation envelope. This prevents a MitM from substituting a fake issuer endpoint — the tool is never executed unless the real issuer authenticates.
+
+2. **Source authentication**: The MCP server signs `ack.token` with its own private key — a key the client cannot replicate. When the issuer receives the POST at the callback URL, it verifies the server's signature on the token, providing cryptographic proof that "this specific MCP server" (not the client, not a third party) handled the call.
+
+3. **Execution confirmation**: The server includes the tool result (or a digest thereof) in the POST body alongside the signed token. The issuer can correlate this with the attestation it issued, confirming that the call ran and produced the expected outcome.
+
+4. **Privacy**: `ack.callback` is encrypted to the MCP server's public key — a passive observer or the client cannot discover the issuer's callback endpoint. `ack.token` is encrypted to the issuer's public key — even the MCP server cannot read its contents.
+
+Limitations: The acknowledgement proves *who* handled the call but not *truthfulness* — a compromised server can sign a lie about what result it produced. The `ack` is a lightweight compliance confirmation, not a non-repudiation receipt. Full acknowledgement semantics (retry, timeout, error codes, non-repudiation) may be addressed in a follow-up SEP.
+
+## Reference Implementation
+
+A reference implementation will be provided as part of soup-oss, an MIT-licensed project. The implementation will include:
+
+- Payload construction and canonicalization
+- HS256 signing and verification
+- Nonce generation and TTL enforcement
+- Server fingerprint matching
+- An MCP server adapter that verifies attestations before forwarding to tool handlers
+
+## Extension-Defined Values
+
+The following identifiers and conventions are defined as part of this extension, scoped to implementations that negotiate `soup/tool-call-attestation`.
+
+### Signing Algorithm Identifiers
+
+The following algorithm identifiers are used in the `alg` field of the `Attestation` envelope:
+
+| Identifier | Algorithm | Reference |
+|------------|-----------|-----------|
+| `HS256` | HMAC-SHA256 | RFC 7518 §3.2 |
+| `ES256` | ECDSA using P-256 and SHA-256 | RFC 7518 §3.4 |
+| `RS256` | RSASSA-PKCS1-v1_5 using SHA-256 | RFC 7518 §3.1 |
+
+These identifiers are drawn from the JSON Web Signature (JWS) registry [RFC 7518](https://www.rfc-editor.org/rfc/rfc7518). No new algorithm registrations are required.
+
+## Open Questions
+
+### Normative
+
+- **Asymmetric key discovery**: For ES256/RS256 mode, how should the verifier discover the issuer's public key? Options include: well-known URL under the `iss` domain, a DHT-based key registry, or out-of-band distribution. This SEP leaves key discovery unspecified for now and expects a follow-up SEP or extension to standardize discovery.
+- **JSON Schema**: Should the attestation envelope be defined as a formal JSON Schema in addition to the TypeScript interface? A JSON Schema would improve cross-language portability for conformance testing.
+- **Nonce cache operational guidance**: Should the spec recommend concrete bloom filter parameters (e.g., 1M entry capacity, 0.1% FP rate, 300s eviction) or leave cache sizing to implementation?
+- **Conformance test suite location**: Should the attestation conformance tests live in the MCP conformance repository or in the reference implementation's repository?
+- **`serverFingerprint` format**: Should the spec define a standard format for the server fingerprint (e.g., `sha256$<hex>` of the server's public key or TLS certificate), or leave it as an opaque string defined by each deployment?
+- **URI-based key discovery**: The `serverFingerprint` currently carries no key distribution semantics — verifiers must know out-of-band which key belongs to which fingerprint. A stronger pattern would make the fingerprint a URI (e.g., `mcp://server-a.example.com`), with the server's public key published at `{fingerprint}/.well-known/jwks.json` in standard JWKS format. The issuer fetches this to encrypt `ack.callback`; the verifier fetches it to verify `ack` signatures. Access control on the JWKS endpoint (MCP auth, mTLS) ensures only authorized parties can read keys. This converges server identity, key discovery, and key format into one standard pattern with no new infrastructure. Should the SEP adopt URI-based fingerprints with JWKS well-known discovery?
+
+### Non-Normative
+
+- **EU AI Act compliance mapping**: A companion document mapping each field of the attestation envelope to specific requirements in EU AI Act Articles 12, 13, 14, and 26(6) would aid enterprise procurement teams. Should this be included as an appendix or published separately?
+- **Privacy classification of `serverFingerprint`**: The fingerprint identifies which MCP server received the call, which may be PII-adjacent or commercially sensitive in some deployments. Should the spec include a privacy consideration for this field, or is it out of scope?
+- **`ack` protocol scope**: The optional `ack` field closes the compliance loop but adds significant complexity — dual encryption, callback decryption, token signing, and POST delivery with retry semantics. This SEP keeps it as a single optional field so the attestation envelope is self-contained for compliance use cases. However, a separate extension could define the full acknowledgement protocol (endpoint discovery, retry policy, timeout handling, error codes, non-repudiation). Should `ack` be deferred to a follow-up SEP to keep this proposal focused on the core attestation envelope?
+- **Credential binding in attestations**: In strict compliance scenarios, the attestation should ideally bind which credential authorized the tool call, so the server can confirm the agent did not inject an unauthorized credential outside the attested intent. This SEP deliberately omits credential delivery (wrapping and transporting secrets). A lighter alternative would be an optional `credentialRef` on `toolCalls` entries — the attestation carries a key or reference to a pre-registered credential, not the credential itself. The server resolves the credential internally and rejects if the agent supplies a different one. This preserves the audit trail (credential provenance) without the transport or decryption complexity of wrapped secrets. Should a future extension define this pattern?
