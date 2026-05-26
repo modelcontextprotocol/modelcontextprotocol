@@ -6,14 +6,13 @@ title: Sampling
 
 <Warning>
   **Deprecated**: The Sampling feature is deprecated as of protocol version
-  `DRAFT-2026-v1`
+  `2026-07-28`
   ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
-  Under the [feature lifecycle
-  policy](/seps/2596-spec-feature-lifecycle-and-deprecation), it remains in the
-  specification for at least twelve months after this revision's release before
-  it becomes eligible for removal. New implementations **SHOULD NOT** adopt it;
-  existing implementations **SHOULD** migrate to integrating directly with LLM
-  provider APIs. See the [deprecated features
+  Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
+  in the specification for at least twelve months after this revision's release
+  before it becomes eligible for removal. New implementations **SHOULD NOT**
+  adopt it; existing implementations **SHOULD** migrate to integrating directly
+  with LLM provider APIs. See the [deprecated features
   registry](/specification/draft/deprecated).
 </Warning>
 
@@ -93,7 +92,8 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 <Note>
   The `includeContext` parameter values `"thisServer"` and `"allServers"` are
-  deprecated
+  deprecated under the [feature lifecycle
+  policy](/community/feature-lifecycle#transition)
   ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596));
   they will be removed no later than the Sampling feature itself. Servers
   **SHOULD** avoid using these values (e.g. can just omit `includeContext` since
