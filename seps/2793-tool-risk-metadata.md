@@ -1,12 +1,12 @@
-# SEP-XXXX: Tool Risk Metadata
+# SEP-2793: Tool Risk Metadata
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-05-27
 - **Author(s)**: walbis (@walbis)
-- **Issue**: TBD
+- **Issue**: #2793
 
-| SEP Number        | TBD                                                                                          |
+| SEP Number        | #2793                                                                                          |
 | ----------------- | -------------------------------------------------------------------------------------------- |
 | **Title**         | Tool Risk Metadata                                                                           |
 | **Author**        | walbis                                                                                       |
@@ -15,7 +15,7 @@
 | **Created**       | 2026-05-27                                                                                   |
 | **Specification** | MCP 2025-11-25 (draft)                                                                       |
 | **Prototype**     | https://github.com/walbis/karai (`config/tool_policies.yaml` — manual catalogue, ~30 tools)  |
-| **PR**            | (this PR)                                                                                    |
+| **PR**            | #2793 (https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2793)                                                                                    |
 | **SDKs**          | TBD                                                                                          |
 
 ## Abstract
