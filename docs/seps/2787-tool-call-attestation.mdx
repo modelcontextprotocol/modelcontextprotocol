@@ -264,6 +264,8 @@ MCP servers that negotiate the `soup/tool-call-attestation` extension MUST imple
 
 4. **Tool call match**: Find the entry in `toolCalls` where `serverFingerprint` matches the receiving server's identity. If no such entry exists, reject with `server_mismatch`. Then verify that the entry's `name` matches the `name` parameter of the `tools/call` request. If not, reject with `tool_mismatch`. This prevents cross-server replay and tool-substitution in a single step.
 
+5. **Argument commitment verification**: If the `toolCalls` entry uses `args_ref`, resolve the URI, compute SHA-256 over the fetched content, and compare against the stored digest. Confirm the resolved content corresponds to the `arguments` being executed. If the entry uses `args_projection`, compare it against the canonicalized runtime `arguments` (RFC 8785). Identity projections MUST match exactly; redacted projections are verified only to be signed — the verifier makes no claim about completeness relative to the runtime arguments. If neither field is present, or if the content cannot be resolved and matched, reject with `args_commitment_mismatch`.
+
 Servers that do not advertise `multiServer: true` MAY reject attestations where `toolCalls.length > 1`.
 
 If any check fails, the server MUST return a tool result with `isError: true` and a structured error payload in the content:
@@ -279,7 +281,7 @@ If any check fails, the server MUST return a tool result with `isError: true` an
           attestation_error: true,
           reason: "signature_invalid" | "nonce_replay" | "expired" |
                   "tool_mismatch" | "server_mismatch" | "key_unavailable" |
-                  "attestation_required"
+                  "attestation_required" | "args_commitment_mismatch"
         })
       }
     ]
@@ -293,15 +295,16 @@ Attestation failures are tool execution errors (the tool was not executed due to
 
 Attestation failures are communicated as tool results with `isError: true`. The structured error payload in the content text uses the following `reason` values:
 
-| Reason                 | Description                                                     |
-| ---------------------- | --------------------------------------------------------------- |
-| `signature_invalid`    | Signature does not match the canonical payload                  |
-| `nonce_replay`         | Nonce has been seen within the TTL window                       |
-| `expired`              | `iat + exp` has passed                                          |
-| `tool_mismatch`        | Tool name does not match the `tools/call` request               |
-| `server_mismatch`      | No `toolCalls` entry matches the receiving server's fingerprint |
-| `key_unavailable`      | Key identified by `alg` and `secretVersion` is not available    |
-| `attestation_required` | Server requires attestation but none was provided               |
+| Reason                     | Description                                                     |
+| -------------------------- | --------------------------------------------------------------- |
+| `signature_invalid`        | Signature does not match the canonical payload                  |
+| `nonce_replay`             | Nonce has been seen within the TTL window                       |
+| `expired`                  | `iat + exp` has passed                                          |
+| `tool_mismatch`            | Tool name does not match the `tools/call` request               |
+| `server_mismatch`          | No `toolCalls` entry matches the receiving server's fingerprint |
+| `key_unavailable`          | Key identified by `alg` and `secretVersion` is not available    |
+| `attestation_required`     | Server requires attestation but none was provided               |
+| `args_commitment_mismatch` | Attested args commitment does not match runtime arguments       |
 
 ## Rationale
 
