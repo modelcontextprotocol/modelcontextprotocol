@@ -1,0 +1,40 @@
+{
+  "alg": "RS256",
+  "issuer_asserted": {
+    "alg": "RS256",
+    "exp_seconds": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secret_version": "v1",
+    "sub": "agent:archiver"
+  },
+  "payload_derived": [
+    {
+      "kind": "projection",
+      "projection": {
+        "redacted_path_prefix": "/archive/"
+      },
+      "projection_digest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
+    }
+  ],
+  "planner_declared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requested_capability": "filesystem.delete",
+    "tool_calls": [
+      {
+        "args": {
+          "kind": "projection",
+          "projection": {
+            "redacted_path_prefix": "/archive/"
+          },
+          "projection_digest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
+        },
+        "name": "delete_file",
+        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "signature": "009120b710822f636e93be0bdfe280f4a31043f9d8a2f72353997ea07511c8ba44295333f80bf16856675f615dadf5eb9ed6fed6d107444a08436b702eedcab8244804449755661b2dda6b7c1d7dd8751a6d51c5c25943195cd0bba61be5aa27ac513320001c19759e786324d3db72fdb80c28f6f27cc3988696a1bbaf826d6eb22696f570a796e899d80d977823f9277810068f7024d0cfbcfaf37d2682ceafd71c68d1892f15922d8e0f4dd60fcd6b4521830acd475da5a951ab2dd2801d9c29bd1b2bb2a3a77723c52ebb66f44b5aada9b585d766503410a7e38c0cb8d3ed415052aecd6bd735f53975848c3bd8c1627fe7fb62d488f7e89cc6e26312f96e",
+  "version": 1
+}

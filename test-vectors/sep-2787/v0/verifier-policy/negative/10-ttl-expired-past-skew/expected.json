@@ -1,0 +1,14 @@
+{
+  "bucket": "verifier-policy/negative",
+  "case_id": "10-ttl-expired-past-skew",
+  "default_skew_seconds": 30,
+  "exp_seconds": 60,
+  "iat": "2026-05-26T12:00:00Z",
+  "notes": "Signature is valid against the HS256 secret. Rejection is policy-driven (clock check). A verifier with skew tolerance >= 31 seconds would accept.",
+  "policy_dependency": "ttl_skew_tolerance_seconds",
+  "rejection_dimension": "ttl_window",
+  "verification_result_under_default_policy": false,
+  "verify_at_epoch": 1779796891.0,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}

@@ -1,0 +1,39 @@
+{
+  "alg": "RS256",
+  "issuer_asserted": {
+    "alg": "RS256",
+    "exp_seconds": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secret_version": "v1",
+    "sub": "agent:archiver"
+  },
+  "payload_derived": [
+    {
+      "kind": "projection",
+      "projection": {
+        "redacted_path_prefix": "/archive/"
+      },
+      "projection_digest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
+    }
+  ],
+  "planner_declared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requested_capability": "filesystem.delete",
+    "tool_calls": [
+      {
+        "args": {
+          "kind": "projection",
+          "projection": {
+            "redacted_path_prefix": "/archive/"
+          },
+          "projection_digest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
+        },
+        "name": "delete_file",
+        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "version": 1
+}

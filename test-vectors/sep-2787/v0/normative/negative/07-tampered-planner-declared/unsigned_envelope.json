@@ -1,0 +1,35 @@
+{
+  "alg": "HS256",
+  "issuer_asserted": {
+    "alg": "HS256",
+    "exp_seconds": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secret_version": "v1",
+    "sub": "agent:archiver"
+  },
+  "payload_derived": [
+    {
+      "canonicalization": "jcs",
+      "digest": "sha256:866290b000d2128e0a3188a7207d447090415dc321bfcc0ceed355bd7fd3e8f8",
+      "kind": "digest"
+    }
+  ],
+  "planner_declared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requested_capability": "filesystem.write",
+    "tool_calls": [
+      {
+        "args": {
+          "canonicalization": "jcs",
+          "digest": "sha256:866290b000d2128e0a3188a7207d447090415dc321bfcc0ceed355bd7fd3e8f8",
+          "kind": "digest"
+        },
+        "name": "delete_file",
+        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "version": 1
+}

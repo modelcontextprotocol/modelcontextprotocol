@@ -1,0 +1,10 @@
+{
+  "based_on": "01-hs256-digest",
+  "bucket": "normative/negative",
+  "case_id": "07-tampered-planner-declared",
+  "modification": "planner_declared.requested_capability changed from 'filesystem.delete' to 'filesystem.write' after signing. Signature still covers the original block.",
+  "rejection_dimension": "signature_input_mismatch",
+  "verification_result": false,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}
