@@ -1,10 +1,28 @@
-# SEP-2787 Tool Call Attestation, test vectors v0
+# SEP-2787 Tool Call Attestation, proposed-shape test vectors v0
 
-Test vectors for SEP-2787 (modelcontextprotocol/modelcontextprotocol#2787),
-v0 envelope schema. Apache-2.0. Derived from
-`tests/test_attestation_sep2787.py` at commit 3d7af54 of vaaraio/vaara
-(branch `feat/sep2787-reference-impl`). SEP maintainers own the final
-normative artifact location.
+**Status: proposed-shape, not conformance for current SEP-2787 draft.**
+
+These vectors target the revised envelope shape proposed in [vaaraio's
+four-proposal comment](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2787#issuecomment-4544033186)
+on #2787: `planner_declared` / `issuer_asserted` / `payload_derived`
+trust-surface blocks, explicit args-commitment kinds (digest, ref,
+projection), JCS canonicalisation, IEEE-754 float rejection at the
+canonicalisation boundary.
+
+The SEP-2787 text as currently written describes a flatter v1 shape
+(top-level `iss` / `sub` / `intent`, `toolCalls[*].args` as a string,
+sorted-key no-whitespace canonicalisation, optional `ack`). A second
+implementer reading the SEP as-is would correctly implement v1 and
+fail these fixtures.
+
+Treat as **provisional** until the SEP text adopts matching schema and
+canonicalisation rules. A sibling `v1-current` vector set against the
+SEP text as written is on offer if useful.
+
+Apache-2.0. Derived from `tests/test_attestation_sep2787.py` at
+vaaraio/vaara@3d7af54 (tag `sep2787-ref-v0`, merged via
+vaaraio/vaara#139). SEP maintainers own the final normative artifact
+location.
 
 ## Layout
 
