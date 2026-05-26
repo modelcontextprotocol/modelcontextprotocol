@@ -89,7 +89,7 @@ The attestation is a signed JSON object sent as part of the `tools/call` request
 
 Fields are grouped by trust surface to clarify which layer asserts each fact — see the Rationale section for the security model.
 
-````typescript
+```typescript
 /** @meta/_meta/attestation — sent alongside tools/call */
 interface Attestation {
   /** Protocol version. MUST be 1. */
@@ -191,7 +191,7 @@ interface Attestation {
    */
   signature: string;
 }
-````
+```
 
 ### Canonical JSON for Signing
 
