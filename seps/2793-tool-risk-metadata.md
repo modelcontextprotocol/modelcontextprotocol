@@ -14,7 +14,7 @@
 | **Status**        | Draft                                                                                        |
 | **Created**       | 2026-05-27                                                                                   |
 | **Specification** | MCP 2025-11-25 (draft)                                                                       |
-| **Prototype**     | https://github.com/walbis/karai (`config/tool_policies.yaml` — manual catalogue, ~30 tools)  |
+| **Prototype**     | https://github.com/walbis/karai (`config/tool_policies.yaml` — manual catalogue, ~30 tools) + https://github.com/walbis/mcp-risk-inferrer (heuristic inferrer, v0.1) |
 | **PR**            | #2793 (https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2793)                                                                                    |
 | **SDKs**          | TBD                                                                                          |
 
@@ -150,14 +150,14 @@ principle familiar to security-conscious deployments.
 
 Servers can declare these fields; consumers without server-declared
 metadata can **infer** them from the tool's name, description, and input
-schema. A reference inferrer service (planned as separate work under
-`mcp-risk-inferrer`) will use a verb-based heuristic (`get|list|describe`
-→ `read`/`low`; `create|apply|update` → `mutate`/`medium`;
-`delete|destroy|drop` → `delete`/`high`; flags like `force`, `recursive`,
-`cascade` bump risk; namespace patterns matching `prod|production` bump
-blastRadius) plus optional LLM augmentation for nuance. The inferrer
-emits the same `ToolAnnotations` shape, so server-declared and inferred
-manifests are interchangeable.
+schema. A reference inferrer (https://github.com/walbis/mcp-risk-inferrer)
+ships a verb-based heuristic — `get|list|describe` → `read`/`low`;
+`create|apply|update` → `mutate`/`medium`; `delete|destroy|drop` →
+`delete`/`high`; risky flags (`force`, `recursive`, `cascade`,
+`all_namespaces`) bump risk one grade; scope-hint params (`namespace`,
+`cluster`, `org`) infer blastRadius — plus a planned optional LLM
+augmenter for nuance. The inferrer emits the same `ToolAnnotations`
+shape, so server-declared and inferred manifests are interchangeable.
 
 ## Rationale
 
@@ -197,10 +197,12 @@ fields; older servers don't emit them. No breaking change.
   manual classification at `config/tool_policies.yaml` for 30+ K8s
   tools, using a vocabulary almost identical to this proposal. That
   catalogue is the proof of need: every consumer ends up writing one.
-- **mcp-risk-inferrer** (planned, OSS) — a reference inferrer service
-  that derives this metadata from existing tools that haven't declared
-  it, so the ecosystem can bootstrap without waiting for every server
-  to update.
+- **mcp-risk-inferrer** (https://github.com/walbis/mcp-risk-inferrer)
+  — reference inferrer that derives this metadata from existing tools
+  that haven't declared it, so the ecosystem can bootstrap without
+  waiting for every server to update. v0.1 ships a heuristic classifier
+  (Python, MIT) and a CLI; v0.2 plans an optional LLM augmenter, v0.3
+  a live MCP connector.
 
 ## Open questions
 
