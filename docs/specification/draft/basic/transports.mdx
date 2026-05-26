@@ -135,17 +135,42 @@ A client that only supports modern versions does not need to probe.
 
 <Info>
 
-This replaces the [HTTP+SSE transport][http-sse] from
-protocol version 2024-11-05. See [Backward Compatibility](#backward-compatibility-1)
-below.
+Streamable HTTP was introduced in protocol version 2025-03-26 as a replacement
+for the [HTTP+SSE transport][http-sse] from protocol version 2024-11-05.
+
+</Info>
+
+<Info>
+
+Revision 2026-07-28 changed the behavior of Streamable HTTP. Clients must
+ensure they handle backwards compatibility correctly. Changes included:
+
+- Removal of the GET stream endpoint
+- Removal of protocol-level session.
+
+See the [changelog](/specification/draft/changelog) and
+[Backward Compatibility](#backward-compatibility-1) below.
 
 </Info>
 
 In the **Streamable HTTP** transport, the server operates as an independent
-process that can handle multiple client connections. The transport uses HTTP
-POST. The server can optionally use
-[Server-Sent Events][sse] (SSE)
-to stream multiple server messages in response to a single request.
+process that can handle multiple client connections. At a glance:
+
+- The server exposes a single HTTP endpoint (the **MCP endpoint**) that
+  accepts POST.
+- The client sends every JSON-RPC request, notification, or response as its
+  own HTTP POST.
+- The server answers each request with either a single JSON object or a
+  [Server-Sent Events][sse] (SSE) stream scoped to that request, carrying
+  request-related notifications followed by the final response.
+- Server-to-client interactions (sampling, elicitation, roots) are embedded
+  in results as input requests per [SEP-2322 (MRTR)][sep-2322].
+- Long-lived change notifications (such as list changes and resource updates)
+  are delivered on the response stream of a
+  [`subscriptions/listen`][subscriptions-listen] request.
+
+See [Message Flow](#message-flow) for sequence diagrams of these
+interactions.
 
 The server **MUST** provide a single HTTP endpoint path (hereafter referred to
 as the **MCP endpoint**) that supports POST. For example, this could be a URL
@@ -210,7 +235,9 @@ When the server returns an SSE response stream
   embedded as input requests inside an
   [`InputRequiredResult`][input-required-result] per
   [SEP-2322 (MRTR)][sep-2322], not delivered as separate requests on
-  this or any other stream.
+  this or any other stream. This is a change from Streamable HTTP in protocol
+  versions `2025-03-26` through `2025-11-25`, where servers could send such
+  requests on SSE streams.
 - The final JSON-RPC _response_ **SHOULD** terminate the stream.
 
 Long-lived notification streams are obtained by sending a
@@ -237,6 +264,73 @@ Resumable SSE streams via `Last-Event-ID` are not supported.
 [input-required-result]: /specification/draft/schema#inputrequiredresult
 [sep-2322]: /seps/2322-MRTR
 [subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
+
+### Message Flow
+
+The following diagrams illustrate the message flows on a single MCP endpoint.
+
+**Requests and responses.** Each request is its own POST; the server chooses
+per request whether to respond with a single JSON object or an SSE stream:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    note over Client,Server: Simple response
+    Client->>Server: POST tools/call (JSON-RPC request)
+    Server-->>Client: 200 OK, application/json<br/>JSON-RPC response
+
+    note over Client,Server: Streaming response
+    Client->>Server: POST tools/call (JSON-RPC request)
+    note over Server: Opens SSE stream<br/>scoped to this request
+    Server-->>Client: SSE: notifications/progress
+    Server-->>Client: SSE: notifications/progress
+    Server-->>Client: SSE: JSON-RPC response
+    note over Client,Server: Stream closes
+
+    note over Client,Server: Notification
+    Client->>Server: POST (JSON-RPC notification)
+    Server-->>Client: 202 Accepted
+```
+
+**Server-to-client interactions (MRTR).** When the server needs input from
+the client — sampling, elicitation, or roots — it does not send its own
+JSON-RPC request. It returns an
+[`InputRequiredResult`][input-required-result] containing `inputRequests`,
+and the client retries the original request with the matching
+`inputResponses` (see [Multi Round-Trip Requests][sep-2322]):
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Client->>Server: POST tools/call (id: 1)
+    note over Server: Needs user input or<br/>an LLM completion
+    Server-->>Client: InputRequiredResult<br/>(inputRequests: elicitation/create)
+    note over Client: Gathers the requested input
+    Client->>Server: POST tools/call (id: 2)<br/>(original params + inputResponses)
+    Server-->>Client: Final result
+```
+
+**Change notifications.** Clients that want server-initiated change
+notifications open a long-lived stream with
+[`subscriptions/listen`][subscriptions-listen]; the response stream stays
+open and carries only the notification types the client opted in to:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Client->>Server: POST subscriptions/listen<br/>(notification filter)
+    Server-->>Client: SSE: notifications/subscriptions/acknowledged
+    note over Client,Server: Stream stays open
+    Server-->>Client: SSE: notifications/tools/list_changed
+    Server-->>Client: SSE: notifications/resources/updated
+    note over Client,Server: Until the client or server closes the stream
+```
 
 ### Cancellation
 
@@ -602,7 +696,46 @@ falling back: modern servers also use `400` for
 
 See [Lifecycle: Backward Compatibility][lifecycle-compat] for details.
 
-Separately, clients and servers can maintain backward compatibility with the
+#### Earlier Streamable HTTP Revisions
+
+Protocol versions `2025-03-26` through `2025-11-25` also used the Streamable
+HTTP transport, but in a different shape: servers could assign a session via
+the `Mcp-Session-Id` header (terminated with HTTP DELETE), clients could open
+a standalone SSE stream with HTTP GET to receive server-initiated messages,
+servers could send JSON-RPC _requests_ on SSE streams, and streams were
+resumable via `Last-Event-ID`. None of these mechanisms are part of this
+revision.
+
+A server that supports only this revision and receives such traffic from an
+older client **SHOULD** respond as follows:
+
+- HTTP GET or DELETE to the MCP endpoint: respond with
+  `405 Method Not Allowed`.
+- An `Mcp-Session-Id` header on a request: ignore it, and do not mint or echo
+  session IDs.
+- A `Last-Event-ID` header: ignore it; streams are not resumable.
+
+Servers and clients that need to interoperate with counterparts speaking
+those protocol versions implement the behavior described in the corresponding
+revision (for example,
+[2025-11-25: Streamable HTTP](/specification/2025-11-25/basic/transports#streamable-http)),
+in addition to the version-negotiation fallback described above.
+
+#### HTTP+SSE Transport (2024-11-05)
+
+<Warning>
+  **Deprecated**: The [HTTP+SSE transport][http-sse] from protocol version
+  2024-11-05 has been deprecated since protocol version `2025-03-26` and is
+  classified as Deprecated under the [feature lifecycle
+  policy](/seps/2596-spec-feature-lifecycle-and-deprecation)
+  ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+  New implementations **SHOULD NOT** adopt it; existing implementations
+  **SHOULD** migrate to [Streamable HTTP](#streamable-http). It is eligible for
+  removal in a future revision; see the [deprecated features
+  registry](/specification/draft/deprecated).
+</Warning>
+
+Clients and servers can maintain backward compatibility with the
 deprecated [HTTP+SSE transport][http-sse] (from
 protocol version 2024-11-05) as follows:
 
