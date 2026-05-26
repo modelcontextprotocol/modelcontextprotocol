@@ -584,7 +584,7 @@
             "description": "Parameters for a `sampling/createMessage` request.",
             "properties": {
                 "includeContext": {
-                    "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. Values `\"thisServer\"` and `\"allServers\"` are soft-deprecated. Servers SHOULD only use these values if the client\ndeclares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.",
+                    "description": "A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.\nThe client MAY ignore this request.\n\nDefault is `\"none\"`. The values `\"thisServer\"` and `\"allServers\"` are deprecated (SEP-2596): servers SHOULD\nomit this field or use `\"none\"`, and SHOULD only use the deprecated values if the client declares\n{@link ClientCapabilities.sampling.context}.",
                     "enum": [
                         "allServers",
                         "none",
@@ -3087,7 +3087,7 @@
                     "additionalProperties": {
                         "$ref": "#/$defs/JSONObject"
                     },
-                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/apps\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
+                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/ui\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
                     "type": "object"
                 },
                 "logging": {

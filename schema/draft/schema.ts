@@ -642,8 +642,8 @@ export interface ClientCapabilities {
    * @example Sampling — tool use support
    * {@includeCode ./examples/ClientCapabilities/sampling-tool-use-support.json}
    *
-   * @example Sampling — context inclusion support (soft-deprecated)
-   * {@includeCode ./examples/ClientCapabilities/sampling-context-inclusion-support-soft-deprecated.json}
+   * @example Sampling — context inclusion support (deprecated)
+   * {@includeCode ./examples/ClientCapabilities/sampling-context-inclusion-support-deprecated.json}
    */
   sampling?: {
     /**
@@ -675,7 +675,7 @@ export interface ClientCapabilities {
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
    *
-   * @example Extensions — UI extension with MIME type support
+   * @example Extensions — MCP Apps (UI) extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
   extensions?: { [key: string]: JSONObject };
@@ -762,10 +762,10 @@ export interface ServerCapabilities {
   };
   /**
    * Optional MCP extensions that the server supports. Keys are extension identifiers
-   * (e.g., "io.modelcontextprotocol/apps"), and values are per-extension settings
+   * (e.g., "io.modelcontextprotocol/ui"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
    *
-   * @example Extensions — UI extension support
+   * @example Extensions — MCP Apps (UI) extension support
    * {@includeCode ./examples/ServerCapabilities/extensions-ui.json}
    */
   extensions?: { [key: string]: JSONObject };
@@ -1928,8 +1928,12 @@ export interface CreateMessageRequestParams {
    * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.
    * The client MAY ignore this request.
    *
-   * Default is `"none"`. Values `"thisServer"` and `"allServers"` are soft-deprecated. Servers SHOULD only use these values if the client
-   * declares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.
+   * Default is `"none"`. The values `"thisServer"` and `"allServers"` are deprecated (SEP-2596): servers SHOULD
+   * omit this field or use `"none"`, and SHOULD only use the deprecated values if the client declares
+   * {@link ClientCapabilities.sampling.context}.
+   *
+   * @deprecated The `"thisServer"` and `"allServers"` values are deprecated as of protocol version DRAFT-2026-v1
+   * (SEP-2596) and will be removed no later than the Sampling feature itself (SEP-2577). Omit this field or use `"none"`.
    */
   includeContext?: "none" | "thisServer" | "allServers";
   /**
