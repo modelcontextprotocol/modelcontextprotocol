@@ -92,96 +92,104 @@ Fields are grouped by trust surface to clarify which layer asserts each fact —
 ```typescript
 /** @meta/_meta/attestation — sent alongside tools/call */
 interface Attestation {
-  /** Protocol version. MUST be 1. */
-  version: 1;
-
-  // --- Issuer-asserted fields ---
-  // Set by the attestation issuer. These are the claims the issuer
-  // attests to: who issued it, who the subject is, cryptographic
-  // material, and timing.
-
-  /** Signing algorithm used for `signature`.
-   *  "HS256": HMAC-SHA256 (shared secret).
-   *  "ES256": ECDSA P-256 SHA-256.
-   *  "RS256": RSASSA-PKCS1-v1_5 SHA-256.
+  /** Fields asserted by the issuer: cryptographic material,
+   *  identity, and timing. The issuer's signature covers the
+   *  entire envelope, but these fields originate from the
+   *  issuer's authority.
    */
-  alg: "HS256" | "ES256" | "RS256";
-
-  /** Issuer identifier. Opaque string meaningful to the verifier.
-   *  Example: "issuer://a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-   */
-  iss: string;
-
-  /** Subject identifier. The agent or entity making the call.
-   *  Example: "agent:deploy-bot"
-   */
-  sub: string;
-
-  /** Version of the signing key. Enables key rotation without
-   *  invalidating in-flight attestations. Verifiers MUST use
-   *  this value to select the correct key for verification.
-   */
-  secretVersion: string;
-
-  /** ISO 8601 UTC timestamp of when the attestation was issued. */
-  iat: string;
-
-  /** Seconds from iat until this attestation expires.
-   *  Verifiers MUST reject expired attestations.
-   *  RECOMMENDED maximum: 300 (5 minutes).
-   */
-  exp: number;
-
-  /** Cryptographic nonce unique to this attestation.
-   *  Verifiers MUST reject previously seen nonces within
-   *  the TTL window. RECOMMENDED: 16+ cryptographically random
-   *  bytes base64url-encoded.
-   */
-  nonce: string;
-
-  // --- Planner-declared fields ---
-  // Set by the client or agent upstream of the issuer. The issuer
-  // attests that these values were presented at signing time but
-  // does not assert their truthfulness — only that they are bound.
-
-  /** Human-readable justification for the tool call(s).
-   *  MUST be non-empty when present.
-   */
-  intent: string;
-
-  // --- Payload-derived fields ---
-  // Computed deterministically from the tool call arguments.
-  // The issuer attests that the commitment matches the arguments
-  // at signing time.
-
-  /** One or more tool calls signed by this attestation.
-   *  Each MCP server verifies only the entry where
-   *  serverFingerprint matches its own identity.
-   */
-  toolCalls: Array<{
-    name: string;
-    /** Content-addressed reference: a retrieval URI alongside
-     *  the digest. The verifier fetches the content, hashes it,
-     *  and compares against the digest to confirm integrity.
-     *  Encoding: JSON object with `uri` (string) and
-     *  `digest` (base64url-encoded SHA-256) fields.
+  issuerAsserted: {
+    /** Signing algorithm.
+     *  "HS256": HMAC-SHA256 (shared secret).
+     *  "ES256": ECDSA P-256 SHA-256.
+     *  "RS256": RSASSA-PKCS1-v1_5 SHA-256.
      */
-    argsRef?: { uri: string; digest: string };
-    /** Redacted, transformed, or identity projection of the
-     *  arguments. Useful when the full arguments contain PII or
-     *  trade secrets but a reviewed summary can be recorded for
-     *  audit. For self-contained audit records, the identity
-     *  projection (all arguments unchanged) is a valid use of
-     *  this field — the attestation signature covers the
-     *  projection, so integrity is guaranteed without a separate
-     *  digest.
-     *  Encoding: JSON-stringified projection of the arguments.
-     */
-    argsProjection?: string;
-    serverFingerprint: string;
-  }>;
+    alg: "HS256" | "ES256" | "RS256";
 
-  // --- Signature (covers all above fields) ---
+    /** Issuer identifier. Opaque string meaningful to verifier.
+     *  Example: "issuer://a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+     */
+    iss: string;
+
+    /** Subject identifier. The agent or entity making the call.
+     *  Example: "agent:deploy-bot"
+     */
+    sub: string;
+
+    /** Version of the signing key. Enables key rotation without
+     *  invalidating in-flight attestations. Verifiers MUST use
+     *  this value to select the correct key for verification.
+     */
+    secretVersion: string;
+
+    /** ISO 8601 UTC timestamp of when the attestation was issued. */
+    iat: string;
+
+    /** Seconds from iat until this attestation expires.
+     *  Verifiers MUST reject expired attestations.
+     *  RECOMMENDED maximum: 300 (5 minutes).
+     */
+    expSeconds: number;
+
+    /** Cryptographic nonce unique to this attestation.
+     *  Verifiers MUST reject previously seen nonces within
+     *  the TTL window. RECOMMENDED: 16+ cryptographically
+     *  random bytes base64url-encoded.
+     */
+    nonce: string;
+  };
+
+  /** Fields declared by the client or agent planner upstream of
+   *  the issuer. The issuer attests these values were presented
+   *  at signing time but does not assert their truthfulness —
+   *  only that they are bound.
+   */
+  plannerDeclared: {
+    /** Human-readable justification for the tool call(s).
+     *  MUST be non-empty when present.
+     */
+    intent: string;
+
+    /** Optional capability requested by the planner
+     *  (e.g., "audit", "privileged"). Semantics defined by
+     *  the deployment.
+     */
+    requestedCapability?: string;
+  };
+
+  /** Fields computed deterministically from the tool call
+   *  payload. The issuer attests the commitments match the
+   *  arguments at signing time.
+   */
+  payloadDerived: {
+    /** One or more tool calls signed by this attestation.
+     *  Each MCP server verifies only the entry where
+     *  serverFingerprint matches its own identity.
+     */
+    toolCalls: Array<{
+      name: string;
+      /** Content-addressed reference: a retrieval URI alongside
+       *  the digest. The verifier fetches the content, hashes it,
+       *  and compares against the digest to confirm integrity.
+       *  Encoding: JSON object with `uri` (string) and
+       *  `digest` (base64url-encoded SHA-256) fields.
+       */
+      argsRef?: { uri: string; digest: string };
+      /** Redacted, transformed, or identity projection of the
+       *  arguments. Useful when the full arguments contain PII or
+       *  trade secrets but a reviewed summary can be recorded for
+       *  audit. For self-contained audit records, the identity
+       *  projection (all arguments unchanged) is a valid use of
+       *  this field — the attestation signature covers the
+       *  projection, so integrity is guaranteed without a separate
+       *  digest.
+       *  Encoding: JSON-stringified projection of the arguments.
+       */
+      argsProjection?: string;
+      serverFingerprint: string;
+    }>;
+  };
+
+  // --- Signature (covers all three blocks above) ---
   /** HMAC or public-key signature computed over the canonical
    *  JSON representation (RFC 8785) of all the above fields.
    *  Encoding depends on the signing algorithm:
@@ -240,21 +248,21 @@ For JSON-RPC (STDIO, SSE), the attestation is carried in the `_meta` field of th
 
 MCP servers that negotiate the `attestation/tool-call` extension MUST implement the following verification:
 
-1. **Signature verification**: Decode the canonical JSON (RFC 8785), verify the signature using the key identified by `alg` and `secretVersion`. For HS256, the shared secret must be pre-configured or derived. For ES256/RS256, the issuer's public key must be retrievable (e.g., from a key server, pre-shared, or published at a well-known URL matching `iss`).
+1. **Signature verification**: Decode the canonical JSON (RFC 8785), verify the signature using the key identified by `issuerAsserted.alg` and `issuerAsserted.secretVersion`. For HS256, the shared secret must be pre-configured or derived. For ES256/RS256, the issuer's public key must be retrievable (e.g., from a key server, pre-shared, or published at a well-known URL matching `issuerAsserted.iss`).
 
-2. **Nonce replay check**: Reject attestations whose `nonce` has been seen within `iat + exp`. RECOMMENDED: an in-memory bloom filter with background GC, or a bounded cache with the TTL window as the eviction horizon.
+2. **Nonce replay check**: Reject attestations whose `issuerAsserted.nonce` has been seen within `issuerAsserted.iat + issuerAsserted.expSeconds`. RECOMMENDED: an in-memory bloom filter with background GC, or a bounded cache with the TTL window as the eviction horizon.
 
-3. **TTL check**: Reject if `now < iat - 30000ms` (attestation from the future, beyond clock skew) or `now > iat + exp + 30000ms` (expired, beyond clock skew).
+3. **TTL check**: Reject if `now < issuerAsserted.iat - 30000ms` (attestation from the future, beyond clock skew) or `now > issuerAsserted.iat + issuerAsserted.expSeconds + 30000ms` (expired, beyond clock skew).
 
-4. **Tool call match**: Find the entry in `toolCalls` where `serverFingerprint` matches the receiving server's identity. If no such entry exists, reject with `server_mismatch`. Then verify that the entry's `name` matches the `name` parameter of the `tools/call` request. If not, reject with `tool_mismatch`. This prevents cross-server replay and tool-substitution in a single step.
+4. **Tool call match**: Find the entry in `payloadDerived.toolCalls` where `serverFingerprint` matches the receiving server's identity. If no such entry exists, reject with `server_mismatch`. Then verify that the entry's `name` matches the `name` parameter of the `tools/call` request. If not, reject with `tool_mismatch`. This prevents cross-server replay and tool-substitution in a single step.
 
-5. **Argument commitment verification**: If the `toolCalls` entry uses `argsRef`, resolve the URI, compute SHA-256 over the fetched content, and compare against the stored digest. Confirm the resolved content corresponds to the `arguments` being executed. If the entry uses `argsProjection`, compare it against the canonicalized runtime `arguments` (RFC 8785) and classify the result:
+5. **Argument commitment verification**: If the entry in `payloadDerived.toolCalls` uses `argsRef`, resolve the URI, compute SHA-256 over the fetched content, and compare against the stored digest. Confirm the resolved content corresponds to the `arguments` being executed. If the entry uses `argsProjection`, compare it against the canonicalized runtime `arguments` (RFC 8785) and classify the result:
    - **Identity projection**: the canonical forms match exactly. The verifier confirms the attested projection is identical to the runtime arguments. This provides a self-contained audit trail.
    - **Redacted projection**: the canonical forms differ. The verifier accepts the attestation but records the mismatch — the issuer may have legitimately redacted sensitive fields, or the projection may represent a subset of the runtime arguments. The verifier makes no claim about completeness relative to the runtime arguments.
 
    The projection carries no declaration of intent; the verifier determines the classification by comparing canonical forms. If neither field is present, or if the content cannot be resolved and matched, reject with `args_commitment_mismatch`.
 
-Servers that do not advertise `multiServer: true` MAY reject attestations where `toolCalls.length > 1`.
+Servers that do not advertise `multiServer: true` MAY reject attestations where `payloadDerived.toolCalls.length > 1`.
 
 If any check fails, the server MUST return a tool result with `isError: true` and a structured error payload in the content:
 
@@ -287,10 +295,10 @@ Attestation failures are communicated as tool results with `isError: true`. The 
 | -------------------------- | --------------------------------------------------------------- |
 | `signature_invalid`        | Signature does not match the canonical payload                  |
 | `nonce_replay`             | Nonce has been seen within the TTL window                       |
-| `expired`                  | `iat + exp` has passed                                          |
+| `expired`                  | `issuerAsserted.iat + issuerAsserted.expSeconds` has passed          |
 | `tool_mismatch`            | Tool name does not match the `tools/call` request               |
-| `server_mismatch`          | No `toolCalls` entry matches the receiving server's fingerprint |
-| `key_unavailable`          | Key identified by `alg` and `secretVersion` is not available    |
+| `server_mismatch`          | No `payloadDerived.toolCalls` entry matches the receiving server's fingerprint |
+| `key_unavailable`          | Key identified by `issuerAsserted.alg` and `issuerAsserted.secretVersion` is not available |
 | `attestation_required`     | Server requires attestation but none was provided               |
 | `args_commitment_mismatch` | Attested args commitment does not match runtime arguments       |
 
@@ -306,13 +314,19 @@ Making attestation optional rather than mandatory ensures backward compatibility
 
 **ES256/RS256** (asymmetric) supports deployments where the client and server are in different trust domains. The verifier only needs the issuer's public key, which can be published, pre-shared as a fingerprint, or retrieved from a registry. This is the mode required for multi-tenant or enterprise scenarios where the issuer is a separate service (notary, compliance gateway, credential authority).
 
+### Why Trust-Surface Grouping
+
+Every field in the envelope originates from one of three sources: the issuer (cryptographic material, identity, timing), the planner (intent, requested capability), or the tool call payload (argument commitments, server target). Grouping fields under `issuerAsserted`, `plannerDeclared`, and `payloadDerived` makes the provenance of each field explicit at the schema level — a verifier can determine who asserted what without relying on documentation comments.
+
+This prevents ambiguity about which layer is responsible for which claim. For example, `intent` is planner-declared: the issuer attests it was presented, but the issuer does not vouch for its truthfulness. The grouping makes this contract self-documenting and machine-checkable.
+
 ### Why Nonce + TTL Instead of Prevents-Replay
 
 A nonce cache bounded by the attestation TTL is simpler and more robust than relying on monotonically increasing counters across potentially unreliable clients. The TTL prevents unbounded nonce storage. Thirty-second clock skew tolerance covers typical NTP drift margins.
 
 ### Why toolCalls Array
 
-Using an array instead of a single top-level `name`/`args*`/`serverFingerprint` entry handles two use cases without protocol bloat. First, the common case is a single call — `toolCalls` has one entry, the server verifies against it, done. Second, multi-step workflows where an agent orchestrates across several MCP servers get a single attestation for the entire plan. Each server finds its own entry via `serverFingerprint`, and the shared nonce prevents partial replay. The signature covers the whole array — no entry can be inserted or removed after issuance.
+Using an array (`payloadDerived.toolCalls`) instead of a single top-level `name`/`args*`/`serverFingerprint` entry handles two use cases without protocol bloat. First, the common case is a single call — `toolCalls` has one entry, the server verifies against it, done. Second, multi-step workflows where an agent orchestrates across several MCP servers get a single attestation for the entire plan. Each server finds its own entry via `serverFingerprint`, and the shared nonce prevents partial replay. The signature covers the whole array — no entry can be inserted or removed after issuance.
 
 The European Commission's draft high-risk AI classification guidelines treat chained agentic orchestration as a single AI system, making a plan-level attestation the correct audit primitive. Hop-by-hop logging would treat each sub-agent as an independent system, which the guidelines explicitly preclude.
 
@@ -325,11 +339,11 @@ Tool call arguments vary widely in size and sensitivity. A single args field for
 
       The projection carries no intent flag. The verifier classifies it as identity or redacted by comparing the canonicalized projection against the canonicalized runtime arguments (see Rule 5). A match means the attested projection equals what was executed; a mismatch means the projection is a subset or transformation — acceptable for audit, but incomplete by design.
 
-At least one of the two MUST be present per `toolCalls` entry.
+At least one of the two MUST be present per `payloadDerived.toolCalls` entry.
 
 ### Relationship to JWT
 
-The attestation envelope is structurally a JWT — signed payload with explicit `alg`, `iss`, `sub`, `iat`, and `exp` fields. The key differences are intentional:
+The attestation envelope is structurally similar to a JWT — a signed payload with explicit `alg`, `iss`, `sub`, `iat`, and `expSeconds` fields grouped under `issuerAsserted`. The key differences are intentional:
 
 1. **No base64 encoding**: The envelope lives in `_meta`, which is already JSON. Wrapping JWT's three-part base64 encoding inside `_meta` adds a decode step with no security benefit. Parsing native JSON is one step fewer.
 
@@ -357,7 +371,7 @@ The nonce + TTL mechanism prevents replay within the validity window. However, i
 
 ### Key Compromise
 
-If the issuer's signing key (HS256 shared secret or ES256/RS256 private key) is compromised, an attacker can forge attestations. Recovery requires key rotation — the `secretVersion` field allows verifiers to distinguish attestations signed with the old key from those signed with the new key during the rotation window.
+If the issuer's signing key (HS256 shared secret or ES256/RS256 private key) is compromised, an attacker can forge attestations. Recovery requires key rotation — the `issuerAsserted.secretVersion` field allows verifiers to distinguish attestations signed with the old key from those signed with the new key during the rotation window.
 
 ### Clock Skew Attacks
 
@@ -365,11 +379,11 @@ Verifiers allow up to 30 seconds of clock skew. An attacker who can skew the ver
 
 ### Privacy Considerations
 
-The `intent` field is human-readable and signed. It is visible to both the client and the MCP server in plaintext. Deployments handling sensitive intent descriptions SHOULD consider whether additional encryption of the intent field is required — this is out of scope for the current SEP but could be addressed in a future extension.
+The `plannerDeclared.intent` field is human-readable and signed. It is visible to both the client and the MCP server in plaintext. Deployments handling sensitive intent descriptions SHOULD consider whether additional encryption of the intent field is required — this is out of scope for the current SEP but could be addressed in a future extension.
 
 The `serverFingerprint` field identifies which MCP server was the target of a tool call. In multi-tenant or cross-org deployments, the set of servers an agent calls may reveal deployment topology, vendor relationships, or internal tooling choices. Deployments SHOULD evaluate whether the fingerprint alone constitutes sensitive metadata in their regulatory context.
 
-The `iss` field identifies the attestation issuer. In deployments where the issuer is a dedicated notary or compliance service, the issuer's identity is public by design — the attestation is meant to be verifiable by third parties. However, the issuer's request volume (inferred from attestation issuance rate) may leak operational metadata. Issuers concerned about traffic analysis MAY consider deploying behind a privacy-preserving relay.
+The `issuerAsserted.iss` field identifies the attestation issuer. In deployments where the issuer is a dedicated notary or compliance service, the issuer's identity is public by design — the attestation is meant to be verifiable by third parties. However, the issuer's request volume (inferred from attestation issuance rate) may leak operational metadata. Issuers concerned about traffic analysis MAY consider deploying behind a privacy-preserving relay.
 
 ### Execution Acknowledgement (Deferred)
 
@@ -391,7 +405,7 @@ The following identifiers and conventions are defined as part of this extension,
 
 ### Signing Algorithm Identifiers
 
-The following algorithm identifiers are used in the `alg` field of the `Attestation` envelope:
+The following algorithm identifiers are used in the `issuerAsserted.alg` field of the `Attestation` envelope:
 
 | Identifier | Algorithm                       | Reference     |
 | ---------- | ------------------------------- | ------------- |
@@ -416,4 +430,4 @@ These identifiers are drawn from the JSON Web Signature (JWS) registry [RFC 7518
 
 - **EU AI Act compliance mapping**: A companion document mapping each field of the attestation envelope to specific requirements in EU AI Act Articles 12, 13, 14, and 26(6) would aid enterprise procurement teams. Should this be included as an appendix or published separately?
 - **Privacy classification of `serverFingerprint`**: The fingerprint identifies which MCP server received the call, which may be PII-adjacent or commercially sensitive in some deployments. Should the spec include a privacy consideration for this field, or is it out of scope?
-- **Credential binding in attestations**: In strict compliance scenarios, the attestation should ideally bind which credential authorized the tool call, so the server can confirm the agent did not inject an unauthorized credential outside the attested intent. This SEP deliberately omits credential delivery (wrapping and transporting secrets). A lighter alternative would be an optional `credentialRef` on `toolCalls` entries — the attestation carries a key or reference to a pre-registered credential, not the credential itself. The server resolves the credential internally and rejects if the agent supplies a different one. This preserves the audit trail (credential provenance) without the transport or decryption complexity of wrapped secrets. Should a future extension define this pattern?
+- **Credential binding in attestations**: In strict compliance scenarios, the attestation should ideally bind which credential authorized the tool call, so the server can confirm the agent did not inject an unauthorized credential outside the attested intent. This SEP deliberately omits credential delivery (wrapping and transporting secrets). A lighter alternative would be an optional `credentialRef` on `payloadDerived.toolCalls` entries — the attestation carries a key or reference to a pre-registered credential, not the credential itself. The server resolves the credential internally and rejects if the agent supplies a different one. This preserves the audit trail (credential provenance) without the transport or decryption complexity of wrapped secrets. Should a future extension define this pattern?
