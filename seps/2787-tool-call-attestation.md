@@ -247,7 +247,11 @@ MCP servers that negotiate the `soup/tool-call-attestation` extension MUST imple
 
 4. **Tool call match**: Find the entry in `toolCalls` where `serverFingerprint` matches the receiving server's identity. If no such entry exists, reject with `server_mismatch`. Then verify that the entry's `name` matches the `name` parameter of the `tools/call` request. If not, reject with `tool_mismatch`. This prevents cross-server replay and tool-substitution in a single step.
 
-5. **Argument commitment verification**: If the `toolCalls` entry uses `args_ref`, resolve the URI, compute SHA-256 over the fetched content, and compare against the stored digest. Confirm the resolved content corresponds to the `arguments` being executed. If the entry uses `args_projection`, compare it against the canonicalized runtime `arguments` (RFC 8785). Identity projections MUST match exactly; redacted projections are verified only to be signed — the verifier makes no claim about completeness relative to the runtime arguments. If neither field is present, or if the content cannot be resolved and matched, reject with `args_commitment_mismatch`.
+5. **Argument commitment verification**: If the `toolCalls` entry uses `args_ref`, resolve the URI, compute SHA-256 over the fetched content, and compare against the stored digest. Confirm the resolved content corresponds to the `arguments` being executed. If the entry uses `args_projection`, compare it against the canonicalized runtime `arguments` (RFC 8785) and classify the result:
+   - **Identity projection**: the canonical forms match exactly. The verifier confirms the attested projection is identical to the runtime arguments. This provides a self-contained audit trail.
+   - **Redacted projection**: the canonical forms differ. The verifier accepts the attestation but records the mismatch — the issuer may have legitimately redacted sensitive fields, or the projection may represent a subset of the runtime arguments. The verifier makes no claim about completeness relative to the runtime arguments.
+
+   The projection carries no declaration of intent; the verifier determines the classification by comparing canonical forms. If neither field is present, or if the content cannot be resolved and matched, reject with `args_commitment_mismatch`.
 
 Servers that do not advertise `multiServer: true` MAY reject attestations where `toolCalls.length > 1`.
 
@@ -317,6 +321,8 @@ Tool call arguments vary widely in size and sensitivity. A single args field for
 
 - **Reference (content-addressed)**: A retrieval URI alongside its digest. The verifier fetches, hashes, and confirms. Useful when arguments are large, stored externally (file contents, image data), or must not cross the attestation wire for privacy reasons.
 - **Projection (redacted or self-contained audit)**: A transformed, summarized, or identity-copied version of the arguments, carried inline. Useful when the full payload is manageable and a self-contained audit record is needed. For privacy- or size-sensitive cases, the projection may be a redacted subset or a hash commitment rather than the full arguments. The attestation signature covers the projection, so no separate digest is needed.
+
+      The projection carries no intent flag. The verifier classifies it as identity or redacted by comparing the canonicalized projection against the canonicalized runtime arguments (see Rule 5). A match means the attested projection equals what was executed; a mismatch means the projection is a subset or transformation — acceptable for audit, but incomplete by design.
 
 At least one of the two MUST be present per `toolCalls` entry.
 
