@@ -328,7 +328,7 @@ A nonce cache bounded by the attestation TTL is simpler and more robust than rel
 
 ### Why toolCalls Array
 
-Using an array instead of a single `toolName`/`toolArgs`/`serverFingerprint` trio handles two use cases without protocol bloat. First, the common case is a single call — `toolCalls` has one entry, the server verifies against it, done. Second, multi-step workflows where an agent orchestrates across several MCP servers get a single attestation for the entire plan. Each server finds its own entry via `serverFingerprint`, and the shared nonce prevents partial replay. The signature covers the whole array — no entry can be inserted or removed after issuance.
+Using an array instead of a single top-level `name`/`args_*`/`serverFingerprint` entry handles two use cases without protocol bloat. First, the common case is a single call — `toolCalls` has one entry, the server verifies against it, done. Second, multi-step workflows where an agent orchestrates across several MCP servers get a single attestation for the entire plan. Each server finds its own entry via `serverFingerprint`, and the shared nonce prevents partial replay. The signature covers the whole array — no entry can be inserted or removed after issuance.
 
 The European Commission's draft high-risk AI classification guidelines treat chained agentic orchestration as a single AI system, making a plan-level attestation the correct audit primitive. Hop-by-hop logging would treat each sub-agent as an independent system, which the guidelines explicitly preclude.
 
