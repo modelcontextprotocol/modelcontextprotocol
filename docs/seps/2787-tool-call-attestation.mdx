@@ -376,7 +376,7 @@ A standard JWT would work with a custom claim definition and no canonical JSON e
 
 ### Relationship to Authorization
 
-Attestation is orthogonal to MCP's existing Authorization framework. Authorization proves _who_ is allowed to call a tool. Attestation proves _why_ they are calling it and _that_ they called it. A deployment may use both: OAuth for transport-level auth and attestation for intent-bound audit.
+Attestation is orthogonal to MCP's existing Authorization framework. Authorization proves _who_ is allowed to call a tool. Attestation binds _what_ was requested, _why_, and by _whom_ — it proves the request, not the outcome. A deployment may use both: OAuth for transport-level auth and attestation for pre-execution audit.
 
 ## Backward Compatibility
 
