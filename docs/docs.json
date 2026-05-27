@@ -317,6 +317,7 @@
             "pages": [
               "specification/draft/index",
               "specification/draft/changelog",
+              "specification/draft/deprecated",
               "specification/draft/architecture/index",
               {
                 "group": "Base Protocol",
@@ -485,6 +486,7 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
+              "community/feature-lifecycle",
               "community/sdk-tiers",
               "community/antitrust"
             ]
@@ -499,6 +501,12 @@
               "community/server-card/charter",
               "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
+            ]
+          },
+          {
+            "group": "Interest Group Charters",
+            "pages": [
+              "community/tool-annotations/charter"
             ]
           },
           {
