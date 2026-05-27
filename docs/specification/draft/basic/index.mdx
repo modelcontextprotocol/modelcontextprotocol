@@ -232,12 +232,12 @@ in `_meta`. Servers use these to identify the client and the protocol version in
 without relying on any prior connection state. See
 [Lifecycle][lifecycle] for version negotiation rules.
 
-| Key                                          | Type                 | Required | Description                                                 |
-| -------------------------------------------- | -------------------- | -------- | ----------------------------------------------------------- |
-| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"DRAFT-2026-v1"`) |
-| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                     |
-| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request                |
-| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request   |
+| Key                                          | Type                 | Required | Description                                               |
+| -------------------------------------------- | -------------------- | -------- | --------------------------------------------------------- |
+| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"2026-07-28"`)  |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                   |
+| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
+| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
 
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in

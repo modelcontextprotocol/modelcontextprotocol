@@ -354,7 +354,7 @@ tooling) can route and inspect requests without parsing the body.
 Every POST request to the MCP endpoint **MUST** include an
 `MCP-Protocol-Version` header.
 
-For example: `MCP-Protocol-Version: DRAFT-2026-v1`
+For example: `MCP-Protocol-Version: 2026-07-28`
 
 The header value **MUST** match the
 `io.modelcontextprotocol/protocolVersion` field carried in the request body's
@@ -399,7 +399,7 @@ These headers are **REQUIRED** for compliance.
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-MCP-Protocol-Version: DRAFT-2026-v1
+MCP-Protocol-Version: 2026-07-28
 Mcp-Method: tools/call
 Mcp-Name: get_weather
 
@@ -413,7 +413,7 @@ Mcp-Name: get_weather
       "location": "Seattle, WA"
     },
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
         "name": "ExampleClient",
         "version": "1.0.0"
@@ -429,7 +429,7 @@ Mcp-Name: get_weather
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-MCP-Protocol-Version: DRAFT-2026-v1
+MCP-Protocol-Version: 2026-07-28
 Mcp-Method: resources/read
 Mcp-Name: file:///projects/myapp/config.json
 
@@ -440,7 +440,7 @@ Mcp-Name: file:///projects/myapp/config.json
   "params": {
     "uri": "file:///projects/myapp/config.json",
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
         "name": "ExampleClient",
         "version": "1.0.0"
@@ -515,7 +515,7 @@ reason for rejection.
 ```http
 POST /mcp HTTP/1.1
 Content-Type: application/json
-MCP-Protocol-Version: DRAFT-2026-v1
+MCP-Protocol-Version: 2026-07-28
 Mcp-Method: tools/call
 Mcp-Name: execute_sql
 Mcp-Param-Region: us-west1
@@ -526,7 +526,7 @@ Mcp-Param-Region: us-west1
   "method": "tools/call",
   "params": {
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
         "name": "ExampleClient",
         "version": "1.0.0"
