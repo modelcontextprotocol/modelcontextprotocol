@@ -534,6 +534,10 @@
   },
   "redirects": [
     {
+      "source": "/clients",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
       "source": "/specification/versioning",
       "destination": "/docs/learn/versioning"
     },
