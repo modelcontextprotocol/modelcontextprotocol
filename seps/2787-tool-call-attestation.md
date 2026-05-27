@@ -13,7 +13,7 @@
 
 This SEP proposes an optional **Tool Call Attestation** capability for MCP that allows clients to attach a signed, self-contained envelope to `tools/call` requests. The envelope cryptographically binds the agent's identity, the tool name and arguments, and a human-readable intent justification into a verifiable payload that MCP servers can check before execution.
 
-The attestation is opaque to the MCP transport — it travels as metadata on existing requests and requires no new RPC methods, no breaking changes, and no mandatory server-side processing. Clients that need compliance-grade audit trails (EU AI Act Article 12, AI Liability Directive) can produce attestations; MCP servers can verify them; both can ignore them if not required.
+The attestation is opaque to the MCP transport — it travels as metadata on existing requests and requires no new RPC methods, no breaking changes, and no mandatory server-side processing. Clients that need audit-grade tool call attestation can produce attestations; MCP servers can verify them; both can ignore them if not required. Each deploying organization maps the attestation primitive to its own regulatory obligations — the SEP provides the mechanism, not the compliance posture.
 
 Two signing modes are defined:
 
@@ -28,13 +28,11 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### Regulatory Gap
 
-The EU AI Act (Regulation 2024/1689) takes full effect August 2, 2026. Article 12 requires high-risk AI systems to automatically record every event with sufficient detail to reconstruct the system's operation. Article 26(6) mandates minimum 6-month log retention. The AI Liability Directive creates a rebuttable presumption of causality if the operator cannot produce an adequate audit trail.
+Some organizations deploying MCP in regulated environments have determined that cryptographic attestation of tool calls is a necessary part of their compliance strategy — particularly under frameworks such as the EU AI Act (Regulation 2024/1689), the AI Liability Directive, or sector-specific audit requirements. These organizations need a standard mechanism to bind each tool call to an agent's identity, documented intent, and the arguments that were executed, in a way that can be verified by the MCP server and retained for audit.
 
-The European Commission's draft guidelines on high-risk AI classification (May 2026) clarify that where multiple AI systems coordinate through linked actions toward a common purpose, **the combined configuration is treated as a single AI system** for high-risk classification. Multi-agent orchestration plans are therefore a single regulatory entity, meaning the audit primitive must cover the plan as a whole — not hop-by-hop.
+MCP today provides transport and an Authorization framework, but no standard way to attach a verifiable attestation to a tool call. Without a shared mechanism, each regulated deployment builds a proprietary solution, fragmenting the ecosystem. This SEP fills that gap by defining a minimal, composable attestation envelope.
 
-MCP today provides transport (STDIO, HTTP/SSE) and an Authorization framework, but **no mechanism to bind a tool call to an agent's identity, documented intent, or expected state mutation**. Every MCP tool call executes without cryptographic attestation. There is no standard way for an MCP server to verify that a tool call was authorized by a known identity with a recorded business justification.
-
-Without this capability, MCP deployments in regulated environments face fragmentation — each implementation ships a proprietary attestation header, undermining interoperability across the ecosystem.
+The attestation is a protocol primitive — it enables audit and verification, but does not itself assert compliance. Each deploying organization maps the mechanism to its own regulatory obligations.
 
 ### Existing Practice
 
@@ -328,7 +326,7 @@ A nonce cache bounded by the attestation TTL is simpler and more robust than rel
 
 Using an array (`payloadDerived.toolCalls`) instead of a single top-level `name`/`args*`/`serverFingerprint` entry handles two use cases without protocol bloat. First, the common case is a single call — `toolCalls` has one entry, the server verifies against it, done. Second, multi-step workflows where an agent orchestrates across several MCP servers get a single attestation for the entire plan. Each server finds its own entry via `serverFingerprint`, and the shared nonce prevents partial replay. The signature covers the whole array — no entry can be inserted or removed after issuance.
 
-The European Commission's draft high-risk AI classification guidelines treat chained agentic orchestration as a single AI system, making a plan-level attestation the correct audit primitive. Hop-by-hop logging would treat each sub-agent as an independent system, which the guidelines explicitly preclude.
+Planned multi-server orchestration is a common pattern in agentic MCP deployments. A single attestation covering all servers in the plan prevents hop-by-hop audit fragmentation — each server sees only its own `serverFingerprint` entry, but the shared nonce and signature bind the entire plan together.
 
 ### Why Two-Way Args Shape
 
@@ -337,9 +335,15 @@ Tool call arguments vary widely in size and sensitivity. A single args field for
 - **Reference (content-addressed)**: A retrieval URI alongside its digest. The verifier fetches, hashes, and confirms. Useful when arguments are large, stored externally (file contents, image data), or must not cross the attestation wire for privacy reasons.
 - **Projection (redacted or self-contained audit)**: A transformed, summarized, or identity-copied version of the arguments, carried inline. Useful when the full payload is manageable and a self-contained audit record is needed. For privacy- or size-sensitive cases, the projection may be a redacted subset or a hash commitment rather than the full arguments. The attestation signature covers the projection, so no separate digest is needed.
 
-      The projection carries no intent flag. The verifier classifies it as identity or redacted by comparing the canonicalized projection against the canonicalized runtime arguments (see Rule 5). A match means the attested projection equals what was executed; a mismatch means the projection is a subset or transformation — acceptable for audit, but incomplete by design.
+The projection carries no intent flag. The verifier classifies it as identity or redacted by comparing the canonicalized projection against the canonicalized runtime arguments (see Rule 5). A match means the attested projection equals what was executed; a mismatch means the projection is a subset or transformation — acceptable for audit, but incomplete by design.
 
 At least one of the two MUST be present per `payloadDerived.toolCalls` entry.
+
+### Why Tool Calls (Not All MCP Requests)
+
+This SEP scopes attestation to `tools/call` — MCP's only operation with side effects. Resources (`resources/read`) and prompts (`prompts/get`) are read-only; sampling (`sampling/createMessage`) is inference. Tool calls are the write path, making them the highest-risk surface for audit and the natural starting point for attestation.
+
+Reads may also warrant attestation in some deployments (e.g., accessing PII through `resources/read`). The current envelope structure is transport-agnostic — the `payloadDerived` block could be generalized beyond tool calls in a future extension. This SEP intentionally keeps v1 focused on the destructive path, where the compliance need is clearest and the design space is most constrained.
 
 ### Relationship to JWT
 
@@ -425,6 +429,8 @@ These identifiers are drawn from the JSON Web Signature (JWS) registry [RFC 7518
 - **Nonce cache operational guidance**: Should the spec recommend concrete bloom filter parameters (e.g., 1M entry capacity, 0.1% FP rate, 300s eviction) or leave cache sizing to implementation?
 - **Conformance test suite location**: Should the attestation conformance tests live in the MCP conformance repository or in the reference implementation's repository?
 - **`serverFingerprint` format**: Should the spec define a standard format for the server fingerprint (e.g., `sha256$<hex>` of the server's public key or TLS certificate), or leave it as an opaque string defined by each deployment?
+
+- **Generalize beyond tools**: Should attestation cover all MCP request types (`resources/read`, `prompts/get`, `sampling/createMessage`) rather than only `tools/call`? Tool calls are the only destructive operations and the natural v1 scope, but read-side attestation may be relevant for PII access or audit completeness. The current envelope could generalize the `payloadDerived` block to accept any request shape. A separate SEP could extend the mechanism, or this SEP could widen scope before acceptance. Feedback from the enterprise and financial-services working groups is invited on the priority of this extension.
 
 ### Non-Normative
 
