@@ -6,10 +6,14 @@ title: Sampling
 
 <Warning>
   **Deprecated**: The Sampling feature is deprecated as of protocol version
-  `DRAFT-2026-v1`. It will continue to be supported in any version of MCP
-  released within 1 year of `DRAFT-2026-v1`, according to the deprecation policy
-  outlined in
-  [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596).
+  `2026-07-28`
+  ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+  Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
+  in the specification for at least twelve months after this revision's release
+  before it becomes eligible for removal. New implementations **SHOULD NOT**
+  adopt it; existing implementations **SHOULD** migrate to integrating directly
+  with LLM provider APIs. See the [deprecated features
+  registry](/specification/draft/deprecated).
 </Warning>
 
 The Model Context Protocol (MCP) provides a standardized way for servers to request LLM
@@ -74,7 +78,7 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 }
 ```
 
-**With context inclusion support (soft-deprecated):**
+**With context inclusion support (deprecated):**
 
 ```json
 {
@@ -88,10 +92,14 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 <Note>
   The `includeContext` parameter values `"thisServer"` and `"allServers"` are
-  soft-deprecated. Servers **SHOULD** avoid using these values (e.g. can just
-  omit `includeContext` since it defaults to `"none"`), and **SHOULD NOT** use
-  them unless the client declares `sampling.context` capability. These values
-  may be removed in future spec releases.
+  deprecated under the [feature lifecycle
+  policy](/community/feature-lifecycle#deprecating-a-feature)
+  ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596));
+  they will be removed no later than the Sampling feature itself. Servers
+  **SHOULD** avoid using these values (e.g. can just omit `includeContext` since
+  it defaults to `"none"`), and **SHOULD NOT** use them unless the client
+  declares `sampling.context` capability. See the [deprecated features
+  registry](/specification/draft/deprecated).
 </Note>
 
 ## Protocol Messages
@@ -609,6 +617,9 @@ to include in its response:
 - `"none"`: No additional context.
 - `"thisServer"`: Include context from the requesting server.
 - `"allServers"`: Include context from all connected MCP servers.
+
+The `"thisServer"` and `"allServers"` values are deprecated; see
+[Capabilities](#capabilities).
 
 The client **MAY** modify or ignore this field without communicating this to the server.
 For example, a client could determine that respecting this field in a particular request
