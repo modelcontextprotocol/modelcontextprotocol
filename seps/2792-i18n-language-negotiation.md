@@ -238,11 +238,11 @@ carries no `_meta` of its own. Localized error content lives under
     "message": "Invalid arguments",
     "data": {
       "_meta": {
-        "io.modelcontextprotocol/contentLanguage": "fr-CA"
+        "io.modelcontextprotocol/contentLanguage": "fr-CA",
       },
-      "localizedMessage": "Arguments invalides : « location » est requis."
-    }
-  }
+      "localizedMessage": "Arguments invalides : « location » est requis.",
+    },
+  },
 }
 ```
 
