@@ -16,8 +16,8 @@ This policy was adopted via
 
 This policy governs **features** of the MCP core specification: protocol
 messages, capabilities, transports, schema types, and normative behavioral
-requirements. Tthe revision lifecycle of the specification document itself
-(Draft, Current, Final), is defined in the [versioning guide](/docs/learn/versioning).
+requirements. The revision lifecycle of the specification document itself
+(Draft, Current, Final) is defined in the [versioning guide](/docs/learn/versioning).
 
 ## Feature States
 
@@ -43,14 +43,14 @@ releases. That timeline is governed by the SDK's own revision-support policy.
 
 ## Deprecating a Feature
 
-A feature may be proposed for deprecation due to
+A feature may be proposed for deprecation when:
 
 - it has been superseded by another feature that covers the same use cases,
 - it presents a security, privacy, or interoperability risk that cannot be
   mitigated in place,
 - ecosystem telemetry or SDK maintainer consensus indicates negligible adoption
   relative to its maintenance cost,
-- or any other reasons the Core Maintainers seem to deem appropriate.
+- or any other reasons the Core Maintainers deem appropriate.
 
 Deprecation is a specification change and therefore requires a SEP per the
 [SEP guidelines](/community/sep-guidelines). The deprecation SEP must:
@@ -92,7 +92,7 @@ The minimum deprecation window is counted from that release.
 ## The Deprecated Registry
 
 [`docs/specification/draft/deprecated.mdx`](/specification/draft/deprecated) is
-a single page listing every feature Deprecated or Removed state. It is
+a single page listing every feature in a Deprecated or Removed state. It is
 the canonical answer to "what is on its way out, and by when," so that an
 implementer does not have to reconstruct that picture from deprecation entries
 spread across revision changelogs.
@@ -116,7 +116,7 @@ released as Current, Tier 1 SDKs:
 
 1. Once a feature is set for removal, the removal is executed at the discretion
    of the Core Maintainers after the minimum deprecation window has elapsed.
-2. The removal needs to be documented in the `changelog.mdx` and [registry](#the-deprecated-regsitry)
+2. The removal needs to be documented in the `changelog.mdx` and [registry](#the-deprecated-registry).
 3. A SEP is required for any change to the original deprecation or removal SEP, for
    example extending or shortening the timeline
    ([Expedited removal](#expedited-removal)) or restoring the feature to Active
