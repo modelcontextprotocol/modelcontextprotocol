@@ -291,16 +291,16 @@ Attestation failures are tool execution errors (the tool was not executed due to
 
 Attestation failures are communicated as tool results with `isError: true`. The structured error payload in the content text uses the following `reason` values:
 
-| Reason                     | Description                                                     |
-| -------------------------- | --------------------------------------------------------------- |
-| `signature_invalid`        | Signature does not match the canonical payload                  |
-| `nonce_replay`             | Nonce has been seen within the TTL window                       |
-| `expired`                  | `issuerAsserted.iat + issuerAsserted.expSeconds` has passed          |
-| `tool_mismatch`            | Tool name does not match the `tools/call` request               |
-| `server_mismatch`          | No `payloadDerived.toolCalls` entry matches the receiving server's fingerprint |
+| Reason                     | Description                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `signature_invalid`        | Signature does not match the canonical payload                                             |
+| `nonce_replay`             | Nonce has been seen within the TTL window                                                  |
+| `expired`                  | `issuerAsserted.iat + issuerAsserted.expSeconds` has passed                                |
+| `tool_mismatch`            | Tool name does not match the `tools/call` request                                          |
+| `server_mismatch`          | No `payloadDerived.toolCalls` entry matches the receiving server's fingerprint             |
 | `key_unavailable`          | Key identified by `issuerAsserted.alg` and `issuerAsserted.secretVersion` is not available |
-| `attestation_required`     | Server requires attestation but none was provided               |
-| `args_commitment_mismatch` | Attested args commitment does not match runtime arguments       |
+| `attestation_required`     | Server requires attestation but none was provided                                          |
+| `args_commitment_mismatch` | Attested args commitment does not match runtime arguments                                  |
 
 ## Rationale
 
