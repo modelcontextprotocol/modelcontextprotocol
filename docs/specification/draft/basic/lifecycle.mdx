@@ -71,7 +71,7 @@ listing the versions it does support:
     "code": -32004,
     "message": "Unsupported protocol version",
     "data": {
-      "supported": ["DRAFT-2026-v1", "2025-11-25"],
+      "supported": ["2026-07-28", "2025-11-25"],
       "requested": "1900-01-01"
     }
   }
@@ -130,14 +130,15 @@ Clients and servers can negotiate support for optional
 are advertised in the `extensions` field of capabilities, which is a map of
 extension identifiers to per-extension settings objects.
 
-Example client capabilities with extensions:
+The following is an example of a client that advertises the
+[MCP Apps extension](/extensions/apps/overview) identified as `io.modelcontextprotocol/ui`:
 
 ```json
 {
   "capabilities": {
     "roots": {},
     "extensions": {
-      "io.modelcontextprotocol/apps": {
+      "io.modelcontextprotocol/ui": {
         "mimeTypes": ["text/html;profile=mcp-app"]
       }
     }
@@ -145,14 +146,14 @@ Example client capabilities with extensions:
 }
 ```
 
-Example server capabilities with extensions:
+An example of [Tasks extension](/extensions/tasks/overview) identified as `io.modelcontextprotocol/tasks`:
 
 ```json
 {
   "capabilities": {
     "tools": {},
     "extensions": {
-      "io.modelcontextprotocol/apps": {}
+      "io.modelcontextprotocol/tasks": {}
     }
   }
 }

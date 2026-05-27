@@ -316,6 +316,7 @@
             "pages": [
               "specification/draft/index",
               "specification/draft/changelog",
+              "specification/draft/deprecated",
               "specification/draft/architecture/index",
               {
                 "group": "Base Protocol",
@@ -484,6 +485,7 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
+              "community/feature-lifecycle",
               "community/sdk-tiers",
               "community/antitrust"
             ]
