@@ -1,8 +1,8 @@
 {
   "bucket": "normative/negative",
-  "canonicalization_result": false,
   "case_id": "09-ieee754-float-in-canonical-input",
-  "modification": "planner_declared.tool_calls[0].args.projection.rate_limit_per_sec and payload_derived[0].projection.rate_limit_per_sec are the IEEE-754 float 0.5. A conformant SEP-2787 canonicaliser MUST reject this at the boundary. Use scaled integers or decimal strings instead.",
-  "notes": "No canonical_signing_input.bin or signed_envelope.json is produced because the canonicaliser refuses the input. The unsigned envelope is provided so a second implementation can attempt canonicalisation and confirm rejection.",
-  "rejection_dimension": "ieee754_float_at_canonicalisation_boundary"
+  "notes": "expSeconds is a float. Canonicalisation MUST reject before signing.",
+  "rejection_dimension": "canonicalisation_float",
+  "rejection_message_substring": "IEEE-754 float at .issuerAsserted.expSeconds is prohibited. Use a scaled integer",
+  "verification_result": false
 }

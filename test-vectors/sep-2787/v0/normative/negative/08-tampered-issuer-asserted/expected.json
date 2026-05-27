@@ -1,9 +1,9 @@
 {
-  "based_on": "01-hs256-digest",
+  "alg": "HS256",
   "bucket": "normative/negative",
   "case_id": "08-tampered-issuer-asserted",
-  "modification": "issuer_asserted.sub changed from 'agent:archiver' to 'agent:HIJACKED' after signing.",
-  "rejection_dimension": "signature_input_mismatch",
+  "notes": "iss tampered after signing. Signature verification must fail.",
+  "rejection_dimension": "signature_mismatch",
   "verification_result": false,
   "verifying_material": "keys/hs256_secret.bin",
   "verifying_material_type": "shared_secret_bytes_32"

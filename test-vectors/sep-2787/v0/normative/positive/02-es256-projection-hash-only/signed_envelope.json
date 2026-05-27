@@ -1,7 +1,7 @@
 {
-  "alg": "HS256",
+  "alg": "ES256",
   "issuerAsserted": {
-    "alg": "HS256",
+    "alg": "ES256",
     "expSeconds": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",
@@ -25,5 +25,6 @@
     "intent": "archive obsolete report per Q4 retention policy",
     "requestedCapability": "filesystem.delete"
   },
+  "signature": "3152ff40dffc2bd9450e681157672806e7014f2472091da35f5ca7746d01c48039495ac60bc3cb9722177eccc524e927dde83cdc3455e41c4596efdd4b4ba701",
   "version": 1
 }

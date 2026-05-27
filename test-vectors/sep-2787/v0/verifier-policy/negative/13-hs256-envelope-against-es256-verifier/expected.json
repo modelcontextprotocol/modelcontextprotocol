@@ -1,13 +1,10 @@
 {
-  "based_on": "01-hs256-digest",
+  "alg": "HS256",
   "bucket": "verifier-policy/negative",
   "case_id": "13-hs256-envelope-against-es256-verifier",
-  "envelope_alg": "HS256",
-  "notes": "The envelope is a well-formed HS256 signed envelope identical to 01-hs256-digest. A verifier configured to accept only ES256 rejects on alg-acceptance policy before any cryptographic check.",
-  "policy_dependency": "verifier_alg_acceptance",
-  "rejection_dimension": "verifier_alg_policy_mismatch",
-  "verification_result_under_default_policy": false,
-  "verifier_alg_policy": "ES256_only",
+  "notes": "HS256 envelope handed to an ES256-only verifier. Alg-acceptance policy rejects.",
+  "policy_dependency": "alg_acceptance",
+  "verification_result": false,
   "verifying_material": "keys/es256_public.pem",
   "verifying_material_type": "ec_public_key_spki_pem"
 }

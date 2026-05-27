@@ -9,30 +9,23 @@
     "secretVersion": "v1",
     "sub": "agent:archiver"
   },
-  "payloadDerived": [
-    {
-      "canonicalization": "jcs",
-      "digest": "sha256:abababababababababababababababababababababababababababababababab",
-      "kind": "ref",
-      "ref": "ipfs://QmExampleContentAddress0000000000000000000000"
-    }
-  ],
-  "plannerDeclared": {
-    "intent": "archive obsolete report per Q4 retention policy",
-    "requestedCapability": "filesystem.delete",
+  "payloadDerived": {
     "toolCalls": [
       {
         "args": {
           "canonicalization": "jcs",
-          "digest": "sha256:abababababababababababababababababababababababababababababababab",
-          "kind": "ref",
-          "ref": "ipfs://QmExampleContentAddress0000000000000000000000"
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ref": "cid://blob/sha256/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         "name": "delete_file",
         "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
       }
     ]
   },
-  "signature": "926bfd164297cf61d69761d8e767ece7ed80ec0b14f6a0f0ec79e6859aebdbde",
+  "plannerDeclared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requestedCapability": "filesystem.delete"
+  },
+  "signature": "728422dc9a9bd29156e82d579f565c2f6987f77013ce39fc62dabc81c0396ea9",
   "version": 1
 }

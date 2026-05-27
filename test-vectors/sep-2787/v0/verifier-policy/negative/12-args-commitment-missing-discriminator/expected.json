@@ -1,0 +1,10 @@
+{
+  "alg": "HS256",
+  "bucket": "verifier-policy/negative",
+  "case_id": "12-args-commitment-missing-discriminator",
+  "notes": "v2 envelope drops the kind discriminator. ArgsRef and ArgsProjection self-discriminate by field presence. An args object with neither ref nor projection cannot be reconstructed; parsers must reject.",
+  "policy_dependency": "schema_validation",
+  "verification_result": false,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}

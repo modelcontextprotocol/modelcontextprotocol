@@ -1,7 +1,7 @@
 {
-  "alg": "HS256",
+  "alg": "RS256",
   "issuerAsserted": {
-    "alg": "HS256",
+    "alg": "RS256",
     "expSeconds": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",

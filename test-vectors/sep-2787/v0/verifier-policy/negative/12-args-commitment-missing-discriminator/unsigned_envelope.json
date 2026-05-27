@@ -13,8 +13,7 @@
     "toolCalls": [
       {
         "args": {
-          "projection": "{\"digest\":\"sha256:866290b000d2128e0a3188a7207d447090415dc321bfcc0ceed355bd7fd3e8f8\"}",
-          "projectionDigest": "sha256:031037d68e5734d3c48fa18fb1ed5e0a3b8ec61fa4cf2823b7320436452ca84a"
+          "unknownField": "value"
         },
         "name": "delete_file",
         "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
