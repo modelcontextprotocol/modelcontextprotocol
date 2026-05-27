@@ -28,9 +28,8 @@ Specifically:
 - State that needs to span multiple requests (e.g., long-running tasks,
   application-level handles) **MUST** be referenced by an explicit identifier
   the client passes on each request.
-- The stdio process **SHOULD** have approximately the same lifetime as the host
-  application instance that launched it. Clients **SHOULD** attempt to restart
-  the stdio process if the server terminates unexpectedly.
+- Clients **SHOULD** attempt to restart the stdio process if the server 
+  terminates unexpectedly.
 
 Long-lived requests like
 [`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
