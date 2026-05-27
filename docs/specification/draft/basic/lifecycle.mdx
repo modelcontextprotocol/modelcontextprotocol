@@ -130,13 +130,9 @@ Clients and servers can negotiate support for optional
 are advertised in the `extensions` field of capabilities, which is a map of
 extension identifiers to per-extension settings objects.
 
-Example client capabilities with extensions — here a client advertises the
-[MCP Apps extension](/extensions/apps/overview)
-([SEP-1865](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1865)),
-identified as `io.modelcontextprotocol/ui` and specified in the
-[ext-apps repository](https://github.com/modelcontextprotocol/ext-apps), which
-lets servers deliver interactive user interfaces that hosts render alongside
-tool results:
+The following is an example of a client that advertises the
+[MCP Apps extension](/extensions/apps/overview) identified as `io.modelcontextprotocol/ui`:
+
 
 ```json
 {
@@ -151,11 +147,7 @@ tool results:
 }
 ```
 
-Example server capabilities with extensions — here a server advertises the
-[Tasks extension](/extensions/tasks/overview)
-([SEP-2663](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663)),
-identified as `io.modelcontextprotocol/tasks`:
-
+An example of [Tasks extension](/extensions/tasks/overview) identified as `io.modelcontextprotocol/tasks`:
 ```json
 {
   "capabilities": {
