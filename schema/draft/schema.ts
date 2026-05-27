@@ -102,6 +102,10 @@ export interface RequestMetaObject extends MetaObject {
    * If absent, the server MUST NOT send any {@link LoggingMessageNotification | notifications/message}
    * notifications for this request. The client opts in to log messages by
    * explicitly setting a level. Replaces the former `logging/setLevel` RPC.
+   *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
    */
   "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 }

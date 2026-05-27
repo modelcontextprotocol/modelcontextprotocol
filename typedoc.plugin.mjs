@@ -234,8 +234,8 @@ function renderReflection(reflection, context) {
     el.tagName = "div";
   });
 
-  // Remove ids for `@see` blocks because they are not unique
-  $('[id="see"]').removeAttr("id");
+  // Remove ids for `@see` and `@deprecated` blocks because they are not unique
+  $('[id="see"],[id^="deprecated"]').removeAttr("id");
 
   // Copy member type signature text into its heading anchor, and remove the
   // signature (which is redundant with the overall type signature).
