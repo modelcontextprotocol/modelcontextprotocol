@@ -193,8 +193,9 @@ Two extension-prefixed `_meta` keys are defined, using the
 
 - A server that selected a language in response to `acceptLanguage`, or that
   is aware of the language of the user-facing content it returned, **MUST**
-  include `io.modelcontextprotocol/contentLanguage` in `result._meta` (or
-  `_meta` of the error object on error responses).
+  include `io.modelcontextprotocol/contentLanguage` in `result._meta` on a
+  successful response, or in `error.data._meta` on an error response (see
+  [Error responses](#error-responses) below).
 - The value **MUST** be a [BCP 47] language tag, or a comma-separated list
   per [RFC 9110 §8.5] when content contains multiple languages.
 - A server that did not localize content **MAY** omit the field. Omission
@@ -237,9 +238,43 @@ mirroring pattern established by [SEP-2243].
   pure HTTP client). Servers **SHOULD** treat a bare `Accept-Language`
   header the same as the `_meta` field.
 - Servers that process the request body **MUST** reject requests where the
-  header and the `_meta` field are both present and disagree, with the same
-  error semantics as the mismatch rule in [SEP-2243] (HTTP `400 Bad
-Request`).
+  header and the `_meta` field are both present and disagree, using the
+  same JSON-RPC error code as the mismatch rule in [SEP-2243]
+  (`-32001 HeaderMismatch`), and on HTTP, status `400 Bad Request`.
+
+#### Error responses
+
+The standard JSON-RPC `Error` object is `{ code, message, data? }` and
+carries no `_meta` of its own. Localized error content lives under
+`error.data._meta`:
+
+```jsonc
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Invalid arguments",
+    "data": {
+      "_meta": {
+        "io.modelcontextprotocol/contentLanguage": "fr-CA",
+      },
+      "localizedMessage": "Arguments invalides : « location » est requis.",
+    },
+  },
+}
+```
+
+- When a server localizes the `error.message` text, or any human-readable
+  field inside `error.data`, it **MUST** set
+  `error.data._meta['io.modelcontextprotocol/contentLanguage']` to the
+  language of that text.
+- On the Streamable HTTP transport, the `Content-Language` response header
+  **MUST** mirror this value when an error response is returned, exactly as
+  it does for successful responses.
+- This SEP introduces no new error field beyond `_meta`; servers remain free
+  to use any other `error.data` shape they already use for structured error
+  context.
 
 #### Response
 
@@ -254,14 +289,6 @@ Request`).
   `Content-Language` on the HTTP response if any event in the stream carries
   the `_meta` field; per-event variation within a single response is **NOT**
   permitted (use a fresh request to switch language mid-stream).
-
-#### Batching
-
-When a Streamable HTTP request batches multiple JSON-RPC messages with
-differing `acceptLanguage` values, the HTTP header **MUST** carry the union
-of the language ranges (the server still resolves per-message via the
-`_meta` field). This preserves header visibility for intermediaries
-without losing per-message granularity.
 
 ### stdio (and other non-HTTP) transports
 
@@ -401,15 +428,20 @@ simple case stays simple.
 
 [SEP-2243] established the principle that fields useful to network
 intermediaries belong in headers, and that header/body disagreement is a
-correctness hazard. Language preference is useful to:
+correctness hazard. SEP-2243 defines the mismatch rule and the
+`-32001 HeaderMismatch` JSON-RPC error code over the small set of headers
+it introduces. This SEP **extends** that rule and that error code to the
+standard HTTP `Accept-Language` / `Content-Language` headers, applying the
+same correctness contract to the broader category of headers that are
+genuinely useful to:
 
 - **Caches and CDNs**, which already understand `Vary: Accept-Language`.
 - **Edge i18n services** that route requests to language-specific backends.
 - **Observability tools** that segment usage by locale.
 
-The strict-mismatch rule from SEP-2243 is reused unchanged: a mismatch
-indicates a buggy client or a tampering intermediary, and the server
-**MUST** reject it.
+A mismatch indicates a buggy client or a tampering intermediary, and the
+server **MUST** reject it with `-32001 HeaderMismatch` (HTTP `400 Bad
+Request`).
 
 ### Why per-request, not per-session
 
@@ -484,9 +516,11 @@ This proposal is fully backward compatible.
 - **Cache poisoning.** HTTP caches must `Vary: Accept-Language` when
   caching localized responses. This is standard HTTP behavior, not new
   here, but server implementers should be reminded.
-- **Mismatch attacks.** The strict-mismatch rule (inherited from
-  SEP-2243) prevents an intermediary from rewriting one side without the
-  other.
+- **Mismatch attacks.** This SEP extends the strict-mismatch rule from
+  [SEP-2243] (and its `-32001 HeaderMismatch` JSON-RPC error code) to the
+  standard `Accept-Language` / `Content-Language` headers, broadening the
+  same anti-tampering contract to a much larger surface of intermediaries
+  (CDNs, edge i18n services) that routinely touch these headers.
 
 No new attack surface is introduced beyond what `Accept-Language` already
 implies on the open web.
@@ -529,9 +563,10 @@ branch.
 
 Implementation notes called out in the PR for reviewers:
 
-- The mismatch error currently reuses `SdkErrorCode.SendFailed` since
-  the SDK has no `InvalidRequest` variant; revisit if a more specific
-  code is added.
+- The mismatch error currently reuses `SdkErrorCode.SendFailed`. Per
+  reviewer feedback, this will be updated to the
+  `-32001 HeaderMismatch` code defined by [SEP-2243] (now in the draft
+  spec) as part of unifying with the SEP-2243 pattern in the SDK.
 - This SDK does not yet implement the broader [SEP-2243] mismatch
   pattern; the language-specific mismatch is implemented standalone
   with a `TODO` pointing at SEP-2243 so the two can be unified when
@@ -540,10 +575,34 @@ Implementation notes called out in the PR for reviewers:
   response mode; for SSE streaming the headers are flushed before
   response content is known, so the `_meta` field carries the value in
   that case. The `_meta` field remains authoritative either way.
+- Error-response localization (`error.data._meta` carrying
+  `contentLanguage`, mirrored to the `Content-Language` response header)
+  is on the open work list for the reference implementation, following
+  the clarification added to this SEP.
 
 Earlier reference for the i18n machinery itself exists in
 [github-mcp-server PR #25] (a server-side translations framework),
 which can be plugged into the per-request selection defined here.
+
+## Conformance
+
+Per [SEP-2484], a conformance scenario is required before this SEP can
+reach Final. The scenario will cover, at minimum:
+
+1. A client sending `io.modelcontextprotocol/acceptLanguage` in
+   `params._meta` and (on HTTP) the mirrored `Accept-Language` header.
+2. A server returning localized user-facing strings and emitting
+   `io.modelcontextprotocol/contentLanguage` in `result._meta` and (on
+   HTTP) the mirrored `Content-Language` response header.
+3. A server falling back to its default language when no preference
+   matches, without returning an error.
+4. A header/body mismatch on a Streamable HTTP request being rejected
+   with JSON-RPC error `-32001 HeaderMismatch` and HTTP `400`.
+5. A localized error response carrying
+   `error.data._meta['io.modelcontextprotocol/contentLanguage']`,
+   mirrored to `Content-Language` on HTTP.
+6. Per-request language switching on the same connection (notably
+   stdio), to demonstrate that no session state is involved.
 
 ## Open Questions
 
@@ -580,6 +639,7 @@ which can be plugged into the per-request selection defined here.
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243
 [SEP-2575]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575
 [SEP-1809]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1809
+[SEP-2484]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2484-conformance-tests-required-for-final-seps.md
 [PR #2355]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2355
 [@pja-ant]: https://github.com/pja-ant
 [@kurtisvg]: https://github.com/kurtisvg
