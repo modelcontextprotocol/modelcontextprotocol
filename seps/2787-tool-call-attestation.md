@@ -13,7 +13,7 @@
 
 This SEP proposes an optional **Tool Call Attestation** capability for MCP that allows clients to attach a signed, self-contained envelope to `tools/call` requests. The envelope cryptographically binds the agent's identity, the tool name and arguments, and a human-readable intent justification into a verifiable payload that MCP servers can check before execution.
 
-The attestation is opaque to the MCP transport — it travels as metadata on existing requests and requires no new RPC methods, no breaking changes, and no mandatory server-side processing. Clients that need audit-grade tool call attestation can produce attestations; MCP servers can verify them; both can ignore them if not required. Each deploying organization maps the attestation primitive to its own regulatory obligations — the SEP provides the mechanism, not the compliance posture.
+The attestation is opaque to the MCP transport — it travels as metadata on existing requests and requires no new RPC methods, no breaking changes, and no mandatory server-side processing. Each deploying organization maps the attestation primitive to its own regulatory obligations — the SEP provides the mechanism, not the compliance posture.
 
 Two signing modes are defined:
 
