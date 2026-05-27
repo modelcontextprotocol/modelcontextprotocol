@@ -145,8 +145,8 @@ for the [HTTP+SSE transport][http-sse] from protocol version 2024-11-05.
 Revision 2026-07-28 changed the behavior of Streamable HTTP. Clients must
 ensure they handle backwards compatibility correctly. Changes included:
 
-- Removal of the GET stream endpoint
-- Removal of protocol-level session.
+- Removal of the GET stream endpoint.
+- Removal of protocol-level sessions.
 
 See the [changelog](/specification/draft/changelog) and
 [Backward Compatibility](#backward-compatibility-1) below.
@@ -698,7 +698,7 @@ See [Lifecycle: Backward Compatibility][lifecycle-compat] for details.
 
 #### Earlier Streamable HTTP Revisions
 
-Protocol versions `2025-03-26` through [`2025-11-25`](./docs/specification/2025-11-25/basic/transports.mdx)
+Protocol versions `2025-03-26` through [`2025-11-25`](/specification/2025-11-25/basic/transports)
 also used the Streamable HTTP transport, but in a different shape: servers could assign a session via
 the `Mcp-Session-Id` header (terminated with HTTP DELETE), clients could open
 a standalone SSE stream with HTTP GET to receive server-initiated messages,
@@ -727,7 +727,7 @@ in addition to the version-negotiation fallback described above.
   **Deprecated**: The [HTTP+SSE transport][http-sse] from protocol version
   2024-11-05 has been deprecated since protocol version `2025-03-26` and is
   classified as Deprecated under the [feature lifecycle
-  policy](/community/feature-lifecycle#transition)
+  policy](/community/feature-lifecycle#deprecating-a-feature)
   ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
   New implementations **SHOULD NOT** adopt it; existing implementations
   **SHOULD** migrate to [Streamable HTTP](#streamable-http). It is eligible for
