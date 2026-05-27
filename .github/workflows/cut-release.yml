@@ -52,15 +52,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ github.sha }}
         run: |
+          cat > /tmp/notes.md <<EOF
+          This release marks the **release candidate (RC)** \`${VERSION}\` revision of the Model Context Protocol.
+
+          The specification is available in [draft form](https://modelcontextprotocol.io/specification/draft).
+
+          For a detailed overview of changes, see [${VERSION} draft changelog](https://modelcontextprotocol.io/specification/draft/changelog).
+
+          >[!NOTE]
+          >**To users and implementers:** this specification is not final. Changes may be introduced between the RC and the final release. SDKs will adopt this version at their own pace, and the prior version of the spec may remain in use for an undetermined amount of time.
+          >
+          >Refer to the [Version Negotiation documentation](https://modelcontextprotocol.io/specification/draft/basic/lifecycle#version-negotiation) to learn about the process for clients and servers to determine the version of the protocol being used.
+          EOF
           gh release create "${VERSION}-RC" \
             --target "$TARGET_SHA" \
             --prerelease \
             --title "MCP ${VERSION} RC" \
-            --notes "Release candidate for the ${VERSION} revision of the Model Context Protocol specification.
-
-          The RC content is the current draft: https://modelcontextprotocol.io/specification/draft
-
-          Please file issues against SEPs in this milestone before the final cut."
+            --notes-file /tmp/notes.md
 
       - name: Summary
         run: |

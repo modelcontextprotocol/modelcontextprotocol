@@ -44,11 +44,15 @@ jobs:
             echo "tag ${VERSION} already exists — skipping"
             exit 0
           fi
+          cat > /tmp/notes.md <<EOF
+          This release marks the \`${VERSION}\` revision of the Model Context Protocol.
+
+          The specification is available at [modelcontextprotocol.io/specification/${VERSION}](https://modelcontextprotocol.io/specification/${VERSION}).
+
+          For a detailed overview of changes, see the [${VERSION} changelog](https://modelcontextprotocol.io/specification/${VERSION}/changelog).
+          EOF
           gh release create "$VERSION" \
             --target "$TARGET_SHA" \
             --latest \
             --title "MCP ${VERSION}" \
-            --notes "Model Context Protocol specification ${VERSION}.
-
-          https://modelcontextprotocol.io/specification/${VERSION}
-          Changelog: https://modelcontextprotocol.io/specification/${VERSION}/changelog"
+            --notes-file /tmp/notes.md
