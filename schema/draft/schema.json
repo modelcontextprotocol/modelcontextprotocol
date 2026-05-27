@@ -3087,7 +3087,7 @@
                     "additionalProperties": {
                         "$ref": "#/$defs/JSONObject"
                     },
-                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/ui\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
+                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/tasks\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
                     "type": "object"
                 },
                 "logging": {
