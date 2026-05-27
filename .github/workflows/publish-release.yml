@@ -1,0 +1,58 @@
+name: Publish spec release
+
+# Companion to cut-release.yml. Creates the GA tag + GitHub Release once the
+# `release/<version>` PR has merged to main. Runs only on the merge commit of a
+# release branch so a stray push can't publish.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Only fire for the merge of a release/<YYYY-MM-DD> branch.
+    if: |
+      startsWith(github.event.head_commit.message, 'Add ')
+      && contains(github.event.head_commit.message, ' MCP specification')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive version from merged release branch
+        id: v
+        env:
+          # Never interpolate event payloads directly into run: — pass via env.
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          # COMMIT_MSG is "Add YYYY-MM-DD MCP specification (#NNN)"
+          V=$(printf '%s' "$COMMIT_MSG" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
+          [[ -n "$V" ]] || { echo "::error::could not parse version from commit message"; exit 1; }
+          [[ -d "docs/specification/$V" ]] || { echo "::error::docs/specification/$V missing on main"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Create GA release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.v.outputs.version }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          # Idempotent — skip if the tag already exists.
+          if git ls-remote --exit-code --tags origin "refs/tags/${VERSION}"; then
+            echo "tag ${VERSION} already exists — skipping"
+            exit 0
+          fi
+          cat > /tmp/notes.md <<EOF
+          This release marks the \`${VERSION}\` revision of the Model Context Protocol.
+
+          The specification is available at [modelcontextprotocol.io/specification/${VERSION}](https://modelcontextprotocol.io/specification/${VERSION}).
+
+          For a detailed overview of changes, see the [${VERSION} changelog](https://modelcontextprotocol.io/specification/${VERSION}/changelog).
+          EOF
+          gh release create "$VERSION" \
+            --target "$TARGET_SHA" \
+            --latest \
+            --title "MCP ${VERSION}" \
+            --notes-file /tmp/notes.md
