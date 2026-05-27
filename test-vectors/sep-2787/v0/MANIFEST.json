@@ -7,9 +7,9 @@
       "09-ieee754-float-in-canonical-input"
     ],
     "normative/positive": [
-      "01-hs256-digest",
-      "02-es256-digest",
-      "03-rs256-digest",
+      "01-hs256-projection-hash-only",
+      "02-es256-projection-hash-only",
+      "03-rs256-projection-hash-only",
       "04-hs256-ref",
       "05-hs256-projection",
       "06-rs256-projection"
@@ -17,7 +17,7 @@
     "verifier-policy/negative": [
       "10-ttl-expired-past-skew",
       "11-unsupported-alg-hs512",
-      "12-invalid-args-commitment-kind",
+      "12-args-commitment-missing-discriminator",
       "13-hs256-envelope-against-es256-verifier"
     ]
   },
@@ -53,6 +53,6 @@
     "secretVersion": "v1",
     "sub": "agent:archiver"
   },
-  "provenance": "Derived from tests/test_attestation_sep2787.py at commit 3d7af54 of vaaraio/vaara (branch feat/sep2787-reference-impl).",
+  "provenance": "Derived from tests/test_attestation_sep2787*.py at commit 5ea7cd3 of vaaraio/vaara (tag sep2787-ref-v2, merged via vaaraio/vaara#151).",
   "schema_version": "v0"
 }

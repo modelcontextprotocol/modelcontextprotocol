@@ -1,28 +1,23 @@
-# SEP-2787 Tool Call Attestation, proposed-shape test vectors v0
+# SEP-2787 Tool Call Attestation, test vectors v0 (v2 envelope)
 
-**Status: proposed-shape, not conformance for current SEP-2787 draft.**
+These vectors target the v2 envelope shape: `plannerDeclared` /
+`issuerAsserted` / `payloadDerived` trust-surface blocks with
+`toolCalls` under `payloadDerived`, `args` carrying either an
+`ArgsRef` (present `ref`, optionally `digest` + `canonicalization`)
+or an `ArgsProjection` (present `projection` as a JCS-canonical
+JSON string, plus `projectionDigest`), JCS canonicalisation of the
+envelope, IEEE-754 float rejection at the canonicalisation boundary,
+MCP camelCase field names.
 
-These vectors target the revised envelope shape proposed in [vaaraio's
-four-proposal comment](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2787#issuecomment-4544033186)
-on #2787: `plannerDeclared` / `issuerAsserted` / `payloadDerived`
-trust-surface blocks, explicit args-commitment kinds (digest, ref,
-projection), JCS canonicalisation, IEEE-754 float rejection at the
-canonicalisation boundary. Field names follow MCP camelCase convention
-(soup-oss/modelcontextprotocol@48c739b1).
+The v2 envelope drops the previous `kind`-discriminated args union.
+`ArgsRef` and `ArgsProjection` self-discriminate by present fields.
+Hash-only identity is expressed as an `ArgsProjection` whose
+projection content is `{"digest": "sha256:..."}`, which removes the
+need for a separate `ArgsDigest` variant.
 
-The SEP-2787 text as currently written describes a flatter v1 shape
-(top-level `iss` / `sub` / `intent`, `toolCalls[*].argsRef` /
-`argsProjection` as named optional fields). A second implementer
-reading the SEP as-is would correctly implement v1 and fail these
-fixtures.
-
-Treat as **provisional** until the SEP text adopts matching schema and
-canonicalisation rules. A sibling `v1-current` vector set against the
-SEP text as written is on offer if useful.
-
-Apache-2.0. Derived from `tests/test_attestation_sep2787.py` at
-vaaraio/vaara@3d7af54 (tag `sep2787-ref-v0`, merged via
-vaaraio/vaara#139). SEP maintainers own the final normative artifact
+Apache-2.0. Derived from `tests/test_attestation_sep2787*.py` at
+vaaraio/vaara@5ea7cd3 (tag `sep2787-ref-v2`, merged via
+vaaraio/vaara#151). SEP maintainers own the final normative artifact
 location.
 
 ## Layout
@@ -31,11 +26,15 @@ location.
 implementation MUST reproduce or reject these as documented.
 
 - `positive/`. Canonical bytes, signature input bytes, and signed
-  envelopes across HS256, ES256, RS256, and across the digest, ref,
-  projection args-commitment shapes. Six cases.
+  envelopes across HS256, ES256, RS256, and across both
+  args-commitment shapes. Six cases: three hash-only-identity
+  `ArgsProjection` round-trips (one per alg), one `ArgsRef`
+  round-trip, two `ArgsProjection` round-trips carrying real
+  projection content.
 - `negative/`. Tampering on the plannerDeclared and issuerAsserted
-  blocks (signature verification fails), and IEEE-754 float rejection
-  at the canonicalisation boundary. Three cases.
+  blocks (signature verification fails on the recanonicalised body),
+  and IEEE-754 float rejection at the canonicalisation boundary.
+  Three cases.
 
 `verifier-policy/` cases depend on validator policy that the SEP has
 not yet specified. They are not pass/fail against the wire format
@@ -43,7 +42,9 @@ alone.
 
 - TTL expiry past `iat + exp + skew`. Skew tolerance is policy.
 - Unsupported alg (HS512) rejection. Alg whitelist is policy.
-- Schema rejection of unknown args-commitment kinds. Schema is policy.
+- Schema rejection of an `args` object that carries neither `ref` nor
+  `projection`, so neither commitment branch can be reconstructed.
+  Schema is policy.
 - HS256 envelope against an ES256-only verifier. Alg-acceptance is
   policy.
 
@@ -59,8 +60,13 @@ Each case directory contains up to five files.
   three trust-surface blocks `plannerDeclared`, `issuerAsserted`,
   `payloadDerived`, plus `version` and `alg`.
 - `canonical_signing_input.bin`. The RFC 8785 (JCS) canonical encoding
-  of the unsigned envelope. This is the exact byte sequence the signer
-  signs over and the verifier hashes.
+  of the body the signature was actually computed over. For positive
+  cases this equals the recanonicalisation of the body present in
+  `signed_envelope.json`. For tampered cases (07, 08) it is the
+  pre-tamper canonical, so the signature still verifies against these
+  bytes; recanonicalising the present (tampered) body produces
+  different bytes against which the signature does not verify, and
+  that is how the walker detects tampering.
 - `canonical_signing_input.hex`. Same bytes as `canonical_signing_input.bin`,
   hex-encoded for human inspection and diff-friendly review.
 - `signed_envelope.json`. The signed envelope including the `signature`

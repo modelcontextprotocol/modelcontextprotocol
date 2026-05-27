@@ -13,7 +13,7 @@ yet specified. Apache-2.0.
 """
 from __future__ import annotations
 import hashlib, hmac, json, sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import rfc8785
@@ -25,8 +25,8 @@ from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 HERE = Path(__file__).resolve().parent
 KEYS = HERE / "keys"
 DEFAULT_ALG_WHITELIST = {"HS256", "ES256", "RS256"}
-DEFAULT_ALLOWED_KINDS = {"digest", "ref", "projection"}
 DEFAULT_SKEW_SECONDS = 30
+ARGS_DISCRIMINATOR_FIELDS = {"ref", "projection"}
 
 
 def load_hs(): return (KEYS / "hs256_secret.bin").read_bytes()
@@ -127,10 +127,13 @@ def walk_norm_negative():
         signed = json.loads((cd / "signed_envelope.json").read_text())
         stored = (cd / "canonical_signing_input.bin").read_bytes()
         recomputed = rfc8785.dumps(body_of(signed))
-        canon_ok = recomputed == stored
-        sig_ok = verify_hs256(stored, signed["signature"], load_hs())
-        out.append(report(cid, canon_ok and not sig_ok,
-                          "tampered body, signature rejected"))
+        sig_ok_on_stored = verify_hs256(stored, signed["signature"], load_hs())
+        sig_ok_on_present = verify_hs256(recomputed, signed["signature"], load_hs())
+        tamper_detected = (
+            sig_ok_on_stored and not sig_ok_on_present and recomputed != stored
+        )
+        out.append(report(cid, tamper_detected,
+                          "present body recanonicalises to bytes that do not verify"))
     return out
 
 
@@ -147,15 +150,20 @@ def walk_policy():
             iat = signed["issuerAsserted"]["iat"]
             iat_e = datetime.fromisoformat(iat.replace("Z", "+00:00")).timestamp()
             deadline = iat_e + signed["issuerAsserted"]["expSeconds"] + DEFAULT_SKEW_SECONDS
-            rejected = float(expected["verify_at_epoch"]) > deadline
-            reason = f"verify_at > iat+exp+skew (default skew={DEFAULT_SKEW_SECONDS}s)"
+            now_e = datetime.now(timezone.utc).timestamp()
+            rejected = now_e > deadline
+            reason = f"now > iat+exp+skew (default skew={DEFAULT_SKEW_SECONDS}s)"
         elif cid == "11-unsupported-alg-hs512":
             rejected = signed["alg"] not in DEFAULT_ALG_WHITELIST
             reason = f"alg {signed['alg']!r} not in default whitelist"
-        elif cid == "12-invalid-args-commitment-kind":
-            kinds = {a["kind"] for a in signed["payloadDerived"]}
-            rejected = bool(kinds - DEFAULT_ALLOWED_KINDS)
-            reason = f"args kinds {kinds} include disallowed under default schema"
+        elif cid == "12-args-commitment-missing-discriminator":
+            calls = signed["payloadDerived"]["toolCalls"]
+            missing = [i for i, c in enumerate(calls)
+                       if not (set(c["args"]) & ARGS_DISCRIMINATOR_FIELDS)]
+            rejected = bool(missing)
+            allowed = sorted(ARGS_DISCRIMINATOR_FIELDS)
+            reason = (f"toolCalls indices {missing} have args with neither ref "
+                      f"nor projection (allowed discriminators: {allowed})")
         elif cid == "13-hs256-envelope-against-es256-verifier":
             rejected = signed["alg"] != "ES256"
             reason = f"envelope alg {signed['alg']!r} != verifier policy ES256_only"
