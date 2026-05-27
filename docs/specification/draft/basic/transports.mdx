@@ -698,8 +698,8 @@ See [Lifecycle: Backward Compatibility][lifecycle-compat] for details.
 
 #### Earlier Streamable HTTP Revisions
 
-Protocol versions `2025-03-26` through `2025-11-25` also used the Streamable
-HTTP transport, but in a different shape: servers could assign a session via
+Protocol versions `2025-03-26` through [`2025-11-25`](./docs/specification/2025-11-25/basic/transports.mdx)
+also used the Streamable HTTP transport, but in a different shape: servers could assign a session via
 the `Mcp-Session-Id` header (terminated with HTTP DELETE), clients could open
 a standalone SSE stream with HTTP GET to receive server-initiated messages,
 servers could send JSON-RPC _requests_ on SSE streams, and streams were

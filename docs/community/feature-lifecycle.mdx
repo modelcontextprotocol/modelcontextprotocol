@@ -37,11 +37,12 @@ again, the minimum deprecation window in
 revision in which the new deprecation takes effect.
 
 ### SDKs
+
 Removal from the specification does not oblige an SDK to drop the feature from
 releases. That timeline is governed by the SDK's own revision-support policy.
 
-
 ## Deprecating a Feature
+
 A feature may be proposed for deprecation due to
 
 - it has been superseded by another feature that covers the same use cases,
@@ -60,7 +61,7 @@ Deprecation is a specification change and therefore requires a SEP per the
 3. Document the migration path, or state explicitly that none is required. If
    the migration path names a replacement feature, that feature must be Active
    in the revision in which the deprecation takes effect; the replacement and
-   the deprecation may land in the same revision. 
+   the deprecation may land in the same revision.
 4. Specify the **minimum deprecation window**: the number of months, at least
    twelve, that the feature must remain Deprecated before it is eligible for
    removal. The window is measured from the release of the specification
@@ -69,7 +70,7 @@ Deprecation is a specification change and therefore requires a SEP per the
    specification revision released as Current on or after the window elapses;
    that point is the feature's **earliest removal**.
 
-When the deprecation SEP is accepted and reaches Final, the deprecation is scheduled. 
+When the deprecation SEP is accepted and reaches Final, the deprecation is scheduled.
 
 - The feature's entry in `schema.ts` gains a `@deprecated` JSDoc tag
   referencing the deprecation SEP and the revision in which the deprecation
@@ -86,7 +87,7 @@ When the deprecation SEP is accepted and reaches Final, the deprecation is sched
 
 The feature becomes Deprecated when the revision carrying these changes is released
 and becomes the new Current revision (see [versioning guide](/docs/learn/versioning)).
-The minimum deprecation window is counted from that release. 
+The minimum deprecation window is counted from that release.
 
 ## The Deprecated Registry
 
@@ -94,7 +95,7 @@ The minimum deprecation window is counted from that release.
 a single page listing every feature Deprecated or Removed state. It is
 the canonical answer to "what is on its way out, and by when," so that an
 implementer does not have to reconstruct that picture from deprecation entries
-spread across revision changelogs. 
+spread across revision changelogs.
 
 ## Tier 1 SDK Obligations
 
@@ -105,18 +106,18 @@ released as Current, Tier 1 SDKs:
   native mechanism (for example `@Deprecated` in Java, `[Obsolete]` in .NET,
   `@deprecated` JSDoc in TypeScript, the `Deprecated:` doc convention in Go) in
   their next release, referencing the deprecation SEP and the earliest removal
-  date where the mechanism permits. 
+  date where the mechanism permits.
 - Should emit a runtime warning when a deprecated feature is exercised, using
   the language's idiomatic mechanism (for example Python's
   `DeprecationWarning`, Node.js's `process.emitWarning`, or a configurable
-  logger). 
+  logger).
 
 ## Removing a Feature
 
 1. Once a feature is set for removal, the removal is executed at the discretion
    of the Core Maintainers after the minimum deprecation window has elapsed.
 2. The removal needs to be documented in the `changelog.mdx` and [registry](#the-deprecated-regsitry)
-2. A SEP is required for any change to the original deprecation or removal SEP, for
+3. A SEP is required for any change to the original deprecation or removal SEP, for
    example extending or shortening the timeline
    ([Expedited removal](#expedited-removal)) or restoring the feature to Active
    ([Feature states](#feature-states)).
