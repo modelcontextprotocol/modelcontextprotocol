@@ -1,25 +1,25 @@
 {
   "alg": "ES256",
-  "issuer_asserted": {
+  "issuerAsserted": {
     "alg": "ES256",
-    "exp_seconds": 300,
+    "expSeconds": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",
     "nonce": "n0_sep2787_v0_fixtures_pinned_",
-    "secret_version": "v1",
+    "secretVersion": "v1",
     "sub": "agent:archiver"
   },
-  "payload_derived": [
+  "payloadDerived": [
     {
       "canonicalization": "jcs",
       "digest": "sha256:866290b000d2128e0a3188a7207d447090415dc321bfcc0ceed355bd7fd3e8f8",
       "kind": "digest"
     }
   ],
-  "planner_declared": {
+  "plannerDeclared": {
     "intent": "archive obsolete report per Q4 retention policy",
-    "requested_capability": "filesystem.delete",
-    "tool_calls": [
+    "requestedCapability": "filesystem.delete",
+    "toolCalls": [
       {
         "args": {
           "canonicalization": "jcs",
@@ -27,10 +27,10 @@
           "kind": "digest"
         },
         "name": "delete_file",
-        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
       }
     ]
   },
-  "signature": "76b972eb71060d1c66df0c1a66c305bd8a446c7a64389b314f8e433c8139a5f159ff08cd3f78c6ab0d9b7824517122536e23dcd34a194160dc30e0c8d7f8605b",
+  "signature": "33508d086dd2741c4363714075c80cbb0fa832724d981a1370f70afa63ae8fcb9ab484f23006e0dea783b832d1bf650d047304d482aaed89782e61bb0838c00b",
   "version": 1
 }

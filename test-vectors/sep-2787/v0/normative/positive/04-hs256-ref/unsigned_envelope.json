@@ -1,15 +1,15 @@
 {
   "alg": "HS256",
-  "issuer_asserted": {
+  "issuerAsserted": {
     "alg": "HS256",
-    "exp_seconds": 300,
+    "expSeconds": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",
     "nonce": "n0_sep2787_v0_fixtures_pinned_",
-    "secret_version": "v1",
+    "secretVersion": "v1",
     "sub": "agent:archiver"
   },
-  "payload_derived": [
+  "payloadDerived": [
     {
       "canonicalization": "jcs",
       "digest": "sha256:abababababababababababababababababababababababababababababababab",
@@ -17,10 +17,10 @@
       "ref": "ipfs://QmExampleContentAddress0000000000000000000000"
     }
   ],
-  "planner_declared": {
+  "plannerDeclared": {
     "intent": "archive obsolete report per Q4 retention policy",
-    "requested_capability": "filesystem.delete",
-    "tool_calls": [
+    "requestedCapability": "filesystem.delete",
+    "toolCalls": [
       {
         "args": {
           "canonicalization": "jcs",
@@ -29,7 +29,7 @@
           "ref": "ipfs://QmExampleContentAddress0000000000000000000000"
         },
         "name": "delete_file",
-        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
       }
     ]
   },

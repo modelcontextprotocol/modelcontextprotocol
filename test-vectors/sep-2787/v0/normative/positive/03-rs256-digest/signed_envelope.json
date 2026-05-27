@@ -1,25 +1,25 @@
 {
   "alg": "RS256",
-  "issuer_asserted": {
+  "issuerAsserted": {
     "alg": "RS256",
-    "exp_seconds": 300,
+    "expSeconds": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",
     "nonce": "n0_sep2787_v0_fixtures_pinned_",
-    "secret_version": "v1",
+    "secretVersion": "v1",
     "sub": "agent:archiver"
   },
-  "payload_derived": [
+  "payloadDerived": [
     {
       "canonicalization": "jcs",
       "digest": "sha256:866290b000d2128e0a3188a7207d447090415dc321bfcc0ceed355bd7fd3e8f8",
       "kind": "digest"
     }
   ],
-  "planner_declared": {
+  "plannerDeclared": {
     "intent": "archive obsolete report per Q4 retention policy",
-    "requested_capability": "filesystem.delete",
-    "tool_calls": [
+    "requestedCapability": "filesystem.delete",
+    "toolCalls": [
       {
         "args": {
           "canonicalization": "jcs",
@@ -27,10 +27,10 @@
           "kind": "digest"
         },
         "name": "delete_file",
-        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
       }
     ]
   },
-  "signature": "034fa7144ce3804468b7a2f394d03716097c96b1d4a6dbd058755b6965b03068a4857f939287a915cc78b884464d2f20bd49e8f5060d5d21c03b296df153ec2954e249077ef2c0962bf56761e670995851b0d26cf4927a70806ba977fb0aac3878a928de45cbc46db53978b0a2fee85af040f05f2703f4544ce550b065da8860c8638be3cd4a9af2766490c0027d4ed35e63587c6c4b371f5d880b66f072c119b42aa09aa72a4885eeae078878cad841170adfa3e60da0fd0f55485b5b2b2bb353af470cb375f1a8a689253f316d72f01a8ddfb71bc46c49537686f38b206ecc684ffc53c15527dc724f5ddb35dbb792978da99bfd0b42cbfdfe275d18eeb61d",
+  "signature": "63057f3534ff1b0115134ffdf124fa6ee2e7312519a64b2ae28d39ca2dc03f90cc7d2bd9c45e8a5e5eb61712a7fd903a0a94b30b46f8b055483a39bb31f970c54e6c8c1b99e5da86bbc246c54666ab8403e14a2a4405653410284951ae644eb7b9a2cdfc499dfd5a88cb3b1b92f6f945663c545d5c5faec00f9c85535775a902f0b50222732dfb874fe9e39127eab2f76351aed50a58830dd5235f0b216f9ded5d3c6bab049eada54c825d7c4e9682d652a63f5b12c300206a33a79d35453dc09077a9b98c0a522905e0b65e6f6f2679ee59122f93999116e660a06f9d6c531cba7ec33eeabec4b446e615edac90c23da99514fb624596e2cdd11a7f392f66bc",
   "version": 1
 }

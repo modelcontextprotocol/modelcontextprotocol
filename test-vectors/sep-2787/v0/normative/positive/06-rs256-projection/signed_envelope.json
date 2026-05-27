@@ -1,40 +1,40 @@
 {
   "alg": "RS256",
-  "issuer_asserted": {
+  "issuerAsserted": {
     "alg": "RS256",
-    "exp_seconds": 300,
+    "expSeconds": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",
     "nonce": "n0_sep2787_v0_fixtures_pinned_",
-    "secret_version": "v1",
+    "secretVersion": "v1",
     "sub": "agent:archiver"
   },
-  "payload_derived": [
+  "payloadDerived": [
     {
       "kind": "projection",
       "projection": {
         "redacted_path_prefix": "/archive/"
       },
-      "projection_digest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
+      "projectionDigest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
     }
   ],
-  "planner_declared": {
+  "plannerDeclared": {
     "intent": "archive obsolete report per Q4 retention policy",
-    "requested_capability": "filesystem.delete",
-    "tool_calls": [
+    "requestedCapability": "filesystem.delete",
+    "toolCalls": [
       {
         "args": {
           "kind": "projection",
           "projection": {
             "redacted_path_prefix": "/archive/"
           },
-          "projection_digest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
+          "projectionDigest": "sha256:94bad35a619f2fa722dbbb472a370af813720016fb645e4a01b31effca9e961b"
         },
         "name": "delete_file",
-        "server_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
       }
     ]
   },
-  "signature": "009120b710822f636e93be0bdfe280f4a31043f9d8a2f72353997ea07511c8ba44295333f80bf16856675f615dadf5eb9ed6fed6d107444a08436b702eedcab8244804449755661b2dda6b7c1d7dd8751a6d51c5c25943195cd0bba61be5aa27ac513320001c19759e786324d3db72fdb80c28f6f27cc3988696a1bbaf826d6eb22696f570a796e899d80d977823f9277810068f7024d0cfbcfaf37d2682ceafd71c68d1892f15922d8e0f4dd60fcd6b4521830acd475da5a951ab2dd2801d9c29bd1b2bb2a3a77723c52ebb66f44b5aada9b585d766503410a7e38c0cb8d3ed415052aecd6bd735f53975848c3bd8c1627fe7fb62d488f7e89cc6e26312f96e",
+  "signature": "3fe8ae649ac177e1dd5bde8d1e1e084786317342644173ef158fdcc30290d4d37a89c02d76a6d5bc35684655fa3fdf1e660df547c3fcd730616e853ddde8e925c12fd7e53bb4c23f34ada201c635d2a8f77cbc03ececa25f912314f03152da17da2f01e7202607f9b052923973e991dca2275d916a6613a09cbb2851345716b90c3399e64d5c4fd255c8aee584c78b84709acbc0123c0a861be8d1950e0e5b0fa430508a2fc4926d62506f2a471207a461f9875fc944812d1b077bb0873199f3c5370a44de1f92753507ece369bda96c962ff3b1e9d508745dc4f59ff4c488299f52deafd0057c8f9144c88e1b2e59ce3d434f644d6a1ffbc541c11284841bd3",
   "version": 1
 }

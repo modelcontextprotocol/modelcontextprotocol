@@ -144,16 +144,16 @@ def walk_policy():
         expected = json.loads((cd / "expected.json").read_text())
         signed = json.loads((cd / "signed_envelope.json").read_text())
         if cid == "10-ttl-expired-past-skew":
-            iat = signed["issuer_asserted"]["iat"]
+            iat = signed["issuerAsserted"]["iat"]
             iat_e = datetime.fromisoformat(iat.replace("Z", "+00:00")).timestamp()
-            deadline = iat_e + signed["issuer_asserted"]["exp_seconds"] + DEFAULT_SKEW_SECONDS
+            deadline = iat_e + signed["issuerAsserted"]["expSeconds"] + DEFAULT_SKEW_SECONDS
             rejected = float(expected["verify_at_epoch"]) > deadline
             reason = f"verify_at > iat+exp+skew (default skew={DEFAULT_SKEW_SECONDS}s)"
         elif cid == "11-unsupported-alg-hs512":
             rejected = signed["alg"] not in DEFAULT_ALG_WHITELIST
             reason = f"alg {signed['alg']!r} not in default whitelist"
         elif cid == "12-invalid-args-commitment-kind":
-            kinds = {a["kind"] for a in signed["payload_derived"]}
+            kinds = {a["kind"] for a in signed["payloadDerived"]}
             rejected = bool(kinds - DEFAULT_ALLOWED_KINDS)
             reason = f"args kinds {kinds} include disallowed under default schema"
         elif cid == "13-hs256-envelope-against-es256-verifier":

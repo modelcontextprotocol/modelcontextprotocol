@@ -46,11 +46,11 @@
   "license": "Apache-2.0",
   "name": "sep-2787-vectors",
   "pinned_values": {
-    "exp_seconds_default": 300,
+    "expSecondsDefault": 300,
     "iat": "2026-05-26T12:00:00Z",
     "iss": "issuer://test",
     "nonce": "n0_sep2787_v0_fixtures_pinned_",
-    "secret_version": "v1",
+    "secretVersion": "v1",
     "sub": "agent:archiver"
   },
   "provenance": "Derived from tests/test_attestation_sep2787.py at commit 3d7af54 of vaaraio/vaara (branch feat/sep2787-reference-impl).",

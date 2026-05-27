@@ -4,16 +4,17 @@
 
 These vectors target the revised envelope shape proposed in [vaaraio's
 four-proposal comment](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2787#issuecomment-4544033186)
-on #2787: `planner_declared` / `issuer_asserted` / `payload_derived`
+on #2787: `plannerDeclared` / `issuerAsserted` / `payloadDerived`
 trust-surface blocks, explicit args-commitment kinds (digest, ref,
 projection), JCS canonicalisation, IEEE-754 float rejection at the
-canonicalisation boundary.
+canonicalisation boundary. Field names follow MCP camelCase convention
+(soup-oss/modelcontextprotocol@48c739b1).
 
 The SEP-2787 text as currently written describes a flatter v1 shape
-(top-level `iss` / `sub` / `intent`, `toolCalls[*].args` as a string,
-sorted-key no-whitespace canonicalisation, optional `ack`). A second
-implementer reading the SEP as-is would correctly implement v1 and
-fail these fixtures.
+(top-level `iss` / `sub` / `intent`, `toolCalls[*].argsRef` /
+`argsProjection` as named optional fields). A second implementer
+reading the SEP as-is would correctly implement v1 and fail these
+fixtures.
 
 Treat as **provisional** until the SEP text adopts matching schema and
 canonicalisation rules. A sibling `v1-current` vector set against the
@@ -32,7 +33,7 @@ implementation MUST reproduce or reject these as documented.
 - `positive/`. Canonical bytes, signature input bytes, and signed
   envelopes across HS256, ES256, RS256, and across the digest, ref,
   projection args-commitment shapes. Six cases.
-- `negative/`. Tampering on the planner_declared and issuer_asserted
+- `negative/`. Tampering on the plannerDeclared and issuerAsserted
   blocks (signature verification fails), and IEEE-754 float rejection
   at the canonicalisation boundary. Three cases.
 
@@ -55,8 +56,8 @@ normative.
 Each case directory contains up to five files.
 
 - `unsigned_envelope.json`. The envelope body before signing, with the
-  three trust-surface blocks `planner_declared`, `issuer_asserted`,
-  `payload_derived`, plus `version` and `alg`.
+  three trust-surface blocks `plannerDeclared`, `issuerAsserted`,
+  `payloadDerived`, plus `version` and `alg`.
 - `canonical_signing_input.bin`. The RFC 8785 (JCS) canonical encoding
   of the unsigned envelope. This is the exact byte sequence the signer
   signs over and the verifier hashes.
