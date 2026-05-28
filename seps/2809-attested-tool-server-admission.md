@@ -1,30 +1,17 @@
----
-title: "SEP-2777: Attested Tool-Server Admission (ATSA)"
-sidebarTitle: "SEP-2777: Attested Tool-Server Admission (ATSA)"
-description: "Attested Tool-Server Admission (ATSA)"
----
+# SEP-2809: Attested Tool-Server Admission (ATSA)
 
-<div className="flex items-center gap-2 mb-4">
-  <Badge color="gray" shape="pill">
-    Draft
-  </Badge>
-  <Badge color="gray" shape="pill">
-    Standards Track
-  </Badge>
-</div>
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-05-22
+- **Author(s)**: Alfredo Metere (@metereconsulting) &lt;alfredo.metere@enclawed.com&gt;, Enclawed LLC
+- **Sponsor**: None (seeking)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2809
+- **Preprint**: doi:10.5281/zenodo.20349263
+- **Requires**: RFC 2119, RFC 8174, RFC 8615 (Well-Known URIs), RFC 8032 (Ed25519)
 
-| Field         | Value                                                                                                                                                      |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2777                                                                                                                                                       |
-| **Title**     | Attested Tool-Server Admission (ATSA)                                                                                                                      |
-| **Status**    | Draft                                                                                                                                                      |
-| **Type**      | Standards Track                                                                                                                                            |
-| **Created**   | 2026-05-22                                                                                                                                                 |
-| **Author(s)** | Alfredo Metere ([@metereconsulting](https://github.com/metereconsulting)) &lt;alfredo.metere[@enclawed](https://github.com/enclawed).com&gt;, Enclawed LLC |
-| **Sponsor**   | None (seeking)                                                                                                                                             |
-| **PR**        | [#2777](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2777)                                                                            |
-
----
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHOULD**,
+**SHOULD NOT**, **MAY**, and **OPTIONAL** are to be interpreted as in RFC 2119
+and RFC 8174.
 
 ## Abstract
 

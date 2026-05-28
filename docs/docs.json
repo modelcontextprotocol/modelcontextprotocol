@@ -456,7 +456,7 @@
               "seps/2164-resource-not-found-error",
               "seps/2484-conformance-tests-required-for-final-seps",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
-              "seps/2777-attested-tool-server-admission"
+              "seps/2809-attested-tool-server-admission"
             ]
           }
         ]
