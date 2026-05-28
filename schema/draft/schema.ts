@@ -34,7 +34,7 @@ export type JSONRPCMessage =
   | JSONRPCResponse;
 
 /** @internal */
-export const LATEST_PROTOCOL_VERSION = "DRAFT-2026-v1";
+export const LATEST_PROTOCOL_VERSION = "2026-07-28";
 /** @internal */
 export const JSONRPC_VERSION = "2.0";
 
@@ -102,6 +102,10 @@ export interface RequestMetaObject extends MetaObject {
    * If absent, the server MUST NOT send any {@link LoggingMessageNotification | notifications/message}
    * notifications for this request. The client opts in to log messages by
    * explicitly setting a level. Replaces the former `logging/setLevel` RPC.
+   *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
    */
   "io.modelcontextprotocol/logLevel"?: LoggingLevel;
 }
@@ -628,6 +632,10 @@ export interface ClientCapabilities {
   /**
    * Present if the client supports listing roots.
    *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
+   *
    * @example Roots — minimum baseline support
    * {@includeCode ./examples/ClientCapabilities/roots-minimum-baseline-support.json}
    */
@@ -636,14 +644,18 @@ export interface ClientCapabilities {
   /**
    * Present if the client supports sampling from an LLM.
    *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
+   *
    * @example Sampling — minimum baseline support
    * {@includeCode ./examples/ClientCapabilities/sampling-minimum-baseline-support.json}
    *
    * @example Sampling — tool use support
    * {@includeCode ./examples/ClientCapabilities/sampling-tool-use-support.json}
    *
-   * @example Sampling — context inclusion support (soft-deprecated)
-   * {@includeCode ./examples/ClientCapabilities/sampling-context-inclusion-support-soft-deprecated.json}
+   * @example Sampling — context inclusion support (deprecated)
+   * {@includeCode ./examples/ClientCapabilities/sampling-context-inclusion-support-deprecated.json}
    */
   sampling?: {
     /**
@@ -675,7 +687,7 @@ export interface ClientCapabilities {
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
    *
-   * @example Extensions — UI extension with MIME type support
+   * @example Extensions — MCP Apps (UI) extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
   extensions?: { [key: string]: JSONObject };
@@ -693,6 +705,10 @@ export interface ServerCapabilities {
   experimental?: { [key: string]: JSONObject };
   /**
    * Present if the server supports sending log messages to the client.
+   *
+   * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+   * Remains in the specification for at least twelve months; see the
+   * deprecated features registry.
    *
    * @example Logging — minimum baseline support
    * {@includeCode ./examples/ServerCapabilities/logging-minimum-baseline-support.json}
@@ -762,11 +778,11 @@ export interface ServerCapabilities {
   };
   /**
    * Optional MCP extensions that the server supports. Keys are extension identifiers
-   * (e.g., "io.modelcontextprotocol/apps"), and values are per-extension settings
+   * (e.g., "io.modelcontextprotocol/tasks"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
    *
-   * @example Extensions — UI extension support
-   * {@includeCode ./examples/ServerCapabilities/extensions-ui.json}
+   * @example Extensions — Tasks extension support
+   * {@includeCode ./examples/ServerCapabilities/extensions-tasks.json}
    */
   extensions?: { [key: string]: JSONObject };
 }
@@ -1848,6 +1864,10 @@ export interface Tool extends BaseMetadata, Icons {
 /**
  * Parameters for a `notifications/message` notification.
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @example Log database connection failed
  * {@includeCode ./examples/LoggingMessageNotificationParams/log-database-connection-failed.json}
  *
@@ -1871,6 +1891,10 @@ export interface LoggingMessageNotificationParams extends NotificationParams {
 /**
  * JSONRPCNotification of a log message passed from server to client. The client opts in by setting `"io.modelcontextprotocol/logLevel"` in a request's `_meta`.
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @example Log database connection failed
  * {@includeCode ./examples/LoggingMessageNotification/log-database-connection-failed.json}
  *
@@ -1886,6 +1910,10 @@ export interface LoggingMessageNotification extends JSONRPCNotification {
  *
  * These map to syslog message severities, as specified in RFC-5424:
  * https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category Common Types
  */
@@ -1912,6 +1940,10 @@ export type LoggingLevel =
  * @example Follow-up request with tool results
  * {@includeCode ./examples/CreateMessageRequestParams/follow-up-with-tool-results.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface CreateMessageRequestParams {
@@ -1928,8 +1960,12 @@ export interface CreateMessageRequestParams {
    * A request to include context from one or more MCP servers (including the caller), to be attached to the prompt.
    * The client MAY ignore this request.
    *
-   * Default is `"none"`. Values `"thisServer"` and `"allServers"` are soft-deprecated. Servers SHOULD only use these values if the client
-   * declares {@link ClientCapabilities.sampling.context}. These values may be removed in future spec releases.
+   * Default is `"none"`. The values `"thisServer"` and `"allServers"` are deprecated (SEP-2596): servers SHOULD
+   * omit this field or use `"none"`, and SHOULD only use the deprecated values if the client declares
+   * {@link ClientCapabilities.sampling.context}.
+   *
+   * @deprecated The `"thisServer"` and `"allServers"` values are deprecated as of protocol version 2025-11-25
+   * (SEP-2596) and will be removed no later than the Sampling feature itself (SEP-2577). Omit this field or use `"none"`.
    */
   includeContext?: "none" | "thisServer" | "allServers";
   /**
@@ -1963,6 +1999,10 @@ export interface CreateMessageRequestParams {
 /**
  * Controls tool selection behavior for sampling requests.
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface ToolChoice {
@@ -1980,6 +2020,10 @@ export interface ToolChoice {
  *
  * @example Sampling request
  * {@includeCode ./examples/CreateMessageRequest/sampling-request.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2001,6 +2045,10 @@ export interface CreateMessageRequest {
  *
  * @example Final response after tool use
  * {@includeCode ./examples/CreateMessageResult/final-response.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2033,6 +2081,10 @@ export interface CreateMessageResult extends SamplingMessage {
  * @example Multiple content blocks
  * {@includeCode ./examples/SamplingMessage/multiple-content-blocks.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface SamplingMessage {
@@ -2042,6 +2094,10 @@ export interface SamplingMessage {
 }
 
 /**
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export type SamplingMessageContentBlock =
@@ -2190,6 +2246,10 @@ export interface AudioContent {
  * @example `get_weather` tool use
  * {@includeCode ./examples/ToolUseContent/get-weather-tool-use.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface ToolUseContent {
@@ -2224,6 +2284,10 @@ export interface ToolUseContent {
  *
  * @example `get_weather` tool result
  * {@includeCode ./examples/ToolResultContent/get-weather-tool-result.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2284,6 +2348,10 @@ export interface ToolResultContent {
  * @example With hints and priorities
  * {@includeCode ./examples/ModelPreferences/with-hints-and-priorities.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `sampling/createMessage`
  */
 export interface ModelPreferences {
@@ -2337,6 +2405,10 @@ export interface ModelPreferences {
  *
  * Keys not declared here are currently left unspecified by the spec and are up
  * to the client to interpret.
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `sampling/createMessage`
  */
@@ -2486,6 +2558,10 @@ export interface PromptReference extends BaseMetadata {
  * @example List roots request
  * {@includeCode ./examples/ListRootsRequest/list-roots-request.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `roots/list`
  */
 export interface ListRootsRequest {
@@ -2504,6 +2580,10 @@ export interface ListRootsRequest {
  * @example Multiple root directories
  * {@includeCode ./examples/ListRootsResult/multiple-root-directories.json}
  *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
+ *
  * @category `roots/list`
  */
 export interface ListRootsResult {
@@ -2515,6 +2595,10 @@ export interface ListRootsResult {
  *
  * @example Project directory root
  * {@includeCode ./examples/Root/project-directory.json}
+ *
+ * @deprecated Deprecated as of protocol version 2026-07-28 (SEP-2577).
+ * Remains in the specification for at least twelve months; see the
+ * deprecated features registry.
  *
  * @category `roots/list`
  */
