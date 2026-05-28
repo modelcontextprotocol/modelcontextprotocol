@@ -100,7 +100,7 @@ On top of that baseline, two discovery mechanisms are defined. A server MAY supp
 
 #### Enumeration via `skill://index.json`
 
-A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://agentskills.io/well-known-uri#index-format), with two differences: the `url` field contains a full MCP resource URI (any scheme the server serves), and the `digest` field is omitted (integrity is the transport's concern over an authenticated MCP connection). This binding also defines one additional `type` value, `"mcp-resource-template"`, for entries that describe a parameterized skill namespace.
+A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://github.com/agentskills/agentskills/pull/254), with two differences: the `url` field contains a full MCP resource URI (any scheme the server serves), and the `digest` field is omitted (integrity is the transport's concern over an authenticated MCP connection). This binding also defines one additional `type` value, `"mcp-resource-template"`, for entries that describe a parameterized skill namespace.
 
 ```json
 {
