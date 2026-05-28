@@ -75,6 +75,10 @@ Each case directory contains up to five files.
 - `expected.json`. Machine-readable expected outcome: verification
   result, verifying material, rejection dimension (for negative cases),
   policy dependency (for verifier-policy cases), determinism flag.
+  Time-sensitive policy cases (case 10) carry `verify_at_epoch`
+  (integer UNIX seconds) so the verifier's clock is fixture data,
+  not ambient wall clock. A second implementation replays the same
+  inputs and gets the same pass/fail regardless of when it runs.
 
 ## Determinism
 

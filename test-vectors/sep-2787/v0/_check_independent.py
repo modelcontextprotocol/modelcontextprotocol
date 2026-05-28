@@ -13,7 +13,7 @@ yet specified. Apache-2.0.
 """
 from __future__ import annotations
 import hashlib, hmac, json, sys
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import rfc8785
@@ -150,9 +150,10 @@ def walk_policy():
             iat = signed["issuerAsserted"]["iat"]
             iat_e = datetime.fromisoformat(iat.replace("Z", "+00:00")).timestamp()
             deadline = iat_e + signed["issuerAsserted"]["expSeconds"] + DEFAULT_SKEW_SECONDS
-            now_e = datetime.now(timezone.utc).timestamp()
-            rejected = now_e > deadline
-            reason = f"now > iat+exp+skew (default skew={DEFAULT_SKEW_SECONDS}s)"
+            verify_at = expected["verify_at_epoch"]
+            rejected = verify_at > deadline
+            reason = (f"verify_at_epoch > iat+exp+skew "
+                      f"(default skew={DEFAULT_SKEW_SECONDS}s)")
         elif cid == "11-unsupported-alg-hs512":
             rejected = signed["alg"] not in DEFAULT_ALG_WHITELIST
             reason = f"alg {signed['alg']!r} not in default whitelist"
