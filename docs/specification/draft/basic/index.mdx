@@ -79,6 +79,8 @@ can use to determine how to parse and handle the `result` object.
 
 - A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
 - A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
+- Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
+- A `resultType` of any value unrecognized by the client **MUST** be considered invalid.
 - For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
 
 #### Error Responses

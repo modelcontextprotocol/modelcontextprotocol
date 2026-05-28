@@ -140,7 +140,7 @@ A request that is eligible for task-augmentation may return one of two distinct 
 
 ```typescript
 // "task" is introduced by this extension.
-type ResultType = "complete" | "input_required" | "task";
+type ResultType = "complete" | "input_required" | "task" | string;
 ```
 
 Servers **MUST** set `resultType` to `"task"` when returning a `CreateTaskResult` so that clients can distinguish it from a standard result. Servers **MUST NOT** set `resultType` to `"task"` on result types other than `CreateTaskResult`.

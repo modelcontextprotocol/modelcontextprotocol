@@ -166,7 +166,7 @@ export interface Notification {
  * input_required - the request requires additional input and the result contains an {@link InputRequiredResult} object with instructions for the client to provide additional input before retrying the original request.
  * @category Common Types
  */
-export type ResultType = "complete" | "input_required";
+export type ResultType = "complete" | "input_required" | string;
 
 /**
  * Common result fields.
