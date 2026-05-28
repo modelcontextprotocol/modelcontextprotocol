@@ -1,0 +1,40 @@
+---
+title: Deprecated Features
+---
+
+<div id="enable-section-numbers" />
+
+This page is the registry of specification features that are currently in the
+**Deprecated** state under the
+[feature lifecycle and deprecation policy](/community/feature-lifecycle)
+([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+
+A Deprecated feature remains part of the specification but is scheduled for
+removal: new implementations **SHOULD NOT** adopt it, and existing
+implementations **SHOULD** migrate before the feature's earliest removal. The
+earliest removal marks when a feature becomes _eligible_ for removal; the
+actual removal is a Core Maintainer decision taken during release preparation
+and may happen later.
+
+This registry is a derived view kept consistent with the per-feature
+deprecation notices and changelog entries, which are the normative records.
+
+## Deprecated
+
+| Feature                                                                                                         | Deprecation SEP                                                                    | Deprecated in | Migration path                                                                                         | Earliest removal                                                                                      |
+| --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| [Roots](/specification/draft/client/roots)                                                                      | [SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577) | `2026-07-28`  | Pass directories or files via tool parameters, resource URIs, or server configuration                  | First revision released on or after 2027-07-28                                                        |
+| [Sampling](/specification/draft/client/sampling)                                                                | [SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577) | `2026-07-28`  | Integrate directly with LLM provider APIs                                                              | First revision released on or after 2027-07-28                                                        |
+| [Logging](/specification/draft/server/utilities/logging)                                                        | [SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577) | `2026-07-28`  | Log to `stderr` for stdio transports; use [OpenTelemetry](https://opentelemetry.io/) for observability | First revision released on or after 2027-07-28                                                        |
+| [HTTP+SSE transport](/specification/2024-11-05/basic/transports#http-with-sse)                                  | [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596) | `2025-03-26`  | [Streamable HTTP](/specification/draft/basic/transports#streamable-http)                               | Three months after SEP-2596 reaches Final                                                             |
+| `includeContext: "thisServer"` / `"allServers"` ([Sampling](/specification/draft/client/sampling#capabilities)) | [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596) | `2025-11-25`  | Omit the field or use `"none"`                                                                         | Follows Sampling ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)) |
+
+The HTTP+SSE transport and the `includeContext` values were already described
+as deprecated before the lifecycle policy existed; SEP-2596 reclassifies them
+as Deprecated under its [transition provisions](/community/feature-lifecycle).
+
+## Removed
+
+No features have been removed under this policy yet. When a Deprecated feature
+is removed, its row moves to this section with a link to the changelog entry
+recording the removal.

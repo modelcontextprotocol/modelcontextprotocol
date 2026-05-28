@@ -27,13 +27,21 @@ notification containing:
 }
 ```
 
+## Transport-Specific Cancellation
+
+How a client signals cancellation depends on the transport:
+
+- **Streamable HTTP**: Closing the SSE response stream is the cancellation signal.
+  The server **MUST** treat a client disconnect as cancellation of that request. No
+  `notifications/cancelled` message is required or expected.
+- **stdio**: There is no per-request stream to close. The client **MUST** send a
+  `notifications/cancelled` notification referencing the request ID.
+
 ## Behavior Requirements
 
 1. Cancellation notifications **MUST** only reference requests that:
    - Were previously issued in the same direction
    - Are believed to still be in-progress
-1. The `initialize` request **MUST NOT** be cancelled by clients
-1. For [task-augmented requests](./tasks), the `tasks/cancel` request **MUST** be used instead of the `notifications/cancelled` notification. Tasks have their own dedicated cancellation mechanism that returns the final task state.
 1. Receivers of cancellation notifications **SHOULD**:
    - Stop processing the cancelled request
    - Free associated resources
