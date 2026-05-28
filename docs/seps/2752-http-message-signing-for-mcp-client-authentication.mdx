@@ -258,10 +258,24 @@ The server **MUST** verify both signatures, that the `tag` matches, and that the
 
 ### 4. Client behavior
 
+#### 4.1 Signer abstraction
+
+This SEP does **not** constrain where signing happens. RFC 9421 only requires that the request carries a valid `Signature` under the public key the server has bound for the client. Conforming client implementations **SHOULD** treat signing as an abstract operation that can be satisfied by any of the following, interchangeably:
+
+- **In-process key material** held in a non-extractable form (e.g. WebCrypto `SubtleCrypto` with `extractable: false`).
+- **OS-managed key store** (macOS Keychain, Windows DPAPI / CNG, Linux Secret Service / kernel keyring).
+- **An out-of-process local signer** following an `ssh-agent`-style pattern — the agent process delegates signing to a separate process over a Unix socket or named pipe, and never sees the private key itself. Reference instantiations include `ssh-agent`, `gpg-agent`, hardware-backed wallet daemons, and projects like [authsome](https://github.com/agentrhq/authsome).
+- **Hardware tokens** (YubiKey, Ledger, TPM, Secure Enclave).
+- **A remote KMS** (AWS KMS, GCP KMS, HashiCorp Vault Transit) reached over an authenticated channel.
+
+The out-of-process variants are explicitly recommended for deployments where the surrounding agent process executes untrusted LLM-generated code, since the model cannot exfiltrate key material it never held. PoP at the protocol layer does not by itself defend against an attacker who can coerce the agent process to print env vars or shell history; pairing PoP with an out-of-process signer does.
+
+#### 4.2 Requirements
+
 Clients **SHOULD**:
 
 - Generate one keypair per `(MCP server origin, logical client identity)`.
-- Store private keys in OS keychain / HSM / TPM where available; never in plaintext config.
+- Persist private key material in one of the storage classes above; never in plaintext config.
 - Generate a fresh `nonce` per request from a CSPRNG.
 - Implement the `Accept-Signature` negotiation loop (single retry on `401` if the server's requirements were unmet).
 
