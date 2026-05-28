@@ -339,7 +339,9 @@ HTTP header.
   line feed (LF, `\n`)
 - **MUST** be case-insensitively unique among all `x-mcp-header` values in the
   `inputSchema`
-- **MUST** only be applied to parameters with primitive types (number, string, boolean)
+- **MUST** only be applied to parameters with primitive types (integer, string, boolean).
+  Parameters with type `number` are not permitted. Integer values **MUST** be within the
+  safe range for JavaScript (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
 - **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
   only top-level properties
 

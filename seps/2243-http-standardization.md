@@ -42,7 +42,7 @@ These headers are **required** for compliance with the MCP version in which they
 
 > **Rationale**: This requirement prevents potential security vulnerabilities and error conditions that could arise when different components in the network rely on different sources of truth. For example, a load balancer or gateway might use the header values to make routing decisions, while the MCP server uses the body values for execution. This requirement applies to any network intermediary that processes the message body, as well as the MCP server itself.
 
-> **Implementation Note**: When validating numeric parameter values, servers SHOULD compare the header value and the body value as numbers rather than as strings, treating them as equal if they differ by no more than a relative precision of 1E-9. This avoids false mismatches caused by differences in number-to-string conversion across implementations (e.g., `42` vs `42.0`, or `1e2` vs `100`).
+> **Implementation Note**: When validating integer parameter values, servers SHOULD compare the header value and the body value numerically rather than as strings (e.g., `42.0` and `42` are considered equal).
 
 **Case Sensitivity**: Header names (called "field names" in [RFC 9110](https://datatracker.ietf.org/doc/html/rfc9110#name-field-names)) are case-insensitive. Clients and servers MUST use case-insensitive comparisons for header names.
 
@@ -165,7 +165,7 @@ The `x-mcp-header` property specifies the name portion used to construct the hea
 - MUST match HTTP field-name token syntax (`1*tchar`, [RFC 9110 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-5.1))
 - MUST NOT contain control characters, including carriage return (CR, `\r`) or line feed (LF, `\n`)
 - MUST be case-insensitively unique among all `x-mcp-header` values in the `inputSchema`
-- MUST only be applied to parameters with primitive types (number, string, boolean)
+- MUST only be applied to parameters with primitive types (integer, string, boolean). Parameters with type `number` are not permitted. Integer values MUST be within the safe range for JavaScript (−2^53+1 to 2^53−1)
 - MAY be applied to properties at any nesting depth within the `inputSchema`, not only top-level properties
 
 Clients using the Streamable HTTP transport MUST reject tool definitions where any `x-mcp-header` value violates these constraints. Rejection means the client MUST exclude the invalid tool from the result of `tools/list`. Clients SHOULD log a warning when rejecting a tool definition, including the tool name and the reason for rejection. This behavior ensures that a single malformed tool definition does not prevent other valid tools from being used. Clients using other transports (e.g., stdio) MAY ignore `x-mcp-header` annotations entirely.
@@ -394,7 +394,7 @@ Clients MUST apply the following encoding rules in order:
 
 1. **Type conversion**: Convert the parameter value to its string representation:
    - `string`: Use the value as-is
-   - `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+   - `integer`: Convert to decimal string representation (e.g., `42`, `-7`)
    - `boolean`: Convert to lowercase `"true"` or `"false"`
 
 2. **Whitespace check**: If the string starts or ends with whitespace (space or tab):

@@ -385,8 +385,10 @@ the header name `Mcp-Param-{name}`.
   or line feed (LF, `\n`)
 - **MUST** be case-insensitively unique among all `x-mcp-header` values in
   the `inputSchema`
-- **MUST** only be applied to parameters with primitive types (number,
-  string, boolean)
+- **MUST** only be applied to parameters with primitive types (integer,
+  string, boolean). Parameters with type `number` are not permitted.
+  Integer values **MUST** be within the safe range for JavaScript
+  (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
 - **MAY** be applied to properties at any nesting depth within the
   `inputSchema`, not only top-level properties
 
@@ -455,7 +457,7 @@ headers to ensure safe transmission and prevent injection attacks.
 **Type conversion**: Convert the parameter value to its string representation:
 
 - `string`: Use the value as-is
-- `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+- `integer`: Convert to decimal string representation (e.g., `42`, `-7`)
 - `boolean`: Convert to lowercase `"true"` or `"false"`
 
 Per [RFC 9110][rfc9110-values],
@@ -565,12 +567,9 @@ executes based on the body value).
 
 <Note>
 
-When validating numeric parameter values, servers **SHOULD** compare the
-header value and the body value as numbers rather than as strings, treating
-them as equal if they differ by no more than a relative precision of 1E-9.
-This avoids false mismatches caused by differences in number-to-string
-conversion across implementations (e.g., `42` vs `42.0`, or `1e2` vs
-`100`).
+When validating integer parameter values, servers **SHOULD** compare the
+header value and the body value numerically rather than as strings (e.g.,
+`42.0` and `42` are considered equal).
 
 </Note>
 
