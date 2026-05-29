@@ -474,17 +474,26 @@ the header name `Mcp-Param-{name}`.
 **Constraints on `x-mcp-header` values**:
 
 - **MUST NOT** be empty
-- **MUST** contain only ASCII characters (excluding space and `:`)
+- **MUST** match HTTP field-name token syntax (`1*tchar`, [RFC 9110 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-5.1))
+- **MUST NOT** contain control characters, including carriage return (CR, `\r`)
+  or line feed (LF, `\n`)
 - **MUST** be case-insensitively unique among all `x-mcp-header` values in
   the `inputSchema`
-- **MUST** only be applied to parameters with primitive types (number,
-  string, boolean)
+- **MUST** only be applied to parameters with primitive types (integer,
+  string, boolean). Parameters with type `number` are not permitted.
+  Integer values **MUST** be within the safe range for JavaScript
+  (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
+- **MAY** be applied to properties at any nesting depth within the
+  `inputSchema`, not only top-level properties
 
-Clients **MUST** reject tool definitions where any `x-mcp-header` value
-violates these constraints. Rejection means the client **MUST** exclude the
-invalid tool from the result of `tools/list`. Clients **SHOULD** log a
-warning when rejecting a tool definition, including the tool name and the
-reason for rejection.
+Clients using the Streamable HTTP transport **MUST** reject tool definitions
+where any `x-mcp-header` value violates these constraints. Rejection means
+the client **MUST** exclude the invalid tool from the result of `tools/list`.
+Clients **SHOULD** log a warning when rejecting a tool definition, including
+the tool name and the reason for rejection. This ensures that a single
+malformed tool definition does not prevent other valid tools from being used.
+Clients using other transports (e.g., stdio) **MAY** ignore `x-mcp-header`
+annotations entirely.
 
 **Example tool definition:**
 
@@ -550,7 +559,7 @@ headers to ensure safe transmission and prevent injection attacks.
 **Type conversion**: Convert the parameter value to its string representation:
 
 - `string`: Use the value as-is
-- `number`: Convert to decimal string representation (e.g., `42`, `3.14`)
+- `integer`: Convert to decimal string representation (e.g., `42`, `-7`)
 - `boolean`: Convert to lowercase `"true"` or `"false"`
 
 Per [RFC 9110][rfc9110-values],
@@ -566,17 +575,23 @@ Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 ```
 
 The prefix `=?base64?` and suffix `?=` indicate that the value is
-Base64-encoded. Servers and intermediaries that need to inspect these
+Base64-encoded. These markers are case-sensitive and **MUST** appear exactly
+as shown (lowercase). Servers and intermediaries that need to inspect these
 values **MUST** decode them accordingly.
+
+To avoid ambiguity, clients **MUST** also Base64-encode any plain-ASCII
+value that matches the sentinel pattern (i.e., starts with `=?base64?`
+and ends with `?=`).
 
 **Encoding examples:**
 
-| Original Value   | Reason                  | Encoded Header Value                                  |
-| ---------------- | ----------------------- | ----------------------------------------------------- |
-| `"us-west1"`     | Plain ASCII             | `Mcp-Param-Region: us-west1`                          |
-| `"Hello, 世界"`  | Contains non-ASCII      | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
-| `" padded "`     | Leading/trailing spaces | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
-| `"line1\nline2"` | Contains newline        | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+| Original Value         | Reason                   | Encoded Header Value                                  |
+| ---------------------- | ------------------------ | ----------------------------------------------------- |
+| `"us-west1"`           | Plain ASCII              | `Mcp-Param-Region: us-west1`                          |
+| `"Hello, 世界"`        | Contains non-ASCII       | `Mcp-Param-Greeting: =?base64?SGVsbG8sIOS4lueVjA==?=` |
+| `" padded "`           | Leading/trailing spaces  | `Mcp-Param-Text: =?base64?IHBhZGRlZCA=?=`             |
+| `"line1\nline2"`       | Contains newline         | `Mcp-Param-Text: =?base64?bGluZTEKbGluZTI=?=`         |
+| `"=?base64?literal?="` | Matches sentinel pattern | `Mcp-Param-Val: =?base64?PT9iYXNlNjQ/bGl0ZXJhbD89?=`  |
 
 [rfc9110-values]: https://datatracker.ietf.org/doc/html/rfc9110#name-field-values
 
@@ -594,6 +609,20 @@ When constructing a `tools/call` request via HTTP transport, the client
 4. Encode the values according to the [Value Encoding](#value-encoding)
    rules.
 5. Append a `Mcp-Param-{Name}: {Value}` header to the request.
+
+<Note>
+
+If the client does not have the tool's `inputSchema` (e.g., `tools/list`
+has not yet been called) or the cached schema is stale (e.g., its TTL has
+expired), the client **SHOULD** send the request without custom
+`Mcp-Param-*` headers. If the server rejects the request because required
+custom headers are missing, the client **SHOULD** call `tools/list` to
+obtain the current `inputSchema`, then retry the original request with the
+appropriate headers. Clients **MAY** pre-load tool definitions via other
+means (e.g., from a previous session or configuration) to enable header
+emission without a prior `tools/list` call.
+
+</Note>
 
 ##### Server Behavior for Custom Headers
 
@@ -638,6 +667,14 @@ different components in the network rely on different sources of truth
 (e.g., a load balancer routing on the header value while the MCP server
 executes based on the body value).
 
+<Note>
+
+When validating integer parameter values, servers **SHOULD** compare the
+header value and the body value numerically rather than as strings (e.g.,
+`42.0` and `42` are considered equal).
+
+</Note>
+
 When rejecting a request due to header validation failure, servers **MUST**
 return HTTP status `400 Bad Request` and **SHOULD** include a JSON-RPC error
 response using the following error code:
@@ -674,6 +711,16 @@ Validation failure conditions include:
 Intermediaries **MUST** return an appropriate HTTP error status (e.g.,
 `400 Bad Request`) for validation failures but are not required to return
 a JSON-RPC error response.
+
+</Note>
+
+<Note>
+
+Intermediaries that enforce policy based on mirrored headers (e.g., routing
+or rate-limiting by tenant) **SHOULD** verify that the `MCP-Protocol-Version`
+header indicates a version that requires header–body validation. If the
+version is older or the header is absent, the intermediary **SHOULD** reject
+the request rather than trusting unvalidated header values.
 
 </Note>
 
