@@ -2107,16 +2107,16 @@
         "NumberSchema": {
             "properties": {
                 "default": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "description": {
                     "type": "string"
                 },
                 "maximum": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "minimum": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
