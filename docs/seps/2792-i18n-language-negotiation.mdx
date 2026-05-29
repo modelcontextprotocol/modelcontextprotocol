@@ -587,27 +587,6 @@ It delivers:
    is the runnable evidence for the per-request, mid-session-switch
    claim in [SEP-2575] alignment.
 
-All builds, typechecks, lints, and tests pass on the implementation
-branch.
-
-Implementation notes called out in the PR for reviewers:
-
-- The reference implementation does **not** reject header/body
-  mismatches; per the final design, `_meta` is canonical and the
-  header is a best-effort mirror. Earlier revisions of this SEP
-  proposed a `-32001 HeaderMismatch` rule lifted from [SEP-2243];
-  see the PR discussion for why that was dropped (intermediary
-  header rewriting is expected behavior, and `Accept-Language`
-  has no canonical byte-equality form).
-- `Content-Language` is set as an HTTP response header only in JSON
-  response mode; for SSE streaming the headers are flushed before
-  response content is known, so the `_meta` field carries the value in
-  that case. The `_meta` field remains authoritative either way.
-- Error-response localization (`error.data._meta` carrying
-  `contentLanguage`, mirrored to the `Content-Language` response header
-  on JSON responses) is implemented and exercised in the example
-  server / client and tests.
-
 Earlier reference for the i18n machinery itself exists in
 [github-mcp-server PR #25] (a server-side translations framework),
 which can be plugged into the per-request selection defined here.
