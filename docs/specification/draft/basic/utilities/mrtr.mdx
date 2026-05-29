@@ -114,7 +114,7 @@ Keys correspond to the keys in the `InputRequests` map; values are the client's 
 
 #### InputRequiredResult
 
-An [`InputRequiredResult`](/specification/draft/schema#InputRequiredResult) is a type of [`Result`](https://modelcontextprotocol.io/specification/2025-11-25/basic#responses),
+An [`InputRequiredResult`](/specification/draft/schema#inputrequiredresult) is a type of [`Result`](/specification/draft/basic#responses),
 indicating that additional input is needed before the request can be completed.
 
 - `inputRequests` _(optional)_: An [`InputRequests`](/specification/draft/schema#inputrequests) map of server-initiated requests that the client must fulfill.
@@ -260,4 +260,4 @@ the server **SHOULD** respond with a new `InputRequiredResult` requesting the mi
 ### Security Considerations
 
 Because `requestState` passes through the client, malicious or compromised clients could attempt to modify it to alter server behavior,
-bypass authorization checks, or corrupt server logic. Servers **MUST** validate request state as described in the [server requirements](#server-requirements-ephemeral) above.
+bypass authorization checks, or corrupt server logic. Servers **MUST** validate request state as described in the [server requirements](#server-requirements-basic-workflow) above.

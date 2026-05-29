@@ -20,11 +20,16 @@ Specifically:
   establish context (e.g., capabilities, protocol version, client identity).
   Every request supplies this metadata in its
   [`_meta`](/specification/draft/basic/index#meta) field.
-- Servers **MUST NOT** require that a client reuse the same connection to
-  perform related operations.
+- Servers **SHOULD** be prepared to handle requests associated with multiple
+  tasks, threads, or conversations. Servers **SHOULD NOT** require that a client
+  reuse the same connection or process to perform related operations. Clients
+  **SHOULD NOT** use an individual task, thread, or conversation as the default
+  lifetime boundary for the stdio process.
 - State that needs to span multiple requests (e.g., long-running tasks,
   application-level handles) **MUST** be referenced by an explicit identifier
   the client passes on each request.
+- Clients **SHOULD** attempt to restart the stdio process if the server
+  terminates unexpectedly.
 
 Long-lived requests like
 [`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
@@ -71,7 +76,7 @@ listing the versions it does support:
     "code": -32004,
     "message": "Unsupported protocol version",
     "data": {
-      "supported": ["DRAFT-2026-v1", "2025-11-25"],
+      "supported": ["2026-07-28", "2025-11-25"],
       "requested": "1900-01-01"
     }
   }
@@ -130,14 +135,15 @@ Clients and servers can negotiate support for optional
 are advertised in the `extensions` field of capabilities, which is a map of
 extension identifiers to per-extension settings objects.
 
-Example client capabilities with extensions:
+The following is an example of a client that advertises the
+[MCP Apps extension](/extensions/apps/overview) identified as `io.modelcontextprotocol/ui`:
 
 ```json
 {
   "capabilities": {
     "roots": {},
     "extensions": {
-      "io.modelcontextprotocol/apps": {
+      "io.modelcontextprotocol/ui": {
         "mimeTypes": ["text/html;profile=mcp-app"]
       }
     }
@@ -145,14 +151,14 @@ Example client capabilities with extensions:
 }
 ```
 
-Example server capabilities with extensions:
+An example of [Tasks extension](/extensions/tasks/overview) identified as `io.modelcontextprotocol/tasks`:
 
 ```json
 {
   "capabilities": {
     "tools": {},
     "extensions": {
-      "io.modelcontextprotocol/apps": {}
+      "io.modelcontextprotocol/tasks": {}
     }
   }
 }

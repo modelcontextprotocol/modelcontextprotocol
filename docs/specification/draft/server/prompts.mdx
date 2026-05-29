@@ -81,6 +81,7 @@ supports [pagination](/specification/draft/server/utilities/pagination).
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "prompts": [
       {
         "name": "code_review",
@@ -102,7 +103,9 @@ supports [pagination](/specification/draft/server/utilities/pagination).
         ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 600000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -135,6 +138,7 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "resultType": "complete",
     "description": "Code review prompt",
     "messages": [
       {
@@ -149,7 +153,7 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 }
 ```
 
-Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#InputRequiredResult) to indicate that additional input is needed before the prompt can be resolved. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
+Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult) to indicate that additional input is needed before the prompt can be resolved. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
 
 ### List Changed Notification
 
@@ -211,8 +215,8 @@ Messages in a prompt can contain:
 
 <Note>
   All content types in prompt messages support optional
-  [annotations](/specification/2025-06-18/server/resources#annotations) for
-  metadata about audience, priority, and modification times.
+  [annotations](/specification/draft/server/resources#annotations) for metadata
+  about audience, priority, and modification times.
 </Note>
 
 #### Text Content
@@ -258,6 +262,25 @@ Audio content allows including audio information in messages:
 The audio data MUST be base64-encoded and include a valid MIME type. This enables
 multi-modal interactions where audio context is important.
 
+#### Resource Links
+
+Prompt messages **MAY** include links to
+[Resources](/specification/draft/server/resources), to provide additional context or
+data without embedding the resource contents directly. In this case, the prompt message
+returns a URI that can be fetched by the client:
+
+````json
+{
+  "type": "resource_link",
+  "uri": "file:///project/src/main.rs",
+  "name": "main.rs",
+  "description": "Primary application entry point",
+  "mimeType": "text/x-rust"
+}
+
+Resource links support the same [Resource annotations](/specification/draft/server/resources#annotations)
+as regular resources to help clients understand how to use them.
+
 #### Embedded Resources
 
 Embedded resources allow referencing server-side resources directly in messages:
@@ -271,7 +294,7 @@ Embedded resources allow referencing server-side resources directly in messages:
     "text": "Resource content"
   }
 }
-```
+````
 
 Resources can contain either text or binary (blob) data and **MUST** include:
 

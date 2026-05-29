@@ -1,0 +1,169 @@
+name: Cut spec release
+
+# Two paths:
+#   kind=rc    → tag <version>-RC + prerelease GitHub Release on current main.
+#                Spec content stays under docs/specification/draft/. No PR.
+#   kind=final → promote draft/ to docs/specification/<version>/ and schema/<version>/,
+#                open a PR for core-maintainers review. Tagging the GA release is
+#                handled by the companion `publish-release` job after that PR merges.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Spec version (YYYY-MM-DD)
+        required: true
+      kind:
+        description: rc | final
+        required: true
+        type: choice
+        options: [rc, final]
+      dry_run:
+        description: Skip the write step (log what would happen)
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never interpolate inputs.* directly into run: — pass via env and reference as
+# shell vars so a malicious input can't inject shell.
+env:
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  rc:
+    if: inputs.kind == 'rc'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate version
+        run: |
+          [[ "$VERSION" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::version must be YYYY-MM-DD"; exit 1; }
+          # Never publish over an existing tag.
+          ! git ls-remote --exit-code --tags origin "refs/tags/${VERSION}-RC" \
+            || { echo "::error::tag ${VERSION}-RC already exists"; exit 1; }
+
+      - name: Create RC tag and prerelease
+        if: inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          cat > /tmp/notes.md <<EOF
+          This release marks the **release candidate (RC)** \`${VERSION}\` revision of the Model Context Protocol.
+
+          The specification is available in [draft form](https://modelcontextprotocol.io/specification/draft).
+
+          For a detailed overview of changes, see [${VERSION} draft changelog](https://modelcontextprotocol.io/specification/draft/changelog).
+
+          >[!NOTE]
+          >**To users and implementers:** this specification is not final. Changes may be introduced between the RC and the final release. SDKs will adopt this version at their own pace, and the prior version of the spec may remain in use for an undetermined amount of time.
+          >
+          >Refer to the [Version Negotiation documentation](https://modelcontextprotocol.io/specification/draft/basic/lifecycle#version-negotiation) to learn about the process for clients and servers to determine the version of the protocol being used.
+          EOF
+          gh release create "${VERSION}-RC" \
+            --target "$TARGET_SHA" \
+            --prerelease \
+            --title "MCP ${VERSION} RC" \
+            --notes-file /tmp/notes.md
+
+      - name: Summary
+        run: |
+          echo "tag=${VERSION}-RC" >> "$GITHUB_OUTPUT"
+          echo "RC ${VERSION} → tag \`${VERSION}-RC\` (prerelease)" >> "$GITHUB_STEP_SUMMARY"
+
+  final:
+    if: inputs.kind == 'final'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Validate version
+        run: |
+          [[ "$VERSION" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::version must be YYYY-MM-DD"; exit 1; }
+          [[ ! -d "docs/specification/$VERSION" ]] || { echo "::error::docs/specification/$VERSION already exists"; exit 1; }
+
+      - name: Promote draft → versioned dir
+        run: |
+          set -euo pipefail
+          cp -r docs/specification/draft "docs/specification/$VERSION"
+          cp -r schema/draft "schema/$VERSION"
+          # Stamp the protocolVersion constant the generators read.
+          sed -i "s|^export const LATEST_PROTOCOL_VERSION = .*|export const LATEST_PROTOCOL_VERSION = \"$VERSION\";|" "schema/$VERSION/schema.ts"
+
+      - name: Regenerate schema artifacts
+        run: |
+          npm ci
+          npm run generate
+
+      - name: Patch Mintlify nav (docs/docs.json)
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+          const V = process.env.VERSION;
+          const p = 'docs/docs.json';
+          const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+          // navigation.tabs[].versions[] where version === 'Draft' is the template.
+          // Insert a copy as the new "(latest)", strip "(latest)" from the previous one,
+          // and rewrite page paths draft/ → <V>/.
+          const rewrite = (o) =>
+            JSON.parse(JSON.stringify(o).replaceAll('specification/draft', `specification/${V}`));
+          for (const tab of j.navigation.tabs ?? []) {
+            const versions = tab.versions;
+            if (!Array.isArray(versions)) continue;
+            const draft = versions.find((v) => v.version === 'Draft');
+            if (!draft) continue;
+            for (const v of versions)
+              if (typeof v.version === 'string')
+                v.version = v.version.replace(' (latest)', '');
+            const promoted = rewrite(draft);
+            promoted.version = `Version ${V} (latest)`;
+            const i = versions.indexOf(draft);
+            versions.splice(i, 0, promoted);
+          }
+          fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+          EOF
+
+      - name: Reset draft changelog for next cycle
+        run: |
+          cat > docs/specification/draft/changelog.mdx <<'EOF'
+          ---
+          title: Changelog
+          ---
+
+          Changes since the most recent release will accumulate here.
+          EOF
+
+      - name: Open release PR
+        if: inputs.dry_run != 'true'
+        id: pr
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        with:
+          branch: release/${{ inputs.version }}
+          title: "Add ${{ inputs.version }} MCP specification"
+          commit-message: "Add ${{ inputs.version }} MCP specification"
+          labels: release
+          body: |
+            Promotes `docs/specification/draft/` and `schema/draft/` to `${{ inputs.version }}`.
+
+            Generated by `cut-release.yml` (dispatched from mcp-spec-tpm).
+
+            - [ ] Spot-check rendered pages on the preview deploy
+            - [ ] Confirm `schema/${{ inputs.version }}/schema.json` regenerated cleanly
+            - [ ] Prior version's `(latest)` suffix removed in `docs/docs.json`
+
+            Tagging `${{ inputs.version }}` happens via `publish-release.yml` after merge.
+
+      - name: Summary
+        env:
+          PR_URL: ${{ steps.pr.outputs.pull-request-url }}
+        run: |
+          echo "pr=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "Final ${VERSION} → PR ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"

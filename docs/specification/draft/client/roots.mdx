@@ -6,10 +6,14 @@ title: Roots
 
 <Warning>
   **Deprecated**: The Roots feature is deprecated as of protocol version
-  `DRAFT-2026-v1`. It will continue to be supported in any version of MCP
-  released within 1 year of `DRAFT-2026-v1`, according to the deprecation policy
-  outlined in
-  [SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596).
+  `2026-07-28`
+  ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+  Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
+  in the specification for at least twelve months after this revision's release
+  before it becomes eligible for removal. New implementations **SHOULD NOT**
+  adopt it; existing implementations **SHOULD** migrate to passing directories
+  or files via tool parameters, resource URIs, or server configuration. See the
+  [deprecated features registry](/specification/draft/deprecated).
 </Warning>
 
 The Model Context Protocol (MCP) provides a standardized way for clients to expose
@@ -30,20 +34,6 @@ automatic workspace detection from version control systems or project files.
 However, implementations are free to expose roots through any interface pattern that
 suits their needs&mdash;the protocol itself does not mandate any specific user
 interaction model.
-
-<Warning>
-
-Servers **MUST** send server-to-client requests (such as `roots/list`,
-`sampling/createMessage`, or `elicitation/create`) only in association with an
-originating client request (e.g., during `tools/call`, `resources/read`, or
-`prompts/get` processing).
-
-Standalone server-initiated requests of these types on independent
-communication streams (unrelated to any client request) are not supported and
-**MUST NOT** be implemented. Future transport implementations are not required
-to support this pattern.
-
-</Warning>
 
 ## Capabilities
 
@@ -95,10 +85,10 @@ sequenceDiagram
     participant Server
     participant Client
 
-    Note over Server,Client: Discovery
-    Client->>Server: tool/call(id: 1)
+    Note over Server,Client: Initial Request
+    Client->>Server: tools/call(id: 1)
     Server-->>Client: InputRequiredResult(roots/list)
-    Client->>Server: tool/call(id: 2, Available roots)
+    Client->>Server: tools/call(id: 2, inputResponses{key: roots} + requestState)
 ```
 
 ## Data Types

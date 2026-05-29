@@ -74,7 +74,6 @@
           {
             "group": "Examples",
             "pages": [
-              "clients",
               "examples"
             ]
           }
@@ -316,6 +315,7 @@
             "pages": [
               "specification/draft/index",
               "specification/draft/changelog",
+              "specification/draft/deprecated",
               "specification/draft/architecture/index",
               {
                 "group": "Base Protocol",
@@ -484,6 +484,7 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
+              "community/feature-lifecycle",
               "community/sdk-tiers",
               "community/antitrust"
             ]
@@ -494,10 +495,17 @@
               "community/file-uploads/charter",
               "community/inspector-v2/charter",
               "community/interceptors/charter",
+              "community/registry/charter",
               "community/sdk/charter",
               "community/server-card/charter",
               "community/skills-over-mcp/charter",
               "community/triggers-events/charter"
+            ]
+          },
+          {
+            "group": "Interest Group Charters",
+            "pages": [
+              "community/tool-annotations/charter"
             ]
           },
           {
@@ -526,6 +534,10 @@
     }
   },
   "redirects": [
+    {
+      "source": "/clients",
+      "destination": "/docs/getting-started/intro"
+    },
     {
       "source": "/specification/versioning",
       "destination": "/docs/learn/versioning"

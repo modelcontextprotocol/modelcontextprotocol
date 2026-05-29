@@ -1,6 +1,10 @@
 package-lock.json linguist-generated=true
-schema/*/schema.json linguist-generated=true
-docs/specification/*/schema.md linguist-generated=true
-docs/specification/*/schema.mdx linguist-generated=true
-docs/seps/index.mdx linguist-generated=true
-docs/seps/[0-9]*.mdx linguist-generated=true
+
+# Generated files: linguist-generated collapses them in PR diffs; -merge tells
+# git not to attempt a textual merge (keeps the current branch's copy and marks
+# the file conflicted). Resolve by re-running `npm run generate` and committing.
+schema/*/schema.json linguist-generated=true -merge
+docs/specification/*/schema.md linguist-generated=true -merge
+docs/specification/*/schema.mdx linguist-generated=true -merge
+docs/seps/index.mdx linguist-generated=true -merge
+docs/seps/[0-9]*.mdx linguist-generated=true -merge
