@@ -146,10 +146,11 @@ Semantics:
 
 - `invocationReason` as a whole is optional; if present, `text` is REQUIRED — an empty `invocationReason` object carries no information.
 - `text` is a concise human-readable explanation, ideally one sentence.
+- `invocationReason` is scoped to the emitted MCP request. If a client retries a logical operation, each emitted retry request SHOULD carry its own request-level `invocationReason`.
 - `invocationReason` is client/AI-asserted and may be inaccurate, incomplete, or hallucinated.
 - `invocationReason` MUST NOT be used as authorization evidence.
 
-This SEP intentionally does not standardize invocation reason categories, policy outcomes, approval lifecycle states, or server-side decision records.
+This SEP intentionally does not standardize invocation reason categories, retry attempt ordering, policy outcomes, approval lifecycle states, or server-side decision records.
 
 ### `model`
 
@@ -159,6 +160,8 @@ Semantics:
 
 - The `model` object as a whole is optional; omit it entirely when the invoking model is unknown. If `model` is present, `name` is REQUIRED — an empty `model` object carries no information.
 - `name` is the model name as known by the client or host.
+- When available, `name` SHOULD use the provider's canonical model identifier rather than a display name.
+- In multi-model systems, `model` identifies the model that produced this MCP request, not necessarily the orchestrator, router, or gateway.
 - This field is client-asserted and may be incomplete or spoofed.
 - It should be used for audit attribution, debugging, and operations, not as a sole security control.
 
@@ -194,6 +197,7 @@ Semantics:
 - `turnId` is not an idempotency key.
 - `turnId` does not replace JSON-RPC `id`, which identifies an individual request/response message.
 - `turnId` does not replace `progressToken`, which tracks progress for a specific long-running request.
+- `turnId` does not imply ordering between requests and does not identify a stable tool-call attempt.
 - Servers MAY echo **only** `turnId` in response `_meta["io.modelcontextprotocol/aiInvocation"]` to help downstream correlation of asynchronous or streamed responses.
 - Servers SHOULD NOT echo `userIntent`, `invocationReason`, or `model` in responses unless explicitly required by local policy, to avoid re-propagating potentially sensitive text on the response path.
 - Future SEPs may define additional correlation fields; this SEP standardizes only turn-level grouping.
