@@ -4,6 +4,7 @@
 - **Type**: Extensions Track
 - **Created**: 2026-05-23
 - **Author(s)**: heysoup.co Team
+- **AI Disclosure**: Developed with AI-assisted drafting under strict human intervention and review
 - **Sponsor**: None (seeking sponsor)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2787
 - **Extension Identifier**: `attestation/tool-call` (to be assigned upon acceptance as an official extension)
