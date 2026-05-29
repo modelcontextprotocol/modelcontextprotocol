@@ -1,11 +1,11 @@
-# SEP-0000: AI Invocation Audit Context in Request `_meta`
+# SEP-2817: AI Invocation Audit Context in Request `_meta`
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-05-30
 - **Author(s)**: HyunJong Cho <hangum@gmail.com> (@hangum)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2817
 - **Related discussion**: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2704
 
 ## Abstract
