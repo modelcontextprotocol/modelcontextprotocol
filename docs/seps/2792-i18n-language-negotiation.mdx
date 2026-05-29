@@ -234,15 +234,14 @@ mirroring pattern established by [SEP-2243].
 - When a client includes `io.modelcontextprotocol/acceptLanguage` in
   `params._meta`, it **SHOULD** also set the HTTP `Accept-Language` header
   on the corresponding POST to the same value, as a hint for intermediaries.
-- A client **MAY** set `Accept-Language` without the `_meta` field (e.g. a
-  pure HTTP client). Servers **SHOULD** treat a bare `Accept-Language`
-  header the same as the `_meta` field.
-- The `_meta` field is **authoritative**. The HTTP `Accept-Language`
-  header is a best-effort mirror that may be stripped, normalized,
-  rewritten, or consumed by intermediaries (CDNs, edge i18n routers,
-  reverse proxies, vendor language-lookup VCL). Servers **MUST NOT**
-  reject a request because the header and `_meta` field disagree; if
-  `_meta` is present, the server uses it and ignores the header.
+- The `_meta` field is **authoritative** and is the only canonical
+  carrier of language preference. Servers **MUST** read language
+  preference from `_meta` and **MUST NOT** treat a bare HTTP
+  `Accept-Language` header (without the `_meta` field) as a language
+  preference for MCP semantics. This keeps a single, transport-agnostic
+  source of truth and avoids ambiguity introduced by intermediaries
+  (CDNs, edge i18n routers, reverse proxies) that strip, normalize, or
+  rewrite the header.
 
 #### Error responses
 
