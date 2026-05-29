@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-05-30
-- **Author(s)**: HyunJong Cho <hangum@gmail.com> (@hangum)
+- **Author(s)**: HyunJong Cho (@hangum)
 - **Sponsor**: None (seeking sponsor)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2817
 - **Related discussion**: https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2704
