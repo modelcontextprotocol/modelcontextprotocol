@@ -341,7 +341,7 @@ HTTP header.
   `inputSchema`
 - **MUST** only be applied to parameters with primitive types (integer, string, boolean).
   Parameters with type `number` are not permitted. Integer values **MUST** be within the
-  safe range for JavaScript (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
+  safe range for integers represented using IEEE754 double-precision floating point numbers (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
 - **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
   only top-level properties
 
