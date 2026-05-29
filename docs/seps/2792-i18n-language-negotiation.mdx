@@ -445,19 +445,24 @@ Unlike the headers introduced by [SEP-2243] (e.g. `Mcp-Method`,
 `Accept-Language` and `Content-Language` are first-class HTTP headers
 that intermediaries actively interact with. A few examples:
 
-- CloudFront strips `Accept-Language` from forwarded requests by default
-  unless explicitly configured to preserve it.
-- Fastly's `accept.language_lookup()` VCL and Varnish's `vmod_accept` are
-  the recommended way to get the per-language caching benefit cited
-  above; both rewrite `Accept-Language` to a single normalized tag
-  before the request reaches the origin.
+- [CloudFront strips `Accept-Language`][cloudfront-accept-language] from
+  forwarded requests by default unless explicitly configured to preserve it.
+- [Fastly's `accept.language_lookup()` VCL][fastly-accept-language-lookup]
+  and [Varnish's `vmod_accept`][varnish-vmod-accept] are the recommended
+  way to get the per-language caching benefit cited above; both rewrite
+  `Accept-Language` to a single normalized tag before the request reaches
+  the origin.
 - Reverse proxies routinely route on `Accept-Language` and may strip,
   normalize, or re-serialize the header.
 
-Additionally, RFC 9110 does not define a single canonical serialization
-for `Accept-Language`: whitespace, case, `q` value trailing zeroes, and
-list field splitting are all under-specified, so "the header and the
-body field disagree" is not even a well-defined comparison.
+Additionally, [RFC 9110][rfc9110] does not define a single canonical
+serialization for `Accept-Language`: optional whitespace after commas
+([§5.6.1.1][rfc9110-5.6.1.1]), case-insensitive language tags
+([RFC 5646 §2.1.1][rfc5646-2.1.1]), `q` parameter normalization and
+trailing-zero weights ([§12.4.2][rfc9110-12.4.2]), and list fields
+legally split across field lines and recombined ([§5.2-5.3][rfc9110-5.2])
+are all under-specified, so "the header and the body field disagree" is
+not even a well-defined comparison.
 
 Applying [SEP-2243]'s hard-fail mismatch rule to these headers would
 make every request that traverses a conformant edge-i18n setup error
@@ -669,3 +674,11 @@ reach Final. The scenario will cover, at minimum:
 [@pja-ant]: https://github.com/pja-ant
 [@kurtisvg]: https://github.com/kurtisvg
 [github-mcp-server PR #25]: https://github.com/github/github-mcp-server/pull/25
+[cloudfront-accept-language]: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html
+[fastly-accept-language-lookup]: https://www.fastly.com/documentation/reference/vcl/functions/content-negotiation/accept-language-lookup/
+[varnish-vmod-accept]: https://docs.varnish-software.com/varnish-enterprise/vmods/accept/
+[rfc9110]: https://www.rfc-editor.org/rfc/rfc9110
+[rfc9110-5.2]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.2
+[rfc9110-5.6.1.1]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.6.1.1
+[rfc9110-12.4.2]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4.2
+[rfc5646-2.1.1]: https://www.rfc-editor.org/rfc/rfc5646.html#section-2.1.1
