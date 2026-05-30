@@ -457,6 +457,12 @@
               "seps/2484-conformance-tests-required-for-final-seps",
               "seps/2596-spec-feature-lifecycle-and-deprecation"
             ]
+          },
+          {
+            "group": "Unknown",
+            "pages": [
+              "seps/2822-client-generated-session-id"
+            ]
           }
         ]
       },
