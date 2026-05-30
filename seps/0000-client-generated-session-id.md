@@ -1,0 +1,336 @@
+# SEP-DRAFT: Client-Generated Session Identifiers (`Mcp-Client-Session-Id`)
+
+- **Status:** Draft
+- **Type:** Standards Track
+- **Created:** 2026-05-30
+- **Author(s):** @javapro108
+- **Sponsor:** None 
+- **PR:** _(pending submission)_
+
+---
+
+## Abstract
+
+The `2026-07-28` release candidate removes the protocol-level session and the
+`Mcp-Session-Id` header, making MCP stateless by default. This is the right
+direction. But it leaves one gap: once the session handshake is gone, there is no
+standard way for a client to say "these requests belong to the same logical context."
+
+This proposal fills that gap with a single, small addition: `Mcp-Client-Session-Id`.
+The client generates unique id(UUID v4) before its first request and carries it on every
+subsequent one — as an HTTP header for Streamable HTTP transports, or inside
+`params._meta` for stdio and transport-agnostic use. The server treats it as an
+opaque correlation handle and does whatever makes sense: attach it to logs and
+traces, use it as an application-level state key, or ignore it entirely.
+
+Nothing in the `2026-07-28` RC is modified. This proposal adds one new identifier,
+follows the `_meta` convention already established by SEP-414, and requires zero
+changes to the JSON-RPC envelope, capability negotiation, or OAuth flows.
+
+---
+
+## Motivation
+
+### The `2026-07-28` RC gets the hard part right
+
+The headline change in the upcoming release is that MCP becomes stateless at the
+protocol layer. The `initialize`/`initialized` handshake is removed (SEP-2575). The
+`Mcp-Session-Id` header and the protocol-level session are removed (SEP-2567). W3C
+Trace Context propagation through `_meta` is formalised (SEP-414). The practical
+result is that a tool call becomes a single self-contained HTTP request that any
+server instance can handle — no sticky sessions, no shared session store, no deep
+packet inspection at the gateway.
+
+This is exactly the right model for how MCP is being deployed at scale today.
+
+### The one gap it leaves
+
+Removing the session is correct, but it removes the only standard mechanism clients
+had to group related requests together. Consider a few real scenarios:
+
+- An agent runs a multi-step workflow across several tool calls. An error occurs. The
+  operator wants to find all requests that belonged to that workflow in the logs.
+  Without a client-supplied identifier, they cannot.
+- A stateful server (or one using the RC's explicit-handle pattern) wants to scope
+  application state to a logical client session without generating its own opaque key
+  and forcing a round-trip to issue it.
+- A client runs across both HTTP and stdio transports within the same logical session.
+  There is no transport-agnostic way to correlate those requests today.
+
+None of these require the protocol to become stateful again. They just require the
+client to be able to assert a stable identifier that it already knows before the
+first request is sent.
+
+### Why client-generated is the right answer
+
+The session belongs to the client. It is the client that has the conversation
+history, the agent state, the tool call context. The `2026-07-28` RC makes this
+explicit: it replaces hidden transport-layer state with the explicit-handle pattern,
+where the model carries identifiers as ordinary arguments it can reason about. A
+client-generated session ID fits naturally into that model — the client owns the
+context, so the client owns the identifier.
+
+It also removes the last remaining bootstrapping dependency. In the new stateless
+world, where every request is self-contained, there is no place for a round-trip
+whose sole purpose is to receive an ID the client could have generated itself.
+
+### This proposal completes the stateless push, it does not resist it
+
+The `2026-07-28` RC notes that stateless protocol does not mean stateless
+application. Servers that need application-level state can and should manage it
+themselves. `Mcp-Client-Session-Id` gives those servers a stable, client-owned
+key to hang that state on — without requiring the protocol to issue it. A stateless
+server gets a free correlation handle for observability. A stateful server gets a
+key it can use without a round-trip. Both work. The protocol stays stateless.
+
+---
+
+## Specification
+
+### Identifier
+
+The client SHOULD generate a unique `Mcp-Client-Session-Id` value before sending its first
+request. The value may be a version 4 UUID (RFC 9562) in lower-case canonical form:
+
+```
+xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+```
+
+The value MUST remain constant for the lifetime of the logical session. To start a
+new session the client MUST generate a new ID. The server MUST NOT reject a request
+solely because it carries a `Mcp-Client-Session-Id`.
+
+### Carrier 1 — HTTP Header (Streamable HTTP)
+
+```http
+POST /mcp HTTP/1.1
+MCP-Protocol-Version: 2026-07-28
+Mcp-Method: tools/call
+Content-Type: application/json
+Authorization: Bearer <token>
+Mcp-Client-Session-Id: 550e8400-e29b-41d4-a716-446655440000
+```
+
+The header MUST be included on every request within the session. The server MAY echo
+it in the response header for debugging; this is optional and carries no protocol
+obligation.
+
+### Carrier 2 — `_meta` Field (All Transports, Including stdio)
+
+The same value is carried in `params._meta` on every JSON-RPC request and
+notification. This follows the convention established by SEP-414 for W3C Trace
+Context: cross-cutting correlation data belongs in `_meta` so it works uniformly
+across all transports.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "_meta": {
+      "clientSessionId": "550e8400-e29b-41d4-a716-446655440000"
+    },
+    "name": "search",
+    "arguments": { "q": "otters" }
+  }
+}
+```
+
+The key name `clientSessionId` carries no reserved MCP prefix and is valid under the
+`_meta` key naming rules in the base specification.
+
+### Using Both Carriers Together
+
+On HTTP transports a client SHOULD send both the header and the `_meta` field. The
+values MUST be identical. If both are present and differ, the server SHOULD log a
+warning and MAY use either value; it MUST NOT reject the request on that basis alone.
+
+A complete `2026-07-28`-style request carrying both carriers:
+
+```http
+POST /mcp HTTP/1.1
+MCP-Protocol-Version: 2026-07-28
+Mcp-Method: tools/call
+Mcp-Name: search
+Content-Type: application/json
+Authorization: Bearer <token>
+Mcp-Client-Session-Id: 550e8400-e29b-41d4-a716-446655440000
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "_meta": {
+      "clientSessionId": "550e8400-e29b-41d4-a716-446655440000",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+    },
+    "name": "search",
+    "arguments": { "q": "otters" }
+  }
+}
+```
+
+Note that `clientSessionId` and the SEP-414 `traceparent` sit alongside each other
+in `_meta` — they are complementary, not overlapping. The trace ID changes per
+request; the client session ID stays constant across the entire session.
+
+### Server Behaviour
+
+Servers are free to use `Mcp-Client-Session-Id` in whatever way suits their
+architecture. Two common patterns:
+
+**Stateless server** — use as a correlation handle for observability only. No stored
+state. Any instance behind a round-robin load balancer handles any request.
+
+**Stateful server** — use as an application-level state key. The client has already
+provided the key; no round-trip is needed to issue one.
+
+```go
+func extractClientSessionID(r *http.Request, params map[string]any) string {
+    // Header form — HTTP transports
+    if id := r.Header.Get("Mcp-Client-Session-Id"); id != "" {
+        return id
+    }
+    // _meta form — all transports including stdio
+    if meta, ok := params["_meta"].(map[string]any); ok {
+        if id, ok := meta["clientSessionId"].(string); ok {
+            return id
+        }
+    }
+    return "" // not supplied — server may generate its own correlation ID
+}
+
+func mcpHandler(w http.ResponseWriter, r *http.Request) {
+    var body struct {
+        Params map[string]any `json:"params"`
+    }
+    json.NewDecoder(r.Body).Decode(&body)
+
+    clientSessionID := extractClientSessionID(r, body.Params)
+
+    // Stateless path: attach to trace context, no storage required
+    ctx := trace.WithField(r.Context(), "clientSessionId", clientSessionID)
+
+    // Stateful path: use as application-level state key
+    // state := sessionStore.GetOrCreate(clientSessionID)
+
+    handleMCPRequest(ctx, w, r)
+}
+```
+
+### Client Reference Implementation
+
+```javascript
+// Generated once, before the first request
+const clientSessionId = crypto.randomUUID();
+
+async function mcpRequest(method, params = {}) {
+    const body = {
+        jsonrpc: "2.0",
+        id: crypto.randomUUID(),
+        method,
+        params: {
+            ...params,
+            _meta: {
+                ...(params._meta ?? {}),
+                clientSessionId,           // constant across all requests
+            },
+        },
+    };
+
+    return fetch("/mcp", {
+        method: "POST",
+        headers: {
+            "Content-Type":          "application/json",
+            "MCP-Protocol-Version":  "2026-07-28",
+            "Authorization":         `Bearer ${bearerToken}`,
+            "Mcp-Client-Session-Id": clientSessionId,
+        },
+        body: JSON.stringify(body),
+    }).then(r => r.json());
+}
+```
+
+`crypto.randomUUID()` is available in all modern browsers and Node.js ≥ 14.17
+with no additional dependencies.
+
+
+---
+
+## Rationale
+
+### Why a new header name rather than reusing `Mcp-Session-Id`
+
+`Mcp-Session-Id` is removed in `2026-07-28` (SEP-2567). Reusing the name would
+create confusion about which spec version a given header belongs to, and would
+re-introduce the server-ownership connotation the RC deliberately discards.
+`Mcp-Client-Session-Id` makes ownership unambiguous at a glance.
+
+### Why `_meta` rather than a new top-level field
+
+The `_meta` field is already the designated home for cross-cutting protocol metadata.
+SEP-414 puts W3C Trace Context there. Using the same location for session correlation
+keeps all observability-related identifiers in one place, on all transports, without
+any schema changes to the JSON-RPC envelope.
+
+### Industry precedent
+
+Client-generated correlation identifiers are standard practice in distributed systems.
+
+| System        | Identifier                   | Generated by       |
+|---------------|------------------------------|--------------------|
+| OpenTelemetry | `traceparent` (W3C)          | Originating client |
+| AWS X-Ray     | `X-Amzn-Trace-Id`            | Client or gateway  |
+| W3C Baggage   | `baggage`                    | Client             |
+| Stripe        | `Idempotency-Key`            | Client             |
+| This proposal | `Mcp-Client-Session-Id`      | Client             |
+
+### Security
+
+`Mcp-Client-Session-Id` is a correlation handle, not a capability grant. It confers
+no authorisation. All access control continues to be enforced via the OAuth 2.1
+bearer token. A client supplying another session's ID gains nothing — there is no
+server-side session to hijack in the stateless model, and stateful servers that use
+the ID as a state key should scope access via the bearer token, not the session ID.
+
+UUID v4 collision probability is approximately 10⁻³⁷ per pair. Not a practical
+concern at any realistic scale.
+
+---
+
+## Compatibility with `2026-07-28`
+
+This proposal is designed specifically to complement the `2026-07-28` RC. The
+alignment is direct:
+
+| `2026-07-28` change | How this proposal relates |
+|---|---|
+| SEP-2567 removes `Mcp-Session-Id` | Introduces a client-owned replacement that needs no server round-trip |
+| SEP-2575 removes the handshake | Client generates the ID before the first request; no handshake needed |
+| SEP-414 formalises `_meta` for trace context | Uses the same `_meta` convention for session correlation |
+| Stateless protocol core | Header and `_meta` carriers work on any instance behind a round-robin LB |
+| Explicit-handle pattern for application state | Client-owned ID is visible to the model and composable across tool calls |
+
+Servers that have not yet adopted `2026-07-28` simply ignore the new header and
+`_meta` key. There is no flag day and no migration required.
+
+---
+
+## Open Questions
+
+1. **Reserved `_meta` namespace.** Should `clientSessionId` be registered under the
+   `modelcontextprotocol.io/` prefix (e.g. `io.modelcontextprotocol/clientSessionId`)
+   for consistency with how the RC namespaces other reserved keys? This would prevent
+   third-party conflicts but requires a schema update.
+
+2. **Resumption semantics.** If a client reconnects with a previously used
+   `Mcp-Client-Session-Id`, what guarantees if any should the server provide about
+   restoring prior state? This proposal leaves resumption to server implementers; a
+   follow-on SEP may standardise it.
+
+3. **Mismatch error code.** Should header/`_meta` value mismatch produce a defined
+   error code rather than a SHOULD-level warning, to make the failure mode auditable
+   and consistent across implementations?
+
