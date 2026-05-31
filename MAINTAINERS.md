@@ -121,14 +121,14 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Registry
 
-- [Tadas Antanavicius](https://github.com/tadasant) (Lead)
-- [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov) (Lead)
+- [Tadas Antanavicius](https://github.com/tadasant)
+- [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
 - [Bob Dickinson](https://github.com/BobDickinson)
 
 #### Registry Emeritus
 
-- [Adam Jones](https://github.com/domdomegg) (Registry Maintainer Emeritus)
-- [Toby Padilla](https://github.com/toby) (Registry Maintainer Emeritus)
+- [Adam Jones](https://github.com/domdomegg)
+- [Toby Padilla](https://github.com/toby)
 
 ### MCPB (Model Context Protocol Bundle)
 
