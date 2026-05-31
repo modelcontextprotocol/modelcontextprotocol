@@ -1,0 +1,611 @@
+---
+title: "SEP-2828: Server-Side Signed Execution Record for MCP Tool Calls"
+sidebarTitle: "SEP-2828: Server-Side Signed Execution Record for…"
+description: "Server-Side Signed Execution Record for MCP Tool Calls"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track (Extensions Track)
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2828                                                                            |
+| **Title**     | Server-Side Signed Execution Record for MCP Tool Calls                          |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track (Extensions Track)                                              |
+| **Created**   | 2026-05-31                                                                      |
+| **Author(s)** | vaaraio ([@vaaraio](https://github.com/vaaraio))                                |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#2828](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2828) |
+
+---
+
+## Abstract
+
+This SEP defines two server-authoritative, cryptographically signed records
+for MCP tool calls: a **decision record** emitted by the governing server or
+proxy before the side effect runs, and an **outcome record** emitted after
+execution completes. The decision record binds what was requested, the policy
+decision (allow, block, or escalate), and the risk basis for that decision. The
+outcome record binds the execution status (`executed`, `refused`, or `errored`),
+a commitment over the result, and timing. The two are paired through a
+`backLink` and bound to the originating request, so a verifier can reconstruct
+what the agent was permitted to do, why, and what it actually did.
+
+These records are signed by the server or proxy that governs execution
+(`issuerAsserted` / `receiptAsserted`), which is a different trust surface from
+the client-asserted attestation of the call in SEP-2787 and the client-asserted
+input audit context in SEP-2817. The records use RFC 8785 (JCS) canonical JSON,
+a detached signature that does not cover itself, and are offline-verifiable by a
+standard-library checker. The wire schema is the shape already shipping in the
+Vaara MCP proxy (`vaara.attestation.receipt`), which also provides an
+independent verifier and JCS conformance vectors.
+
+## Motivation
+
+EU AI Act Article 12 obliges providers and deployers of high-risk AI systems to
+keep automatic records of events ("logs") over the system's lifetime, including
+records adequate to identify situations that may cause the system to present a
+risk and to support post-market monitoring under Article 72. For an
+agentic MCP deployment, the regulator's question is not only "what did the
+client claim it wanted to do" but "what did the governing system decide, on what
+basis, and what did the tool call actually do." That is a statement the server
+or governance layer must make, because it is the party that holds the decision
+logic and observes the result.
+
+SEP-2787 standardizes a signed attestation of a tool **call**: it binds the
+agent identity, tool name, intent, and an argument commitment into a verifiable
+envelope. SEP-2817 standardizes optional, explicitly non-authoritative,
+**client-asserted** input audit context (`invocationReason`, `model`,
+`userIntent`, `turnId`). Both describe the input side: what was claimed, by the
+party making the call. Neither carries the governing system's decision or the
+recorded outcome. SEP-2817 says so directly: "server-side decision records,
+stable tool-call identity, agent/session correlation, and taxonomies are left to
+follow-up SEPs," and Discussion #2704 frames the server-authoritative record as
+the deferred half. This SEP is that follow-up.
+
+Client-asserted records alone cannot satisfy Article 12 for a deployment where
+the server enforces policy. A client can claim its intent and its arguments; it
+cannot credibly attest that the call was allowed, why it was allowed or blocked,
+or what the tool returned, because it does not own that logic and is not a
+neutral observer of its own behavior. A regulator auditing an incident needs a
+record signed by the enforcement point, paired to the request it answers, that
+survives the client. Without a standard for that record, every governance vendor
+invents an incompatible one, and cross-implementation verification (the point of
+a conformance test) is impossible.
+
+The records are also the natural place to satisfy the rest of the Article 12 and
+Article 14 surface that input audit does not reach: the allow/block/escalate
+decision (human-oversight evidence under Article 14), the risk basis that drove
+it (risk-management evidence under Article 9), and the post-execution outcome
+that feeds post-market monitoring (Article 72). A shipping implementation already
+emits all of these as audit events; this SEP standardizes the signed wire shape
+so they are portable and independently verifiable.
+
+## Specification
+
+### Terminology
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in RFC 2119 and RFC 8174.
+
+- **Governing server**: the MCP server, or a proxy in front of it, that decides
+  whether a tool call runs and observes the result. It is the issuer of both
+  records defined here.
+- **Decision record**: a signed envelope emitted before the side effect,
+  carrying the policy decision and its risk basis.
+- **Outcome record**: a signed envelope emitted after execution, carrying the
+  execution status and a result commitment.
+- **Request attestation**: the SEP-2787 envelope describing the tool call. It is
+  the anchor both records point back to.
+
+### Trust boundary
+
+This SEP is server-authoritative. Both records are signed under the governing
+server's key and place their bound claims in an issuer block
+(`issuerAsserted` for the decision record, `receiptAsserted` for the outcome
+record), mirroring the SEP-2787 trust-surface split. The records make claims
+about the **decision** and the **execution**, which only the enforcement point
+can make.
+
+This is distinct from SEP-2787, where the issuer attests the **call** (identity,
+tool, args) and the planner declares intent, and from SEP-2817, where the client
+asserts input context that is explicitly not authorization evidence. A verifier
+MUST treat the three as separate surfaces: a SEP-2787 attestation and a SEP-2817
+`_meta` block describe what was asked for; the records in this SEP describe what
+the governing system did about it. A server MUST NOT copy client-asserted
+SEP-2817 fields into the signed decision or outcome record in a way that implies
+the server vouches for their truth; it MAY reference them by `turnId` for
+correlation (see Pairing).
+
+### Canonicalization and signature
+
+Both records use RFC 8785 (JCS) canonical JSON. The signature is computed over
+the JCS-canonical encoding of the record's blocks **excluding** the `signature`
+field, and the `signature` field carries the result; it does not cover itself.
+This is identical to the SEP-2787 and the shipped Vaara execution-receipt scheme,
+so a verifier that already handles SEP-2787 signatures handles these records with
+no new cryptographic code.
+
+- The `alg` field MUST be one of `ES256`, `RS256`, or `HS256`. Production
+  deployments crossing a trust boundary SHOULD use an asymmetric algorithm
+  (`ES256` or `RS256`) so verifiers need only the public key.
+- IEEE-754 floats MUST NOT appear anywhere in a canonicalized body. Numeric
+  values that are not integers MUST be encoded as scaled integers or decimal
+  strings. This removes the most common source of cross-stack signature drift
+  and matches the Vaara JCS discipline.
+- All digests are encoded as the string `sha256:<lowercase-hex>`.
+- All timestamps are RFC 3339 / ISO 8601 UTC strings with second precision and a
+  trailing `Z` (for example `2026-05-31T09:30:00Z`).
+
+### Argument and result commitments
+
+Both records reuse the SEP-2787 commitment shapes verbatim. A commitment is one
+of:
+
+- **`ArgsRef`**: a content-addressed reference, `{ "ref": "<uri>", "digest":
+"sha256:<hex>", "canonicalization": "jcs" }`. The verifier MAY fetch `ref` and
+  check the digest.
+- **`ArgsProjection`**: a reviewed projection, `{ "projection": "<jcs-string>",
+"projectionDigest": "sha256:<hex>" }`, where `projection` is the JCS-canonical
+  encoding of the projection object as a UTF-8 string and `projectionDigest` is
+  the sha256 over those bytes.
+
+Commitment-only audit, where the payload never leaves the server, is expressed as
+a hash-only-identity `ArgsProjection` whose `projection` is the JCS encoding of
+`{ "digest": "sha256:<hex>" }` and whose embedded digest binds the underlying
+value. This is the shipped `make_args_digest` behavior and is the RECOMMENDED
+default for the outcome record's `resultCommitment` so that results, which may
+contain personal data, are committed to without being copied into the record.
+
+### Decision record
+
+A decision record MUST be emitted by the governing server before the tool call's
+side effect runs, for every governed call. It is a JSON object with the
+following top-level fields.
+
+| Field             | Type    | Required | Description                                                 |
+| ----------------- | ------- | -------- | ----------------------------------------------------------- |
+| `version`         | integer | yes      | Record schema version. `1` for this SEP.                    |
+| `alg`             | string  | yes      | `ES256`, `RS256`, or `HS256`.                               |
+| `backLink`        | object  | yes      | Join to the SEP-2787 attestation (see below).               |
+| `decisionDerived` | object  | yes      | The decision and its risk basis (see below).                |
+| `issuerAsserted`  | object  | yes      | The governing server's issuer block (see below).            |
+| `signature`       | string  | yes      | Detached signature over the JCS body excluding `signature`. |
+
+**`backLink`** joins the decision to the request attestation it governs:
+
+| Field               | Type   | Required | Description                                                                                                                          |
+| ------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `attestationDigest` | string | yes      | `sha256:<hex>` over the JCS-canonical full SEP-2787 attestation wire bytes, signature included. Pins the exact attestation instance. |
+| `attestationNonce`  | string | yes      | Echoes the attestation's `issuerAsserted.nonce` for fast correlation.                                                                |
+
+If no SEP-2787 attestation exists for the call (the deployment does not run
+2787), the server MUST instead bind the request by setting `attestationDigest` to
+`sha256:<hex>` over the JCS-canonical encoding of the request envelope it
+observed (the `tools/call` params plus `_meta`), and set `attestationNonce` to a
+server-chosen per-call nonce. The binding is to the request **instance**, not
+only its content.
+
+**`decisionDerived`** carries the decision and the basis for it:
+
+| Field            | Type   | Required | Description                                                                                         |
+| ---------------- | ------ | -------- | --------------------------------------------------------------------------------------------------- |
+| `decision`       | string | yes      | One of `allow`, `block`, `escalate`.                                                                |
+| `reason`         | string | no       | Short human-readable basis for the decision.                                                        |
+| `riskScore`      | string | no       | The risk estimate that drove the decision, as a decimal string (floats are prohibited on the wire). |
+| `thresholdAllow` | string | no       | The allow threshold in force at decision time, as a decimal string.                                 |
+| `thresholdBlock` | string | no       | The block threshold in force at decision time, as a decimal string.                                 |
+| `policyId`       | string | no       | Identifier or digest of the policy/ruleset version that produced the decision.                      |
+| `decidedAt`      | string | yes      | ISO 8601 UTC timestamp of the decision.                                                             |
+
+A `decision` of `escalate` means the call was held for human oversight; the
+outcome record for that call will report `refused` if the human declined, or a
+later decision record MAY supersede it (see Pairing).
+
+**`issuerAsserted`** is the governing server's signed block:
+
+| Field           | Type   | Required | Description                                                          |
+| --------------- | ------ | -------- | -------------------------------------------------------------------- |
+| `iss`           | string | yes      | Issuer identity (the governing server or proxy).                     |
+| `sub`           | string | yes      | Subject the decision is about (tenant, agent, or upstream identity). |
+| `iat`           | string | yes      | ISO 8601 UTC issuance time.                                          |
+| `nonce`         | string | yes      | Unique per record.                                                   |
+| `secretVersion` | string | yes      | Key/secret version identifier for rotation and dispatch.             |
+| `alg`           | string | yes      | MUST equal the top-level `alg`.                                      |
+
+### Outcome record
+
+An outcome record MUST be emitted by the governing server after the governed call
+completes (or is refused), and MUST be paired to a decision record for the same
+call. It is a JSON object with the following top-level fields. This is the shape
+already shipping as `vaara.attestation.receipt.ExecutionReceipt`.
+
+| Field             | Type    | Required | Description                                                                                                                                                                                             |
+| ----------------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`         | integer | yes      | Record schema version. `1`.                                                                                                                                                                             |
+| `alg`             | string  | yes      | `ES256`, `RS256`, or `HS256`.                                                                                                                                                                           |
+| `backLink`        | object  | yes      | Same shape as the decision record's `backLink`; pins the request.                                                                                                                                       |
+| `outcomeDerived`  | object  | yes      | Execution status, timing, and result commitment (see below).                                                                                                                                            |
+| `receiptAsserted` | object  | yes      | The governing server's issuer block (same shape as `issuerAsserted`, minus `expSeconds`; an outcome record is a durable record, not a capability, so it carries no `exp` and verifiers enforce no TTL). |
+| `signature`       | string  | yes      | Detached signature over the JCS body excluding `signature`.                                                                                                                                             |
+
+**`outcomeDerived`** carries what happened:
+
+| Field              | Type   | Required | Description                                                                                                                                                                                                                                                                                 |
+| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`           | string | yes      | One of `executed`, `refused`, `errored`.                                                                                                                                                                                                                                                    |
+| `completedAt`      | string | yes      | ISO 8601 UTC completion (or refusal) time.                                                                                                                                                                                                                                                  |
+| `resultCommitment` | object | no       | An `ArgsRef` or `ArgsProjection` over the result (executed) or error object (errored). Absent for `refused`, which has no result. RECOMMENDED to use the commitment-only hash-only-identity projection so result payloads, which may contain personal data, are not copied into the record. |
+
+### Pairing
+
+A decision record and an outcome record describe the same governed call when
+both carry the same `backLink` (`attestationDigest` and `attestationNonce`
+equal). A verifier that has both, plus the SEP-2787 attestation, can confirm the
+full chain: the attestation pins the call; the decision record pins the policy
+verdict and risk basis for that call; the outcome record pins what the call did.
+This is instance-binding, not only content-binding: two byte-identical calls
+produce two attestations with distinct nonces and therefore distinct
+`attestationDigest` values, so a decision or outcome record cannot be replayed
+against a different instance of the same call.
+
+For correlation with client-asserted input context (SEP-2817), a server MAY
+include the SEP-2817 `turnId` as an additional, clearly client-asserted field
+inside `decisionDerived` under the key `clientTurnId`. This is correlation only;
+its presence in the signed body means the server records that the client claimed
+this `turnId`, not that the server vouches for it.
+
+A superseding decision (for example, a human resolving an `escalate`) is recorded
+as a new decision record with the same `backLink` and a later `decidedAt`. The
+record with the latest `decidedAt` for a given `backLink` is the effective
+decision; earlier ones are retained as history. Verifiers MUST NOT treat
+multiple decision records for one `backLink` as a conflict.
+
+### Transport
+
+The records are signed JSON objects and are transport-agnostic. A server MAY
+return the outcome record in the `tools/call` response `_meta` under the reserved
+key `io.modelcontextprotocol/executionRecord`, MAY return the decision record
+under `io.modelcontextprotocol/decisionRecord`, and MAY persist either to an
+out-of-band audit store. When a record is too large to carry inline (a large
+`ArgsRef` chain), the server SHOULD return an `ArgsRef` pointing to the stored
+record. This SEP does not require any change to existing MCP message formats; the
+records ride in `_meta`, consistent with SEP-414, SEP-2787, and SEP-2817.
+
+### JSON examples
+
+Decision record (allow, with risk basis):
+
+```json
+{
+  "version": 1,
+  "alg": "ES256",
+  "backLink": {
+    "attestationDigest": "sha256:8f1e2c0a9b7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f",
+    "attestationNonce": "qWZ3kP1nB8tR0aL"
+  },
+  "decisionDerived": {
+    "decision": "allow",
+    "reason": "risk below allow threshold",
+    "riskScore": "0.21",
+    "thresholdAllow": "0.40",
+    "thresholdBlock": "0.70",
+    "policyId": "sha256:3c9d4b8a",
+    "decidedAt": "2026-05-31T09:30:00Z",
+    "clientTurnId": "turn-7f3a"
+  },
+  "issuerAsserted": {
+    "alg": "ES256",
+    "iat": "2026-05-31T09:30:00Z",
+    "iss": "vaara-proxy://acme-eu",
+    "nonce": "Yb7Qd2mK9sV",
+    "secretVersion": "2026-05",
+    "sub": "tenant:acme/agent:billing-bot"
+  },
+  "signature": "3045022100ab12"
+}
+```
+
+Outcome record (executed, result committed by digest only):
+
+```json
+{
+  "version": 1,
+  "alg": "ES256",
+  "backLink": {
+    "attestationDigest": "sha256:8f1e2c0a9b7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f",
+    "attestationNonce": "qWZ3kP1nB8tR0aL"
+  },
+  "outcomeDerived": {
+    "status": "executed",
+    "completedAt": "2026-05-31T09:30:02Z",
+    "resultCommitment": {
+      "projection": "{\"digest\":\"sha256:1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c\"}",
+      "projectionDigest": "sha256:aa11bb22cc33dd44ee55ff66aa77bb88cc99dd00ee11ff22aa33bb44cc55dd66"
+    }
+  },
+  "receiptAsserted": {
+    "alg": "ES256",
+    "iat": "2026-05-31T09:30:02Z",
+    "iss": "vaara-proxy://acme-eu",
+    "nonce": "Zc8Re3nL0tW",
+    "secretVersion": "2026-05",
+    "sub": "tenant:acme/agent:billing-bot"
+  },
+  "signature": "3046022100cd34"
+}
+```
+
+Outcome record (refused, no result):
+
+```json
+{
+  "version": 1,
+  "alg": "ES256",
+  "backLink": {
+    "attestationDigest": "sha256:8f1e2c0a9b7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f",
+    "attestationNonce": "qWZ3kP1nB8tR0aL"
+  },
+  "outcomeDerived": {
+    "status": "refused",
+    "completedAt": "2026-05-31T09:30:01Z"
+  },
+  "receiptAsserted": {
+    "alg": "ES256",
+    "iat": "2026-05-31T09:30:01Z",
+    "iss": "vaara-proxy://acme-eu",
+    "nonce": "Wd9Sf4oM1uX",
+    "secretVersion": "2026-05",
+    "sub": "tenant:acme/agent:billing-bot"
+  },
+  "signature": "3045022100ef56"
+}
+```
+
+### Verification algorithm
+
+A verifier holding a decision record, an outcome record, the SEP-2787
+attestation, and the governing server's public key (or shared secret for HS256)
+MUST perform, and a conforming implementation MUST pass, the following checks:
+
+1. For each record, recompute the JCS-canonical encoding of the body with the
+   `signature` field removed, and verify `signature` under the issuer key for the
+   record's `alg`. Reject on mismatch.
+2. Recompute `attestationDigest` from the SEP-2787 attestation wire bytes and
+   confirm both records' `backLink.attestationDigest` and
+   `backLink.attestationNonce` match it. Reject on mismatch.
+3. Confirm the two records share the same `backLink` (they describe the same
+   call).
+4. If `resultCommitment` is present and the verifier has the result payload,
+   recompute the commitment digest from the runtime result and confirm it
+   matches. Reject on mismatch.
+5. Confirm `decisionDerived.decision` is one of `allow`, `block`, `escalate` and
+   `outcomeDerived.status` is one of `executed`, `refused`, `errored`.
+
+## Rationale
+
+**Two records, not one.** The decision and the outcome are made at different
+times by the same party and answer different regulatory questions (Article 9 and
+14 risk and oversight evidence versus Article 72 post-market outcome evidence). A
+single combined record would force the server to delay signing until after
+execution, losing the pre-side-effect commitment that proves the verdict was
+fixed before the action ran. Splitting them, paired by `backLink`, preserves the
+commit-before-execute property that is the whole point of an enforcement record.
+
+**Instance-binding over content-binding.** Earlier drafts in the #2704 / #2817
+discussion considered binding records to the content hash of the call alone. That
+lets a record be replayed against any byte-identical call. Binding to the
+SEP-2787 attestation digest (signature included) pins the exact attestation
+instance, so distinct calls with identical content still produce distinct
+bindings. This was the resolved position in discussion; the agent-guard author
+conceded the instance-binding point on 2026-05-30, and this SEP adopts it as
+normative.
+
+**Reusing the SEP-2787 stack.** The outcome record is the post-execution sibling
+of the SEP-2787 attestation and deliberately reuses its canonicalization, signing
+algorithms, commitment shapes, and issuer-block layout. A verifier that handles
+SEP-2787 handles these records with no new cryptographic code, and the decision
+record adds only one new block (`decisionDerived`).
+
+**Why server-authoritative.** A client cannot credibly attest a decision it did
+not make or an outcome it is not a neutral observer of. SEP-2787 and SEP-2817
+cover the input side precisely because they are client or issuer claims about the
+call. The enforcement record has to come from the enforcement point, which is why
+this is a separate SEP rather than an extension of either.
+
+**Alternatives considered.** Carrying the decision inside the SEP-2787
+`issuerAsserted` block was rejected because SEP-2787 attests the call, not the
+verdict, and overloading it would blur the trust surface that SEP made explicit.
+Adopting a content-addressed `action_ref` as the primary binding field was
+rejected: a content-addressed receipt id is a useful secondary index but is
+content-binding, and using it as the primary join reintroduces the replay
+problem instance-binding solves. The `action_ref` style is reconcilable as an
+optional `ArgsRef`-shaped pointer, not as the default join.
+
+## Backward Compatibility
+
+This SEP introduces no breaking changes. Both records are new, optional `_meta`
+payloads under reserved keys; servers that do not emit them and clients that do
+not consume them are unaffected. The schema reuses the SEP-2787 commitment and
+issuer-block shapes, so an existing SEP-2787 verifier extends to these records by
+adding the `decisionDerived` block and the `outcomeDerived.status` enum, with no
+change to the canonicalization or signature code. The records do not alter any
+existing MCP request or response method.
+
+## Security Implications
+
+**Signing-key compromise and post-hoc backdating.** A signed record proves the
+holder of the key bound those values, but a compromised key lets an adversary
+mint records with any `decidedAt` / `completedAt` they choose, including
+backdated ones, to fabricate a clean history. A signature alone cannot defeat
+this. The defense is an **external time anchor**: periodically anchoring the head
+of the append-only audit chain that carries these records to an independent,
+trusted timestamp (an RFC 3161 timestamp token, or an eIDAS qualified electronic
+timestamp) so that records signed after a compromise cannot be inserted before
+the last anchored head without detection. The Vaara reference implementation
+binds each record into a hash chain (chain version 2, with tenant identity bound
+into the chained hash) and ships the external anchor in v0.48: an RFC 3161
+timestamp over the chain head, verifiable offline, with optional automatic cadence
+anchoring that fails open by writing a gap marker into the chain when the
+authority is unreachable. Anchoring is opt-in. The deployer configures a trusted
+timestamp authority; none is bundled by default. Offline verification proves the
+token was signed by the certificate it carries; establishing that certificate as
+a trusted (for example eIDAS-qualified) authority is deployer policy, enforced by
+pinning it. A conforming deployment under EU AI Act retention obligations SHOULD
+anchor the chain head externally at a cadence proportionate to its risk.
+
+**Replay.** Instance-binding through the SEP-2787 attestation digest (signature
+included) plus the per-record `nonce` means a record cannot be replayed against a
+different call instance. Verifiers MUST reject a record whose `backLink` does not
+match the attestation under verification.
+
+**Instance versus content binding.** As above, binding is to the attestation
+instance, not only the call content. Implementations MUST NOT substitute a bare
+content hash of the arguments for the `attestationDigest`, because that
+reintroduces replay across byte-identical calls.
+
+**Personal data minimization.** Tool arguments and results can contain personal
+data. The RECOMMENDED default for both `decisionDerived` (which never copies the
+arguments, only a risk basis and decision) and `outcomeDerived.resultCommitment`
+(commitment-only hash-only-identity projection) is that the record commits to a
+digest of the value without copying the value. Where a reviewed projection is
+needed for audit, servers SHOULD redact to the minimum fields necessary and
+commit to the projection, never the raw payload. This keeps the signed,
+long-retained record free of personal data while preserving the ability to prove,
+given the original value out of band, that it is the one the record committed to.
+This aligns with GDPR data minimization and storage limitation alongside the
+Article 12 retention obligation.
+
+**Issuer identity and key distribution.** Verifiers must obtain the governing
+server's public key out of band; embedding a public key in the record is a
+convenience for local verification only and is not trust-establishing. The
+`secretVersion` field supports key rotation; verifiers dispatch on it.
+
+**Denial of service.** Record emission MUST NOT block legitimate traffic; a
+governing server that cannot sign SHOULD fail closed on the **decision** (do not
+allow an ungoverned call) but record the signing failure, and MAY degrade outcome
+recording to a logged error rather than dropping the call's result. The reference
+implementation emits records on a best-effort path that never blocks the proxied
+call and counts emission failures for operator alerting.
+
+## Prior Art Reconciled
+
+- **SEP-2787 (Tool call attestation, author soup-oss, Extensions Track, open).**
+  Attests the tool **call**: planner-declared intent, issuer-asserted identity,
+  payload-derived tool bindings and argument commitment. This SEP is its
+  post-decision and post-execution counterpart and reuses its canonicalization,
+  signing, commitment shapes, and trust-surface layout. The `backLink` pins a
+  SEP-2787 attestation. The split between what was asked (2787) and what was
+  decided and done (this SEP) is deliberate and preserves 2787's trust surface.
+
+- **SEP-2817 (AI Invocation Audit Context in Request `_meta`, author hangum,
+  Standards Track, draft seeking sponsor).** Standardizes optional,
+  client-asserted input audit context (`invocationReason`, `model`, `userIntent`,
+  `turnId`) and states explicitly that these fields are not authorization
+  evidence and that server-side decision records are left to a follow-up SEP.
+  This is that follow-up. Correlation with 2817 is by optionally recording the
+  client-asserted `turnId` as `clientTurnId`, clearly marked as a client claim.
+
+- **agent-guard (XuebinMa, Rust).** Models a `Guard` producing an `AuditRecord`
+  and an `ExecutionProof`. The two-record decision/outcome split here covers the
+  same ground as `AuditRecord` plus `ExecutionProof`, with the binding made
+  explicit and instance-scoped through the SEP-2787 attestation digest rather
+  than left to a content hash. The instance-binding position was conceded by the
+  agent-guard author in discussion on 2026-05-30 and is adopted here as
+  normative.
+
+- **Content-addressed receipt identifiers.** Some designs identify a record by a
+  content-addressed id of the form `action_ref = sha256(JCS(...))` over a
+  description of the action. This SEP does not adopt a content-addressed id as the
+  default join field, because it is content-binding and reintroduces
+  cross-instance replay when used as the primary binding. Such a pointer is
+  reconcilable as an optional `ArgsRef`-shaped reference (the `ref` carries the id
+  and the `digest` pins it), not as the normative pairing key, which remains the
+  instance-scoped `backLink`.
+
+## Reference Implementation
+
+The wire schema in this SEP is the shape shipping in the Vaara MCP proxy
+(v0.48; the receipt library landed in v0.42). Relevant modules:
+
+- `vaara/attestation/_receipt_types.py`: the `ExecutionReceipt` envelope
+  (`version`, `alg`, `backLink`, `outcomeDerived`, `receiptAsserted`,
+  `signature`), `OutcomeDerived` with `status` constrained to `executed` /
+  `refused` / `errored`, and `BackLink` (`attestationDigest`,
+  `attestationNonce`). This is the outcome record of this SEP, byte for byte.
+- `vaara/attestation/_receipt_emit.py`: builds, JCS-canonicalizes (signing input
+  excludes `signature`), and signs the outcome record; verifies the signature.
+- `vaara/attestation/_receipt_verifier.py`: `make_back_link` / `verify_back_link`
+  and `attestation_digest` (sha256 over the JCS-canonical full SEP-2787 wire
+  bytes, signature included): the instance-binding join.
+- `vaara/attestation/decision.py`: the decision record of this SEP.
+  `DecisionRecord` / `DecisionDerived`, `emit_decision_record`,
+  `verify_decision_signature`, `verify_decision_back_link`, and
+  `records_paired` (the decision-and-outcome join). Reuses the receipt's
+  back-link, the issuer-block layout, and the shared signing stack unchanged,
+  so the decision record adds the `decisionDerived` block and no new crypto.
+- `vaara/attestation/_sep2787_types.py` and `_sep2787_canonical.py`: the shared
+  commitment shapes (`ArgsRef`, `ArgsProjection`, `make_args_digest`), the
+  issuer-block layout, RFC 8785 canonicalization with float rejection, and the
+  signing stack (`ES256` / `RS256` / `HS256`) reused unchanged.
+- `vaara/integrations/_mcp_attest.py` and `mcp_proxy.py`: the proxy emits the
+  SEP-2787 attestation before the call and the paired outcome record after it,
+  on a best-effort path that never blocks proxied traffic.
+- `vaara/audit/trail.py`: the append-only, hash-chained audit trail the records
+  are written into; chain version 2 binds `tenant_id` and `chain_version` into
+  the chained hash so a record cannot be silently re-attributed to another
+  tenant.
+- `vaara/audit/timeanchor.py` and `AuditTrail.enable_auto_anchor`: the external
+  time anchor over the chain head (Security Implications), shipped in v0.48 as an
+  RFC 3161 client plus an offline verifier, with optional automatic cadence
+  anchoring that writes an `ANCHOR_GAP` marker into the chain when the authority
+  is unreachable.
+
+**Bridge from the shipped audit decision.** The audit trail already records the
+pre-execution decision as a hash-chained `CommitPayload`
+(`vaara/audit/receipts.py`: `decision`, `risk_score`, `threshold_allow`,
+`threshold_deny`, `decided_at`). `decision_derived_from_commit` maps that
+payload onto the signed `decisionDerived` wire shape. The mapping is mechanical
+but not a rename: the verdict vocabulary is normalized (the audit layer records
+`deny`, the wire enum uses `block`; the review family maps to `escalate`), the
+float risk basis becomes decimal strings (floats are banned on the wire), and
+the epoch decision time becomes an ISO 8601 UTC string. `policy_id`,
+`clientTurnId`, and `reason` are not carried on the commit payload and are
+supplied by the caller when available. This keeps the long-retained signed
+record free of the float canonicalization drift that the hash-chained payload
+tolerated internally.
+
+## Test Vectors
+
+The Vaara conformance vectors for the SEP-2787 canonicalization and signature
+(`modelcontextprotocol/modelcontextprotocol#2789`) cover the JCS encoding, float
+rejection, and the detached-signature scheme that both records in this SEP reuse.
+A standard-library-only checker (no Vaara import; `cryptography` for the
+asymmetric case) verifies a signed export offline, mirroring the
+`scripts/verify_vaara_trail.py` approach. For Standards Track finalization, this
+SEP will add:
+
+- JCS canonical vectors for the `decisionDerived` block and the
+  `outcomeDerived.status` enum, in the same vector format as #2789.
+- A paired decision-plus-outcome fixture with its SEP-2787 attestation, exercising
+  the full verification algorithm above, including a replay-rejection case
+  (mismatched `backLink`) and a superseding-decision case (two decision records,
+  same `backLink`, distinct `decidedAt`).
+- A `sep-XXXX.yaml` traceability file mapping each MUST / MUST NOT and
+  SHOULD / SHOULD NOT in the Specification to a conformance check ID, as required
+  for Standards Track SEPs reaching Final.
+
+## Acknowledgments
+
+This proposal builds directly on SEP-2787 (soup-oss) and SEP-2817 (hangum), and
+on the server-authoritative record direction set out in Discussion #2704. The
+instance-binding versus content-binding discussion with the agent-guard author
+(XuebinMa) shaped the normative pairing rule.
