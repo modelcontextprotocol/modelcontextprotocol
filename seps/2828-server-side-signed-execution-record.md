@@ -1,6 +1,5 @@
 # SEP-2828: Server-Side Signed Execution Record for MCP Tool Calls
 
-
 - **Status**: Draft
 - **Type**: Standards Track (Extensions Track)
 - **Created**: 2026-05-31
@@ -137,10 +136,10 @@ Both records reuse the SEP-2787 commitment shapes verbatim. A commitment is one
 of:
 
 - **`ArgsRef`**: a content-addressed reference, `{ "ref": "<uri>", "digest":
-  "sha256:<hex>", "canonicalization": "jcs" }`. The verifier MAY fetch `ref` and
+"sha256:<hex>", "canonicalization": "jcs" }`. The verifier MAY fetch `ref` and
   check the digest.
 - **`ArgsProjection`**: a reviewed projection, `{ "projection": "<jcs-string>",
-  "projectionDigest": "sha256:<hex>" }`, where `projection` is the JCS-canonical
+"projectionDigest": "sha256:<hex>" }`, where `projection` is the JCS-canonical
   encoding of the projection object as a UTF-8 string and `projectionDigest` is
   the sha256 over those bytes.
 
@@ -157,21 +156,21 @@ A decision record MUST be emitted by the governing server before the tool call's
 side effect runs, for every governed call. It is a JSON object with the
 following top-level fields.
 
-| Field            | Type     | Required | Description                                                                 |
-| ---------------- | -------- | -------- | --------------------------------------------------------------------------- |
-| `version`        | integer  | yes      | Record schema version. `1` for this SEP.                                    |
-| `alg`            | string   | yes      | `ES256`, `RS256`, or `HS256`.                                               |
-| `backLink`       | object   | yes      | Join to the SEP-2787 attestation (see below).                               |
-| `decisionDerived`| object   | yes      | The decision and its risk basis (see below).                                |
-| `issuerAsserted` | object   | yes      | The governing server's issuer block (see below).                            |
-| `signature`      | string   | yes      | Detached signature over the JCS body excluding `signature`.                 |
+| Field             | Type    | Required | Description                                                 |
+| ----------------- | ------- | -------- | ----------------------------------------------------------- |
+| `version`         | integer | yes      | Record schema version. `1` for this SEP.                    |
+| `alg`             | string  | yes      | `ES256`, `RS256`, or `HS256`.                               |
+| `backLink`        | object  | yes      | Join to the SEP-2787 attestation (see below).               |
+| `decisionDerived` | object  | yes      | The decision and its risk basis (see below).                |
+| `issuerAsserted`  | object  | yes      | The governing server's issuer block (see below).            |
+| `signature`       | string  | yes      | Detached signature over the JCS body excluding `signature`. |
 
 **`backLink`** joins the decision to the request attestation it governs:
 
-| Field              | Type   | Required | Description                                                                          |
-| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------ |
-| `attestationDigest`| string | yes      | `sha256:<hex>` over the JCS-canonical full SEP-2787 attestation wire bytes, signature included. Pins the exact attestation instance. |
-| `attestationNonce` | string | yes      | Echoes the attestation's `issuerAsserted.nonce` for fast correlation.                |
+| Field               | Type   | Required | Description                                                                                                                          |
+| ------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `attestationDigest` | string | yes      | `sha256:<hex>` over the JCS-canonical full SEP-2787 attestation wire bytes, signature included. Pins the exact attestation instance. |
+| `attestationNonce`  | string | yes      | Echoes the attestation's `issuerAsserted.nonce` for fast correlation.                                                                |
 
 If no SEP-2787 attestation exists for the call (the deployment does not run
 2787), the server MUST instead bind the request by setting `attestationDigest` to
@@ -182,15 +181,15 @@ only its content.
 
 **`decisionDerived`** carries the decision and the basis for it:
 
-| Field             | Type    | Required | Description                                                                                      |
-| ----------------- | ------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `decision`        | string  | yes      | One of `allow`, `block`, `escalate`.                                                              |
-| `reason`          | string  | no       | Short human-readable basis for the decision.                                                      |
-| `riskScore`       | string  | no       | The risk estimate that drove the decision, as a decimal string (floats are prohibited on the wire). |
-| `thresholdAllow`  | string  | no       | The allow threshold in force at decision time, as a decimal string.                              |
-| `thresholdBlock`  | string  | no       | The block threshold in force at decision time, as a decimal string.                              |
-| `policyId`        | string  | no       | Identifier or digest of the policy/ruleset version that produced the decision.                   |
-| `decidedAt`       | string  | yes      | ISO 8601 UTC timestamp of the decision.                                                          |
+| Field            | Type   | Required | Description                                                                                         |
+| ---------------- | ------ | -------- | --------------------------------------------------------------------------------------------------- |
+| `decision`       | string | yes      | One of `allow`, `block`, `escalate`.                                                                |
+| `reason`         | string | no       | Short human-readable basis for the decision.                                                        |
+| `riskScore`      | string | no       | The risk estimate that drove the decision, as a decimal string (floats are prohibited on the wire). |
+| `thresholdAllow` | string | no       | The allow threshold in force at decision time, as a decimal string.                                 |
+| `thresholdBlock` | string | no       | The block threshold in force at decision time, as a decimal string.                                 |
+| `policyId`       | string | no       | Identifier or digest of the policy/ruleset version that produced the decision.                      |
+| `decidedAt`      | string | yes      | ISO 8601 UTC timestamp of the decision.                                                             |
 
 A `decision` of `escalate` means the call was held for human oversight; the
 outcome record for that call will report `refused` if the human declined, or a
@@ -198,14 +197,14 @@ later decision record MAY supersede it (see Pairing).
 
 **`issuerAsserted`** is the governing server's signed block:
 
-| Field          | Type    | Required | Description                                                            |
-| -------------- | ------- | -------- | --------------------------------------------------------------------- |
-| `iss`          | string  | yes      | Issuer identity (the governing server or proxy).                      |
-| `sub`          | string  | yes      | Subject the decision is about (tenant, agent, or upstream identity).  |
-| `iat`          | string  | yes      | ISO 8601 UTC issuance time.                                           |
-| `nonce`        | string  | yes      | Unique per record.                                                    |
-| `secretVersion`| string  | yes      | Key/secret version identifier for rotation and dispatch.              |
-| `alg`          | string  | yes      | MUST equal the top-level `alg`.                                       |
+| Field           | Type   | Required | Description                                                          |
+| --------------- | ------ | -------- | -------------------------------------------------------------------- |
+| `iss`           | string | yes      | Issuer identity (the governing server or proxy).                     |
+| `sub`           | string | yes      | Subject the decision is about (tenant, agent, or upstream identity). |
+| `iat`           | string | yes      | ISO 8601 UTC issuance time.                                          |
+| `nonce`         | string | yes      | Unique per record.                                                   |
+| `secretVersion` | string | yes      | Key/secret version identifier for rotation and dispatch.             |
+| `alg`           | string | yes      | MUST equal the top-level `alg`.                                      |
 
 ### Outcome record
 
@@ -214,21 +213,21 @@ completes (or is refused), and MUST be paired to a decision record for the same
 call. It is a JSON object with the following top-level fields. This is the shape
 already shipping as `vaara.attestation.receipt.ExecutionReceipt`.
 
-| Field            | Type     | Required | Description                                                          |
-| ---------------- | -------- | -------- | ------------------------------------------------------------------- |
-| `version`        | integer  | yes      | Record schema version. `1`.                                         |
-| `alg`            | string   | yes      | `ES256`, `RS256`, or `HS256`.                                       |
-| `backLink`       | object   | yes      | Same shape as the decision record's `backLink`; pins the request.   |
-| `outcomeDerived` | object   | yes      | Execution status, timing, and result commitment (see below).        |
-| `receiptAsserted`| object   | yes      | The governing server's issuer block (same shape as `issuerAsserted`, minus `expSeconds`; an outcome record is a durable record, not a capability, so it carries no `exp` and verifiers enforce no TTL). |
-| `signature`      | string   | yes      | Detached signature over the JCS body excluding `signature`.         |
+| Field             | Type    | Required | Description                                                                                                                                                                                             |
+| ----------------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`         | integer | yes      | Record schema version. `1`.                                                                                                                                                                             |
+| `alg`             | string  | yes      | `ES256`, `RS256`, or `HS256`.                                                                                                                                                                           |
+| `backLink`        | object  | yes      | Same shape as the decision record's `backLink`; pins the request.                                                                                                                                       |
+| `outcomeDerived`  | object  | yes      | Execution status, timing, and result commitment (see below).                                                                                                                                            |
+| `receiptAsserted` | object  | yes      | The governing server's issuer block (same shape as `issuerAsserted`, minus `expSeconds`; an outcome record is a durable record, not a capability, so it carries no `exp` and verifiers enforce no TTL). |
+| `signature`       | string  | yes      | Detached signature over the JCS body excluding `signature`.                                                                                                                                             |
 
 **`outcomeDerived`** carries what happened:
 
-| Field              | Type   | Required | Description                                                                          |
-| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------ |
-| `status`           | string | yes      | One of `executed`, `refused`, `errored`.                                             |
-| `completedAt`      | string | yes      | ISO 8601 UTC completion (or refusal) time.                                           |
+| Field              | Type   | Required | Description                                                                                                                                                                                                                                                                                 |
+| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`           | string | yes      | One of `executed`, `refused`, `errored`.                                                                                                                                                                                                                                                    |
+| `completedAt`      | string | yes      | ISO 8601 UTC completion (or refusal) time.                                                                                                                                                                                                                                                  |
 | `resultCommitment` | object | no       | An `ArgsRef` or `ArgsProjection` over the result (executed) or error object (errored). Absent for `refused`, which has no result. RECOMMENDED to use the commitment-only hash-only-identity projection so result payloads, which may contain personal data, are not copied into the record. |
 
 ### Pairing
