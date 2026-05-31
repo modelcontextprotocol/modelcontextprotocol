@@ -1,4 +1,4 @@
-# SEP-XXXX: Server-Side Signed Execution Record for MCP Tool Calls
+# SEP-2828: Server-Side Signed Execution Record for MCP Tool Calls
 
 
 - **Status**: Draft
@@ -6,7 +6,7 @@
 - **Created**: 2026-05-31
 - **Author(s)**: vaaraio (@vaaraio)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/XXXX
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2828
 - **Requires**: SEP-2787 (Tool call attestation)
 - **Related**: SEP-2817 (AI Invocation Audit Context in Request `_meta`), SEP-414 (request `_meta`)
 - **Replaces**: None
