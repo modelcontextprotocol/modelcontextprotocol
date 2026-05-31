@@ -52,8 +52,12 @@ available tools changes.
 
 Servers that declare the `tools` capability **MUST** respond to `tools/list` requests
 with the set of tools currently available to the requesting client. This set **MAY** be
-empty and **MAY** change over the lifetime of the connection (see
-[List Changed Notification](#list-changed-notification)).
+empty and **MAY** change over time (see
+[List Changed Notification](#list-changed-notification)), but **MUST NOT** vary
+per-connection or as a side effect of other requests on the connection. The set
+**MAY** vary by the authorization presented on the request — for example, returning
+only the tools the caller's granted scopes permit — since credentials are
+per-request input, not connection state.
 
 Servers **SHOULD** return tools in a deterministic order (i.e., the same ordering across
 requests when the underlying set of tools has not changed). Deterministic ordering enables
@@ -87,6 +91,7 @@ To discover available tools, clients send a `tools/list` request. This operation
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
+    "resultType": "complete",
     "tools": [
       {
         "name": "get_weather",
@@ -108,13 +113,12 @@ To discover available tools, clients send a `tools/list` request. This operation
             "mimeType": "image/png",
             "sizes": ["48x48"]
           }
-        ],
-        "execution": {
-          "taskSupport": "optional"
-        }
+        ]
       }
     ],
-    "nextCursor": "next-page-cursor"
+    "nextCursor": "next-page-cursor",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -146,6 +150,7 @@ To invoke a tool, clients send a `tools/call` request:
   "jsonrpc": "2.0",
   "id": 2,
   "result": {
+    "resultType": "complete",
     "content": [
       {
         "type": "text",
@@ -157,10 +162,74 @@ To invoke a tool, clients send a `tools/call` request:
 }
 ```
 
+### Input Required Tool Results
+
+Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
+
+When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
+
+**Input Required Response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "github_login": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Please provide your GitHub username",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" }
+            },
+            "required": ["name"]
+          }
+        }
+      }
+    },
+    "requestState": "eyJsb2NhdGlvbiI6Ik5ldyBZb3JrIn0..."
+  }
+}
+```
+
+**Retry with Input Responses:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
+    },
+    "inputResponses": {
+      "github_login": {
+        "action": "accept",
+        "content": {
+          "name": "octocat"
+        }
+      }
+    },
+    "requestState": "eyJsb2NhdGlvbiI6Ik5ldyBZb3JrIn0..."
+  }
+}
+```
+
+Note that the JSON-RPC `id` **MUST** be different between the initial request and the retry.
+
 ### List Changed Notification
 
 When the list of available tools changes, servers that declared the `listChanged`
-capability **SHOULD** send a notification:
+capability **SHOULD** send a notification to clients that have opened a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+`toolsListChanged: true`:
 
 ```json
 {
@@ -189,10 +258,14 @@ sequenceDiagram
     Server-->>Client: Tool result
     Client->>LLM: Process result
 
-    Note over Client,Server: Updates
-    Server--)Client: tools/list_changed
-    Client->>Server: tools/list
-    Server-->>Client: Updated tools
+    opt listChanged
+      Client->>Server: subscriptions/listen (toolsListChanged: true)
+      Server--)Client: notifications/subscriptions/acknowledged
+      Note over Client,Server: Updates
+      Server--)Client: notifications/tools/list_changed
+      Client->>Server: tools/list
+      Server-->>Client: Updated tools
+    end
 ```
 
 ## Data Types
@@ -218,8 +291,6 @@ A tool definition includes:
   - Follows the [JSON Schema usage guidelines](/specification/draft/basic#json-schema-usage)
   - Defaults to 2020-12 if no `$schema` field is present
 - `annotations`: Optional properties describing tool behavior
-- `execution`: Optional object describing execution-related properties
-  - `taskSupport`: Indicates whether this tool supports [task-augmented execution](/specification/draft/basic/utilities/tasks#tool-level-negotiation). Values: `"forbidden"` (default), `"optional"`, or `"required"`
 
 <Warning>
   For trust & safety and security, clients **MUST** consider tool annotations to
@@ -246,10 +317,8 @@ aggregate tools from multiple servers **MAY** encounter naming collisions (for
 example, two servers each exposing a `search` tool) and **SHOULD** implement a
 disambiguation strategy such as prefixing tool names with a server identifier.
 
-The server `name` returned during
-[initialization](/specification/draft/basic/lifecycle#initialization) is not
-guaranteed to be unique across servers and **SHOULD NOT** be relied upon for
-disambiguation.
+The server `name` (from `serverInfo`) is not guaranteed to be unique across
+servers and **SHOULD NOT** be relied upon for disambiguation.
 
 </Note>
 
@@ -268,16 +337,24 @@ HTTP header.
 **Constraints on `x-mcp-header` values:**
 
 - **MUST NOT** be empty
-- **MUST** contain only ASCII characters, excluding space and `:`
+- **MUST** match HTTP field-name token syntax (`1*tchar`, [RFC 9110 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-5.1))
+- **MUST NOT** contain control characters, including carriage return (CR, `\r`) or
+  line feed (LF, `\n`)
 - **MUST** be case-insensitively unique among all `x-mcp-header` values in the
   `inputSchema`
-- **MUST** only be applied to parameters with primitive types (number, string, boolean)
+- **MUST** only be applied to parameters with primitive types (integer, string, boolean).
+  Parameters with type `number` are not permitted. Integer values **MUST** be within the
+  safe range for integers represented using IEEE754 double-precision floating point numbers (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
+- **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
+  only top-level properties
 
-Clients **MUST** reject tool definitions where any `x-mcp-header` value violates these
-constraints. Rejection means the client **MUST** exclude the invalid tool from the result
-of `tools/list`. Clients **SHOULD** log a warning when rejecting a tool definition,
-including the tool name and the reason for rejection. This ensures that a single
-malformed tool definition does not prevent other valid tools from being used.
+Clients using the Streamable HTTP transport **MUST** reject tool definitions where any
+`x-mcp-header` value violates these constraints. Rejection means the client **MUST**
+exclude the invalid tool from the result of `tools/list`. Clients **SHOULD** log a
+warning when rejecting a tool definition, including the tool name and the reason for
+rejection. This ensures that a single malformed tool definition does not prevent other
+valid tools from being used. Clients using other transports (e.g., stdio) **MAY** ignore
+`x-mcp-header` annotations entirely.
 
 **Example tool definition with `x-mcp-header`:**
 
@@ -407,7 +484,7 @@ Embedded resources support the same [Resource annotations](/specification/draft/
 
 #### Structured Content
 
-**Structured** content is returned as a JSON object in the `structuredContent` field of a result.
+**Structured** content is returned as a JSON value in the `structuredContent` field of a result. This can be any JSON value (object, array, string, number, boolean, or null) that conforms to the tool's `outputSchema` if one is defined.
 
 For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block.
 
@@ -479,6 +556,53 @@ Example valid response for this tool:
 }
 ```
 
+Example tool with array output schema:
+
+```json
+{
+  "name": "list_users",
+  "title": "User List",
+  "description": "Returns a list of all users",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "outputSchema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["id", "name", "email"]
+    }
+  }
+}
+```
+
+Example valid response for a tool with array output:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 2 users: Alice (alice@example.com) and Bob (bob@example.com)."
+      }
+    ],
+    "structuredContent": [
+      { "id": "1", "name": "Alice", "email": "alice@example.com" },
+      { "id": "2", "name": "Bob", "email": "bob@example.com" }
+    ]
+  }
+}
+```
+
 Providing an output schema helps clients and LLMs understand and properly handle structured tool outputs by:
 
 - Enabling strict schema validation of responses
@@ -535,6 +659,61 @@ Providing an output schema helps clients and LLMs understand and properly handle
   }
 }
 ```
+
+## Stateful Tools
+
+<Note>
+
+This section is non-normative guidance for tool design. The protocol has no
+concept of a state handle; from the wire's perspective a handle is an ordinary
+string in a tool result and an ordinary argument to subsequent tool calls.
+
+</Note>
+
+MCP has no protocol-level session, so a server cannot rely on implicit
+per-connection state to relate one tool call to the next. Servers that need to
+maintain state across calls — a shopping cart, an open browser context, a
+database transaction — should do so by returning an explicit handle from a
+creation tool and accepting that handle as an argument on subsequent calls.
+
+For example, a server that manages a shopping cart might expose:
+
+```jsonc
+// → tools/call
+{ "name": "create_basket", "arguments": {} }
+
+// ← result
+{
+  "content": [{ "type": "text", "text": "Created basket bsk_a1b2c3" }],
+  "structuredContent": { "basket_id": "bsk_a1b2c3" }
+}
+
+// → tools/call
+{
+  "name": "add_item",
+  "arguments": { "basket_id": "bsk_a1b2c3", "sku": "..." }
+}
+```
+
+The model is responsible for carrying `basket_id` forward; the server stores
+the cart contents under that key and looks them up on each call.
+
+When designing handles, servers should consider:
+
+- **Authorization.** For authenticated servers, a handle is a name, not a
+  capability. The server should validate the caller's authorization against the
+  handle on every call. For unauthenticated servers, where the handle is
+  necessarily a bearer token, it should be generated with sufficient entropy
+  (e.g., a UUIDv4) and given a bounded lifetime.
+- **Opacity.** Handles that encode internal structure invite parsing or
+  guessing; opaque identifiers do not.
+- **Lifetime.** Because handles outlive any single connection, the server's
+  retention policy should be stated in the creation tool's description (e.g.,
+  "baskets expire after 24 hours of inactivity") so the model can see it when
+  deciding to create state.
+- **Expiry errors.** A call against an expired or unknown handle should return
+  a tool execution error that says so, so the model can recover by creating a
+  new one.
 
 ## Error Handling
 

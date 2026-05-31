@@ -1,8 +1,0 @@
-{
-  "jsonrpc": "2.0",
-  "id": "subscribe-example",
-  "method": "resources/subscribe",
-  "params": {
-    "uri": "file:///project/src/main.rs"
-  }
-}

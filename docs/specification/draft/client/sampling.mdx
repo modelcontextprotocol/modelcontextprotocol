@@ -4,6 +4,18 @@ title: Sampling
 
 <div id="enable-section-numbers" />
 
+<Warning>
+  **Deprecated**: The Sampling feature is deprecated as of protocol version
+  `2026-07-28`
+  ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+  Under the [feature lifecycle policy](/community/feature-lifecycle), it remains
+  in the specification for at least twelve months after this revision's release
+  before it becomes eligible for removal. New implementations **SHOULD NOT**
+  adopt it; existing implementations **SHOULD** migrate to integrating directly
+  with LLM provider APIs. See the [deprecated features
+  registry](/specification/draft/deprecated).
+</Warning>
+
 The Model Context Protocol (MCP) provides a standardized way for servers to request LLM
 sampling ("completions" or "generations") from language models via clients. This flow
 allows clients to maintain control over model access, selection, and permissions while
@@ -33,20 +45,6 @@ Applications **SHOULD**:
 
 </Warning>
 
-<Warning>
-
-**Request Association Requirement**
-
-Servers **MUST** send `sampling/createMessage` requests only in association with an
-originating client request (e.g., during `tools/call`, `resources/read`, or
-`prompts/get` processing).
-
-Standalone server-initiated sampling on independent communication streams (unrelated
-to any client request) is not supported and **MUST NOT** be implemented. Future
-transport implementations are not required to support this pattern.
-
-</Warning>
-
 ## Tools in Sampling
 
 Servers can request that the client's LLM use tools during sampling by providing a `tools` array and optional `toolChoice` configuration in their sampling requests. The tool definitions in the `tools` array are scoped to the sampling request — they don't need to correspond to registered tools. This enables servers to implement agentic behaviors where the LLM can call specially designated tools, receive results, and continue the conversation - all within a single sampling request flow.
@@ -55,8 +53,8 @@ Clients **MUST** declare support for tool use via the `sampling.tools` capabilit
 
 ## Capabilities
 
-Clients that support sampling **MUST** declare the `sampling` capability during
-[initialization](/specification/draft/basic/lifecycle#initialization):
+Clients that support sampling **MUST** declare the `sampling` capability in
+`_meta.io.modelcontextprotocol/clientCapabilities` on each request:
 
 **Basic sampling:**
 
@@ -80,7 +78,7 @@ Clients that support sampling **MUST** declare the `sampling` capability during
 }
 ```
 
-**With context inclusion support (soft-deprecated):**
+**With context inclusion support (deprecated):**
 
 ```json
 {
@@ -94,24 +92,26 @@ Clients that support sampling **MUST** declare the `sampling` capability during
 
 <Note>
   The `includeContext` parameter values `"thisServer"` and `"allServers"` are
-  soft-deprecated. Servers **SHOULD** avoid using these values (e.g. can just
-  omit `includeContext` since it defaults to `"none"`), and **SHOULD NOT** use
-  them unless the client declares `sampling.context` capability. These values
-  may be removed in future spec releases.
+  deprecated under the [feature lifecycle
+  policy](/community/feature-lifecycle#deprecating-a-feature)
+  ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596));
+  they will be removed no later than the Sampling feature itself. Servers
+  **SHOULD** avoid using these values (e.g. can just omit `includeContext` since
+  it defaults to `"none"`), and **SHOULD NOT** use them unless the client
+  declares `sampling.context` capability. See the [deprecated features
+  registry](/specification/draft/deprecated).
 </Note>
 
 ## Protocol Messages
 
 ### Creating Messages
 
-To request a language model generation, servers send a `sampling/createMessage` request:
+To request a language model generation during the processing of a client request, servers send an `InputRequiredResult` containing a `sampling/createMessage` request:
 
 **Request:**
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "sampling/createMessage",
   "params": {
     "messages": [
@@ -145,8 +145,6 @@ To request a language model generation, servers send a `sampling/createMessage` 
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "role": "assistant",
     "content": {
@@ -170,8 +168,9 @@ sequenceDiagram
     participant User
     participant LLM
 
-    Note over Server,Client: Initial request with tools
-    Server->>Client: sampling/createMessage<br/>(messages + tools)
+    Client->>Server: tools/call(id:1)
+    note right of Server: Server needs more info
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -182,13 +181,13 @@ sequenceDiagram
 
     Client->>User: Present tool calls for review
     User-->>Client: Approve tool calls
-    Client-->>Server: Return tool_use response
+    Client-->>Server: tools/call(id:2, Return tool_use response)
 
     Note over Server: Execute tool(s)
     Server->>Server: Run get_weather("Paris")<br/>Run get_weather("London")
 
     Note over Server,Client: Continue with tool results
-    Server->>Client: sampling/createMessage<br/>(history + tool_results + tools)
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(history + tool_results + tools))
 
     Client->>User: Present continuation
     User-->>Client: Approve
@@ -198,7 +197,7 @@ sequenceDiagram
 
     Client->>User: Present response
     User-->>Client: Approve
-    Client-->>Server: Return final response
+    Client-->>Server: tools/call(id:3, Return final response)
 
     Note over Server: Server processes result<br/>(may continue conversation...)
 ```
@@ -209,8 +208,6 @@ To request LLM generation with tool use capabilities, servers include `tools` an
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "method": "sampling/createMessage",
   "params": {
     "messages": [
@@ -250,8 +247,6 @@ To request LLM generation with tool use capabilities, servers include `tools` an
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 1,
   "result": {
     "role": "assistant",
     "content": [
@@ -291,8 +286,6 @@ After receiving tool use requests from the LLM, the server typically:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
   "method": "sampling/createMessage",
   "params": {
     "messages": [
@@ -368,8 +361,6 @@ After receiving tool use requests from the LLM, the server typically:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 2,
   "result": {
     "role": "assistant",
     "content": {
@@ -505,8 +496,9 @@ sequenceDiagram
     participant User
     participant LLM
 
-    Note over Server,Client: Server initiates sampling
-    Server->>Client: sampling/createMessage
+    Client->>Server: tools/call(id:1)
+    note right of Server: Server needs more info
+    Server->>Client: InputRequiredResult(<br/>sampling/createMessage<br/>(messages + tools))
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -520,8 +512,8 @@ sequenceDiagram
     Client->>User: Present response for approval
     User-->>Client: Review and approve/modify
 
-    Note over Server,Client: Complete request
-    Client-->>Server: Return approved response
+    Note over Server,Client: Replay Request with approved response
+    Client-->>Server: tools/call(id:3, Return approved response)
 ```
 
 ## Data Types
@@ -626,6 +618,9 @@ to include in its response:
 - `"thisServer"`: Include context from the requesting server.
 - `"allServers"`: Include context from all connected MCP servers.
 
+The `"thisServer"` and `"allServers"` values are deprecated; see
+[Capabilities](#capabilities).
+
 The client **MAY** modify or ignore this field without communicating this to the server.
 For example, a client could determine that respecting this field in a particular request
 would require sharing sensitive information with a server, and constrain its response
@@ -666,36 +661,8 @@ Sampling results will contain the following fields:
 
 ## Error Handling
 
-Clients **SHOULD** return errors for common failure cases:
-
-- User rejected sampling request: `-1`
-- Tool result missing in request: `-32602` (Invalid params)
-- Tool results mixed with other content: `-32602` (Invalid params)
-- Sampling request not associated with a client-to-server request: `-32602` (Invalid params)
-
-Example errors:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 3,
-  "error": {
-    "code": -1,
-    "message": "User rejected sampling request"
-  }
-}
-```
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 4,
-  "error": {
-    "code": -32602,
-    "message": "Tool result missing in request"
-  }
-}
-```
+If an error occurs or the user declines the sampling request, the client does not need to replay the initial call with an
+error message, as the server is not waiting for a response with the `InputRequiredResult` pattern.
 
 ## Security Considerations
 

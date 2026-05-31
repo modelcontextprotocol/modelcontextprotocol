@@ -1,6 +1,6 @@
 # SEP-2260: Require Server requests to be associated with a Client request.
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-02-16
 - **Author(s)**: MCP Transports Working Group
