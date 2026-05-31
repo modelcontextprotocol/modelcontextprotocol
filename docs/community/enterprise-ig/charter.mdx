@@ -9,7 +9,7 @@ description: Charter for the MCP Enterprise Interest Group.
 
 ## Mission Statement
 
-The Enterprise IG identifies and documents the requirements gaps that enterprises encounter when deploying MCP in production. As MCP adoption scales across regulated industries and large organizations, enterprise teams face recurring gaps in areas such as authentication integration, identity propagation, audit and compliance, gateway behavior, scalability and resilience, and configuration management that are not yet addressed at the protocol level. The group brings together enterprise practitioners to capture these gaps as problem statements and structured recommendations, and to channel them to the relevant Working Groups for specification work. Governance and best-practice patterns may emerge from these discussions, but the group's core mandate is surfacing protocol-level requirements, not maintaining a general best-practices catalog.
+The Enterprise IG identifies and documents the requirements gaps that enterprises encounter when deploying MCP in production. As MCP adoption scales across regulated industries and large organizations, enterprise teams face recurring gaps in areas such as authentication integration, identity propagation, audit and compliance, gateway behavior, scalability and resilience, and configuration management that are not yet addressed at the protocol level. The group brings together enterprise practitioners to capture these gaps as problem statements and structured recommendations, and to channel them to the relevant Working Groups for specification work. Governance and best-practice patterns may emerge from these discussions, but the group’s core mandate is surfacing protocol-level requirements, not maintaining a general best-practices catalog.
 
 All discussions and sessions are protocol-focused and vendor-neutral. The Enterprise IG is not a venue for product pitches or vendor-specific marketing. Participants contribute as practitioners sharing deployment experience and requirements, not as representatives promoting commercial solutions.
 
@@ -17,7 +17,7 @@ All discussions and sessions are protocol-focused and vendor-neutral. The Enterp
 
 ### In Scope
 
-- **MCP Governance and Best Practices**: The group's primary mandate is identifying enterprise deployment requirements that are not addressed at the MCP protocol level today and turning them into problem statements and recommendations for the relevant Working Groups. The specific domains below are explored through that lens; governance and best-practice patterns are documented only where they surface a protocol-level gap:
+- **Enterprise Requirements Gaps (overarching focus)**: The group’s primary mandate is identifying enterprise deployment requirements that are not addressed at the MCP protocol level today and turning them into problem statements and recommendations for the relevant Working Groups. The specific domains below are explored through that lens; governance and best-practice patterns are documented only where they surface a protocol-level gap:
 - **Enterprise Authentication and Identity**: Discussion of enterprise-managed auth patterns including IdP integration (SSO, SAML, OIDC), token lifecycle management, On-Behalf-Of (OBO) token exchange flows, and fine-grained authorization (Rich Authorization Requests). Gathering requirements to inform the Auth WG and related SEPs.
 - **Identity Propagation and Session Context**: How verified identity is surfaced and conveyed across MCP clients, servers, and downstream services for policy enforcement and audit. Includes the spawned-agent and delegated-agent case: identity lineage, least-privilege for child agents, descendant revocation, and auditability across multi-agent chains. Adjacent to authentication but distinct in focus — the gaps show up in how identity is exposed and consumed, not how auth itself is performed.
 - **Audit, Observability, and Compliance**: Exploration of standardized audit trail formats for MCP tool invocations, integration with enterprise SIEM and observability platforms, and evidence generation for compliance frameworks (SOC 2, HIPAA, GDPR, EU AI Act). Includes sector-specific compliance patterns such as PHI handling and BAA-scoped data flows in healthcare environments.
@@ -45,34 +45,34 @@ All discussions and sessions are protocol-focused and vendor-neutral. The Enterp
 
 ## Leadership
 
-| Role | Name | Organization | GitHub | Term |
-| ---- | ---- | ------------ | ------ | ---- |
-| Facilitator | Raghu Chandra | Independent | [@raghu-chandra-mcp](https://github.com/raghu-chandra-mcp) | 6 months |
-| Facilitator | Yannj_Fr | MCPApps Builders | [@yannj-fr](https://github.com/yannj-fr) | 6 months |
+| Role        | Name          | Organization     | GitHub                                                     | Term     |
+| ----------- | ------------- | ---------------- | ---------------------------------------------------------- | -------- |
+| Facilitator | Raghu Chandra | Independent      | [@raghu-chandra-mcp](https://github.com/raghu-chandra-mcp) | 6 months |
+| Facilitator | Yannj_Fr      | MCPApps Builders | [@yannj-fr](https://github.com/yannj-fr)                   | 6 months |
 
 ## Membership
 
-| Name | Organization | GitHub | Discord | Level |
-| ---- | ------------ | ------ | ------- | ----- |
-| Raghu Chandra | Independent | [@raghu-chandra-mcp](https://github.com/raghu-chandra-mcp) | raghu.chandra | Facilitator |
-| Yannj_Fr | MCPApps Builders | [@yannj-fr](https://github.com/yannj-fr) | yannj_fr | Facilitator |
-| Peder H P | Saxo Bank | [@pederhp](https://github.com/pederhp) | | Participant |
-| Derek Lewis | Silex Data Solutions | [@derekelewis](https://github.com/derekelewis) | dlewis.io | Participant |
-| Aman s | Independent Researcher; Blue Shield of California | [@aman210122](https://github.com/aman210122) | | Participant |
-| Ola | Nordstrom / MCP Maintainer | [@olaservo](https://github.com/olaservo) | | Participant |
-| Varun | TraceForce | [@vawadhwa88](https://github.com/vawadhwa88) | | Participant |
-| Markus Mueller | Boomi | [@mquadrat](https://github.com/mquadrat) | | Participant |
-| Aaron Parecki | Okta | [@aaronpk](https://github.com/aaronpk) | | Participant |
-| cayerbe | GNS-Foundation | [@GNS-Foundation](https://github.com/GNS-Foundation) | cayerbe | Participant |
-| Anishma | EmpowerID | [@anishma](https://github.com/anishma) | | Participant |
-| Lin Sun | Solo.io | [@linsun](https://github.com/linsun) | | Participant |
-| Joey Orlando | Archestra | [@joeyorlando](https://github.com/joeyorlando) | | Participant |
+| Name           | Organization                                      | GitHub                                                     | Discord       | Level       |
+| -------------- | ------------------------------------------------- | ---------------------------------------------------------- | ------------- | ----------- |
+| Raghu Chandra  | Independent                                       | [@raghu-chandra-mcp](https://github.com/raghu-chandra-mcp) | raghu.chandra | Facilitator |
+| Yannj_Fr       | MCPApps Builders                                  | [@yannj-fr](https://github.com/yannj-fr)                   | yannj_fr      | Facilitator |
+| Peder H P      | Saxo Bank                                         | [@pederhp](https://github.com/pederhp)                     |               | Participant |
+| Derek Lewis    | Silex Data Solutions                              | [@derekelewis](https://github.com/derekelewis)             | dlewis.io     | Participant |
+| Aman s         | Independent Researcher; Blue Shield of California | [@aman210122](https://github.com/aman210122)               |               | Participant |
+| Ola            | Nordstrom / MCP Maintainer                        | [@olaservo](https://github.com/olaservo)                   |               | Participant |
+| Varun          | TraceForce                                        | [@vawadhwa88](https://github.com/vawadhwa88)               |               | Participant |
+| Markus Mueller | Boomi                                             | [@mquadrat](https://github.com/mquadrat)                   |               | Participant |
+| Aaron Parecki  | Okta                                              | [@aaronpk](https://github.com/aaronpk)                     |               | Participant |
+| cayerbe        | GNS-Foundation                                    | [@GNS-Foundation](https://github.com/GNS-Foundation)       | cayerbe       | Participant |
+| Anishma        | EmpowerID                                         | [@anishma](https://github.com/anishma)                     |               | Participant |
+| Lin Sun        | Solo.io                                           | [@linsun](https://github.com/linsun)                       |               | Participant |
+| Joey Orlando   | Archestra                                         | [@joeyorlando](https://github.com/joeyorlando)             |               | Participant |
 
 ## Operations
 
-| Meeting | Frequency | Duration | Purpose |
-| ------- | --------- | -------- | ------- |
-| Working Session | Monthly | 60 min | Use case discussion, pain point cataloging, cross-group coordination |
+| Meeting         | Frequency | Duration | Purpose                                                              |
+| --------------- | --------- | -------- | -------------------------------------------------------------------- |
+| Working Session | Monthly   | 60 min   | Use case discussion, pain point cataloging, cross-group coordination |
 
 Discord: #enterprise-ig
 
@@ -88,15 +88,15 @@ The Enterprise IG produces non-binding recommendations, problem statements, and 
 
 As an Interest Group, the Enterprise IG does not produce binding deliverables. The following are planned discussion outputs:
 
-| Item | Status | Target Date | Champion |
-| ---- | ------ | ----------- | -------- |
-| Enterprise Pain Points Catalog | Planned | Q2 2026 | Raghu Chandra |
-| Healthcare & Compliance Use Cases (PHI, BAA) | Planned | Q3 2026 | Aman s |
-| Enterprise Auth Requirements (input to Auth WG) | Planned | Q3 2026 | TBD |
-| Gateway Deployment Patterns Document | Planned | Q3 2026 | TBD |
+| Item                                            | Status  | Target Date | Champion      |
+| ----------------------------------------------- | ------- | ----------- | ------------- |
+| Enterprise Pain Points Catalog                  | Planned | Q2 2026     | Raghu Chandra |
+| Healthcare & Compliance Use Cases (PHI, BAA)    | Planned | Q3 2026     | Aman s        |
+| Enterprise Auth Requirements (input to Auth WG) | Planned | Q3 2026     | TBD           |
+| Gateway Deployment Patterns Document            | Planned | Q3 2026     | TBD           |
 
 ## Changelog
 
-| Date | Change |
-| ---- | ------ |
+| Date       | Change                |
+| ---------- | --------------------- |
 | 2026-04-13 | Initial charter filed |
