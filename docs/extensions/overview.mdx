@@ -113,32 +113,35 @@ A **breaking change** is any modification that would cause existing implementati
 
 ## Negotiation
 
-Clients and servers advertise their support for extensions in the `extensions` field within their respective capabilities during the [initialization handshake](/specification/latest/basic/lifecycle).
+Clients and servers advertise their support for extensions in the `extensions` field within their respective capability declarations.
 
 ### Client Capabilities
 
-Clients advertise extension support in the `initialize` request:
+Clients advertise extension support in `_meta["io.modelcontextprotocol/clientCapabilities"]` within each request:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "method": "initialize",
+  "method": "tools/call",
   "params": {
-    "protocolVersion": "2025-06-18",
-    "capabilities": {
-      "roots": {
-        "listChanged": true
-      },
-      "extensions": {
-        "io.modelcontextprotocol/ui": {
-          "mimeTypes": ["text/html;profile=mcp-app"]
-        }
-      }
+    "name": "get_weather",
+    "arguments": {
+      "location": "New York"
     },
-    "clientInfo": {
-      "name": "ExampleClient",
-      "version": "1.0.0"
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2025-06-18",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/ui": {
+            "mimeTypes": ["text/html;profile=mcp-app"]
+          }
+        }
+      },
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      }
     }
   }
 }
@@ -146,14 +149,14 @@ Clients advertise extension support in the `initialize` request:
 
 ### Server Capabilities
 
-Servers advertise extension support in the `initialize` response:
+Servers advertise extension support in the `server/discover` response:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "protocolVersion": "2025-06-18",
+    "supportedVersions": ["2025-06-18"],
     "capabilities": {
       "tools": {},
       "extensions": {

@@ -152,19 +152,24 @@ To consume task-augmented responses, your client must:
 <Steps>
 <Step title="Declare support">
 
-Include the extension in per-request capabilities:
+Include the extension in its per-request capabilities:
 
-```json
+```jsonc
 {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "...",
   "params": {
+    // Other fields...
     "_meta": {
+      // Other fields...
       "io.modelcontextprotocol/clientCapabilities": {
         "extensions": {
-          "io.modelcontextprotocol/tasks": {}
-        }
-      }
-    }
-  }
+          "io.modelcontextprotocol/tasks": {},
+        },
+      },
+    },
+  },
 }
 ```
 
@@ -204,13 +209,18 @@ To return tasks from your server:
 
 Include the extension in your `server/discover` capabilities:
 
-```json
+```jsonc
 {
-  "capabilities": {
-    "extensions": {
-      "io.modelcontextprotocol/tasks": {}
-    }
-  }
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    // Other fields...
+    "capabilities": {
+      "extensions": {
+        "io.modelcontextprotocol/tasks": {},
+      },
+    },
+  },
 }
 ```
 
