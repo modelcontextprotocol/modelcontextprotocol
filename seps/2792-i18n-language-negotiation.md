@@ -652,8 +652,8 @@ reach Final. The scenario will cover, at minimum:
 - Authors of [SEP-2243] for the header-mirroring pattern this SEP reuses.
 - Authors of [SEP-2575] for the stateless-by-default direction that makes
   per-request negotiation the right default.
-- Markus Cozowicz for [SEP-1809], which surfaced the need for structured
-  client context.
+- Markus Cozowicz for [SEP-1809], which provided prior art for how i18n
+  might be added to the protocol.
 
 [modelcontextprotocol/typescript-sdk#2158]: https://github.com/modelcontextprotocol/typescript-sdk/pull/2158
 [BCP 47]: https://www.rfc-editor.org/info/bcp47
