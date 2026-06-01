@@ -31,9 +31,10 @@ description: "File Objects and Transfer"
 This SEP extends [SEP-2356](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2356)
 with out-of-band file transfer and generated file outputs. SEP-2356 defines
 `x-mcp-file`, an inline JSON Schema extension keyword for declaring file-valued fields,
-and uses URI strings, including RFC 2397 `data:` URIs, as the baseline input value. This
-SEP adds file-transfer URIs, capability negotiation for transfer modes, and control-plane
-methods for preparing uploads and resolving downloads.
+and uses URI strings, including RFC 2397 `data:` URIs, as the baseline input value while
+keeping URL-mode elicitation as the complementary path for server-controlled large-file
+flows. This SEP adds file-transfer URIs, capability negotiation for transfer modes, and
+control-plane methods for preparing uploads and resolving downloads.
 
 Under this proposal, clients can still satisfy SEP-2356 file inputs with `data:` URIs.
 When inline transfer is undesirable, clients can instead prepare an upload, receive a
@@ -124,8 +125,9 @@ This SEP defines the following principles:
 2. File-valued inputs **MUST** preserve SEP-2356's URI-string value contract.
 3. Clients **MAY** source files from local filesystems, browser uploads, app-owned
    storage, cloud drives, or any other user-mediated surface.
-4. File collection **SHOULD** happen before the main request is sent, rather than through
-   a follow-up elicitation or URL-mode loop.
+4. File collection **SHOULD** happen before the main request is sent when practical, while
+   preserving URL-mode elicitation as a fallback when inline or negotiated upload is not
+   appropriate.
 5. File-valued inputs **SHOULD** be declared through SEP-2356 `x-mcp-file` annotations
    on URI string schema properties.
 
@@ -195,7 +197,7 @@ response field contains either:
 Inline input continues to use SEP-2356's RFC 2397 `data:` URI form:
 
 ```json
-"data:text/plain;name=tiny.txt;base64,SGVsbG8gd29ybGQh"
+"data:text/plain;base64,SGVsbG8gd29ybGQh"
 ```
 
 Out-of-band input uses a file URI string:
@@ -350,10 +352,10 @@ Elicitation requests use the same descriptor shape:
 }
 ```
 
-This SEP supports elicitation by allowing the elicitation response value for an
-`x-mcp-file` field to be either a SEP-2356 `data:` URI or, when out-of-band transfer is
-used, a file URI prepared through `files/prepareUpload`. It does not add a new
-elicitation mode.
+This SEP supports elicitation by allowing the eventual value for an `x-mcp-file` field to
+be either a SEP-2356 `data:` URI or, when out-of-band transfer is used, a file URI
+prepared through `files/prepareUpload`. It does not add a new elicitation mode or change
+the surrounding elicitation control flow.
 
 `x-mcp-file` **MUST** appear only where SEP-2356 allows it: on a URI string schema
 property. On the tool surface, array items can carry `x-mcp-file` because
@@ -363,7 +365,9 @@ arrays.
 
 File input descriptors MAY include:
 
-- `accept`: a list of MIME types or file extensions.
+- `accept`: a list of MIME types or dot-prefixed file extensions. As in SEP-2356,
+  extension entries are picker hints only; server-side validation compares the media type
+  portion of the submitted URI value.
 - `maxSize`: maximum accepted size in bytes for each individual file. For inline `data:`
   URI values this is the decoded byte size; for file URI values this is the uploaded file
   byte size enforced during upload negotiation and subsequent request validation.
@@ -371,14 +375,18 @@ File input descriptors MAY include:
   the client can choose any supported mode. `"inline"` allows a `data:` URI. `"upload"`
   allows `files/prepareUpload` and a file URI.
 
+As in the latest SEP-2356 draft, filenames are not carried in a `name=` parameter on the
+`data:` URI. Servers that need the original filename **SHOULD** declare a separate string
+field for it.
+
 Clients that do not support any allowed transfer mode **MUST** reject tools or
 elicitation requests that require file-valued fields unless another interoperable
 non-file path is available.
 
 ### 6. Upload Negotiation
 
-Before sending a client-originated file in `tools/call` or as the result of an
-elicitation flow, the client calls `files/prepareUpload`:
+When a client chooses out-of-band transfer for a file in `tools/call` or elicitation, it
+calls `files/prepareUpload`:
 
 ```json
 {
@@ -616,6 +624,10 @@ an upload negotiation round trip would be unnecessary.
 client choice; listing one or more modes lets a server constrain the value shape it can
 safely and efficiently handle while leaving room for future transfer modes.
 
+This remains compatible with SEP-2356's host-side rules for inline values, including the
+case where a host chooses to forward a model-supplied `data:` URI verbatim under its
+existing approval policy.
+
 ### Why URI Strings, Not `FileValue`, for Inputs
 
 Using URI strings for inputs preserves SEP-2356 compatibility. A server that declares a
@@ -662,6 +674,9 @@ File-specific elicitation and URL-mode flows are still useful as fallback UX, bu
 should not be the default path because in the common case the client can bind the file
 before `tools/call`, avoiding an unnecessary extra round trip.
 
+This SEP therefore complements, rather than replaces, SEP-2356's recommendation to use
+URL-mode elicitation when the server needs a large-file or server-controlled upload flow.
+
 ### Why Standardize Download Resolution
 
 `ResourceLink` is useful, but it is not enough by itself for generic file output. Tool
@@ -693,6 +708,8 @@ This SEP introduces important security considerations:
   policy rather than trusting client metadata.
 - Clients **SHOULD** surface the source and destination context for file transfers so
   users understand where bytes are going.
+- Hosts that forward a model-supplied inline `data:` URI under SEP-2356 rules **MUST NOT**
+  rewrite it into a local-file upload or substitute other bytes for it.
 - Inline transfer increases the risk of oversized payloads and accidental sensitive-data
   exposure in logs or transcripts; implementations **SHOULD** keep inline limits
   bounded.

@@ -1824,7 +1824,12 @@ export type FileInputTransferMode = "inline" | "upload";
  */
 export interface FileInputDescriptor {
   /**
-   * MIME types or file extensions the client SHOULD use to filter file selection.
+   * Media type patterns and/or dot-prefixed file extensions the client SHOULD
+   * use to filter file selection.
+   *
+   * Supports exact MIME types (`"image/png"`), wildcard subtypes
+   * (`"image/*"`), and dot-prefixed extensions (`".pdf"`). Extension entries
+   * are picker hints only; server-side validation compares media types.
    */
   accept?: string[];
   /**
@@ -3023,7 +3028,8 @@ export interface StringSchema {
    * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
    * render a native file picker and populate the field with either an RFC 2397
    * `data:` URI or, when out-of-band transfer is used, a file URI prepared
-   * through `files/prepareUpload`.
+   * through `files/prepareUpload`. Filenames remain separate metadata; they are
+   * not carried via a `name=` parameter on the data URI.
    */
   "x-mcp-file"?: FileInputDescriptor;
 }
