@@ -8,6 +8,7 @@
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2809
 - **Preprint**: doi:10.5281/zenodo.20349263
 - **Requires**: RFC 2119, RFC 8174, RFC 8615 (Well-Known URIs), RFC 8032 (Ed25519)
+- **Contributor(s)**: Maaz (@maaz-interlock), Interlock; Christopher Hopley (@chopmob), AlgoVoi
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHOULD**,
 **SHOULD NOT**, **MAY**, and **OPTIONAL** are to be interpreted as in RFC 2119
