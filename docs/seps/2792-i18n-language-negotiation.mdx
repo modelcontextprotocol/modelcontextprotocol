@@ -637,22 +637,21 @@ reach Final. The scenario will cover, at minimum:
    with `Content-Language` byte-mirrored on HTTP JSON responses.
 5. Per-request language switching on the same connection (notably
    stdio), to demonstrate that no session state is involved.
-6. **Header absence is tolerated.** A request where the HTTP
-   `Accept-Language` header has been stripped by an intermediary (e.g.
-   CloudFront default behaviour) while `_meta` is preserved: the
-   server **MUST** honor `_meta` and **MUST NOT** reject on this
-   basis. Symmetrically, on the response path, a server **MAY** emit
-   `_meta[contentLanguage]` without a `Content-Language` header on
-   SSE streams (where headers are flushed before the body is known).
-7. **Header byte-mismatch is rejected.** A request where the HTTP
-   `Accept-Language` header is **present** and is **not byte-identical**
-   to `_meta['io.modelcontextprotocol/acceptLanguage']`: the server
-   **MUST** reject with HTTP `400 Bad Request` and the HeaderMismatch
-   JSON-RPC error code (provisional `-32005`, see Specification).
-   Symmetrically, on the response path, a JSON response carrying both
-   `Content-Language` and `_meta[contentLanguage]` whose values are
-   not byte-identical: the client **MUST** treat the response as
-   malformed.
+6. A request where the HTTP `Accept-Language` header has been stripped
+   by an intermediary (e.g. CloudFront default behaviour) while `_meta`
+   is preserved: the server **MUST** honor `_meta` and **MUST NOT**
+   reject on this basis. Symmetrically, on the response path, a server
+   **MAY** emit `_meta[contentLanguage]` without a `Content-Language`
+   header on SSE streams (where headers are flushed before the body is
+   known).
+7. A request where the HTTP `Accept-Language` header is present and is
+   not byte-identical to `_meta['io.modelcontextprotocol/acceptLanguage']`:
+   the server **MUST** reject with HTTP `400 Bad Request` and the
+   HeaderMismatch JSON-RPC error code (provisional `-32005`, see
+   Specification). Symmetrically, on the response path, a JSON response
+   carrying both `Content-Language` and `_meta[contentLanguage]` whose
+   values are not byte-identical: the client **MUST** treat the
+   response as malformed.
 
 ## Open Questions
 
