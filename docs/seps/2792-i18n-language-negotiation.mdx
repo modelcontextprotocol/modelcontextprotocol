@@ -545,16 +545,7 @@ change the request language without tearing anything down.
 field overlaps with this SEP. Because SEP-1809 is currently in Draft and
 without a visible sponsor, and because language is a strictly cross-cutting
 concern (not limited to `tools/call`), this SEP proposes to **subsume the
-language aspect of SEP-1809**:
-
-- SEP-1809 (or its successor) should retain `timezone`, `currentTimestamp`,
-  and `userLocation`, all of which are genuinely tool-call-scoped context.
-- The `locale` field should be removed from SEP-1809 in favor of the
-  cross-cutting `io.modelcontextprotocol/acceptLanguage` defined here.
-- Servers that need both can read locale from `_meta` and the rest from
-  `clientContext`.
-
-We will coordinate with SEP-1809's author to align.
+language aspect of SEP-1809**.
 
 ### Alternatives considered
 
