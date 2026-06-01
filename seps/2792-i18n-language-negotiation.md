@@ -119,9 +119,7 @@ units). The choice is left to the server.
 
 Out of scope in all cases: machine-interpreted values such as tool
 names, identifiers, URIs, schema field names, enum tokens, and MIME
-types, whose semantics depend on the literal string. The normative
-"MUST NOT translate" rule for these lives in
-[Specification](#acceptlanguage-request).
+types, whose semantics depend on the literal string.
 
 ## Specification
 
