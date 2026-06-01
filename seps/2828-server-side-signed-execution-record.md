@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track (Extensions Track)
 - **Created**: 2026-05-31
-- **Author(s)**: vaaraio (@vaaraio)
+- **Author(s)**: Henri Sirkkavaara (@vaaraio), Vaara
 - **Sponsor**: None (seeking sponsor)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2828
 - **Requires**: SEP-2787 (Tool call attestation)
