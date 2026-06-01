@@ -3,7 +3,7 @@
 Thank you for your interest in contributing to the Model Context Protocol specification, schemas, or docs!
 This document outlines how to contribute to this project.
 
-Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explains how and where discussions about changes happen.
+Also see the [overall MCP communication guidelines in our docs](https://modelcontextprotocol.io/community/communication), which explain how and where discussions about changes happen.
 
 ## General prerequisites
 
@@ -52,6 +52,19 @@ npm run check:schema:ts
 ```bash
 npm run generate:schema
 ```
+
+### Resolving merge conflicts in generated files
+
+If your branch conflicts with `main` in generated files (`schema/*/schema.json`, `docs/specification/*/schema.mdx`, `docs/seps/*.mdx`), do not resolve them by hand. Merge `main`, resolve any conflicts in the source files (e.g. `schema/draft/schema.ts`), then regenerate and commit:
+
+```bash
+git merge main
+npm run generate
+git add .
+git commit
+```
+
+These files are marked with `-merge` in `.gitattributes`, so git keeps your branch's copy and flags them as conflicted instead of inserting conflict markers.
 
 ## Documentation changes
 

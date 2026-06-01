@@ -41,6 +41,10 @@ JSON examples live in `schema/[version]/examples/[TypeName]/`:
 - Files validate against their directory's type: `Tool/example-name.json` → Tool schema
 - Referenced in `schema.ts` via `@includeCode` JSDoc tags
 
+## Agent Skills
+
+When adding a new skill, also add a directory symlink at `docs/.mintlify/skills/<name>` pointing to `../../../plugins/<plugin-name>/skills/<name>` so Mintlify's `.well-known/agent-skills/` and MCP server auto-scan exposes it.
+
 ## Useful Commands
 
 ```bash
