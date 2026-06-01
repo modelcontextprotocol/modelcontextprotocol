@@ -247,7 +247,9 @@ present-and-disagreeing header is rejected.
 - **Server (JSON responses).** When the response (success or error)
   carries `_meta['io.modelcontextprotocol/contentLanguage']`, the
   server **MUST** set the HTTP `Content-Language` response header to
-  the **byte-identical** value.
+  the **byte-identical** value, and **MUST** set
+  `Vary: Accept-Language` on any cacheable response whose body depends
+  on the negotiated language ([RFC 9111]).
 - **Server (SSE responses).** Because HTTP response headers are
   flushed before the response body is known, `Content-Language`
   **MAY** be omitted on `text/event-stream` responses; per-event
@@ -574,9 +576,10 @@ This proposal is fully backward compatible.
 - **Injection.** Servers **MUST** validate the field against the
   `Accept-Language` ABNF before passing it to any matcher; malformed
   values should be ignored, not cause an error.
-- **Cache poisoning.** HTTP caches **MUST** `Vary: Accept-Language` when
-  caching localized responses. This is standard HTTP behavior, repeated
-  here only because forgetting it is a common implementation mistake.
+- **Cache poisoning.** Forgetting `Vary: Accept-Language` on a
+  localized response is a known cache-poisoning vector; the
+  normative requirement lives in
+  [Streamable HTTP transport binding > Response](#response).
 - **Header tampering by intermediaries** that rewrite `Accept-Language`
   or `Content-Language` causes byte-mismatch rejections under the rule
   in [Streamable HTTP transport binding](#streamable-http-transport-binding).
@@ -641,11 +644,6 @@ reach Final. The scenario will cover, at minimum:
    `params._meta['io.modelcontextprotocol/contentLanguage']`. (No HTTP
    header counterpart is involved because notifications travel
    in-band on existing transports, including SSE event streams.)
-2. **`Vary` header guidance.** **Proposed resolution:** servers
-   **SHOULD** set `Vary: Accept-Language` on cacheable responses whose
-   body depends on the negotiated language, per [RFC 9111]. Promote to
-   **MUST** if reviewers want stricter alignment with the SEP-2243
-   precedent.
 
 ## Acknowledgments
 
