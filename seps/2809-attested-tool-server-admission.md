@@ -6,7 +6,7 @@
 - **Author(s)**: Alfredo Metere (@metereconsulting) &lt;alfredo.metere@enclawed.com&gt;, Enclawed LLC
 - **Sponsor**: None (seeking)
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2809
-- **Preprint**: doi:10.5281/zenodo.20349263
+- **Preprint**: [arXiv:2605.24248](https://arxiv.org/abs/2605.24248); archived record: doi:10.5281/zenodo.20349263
 - **Requires**: RFC 2119, RFC 8174, RFC 8615 (Well-Known URIs), RFC 8032 (Ed25519)
 - **Contributor(s)**: Maaz (@maaz-interlock), Interlock; Christopher Hopley (@chopmob), AlgoVoi
 
@@ -408,8 +408,8 @@ Special thanks to:
 ## References
 
 - Companion preprint: _Attested Tool-Server Admission: A Security Extension to the
-  Model Context Protocol_ — archived at Zenodo, doi:10.5281/zenodo.20349263
-  (arXiv ID forthcoming; PDF in this package).
+  Model Context Protocol_ — [arXiv:2605.24248](https://arxiv.org/abs/2605.24248);
+  archived record: doi:10.5281/zenodo.20349263.
 - RFC 2119 / RFC 8174 (requirement keywords), RFC 8414 (OAuth AS Metadata),
   RFC 8615 (Well-Known URIs), RFC 8032 (Ed25519), RFC 9116 (`security.txt`).
 - Reference implementation: [github.com/enclawed/enclawed-oss](https://github.com/enclawed/enclawed-oss) —
