@@ -587,41 +587,10 @@ This proposal is fully backward compatible.
 
 ## Reference Implementation
 
-A reference implementation has been opened against the TypeScript SDK:
-
-- **PR**: [modelcontextprotocol/typescript-sdk#2158] (draft)
-- **Branch**: [`SamMorrowDrums/typescript-sdk@sammorrowdrums/reimagined-enigma`](https://github.com/SamMorrowDrums/typescript-sdk/tree/sammorrowdrums/reimagined-enigma)
-
-It delivers:
-
-1. A small `i18n` helper module exposing `ACCEPT_LANGUAGE_META` /
-   `CONTENT_LANGUAGE_META` constants, get/set accessors for the two
-   `_meta` fields, and a `negotiateLanguage()` function that delegates
-   to [`@formatjs/intl-localematcher`] (an off-the-shelf [RFC 4647]
-   matcher), demonstrating the "no reinvention" point in code.
-2. Streamable HTTP transport mirroring in both directions:
-   `_meta[acceptLanguage]` to/from the `Accept-Language` header on
-   requests and `_meta[contentLanguage]` to/from `Content-Language`
-   on responses, with strict byte-equality enforcement: the client
-   mirrors `_meta` to the request header, the server mirrors `_meta`
-   to the response header on JSON responses, and either side rejects
-   a byte-mismatch (server with HeaderMismatch, client by treating
-   the response as malformed). Header absence is tolerated on both
-   sides; `_meta` is the authoritative carrier.
-3. stdio transport demonstrating that the same `_meta` fields flow
-   end-to-end with no transport changes.
-4. An example server (`get_greeting` tool) localized into **en / fr /
-   de**, runnable in either stdio or Streamable HTTP mode, plus an
-   example client that issues the call with `"en"`,
-   `"fr-CA,fr;q=0.9,en;q=0.5"`, and `"ja"` (forcing fallback).
-5. Tests: unit tests for the helpers and `negotiateLanguage` (quality
-   values, wildcards, fallback); HTTP integration tests covering
-   header mirroring, byte-mismatch rejection on both directions,
-   header-absent tolerance, error-response localization; and stdio
-   integration tests including two sequential `tools/list` calls on
-   the same connection with different `acceptLanguage` values
-   returning differently-localized `title`s, exercising the
-   per-request, mid-session-switch behavior required by [SEP-2575].
+A reference implementation against the TypeScript SDK,
+[modelcontextprotocol/typescript-sdk#2158] (draft), exercises every
+normative rule in this SEP across both Streamable HTTP and stdio,
+with an example server and client and a full test matrix.
 
 Earlier reference for the i18n machinery itself exists in
 [github-mcp-server PR #25] (a server-side translations framework),
@@ -688,7 +657,6 @@ reach Final. The scenario will cover, at minimum:
 - Markus Cozowicz for [SEP-1809], which surfaced the need for structured
   client context.
 
-[`@formatjs/intl-localematcher`]: https://formatjs.github.io/docs/polyfills/intl-localematcher
 [modelcontextprotocol/typescript-sdk#2158]: https://github.com/modelcontextprotocol/typescript-sdk/pull/2158
 [BCP 47]: https://www.rfc-editor.org/info/bcp47
 [RFC 4647]: https://www.rfc-editor.org/rfc/rfc4647
