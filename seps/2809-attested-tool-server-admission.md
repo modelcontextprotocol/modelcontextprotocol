@@ -45,6 +45,7 @@ may use the server; neither answers the missing third question — _is this serv
 one the host is authorized to use as a tool provider, and at what sensitivity?_
 
 The critical failure modes of this trust gap are empirically demonstrable. Adversarial testing against unprotected production multi-server MCP deployments reveals three exploitable runtime behaviors that bypass standard post-invocation defenses:
+
 1. **Tool-Name Shadowing (`/tool-name-shadow`):** An untrusted or injected server registers a tool name that collides with a co-loaded, legitimate tool surface, causing the host to route execution calls silently to the malicious server.
 2. **Dynamic Schema Drift (`/tool-schema-drift`):** A malicious server advertises an entirely benign schema during the initial `tools/list` handshake to pass static filters, but mutates parameter constraints or semantic requirements before the subsequent `tools/call` invocation.
 3. **Registry Poisoning (`/tool-registry-poison`):** Direct manipulation of the host's tool cache via downstream prompt injection or unvetted secondary discovery layers.
@@ -180,9 +181,9 @@ adoption cheap and low-risk, not a reason to defer it.
   nothing about which of its tools are in bounds. The closed per-server
   allow-list is enforced before any network dispatch, defeating a prompt-injected
   model that requests a tool the server advertises but the host never approved.
-  *Empirical validation:* Independent defender-side benchmarks confirm that 
-  runtime reasoning fails to contain dynamic exploits like schema drift under 
-  non-stringent model personas. Enforcing a strict host-side allow-list at the 
+  _Empirical validation:_ Independent defender-side benchmarks confirm that
+  runtime reasoning fails to contain dynamic exploits like schema drift under
+  non-stringent model personas. Enforcing a strict host-side allow-list at the
   admission layer isolates the model from unvetted execution vectors entirely.
 
 ### Alternatives considered
@@ -212,67 +213,67 @@ adoption cheap and low-risk, not a reason to defer it.
 
 ### The Admission/Runtime Boundary
 
-ATSA establishes trust strictly at the point of admission: it verifies an 
-unforgeable server identity and evaluates a pinned signer key before any network 
-dispatch. This is a point-in-time guarantee that structurally answers whether a 
+ATSA establishes trust strictly at the point of admission: it verifies an
+unforgeable server identity and evaluates a pinned signer key before any network
+dispatch. This is a point-in-time guarantee that structurally answers whether a
 host is authorized to communicate with a specific server at a designated sensitivity
 level at the moment of connection.
 
 By design, the wire format does not address whether a tool's internal behavior
-or exposed schema schema-drift occurs over the lifetime of an active session. An 
-admitted server may pass verification successfully but subsequently mutate its 
-tool surface: a tool declared as read-only during an initial handshake could later 
-advertise mutating side-effects, inject new sensitive data parameters (e.g., PII), 
-escalate network externalities, or trigger dynamic schema modifications between 
-polling intervals. Because the underlying server identity remains unchanged, the 
-cryptographic admission guarantee holds, but the capability surface has drifted. 
+or exposed schema schema-drift occurs over the lifetime of an active session. An
+admitted server may pass verification successfully but subsequently mutate its
+tool surface: a tool declared as read-only during an initial handshake could later
+advertise mutating side-effects, inject new sensitive data parameters (e.g., PII),
+escalate network externalities, or trigger dynamic schema modifications between
+polling intervals. Because the underlying server identity remains unchanged, the
+cryptographic admission guarantee holds, but the capability surface has drifted.
 
-This operational boundary is where a downstream runtime drift-monitoring 
+This operational boundary is where a downstream runtime drift-monitoring
 layer composes with ATSA.
 
 ### Expectations of the Downstream Drift Layer
 
 A downstream continuous-monitoring framework requires a stable, cryptographically
-verified anchor to bind its behavioral baselines to. ATSA provides this structural 
+verified anchor to bind its behavioral baselines to. ATSA provides this structural
 dependency via two primitives:
 
 1. **Verified Server Identity (`id`):** The unforgeable identity string that the
-runtime monitor utilizes as the primary indexing key for its tool schema baseline.
-Without this cryptographic constraint, a drift monitor can be spoofed into
-baselining an adversarial substitute server.
+   runtime monitor utilizes as the primary indexing key for its tool schema baseline.
+   Without this cryptographic constraint, a drift monitor can be spoofed into
+   baselining an adversarial substitute server.
 2. **Pinned Signer Key (`signerKeyId`):** The cryptographic guarantee that the entity
-producing tool definitions at execution time matches the entity that was admitted.
-This ensures an attacker cannot bypass drift telemetry by impersonating an admitted
-origin.
+   producing tool definitions at execution time matches the entity that was admitted.
+   This ensures an attacker cannot bypass drift telemetry by impersonating an admitted
+   origin.
 
-The downstream monitor anchors each tool baseline to the unique tuple `(id, toolName)` 
-at the first observation post-admission, checking subsequent `tools/list` or `tools/call` 
+The downstream monitor anchors each tool baseline to the unique tuple `(id, toolName)`
+at the first observation post-admission, checking subsequent `tools/list` or `tools/call`
 envelopes against that baseline.
 
 ### Explicit Non-Requirements of the Wire Format
 
-To prevent protocol scope creep and maintain structural minimalism, the following 
+To prevent protocol scope creep and maintain structural minimalism, the following
 boundaries are enforced:
 
-* **State Isolation:** The wire format **MUST NOT** carry drift state, baseline
- histories, or schema versioning metadata. Baseline persistence and delta-evaluations
- are strictly implementationconcerns of the runtime monitor.
-* **Telemetry Isolation:** The wire format is not responsible for detecting or
- signaling structural mutations. It provides the authenticated identity context;
- detecting change is
- the monitor's responsibility.
-* **Frequency Decoupling:** ATSA is **NOT REQUIRED** to execute full cryptographic
- re-attestation on every individual message frame. Admission remains an edge gate;
- continuous runtime verification lives in the downstream monitoring layer.
+- **State Isolation:** The wire format **MUST NOT** carry drift state, baseline
+  histories, or schema versioning metadata. Baseline persistence and delta-evaluations
+  are strictly implementationconcerns of the runtime monitor.
+- **Telemetry Isolation:** The wire format is not responsible for detecting or
+  signaling structural mutations. It provides the authenticated identity context;
+  detecting change is
+  the monitor's responsibility.
+- **Frequency Decoupling:** ATSA is **NOT REQUIRED** to execute full cryptographic
+  re-attestation on every individual message frame. Admission remains an edge gate;
+  continuous runtime verification lives in the downstream monitoring layer.
 
 ### Systemic Synergy
 
-Admission control without drift monitoring risks trusting a modified capability 
-surface indefinitely. Conversely, drift monitoring without a verified admission 
-anchor operates in the dark—its baselines remain completely vulnerable to origin 
-spoofing. Composed, they provide a complete security posture: ATSA guarantees 
-*who*, while the drift layer guarantees that the *who* hasn't silently changed 
-*what*.
+Admission control without drift monitoring risks trusting a modified capability
+surface indefinitely. Conversely, drift monitoring without a verified admission
+anchor operates in the dark—its baselines remain completely vulnerable to origin
+spoofing. Composed, they provide a complete security posture: ATSA guarantees
+_who_, while the drift layer guarantees that the _who_ hasn't silently changed
+_what_.
 
 ### Related work
 
@@ -366,9 +367,9 @@ by an LLM-generated adversarial corpus:
 - A local-LLM (Ollama) **coverage campaign** generated **27,025 unique tool-name
   evasions** (case/Unicode/whitespace/separator/path/near-miss tricks) — all
   denied, zero leaked network writes — and **14,378 unique forged clearance
-  assertions** — all rejected. This attacker-side validation is complemented 
-  by independent defender-side baselines (e.g., the *AlgoVoi Agent-Trust-Bench* 
-  differential profiles across 29-tool surfaces), confirming that unprotected 
+  assertions** — all rejected. This attacker-side validation is complemented
+  by independent defender-side baselines (e.g., the _AlgoVoi Agent-Trust-Bench_
+  differential profiles across 29-tool surfaces), confirming that unprotected
   deployments remain uniformly vulnerable to runtime routing and session exploits.
 - A **live end-to-end** run drove a real Google Workspace MCP endpoint through the
   gate: the allow-listed tool was admitted and dispatched; out-of-allow-list tools
@@ -400,8 +401,9 @@ once a sponsor is engaged and the SEP number is assigned.
 ## Acknowledgements
 
 Special thanks to:
-* **Maaz (@maaz-interlock)** from Interlock for his critical contributions to the architectural framing of the runtime boundary and for drafting the normative composition language for downstream continuous drift-monitoring frameworks.
-* **Christopher Hopley and the AlgoVoi team** for deploying their production adversarial testing suites (`agent-trust-bench.algovoi.co.uk`) to empirically validate the threat taxonomy closed by ATSA, providing critical defender-side baseline data for the protocol's motivation section.
+
+- **Maaz (@maaz-interlock)** from Interlock for his critical contributions to the architectural framing of the runtime boundary and for drafting the normative composition language for downstream continuous drift-monitoring frameworks.
+- **Christopher Hopley and the AlgoVoi team** for deploying their production adversarial testing suites (`agent-trust-bench.algovoi.co.uk`) to empirically validate the threat taxonomy closed by ATSA, providing critical defender-side baseline data for the protocol's motivation section.
 
 ## References
 
