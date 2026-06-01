@@ -203,12 +203,12 @@ stateless-by-default model of [SEP-2575]. This means:
 
 ### Streamable HTTP transport binding
 
-When using the Streamable HTTP transport, language preference and
-selection are additionally exchanged via the standard HTTP
-`Accept-Language` and `Content-Language` headers. This SEP applies the
-header-mirroring contract established by [SEP-2243] to those two
-headers, with one concession (header absence is tolerated; see
-[Rationale](#why-mirror-to-http-headers-with-a-strict-byte-match-rule)).
+On Streamable HTTP, language preference and selection are also exchanged
+via the standard `Accept-Language` and `Content-Language` headers, under
+the same payload/header agreement rule [SEP-2243] established for
+`Mcp-Method` and `Mcp-Name`. The server-side rule is relaxed in one
+direction only: a missing header is tolerated (CDNs strip it), but a
+present-and-disagreeing header is rejected.
 
 #### Request
 
@@ -220,23 +220,24 @@ headers, with one concession (header absence is tolerated; see
   present on a request, the client **MUST** also set the HTTP
   `Accept-Language` header on the corresponding POST to the
   **byte-identical** value.
-- **Server, header absent.** The server **MUST NOT** reject a request
-  solely because `Accept-Language` is missing; it reads the preference
-  from `_meta`. Servers **MUST NOT** treat a bare `Accept-Language`
-  header (no `_meta` field) as an MCP language preference: `_meta` is
-  the only canonical carrier across transports.
-- **Server, header present and mismatching.** If `Accept-Language` is
-  present and **not byte-identical** to
-  `_meta['io.modelcontextprotocol/acceptLanguage']`, the server
-  **MUST** reject the request with HTTP `400 Bad Request` and JSON-RPC
-  error code `HeaderMismatch` in the MCP-reserved range (`-32000` to
-  `-32099`). Servers **MUST NOT** apply RFC 9110 / RFC 4647
-  normalization for this comparison; it is a literal byte-equality
-  check on the field-value as received.
-- **Provisional code.** This SEP cites `-32005` for `HeaderMismatch`,
-  pending the schema-level reservation work in [SEP-2243], [SEP-2678],
-  and [PR #2642]; this SEP will adopt whatever code that work assigns.
-  See [Rationale](#why--32005-rather-than--32001) for why `-32001` (the
+- **Server, `_meta` present, header absent.** The server **MUST NOT**
+  reject solely because `Accept-Language` is missing; it reads the
+  preference from `_meta`.
+- **Server, header present, `_meta` absent.** The server **MUST NOT**
+  treat a bare `Accept-Language` header as an MCP language preference.
+  `_meta` is the only canonical carrier across transports; without it,
+  the server proceeds as though no preference was supplied.
+- **Server, both present, byte-mismatch.** The server **MUST** reject
+  the request with HTTP `400 Bad Request` and JSON-RPC error code
+  `HeaderMismatch` in the MCP-reserved range (`-32000` to `-32099`).
+  The comparison is a literal byte-equality check on the field-value
+  as received: servers **MUST NOT** apply RFC 9110 / RFC 4647
+  normalization for this purpose.
+- **Provisional error code.** This SEP cites `-32005` for
+  `HeaderMismatch`, pending the schema-level reservation work in
+  [SEP-2243], [SEP-2678], and [PR #2642]; this SEP will adopt whatever
+  code that work assigns. See
+  [Rationale](#why--32005-rather-than--32001) for why `-32001` (the
   value originally proposed by SEP-2243) is unsuitable.
 
 #### Response
@@ -584,9 +585,9 @@ This proposal is fully backward compatible.
 - **Injection.** Servers **MUST** validate the field against the
   `Accept-Language` ABNF before passing it to any matcher; malformed
   values should be ignored, not cause an error.
-- **Cache poisoning.** HTTP caches must `Vary: Accept-Language` when
-  caching localized responses. This is standard HTTP behavior, not new
-  here, but server implementers should be reminded.
+- **Cache poisoning.** HTTP caches **MUST** `Vary: Accept-Language` when
+  caching localized responses. This is standard HTTP behavior, repeated
+  here only because forgetting it is a common implementation mistake.
 - **Header tampering by intermediaries** that rewrite `Accept-Language`
   or `Content-Language` causes byte-mismatch rejections under the rule
   in [Streamable HTTP transport binding](#streamable-http-transport-binding).
@@ -594,9 +595,6 @@ This proposal is fully backward compatible.
   payload/header agreement), not an attack. Operator configuration to
   avoid lockout is covered in
   [Normalization footgun and intermediary configuration](#normalization-footgun-and-intermediary-configuration).
-
-No new attack surface is introduced beyond what `Accept-Language` already
-implies on the open web.
 
 ## Reference Implementation
 
@@ -628,13 +626,13 @@ It delivers:
    example client that issues the call with `"en"`,
    `"fr-CA,fr;q=0.9,en;q=0.5"`, and `"ja"` (forcing fallback).
 5. Tests: unit tests for the helpers and `negotiateLanguage` (quality
-   values, wildcards, fallback), HTTP integration tests (header
-   mirroring, `Content-Language` echoed, error-response localization),
-   and stdio integration tests, including the critical proof that two
-   sequential `tools/list` calls on the same connection with different
-   `acceptLanguage` values return differently-localized `title`s. This
-   is the runnable evidence for the per-request, mid-session-switch
-   claim in [SEP-2575] alignment.
+   values, wildcards, fallback); HTTP integration tests covering
+   header mirroring, byte-mismatch rejection on both directions,
+   header-absent tolerance, error-response localization; and stdio
+   integration tests including two sequential `tools/list` calls on
+   the same connection with different `acceptLanguage` values
+   returning differently-localized `title`s, exercising the
+   per-request, mid-session-switch behavior required by [SEP-2575].
 
 Earlier reference for the i18n machinery itself exists in
 [github-mcp-server PR #25] (a server-side translations framework),
@@ -678,16 +676,18 @@ reach Final. The scenario will cover, at minimum:
 
 ## Open Questions
 
-1. **Notifications carrying `acceptLanguage`.** Notifications have no
-   response, so `contentLanguage` does not apply, but
-   `logging/message` and similar server-to-client notifications could
-   themselves benefit from a `contentLanguage`. Should server-initiated
-   notifications also carry `contentLanguage`? (Tentative answer: yes,
-   under the same rule, emit it if the content was localized.)
-2. **`Vary` header guidance.** Should this SEP mandate
-   `Vary: Accept-Language` on cacheable responses, or leave it as
-   standard HTTP guidance? (Tentative: a SHOULD, with a pointer to
-   RFC 9111.)
+1. **Notifications carrying `contentLanguage`.** Server-to-client
+   notifications such as `logging/message` may contain user-facing
+   text. **Proposed resolution:** the same rule applies, a notification
+   that carries localized text **MUST** include
+   `params._meta['io.modelcontextprotocol/contentLanguage']`. (No HTTP
+   header counterpart is involved because notifications travel
+   in-band on existing transports, including SSE event streams.)
+2. **`Vary` header guidance.** **Proposed resolution:** servers
+   **SHOULD** set `Vary: Accept-Language` on cacheable responses whose
+   body depends on the negotiated language, per [RFC 9111]. Promote to
+   **MUST** if reviewers want stricter alignment with the SEP-2243
+   precedent.
 
 ## Acknowledgments
 
@@ -706,6 +706,7 @@ reach Final. The scenario will cover, at minimum:
 [RFC 9110 §8.5]: https://httpwg.org/specs/rfc9110.html#field.content-language
 [RFC 9110 §12.5.4]: https://httpwg.org/specs/rfc9110.html#field.accept-language
 [rfc9110-accept-language]: https://httpwg.org/specs/rfc9110.html#field.accept-language
+[RFC 9111]: https://www.rfc-editor.org/rfc/rfc9111
 [SEP-414]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/414-request-meta.md
 [SEP-2133]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2133-extensions.md
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243
