@@ -118,9 +118,10 @@ inherently locale-specific (legal text, dates, currency formatting,
 units). The choice is left to the server.
 
 Out of scope in all cases: machine-interpreted values such as tool
-names, identifiers, URIs, schema field names, enum tokens, MIME types,
-or any other value whose semantics depend on the literal string. These
-**MUST NOT** be translated.
+names, identifiers, URIs, schema field names, enum tokens, and MIME
+types, whose semantics depend on the literal string. The normative
+"MUST NOT translate" rule for these lives in
+[Specification](#acceptlanguage-request).
 
 ## Specification
 
@@ -202,27 +203,62 @@ stateless-by-default model of [SEP-2575]. This means:
 
 ### Streamable HTTP transport binding
 
-When using the Streamable HTTP transport, language preference and selection
-are additionally exchanged via the standard HTTP headers, following the
-mirroring pattern established by [SEP-2243].
+When using the Streamable HTTP transport, language preference and
+selection are additionally exchanged via the standard HTTP
+`Accept-Language` and `Content-Language` headers. This SEP applies the
+header-mirroring contract established by [SEP-2243] to those two
+headers, with one concession (header absence is tolerated; see
+[Rationale](#why-mirror-to-http-headers-with-a-strict-byte-match-rule)).
 
 #### Request
 
-| HTTP header       | Source field                                      | Required when                                            |
-| ----------------- | ------------------------------------------------- | -------------------------------------------------------- |
-| `Accept-Language` | `_meta['io.modelcontextprotocol/acceptLanguage']` | The `_meta` field is present on the request being POSTed |
+| HTTP header       | Source field                                      |
+| ----------------- | ------------------------------------------------- |
+| `Accept-Language` | `_meta['io.modelcontextprotocol/acceptLanguage']` |
 
-- When a client includes `io.modelcontextprotocol/acceptLanguage` in
-  `params._meta`, it **SHOULD** also set the HTTP `Accept-Language` header
-  on the corresponding POST to the same value, as a hint for intermediaries.
-- The `_meta` field is **authoritative** and is the only canonical
-  carrier of language preference. Servers **MUST** read language
-  preference from `_meta` and **MUST NOT** treat a bare HTTP
-  `Accept-Language` header (without the `_meta` field) as a language
-  preference for MCP semantics. This keeps a single, transport-agnostic
-  source of truth and avoids ambiguity introduced by intermediaries
-  (CDNs, edge i18n routers, reverse proxies) that strip, normalize, or
-  rewrite the header.
+- **Client.** When `_meta['io.modelcontextprotocol/acceptLanguage']` is
+  present on a request, the client **MUST** also set the HTTP
+  `Accept-Language` header on the corresponding POST to the
+  **byte-identical** value.
+- **Server, header absent.** The server **MUST NOT** reject a request
+  solely because `Accept-Language` is missing; it reads the preference
+  from `_meta`. Servers **MUST NOT** treat a bare `Accept-Language`
+  header (no `_meta` field) as an MCP language preference: `_meta` is
+  the only canonical carrier across transports.
+- **Server, header present and mismatching.** If `Accept-Language` is
+  present and **not byte-identical** to
+  `_meta['io.modelcontextprotocol/acceptLanguage']`, the server
+  **MUST** reject the request with HTTP `400 Bad Request` and JSON-RPC
+  error code `HeaderMismatch` in the MCP-reserved range (`-32000` to
+  `-32099`). Servers **MUST NOT** apply RFC 9110 / RFC 4647
+  normalization for this comparison; it is a literal byte-equality
+  check on the field-value as received.
+- **Provisional code.** This SEP cites `-32005` for `HeaderMismatch`,
+  pending the schema-level reservation work in [SEP-2243], [SEP-2678],
+  and [PR #2642]; this SEP will adopt whatever code that work assigns.
+  See [Rationale](#why--32005-rather-than--32001) for why `-32001` (the
+  value originally proposed by SEP-2243) is unsuitable.
+
+#### Response
+
+| HTTP header        | Source field                                       |
+| ------------------ | -------------------------------------------------- |
+| `Content-Language` | `_meta['io.modelcontextprotocol/contentLanguage']` |
+
+- **Server (JSON responses).** When the response (success or error)
+  carries `_meta['io.modelcontextprotocol/contentLanguage']`, the
+  server **MUST** set the HTTP `Content-Language` response header to
+  the **byte-identical** value.
+- **Server (SSE responses).** Because HTTP response headers are
+  flushed before the response body is known, `Content-Language`
+  **MAY** be omitted on `text/event-stream` responses; per-event
+  `_meta['io.modelcontextprotocol/contentLanguage']` is the sole
+  carrier in that case. Per-event variation within a single response
+  is **NOT** permitted; use a fresh request to switch language
+  mid-stream.
+- **Client.** If a JSON response carries both `Content-Language` and
+  `_meta['io.modelcontextprotocol/contentLanguage']` and they are not
+  byte-identical, the client **MUST** treat the response as malformed.
 
 #### Error responses
 
@@ -247,32 +283,40 @@ carries no `_meta` of its own. Localized error content lives under
 }
 ```
 
-- When a server localizes the `error.message` text, or any human-readable
-  field inside `error.data`, it **MUST** set
+- When a server localizes the `error.message` text or any
+  human-readable field inside `error.data`, it **MUST** set
   `error.data._meta['io.modelcontextprotocol/contentLanguage']` to the
   language of that text.
-- On the Streamable HTTP transport, the `Content-Language` response header
-  **SHOULD** mirror this value when an error response is returned, on the
-  same best-effort basis as for successful responses.
-- This SEP introduces no new error field beyond `_meta`; servers remain free
-  to use any other `error.data` shape they already use for structured error
-  context.
+- The HTTP `Content-Language` response header **MUST** mirror this
+  value byte-identically on JSON error responses, exactly as for
+  successful responses.
+- This SEP introduces no new error field beyond `_meta`; servers
+  remain free to use any other `error.data` shape they already use
+  for structured error context.
 
-#### Response
+#### Normalization footgun and intermediary configuration
 
-| HTTP header        | Source field                                       |
-| ------------------ | -------------------------------------------------- |
-| `Content-Language` | `_meta['io.modelcontextprotocol/contentLanguage']` |
+The byte-equality requirement above means operators **MUST** ensure
+that no intermediary on the request or response path rewrites
+`Accept-Language` or `Content-Language` while leaving the body
+untouched. Concretely:
 
-- When a server emits `io.modelcontextprotocol/contentLanguage` in the
-  response `_meta`, it **SHOULD** also set the HTTP `Content-Language`
-  response header to the same value, as a hint for intermediaries and
-  caches. The `_meta` field is authoritative; the header is a
-  best-effort mirror.
-- Streaming responses (`text/event-stream`) **SHOULD** include
-  `Content-Language` on the HTTP response if any event in the stream carries
-  the `_meta` field; per-event variation within a single response is **NOT**
-  permitted (use a fresh request to switch language mid-stream).
+- [Fastly's `accept.language_lookup()` VCL][fastly-accept-language-lookup]
+  and [Varnish's `vmod_accept`][varnish-vmod-accept] rewrite
+  `Accept-Language` to a single negotiated tag before it reaches the
+  origin. Under this SEP, that rewrite causes every request carrying
+  `_meta[acceptLanguage]` to be rejected with `HeaderMismatch`.
+  Operators using these features for per-language caching **MUST**
+  carry the negotiated tag in a separate, MCP-unrelated header (e.g.
+  `X-Lang`) and leave `Accept-Language` either verbatim or removed.
+- [CloudFront strips `Accept-Language`][cloudfront-accept-language]
+  from forwarded requests by default. This is **acceptable**: the
+  server-side rule above tolerates header absence and reads `_meta`.
+  Operators who want the header to reach the origin must add it to
+  their origin-request policy.
+- Reverse proxies that re-serialize `Accept-Language` (sorting ranges,
+  normalizing whitespace, canonicalizing `q` values) will also trip
+  the rule. They **MUST** preserve the header verbatim or remove it.
 
 ### stdio (and other non-HTTP) transports
 
@@ -408,48 +452,63 @@ The cost is a slightly less obvious format for callers who only want one
 language, but `"en-US"` is itself a valid `Accept-Language` value, so the
 simple case stays simple.
 
-### Why mirror to HTTP headers (without a strict mismatch rule)
+### Why mirror to HTTP headers (with a strict byte-match rule)
 
-The HTTP `Accept-Language` and `Content-Language` headers are useful to:
+Mirroring `_meta[acceptLanguage]` and `_meta[contentLanguage]` into the
+standard HTTP `Accept-Language` and `Content-Language` headers lets
+caches and CDNs (`Vary: Accept-Language`), edge i18n services, and
+observability tools work without parsing the JSON-RPC body.
 
-- **Caches and CDNs**, which already understand `Vary: Accept-Language`.
-- **Edge i18n services** that route requests to language-specific backends.
-- **Observability tools** that segment usage by locale.
+For those benefits to be sound, intermediaries must be able to rely on
+the header agreeing with the payload that the origin executes on; the
+security/correctness argument [SEP-2243] makes for `Mcp-Method` /
+`Mcp-Name` is the same one that applies here, so this SEP extends
+SEP-2243's payload/header agreement rule rather than weakening it.
 
-This SEP therefore says clients SHOULD mirror `_meta[acceptLanguage]` into
-the `Accept-Language` request header, and servers SHOULD mirror
-`_meta[contentLanguage]` into the `Content-Language` response header.
+Two design choices follow from extending that rule to a first-class
+HTTP header rather than an MCP-specific one:
 
-Unlike the headers introduced by [SEP-2243] (e.g. `Mcp-Method`,
-`Mcp-Name`), which nothing on the network path is expected to touch,
-`Accept-Language` and `Content-Language` are first-class HTTP headers
-that intermediaries actively interact with. A few examples:
+1. **Servers tolerate header absence.** [CloudFront's default
+   behaviour][cloudfront-accept-language] strips `Accept-Language`
+   from forwarded requests. Rejecting on absence would force every
+   operator behind such a CDN to reconfigure it before deploying MCP;
+   tolerating absence preserves the routing guarantee for callers who
+   do supply the header, and falls back to `_meta` cleanly otherwise.
+   `_meta` is the canonical transport-agnostic carrier in any case,
+   since it is the only one stdio has.
+2. **The comparison is byte-equality, not semantic.** [RFC 9110][rfc9110]
+   does not define a single canonical serialization for
+   `Accept-Language`: optional whitespace after commas
+   ([§5.6.1.1][rfc9110-5.6.1.1]), case-insensitive language tags
+   ([RFC 5646 §2.1.1][rfc5646-2.1.1]), `q` parameter normalization
+   and trailing-zero weights ([§12.4.2][rfc9110-12.4.2]), and list
+   fields legally split across field lines and recombined
+   ([§5.2-5.3][rfc9110-5.2]) all admit multiple wire forms for the
+   same value. A semantic-equality rule would require every
+   conformant SDK to ship the same parsing and normalization step,
+   which is itself a conformance hazard. Byte-equality is
+   unambiguous and trivial to verify.
 
-- [CloudFront strips `Accept-Language`][cloudfront-accept-language] from
-  forwarded requests by default unless explicitly configured to preserve it.
-- [Fastly's `accept.language_lookup()` VCL][fastly-accept-language-lookup]
-  and [Varnish's `vmod_accept`][varnish-vmod-accept] are the recommended
-  way to get the per-language caching benefit cited above; both rewrite
-  `Accept-Language` to a single normalized tag before the request reaches
-  the origin.
-- Reverse proxies routinely route on `Accept-Language` and may strip,
-  normalize, or re-serialize the header.
+The cost of the byte-match rule is the
+[normalization footgun](#normalization-footgun-and-intermediary-configuration):
+operators using header-rewriting CDN features for per-language caching
+must reconfigure them to leave `Accept-Language` either verbatim or
+absent.
 
-Additionally, [RFC 9110][rfc9110] does not define a single canonical
-serialization for `Accept-Language`: optional whitespace after commas
-([§5.6.1.1][rfc9110-5.6.1.1]), case-insensitive language tags
-([RFC 5646 §2.1.1][rfc5646-2.1.1]), `q` parameter normalization and
-trailing-zero weights ([§12.4.2][rfc9110-12.4.2]), and list fields
-legally split across field lines and recombined ([§5.2-5.3][rfc9110-5.2])
-are all under-specified, so "the header and the body field disagree" is
-not even a well-defined comparison.
+### Why `-32005` rather than `-32001`
 
-Applying [SEP-2243]'s hard-fail mismatch rule to these headers would
-make every request that traverses a conformant edge-i18n setup error
-out with `-32001`, defeating the very benefit we cite for putting the
-value in the header in the first place. Instead, this SEP treats
-`_meta` as the canonical value and the headers as a best-effort hint.
-If they disagree, the server uses `_meta`.
+[SEP-2243] originally proposed `-32001` for `HeaderMismatch`. A survey
+of existing SDK implementations shows that `-32001` is already in
+local use for `REQUEST_TIMEOUT` in the [Python][python-sdk-jsonrpc]
+and [Kotlin][kotlin-sdk-jsonrpc] SDKs (and historically in the
+TypeScript SDK), conflicting with the `HeaderMismatch` semantics used
+by the [Go][go-sdk-shared] and [C#][csharp-sdk-mcperror] SDKs. To
+avoid baking the conflict into a Standards-Track SEP, this SEP cites
+`-32005` instead. The exact number is provisional pending the
+schema-level reservation work in [SEP-2243], [SEP-2678], and
+[PR #2642]; this SEP will adopt whatever code that work assigns,
+and SDKs that already emit a different code for `HeaderMismatch`
+should plan to migrate.
 
 ### Why per-request, not per-session
 
@@ -501,15 +560,19 @@ We will coordinate with SEP-1809's author to align.
 
 This proposal is fully backward compatible.
 
-- The new `_meta` fields are optional in both directions.
-- Servers and clients that do not implement them are unaffected: the field
-  is simply ignored, and the server returns content in its default
-  language.
+- The new `_meta` fields are optional in both directions. Servers and
+  clients that do not implement them are unaffected; the field is
+  ignored and the server returns content in its default language.
 - On HTTP, the mirrored headers (`Accept-Language`, `Content-Language`)
   are already standard HTTP and already permitted by every existing
   framework; their presence does not break any current MCP server.
-- The `_meta` field is authoritative; intermediaries are free to strip
-  or rewrite the headers without affecting correctness.
+- The byte-match rule applies only when `_meta` and the corresponding
+  HTTP header are both present on the same message, so a client that
+  does not include `_meta[acceptLanguage]` is not required to send
+  `Accept-Language`. Existing deployments that intentionally rewrite
+  `Accept-Language` need a one-time configuration change before they
+  can serve requests carrying `_meta[acceptLanguage]`; see
+  [Normalization footgun and intermediary configuration](#normalization-footgun-and-intermediary-configuration).
 
 ## Security Implications
 
@@ -524,12 +587,13 @@ This proposal is fully backward compatible.
 - **Cache poisoning.** HTTP caches must `Vary: Accept-Language` when
   caching localized responses. This is standard HTTP behavior, not new
   here, but server implementers should be reminded.
-- **Header tampering by intermediaries is expected, not an attack.**
-  CDNs and edge i18n services routinely strip, normalize, or rewrite
-  `Accept-Language` and `Content-Language`. This SEP therefore treats
-  the `_meta` field as canonical and the headers as a best-effort hint:
-  there is no header/body equality contract to violate, and no
-  mismatch-based reject path that a malicious intermediary could trip.
+- **Header tampering by intermediaries** that rewrite `Accept-Language`
+  or `Content-Language` causes byte-mismatch rejections under the rule
+  in [Streamable HTTP transport binding](#streamable-http-transport-binding).
+  This is by design (the routing guarantee from [SEP-2243] depends on
+  payload/header agreement), not an attack. Operator configuration to
+  avoid lockout is covered in
+  [Normalization footgun and intermediary configuration](#normalization-footgun-and-intermediary-configuration).
 
 No new attack surface is introduced beyond what `Accept-Language` already
 implies on the open web.
@@ -551,8 +615,12 @@ It delivers:
 2. Streamable HTTP transport mirroring in both directions:
    `_meta[acceptLanguage]` to/from the `Accept-Language` header on
    requests and `_meta[contentLanguage]` to/from `Content-Language`
-   on responses, with `_meta` treated as canonical (no mismatch
-   rejection).
+   on responses, with strict byte-equality enforcement: the client
+   mirrors `_meta` to the request header, the server mirrors `_meta`
+   to the response header on JSON responses, and either side rejects
+   a byte-mismatch (server with HeaderMismatch, client by treating
+   the response as malformed). Header absence is tolerated on both
+   sides; `_meta` is the authoritative carrier.
 3. stdio transport demonstrating that the same `_meta` fields flow
    end-to-end with no transport changes.
 4. An example server (`get_greeting` tool) localized into **en / fr /
@@ -578,20 +646,35 @@ Per [SEP-2484], a conformance scenario is required before this SEP can
 reach Final. The scenario will cover, at minimum:
 
 1. A client sending `io.modelcontextprotocol/acceptLanguage` in
-   `params._meta` and (on HTTP) the mirrored `Accept-Language` header.
+   `params._meta` and (on HTTP) the byte-identical mirrored
+   `Accept-Language` header.
 2. A server returning localized user-facing strings and emitting
    `io.modelcontextprotocol/contentLanguage` in `result._meta` and (on
-   HTTP) the mirrored `Content-Language` response header.
+   HTTP, JSON responses) the byte-identical mirrored `Content-Language`
+   response header.
 3. A server falling back to its default language when no preference
    matches, without returning an error.
 4. A localized error response carrying
    `error.data._meta['io.modelcontextprotocol/contentLanguage']`,
-   with `Content-Language` mirrored on HTTP JSON responses.
+   with `Content-Language` byte-mirrored on HTTP JSON responses.
 5. Per-request language switching on the same connection (notably
    stdio), to demonstrate that no session state is involved.
-6. A request where the HTTP `Accept-Language` header has been stripped
-   or rewritten by an intermediary while `_meta` is preserved: the
-   server **MUST** honor `_meta` and **MUST NOT** reject the request.
+6. **Header absence is tolerated.** A request where the HTTP
+   `Accept-Language` header has been stripped by an intermediary (e.g.
+   CloudFront default behaviour) while `_meta` is preserved: the
+   server **MUST** honor `_meta` and **MUST NOT** reject on this
+   basis. Symmetrically, on the response path, a server **MAY** emit
+   `_meta[contentLanguage]` without a `Content-Language` header on
+   SSE streams (where headers are flushed before the body is known).
+7. **Header byte-mismatch is rejected.** A request where the HTTP
+   `Accept-Language` header is **present** and is **not byte-identical**
+   to `_meta['io.modelcontextprotocol/acceptLanguage']`: the server
+   **MUST** reject with HTTP `400 Bad Request` and the HeaderMismatch
+   JSON-RPC error code (provisional `-32005`, see Specification).
+   Symmetrically, on the response path, a JSON response carrying both
+   `Content-Language` and `_meta[contentLanguage]` whose values are
+   not byte-identical: the client **MUST** treat the response as
+   malformed.
 
 ## Open Questions
 
@@ -641,3 +724,9 @@ reach Final. The scenario will cover, at minimum:
 [rfc9110-5.6.1.1]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.6.1.1
 [rfc9110-12.4.2]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4.2
 [rfc5646-2.1.1]: https://www.rfc-editor.org/rfc/rfc5646.html#section-2.1.1
+[SEP-2678]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2678
+[PR #2642]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2642
+[python-sdk-jsonrpc]: https://github.com/modelcontextprotocol/python-sdk/blob/main/src/mcp/types/jsonrpc.py#L45
+[kotlin-sdk-jsonrpc]: https://github.com/modelcontextprotocol/kotlin-sdk/blob/main/kotlin-sdk-core/src/commonMain/kotlin/io/modelcontextprotocol/kotlin/sdk/types/jsonRpc.kt#L267
+[go-sdk-shared]: https://github.com/modelcontextprotocol/go-sdk/blob/main/mcp/shared.go#L349
+[csharp-sdk-mcperror]: https://github.com/modelcontextprotocol/csharp-sdk/blob/main/src/ModelContextProtocol.Core/McpErrorCode.cs#L26
