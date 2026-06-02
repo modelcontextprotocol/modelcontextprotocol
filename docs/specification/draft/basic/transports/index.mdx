@@ -4,15 +4,15 @@ title: Transports
 
 <div id="enable-section-numbers" />
 
-This page defines the transport-independent model for MCP communication: the
-message flow shared by every transport, how request metadata and
-cancellation map onto a transport, and the requirements for defining new
-transports.
+This page defines what a transport must provide to carry MCP messages, the
+standard transport bindings, and the requirements for defining new ones.
 
 Protocol semantics are identical on every transport. A transport is a
 **binding**: it defines how messages are framed and delivered, how request
 metadata is carried, and how cancellation and termination are signaled. It
-does not define what the messages mean. The binding pages specify the
+does not define what the messages mean: the
+[message patterns](/specification/draft/basic/patterns) are part of the core
+protocol and are the same on every binding. The binding pages specify the
 standard transports:
 
 1. [stdio](/specification/draft/basic/transports/stdio): newline-delimited
@@ -24,57 +24,16 @@ standard transports:
 It is also possible for clients and servers to implement
 [custom transports](#custom-transports).
 
-## Message Flow
+## Messages
 
 MCP uses JSON-RPC to encode messages. JSON-RPC messages **MUST** be UTF-8
 encoded.
 
-Every interaction begins with the client:
-
-- The **client** sends JSON-RPC _requests_ and _notifications_.
-- The **server** answers each request with a JSON-RPC _response_ (a result
-  or error), optionally preceded by _notifications_ scoped to that request
-  (such as
-  [`notifications/progress`](/specification/draft/basic/utilities/progress)
-  or
-  [`notifications/message`](/specification/draft/server/utilities/logging)).
-
-Servers **MUST NOT** initiate JSON-RPC requests, and clients do not send
-JSON-RPC responses.
-
-When a server needs client input (sampling, elicitation, or roots) to
-complete a request, it answers with an
-[`InputRequiredResult`](/specification/draft/basic/transports/mrtr#inputrequiredresult)
-and the client retries the request with the matching `inputResponses`. See
-[Multi Round-Trip Requests](/specification/draft/basic/transports/mrtr).
-
-To receive change notifications (list changes, resource updates), the client
-sends a
-[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
-request; the reply is a long-lived stream of the requested notification
-types. Stream state is scoped to the request: if the underlying channel is
-lost, the client re-issues the request.
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-
-    note over Client,Server: Request / response
-    Client->>Server: request
-    Server-->>Client: notifications/progress (optional)
-    Server-->>Client: response
-
-    note over Client,Server: Server needs client input (MRTR)
-    Client->>Server: request (id: 1)
-    Server-->>Client: InputRequiredResult (inputRequests)
-    Client->>Server: request (id: 2, original params + inputResponses)
-    Server-->>Client: response
-
-    note over Client,Server: Change notifications
-    Client->>Server: subscriptions/listen
-    Server-->>Client: notifications/* (long-lived stream)
-```
+A binding **MUST** deliver client-sent _requests_ and _notifications_ to the
+server, and server-sent _responses_ and _notifications_ to the client. No
+other message direction exists: per the
+[message patterns](/specification/draft/basic/patterns), servers do not
+initiate JSON-RPC requests and clients do not send JSON-RPC responses.
 
 ## Request Metadata
 
@@ -106,10 +65,11 @@ implemented over any communication channel that supports bidirectional
 message exchange.
 
 Implementers who choose to support custom transports **MUST** preserve the
-JSON-RPC message format, the client-initiated [message flow](#message-flow),
-and the per-request metadata model. Custom transports **SHOULD** document
-their connection establishment, message framing, and cancellation patterns
-to aid interoperability.
+JSON-RPC message format, the
+[message patterns](/specification/draft/basic/patterns), and the per-request
+metadata model. Custom transports **SHOULD** document their connection
+establishment, message framing, and cancellation patterns to aid
+interoperability.
 
 Custom transports that run over a reliable bidirectional byte stream (e.g.,
 Unix domain sockets or TCP) **SHOULD** reuse the
