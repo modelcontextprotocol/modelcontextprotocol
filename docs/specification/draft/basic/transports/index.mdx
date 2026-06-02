@@ -24,33 +24,31 @@ It is also possible for clients and servers to implement
 
 ## Message Flow
 
-Every interaction begins with the client. On any transport:
+Every interaction begins with the client:
 
 - The **client** sends JSON-RPC _requests_ and _notifications_.
-- The **server** sends back, for each client request: the JSON-RPC
-  _response_ (a result or error), optionally preceded by _notifications_
-  scoped to that request (such as
+- The **server** answers each request with a JSON-RPC _response_ (a result
+  or error), optionally preceded by _notifications_ scoped to that request
+  (such as
   [`notifications/progress`](/specification/draft/basic/utilities/progress)
   or
   [`notifications/message`](/specification/draft/server/utilities/logging)).
 
-Servers **MUST NOT** initiate JSON-RPC requests on any transport, and
-clients never send JSON-RPC responses. The two flows that historically
-required a server-initiated channel are instead expressed as client-initiated
-requests:
+Servers **MUST NOT** initiate JSON-RPC requests, and clients do not send
+JSON-RPC responses.
 
-- **Server-to-client interactions** (sampling, elicitation, roots): the
-  server replies to the client's request with an
-  [`InputRequiredResult`](/specification/draft/basic/transports/mrtr#inputrequiredresult)
-  and the client retries the request with the matching `inputResponses`. See
-  [Multi Round-Trip Requests](/specification/draft/basic/transports/mrtr).
-- **Change notifications** (list changes, resource updates): the client opts
-  in by sending a
-  [`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
-  request, whose reply is a long-lived stream of the requested notification
-  types. The stream's state is scoped to the request, not to the connection
-  underneath: if the underlying channel is lost, the client re-issues the
-  request.
+When a server needs client input (sampling, elicitation, or roots) to
+complete a request, it answers with an
+[`InputRequiredResult`](/specification/draft/basic/transports/mrtr#inputrequiredresult)
+and the client retries the request with the matching `inputResponses`. See
+[Multi Round-Trip Requests](/specification/draft/basic/transports/mrtr).
+
+To receive change notifications (list changes, resource updates), the client
+sends a
+[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
+request; the reply is a long-lived stream of the requested notification
+types. Stream state is scoped to the request: if the underlying channel is
+lost, the client re-issues the request.
 
 ```mermaid
 sequenceDiagram
