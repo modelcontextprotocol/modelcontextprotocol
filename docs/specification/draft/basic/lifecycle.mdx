@@ -98,59 +98,29 @@ preferred version is not supported.
 
 A server that wishes to support both legacy clients (which expect an
 `initialize` handshake) and modern clients (which use per-request metadata)
-**MAY** implement both behaviors. A client that needs to interoperate with
-both kinds of servers can detect which is present:
+**MAY** implement both behaviors.
 
-- **HTTP.** Try a modern request directly. On `400 Bad Request`, inspect the
-  response body before deciding to fall back: a `400` is also used by modern
-  servers for `UnsupportedProtocolVersionError`,
-  `MissingRequiredClientCapabilityError`, and header-validation failures, so
-  the status alone does not indicate a legacy server.
-  - If the body contains a recognized modern JSON-RPC error such as
-    [`UnsupportedProtocolVersionError`](/specification/draft/schema#unsupportedprotocolversionerror),
-    the server speaks a modern version of MCP — retry using one of its
-    advertised `supported` versions, or correct the request. Do **not** fall
-    back to `initialize`.
-  - If the response body is empty or is not a recognized modern JSON-RPC
-    error, fall back to `initialize` and continue with the legacy version
-    for subsequent requests.
-- **stdio.** Because there is no per-request status code to drive fallback,
-  a client that supports both eras **SHOULD** probe with
-  [`server/discover`](/specification/draft/server/discover) first,
-  setting its preferred modern version in `_meta`. The probe has three
-  possible outcomes:
-  - The server returns a `DiscoverResult`: the server is modern. Select a
-    mutually supported version from `supportedVersions` and continue.
-  - The server returns a recognized modern JSON-RPC error such as
-    `UnsupportedProtocolVersionError`: the server speaks a modern version of
-    MCP without `initialize`. Use one of the versions in its advertised
-    `supported` list. Do **not** fall back to `initialize`.
-  - The server returns any other error, or does not respond within a
-    reasonable timeout: treat the server as legacy and fall back to the
-    `initialize` handshake.
+A client that needs to interoperate with both kinds of servers detects the
+server's era with transport-specific mechanics, specified in the binding
+pages:
 
-  Clients **MUST NOT** key the legacy fallback on one specific error code
-  such as `Method not found` (`-32601`). Legacy protocol revisions never
-  specified how a server responds to an unknown request received before
-  `initialize`, and implementations vary: some return `-32601`, others
-  reject the request as invalid (e.g., `-32602`), and some do not respond at
-  all. Any error that is not a recognized modern error, or the absence of a
-  timely response, indicates a legacy server.
+- [stdio](/specification/draft/basic/transports/stdio#backward-compatibility):
+  probe with `server/discover` and fall back on any error that is not a
+  recognized modern error.
+- [Streamable HTTP](/specification/draft/basic/transports/streamable-http#backward-compatibility):
+  attempt a modern request and inspect the body of a `400 Bad Request`
+  before falling back.
+
+In both cases, a recognized modern JSON-RPC error (such as
+[`UnsupportedProtocolVersionError`](/specification/draft/schema#unsupportedprotocolversionerror))
+identifies a modern server: the client retries with a supported version
+rather than falling back. Anything else identifies a legacy server.
 
 The era determination is a property of the server, not of an individual
 request. Clients **SHOULD** cache the result for the lifetime of the server
 process (stdio) or origin (HTTP), and **MAY** persist it across restarts of
 the same server configuration, re-probing if the cached assumption later
 fails.
-
-A client that only supports modern (per-request-metadata) versions does not
-need to probe, it simply sends its preferred version and handles
-`UnsupportedProtocolVersionError` normally. On stdio, however, probing with
-`server/discover` first is still **RECOMMENDED**: some legacy servers do not
-validate that a request arrives after `initialize` and would process an
-era-ambiguous method (such as `tools/call`) under legacy semantics, silently
-ignoring the request's declared protocol version. Probing converts this
-undefined behavior into a deterministic, reportable failure.
 
 ### Compatibility Matrix
 

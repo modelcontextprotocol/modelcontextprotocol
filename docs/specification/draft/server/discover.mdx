@@ -77,14 +77,9 @@ is useful in two scenarios:
 - **stdio backward-compatibility probe.** On stdio, there is no per-request
   HTTP status code to drive fallback. A client that supports both modern
   (per-request `_meta`) and legacy (`initialize` handshake) servers **SHOULD**
-  send `server/discover` first. A `DiscoverResult` or a recognized modern
-  error (such as
-  [`UnsupportedProtocolVersionError`](/specification/draft/schema#unsupportedprotocolversionerror))
-  identifies a modern server. Any other error, or no response within a
-  reasonable timeout, identifies a legacy server, and the client falls back
-  to the `initialize` handshake. The fallback **MUST NOT** be keyed to one
-  specific error code, because legacy servers respond to unknown
-  pre-`initialize` requests with implementation-defined errors or not at all.
+  send `server/discover` first; see
+  [stdio: Backward Compatibility](/specification/draft/basic/transports/stdio#backward-compatibility)
+  for the fallback rules.
 
 See [Protocol Version Negotiation](/specification/draft/basic/lifecycle#protocol-version-negotiation)
 for the full version-selection flow. For HTTP-specific status codes returned for

@@ -122,24 +122,33 @@ re-established after restart.
 
 A client that supports both modern (per-request-metadata) MCP versions and a
 legacy version that requires an `initialize` handshake **SHOULD** probe with
-[`server/discover`][server-discover] before sending any other request:
+[`server/discover`][server-discover] before sending any other request,
+setting its preferred modern version in `_meta`. The probe has three
+possible outcomes:
 
-- A `DiscoverResult` or a recognized modern error such as
-  `UnsupportedProtocolVersionError` identifies a modern server. Do **not**
-  fall back to `initialize`.
-- Any other error, or no response within a reasonable timeout, identifies a
-  legacy server. Fall back to the legacy `initialize` handshake.
+- The server returns a `DiscoverResult`: the server is modern. Select a
+  mutually supported version from `supportedVersions` and continue.
+- The server returns a recognized modern JSON-RPC error such as
+  [`UnsupportedProtocolVersionError`][unsupported-version]: the server is
+  modern but does not support the requested version. Use one of the versions
+  in its advertised `supported` list. Do **not** fall back to `initialize`.
+- The server returns any other error, or does not respond within a
+  reasonable timeout: the server is legacy. Fall back to the `initialize`
+  handshake.
 
 The fallback **MUST NOT** be keyed to one specific error code: legacy servers
 respond to unknown pre-`initialize` requests with implementation-defined
-errors (commonly `-32601` or `-32602`) or not at all. See
-[Lifecycle: Backward Compatibility][lifecycle-compat] for details and a
-compatibility matrix for implementors.
+errors (commonly `-32601` or `-32602`) or not at all.
 
 A client that only supports modern versions does not need to probe, but
-probing is still **RECOMMENDED** on stdio: it yields a deterministic failure
-against legacy servers, which may otherwise process era-ambiguous methods
-(such as `tools/call`) under legacy semantics.
+probing is still **RECOMMENDED**: some legacy servers do not validate that a
+request arrives after `initialize` and would process an era-ambiguous method
+(such as `tools/call`) under legacy semantics. Probing yields a
+deterministic failure instead.
+
+See [Lifecycle: Backward Compatibility][lifecycle-compat] for the era model
+and a compatibility matrix for implementors.
 
 [server-discover]: /specification/draft/schema#discoverrequest
+[unsupported-version]: /specification/draft/schema#unsupportedprotocolversionerror
 [lifecycle-compat]: /specification/draft/basic/lifecycle#backward-compatibility-with-initialization-based-versions
