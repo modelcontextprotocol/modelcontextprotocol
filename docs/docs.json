@@ -505,6 +505,7 @@
           {
             "group": "Interest Group Charters",
             "pages": [
+              "community/auth/charter",
               "community/tool-annotations/charter"
             ]
           },
