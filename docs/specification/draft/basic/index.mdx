@@ -8,13 +8,14 @@ The Model Context Protocol consists of several key components that work together
 
 - **Base Protocol**: Core JSON-RPC message types
 - **Lifecycle Management**: Protocol version negotiation and per-request capability declaration
+- **Message Patterns**: Messaging patterns supported by the core protocol including request-response, subscription-based notifications, and multi round trip requests(MRTR)..
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
-- **Client Features**: Sampling and root directory lists provided by clients
+- **Client Features**: Elicitation, sampling and root directory lists provided by clients
 - **Utilities**: Cross-cutting concerns like logging and argument completion
 
-All implementations **MUST** support the base protocol and lifecycle management
-components. Other components **MAY** be implemented based on the specific needs of the
+All implementations **MUST** support the base protocol, lifecycle management
+components and messaging patterns. Other components **MAY** be implemented based on the specific needs of the
 application.
 
 These protocol layers establish clear separation of concerns while enabling rich
@@ -29,7 +30,7 @@ these types of messages:
 
 ### Requests
 
-[Requests](/specification/draft/schema#jsonrpcrequest) are sent from the client to the server or vice versa, to initiate an operation.
+[Requests](/specification/draft/schema#jsonrpcrequest) are sent from the client to the server, to initiate an operation.
 
 ```typescript
 {
