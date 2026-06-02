@@ -123,7 +123,7 @@ both kinds of servers can detect which is present:
     mutually supported version from `supportedVersions` and continue.
   - The server returns a recognized modern JSON-RPC error such as
     `UnsupportedProtocolVersionError`: the server speaks a modern version of
-    MCP without `initialize` — use one of the versions in its advertised
+    MCP without `initialize`. Use one of the versions in its advertised
     `supported` list. Do **not** fall back to `initialize`.
   - The server returns any other error, or does not respond within a
     reasonable timeout: treat the server as legacy and fall back to the
@@ -134,8 +134,8 @@ both kinds of servers can detect which is present:
   specified how a server responds to an unknown request received before
   `initialize`, and implementations vary: some return `-32601`, others
   reject the request as invalid (e.g., `-32602`), and some do not respond at
-  all. Any error that is not a recognized modern error — or the absence of a
-  timely response — indicates a legacy server.
+  all. Any error that is not a recognized modern error, or the absence of a
+  timely response, indicates a legacy server.
 
 The era determination is a property of the server, not of an individual
 request. Clients **SHOULD** cache the result for the lifetime of the server
@@ -144,7 +144,7 @@ the same server configuration, re-probing if the cached assumption later
 fails.
 
 A client that only supports modern (per-request-metadata) versions does not
-need to probe — it simply sends its preferred version and handles
+need to probe, it simply sends its preferred version and handles
 `UnsupportedProtocolVersionError` normally. On stdio, however, probing with
 `server/discover` first is still **RECOMMENDED**: some legacy servers do not
 validate that a request arrives after `initialize` and would process an
@@ -163,7 +163,7 @@ refers to an implementation that supports both.
 | Client   | Server   | Outcome                                                                                                                                                                                                                                                                                                                                         |
 | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Modern   | Modern   | Works. `server/discover` is optional; version mismatches surface as `UnsupportedProtocolVersionError` and the client retries with a mutually supported version.                                                                                                                                                                                 |
-| Modern   | Legacy   | Fails — but not always cleanly. The server may reject the request with an implementation-defined error, stay silent, or even process an era-ambiguous method under legacy semantics. On stdio, clients **SHOULD** send `server/discover` first to fail deterministically; the client then surfaces an actionable error to the user.             |
+| Modern   | Legacy   | Fails. The server may reject the request with an implementation-defined error, stay silent, or even process an era-ambiguous method under legacy semantics. On stdio, clients **SHOULD** send `server/discover` first to fail deterministically; the client then surfaces an actionable error to the user.                                      |
 | Dual-era | Modern   | Works. The stdio probe returns a `DiscoverResult` (or `UnsupportedProtocolVersionError`); on HTTP, the first modern request succeeds or returns a modern error. The client stays modern.                                                                                                                                                        |
 | Dual-era | Legacy   | Works. stdio: the probe returns a non-modern error or times out, and the client falls back to `initialize`. HTTP: the modern request returns a `4xx` without a recognized modern error body, and the client falls back to `initialize` (and possibly further to the deprecated HTTP+SSE transport).                                             |
 | Legacy   | Modern   | Fails. `initialize` is an unknown method: the server returns `Method not found` (`-32601`); on HTTP this is a `404` with the JSON-RPC error in the body. Legacy clients have no fall-forward mechanism. Modern servers **SHOULD** include an error message naming the protocol versions they support, since legacy clients surface it to users. |
