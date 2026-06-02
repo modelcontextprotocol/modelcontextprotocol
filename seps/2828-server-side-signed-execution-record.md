@@ -224,23 +224,37 @@ already shipping as `vaara.attestation.receipt.ExecutionReceipt`.
 
 **`outcomeDerived`** carries what happened:
 
-| Field              | Type   | Required | Description                                                                                                                                                                                                                                                                                 |
-| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`           | string | yes      | One of `executed`, `refused`, `errored`.                                                                                                                                                                                                                                                    |
-| `completedAt`      | string | yes      | ISO 8601 UTC completion (or refusal) time.                                                                                                                                                                                                                                                  |
-| `resultCommitment` | object | no       | An `ArgsRef` or `ArgsProjection` over the result (executed) or error object (errored). Absent for `refused`, which has no result. RECOMMENDED to use the commitment-only hash-only-identity projection so result payloads, which may contain personal data, are not copied into the record. |
+| Field              | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`           | string | yes      | One of `executed`, `refused`, `errored`.                                                                                                                                                                                                                                                                                                         |
+| `completedAt`      | string | yes      | ISO 8601 UTC completion (or refusal) time.                                                                                                                                                                                                                                                                                                       |
+| `resultCommitment` | object | no       | An `ArgsRef` or `ArgsProjection` over the result (executed) or error object (errored). Absent for `refused`, which has no result. RECOMMENDED to use the commitment-only hash-only-identity projection so result payloads, which may contain personal data, are not copied into the record.                                                      |
+| `decisionDigest`   | string | yes\*    | `sha256:<hex>` over the JCS-canonical full decision-record wire bytes (signature included) the outcome was produced under. This is the Check B (outcome-to-decision) binding. \*Optional on the wire for backward parsing of records emitted before this field, but a conforming emitter MUST set it and pairing fails without it (see Pairing). |
 
 ### Pairing
 
-A decision record and an outcome record describe the same governed call when
-both carry the same `backLink` (`attestationDigest` and `attestationNonce`
-equal). A verifier that has both, plus the SEP-2787 attestation, can confirm the
-full chain: the attestation pins the call; the decision record pins the policy
-verdict and risk basis for that call; the outcome record pins what the call did.
-This is instance-binding, not only content-binding: two byte-identical calls
-produce two attestations with distinct nonces and therefore distinct
-`attestationDigest` values, so a decision or outcome record cannot be replayed
-against a different instance of the same call.
+A decision record and an outcome record pair when **both** of the following
+hold:
+
+- **Check A (instance anchor).** Both records carry the same `backLink`
+  (`attestationDigest` and `attestationNonce` equal). This is instance-binding,
+  not only content-binding: two byte-identical calls produce two attestations
+  with distinct nonces and therefore distinct `attestationDigest` values, so a
+  record cannot be replayed against a different instance of the same call. In the
+  no-attestation fallback, the shared `backLink` is over the request envelope
+  instead, and Check A anchors on that.
+- **Check B (outcome-to-decision digest, the normative pairing).** The outcome
+  record's `outcomeDerived.decisionDigest` equals `sha256:<hex>` over the JCS
+  canonical full wire bytes of _this_ decision record. Check A alone admits a
+  different decision taken under the same attestation instance (an `escalate` and
+  the human verdict that supersedes it both share the attestation); Check B pins
+  which decision's content the outcome answers. An outcome record without
+  `decisionDigest` does not pair: content binding is mandatory, not best-effort.
+
+A verifier that has both records, plus the SEP-2787 attestation, can then confirm
+the full chain: the attestation pins the call; the decision record pins the
+policy verdict and risk basis; the outcome record pins what the call did and the
+decision it ran under.
 
 For correlation with client-asserted input context (SEP-2817), a server MAY
 include the SEP-2817 `turnId` as an additional, clearly client-asserted field
@@ -251,8 +265,13 @@ this `turnId`, not that the server vouches for it.
 A superseding decision (for example, a human resolving an `escalate`) is recorded
 as a new decision record with the same `backLink` and a later `decidedAt`. The
 record with the latest `decidedAt` for a given `backLink` is the effective
-decision; earlier ones are retained as history. Verifiers MUST NOT treat
-multiple decision records for one `backLink` as a conflict.
+decision; earlier ones are retained as history. When two records for one
+`backLink` carry the **same** `decidedAt`, the tie MUST break deterministically:
+the effective record is the one whose `issuerAsserted.nonce` is lexicographically
+lowest. This gives every verifier the same winner with no clock authority.
+Verifiers MUST NOT treat multiple decision records for one `backLink` as a
+conflict. The outcome record's `decisionDigest` (Check B) identifies which
+decision in this set the call actually ran under.
 
 ### Transport
 
@@ -575,15 +594,32 @@ The Vaara conformance vectors for the SEP-2787 canonicalization and signature
 rejection, and the detached-signature scheme that both records in this SEP reuse.
 A standard-library-only checker (no Vaara import; `cryptography` for the
 asymmetric case) verifies a signed export offline, mirroring the
-`scripts/verify_vaara_trail.py` approach. For Standards Track finalization, this
-SEP will add:
+`scripts/verify_vaara_trail.py` approach.
+
+The decision-and-outcome pairing has its own published vector suite
+(`tests/vectors/decision_pairing_v0/` in the Vaara repository), driven by a
+standard-library-only walker (no Vaara import) that asserts an expected verdict
+per case. The suite exercises the full pairing algorithm above:
+
+- a valid decision-plus-outcome pair with its SEP-2787 attestation (`executed`);
+- two Check A substitution negatives that MUST fail: a substituted attestation
+  back-link, and a mismatched pairing nonce;
+- a Check B negative: a substituted decision under a shared attestation, where
+  Check A passes but the outcome's `decisionDigest` commits to a different
+  decision than the one presented;
+- the no-attestation fallback, where the shared `backLink` is over the request
+  envelope, with a replayed-receipt rejection;
+- a decision-only `escalate` with no outcome record yet emitted;
+- a supersession tie: two decision records with the same `backLink` and equal
+  `decidedAt`, resolved to the lexicographically lowest `issuerAsserted.nonce`.
+
+Because each case carries its expected verdict and the walker takes no Vaara
+dependency, an independent emitter or consumer can run the same suite against its
+own implementation. For Standards Track finalization, this SEP will additionally
+add:
 
 - JCS canonical vectors for the `decisionDerived` block and the
   `outcomeDerived.status` enum, in the same vector format as #2789.
-- A paired decision-plus-outcome fixture with its SEP-2787 attestation, exercising
-  the full verification algorithm above, including a replay-rejection case
-  (mismatched `backLink`) and a superseding-decision case (two decision records,
-  same `backLink`, distinct `decidedAt`).
 - A `sep-XXXX.yaml` traceability file mapping each MUST / MUST NOT and
   SHOULD / SHOULD NOT in the Specification to a conformance check ID, as required
   for Standards Track SEPs reaching Final.
