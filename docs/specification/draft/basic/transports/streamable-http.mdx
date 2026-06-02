@@ -78,9 +78,7 @@ request to the MCP endpoint.
 3. The client **MUST** include the [request metadata headers](#request-metadata)
    on each POST request.
 4. The body of the HTTP POST **MUST** be a single JSON-RPC _request_ or
-   _notification_. Clients never send JSON-RPC _responses_, because servers
-   do not initiate requests: server-to-client interactions are embedded in
-   results per [MRTR][mrtr] (see [Receiving Messages](#receiving-messages)).
+   _notification_. The client **MUST NOT** send JSON-RPC _responses_.
 5. If the body is a JSON-RPC _notification_:
    - If the server accepts it, the server **MUST** return HTTP status code
      `202 Accepted` with no body.

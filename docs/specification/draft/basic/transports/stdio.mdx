@@ -33,11 +33,8 @@ by closing the stream, process restart) need channel-specific equivalents.
 ## Sending Messages
 
 The client sends messages by writing JSON-RPC _requests_ and _notifications_
-to the server's `stdin`, one message per line. The client never writes
-JSON-RPC _responses_, because servers do not initiate requests on this (or
-any) transport: when a server needs client input, it replies with an
-[`InputRequiredResult`][mrtr-input-required] and the client retries the
-original request; see [Multi Round-Trip Requests][mrtr].
+to the server's `stdin`, one message per line. The client **MUST NOT** write
+JSON-RPC _responses_.
 
 ## Receiving Messages
 
@@ -46,7 +43,9 @@ multiplexed onto a single shared channel: responses to client requests,
 in-flight notifications (`notifications/progress`,
 `notifications/message`), and deliveries on a
 [`subscriptions/listen`][subscriptions-listen] stream. The server **MUST
-NOT** write JSON-RPC _requests_ to `stdout`.
+NOT** write JSON-RPC _requests_ to `stdout`. Server-to-client interactions
+are carried in [`InputRequiredResult`][mrtr-input-required] replies; see
+[Multi Round-Trip Requests][mrtr].
 
 To distinguish notifications belonging to different concurrent subscriptions,
 clients **MUST** correlate notifications using the
