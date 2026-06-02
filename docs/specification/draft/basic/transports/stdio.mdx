@@ -20,6 +20,16 @@ The two ends communicate over the subprocess's standard streams:
 - The client **MUST NOT** write anything to the server's `stdin` that is not a
   valid MCP message.
 
+Standard streams are the canonical channel, but nothing in this binding
+depends on them except the process lifecycle. The wire format — one
+newline-delimited JSON-RPC message per line over a reliable bidirectional
+byte stream — works unchanged over Unix domain sockets, TCP connections, or
+any similar channel.
+[Custom transports](/specification/draft/basic/transports#custom-transports)
+built on such streams **SHOULD** reuse this framing and the message rules on
+this page; only the subprocess-specific aspects (launch, `stderr`, shutdown
+by closing the stream, process restart) need channel-specific equivalents.
+
 ## Sending Messages
 
 The client sends messages by writing JSON-RPC _requests_ and _notifications_
