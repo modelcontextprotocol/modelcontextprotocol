@@ -8,16 +8,17 @@ The Model Context Protocol consists of several key components that work together
 
 - **Base Protocol**: Core JSON-RPC message types
 - **Lifecycle Management**: Protocol version negotiation and per-request capability declaration
+- **Transports**: Standard mechanisms for client-server communication (stdio and Streamable HTTP)
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
-- **Server Features**: Resources, prompts, and tools exposed by servers
-- **Client Features**: Sampling and root directory lists provided by clients
-- **Utilities**: Cross-cutting concerns like logging and argument completion
+- **Server Features**: Prompts, resources, and tools exposed by servers
+- **Client Features**: User input elicitation provided by clients
+- **Utilities**: Cross-cutting concerns like cancellation, progress tracking, and argument completion
 
-All implementations **MUST** support the base protocol and lifecycle management
-components. Other components **MAY** be implemented based on the specific needs of the
+All implementations must support the base protocol, lifecycle management, and at least
+one transport. Other components may be implemented based on the specific needs of the
 application.
 
-These protocol layers establish clear separation of concerns while enabling rich
+These components establish clear separation of concerns while enabling rich
 interactions between clients and servers. The modular design allows implementations to
 support exactly the features they need.
 
@@ -78,7 +79,9 @@ allowing servers to return different structures based on the outcome of the requ
 can use to determine how to parse and handle the `result` object.
 
 - A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
-- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
+- A `resultType` of `"input_required"` indicates more information is needed to process the request. The result contains an
+  [`InputRequiredResult`](/specification/draft/schema#inputrequiredresult) describing the requested input; see
+  [Multi Round-Trip Requests (MRTR)](/specification/draft/basic/utilities/mrtr) for how the client gathers it and retries the request.
 - Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
 - A `resultType` of any value unrecognized by the client **MUST** be considered invalid.
 - For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
