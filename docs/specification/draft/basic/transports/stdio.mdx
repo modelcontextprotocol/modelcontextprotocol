@@ -38,20 +38,24 @@ JSON-RPC _responses_.
 
 ## Receiving Messages
 
-All server-to-client messages arrive on `stdout`, one message per line,
-multiplexed onto a single shared channel: responses to client requests,
-in-flight notifications (`notifications/progress`,
-`notifications/message`), and deliveries on a
-[`subscriptions/listen`][subscriptions-listen] stream. The server **MUST
-NOT** write JSON-RPC _requests_ to `stdout`. Server-to-client interactions
-are carried in [`InputRequiredResult`][mrtr-input-required] replies; see
-[Multi Round-Trip Requests][mrtr].
+The client reads server messages from `stdout`, one message per line. All
+messages share this single channel; there are no per-request streams.
 
-To distinguish notifications belonging to different concurrent subscriptions,
-clients **MUST** correlate notifications using the
-`io.modelcontextprotocol/subscriptionId` field carried in `_meta`. See the
-schema for [`SubscriptionsListenRequest`][subscriptions-listen-request]
-for details.
+The server writes three kinds of messages:
+
+1. _Responses_ to client requests, correlated by JSON-RPC `id`.
+2. _Notifications_ that relate to an in-flight request, such as
+   `notifications/progress` and `notifications/message`.
+3. _Notifications_ delivered for an active
+   [`subscriptions/listen`][subscriptions-listen] request. Clients **MUST**
+   correlate these using the `io.modelcontextprotocol/subscriptionId` field
+   in `_meta`; see
+   [`SubscriptionsListenRequest`][subscriptions-listen-request].
+
+The server **MUST NOT** write JSON-RPC _requests_ to `stdout`.
+Server-to-client interactions are carried in
+[`InputRequiredResult`][mrtr-input-required] replies; see
+[Multi Round-Trip Requests][mrtr].
 
 [mrtr]: /specification/draft/basic/transports/mrtr
 [mrtr-input-required]: /specification/draft/basic/transports/mrtr#inputrequiredresult
