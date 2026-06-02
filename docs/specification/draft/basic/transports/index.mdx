@@ -76,10 +76,10 @@ sequenceDiagram
 All protocol metadata travels in the message body: every request carries its
 protocol version, client identity, and client capabilities in
 [`_meta.io.modelcontextprotocol/*`](/specification/draft/basic/index#meta)
-fields. No transport requires connection state to interpret a request.
+fields.
 
 A binding **MAY** additionally mirror selected body fields into envelope
-metadata — the Streamable HTTP transport mirrors them into
+metadata. The Streamable HTTP transport mirrors them into
 [HTTP headers](/specification/draft/basic/transports/streamable-http#request-metadata)
 so that intermediaries can route and inspect requests without parsing the
 body. The body remains the source of truth; bindings that mirror metadata
