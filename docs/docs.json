@@ -322,15 +322,22 @@
                 "pages": [
                   "specification/draft/basic/index",
                   "specification/draft/basic/lifecycle",
-                  "specification/draft/basic/transports",
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http",
+                      "specification/draft/basic/transports/mrtr"
+                    ]
+                  },
                   "specification/draft/basic/authorization",
                   {
                     "group": "Utilities",
                     "pages": [
                       "specification/draft/basic/utilities/cancellation",
                       "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/subscriptions",
-                      "specification/draft/basic/utilities/mrtr"
+                      "specification/draft/basic/utilities/subscriptions"
                     ]
                   }
                 ]
@@ -537,6 +544,10 @@
     {
       "source": "/clients",
       "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/mrtr",
+      "destination": "/specification/draft/basic/transports/mrtr"
     },
     {
       "source": "/specification/versioning",
