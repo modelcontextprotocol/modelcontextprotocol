@@ -9,13 +9,14 @@ encoded.
 
 Protocol semantics are identical on every transport. A transport is a
 **binding**: it defines how messages are framed and delivered, how request
-metadata is carried, and how cancellation and termination are signaled —
-never what the messages mean. This page describes the transport-independent
-model; the binding pages specify the details for each standard transport:
+metadata is carried, and how cancellation and termination are signaled. It
+does not define what the messages mean. This page describes the
+transport-independent model; the binding pages specify the details for each
+standard transport:
 
-1. [stdio](/specification/draft/basic/transports/stdio) — newline-delimited
+1. [stdio](/specification/draft/basic/transports/stdio): newline-delimited
    messages over the standard streams of a client-launched subprocess.
-2. [Streamable HTTP](/specification/draft/basic/transports/streamable-http) —
+2. [Streamable HTTP](/specification/draft/basic/transports/streamable-http):
    each message is an HTTP POST to a single MCP endpoint; replies arrive as
    a JSON object or a request-scoped SSE stream.
 
@@ -90,7 +91,7 @@ define how mismatches are rejected.
 Each binding defines how a client abandons an in-flight request: on stdio
 the client sends a `notifications/cancelled` notification; on Streamable
 HTTP it closes the request's response stream. The protocol-level rules are
-the same everywhere — see
+the same everywhere; see
 [Cancellation](/specification/draft/basic/utilities/cancellation).
 
 ## Backward Compatibility
@@ -119,6 +120,6 @@ to aid interoperability.
 Custom transports that run over a reliable bidirectional byte stream (e.g.,
 Unix domain sockets or TCP) **SHOULD** reuse the
 [stdio framing](/specification/draft/basic/transports/stdio) rather than
-defining a new one — the stdio binding is just newline-delimited JSON-RPC
+defining a new one: the stdio binding is just newline-delimited JSON-RPC
 over a byte stream, and only its process-lifecycle rules are specific to
 standard streams.

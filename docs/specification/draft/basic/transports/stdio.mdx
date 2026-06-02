@@ -21,9 +21,9 @@ The two ends communicate over the subprocess's standard streams:
   valid MCP message.
 
 Standard streams are the canonical channel, but nothing in this binding
-depends on them except the process lifecycle. The wire format — one
+depends on them except the process lifecycle. The wire format (one
 newline-delimited JSON-RPC message per line over a reliable bidirectional
-byte stream — works unchanged over Unix domain sockets, TCP connections, or
+byte stream) works unchanged over Unix domain sockets, TCP connections, or
 any similar channel.
 [Custom transports](/specification/draft/basic/transports#custom-transports)
 built on such streams **SHOULD** reuse this framing and the message rules on
@@ -37,16 +37,16 @@ to the server's `stdin`, one message per line. The client never writes
 JSON-RPC _responses_, because servers do not initiate requests on this (or
 any) transport: when a server needs client input, it replies with an
 [`InputRequiredResult`][mrtr-input-required] and the client retries the
-original request — see [Multi Round-Trip Requests][mrtr].
+original request; see [Multi Round-Trip Requests][mrtr].
 
 ## Receiving Messages
 
-All server-to-client messages — responses to client requests, in-flight
-notifications (`notifications/progress`, `notifications/message`), and
-deliveries on a [`subscriptions/listen`][subscriptions-listen]
-stream — arrive on `stdout`, one message per line, multiplexed onto a single
-shared channel. The server **MUST NOT** write JSON-RPC _requests_ to
-`stdout`.
+All server-to-client messages arrive on `stdout`, one message per line,
+multiplexed onto a single shared channel: responses to client requests,
+in-flight notifications (`notifications/progress`,
+`notifications/message`), and deliveries on a
+[`subscriptions/listen`][subscriptions-listen] stream. The server **MUST
+NOT** write JSON-RPC _requests_ to `stdout`.
 
 To distinguish notifications belonging to different concurrent subscriptions,
 clients **MUST** correlate notifications using the
@@ -122,10 +122,10 @@ legacy version that requires an `initialize` handshake **SHOULD** probe with
 [`server/discover`][server-discover] before sending any other request:
 
 - A `DiscoverResult` or a recognized modern error such as
-  `UnsupportedProtocolVersionError` identifies a modern server — do **not**
+  `UnsupportedProtocolVersionError` identifies a modern server. Do **not**
   fall back to `initialize`.
 - Any other error, or no response within a reasonable timeout, identifies a
-  legacy server — fall back to the legacy `initialize` handshake.
+  legacy server. Fall back to the legacy `initialize` handshake.
 
 The fallback **MUST NOT** be keyed to one specific error code: legacy servers
 respond to unknown pre-`initialize` requests with implementation-defined
