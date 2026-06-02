@@ -174,8 +174,8 @@ A dual-era **server** selects its behavior from how the client opens:
 
 - A request carrying modern per-request `_meta` is served statelessly
   according to this revision.
-- An `initialize` request selects legacy semantics — scoped to the stdio
-  process (stdio) or the session (HTTP) — as specified by the negotiated
+- An `initialize` request selects legacy semantics, scoped to the stdio
+  process (stdio) or the session (HTTP), as specified by the negotiated
   legacy protocol version.
 
 A dual-era server **MAY** serve both eras concurrently on the same endpoint
