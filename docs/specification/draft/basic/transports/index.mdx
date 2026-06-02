@@ -4,15 +4,16 @@ title: Transports
 
 <div id="enable-section-numbers" />
 
-MCP uses JSON-RPC to encode messages. JSON-RPC messages **MUST** be UTF-8
-encoded.
+This page defines the transport-independent model for MCP communication: the
+message flow shared by every transport, how request metadata and
+cancellation map onto a transport, and the requirements for defining new
+transports.
 
 Protocol semantics are identical on every transport. A transport is a
 **binding**: it defines how messages are framed and delivered, how request
 metadata is carried, and how cancellation and termination are signaled. It
-does not define what the messages mean. This page describes the
-transport-independent model; the binding pages specify the details for each
-standard transport:
+does not define what the messages mean. The binding pages specify the
+standard transports:
 
 1. [stdio](/specification/draft/basic/transports/stdio): newline-delimited
    messages over the standard streams of a client-launched subprocess.
@@ -21,9 +22,12 @@ standard transport:
    a JSON object or a request-scoped SSE stream.
 
 It is also possible for clients and servers to implement
-[custom transports](#custom-transports) in a pluggable fashion.
+[custom transports](#custom-transports).
 
 ## Message Flow
+
+MCP uses JSON-RPC to encode messages. JSON-RPC messages **MUST** be UTF-8
+encoded.
 
 Every interaction begins with the client:
 
@@ -94,16 +98,6 @@ HTTP it closes the request's response stream. The protocol-level rules are
 the same everywhere; see
 [Cancellation](/specification/draft/basic/utilities/cancellation).
 
-## Backward Compatibility
-
-Earlier protocol revisions established a connection-scoped session with an
-`initialize` handshake and allowed servers to initiate JSON-RPC requests.
-Clients and servers that interoperate with those revisions detect the
-counterpart's era and fall back as described in
-[Lifecycle: Backward Compatibility](/specification/draft/basic/lifecycle#backward-compatibility-with-initialization-based-versions),
-which includes a compatibility matrix for implementors. Each binding page
-describes its transport-specific detection mechanics.
-
 ## Custom Transports
 
 Clients and servers **MAY** implement additional custom transport mechanisms
@@ -123,3 +117,13 @@ Unix domain sockets or TCP) **SHOULD** reuse the
 defining a new one: the stdio binding is just newline-delimited JSON-RPC
 over a byte stream, and only its process-lifecycle rules are specific to
 standard streams.
+
+## Backward Compatibility
+
+Earlier protocol revisions established a connection-scoped session with an
+`initialize` handshake and allowed servers to initiate JSON-RPC requests.
+Clients and servers that interoperate with those revisions detect the
+counterpart's era and fall back as described in
+[Lifecycle: Backward Compatibility](/specification/draft/basic/lifecycle#backward-compatibility-with-initialization-based-versions),
+which includes a compatibility matrix for implementors. Each binding page
+describes its transport-specific detection mechanics.
