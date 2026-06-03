@@ -9,7 +9,7 @@
 
 ## Abstract
 
-This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for the Model Context Protocol. The envelope complements transport-level authorization challenges (HTTP `WWW-Authenticate` with Protected Resource Metadata), carrying failure classification, a retry correlation handle, and an extensible set of structured remediation hints for cases the transport cannot easily express. This SEP defines two initial remediation hint types and illustrates their use through two scenarios: URL-based approval composed with [MCP URL-mode elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation), and credential replacement using scopes and [OAuth Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Further remediation hint types can be defined in follow-on SEPs without changes to the envelope. This SEP is fully backward compatible. Existing OAuth clients and libraries do not need to change as the envelope is additive.
+This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for the Model Context Protocol. The envelope complements transport-level authorization challenges (HTTP `WWW-Authenticate` with Protected Resource Metadata), carrying failure classification, a retry correlation handle, and an extensible set of structured remediation hints for cases the transport cannot easily express. This SEP defines two initial remediation hint types and illustrates their use through two scenarios: URL-based approval composed with [MCP URL-mode elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation), and new credential issuance using scopes and [OAuth Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Further remediation hint types can be defined in follow-on SEPs without changes to the envelope. This SEP is fully backward compatible. Existing OAuth clients and libraries do not need to change as the envelope is additive.
 
 ## Motivation
 
@@ -136,9 +136,9 @@ After the user completes the approval, the client retries the original request, 
 }
 ```
 
-### Use Case 2 — Credential replacement with broader authorization
+### Use Case 2 — New credential issuance with broader authorization
 
-This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. The replacement may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that yields a new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
+This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. This new credential issuance may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that yields a new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
 
 The envelope and the transport challenge are complementary signals:
 
