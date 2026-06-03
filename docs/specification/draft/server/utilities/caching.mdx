@@ -23,7 +23,7 @@ Servers MUST include caching hints on results returned by the following operatio
 
 Cacheable Results in MCP use two fields to provide caching hints to clients:
 
-- The <b>Time-to-live (TTL) Field</b>,`ttlMs`, indicates how long the client MAY consider the result fresh.
+- The <b>Time-to-live (TTL) Field</b>,`ttlMs`, is an integer value in milliseconds specifying how long the client MAY consider the result fresh.
 - The <b>Cache Scope Field</b>,`cacheScope`, indicates the intended scope of the cached response, either `"public"` or `"private"`.
 
 ### Time-to-Live (TTL) Field
