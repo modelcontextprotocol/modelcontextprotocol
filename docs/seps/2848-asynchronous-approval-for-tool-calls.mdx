@@ -1,0 +1,660 @@
+---
+title: "SEP-2848: Asynchronous Approval for Tool Calls"
+sidebarTitle: "SEP-2848: Asynchronous Approval for Tool Calls"
+description: "Asynchronous Approval for Tool Calls"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Extensions Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2848                                                                            |
+| **Title**     | Asynchronous Approval for Tool Calls                                            |
+| **Status**    | draft                                                                           |
+| **Type**      | Extensions Track                                                                |
+| **Created**   | 2026-06-02                                                                      |
+| **Author(s)** | Karl McGuinness                                                                 |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#2848](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2848) |
+
+---
+
+## Abstract
+
+This SEP defines an extension that lets an MCP server gate a tool call on
+out-of-session approval without holding the session open. When a server's
+authorization decision is a denial that is _requestable_ (something can still
+approve it), the server returns a task handle ([SEP-2663](./2663-tasks-extension.md),
+the `io.modelcontextprotocol/tasks` extension) in place of the tool result,
+instead of failing the call. What approves is up to the deployment: a human
+reviewer, a supervising agent, an automated policy or risk engine, an external
+ITSM or IGA system, or a combination. The task stays `working` while that workflow
+runs over seconds, minutes, hours, or days; on approval the server re-checks
+policy and executes the tool, and the result becomes available through `tasks/get`.
+The approval protocol runs entirely on the server's backend (referencing the
+OpenID AuthZEN Access Request and Approval Profile) and never appears on the MCP
+wire. The client sees only a server-generated task ID it can poll and cancel, and
+never handles an authorization artifact. The bridge is binding AuthZEN's portable
+task handle to a durable MCP task ID, so a poll resumes after the server or the
+calling agent restarts; resumption by a _different_ principal is constrained by
+MCP's task-access model and is treated under Limitations. The feature is an
+experimental extension per [SEP-2133](./2133-extensions.md), layered on the tasks
+extension.
+
+## Motivation
+
+A requestable denial is resolved by whatever the deployment's approval workflow
+designates. That resolver is often _not_ a human: it may be a supervising agent
+applying a budget, an automated policy or risk engine that re-checks once
+conditions change, an external ticketing or identity-governance system, or a human
+reviewer, or several of these in sequence. The constant is not who decides; it is
+that the decision happens **out of band and asynchronously**, and may outlive the
+request, the connection, and even the process that made the call.
+
+MCP can represent asynchronous execution (the tasks extension, SEP-2663) and
+connection-level authorization (OAuth 2.1), and per-tool-call policy can be
+externalized (for example, the OpenID AuthZEN profile). What is missing is the
+binding that says a tool call is _denied now but approvable later, by something
+else_, and that ties the pending decision to a durable task the client can come
+back to.
+
+Tasks gives the durable, pollable primitive, but says nothing about _why_ a task
+is pending or how a policy decision resolves it. The in-session input paths
+(multi round-trip input requests, and historically elicitation and sampling) all
+target the principal driving the current session and do not survive a disconnect;
+they cannot model a decision made by a different party, on a different timeline,
+through a different channel. Without this extension, a server facing a requestable
+denial either fails the call and loses the workflow, or blocks until something
+times out.
+
+The OpenID AuthZEN Access Request and Approval Profile already defines the approval
+lifecycle (a requestable denial, an access request, a portable task handle, and
+re-evaluation that keeps the policy decision point authoritative at enforcement
+time), and its task handle is designed to survive restart (cross-principal handoff
+is treated under Limitations).
+This SEP binds that handle to an MCP task so the approval workflow becomes a
+first-class, pollable MCP object, regardless of what resolves it, and defines the
+narrow, MCP-observable server behavior that connects the two.
+
+### Use cases
+
+The resolver differs by deployment; the MCP-facing shape is identical in all of
+them:
+
+- **Human reviewer.** An agent calls `wire_transfer` above a threshold; a treasury
+  manager approves out of band, possibly the next day. The agent hands off and a
+  later poll returns the executed result.
+- **Supervising agent or orchestrator.** A worker agent requests a scope; a
+  supervisor agent (or a planner holding the budget) approves programmatically in
+  seconds, with no human involved.
+- **Automated policy or risk engine.** The first call is denied because a risk
+  signal is elevated or a grant has not provisioned yet; an automated re-check
+  approves once the condition clears, no human action.
+- **External ITSM or IGA system.** The access request becomes a ServiceNow change
+  or an identity-governance request; its existing approval rules (which may be
+  fully automated) decide, and MCP reflects the outcome.
+- **Four-eyes or break-glass.** A second, different principal (human or a
+  designated approver service) must authorize a sensitive operation, audited end to
+  end by the approval service.
+
+For the no-human resolvers (supervising agent, policy or risk engine, external
+system), there is no present session: submission input is filled by the agent itself
+against the request schema, and the approval decision is made fully out of band (see
+Collecting submission input).
+
+## Specification
+
+### Relationship to existing specifications
+
+This SEP composes existing pieces and adds the binding between them:
+
+- **SEP-2663 (Tasks extension, `io.modelcontextprotocol/tasks`)** supplies the
+  durable, pollable primitive: server-directed `CreateTaskResult`
+  (`resultType: "task"`), the methods `tasks/get`, `tasks/update`, and
+  `tasks/cancel`, `notifications/tasks`, and the statuses `working`,
+  `input_required`, `completed`, `failed`, `cancelled`.
+- **SEP-2322 (Multi Round-Trip Requests)** supplies the in-task input channel
+  (`inputRequests` / `inputResponses`) used for submission-time input.
+- **SEP-2133 (Extensions)** supplies the extension and capability framing.
+- **OpenID AuthZEN Access Request and Approval Profile** supplies the approval
+  lifecycle (requestable denial context, access request submission, the portable
+  task handle, and re-evaluation via `context.approval`). A companion AuthZEN MCP
+  profile (COAZ) maps a `tools/call` to an AuthZEN Access Evaluation; COAZ is itself a
+  draft, so the `tools/call`-to-evaluation mapping is not yet stable.
+
+The MCP server is the Policy Enforcement Point (PEP) and is the _only_ party that
+speaks the approval protocol. The client speaks ordinary MCP. AuthZEN is the
+reference approval backend; the MCP-observable behavior in this SEP does not depend
+on AuthZEN internals and could be satisfied by another backend that provides an
+equivalent durable handle and re-evaluation guarantee.
+
+The composition order is:
+
+1. the server evaluates every `tools/call` as an AuthZEN Access Evaluation (the COAZ
+   mapping);
+2. a requestable denial enters the Access Request lifecycle: submit the access
+   request, bind the approval handle to the MCP `taskId`, and return a `working` task;
+3. on resolution the server re-evaluates with `context.approval`;
+4. that decision is final: an approval is an input to a new decision, not a standing
+   grant.
+
+### Server-side flow (informative)
+
+The exchange below is non-normative and shows how the approval protocol sits behind
+a single MCP task. Nothing in it is part of the MCP wire contract: the only MCP
+messages are between the Client and the Server.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as MCP Server (PEP)
+    participant P as Policy Decision Point
+    participant A as Approval Service
+
+    C->>S: tools/call
+    S->>P: Access Evaluation
+    P-->>S: deny + context.access_request (requestable)
+    S->>A: submit Access Request (binding_token)
+    A-->>S: task handle (bound to MCP taskId)
+    S-->>C: CreateTaskResult (resultType: "task", status: working)
+    Note over P,A: Out-of-band resolution<br/>(human, agent, policy, or external system)
+    A-->>S: approved (callback or poll)
+    S->>P: re-evaluate (context.approval)
+    P-->>S: allow
+    S->>S: execute tool; task = completed (result available)
+    C->>S: tasks/get
+    S-->>C: CompletedTask with result (CallToolResult)
+```
+
+Everything to the right of the MCP Server (the Policy Decision Point and Approval
+Service exchanges) is internal to the PEP and never crosses the MCP boundary. The
+AuthZEN constructs shown (`context.access_request`, `binding_token`, the task
+handle, and `context.approval`) are specified by the OpenID AuthZEN Access Request
+and Approval Profile and are referenced, not redefined, by this SEP.
+
+### Extension identifier and capability
+
+The feature is an experimental extension with identifier
+`net.openid.authzen/tool-approval` (reversed-domain prefix per SEP-2133;
+illustrative, to be confirmed with the owning group).
+
+This extension builds on the tasks extension, so a server MUST also support
+`io.modelcontextprotocol/tasks`. Both are declared in the server's `extensions`
+capability:
+
+```json
+{
+  "capabilities": {
+    "extensions": {
+      "io.modelcontextprotocol/tasks": {},
+      "net.openid.authzen/tool-approval": { "version": "0.1" }
+    }
+  }
+}
+```
+
+Per SEP-2663, task creation is **server-directed**: a client does not flag a
+request for task execution. A client signals that it can receive task handles by
+declaring the `io.modelcontextprotocol/tasks` extension in its per-request
+capabilities (SEP-2663 / SEP-2575); the server then decides per request whether to
+return a `CreateTaskResult`. A client that has not declared the tasks extension and
+issues a call the server can only satisfy through approval MUST receive either:
+
+- a `-32003` (Missing Required Client Capability) error naming
+  `io.modelcontextprotocol/tasks`, which a tasks-capable client reads as "re-issue the
+  call with the capability declared"; or
+- a normal `CallToolResult` with `isError: true` carrying requestable guidance in its
+  content (a degraded path with no asynchronous resume), for clients that will not
+  speak the tasks extension.
+
+`-32003` is a capability-negotiation error, not an "access is requestable" signal: an
+agent reads it as "I did not declare something," not "go obtain access." A server that
+wants today's non-tasks agents to act on a requestable denial SHOULD prefer the
+degraded `CallToolResult` and include machine-readable next-step guidance (see the
+client-maturity note).
+
+Declaring `net.openid.authzen/tool-approval` is an optional client signal that it
+understands approval semantics (for example, to render approval-specific progress
+UI). Correct behavior does not require it: an approval-gated task is an ordinary
+tasks-extension task, and a client that supports only `io.modelcontextprotocol/tasks`
+already interoperates.
+
+> **Client maturity (non-normative).** The canonical flow requires a client that
+> declares and drives `io.modelcontextprotocol/tasks` (receives `CreateTaskResult`,
+> polls `tasks/get`). That capability is experimental (SEP-2663) and, at the time of
+> writing, is not present in shipping MCP clients, whose task support is server-side.
+> End-to-end value is therefore gated on client tasks adoption, and interop testing
+> needs a purpose-built tasks client (the Reference Implementation clause requires
+> one). During the gap, servers may also expose approval as ordinary tools (for
+> example `request_access` / `get_request_status`) so today's agents can self-drive
+> request-poll-retry without tasks support. This SEP does not standardize that interim
+> shape, but a server that adopts it SHOULD carry the same machine-readable next-step
+> fields the Access Request profile already defines (a next-step hint, the request
+> schema, and a poll-interval hint) so interim shapes interoperate.
+
+### Denied-but-requestable returns a task
+
+When the server evaluates a `tools/call` against its policy decision point and the
+decision is "deny":
+
+1. If the denial is **not** requestable (no approval can change it), the server
+   returns the normal denied tool result: a `CallToolResult` with `isError: true`
+   describing the denial, so the model can react. (Per SEP-2663, an `isError`
+   result delivered through a task is a `completed` task, not a `failed` one.)
+2. If the denial **is** requestable, and the client declared the tasks extension,
+   the server MUST NOT execute the tool. Instead it:
+   - submits an access request to the approval service on the caller's behalf and
+     obtains a durable approval task handle;
+   - creates a durable MCP task bound to that handle and returns a
+     `CreateTaskResult` (`resultType: "task"`) with `status: "working"` and a
+     human-readable `statusMessage` (for example, "Awaiting treasury approval");
+   - MAY include an `io.modelcontextprotocol/model-immediate-response` value in the
+     result `_meta` so the model receives an immediate string (for example,
+     "This action is pending approval; you can continue other work and check back").
+
+The server MUST NOT surface approval-binding material (the AuthZEN `binding_token`,
+`evaluation_id`, `approval` object, or access-request endpoints) to the client.
+These are internal to the PEP.
+
+**At-most-once execution and deduplication.** Because the server controls both task
+creation and tool execution, it MUST execute the approved tool at most once per task.
+To keep a client retry (after a poll timeout or an agent restart) from creating a
+second approval task, and thus a second execution, the server SHOULD return the
+existing task's `CreateTaskResult` when it recognizes a repeated requestable denial
+within one dedup scope: the same **originating authorization context** (the
+authenticated caller or subject the task is bound to), the same tool, and the same
+arguments. This correlation is inherently best-effort: if the arguments carry a
+client-local value (a nonce or timestamp) two genuine retries will not match, and if
+they do not, two distinct intents with identical arguments will collide. MCP today
+has no general request-level idempotency key that would make it exact (see
+Limitations), so deployments needing exactness must wait for one.
+
+Deduplication applies only while the prior task is non-terminal. After a task reaches
+a terminal disposition (including `denied-not-executed`), an identical `tools/call`
+MUST start a **new** access request and a new task; the terminal denial was final and
+MUST NOT be folded into the old task.
+
+**Retention.** The server MUST keep the task resolvable through `tasks/get` for the
+full approval window: it MUST NOT delete or expire a `working` approval task before
+the approval's expiry, and `ttlMs` MUST cover the approval window plus the server's
+result-retention period. The approval service often sets or extends the window after
+submission, so the creation-time `ttlMs` is provisional: when the server learns a
+later expiry, it MUST extend `ttlMs` (reported on `tasks/get` and
+`notifications/tasks`) so a `working` task is never expired before the current known
+approval expiry. A server SHOULD bound the maximum approval window it accepts so
+pending tasks do not accumulate without limit.
+
+**Model-facing text is untrusted and non-committal.** `statusMessage` and any
+`io.modelcontextprotocol/model-immediate-response` value are fed to the model and
+MUST NOT carry unsanitized text from untrusted sources (agent-supplied rationale,
+approver free-text); they are a prompt-injection surface. A `working` or
+`input_required` approval task MUST NOT be represented to the model as a completed
+action; if `model-immediate-response` is used, it MUST make clear the action has not
+yet occurred and may still be denied.
+
+### Collecting submission input
+
+The access request may require inputs from the requester before or during the
+approval: a justification, a ticket reference, or fields the approval service
+defines (the AuthZEN profile's `request_schema_url`, `form_url`, and
+`request_catalogs_url`). The server collects these over the tasks input channel
+(SEP-2322 multi round-trip requests), not a standalone `elicitation/create`, since
+SEP-2260 disallows unsolicited server-to-client requests and SEP-2663 routes task
+input through `inputRequests` / `tasks/update`:
+
+- **Before submission (synchronous).** The server returns `resultType:
+"input_required"` on the original `tools/call`, collects the inputs, then returns a
+  `CreateTaskResult` and submits the access request. Use this when the approval
+  service will not accept the request without them.
+- **During the workflow (in-task).** The server sets the task to `input_required`
+  with the outstanding `inputRequests` (for example, an approver asks for more
+  detail, or a catalog-backed field is resolved after submission); the client answers
+  with `inputResponses` via `tasks/update`, and the task returns to `working`.
+
+Who answers is a property of the client, not this extension. An interactive client
+renders the request for a human (the profile's `form_url` case); an autonomous agent
+client MAY answer it from context against the request schema (the
+`request_schema_url` case), resolving catalog-backed fields per
+`request_catalogs_url`. The server derives the `inputRequests` schema from those
+profile fields. Either way this is submission-time input that shapes the access
+request; it is distinct from the approval decision, which is made out of band by a
+party (human or automated) not assumed to be reachable through the session.
+
+An in-task `input_required` round-trip requires a connected client: an agent that
+submitted and then disconnected or restarted cannot answer a later `inputRequests`.
+Deployments that expect long gaps between submission and approval SHOULD collect all
+inputs synchronously before submission. The mapping from the profile's
+`request_schema_url` (a JSON Schema) onto the SEP-2322 `inputRequests` schema is not
+pinned by this SEP and is currently implementation-specific; two servers MAY produce
+different `inputRequests` for the same access request until a canonical mapping is
+defined.
+
+### Approval lifecycle maps onto task status
+
+| Approval-profile state                                           | MCP task status                                                 |
+| ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| Access request submitted, awaiting a decision                    | `working`                                                       |
+| Submission needs input from the requester (human or agent)       | `input_required`                                                |
+| Approved, re-evaluated to "allow", tool executed (once)          | `completed`, disposition `approved-executed`                    |
+| Terminal denial (rejected, revoked, expired, or not executed)    | `completed`, `isError: true`, disposition `denied-not-executed` |
+| Approved and executed, but the tool itself errored               | `completed`, `isError: true`, disposition `execution-error`     |
+| Server could not produce a tool result at all (protocol failure) | `failed`                                                        |
+| Client cancelled                                                 | `cancelled`                                                     |
+
+A terminal authorization denial is an outcome of the call, not a failure of the
+task machinery, so it is a `completed` task whose `result` is a `CallToolResult`
+with `isError: true` and disposition `denied-not-executed`. That disposition lets a
+consumer distinguish a denial (no side effect occurred) from an `execution-error`
+(the tool ran and a side effect may have occurred). `failed` is reserved for cases
+where the server could not produce a tool result at all.
+
+While `working`, the server tracks the approval by polling the approval service's
+status endpoint or by receiving its callback. The MCP `taskId` and the approval
+task handle are bound for the task's lifetime, so a server that restarts can
+rehydrate the task from the persisted handle and keep serving `tasks/get`. Both the
+tasks extension and the AuthZEN task handle are durable by design, which is what
+makes resolution that outlives the session possible.
+
+### Completion: re-evaluate, then execute
+
+On approval, the server MUST perform a fresh authorization evaluation that takes the
+approval as an input (for AuthZEN, placing the `approval` object at
+`context.approval`), so the policy decision point remains authoritative at
+enforcement time. An approval is an input to a new decision, not a standing grant.
+This re-evaluation is server-internal and is not observable on the MCP wire.
+
+Because execution can occur long after the original request, the server SHOULD
+verify at execution time that the captured arguments and any downstream credential
+it must use are still valid. If a required credential has expired, or the action is
+materially stale, the server SHOULD NOT execute: it completes the task as a denial
+(disposition `denied-not-executed`) or returns a fresh requestable denial so the
+caller can resubmit.
+
+The terminal outcome MUST be distinguishable so a consumer can tell whether a side
+effect occurred. Because a client that supports only `io.modelcontextprotocol/tasks`
+does not understand this extension's `_meta`, the distinction MUST be carried in the
+`CallToolResult` itself, not only in `_meta`: the result `content` (and
+`structuredContent` where used) MUST state plainly whether the tool executed, so the
+model behind any tasks client reads "denied, the tool did not run" and does not
+blindly retry. A `net.openid.authzen/disposition` value in the result `_meta` is the
+machine-readable companion for extension-aware consumers. The body and the `_meta`
+disposition MUST agree:
+
+- **allow**: the server executes the tool exactly once and moves the task to
+  `completed`; the `tasks/get` response carries the tool's `CallToolResult` in the
+  task's `result` field. `_meta` disposition `approved-executed`.
+- **deny** at re-evaluation (policy changed, approval unverifiable, expired with no
+  re-request path), or a freshness or credential failure that prevented execution:
+  the task is `completed` with an `isError: true` `CallToolResult` whose content says
+  the tool did not run; `_meta` disposition `denied-not-executed`.
+- **execution error**: the tool was authorized and ran but failed; `isError: true`
+  with content describing the failure and `_meta` disposition `execution-error`, since
+  a side effect may have occurred.
+
+The server MUST bound any downstream credential, cached result, or follow-on
+authorization by the approval's expiry.
+
+### Cancellation
+
+A `tasks/cancel` request MUST cause the server to cancel the underlying access
+request and move the task to `cancelled`. Per SEP-2663, `notifications/cancelled`
+MUST NOT be used to cancel a task.
+
+A cancel can arrive after approval but before the tool has executed. To avoid
+ambiguity about whether a side effect occurred, the server resolves the race by the
+execution boundary: if it has not begun executing the tool, it MUST honor the cancel,
+skip execution, and move the task to `cancelled` (no side effect); once execution has
+begun, the cancel is ineffective and the task completes with its normal disposition.
+The server MUST NOT both execute the tool and report `cancelled`.
+
+### What the client carries
+
+The client carries a server-generated `taskId` only. It MUST NOT be required to
+read, store, or forward any authorization artifact. A client that supports the tasks
+extension already interoperates with an approval-gated server: it must already be
+prepared to receive a `CreateTaskResult` for any supported request, and it observes
+a task that stays `working` and then becomes `completed` (or `failed`/`cancelled`).
+This extension adds meaning, not new client wire format. Because the
+denied-versus-executed distinction is carried in the `CallToolResult` body (see
+Completion) and not only in `_meta`, a tasks-only client's model can act on it safely;
+without that rule a tasks-only client could not tell a denial from an execution error
+and could double-execute a side-effecting tool on retry.
+
+### End-to-end example
+
+Client calls a tool (the client has declared the `io.modelcontextprotocol/tasks`
+extension in its per-request capabilities):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "wire_transfer",
+    "arguments": { "to": "acct-991", "amount": 50000 }
+  }
+}
+```
+
+The server evaluates, gets a requestable denial, submits the access request, and
+returns a task handle in place of the tool result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "task",
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "working",
+    "statusMessage": "Transfers over $25,000 require treasury approval.",
+    "createdAt": "2026-06-02T10:30:00Z",
+    "ttlMs": 604800000,
+    "pollIntervalMs": 15000,
+    "_meta": {
+      "io.modelcontextprotocol/model-immediate-response": "This transfer is pending treasury approval. You can continue other work and check back."
+    }
+  }
+}
+```
+
+After the approval workflow resolves out of band (whether a human acts the next day
+or an automated re-check clears in seconds), the server re-evaluates and executes.
+A later poll returns the completed task with the tool result:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tasks/get",
+  "params": { "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840" }
+}
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "resultType": "complete",
+    "taskId": "786512e2-9e0d-44bd-8f29-789f320fe840",
+    "status": "completed",
+    "createdAt": "2026-06-02T10:30:00Z",
+    "lastUpdatedAt": "2026-06-03T09:05:00Z",
+    "ttlMs": 604800000,
+    "result": {
+      "content": [
+        { "type": "text", "text": "Transfer of $50,000 to acct-991 completed." }
+      ],
+      "isError": false
+    }
+  }
+}
+```
+
+## Rationale
+
+**Server-directed creation makes the client trivial.** Under SEP-2663 a client that
+supports tasks must already handle a `CreateTaskResult` for any call, and the server
+alone decides when to return one. An approval-gated server therefore needs no new
+client wire format and no per-tool opt-in: it returns a task exactly when it hits a
+requestable denial. This is the strongest property of the design and aligns with
+"Interoperability over optimization" (graceful degradation through capability
+negotiation).
+
+**Build on the tasks extension rather than invent a primitive.** Tasks already
+provides a durable state machine with polling, cancellation, input, and retention.
+An approval workflow is a long-running task, and the approval profile's portable
+handle provides the durability guarantee the binding needs. Aligns with
+"Composability over specificity."
+
+**Resolver-agnostic by construction.** Because approval is brokered server-side and
+surfaced only as task status, the MCP-facing contract is identical whether a human,
+a supervising agent, a policy engine, or an external system decides. The SEP does
+not encode "human in the loop"; it encodes "decided out of band, asynchronously,"
+which serves fully automated and fully manual deployments alike.
+
+**Why an extension.** Per SEP-2133, optional capabilities that build on the core and
+need time to incubate belong as extensions; "extensions are where convergence gets
+tested." This feature layers on another extension and is not universally needed, so
+it starts experimental on the Extensions Track. It is an extension rather than
+Informational guidance because it defines normative, wire-observable behavior that
+plain tasks does not: a requestable denial MUST return a task, the
+denied-versus-executed distinction MUST be carried in the `CallToolResult` body (with
+a `net.openid.authzen/disposition` `_meta` companion), and authorization artifacts
+MUST NOT cross the wire. Those rules, not mere discovery, are what earns a capability.
+If the body-convey rule were dropped and the signal left optional in `_meta`, the
+value would collapse to a discovery hint and Informational guidance would be the
+better home.
+
+**Why submission input uses the task input channel.** SEP-2260 disallows unsolicited
+server-to-client requests, and SEP-2663 routes in-task input through MRTR
+(`inputRequests` / `tasks/update`) rather than standalone elicitation. Submission
+input therefore flows through the task, not a separate elicitation call.
+
+## Limitations and Open Questions
+
+- **Resumption by a different principal is not portable at the MCP layer.** The
+  AuthZEN task handle can be polled by any caller authorized for the bound subject,
+  but MCP task access is bound to a server-defined originating authorization context,
+  `tasks/list` was removed, and sessions were removed (SEP-2567), so there is no
+  standard way for a _different_ principal, or the same agent on a new connection with
+  a new credential, to reclaim a task. Same-principal resumption across restart works
+  to the extent the server's context binding recognizes the returning caller.
+  Defining a portable task-claim or re-authorization mechanism is open; until then,
+  deployments that need cross-principal handoff arrange it out of band.
+- **Someone has to come back and consume the result.** This SEP provides the
+  primitive, not the orchestration that resumes a paused agent and acts on the
+  completed task. For a side-effecting tool this matters: the tool may execute after
+  approval with no consumer observing the outcome. Deployments MUST ensure either a
+  durable consumer that polls or that the effect is independently auditable; a
+  fire-and-forget agent that never returns is a misuse, not a supported pattern.
+- **A lost `taskId` has no protocol recourse.** With `tasks/list` and sessions both
+  removed (SEP-2663 / SEP-2567), an agent that restarts without having persisted its
+  `taskId` cannot rediscover a possibly-executed side-effecting task. Clients MUST
+  persist task IDs to durable storage; there is no protocol-level recovery.
+- **No general request idempotency in MCP.** MCP has no request-level idempotency
+  key (only the `idempotentHint` tool annotation, which describes a tool rather than
+  deduplicating a call), so the server's duplicate suppression is best-effort
+  (matching the originating context, tool, and arguments). A general idempotency
+  mechanism belongs in the core protocol or the tasks extension, not in an approval
+  extension; if one is added, this extension should adopt it. Defining one here is
+  out of scope.
+- **Extension versus Informational (resolved, flagged for the sponsor).** Much of the
+  behavior can be built on the tasks extension alone. This SEP takes it as an
+  extension because the body-convey denied-versus-executed rule, the mandatory task on
+  a requestable denial, and the `disposition` signal are normative wire-observable
+  behavior, not just discovery (see Rationale). A sponsor who judges that surface too
+  thin may prefer an Informational SEP; that is the one positioning question left
+  open.
+
+## Backward Compatibility
+
+Additive for new tools and new servers. A client that supports the tasks extension but
+not this one still observes a valid task lifecycle and a final
+`completed`/`failed`/`cancelled` task; there is no new client wire format, and no
+per-tool opt-in to change.
+
+For an existing tool that previously returned a synchronous denial, however, enabling
+approval gating changes the `tools/call` response set seen by existing integrations: a
+tasks client now receives a `CreateTaskResult`, and a non-tasks client receives
+`-32003` or the degraded requestable `CallToolResult` where a plain denial used to
+appear. That is a behavior change for upgraders, not a purely additive one.
+
+## Reference Implementation
+
+Required before Final (this introduces observable protocol behavior). Planned:
+
+- an MCP server that fronts an OpenID AuthZEN policy decision point and access
+  request service, returning `CreateTaskResult` for approval-gated calls and
+  re-evaluating before execution, with at least one human-resolved and one
+  automatically-resolved approval path;
+- a client built only on the `io.modelcontextprotocol/tasks` extension, to
+  demonstrate that it interoperates with no approval-specific code.
+
+A conformance scenario tagged with the assigned SEP number, plus a `sep-NNNN.yaml`
+traceability file covering the MCP-observable normative statements (returning a task
+on a requestable denial; never surfacing authorization artifacts; conveying
+denied-versus-executed in the `CallToolResult` body with a `denied-not-executed`
+disposition for a terminal denial; at-most-once execution with best-effort
+server-side dedup and a new request after a terminal denial; and submission input via
+the task input channel), is required for Final. Server-internal behavior such as re-evaluation is referenced
+from the AuthZEN profile and is not MCP-observable. Not yet built.
+
+## Security Implications
+
+- **Denial remains denial.** The server MUST NOT execute on the requestable denial
+  alone, and MUST re-evaluate after approval. The policy decision point is
+  authoritative at enforcement time.
+- **Authorization artifacts stay server-side.** Binding material (`binding_token`,
+  `approval`, `evaluation_id`) is never exposed to the client, preventing replay or
+  substitution through the client surface.
+- **Task access control.** A `taskId` lets a caller poll and retrieve results.
+  SEP-2663 omits `tasks/list` precisely because tasks cannot always be bound to a
+  caller; task IDs are unguessable, single-task handles. The server MUST authorize
+  `tasks/get`, `tasks/update`, and `tasks/cancel` against the task's originating
+  authorization context, and MUST NOT leak approval contents or approver identity
+  through `statusMessage`.
+- **Confused deputy.** The server binds each task to the originally evaluated
+  subject, resource, action, and context, and applies an approval only within its
+  recorded scope. It MUST NOT let a client steer execution to a different operation
+  than the one that was approved.
+- **Out-of-band resolution.** Whoever or whatever decides (human, agent, policy
+  engine, external system), authentication, eligibility, and separation of duties are
+  properties of the approval service, outside MCP, as the approval profile specifies.
+- **Expiry.** The server MUST stop honoring an approval after its expiry and MUST
+  bound any downstream credential lifetime by it.
+- **Untrusted model-facing text.** `statusMessage` and `model-immediate-response` are
+  fed to the model and MUST be sanitized; a pending task MUST NOT be presented as a
+  completed action.
+- **At-most-once execution.** The server MUST execute an approved side-effecting tool
+  at most once per task and SHOULD deduplicate a retried requestable denial (by
+  originating context, tool, and arguments) so a poll timeout and replay cannot
+  double-execute.
+- **Approval-request amplification.** A compromised or buggy agent loop is the
+  expected failure mode here, not an edge case, and approval fatigue is a known
+  bypass. Deployments MUST rate-limit access-request submission per caller and SHOULD
+  bound the number of outstanding pending tasks per caller. When a limit is hit, the
+  server MUST return a non-requestable denial (a `CallToolResult` with `isError: true`,
+  not a task and not a requestable signal) so the agent does not retry-loop.
+- **The client cannot verify the gate.** "Denial remains denial" is enforced by the
+  server; the client receives no proof that the server re-evaluated rather than
+  executed. The binding material protects the server-to-PDP-to-approval-service path,
+  not the client's trust in the server. Clients needing stronger assurance must
+  obtain it out of band.
+
+## References
+
+- [SEP-2663: Tasks Extension](./2663-tasks-extension.md)
+- [SEP-2322: Multi Round-Trip Requests](./2322-MRTR.md)
+- [SEP-2133: Extensions](./2133-extensions.md)
+- [OpenID AuthZEN Access Request and Approval Profile](https://openid.github.io/authzen/authzen-access-request-approval-profile-1_0.html)
+- [OpenID AuthZEN Authorization API 1.0](https://openid.github.io/authzen/)
