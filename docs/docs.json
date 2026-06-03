@@ -74,7 +74,6 @@
           {
             "group": "Examples",
             "pages": [
-              "clients",
               "examples"
             ]
           }
@@ -322,8 +321,16 @@
                 "group": "Base Protocol",
                 "pages": [
                   "specification/draft/basic/index",
-                  "specification/draft/basic/lifecycle",
-                  "specification/draft/basic/transports",
+                  "specification/draft/basic/versioning",
+                  "specification/draft/basic/patterns",
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http"
+                    ]
+                  },
                   "specification/draft/basic/authorization",
                   {
                     "group": "Utilities",
@@ -496,6 +503,7 @@
               "community/file-uploads/charter",
               "community/inspector-v2/charter",
               "community/interceptors/charter",
+              "community/registry/charter",
               "community/sdk/charter",
               "community/server-card/charter",
               "community/skills-over-mcp/charter",
@@ -534,6 +542,14 @@
     }
   },
   "redirects": [
+    {
+      "source": "/clients",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/specification/draft/basic/lifecycle",
+      "destination": "/specification/draft/basic/versioning"
+    },
     {
       "source": "/specification/versioning",
       "destination": "/docs/learn/versioning"
