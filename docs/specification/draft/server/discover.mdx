@@ -59,13 +59,13 @@ identity. This operation supports [caching](/specification/draft/server/utilitie
 
 ### Response Fields
 
-| Field               | Type                 | Required | Description                                                                                  |
-| ------------------- | -------------------- | -------- | -------------------------------------------------------------------------------------------- |
-| `supportedVersions` | `string[]`           | yes      | Protocol versions the server supports. The client should choose one for subsequent requests. |
-| `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                          |
-| `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                     |
-| `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                    |
-| `ttlMs`             | `number`             | yes      | How long (ms) the client MAY consider this result fresh. See [Caching](/specification/draft/server/utilities/caching). |
+| Field               | Type                 | Required | Description                                                                                                                     |
+| ------------------- | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `supportedVersions` | `string[]`           | yes      | Protocol versions the server supports. The client should choose one for subsequent requests.                                    |
+| `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                                                             |
+| `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                                                        |
+| `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                                                       |
+| `ttlMs`             | `number`             | yes      | How long (ms) the client MAY consider this result fresh. See [Caching](/specification/draft/server/utilities/caching).          |
 | `cacheScope`        | `string`             | yes      | `"public"` or `"private"`. Indicates the intended cache audience. See [Caching](/specification/draft/server/utilities/caching). |
 
 ## When to Call
