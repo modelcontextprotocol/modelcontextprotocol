@@ -8,14 +8,14 @@ The Model Context Protocol consists of several key components that work together
 
 - **Base Protocol**: Core JSON-RPC message types
 - **Lifecycle Management**: Protocol version negotiation and per-request capability declaration
-- **Message Patterns**: Messaging patterns supported by the core protocol including request-response, subscription-based notifications, and multi round trip requests(MRTR).
+- **Message Patterns**: Messaging patterns supported by the core protocol including request/response, multi round-trip requests (MRTR), and subscribe and notify
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
 - **Client Features**: Elicitation, sampling and root directory lists provided by clients
 - **Utilities**: Cross-cutting concerns like logging and argument completion
 
-All implementations **MUST** support the base protocol, lifecycle management
-components and messaging patterns. Other components **MAY** be implemented based on the specific needs of the
+All implementations **MUST** support the base protocol, lifecycle management,
+and the message patterns. Other components **MAY** be implemented based on the specific needs of the
 application.
 
 These protocol layers establish clear separation of concerns while enabling rich
@@ -125,9 +125,9 @@ The receiver **MUST NOT** send a response.
 
 The Model Context Protocol (MCP) supports several [Message Patterns](/specification/draft/basic/patterns) that define how clients and servers interact:
 
-1. **Request-Response**: A client sends a request to the server, and the server responds with a result or error.
-2. **Subscription-Based Notifications**: A client subscribes to a stream of notifications from the server, which are sent as they occur.
-3. **Multi-Round-Trip Requests (MRTR)**: when a server requires additional client input (sampling, elicitation, or roots) to complete a request.
+1. **[Request and Response](/specification/draft/basic/patterns#request-and-response)**: A client sends a request to the server, and the server responds with a result or error.
+2. **[Multi Round-Trip Requests (MRTR)](/specification/draft/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (sampling, elicitation, or roots) to complete a request.
+3. **[Subscribe and Notify](/specification/draft/basic/patterns#subscribe-and-notify)**: A client subscribes to a stream of notifications from the server, which are sent as they occur.
 
 ## Auth
 
