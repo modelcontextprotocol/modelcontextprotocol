@@ -322,25 +322,17 @@
                 "pages": [
                   "specification/draft/basic/index",
                   "specification/draft/basic/versioning",
-                  "specification/draft/basic/patterns",
                   {
-                    "group": "Transports",
+                    "group": "Message Patterns",
                     "pages": [
-                      "specification/draft/basic/transports/index",
-                      "specification/draft/basic/transports/stdio",
-                      "specification/draft/basic/transports/streamable-http"
+                      "specification/draft/basic/patterns/index",
+                      "specification/draft/basic/patterns/mrtr",
+                      "specification/draft/basic/patterns/subscriptions",
+                      "specification/draft/basic/patterns/cancellation",
+                      "specification/draft/basic/patterns/progress"
                     ]
                   },
-                  "specification/draft/basic/authorization",
-                  {
-                    "group": "Utilities",
-                    "pages": [
-                      "specification/draft/basic/utilities/cancellation",
-                      "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/subscriptions",
-                      "specification/draft/basic/utilities/mrtr"
-                    ]
-                  }
+                  "specification/draft/basic/authorization"
                 ]
               },
               {
