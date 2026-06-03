@@ -59,12 +59,12 @@ identity. This operation supports [caching](/specification/draft/server/utilitie
 
 ### Response Fields
 
-| Field               | Type                 | Required | Description                                                                                                                     |
-| ------------------- | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `supportedVersions` | `string[]`           | yes      | Protocol versions the server supports. The client should choose one for subsequent requests.                                    |
-| `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                                                             |
-| `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                                                        |
-| `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                                                       |
+| Field               | Type                 | Required | Description                                                                                  |
+| ------------------- | -------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `supportedVersions` | `string[]`           | yes      | Protocol versions the server supports. The client should choose one for subsequent requests. |
+| `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                          |
+| `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                     |
+| `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                    |
 
 ## When to Call
 
