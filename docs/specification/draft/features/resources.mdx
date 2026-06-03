@@ -21,7 +21,7 @@ For example, applications could:
 - Allow the user to search through and filter available resources
 - Implement automatic context inclusion, based on heuristics or the AI model's selection
 
-![Example of resource context picker](/specification/draft/server/resource-picker.png)
+![Example of resource context picker](/specification/draft/features/resource-picker.png)
 
 However, implementations are free to expose resources through any interface pattern that
 suits their needs&mdash;the protocol itself does not mandate any specific user
@@ -76,7 +76,7 @@ per-request input, not connection state.
 ### Listing Resources
 
 To discover available resources, clients send a `resources/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
+supports [pagination](/specification/draft/features/pagination) and [caching](/specification/draft/features/caching).
 
 **Request:**
 
@@ -125,7 +125,7 @@ supports [pagination](/specification/draft/server/utilities/pagination) and [cac
 ### Reading Resources
 
 To retrieve resource contents, clients send a `resources/read` request. This operation
-supports [caching](/specification/draft/server/utilities/caching).
+supports [caching](/specification/draft/features/caching).
 
 **Request:**
 
@@ -173,8 +173,8 @@ Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resou
 
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
-auto-completed through [the completion API](/specification/draft/server/utilities/completion).
-This operation supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
+auto-completed through [the completion API](/specification/draft/features/completion).
+This operation supports [pagination](/specification/draft/features/pagination) and [caching](/specification/draft/features/caching).
 
 **Request:**
 

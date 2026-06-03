@@ -196,7 +196,7 @@ function ticketing_createIssue(input: {
 }
 ```
 
-MCP Servers can provide an optional [`outputSchema`](/specification/draft/server/tools#output-schema) for each tool. When an output schema is present, the host can produce precise return types (like `LogEntry` above).
+MCP Servers can provide an optional [`outputSchema`](/specification/draft/features/tools#output-schema) for each tool. When an output schema is present, the host can produce precise return types (like `LogEntry` above).
 
 When an output schema is absent, prefer the simple path:
 
@@ -278,7 +278,7 @@ flowchart LR
 
 Programmatic tool calling introduces a code execution surface that requires careful sandboxing:
 
-- **Per-call authorization**: The broker is still the MCP host for spec purposes. Apply the same human-in-the-loop confirmation policy to sandbox-originated calls that you apply to direct calls (see [Tools: Security](/specification/draft/server/tools#security-considerations)). Approving the script does not grant blanket approval for every tool call it makes at runtime; hosts may grant categorical approval (for example, "allow `ticketing_createIssue` for this script run") rather than prompting per iteration, but the broker must still evaluate each call against that grant.
+- **Per-call authorization**: The broker is still the MCP host for spec purposes. Apply the same human-in-the-loop confirmation policy to sandbox-originated calls that you apply to direct calls (see [Tools: Security](/specification/draft/features/tools#security-considerations)). Approving the script does not grant blanket approval for every tool call it makes at runtime; hosts may grant categorical approval (for example, "allow `ticketing_createIssue` for this script run") rather than prompting per iteration, but the broker must still evaluate each call against that grant.
 - **Cross-server data flow**: Tool results from one server are untrusted input to another. The broker should apply the same input-review policy to brokered calls as to direct ones; output truncation alone does not prevent exfiltration.
 - **Network isolation**: The sandbox should have no direct network access. All external communication flows through the host broker, which enforces authorization and access control.
 - **No credential exposure**: API keys and tokens are held by the host. The generated code calls typed functions; the host adds authentication when forwarding to servers.
@@ -288,7 +288,7 @@ Programmatic tool calling introduces a code execution surface that requires care
 ### Error Handling
 
 MCP tool errors arrive as a successful response with
-[`isError: true`](/specification/draft/server/tools#error-handling) rather than a transport
+[`isError: true`](/specification/draft/features/tools#error-handling) rather than a transport
 failure. Generated wrappers should convert this into a thrown exception so model-authored code
 can use `try`/`catch`. If an uncaught error terminates the script, surface it as the script's
 result so the model can self-correct; the model is responsible for reporting any partial side

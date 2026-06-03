@@ -28,7 +28,7 @@ description: "Standardize Resource Not Found Error Code"
 
 ## Abstract
 
-The current MCP specification [recommends `-32002`](https://modelcontextprotocol.io/specification/draft/server/resources#error-handling) as the error code for resource not found. However, `-32002` falls within the JSON-RPC "server error" range (`-32000` to `-32099`) which is reserved for implementation-defined errors, not protocol-level semantics. Additionally, SDK implementations are inconsistent — only 4 of 6 official SDKs use `-32002`, while the TypeScript SDK uses `-32602` and the Python SDK uses `0`.
+The current MCP specification [recommends `-32002`](https://modelcontextprotocol.io/specification/draft/features/resources#error-handling) as the error code for resource not found. However, `-32002` falls within the JSON-RPC "server error" range (`-32000` to `-32099`) which is reserved for implementation-defined errors, not protocol-level semantics. Additionally, SDK implementations are inconsistent — only 4 of 6 official SDKs use `-32002`, while the TypeScript SDK uses `-32602` and the Python SDK uses `0`.
 
 This SEP standardizes on `-32602` (Invalid Params), the correct JSON-RPC error code for this case, and aligns the specification with the JSON-RPC standard.
 

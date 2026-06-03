@@ -71,7 +71,7 @@ list and retry the request, or surface an error to the user if no compatible
 version exists.
 
 Servers **MUST** implement
-[`server/discover`](/specification/draft/server/discover). Clients
+[`server/discover`](/specification/draft/features/discover). Clients
 **MAY** call it before sending any other requests to learn the server's
 supported versions up front, but are not required to: a client is free to
 invoke any RPC inline and handle `UnsupportedProtocolVersionError` if its

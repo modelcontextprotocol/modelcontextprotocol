@@ -344,28 +344,23 @@
                 ]
               },
               {
-                "group": "Client Features",
+                "group": "Features",
                 "pages": [
-                  "specification/draft/client/roots",
-                  "specification/draft/client/sampling",
-                  "specification/draft/client/elicitation"
-                ]
-              },
-              {
-                "group": "Server Features",
-                "pages": [
-                  "specification/draft/server/index",
-                  "specification/draft/server/discover",
-                  "specification/draft/server/prompts",
-                  "specification/draft/server/resources",
-                  "specification/draft/server/tools",
+                  "specification/draft/features/index",
+                  "specification/draft/features/discover",
+                  "specification/draft/features/prompts",
+                  "specification/draft/features/resources",
+                  "specification/draft/features/tools",
+                  "specification/draft/features/elicitation",
+                  "specification/draft/features/caching",
+                  "specification/draft/features/completion",
+                  "specification/draft/features/pagination",
                   {
-                    "group": "Utilities",
+                    "group": "Deprecated Features",
                     "pages": [
-                      "specification/draft/server/utilities/caching",
-                      "specification/draft/server/utilities/completion",
-                      "specification/draft/server/utilities/logging",
-                      "specification/draft/server/utilities/pagination"
+                      "specification/draft/features/deprecated/roots",
+                      "specification/draft/features/deprecated/sampling",
+                      "specification/draft/features/deprecated/logging"
                     ]
                   }
                 ]
