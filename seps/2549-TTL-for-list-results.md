@@ -1,6 +1,6 @@
 # SEP-2549: TTL for List Results
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-04-09
 - **Author(s)**: Caitie McCaffrey (@CaitieM20)
