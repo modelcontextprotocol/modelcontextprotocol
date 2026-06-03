@@ -111,7 +111,7 @@ On top of that baseline, two discovery mechanisms are defined. A server MAY supp
 
 #### Enumeration via `skill://index.json`
 
-A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://github.com/agentskills/agentskills/pull/254), with two differences: the `url` field contains a full MCP resource URI (any scheme the server serves), and the `digest` field is omitted (integrity is the transport's concern over an authenticated MCP connection). This binding also defines one additional `type` value, `"mcp-resource-template"`, for entries that describe a parameterized skill namespace.
+A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://github.com/agentskills/agentskills/pull/254), with one difference: the `url` field contains a full MCP resource URI (any scheme the server serves). This binding also defines one additional `type` value, `"mcp-resource-template"`, for entries that describe a parameterized skill namespace.
 
 ```json
 {
@@ -121,19 +121,22 @@ A server SHOULD expose a resource at the well-known URI `skill://index.json` who
       "name": "git-workflow",
       "type": "skill-md",
       "description": "Follow this team's Git conventions for branching and commits",
-      "url": "skill://git-workflow/SKILL.md"
+      "url": "skill://git-workflow/SKILL.md",
+      "digest": "sha256:a1b2c3d4..."
     },
     {
       "name": "refunds",
       "type": "skill-md",
       "description": "Process customer refund requests per company policy",
-      "url": "skill://acme/billing/refunds/SKILL.md"
+      "url": "skill://acme/billing/refunds/SKILL.md",
+      "digest": "sha256:b2c3d4e5..."
     },
     {
       "name": "pdf-processing",
       "type": "archive",
       "description": "Extract, fill, and assemble PDF documents",
-      "url": "skill://pdf-processing.tar.gz"
+      "url": "skill://pdf-processing.tar.gz",
+      "digest": "sha256:c4d5e6f7..."
     },
     {
       "type": "mcp-resource-template",
@@ -154,6 +157,7 @@ Index fields:
 | `skills[].description` | Yes         | For `"skill-md"` and `"archive"`, the skill's `description` matching its `SKILL.md` frontmatter. For `"mcp-resource-template"`, a description of the addressable skill space (surfaced in the host's discovery UX, not necessarily the model's context). |
 | `skills[].url`         | Yes         | Full resource URI. See per-type semantics below.                                                                                                                                                                                                         |
 | `skills[].name`        | Conditional | Required for `"skill-md"` and `"archive"`; matches the `SKILL.md` frontmatter `name` and the final segment of the skill path. Omitted for `"mcp-resource-template"`.                                                                                     |
+| `skills[].digest`      | Conditional | Required for `"skill-md"` and `"archive"`: SHA-256 content digest of the artifact, formatted as `sha256:{hex}` (64 lowercase hex characters). See [Integrity and verification](#integrity-and-verification). Omitted for `"mcp-resource-template"`.      |
 
 Clients SHOULD ignore unrecognized fields and SHOULD skip entries with an unrecognized `type`.
 
@@ -168,6 +172,14 @@ Hosts unpacking an archive MUST apply the [archive safety](https://agentskills.i
 **Template entries** (`type: "mcp-resource-template"`) describe a parameterized skill namespace without materializing every entry. The `url` is an [RFC 6570](https://datatracker.ietf.org/doc/html/rfc6570) URI template that resolves to `SKILL.md` resource URIs. A server SHOULD register the same `url` value as an MCP [resource template](https://modelcontextprotocol.io/specification/2025-11-25/server/resources#resource-templates) so hosts can wire template variables to the [completion API](https://modelcontextprotocol.io/specification/2025-11-25/server/utilities/completion). Hosts SHOULD surface template entries in their UI as interactive discovery points: the user fills in variables via completion, selects a skill, and the host passes the resolved URI into the conversation. This scales to servers with unbounded skill catalogs.
 
 Unlike `skill-md` and `archive` entries — whose `name` and `description` a host typically surfaces in the model's context alongside filesystem skills — a `mcp-resource-template` entry's `description` characterizes a skill _space_ rather than a single skill, and is intended for the host's discovery UX (e.g. a completion menu the user browses), not for direct insertion into the model's context. Hydration and invocation collapse to the baseline: once a template variable is resolved to a concrete `skill://…/SKILL.md` URI, that URI is read via `resources/read` and staged into context exactly like any other skill — there is no template-specific invocation path. A host MAY instead expose the template and its completions to the model directly, letting the model resolve and explore the namespace autonomously; this is optional and expected to be uncommon.
+
+##### Integrity and verification
+
+Per the Agent Skills [integrity and verification](https://github.com/agentskills/agentskills/pull/254) requirements, each `skill-md` and `archive` entry includes a `digest` field containing the SHA-256 hash of the artifact's raw bytes, formatted as `sha256:{hex}` where `{hex}` is 64 lowercase hexadecimal characters. For `"skill-md"`, the artifact is the `SKILL.md` file; for `"archive"`, the artifact is the archive file.
+
+Hosts MUST verify retrieved content against the `digest` in the index. A mismatch indicates the content is corrupted or tampered with — hosts MUST NOT use unverified content. Digests also enable efficient caching: compare a skill's `digest` against a locally cached value to determine whether the artifact has changed without re-reading it.
+
+Template entries carry no `digest`: the skills they resolve to are not enumerated in the index, so a skill read via a resolved template URI is retrieved over the authenticated MCP transport without index-level verification.
 
 The `skill://index.json` resource is served via `resources/read` like any other resource, with `mimeType` of `application/json`. A server MAY also surface it in `resources/list` so clients can detect its presence, but clients MAY attempt to read it directly without prior discovery.
 
