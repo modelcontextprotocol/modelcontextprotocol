@@ -117,12 +117,18 @@ both kinds of servers can detect which is present:
 - **STDIO.** Because there is no per-request status code to drive fallback,
   a client that supports both eras **SHOULD** probe with
   [`server/discover`](/specification/draft/server/discover) first,
-  setting its preferred modern version in `_meta`. If the server returns
-  `Method not found` (`-32601`), fall back to the legacy `initialize`
-  handshake. If the server returns `UnsupportedProtocolVersionError`, the
-  server speaks a version of MCP without `initialize` — use one of the
-  versions in its advertised `supported` list instead of falling back to
-  `initialize`.
+  setting its preferred modern version in `_meta`. The client interprets the
+  response as follows:
+  - **`UnsupportedProtocolVersionError`**: the server speaks modern MCP
+    without the requested version. Retry using one of the versions in its
+    advertised `supported` list rather than falling back to `initialize`.
+  - **Any other error response, or no response within a reasonable timeout**:
+    restart the server process and perform the legacy `initialize` handshake
+    on the fresh process. Legacy servers are not required to use any
+    particular error code (or to respond at all) for an unknown method
+    received before `initialize`, so the fallback cannot rely on a single
+    code such as `-32601`, and the server may be left in an undefined state
+    after the unrecognized probe.
 
 A client that only supports modern (per-request-metadata) versions does not
 need to probe — it simply sends its preferred version and handles
