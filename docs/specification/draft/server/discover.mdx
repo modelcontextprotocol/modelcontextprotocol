@@ -33,7 +33,7 @@ The request carries no body parameters beyond the standard `_meta`:
 ## Response
 
 The server replies with its supported protocol versions, capabilities, and
-identity:
+identity. This operation supports [caching](/specification/draft/server/utilities/caching).
 
 ```json
 {
@@ -50,7 +50,9 @@ identity:
       "name": "ExampleServer",
       "version": "1.0.0"
     },
-    "instructions": "This server provides weather and resource utilities."
+    "instructions": "This server provides weather and resource utilities.",
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }
 ```
@@ -63,6 +65,8 @@ identity:
 | `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                          |
 | `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                     |
 | `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                    |
+| `ttlMs`             | `number`             | yes      | How long (ms) the client MAY consider this result fresh. See [Caching](/specification/draft/server/utilities/caching). |
+| `cacheScope`        | `string`             | yes      | `"public"` or `"private"`. Indicates the intended cache audience. See [Caching](/specification/draft/server/utilities/caching). |
 
 ## When to Call
 
