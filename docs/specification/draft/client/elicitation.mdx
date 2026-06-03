@@ -80,7 +80,7 @@ Servers **MUST NOT** send elicitation requests with modes that are not supported
 
 ### Elicitation Requests
 
-Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult)
+Servers **MAY** request information from a user during the processing of a client request, by sending an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult)
 containing an `elicitation/create` request.
 
 All elicitation requests **MUST** include the following parameters:
@@ -499,7 +499,7 @@ Servers should handle each state appropriately:
 
 ### Statefulness
 
-Elicitations do not require that the server maintain state about users with the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
+Elicitations do not require that the server maintain state about users with the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism.
 
 However, if state is stored, servers implementing elicitation **MUST** securely associate this state with individual users following the guidelines in the [security best practices](/docs/tutorials/security/security_best_practices) document. Specifically:
 

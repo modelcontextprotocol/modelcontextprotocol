@@ -79,7 +79,7 @@ allowing servers to return different structures based on the outcome of the requ
 can use to determine how to parse and handle the `result` object.
 
 - A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
-- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult) object with additional information needed.
+- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) object with additional information needed.
 - Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
 - A `resultType` of any value unrecognized by the client **MUST** be considered invalid.
 - For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
@@ -159,7 +159,7 @@ Specifically:
 </Note>
 
 Long-lived requests like
-[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions)
 remain request/response; the response is just an open stream of notifications.
 Their state is scoped to the request itself, not to the connection underneath.
 
@@ -301,7 +301,7 @@ the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` 
 client can correlate the notification with the originating subscription request.
 
 [lifecycle]: /specification/draft/basic/versioning
-[subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
+[subscriptions-listen]: /specification/draft/basic/patterns/subscriptions
 
 **OpenTelemetry trace context:**
 

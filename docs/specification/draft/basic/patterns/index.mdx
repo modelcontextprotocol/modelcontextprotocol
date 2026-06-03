@@ -1,5 +1,5 @@
 ---
-title: Message Patterns
+title: Overview
 ---
 
 <div id="enable-section-numbers" />
@@ -25,7 +25,7 @@ JSON-RPC responses.
 The client sends a request; the server answers it with a result or an error.
 While the request is in flight, the server **MAY** send notifications scoped
 to it, such as
-[`notifications/progress`](/specification/draft/basic/utilities/progress)
+[`notifications/progress`](/specification/draft/basic/patterns/progress)
 and [`notifications/message`](/specification/draft/server/utilities/logging).
 
 ```mermaid
@@ -42,9 +42,9 @@ sequenceDiagram
 
 When a server needs client input (sampling, elicitation, or roots) to
 complete a request, it answers with an
-[`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult)
+[`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult)
 and the client retries the request with the matching `inputResponses`. See
-[Multi Round-Trip Requests](/specification/draft/basic/utilities/mrtr).
+[Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr).
 
 ```mermaid
 sequenceDiagram
@@ -61,7 +61,7 @@ sequenceDiagram
 
 To receive change notifications (list changes, resource updates), the client
 sends a
-[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions)
 request; the reply is a long-lived stream of the requested notification
 types. Stream state is scoped to the request: if the underlying channel is
 lost, the client re-issues the request.
