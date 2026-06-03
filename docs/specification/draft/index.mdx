@@ -71,7 +71,6 @@ Clients may offer the following features to servers:
 - Progress tracking
 - Cancellation
 - Error reporting
-- Logging
 
 ### Extensions
 
@@ -112,14 +111,6 @@ considerations that all implementors must carefully address.
        considered untrusted, unless obtained from a trusted server.
    - Hosts must obtain explicit user consent before invoking any tool
    - Users should understand what each tool does before authorizing its use
-
-4. **LLM Sampling Controls**
-   - Users must explicitly approve any LLM sampling requests
-   - Users should control:
-     - Whether sampling occurs at all
-     - The actual prompt that will be sent
-     - What results the server can see
-   - The protocol intentionally limits server visibility into prompts
 
 ### Implementation Guidelines
 
