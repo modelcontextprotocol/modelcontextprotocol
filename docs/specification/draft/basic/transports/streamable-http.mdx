@@ -238,7 +238,7 @@ version is unknown to the server, or is a known version the server has chosen
 not to support), it **MUST** respond with `400 Bad Request` and an
 [`UnsupportedProtocolVersionError`][unsupported-version]
 listing its supported versions. See
-[Lifecycle: Protocol Version Negotiation][lifecycle-version]
+[Versioning: Protocol Version Negotiation][lifecycle-version]
 for the negotiation flow.
 
 If the server does not implement the requested RPC method, it **MUST** respond
@@ -254,7 +254,7 @@ server that does not support such clients **MUST** reject a request without
 the header per [Server Validation](#server-validation).
 
 [unsupported-version]: /specification/draft/schema#unsupportedprotocolversionerror
-[lifecycle-version]: /specification/draft/basic/lifecycle#protocol-version-negotiation
+[lifecycle-version]: /specification/draft/basic/versioning#protocol-version-negotiation
 
 ### Standard Request Headers
 
@@ -612,7 +612,7 @@ falling back: modern servers also use `400` for
   back to `initialize` and continue with the legacy version for subsequent
   requests.
 
-See [Lifecycle: Backward Compatibility][lifecycle-compat] for the era model
+See [Versioning: Backward Compatibility][lifecycle-compat] for the era model
 and a compatibility matrix for implementors.
 
 ### Earlier Streamable HTTP Revisions
@@ -684,4 +684,4 @@ protocol version 2024-11-05) as follows:
        server running the old HTTP+SSE transport, and should use that
        transport for all subsequent communication.
 
-[lifecycle-compat]: /specification/draft/basic/lifecycle#backward-compatibility-with-initialization-based-versions
+[lifecycle-compat]: /specification/draft/basic/versioning#backward-compatibility-with-initialization-based-versions

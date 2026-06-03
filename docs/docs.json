@@ -321,7 +321,7 @@
                 "group": "Base Protocol",
                 "pages": [
                   "specification/draft/basic/index",
-                  "specification/draft/basic/lifecycle",
+                  "specification/draft/basic/versioning",
                   "specification/draft/basic/patterns",
                   {
                     "group": "Transports",
@@ -545,6 +545,10 @@
     {
       "source": "/clients",
       "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/specification/draft/basic/lifecycle",
+      "destination": "/specification/draft/basic/versioning"
     },
     {
       "source": "/specification/versioning",
