@@ -69,7 +69,7 @@ are included in model context.
 ### Listing Tools
 
 To discover available tools, clients send a `tools/list` request. This operation supports
-[pagination](/specification/draft/server/utilities/pagination).
+[pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
