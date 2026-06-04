@@ -581,7 +581,7 @@ export interface DiscoverRequest extends JSONRPCRequest {
  *
  * @category `server/discover`
  */
-export interface DiscoverResult extends Result {
+export interface DiscoverResult extends CacheableResult {
   /**
    * MCP Protocol Versions this server supports. The client should choose a
    * version from this list for use in subsequent requests.

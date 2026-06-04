@@ -63,8 +63,6 @@ Servers offer any of the following features to clients:
 
 Clients may offer the following features to servers:
 
-- **Sampling**: Server-initiated agentic behaviors and recursive LLM interactions
-- **Roots**: Server-initiated inquiries into URI or filesystem locations to operate in
 - **Elicitation**: Server-initiated requests for additional information from users
 
 ### Additional Utilities
@@ -73,7 +71,20 @@ Clients may offer the following features to servers:
 - Progress tracking
 - Cancellation
 - Error reporting
-- Logging
+
+### Extensions
+
+Beyond the core protocol, MCP defines optional [extensions](/extensions/overview)
+that add modular, specialized, or experimental functionality. Extensions
+are always opt-in and require explicit support from both client and server, negotiated
+during initialization. Notable extensions include:
+
+- **[Tasks](/extensions/tasks/overview)**: Asynchronous execution of long-running
+  operations, with polling, mid-flight input, and durable handles
+- **[Skills over MCP](/community/skills-over-mcp/charter)**: Rich, structured
+  instructions for agent workflows, discovered and consumed through MCP
+- **[MCP Apps](/extensions/apps/overview)**: Interactive UI elements (charts, forms,
+  video players) rendered inline within conversations
 
 ## Security and Trust & Safety
 
@@ -100,14 +111,6 @@ considerations that all implementors must carefully address.
        considered untrusted, unless obtained from a trusted server.
    - Hosts must obtain explicit user consent before invoking any tool
    - Users should understand what each tool does before authorizing its use
-
-4. **LLM Sampling Controls**
-   - Users must explicitly approve any LLM sampling requests
-   - Users should control:
-     - Whether sampling occurs at all
-     - The actual prompt that will be sent
-     - What results the server can see
-   - The protocol intentionally limits server visibility into prompts
 
 ### Implementation Guidelines
 

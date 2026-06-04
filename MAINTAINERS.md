@@ -121,11 +121,14 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Registry
 
-- [Toby Padilla](https://github.com/toby)
 - [Tadas Antanavicius](https://github.com/tadasant)
-- [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
 - [Bob Dickinson](https://github.com/BobDickinson)
+
+#### Registry Emeritus
+
+- [Adam Jones](https://github.com/domdomegg)
+- [Toby Padilla](https://github.com/toby)
 
 ### MCPB (Model Context Protocol Bundle)
 
@@ -190,10 +193,11 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Shaun Smith](https://github.com/evalstate)
 - [Harvey Tuch](https://github.com/htuch)
 
-### Server Identity Working Group
+### Server Card Working Group
 
+- [Tadas Antanavicius](https://github.com/tadasant)
 - [David Soria Parra](https://github.com/dsp-ant)
-- [Nick Cooper](https://github.com/nickcoai)
+- [Sam Morrow](https://github.com/SamMorrowDrums)
 
 ### Agents Working Group
 
@@ -209,6 +213,15 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Primitive Grouping Interest Group
 
 - [Tapan Chugh](https://github.com/chughtapan)
+- [Sam Morrow](https://github.com/SamMorrowDrums)
+
+### Tool Annotations Interest Group
+
+- [Sam Morrow](https://github.com/SamMorrowDrums)
+
+### Tool Scopes Working Group
+
+- [Sam Morrow](https://github.com/SamMorrowDrums)
 
 ## About This Document
 

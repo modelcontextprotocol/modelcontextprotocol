@@ -321,16 +321,32 @@
                 "group": "Base Protocol",
                 "pages": [
                   "specification/draft/basic/index",
-                  "specification/draft/basic/lifecycle",
-                  "specification/draft/basic/transports",
-                  "specification/draft/basic/authorization",
+                  "specification/draft/basic/versioning",
                   {
-                    "group": "Utilities",
+                    "group": "Message Patterns",
                     "pages": [
-                      "specification/draft/basic/utilities/cancellation",
-                      "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/subscriptions",
-                      "specification/draft/basic/utilities/mrtr"
+                      "specification/draft/basic/patterns/index",
+                      "specification/draft/basic/patterns/mrtr",
+                      "specification/draft/basic/patterns/subscriptions",
+                      "specification/draft/basic/patterns/cancellation",
+                      "specification/draft/basic/patterns/progress"
+                    ]
+                  },
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http"
+                    ]
+                  },
+                  {
+                    "group": "Authorization",
+                    "pages": [
+                      "specification/draft/basic/authorization/index",
+                      "specification/draft/basic/authorization/authorization-server-discovery",
+                      "specification/draft/basic/authorization/client-registration",
+                      "specification/draft/basic/authorization/security-considerations"
                     ]
                   }
                 ]
@@ -424,38 +440,23 @@
               "seps/1850-pr-based-sep-workflow",
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
+              "seps/2106-json-schema-2020-12",
               "seps/2133-extensions",
               "seps/2148-contributor-ladder",
               "seps/2149-working-group-charter-template",
+              "seps/2164-resource-not-found-error",
+              "seps/2207-oidc-refresh-token-guidance",
               "seps/2243-http-standardization",
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
-              "seps/2567-sessionless-mcp",
-              "seps/2577-deprecate-roots-sampling-and-logging",
-              "seps/2663-tasks-extension"
-            ]
-          },
-          {
-            "group": "Accepted",
-            "pages": [
-              "seps/2207-oidc-refresh-token-guidance",
               "seps/2322-MRTR",
-              "seps/2549-TTL-for-list-results",
-              "seps/2575-stateless-mcp"
-            ]
-          },
-          {
-            "group": "In-Review",
-            "pages": [
-              "seps/2468-recommend-issuer-claim-for-auth"
-            ]
-          },
-          {
-            "group": "Draft",
-            "pages": [
-              "seps/2106-json-schema-2020-12",
-              "seps/2164-resource-not-found-error",
+              "seps/2468-recommend-issuer-claim-for-auth",
               "seps/2484-conformance-tests-required-for-final-seps",
-              "seps/2596-spec-feature-lifecycle-and-deprecation"
+              "seps/2549-TTL-for-list-results",
+              "seps/2567-sessionless-mcp",
+              "seps/2575-stateless-mcp",
+              "seps/2577-deprecate-roots-sampling-and-logging",
+              "seps/2596-spec-feature-lifecycle-and-deprecation",
+              "seps/2663-tasks-extension"
             ]
           }
         ]
@@ -505,6 +506,7 @@
           {
             "group": "Interest Group Charters",
             "pages": [
+              "community/auth/charter",
               "community/tool-annotations/charter"
             ]
           },
@@ -537,6 +539,10 @@
     {
       "source": "/clients",
       "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/specification/draft/basic/lifecycle",
+      "destination": "/specification/draft/basic/versioning"
     },
     {
       "source": "/specification/versioning",
