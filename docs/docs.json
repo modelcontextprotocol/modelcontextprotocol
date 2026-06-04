@@ -333,6 +333,14 @@
                     ]
                   },
                   {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http"
+                    ]
+                  },
+                  {
                     "group": "Authorization",
                     "pages": [
                       "specification/draft/basic/authorization/index",
@@ -498,6 +506,7 @@
           {
             "group": "Interest Group Charters",
             "pages": [
+              "community/auth/charter",
               "community/tool-annotations/charter"
             ]
           },

@@ -33,7 +33,7 @@ The request carries no body parameters beyond the standard `_meta`:
 ## Response
 
 The server replies with its supported protocol versions, capabilities, and
-identity:
+identity. This operation supports [caching](/specification/draft/server/utilities/caching).
 
 ```json
 {
@@ -50,7 +50,9 @@ identity:
       "name": "ExampleServer",
       "version": "1.0.0"
     },
-    "instructions": "This server provides weather and resource utilities."
+    "instructions": "This server provides weather and resource utilities.",
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }
 ```

@@ -11,6 +11,8 @@
     "serverInfo": {
       "name": "ExampleServer",
       "version": "1.0.0"
-    }
+    },
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }
