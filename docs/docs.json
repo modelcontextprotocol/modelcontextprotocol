@@ -344,6 +344,7 @@
                     "group": "Authorization",
                     "pages": [
                       "specification/draft/basic/authorization/index",
+                      "specification/draft/basic/authorization/server-discovery",
                       "specification/draft/basic/authorization/client-id-metadata-documents",
                       "specification/draft/basic/authorization/dynamic-client-registration",
                       "specification/draft/basic/authorization/security-considerations"
