@@ -17,7 +17,7 @@ Design history, experimental findings, and reference implementations are maintai
 
 ## Abstract
 
-This SEP defines a convention for serving [Agent Skills](https://agentskills.io/) over MCP using the existing Resources primitive. A _skill_ is a directory of files (minimally a `SKILL.md`) that provides structured workflow instructions to an agent. This extension specifies that each file in a skill directory is exposed as an MCP resource, conventionally under the `skill://` URI scheme. Skills are addressed by URI and may be read directly; a well-known `skill://index.json` resource enumerates concrete skills and parameterized skill templates, but is not required — accommodating servers whose skill catalogs are large, generated, or otherwise unenumerable. The skill format itself — directory structure, YAML frontmatter, naming rules, and the [progressive disclosure](https://agentskills.io/specification#progressive-disclosure) model that governs how hosts stage content into context — is delegated entirely to the [Agent Skills specification](https://agentskills.io/specification); this SEP defines only the transport binding.
+This SEP defines a convention for serving [Agent Skills](https://agentskills.io/) over MCP using the existing Resources primitive. A _skill_ is a directory of files (minimally a `SKILL.md`) that provides structured workflow instructions to an agent. This extension specifies that each file in a skill directory is exposed as an MCP resource, conventionally under the `skill://` URI scheme. Skills are addressed by URI and may be read directly; a well-known `skill://index.json` resource enumerates the skills a server serves, but is not required — accommodating servers whose skill catalogs are large, generated, or otherwise unenumerable. The skill format itself — directory structure, YAML frontmatter, naming rules, and the [progressive disclosure](https://agentskills.io/specification#progressive-disclosure) model that governs how hosts stage content into context — is delegated entirely to the [Agent Skills specification](https://agentskills.io/specification); this SEP defines only the transport binding.
 
 Because the extension adds no new protocol methods or capabilities, hosts that already treat MCP resources as a virtual filesystem can consume MCP-served skills identically to local filesystem skills. The specification is accompanied by implementation guidelines for host-provided resource-reading tools and SDK-level convenience wrappers.
 
@@ -100,7 +100,7 @@ On top of that baseline, two discovery mechanisms are defined. A server MAY supp
 
 #### Enumeration via `skill://index.json`
 
-A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://github.com/agentskills/agentskills/pull/254), with one difference: the `url` field contains a full MCP resource URI (any scheme the server serves). This binding also defines one additional `type` value, `"mcp-resource-template"`, for entries that describe a parameterized skill namespace.
+A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://github.com/agentskills/agentskills/pull/254), with one difference: the `url` field contains a full MCP resource URI (any scheme the server serves).
 
 ```json
 {
@@ -126,11 +126,6 @@ A server SHOULD expose a resource at the well-known URI `skill://index.json` who
       "description": "Extract, fill, and assemble PDF documents",
       "url": "skill://pdf-processing.tar.gz",
       "digest": "sha256:c4d5e6f7..."
-    },
-    {
-      "type": "mcp-resource-template",
-      "description": "Per-product documentation skill",
-      "url": "skill://docs/{product}/SKILL.md"
     }
   ]
 }
@@ -138,15 +133,15 @@ A server SHOULD expose a resource at the well-known URI `skill://index.json` who
 
 Index fields:
 
-| Field                  | Required    | Description                                                                                                                                                                                                                                              |
-| ---------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `$schema`              | Yes         | Schema version URI. Clients SHOULD match against known URIs before processing.                                                                                                                                                                           |
-| `skills`               | Yes         | Array of skill entries.                                                                                                                                                                                                                                  |
-| `skills[].type`        | Yes         | MUST be `"skill-md"`, `"archive"`, or `"mcp-resource-template"`.                                                                                                                                                                                         |
-| `skills[].description` | Yes         | For `"skill-md"` and `"archive"`, the skill's `description` matching its `SKILL.md` frontmatter. For `"mcp-resource-template"`, a description of the addressable skill space (surfaced in the host's discovery UX, not necessarily the model's context). |
-| `skills[].url`         | Yes         | Full resource URI. See per-type semantics below.                                                                                                                                                                                                         |
-| `skills[].name`        | Conditional | Required for `"skill-md"` and `"archive"`; matches the `SKILL.md` frontmatter `name` and the final segment of the skill path. Omitted for `"mcp-resource-template"`.                                                                                     |
-| `skills[].digest`      | Conditional | Required for `"skill-md"` and `"archive"`: SHA-256 content digest of the artifact, formatted as `sha256:{hex}` (64 lowercase hex characters). See [Integrity and verification](#integrity-and-verification). Omitted for `"mcp-resource-template"`.      |
+| Field                  | Required | Description                                                                                                                                                       |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$schema`              | Yes      | Schema version URI. Clients SHOULD match against known URIs before processing.                                                                                    |
+| `skills`               | Yes      | Array of skill entries.                                                                                                                                           |
+| `skills[].type`        | Yes      | MUST be `"skill-md"` or `"archive"`.                                                                                                                              |
+| `skills[].description` | Yes      | The skill's `description` matching its `SKILL.md` frontmatter.                                                                                                    |
+| `skills[].url`         | Yes      | Full resource URI. See per-type semantics below.                                                                                                                  |
+| `skills[].name`        | Yes      | Matches the `SKILL.md` frontmatter `name` and the final segment of the skill path.                                                                                |
+| `skills[].digest`      | Yes      | SHA-256 content digest of the artifact, formatted as `sha256:{hex}` (64 lowercase hex characters). See [Integrity and verification](#integrity-and-verification). |
 
 Clients SHOULD ignore unrecognized fields and SHOULD skip entries with an unrecognized `type`.
 
@@ -158,17 +153,11 @@ The `<skill-path>` is the archive `url` with its archive suffix (`.tar.gz` or `.
 
 Hosts unpacking an archive MUST apply the [archive safety](https://agentskills.io/well-known-uri#archive-safety) requirements of the Agent Skills specification: reject archives containing path-traversal sequences or absolute paths, reject symlinks or hard links that resolve outside the skill directory, and enforce a limit on total unpacked size.
 
-**Template entries** (`type: "mcp-resource-template"`) describe a parameterized skill namespace without materializing every entry. The `url` is an [RFC 6570](https://datatracker.ietf.org/doc/html/rfc6570) URI template that resolves to `SKILL.md` resource URIs. A server SHOULD register the same `url` value as an MCP [resource template](https://modelcontextprotocol.io/specification/2025-11-25/server/resources#resource-templates) so hosts can wire template variables to the [completion API](https://modelcontextprotocol.io/specification/2025-11-25/server/utilities/completion). Hosts SHOULD surface template entries in their UI as interactive discovery points: the user fills in variables via completion, selects a skill, and the host passes the resolved URI into the conversation. This scales to servers with unbounded skill catalogs.
-
-Unlike `skill-md` and `archive` entries — whose `name` and `description` a host typically surfaces in the model's context alongside filesystem skills — a `mcp-resource-template` entry's `description` characterizes a skill _space_ rather than a single skill, and is intended for the host's discovery UX (e.g. a completion menu the user browses), not for direct insertion into the model's context. Hydration and invocation collapse to the baseline: once a template variable is resolved to a concrete `skill://…/SKILL.md` URI, that URI is read via `resources/read` and staged into context exactly like any other skill — there is no template-specific invocation path. A host MAY instead expose the template and its completions to the model directly, letting the model resolve and explore the namespace autonomously; this is optional and expected to be uncommon.
-
 ##### Integrity and verification
 
-Per the Agent Skills [integrity and verification](https://github.com/agentskills/agentskills/pull/254) requirements, each `skill-md` and `archive` entry includes a `digest` field containing the SHA-256 hash of the artifact's raw bytes, formatted as `sha256:{hex}` where `{hex}` is 64 lowercase hexadecimal characters. For `"skill-md"`, the artifact is the `SKILL.md` file; for `"archive"`, the artifact is the archive file.
+Per the Agent Skills [integrity and verification](https://github.com/agentskills/agentskills/pull/254) requirements, each skill entry includes a `digest` field containing the SHA-256 hash of the artifact's raw bytes, formatted as `sha256:{hex}` where `{hex}` is 64 lowercase hexadecimal characters. For `"skill-md"`, the artifact is the `SKILL.md` file; for `"archive"`, the artifact is the archive file.
 
 Hosts MUST verify retrieved content against the `digest` in the index. A mismatch indicates the content is corrupted or tampered with — hosts MUST NOT use unverified content. Digests also enable efficient caching: compare a skill's `digest` against a locally cached value to determine whether the artifact has changed without re-reading it.
-
-Template entries carry no `digest`: the skills they resolve to are not enumerated in the index, so a skill read via a resolved template URI is retrieved over the authenticated MCP transport without index-level verification.
 
 The `skill://index.json` resource is served via `resources/read` like any other resource, with `mimeType` of `application/json`. A server MAY also surface it in `resources/list` so clients can detect its presence, but clients MAY attempt to read it directly without prior discovery.
 
@@ -314,9 +303,9 @@ Constraining the final segment to match the frontmatter `name` gets both propert
 
 ### Why Is Enumeration Optional?
 
-Requiring every server to expose a complete `skill://index.json` fails for at least three server shapes: a documentation server that synthesizes a skill per API endpoint (thousands), a skill gateway fronting an external index (unbounded), and a server that generates skills from templates parameterized at read time (unenumerable by construction). For these, the list is either too large to be useful in the model's context or does not meaningfully exist.
+Requiring every server to expose a complete `skill://index.json` fails for at least three server shapes: a documentation server that synthesizes a skill per API endpoint (thousands), a skill gateway fronting an external index (unbounded), and a server that generates skills dynamically at read time (unenumerable by construction). For these, the list is either too large to be useful in the model's context or does not meaningfully exist.
 
-The baseline is therefore direct readability — a skill URI is always a valid argument to `resources/read`. The index (concrete entries and templates) is layered on top for servers where it makes sense. A host that assumes enumeration is exhaustive will miss skills on servers where it is not, hence the requirement that hosts MUST NOT treat empty enumeration as proof of absence.
+The baseline is therefore direct readability — a skill URI is always a valid argument to `resources/read`. The index is layered on top for servers where it makes sense. A host that assumes enumeration is exhaustive will miss skills on servers where it is not, hence the requirement that hosts MUST NOT treat empty enumeration as proof of absence.
 
 ### Why Delegate the Format to agentskills.io?
 
