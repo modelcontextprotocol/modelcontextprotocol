@@ -76,15 +76,15 @@ specifies how an MCP server indicates the location of its corresponding authoriz
 
 MCP servers advertise their associated authorization servers through OAuth 2.0 Protected
 Resource Metadata, and MCP clients determine authorization server endpoints and supported
-capabilities through authorization server metadata discovery. The normative discovery
-requirements are defined in
+capabilities through authorization server metadata discovery. Implementations **MUST**
+follow the normative discovery requirements defined in
 [Authorization Server Discovery](/specification/draft/basic/authorization/authorization-server-discovery).
 
 ## Client Registration
 
-Before initiating the authorization flow, MCP clients obtain a client ID through one of
-three registration mechanisms: Client ID Metadata Documents, pre-registration, or Dynamic
-Client Registration. The mechanisms and their selection priority are defined in
+Before initiating the authorization flow, MCP clients **MUST** obtain a client ID through
+one of three registration mechanisms: Client ID Metadata Documents, pre-registration, or
+Dynamic Client Registration, following the requirements and selection priority defined in
 [Client Registration](/specification/draft/basic/authorization/client-registration).
 
 ## Scope Selection Strategy
