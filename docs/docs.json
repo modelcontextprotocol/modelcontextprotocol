@@ -332,6 +332,14 @@
                       "specification/draft/basic/patterns/progress"
                     ]
                   },
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http"
+                    ]
+                  },
                   "specification/draft/basic/authorization"
                 ]
               },
