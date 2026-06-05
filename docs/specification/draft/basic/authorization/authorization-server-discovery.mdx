@@ -30,7 +30,9 @@ independent OAuth 2.0 authorization server. Consistent with
 identifiers are unique to the authorization server that issued them. Clients **MUST** maintain
 separate registration state (client credentials, tokens) per authorization server and
 **MUST NOT** assume that credentials valid for one authorization server will be accepted by
-another.
+another. See
+[Authorization Server Binding](/specification/draft/basic/authorization/client-registration#authorization-server-binding)
+for the requirements on associating client credentials with the authorization server that issued them.
 
 ## Protected Resource Metadata Discovery Requirements
 
@@ -44,34 +46,11 @@ MCP servers **MUST** implement one of the following discovery mechanisms to prov
 
 MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed `WWW-Authenticate` headers when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
 
-MCP servers **SHOULD** include a `scope` parameter in the `WWW-Authenticate` header as defined in
-[RFC 6750 Section 3](https://datatracker.ietf.org/doc/html/rfc6750#section-3)
-to indicate the scopes required for accessing the resource. This provides clients with immediate
-guidance on the appropriate scopes to request during authorization,
-following the principle of least privilege and preventing clients from requesting excessive permissions.
-
-The scopes included in the `WWW-Authenticate` challenge **MAY** match `scopes_supported`, be a subset
-or superset of it, or an alternative collection that is neither a strict subset nor
-superset. Clients **MUST NOT** assume any particular set relationship between the challenged
-scope set and `scopes_supported`. Clients **MUST** treat the scopes provided in the
-challenge as authoritative for the current operation — that is, these scopes are required to
-satisfy the current request. When re-authorizing, clients **SHOULD** include these scopes
-alongside any previously granted scopes to avoid losing permissions needed for other operations
-(see [Step-Up Authorization Flow](/specification/draft/basic/authorization#step-up-authorization-flow)). Servers **SHOULD** strive for
-consistency in how they construct scope sets but they are not required to surface every dynamically
-issued scope through `scopes_supported`.
-
-Example 401 response with scope guidance:
-
-```http
-HTTP/1.1 401 Unauthorized
-WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
-                         scope="files:read"
-```
-
 MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
 
-If the `scope` parameter is absent, clients **SHOULD** apply the fallback behavior defined in the [Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy) section.
+Servers can also include a `scope` parameter in the `WWW-Authenticate` challenge to indicate the
+scopes required for accessing the resource; the scope semantics and the associated client behavior
+are defined in the [Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy) section.
 
 ## Authorization Server Metadata Discovery
 
