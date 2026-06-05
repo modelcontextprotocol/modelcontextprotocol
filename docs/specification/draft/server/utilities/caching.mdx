@@ -146,6 +146,11 @@ page is an independently cacheable response&mdash;consistent with how HTTP
   cursor), the client **SHOULD** discard all cached pages and re-fetch from the
   beginning.
 
+Servers **MUST** apply the same `cacheScope` to all response pages for a given list
+request. For example, if the first page of a `tools/list` response has
+`cacheScope: "private"`, all subsequent pages for that request **MUST** also be
+`"private"`.
+
 ## Security Considerations
 
 A `cacheScope` of `"public"` indicates that the response does not contain user-specific data and can be safely shared. Servers MUST be aware that responses with a `"public"` `cacheScope` may be shared between callers even if the Result is coming from an authenticated endpoint. For example, the Result from an authenticated `tools/list` call with a `"public"` `cacheScope` may be cached by a client and may be shared outside of the initial requests authorization context. (i.e. different access tokens can leverage the same cache).
