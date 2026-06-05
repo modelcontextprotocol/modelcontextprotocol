@@ -7,13 +7,13 @@ title: Client Registration
 MCP supports three client registration mechanisms. Choose based on your scenario:
 
 - **[Client ID Metadata Documents](#client-id-metadata-documents)**: When client and server have no prior relationship (most common)
-- **[Pre-registration](#preregistration)**: When client and server have an existing relationship
+- **[Pre-registration](#pre-registration)**: When client and server have an existing relationship
 - **[Dynamic Client Registration](#dynamic-client-registration)**: For backwards compatibility or specific requirements
 
-Clients supporting all options **SHOULD** follow the following priority order:
+Clients supporting all options **SHOULD** use the following priority order:
 
 1. Use pre-registered client information for the server if the client has it available
-2. Use Client ID Metadata Documents if the Authorization Server indicates if the server supports it (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
+2. Use Client ID Metadata Documents if the Authorization Server indicates that it supports them (via `client_id_metadata_document_supported` in OAuth Authorization Server Metadata)
 3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
 4. Prompt the user to enter the client information if no other option is available
 
@@ -48,7 +48,7 @@ Key requirements include:
 - **SHOULD** cache metadata respecting HTTP cache headers
 - **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
 - **MUST** validate the document structure is valid JSON and contains required fields
-- **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6)
+- **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6) and in [Client ID Metadata Document Security](/specification/draft/basic/authorization/security-considerations#client-id-metadata-document-security)
 
 ### Example Metadata Document
 
@@ -111,7 +111,7 @@ sequenceDiagram
     Note over Server: Cache metadata for future requests<br/>(respecting HTTP cache headers)
 ```
 
-### Discovery
+### Advertising CIMD Support
 
 Authorization servers advertise that they support clients using Client ID Metadata Documents by including the following property in their OAuth Authorization Server metadata:
 
@@ -123,11 +123,11 @@ Authorization servers advertise that they support clients using Client ID Metada
 
 MCP clients **SHOULD** check for this capability and **MAY** fall back to
 [Dynamic Client Registration](#dynamic-client-registration)
-or pre-registration if unavailable.
+or [pre-registration](#pre-registration) if unavailable.
 
-## Preregistration
+## Pre-registration
 
-MCP clients **SHOULD** support an option for static client credentials such as those supplied by a preregistration flow. This could be:
+MCP clients **SHOULD** support an option for static client credentials such as those supplied by a pre-registration flow. This could be:
 
 1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
    interacting with that authorization server, or
@@ -184,8 +184,9 @@ Clients that use pre-registered credentials, or persist client credentials obtai
 Registration, **MUST** associate those
 credentials with the specific authorization server that issued them,
 keyed by the authorization server's `issuer` identifier. When the
-authorization server changes (detected via updated protected
-resource metadata), clients **MUST NOT** reuse client credentials
+authorization server changes (detected via updated
+[protected resource metadata](/specification/draft/basic/authorization/authorization-server-discovery#authorization-server-location)),
+clients **MUST NOT** reuse client credentials
 from a different authorization server and **MUST** re-register
 with the new authorization server.
 
