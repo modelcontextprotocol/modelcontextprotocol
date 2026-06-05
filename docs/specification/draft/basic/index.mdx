@@ -310,6 +310,10 @@ without relying on any prior connection state. See
 | `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
 | `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
 
+A request missing any required field is malformed; the server **MUST** reject it with
+JSON-RPC error code `-32602` (Invalid params). On HTTP, the response status **MUST** be
+`400 Bad Request`.
+
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
 `io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
