@@ -84,7 +84,7 @@ Clients and servers can negotiate support for optional
 are advertised in the `extensions` field of capabilities, which is a map of
 extension identifiers to per-extension settings objects. Extension identifiers
 **MUST** follow the [`_meta` key naming rules](/specification/draft/basic/index#meta),
-except that the prefix is mandatory.
+with a mandatory prefix.
 
 The following is an example of a client that advertises the
 [MCP Apps extension](/extensions/apps/overview) identified as `io.modelcontextprotocol/ui`:
