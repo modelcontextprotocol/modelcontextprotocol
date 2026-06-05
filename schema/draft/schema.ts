@@ -686,6 +686,9 @@ export interface ClientCapabilities {
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
    *
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, except that
+   * the prefix is mandatory.
+   *
    * @example Extensions — MCP Apps (UI) extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
@@ -779,6 +782,9 @@ export interface ServerCapabilities {
    * Optional MCP extensions that the server supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/tasks"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
+   *
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, except that
+   * the prefix is mandatory.
    *
    * @example Extensions — Tasks extension support
    * {@includeCode ./examples/ServerCapabilities/extensions-tasks.json}
