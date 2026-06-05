@@ -685,6 +685,106 @@ processes:
   - Use unix domain sockets or other Interprocess Communication (IPC)
     mechanisms with restricted access
 
+### Scoped Authorization Receipts for High-Risk Tool Calls
+
+MCP authorization establishes whether a client can reach an MCP server.
+For high-risk tool calls, such as durable state mutation, spending
+money, exporting sensitive data, or changing permissions, some
+deployments also need to verify that an enterprise gateway or runtime
+authorized this exact agent-originated action before the provider runs
+business logic.
+
+#### Layered Authorization Model
+
+Scoped authorization receipts can help deployments keep three decisions
+separate:
+
+1. **Transport authorization**: OAuth or another authorization mechanism
+   establishes that the client can access the MCP server.
+2. **Runtime action authorization**: a gateway or enterprise runtime
+   admits this exact tool call for a specific user, agent, resource,
+   request digest, and policy context.
+3. **Provider business authorization**: the provider decides whether to
+   execute the operation before mutating state.
+
+This is a non-normative pattern. MCP core does not define a receipt
+format, require a particular issuer, or replace provider-side business
+authorization.
+
+#### Example Receipt Shape
+
+A provider-hosted MCP server can require a scoped receipt in tool
+arguments or request metadata for selected high-risk tools. A receipt
+profile is deployment-specific, but the fields below are often useful
+for replay resistance and auditability:
+
+```json
+{
+  "phase": "admission",
+  "state": "admitted",
+  "issuer": "https://gateway.example.com",
+  "audience": "provider-crm-mcp/provider.crm.update_customer",
+  "decision_id": "dec_123",
+  "action_id": "act_456",
+  "tool": "provider.crm.update_customer",
+  "action": "write",
+  "resource": "provider/customer/cus_123",
+  "request_digest": "sha256:...",
+  "policy_version": "crm-write-policy-2026-06",
+  "case_id": "case_1042",
+  "customer_id": "cus_123",
+  "approval_id": "approval_789",
+  "jit_grant_id": "grant_012",
+  "idempotency_key": "case_1042:update-cus_123:dec_123",
+  "expires_at": "2026-06-03T18:00:00Z"
+}
+```
+
+The `request_digest` should be computed over a deployment-defined
+canonical representation of the method, tool name, tool arguments, and
+relevant policy context. The provider verifies that the receipt is
+fresh, intended for the current MCP server and tool, and bound to the
+same action, resource, context identifiers, and request digest before
+business logic runs.
+
+The receipt state machine should remain separate from provider business
+logic. Example states include:
+
+- `admitted`: this exact request was accepted for possible execution.
+- `completed`: the provider has a prior outcome for the same action or
+  receipt ID.
+- `denied`: policy, user, or provider refused before execution.
+- `expired`: the receipt is no longer fresh.
+- `out_of_scope`: the request digest, resource, action, or policy
+  context no longer matches.
+- `already_consumed`: the receipt cannot authorize another mutation.
+
+#### Retry Suppression and Scope Drift
+
+Providers that use scoped receipts should explicitly handle replay,
+retry suppression, and scope drift:
+
+1. A gateway admits `provider.crm.update_customer` for `case_1042` and
+   `cus_123`, bound to stable action ID A, canonical request digest D,
+   policy version P, and expiry T.
+2. The client submits the tool call with the scoped receipt.
+3. The provider completes or reserves the mutation, but transport times
+   out before the agent loop records the outcome.
+4. The client retries with the same receipt, action ID, and request
+   digest. The provider returns the prior outcome, completed receipt, or
+   an `already_consumed` terminal state without running the mutating
+   handler again.
+5. The client changes the resource, customer, action, request digest,
+   policy version, action ID, or context. The provider rejects the
+   receipt as `out_of_scope` or stale before business logic runs.
+6. The client reuses the same receipt for a second mutation. The
+   provider rejects it as `already_consumed`.
+
+The key acceptance criterion is that retry after timeout does not cause
+duplicate mutation. A provider idempotency key can be linked to the
+stable action or receipt ID, but should not be the only
+verifier-readable boundary.
+
 ### Scope Minimization
 
 Poor scope design increases token compromise impact, elevates user
