@@ -30,13 +30,18 @@ implements a selected subset of their features to ensure security and interopera
 while maintaining simplicity:
 
 - OAuth 2.1 IETF DRAFT ([draft-ietf-oauth-v2-1-13](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13))
+- OAuth 2.0 Bearer Token Usage
+  ([RFC6750](https://datatracker.ietf.org/doc/html/rfc6750))
 - OAuth 2.0 Authorization Server Metadata
   ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414))
 - OAuth 2.0 Dynamic Client Registration Protocol
   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591))
+- Resource Indicators for OAuth 2.0
+  ([RFC8707](https://www.rfc-editor.org/rfc/rfc8707.html))
 - OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728))
 - OAuth 2.0 Authorization Server Issuer Identification ([RFC9207](https://datatracker.ietf.org/doc/html/rfc9207))
 - OAuth Client ID Metadata Documents ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00))
+- [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 - OpenID Connect Dynamic Client Registration 1.0 ([OpenID Connect Registration](https://openid.net/specs/openid-connect-registration-1_0.html))
 
 ## Roles
@@ -57,20 +62,22 @@ specifies how an MCP server indicates the location of its corresponding authoriz
 1. Authorization servers **MUST** implement OAuth 2.1 with appropriate security
    measures for both confidential and public clients.
 
-2. Authorization servers and MCP clients **SHOULD** support OAuth Client ID Metadata Documents
+2. Authorization servers and MCP clients **SHOULD** support [OAuth Client ID Metadata Documents](/specification/draft/basic/authorization/client-registration#client-id-metadata-documents)
    ([draft-ietf-oauth-client-id-metadata-document-00](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00)).
 
 3. Authorization servers and MCP clients **MAY** support the OAuth 2.0 Dynamic Client Registration
-   Protocol ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)).
+   Protocol ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)). Note that
+   [Dynamic Client Registration](/specification/draft/basic/authorization/client-registration#dynamic-client-registration)
+   is deprecated and retained for backwards compatibility with authorization servers that do not support Client ID Metadata Documents.
 
 4. MCP servers **MUST** implement OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)).
-   MCP clients **MUST** use OAuth 2.0 Protected Resource Metadata for authorization server discovery.
+   MCP clients **MUST** use OAuth 2.0 Protected Resource Metadata for [authorization server discovery](/specification/draft/basic/authorization/authorization-server-discovery).
 
 5. MCP authorization servers **MUST** provide at least one of the following discovery mechanisms:
    - OAuth 2.0 Authorization Server Metadata ([RFC8414](https://datatracker.ietf.org/doc/html/rfc8414))
    - [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html)
 
-   MCP clients **MUST** support both discovery mechanisms to obtain the information required to interact with the authorization server.
+   MCP clients **MUST** support both [discovery mechanisms](/specification/draft/basic/authorization/authorization-server-discovery#authorization-server-metadata-discovery) to obtain the information required to interact with the authorization server.
 
 ## Authorization Server Discovery
 
@@ -89,6 +96,31 @@ Dynamic Client Registration, following the requirements and selection priority d
 
 ## Scope Selection Strategy
 
+MCP servers **SHOULD** include a `scope` parameter in the `WWW-Authenticate` header as defined in
+[RFC 6750 Section 3](https://datatracker.ietf.org/doc/html/rfc6750#section-3)
+to indicate the scopes required for accessing the resource. This provides clients with immediate
+guidance on the appropriate scopes to request during authorization,
+following the principle of least privilege and preventing clients from requesting excessive permissions.
+
+The scopes included in the `WWW-Authenticate` challenge **MAY** match `scopes_supported`, be a subset
+or superset of it, or an alternative collection that is neither a strict subset nor
+superset. Clients **MUST NOT** assume any particular set relationship between the challenged
+scope set and `scopes_supported`. Clients **MUST** treat the scopes provided in the
+challenge as authoritative for the current operation. These scopes are required to
+satisfy the current request. When re-authorizing, clients **SHOULD** include these scopes
+alongside any previously granted scopes to avoid losing permissions needed for other operations
+(see [Step-Up Authorization Flow](#step-up-authorization-flow)). Servers **SHOULD** strive for
+consistency in how they construct scope sets but they are not required to surface every dynamically
+issued scope through `scopes_supported`.
+
+Example 401 response with scope guidance:
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource",
+                         scope="files:read"
+```
+
 When implementing authorization flows, MCP clients **SHOULD** follow the principle of least privilege by requesting
 only the scopes necessary for their intended operations. During the initial authorization handshake, MCP clients
 **SHOULD** follow this priority order for scope selection:
@@ -100,11 +132,14 @@ This approach accommodates the general-purpose nature of MCP clients, which typi
 
 This approach minimizes user friction while following the principle of least privilege.
 The `scopes_supported` field is intended to represent the minimal set of scopes necessary
-for basic functionality (see [Scope Minimization](/specification/draft/basic/security_best_practices#scope-minimization)),
+for basic functionality (see [Scope Minimization](/docs/tutorials/security/security_best_practices#scope-minimization)),
 with additional scopes requested incrementally through the step-up authorization flow steps
 described in the [Scope Challenge Handling](#scope-challenge-handling) section.
 
 ## Authorization Flow Steps
+
+The registration step shown in the flow uses one of the mechanisms defined in
+[Client Registration](/specification/draft/basic/authorization/client-registration).
 
 The complete Authorization flow proceeds as follows:
 
