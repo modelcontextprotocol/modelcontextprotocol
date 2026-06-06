@@ -144,6 +144,18 @@ The server **MUST** respond with its own capabilities and information:
 }
 ```
 
+The `serverInfo.description` field describes the server itself: what kind of
+capabilities it provides and when a client or host might choose to connect to
+it. The `instructions` field describes how to use the server effectively after
+it has been initialized, such as workflow guidance, constraints, or important
+relationships between tools, resources, and prompts.
+
+Servers that provide `instructions` should keep them focused on server-level
+usage guidance and avoid duplicating individual tool, resource, or prompt
+descriptions. Clients and hosts may use `serverInfo.description` for discovery,
+server selection, or progressive disclosure, and may use `instructions` as
+model-facing context once the server is loaded.
+
 After successful initialization, the client **MUST** send an `initialized` notification
 to indicate it is ready to begin normal operations:
 
