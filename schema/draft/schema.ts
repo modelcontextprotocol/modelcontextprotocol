@@ -3015,6 +3015,18 @@ export interface ElicitResult {
 }
 
 /**
+ * Parameters for a {@link ElicitationCompleteNotification | notifications/elicitation/complete} notification.
+ *
+ * @category `notifications/elicitation/complete`
+ */
+export interface ElicitationCompleteNotificationParams extends NotificationParams {
+  /**
+   * The ID of the elicitation that completed.
+   */
+  elicitationId: string;
+}
+
+/**
  * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
  *
  * @example Elicitation complete
@@ -3024,12 +3036,7 @@ export interface ElicitResult {
  */
 export interface ElicitationCompleteNotification extends JSONRPCNotification {
   method: "notifications/elicitation/complete";
-  params: {
-    /**
-     * The ID of the elicitation that completed.
-     */
-    elicitationId: string;
-  };
+  params: ElicitationCompleteNotificationParams;
 }
 
 /* Client messages */

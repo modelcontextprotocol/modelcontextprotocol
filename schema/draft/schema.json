@@ -952,22 +952,29 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "elicitationId": {
-                            "description": "The ID of the elicitation that completed.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "elicitationId"
-                    ],
-                    "type": "object"
+                    "$ref": "#/$defs/ElicitationCompleteNotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ElicitationCompleteNotificationParams": {
+            "description": "Parameters for a {@link ElicitationCompleteNotificationnotifications/elicitation/complete} notification.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "elicitationId": {
+                    "description": "The ID of the elicitation that completed.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "elicitationId"
             ],
             "type": "object"
         },
