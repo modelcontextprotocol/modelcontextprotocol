@@ -72,6 +72,7 @@ Conformance scores are calculated against **applicable required tests** only:
 - Excluding tests marked as pending or skipped
 - Excluding tests for experimental features
 - Excluding legacy backward-compatibility tests (unless the SDK claims legacy support)
+- Excluding tests labeled `disputed` in the conformance repository, until the dispute is resolved
 
 Conformance testing validates that SDKs correctly implement the protocol by running standardized test
 scenarios and checking protocol message exchanges. See [Tier Relegation](#tier-relegation) for how
@@ -95,6 +96,8 @@ continuously for 4 weeks:
 
 - **Tier 1 → Tier 2**: Any conformance test fails
 - **Tier 2 → Tier 3**: More than 20% of conformance tests fail
+
+An SDK may also be relegated if issues remain unaddressed for two months.
 
 ## Issue Triage Labels
 

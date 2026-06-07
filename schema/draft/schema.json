@@ -328,7 +328,7 @@
                     "additionalProperties": {
                         "$ref": "#/$defs/JSONObject"
                     },
-                    "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.",
+                    "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.\n\nKeys MUST follow the {@link MetaObject`_meta` key naming rules}, with a\nmandatory prefix.",
                     "type": "object"
                 },
                 "roots": {
@@ -727,6 +727,14 @@
                 "_meta": {
                     "$ref": "#/$defs/MetaObject"
                 },
+                "cacheScope": {
+                    "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: Any client or intermediary (e.g., shared gateway, proxy)\n  MAY cache the response and serve it to any user.\n- `\"private\"`: Only the requesting user's client MAY cache the response.\n  Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached\n  copy to a different user.",
+                    "enum": [
+                        "private",
+                        "public"
+                    ],
+                    "type": "string"
+                },
                 "capabilities": {
                     "$ref": "#/$defs/ServerCapabilities",
                     "description": "The capabilities of the server."
@@ -749,13 +757,20 @@
                         "type": "string"
                     },
                     "type": "array"
+                },
+                "ttlMs": {
+                    "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "minimum": 0,
+                    "type": "integer"
                 }
             },
             "required": [
+                "cacheScope",
                 "capabilities",
                 "resultType",
                 "serverInfo",
-                "supportedVersions"
+                "supportedVersions",
+                "ttlMs"
             ],
             "type": "object"
         },
@@ -937,22 +952,29 @@
                     "type": "string"
                 },
                 "params": {
-                    "properties": {
-                        "elicitationId": {
-                            "description": "The ID of the elicitation that completed.",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "elicitationId"
-                    ],
-                    "type": "object"
+                    "$ref": "#/$defs/ElicitationCompleteNotificationParams"
                 }
             },
             "required": [
                 "jsonrpc",
                 "method",
                 "params"
+            ],
+            "type": "object"
+        },
+        "ElicitationCompleteNotificationParams": {
+            "description": "Parameters for a {@link ElicitationCompleteNotificationnotifications/elicitation/complete} notification.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "elicitationId": {
+                    "description": "The ID of the elicitation that completed.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "elicitationId"
             ],
             "type": "object"
         },
@@ -3083,7 +3105,7 @@
                     "additionalProperties": {
                         "$ref": "#/$defs/JSONObject"
                     },
-                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/tasks\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.",
+                    "description": "Optional MCP extensions that the server supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/tasks\"), and values are per-extension settings\nobjects. An empty object indicates support with no settings.\n\nKeys MUST follow the {@link MetaObject`_meta` key naming rules}, with a\nmandatory prefix.",
                     "type": "object"
                 },
                 "logging": {

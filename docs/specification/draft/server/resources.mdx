@@ -76,7 +76,7 @@ per-request input, not connection state.
 ### Listing Resources
 
 To discover available resources, clients send a `resources/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination).
+supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -124,7 +124,8 @@ supports [pagination](/specification/draft/server/utilities/pagination).
 
 ### Reading Resources
 
-To retrieve resource contents, clients send a `resources/read` request:
+To retrieve resource contents, clients send a `resources/read` request. This operation
+supports [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -173,7 +174,7 @@ Alternatively, if the scheme of `uri` is `https://`, clients may fetch the resou
 Resource templates allow servers to expose parameterized resources using
 [URI templates](https://datatracker.ietf.org/doc/html/rfc6570). Arguments may be
 auto-completed through [the completion API](/specification/draft/server/utilities/completion).
-This operation supports [pagination](/specification/draft/server/utilities/pagination).
+This operation supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -391,10 +392,8 @@ taking the above guidance in to account.
 
 ## Error Handling
 
-Servers **SHOULD** return standard JSON-RPC errors for common failure cases:
-
-- Resource not found: `-32602` (Invalid Params)
-- Internal errors: `-32603`
+If the requested resource does not exist, servers **MUST** return a JSON-RPC error with
+code `-32602` (Invalid Params). Servers **SHOULD** return `-32603` for internal errors.
 
 For backwards compatibility, clients **SHOULD** also accept `-32002` as a
 resource not found error, as earlier protocol versions used this code.

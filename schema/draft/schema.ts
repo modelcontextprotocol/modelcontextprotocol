@@ -581,7 +581,7 @@ export interface DiscoverRequest extends JSONRPCRequest {
  *
  * @category `server/discover`
  */
-export interface DiscoverResult extends Result {
+export interface DiscoverResult extends CacheableResult {
   /**
    * MCP Protocol Versions this server supports. The client should choose a
    * version from this list for use in subsequent requests.
@@ -686,6 +686,9 @@ export interface ClientCapabilities {
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
    *
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, with a
+   * mandatory prefix.
+   *
    * @example Extensions — MCP Apps (UI) extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
@@ -779,6 +782,9 @@ export interface ServerCapabilities {
    * Optional MCP extensions that the server supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/tasks"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
+   *
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, with a
+   * mandatory prefix.
    *
    * @example Extensions — Tasks extension support
    * {@includeCode ./examples/ServerCapabilities/extensions-tasks.json}
@@ -3009,6 +3015,18 @@ export interface ElicitResult {
 }
 
 /**
+ * Parameters for a {@link ElicitationCompleteNotification | notifications/elicitation/complete} notification.
+ *
+ * @category `notifications/elicitation/complete`
+ */
+export interface ElicitationCompleteNotificationParams extends NotificationParams {
+  /**
+   * The ID of the elicitation that completed.
+   */
+  elicitationId: string;
+}
+
+/**
  * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
  *
  * @example Elicitation complete
@@ -3018,12 +3036,7 @@ export interface ElicitResult {
  */
 export interface ElicitationCompleteNotification extends JSONRPCNotification {
   method: "notifications/elicitation/complete";
-  params: {
-    /**
-     * The ID of the elicitation that completed.
-     */
-    elicitationId: string;
-  };
+  params: ElicitationCompleteNotificationParams;
 }
 
 /* Client messages */
