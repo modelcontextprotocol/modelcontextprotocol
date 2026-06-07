@@ -5,12 +5,18 @@ title: Cancellation
 <div id="enable-section-numbers" />
 
 The Model Context Protocol (MCP) supports optional cancellation of in-progress requests
-through notification messages. Either side can send a cancellation notification to
-indicate that a previously-issued request should be terminated.
+through notification messages. Because all requests flow from client to server,
+cancellation flows in one direction as well: the client sends a cancellation notification
+to indicate that a request it previously issued should be terminated.
+
+There is one exception: on stdio, a server **MUST** send `notifications/cancelled`
+referencing a `subscriptions/listen` request ID when it tears down that subscription
+stream (see [Subscriptions][subscriptions]). Servers **MUST NOT** send
+`notifications/cancelled` for any other purpose.
 
 ## Cancellation Flow
 
-When a party wants to cancel an in-progress request, it sends a `notifications/cancelled`
+When a client wants to cancel an in-progress request, it sends a `notifications/cancelled`
 notification containing:
 
 - The ID of the request to cancel
@@ -40,18 +46,20 @@ How a client signals cancellation depends on the transport:
 ## Behavior Requirements
 
 1. Cancellation notifications **MUST** only reference requests that:
-   - Were previously issued in the same direction
+   - Were previously issued by the client
    - Are believed to still be in-progress
-1. Receivers of cancellation notifications **SHOULD**:
+1. Server-sent cancellation notifications **MUST** only reference a
+   `subscriptions/listen` request, to terminate that subscription stream
+1. Servers receiving cancellation notifications **SHOULD**:
    - Stop processing the cancelled request
    - Free associated resources
    - Not send a response for the cancelled request
-1. Receivers **MAY** ignore cancellation notifications if:
+1. Servers **MAY** ignore cancellation notifications if:
    - The referenced request is unknown
    - Processing has already completed
    - The request cannot be cancelled
-1. The sender of the cancellation notification **SHOULD** ignore any response to the
-   request that arrives afterward
+1. The client **SHOULD** ignore any response to the cancelled request that arrives
+   afterward
 
 ## Timing Considerations
 
@@ -90,3 +98,5 @@ Invalid cancellation notifications **SHOULD** be ignored:
 
 This maintains the "fire and forget" nature of notifications while allowing for race
 conditions in asynchronous communication.
+
+[subscriptions]: /specification/draft/basic/patterns/subscriptions
