@@ -90,6 +90,20 @@ request to the MCP endpoint.
    `Content-Type: text/event-stream` (an SSE response stream). The client
    **MUST** support both.
 
+<Note>
+
+This revision of the core protocol defines no client-to-server
+_notifications_ over Streamable HTTP. The only client-sent notification in
+the core protocol, `notifications/cancelled`, is used only on the
+[stdio](/specification/draft/basic/transports/stdio) transport; on
+Streamable HTTP, closing the SSE response stream is itself the cancellation
+signal and no `notifications/cancelled` message is expected (see
+[Cancellation][cancellation]). The notification rules above describe the
+transport mechanics for a notification POST; header requirements for
+notification POSTs are not defined by this revision.
+
+</Note>
+
 ## Receiving Messages
 
 When the server returns an SSE response stream
@@ -233,6 +247,12 @@ The header value **MUST** match the
 with `400 Bad Request` and a `HeaderMismatch` JSON-RPC error
 (see [Server Validation](#server-validation)).
 
+Because this revision of the core protocol defines no client-to-server
+notifications over Streamable HTTP (see
+[Sending Messages](#sending-messages)), the header–body match requirements in
+this section are stated for _requests_; header requirements for notification
+POSTs are not defined by this revision.
+
 If the server does not implement the requested protocol version (whether the
 version is unknown to the server, or is a known version the server has chosen
 not to support), it **MUST** respond with `400 Bad Request` and an
@@ -260,7 +280,7 @@ the header per [Server Validation](#server-validation).
 
 | Header Name  | Source Field                  | Required For                                           |
 | ------------ | ----------------------------- | ------------------------------------------------------ |
-| `Mcp-Method` | `method`                      | All requests and notifications                         |
+| `Mcp-Method` | `method`                      | All requests                                           |
 | `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
 
 These headers are **REQUIRED** for compliance.
