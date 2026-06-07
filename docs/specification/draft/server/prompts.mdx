@@ -59,7 +59,7 @@ per-request input, not connection state.
 ### Listing Prompts
 
 To retrieve available prompts, clients send a `prompts/list` request. This operation
-supports [pagination](/specification/draft/server/utilities/pagination).
+supports [pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -153,13 +153,13 @@ auto-completed through [the completion API](/specification/draft/server/utilitie
 }
 ```
 
-Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult) to indicate that additional input is needed before the prompt can be resolved. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
+Servers **MAY** also respond to `prompts/get` with an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) to indicate that additional input is needed before the prompt can be resolved. This follows the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism. When retrying the request, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters.
 
 ### List Changed Notification
 
 When the list of available prompts changes, servers that declared the `listChanged`
 capability **SHOULD** send a notification to clients that have opened a
-[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream with
 `promptsListChanged: true`:
 
 ```json
@@ -269,7 +269,7 @@ Prompt messages **MAY** include links to
 data without embedding the resource contents directly. In this case, the prompt message
 returns a URI that can be fetched by the client:
 
-````json
+```json
 {
   "type": "resource_link",
   "uri": "file:///project/src/main.rs",
@@ -277,6 +277,7 @@ returns a URI that can be fetched by the client:
   "description": "Primary application entry point",
   "mimeType": "text/x-rust"
 }
+```
 
 Resource links support the same [Resource annotations](/specification/draft/server/resources#annotations)
 as regular resources to help clients understand how to use them.
@@ -294,7 +295,7 @@ Embedded resources allow referencing server-side resources directly in messages:
     "text": "Resource content"
   }
 }
-````
+```
 
 Resources can contain either text or binary (blob) data and **MUST** include:
 

@@ -69,7 +69,7 @@ are included in model context.
 ### Listing Tools
 
 To discover available tools, clients send a `tools/list` request. This operation supports
-[pagination](/specification/draft/server/utilities/pagination).
+[pagination](/specification/draft/server/utilities/pagination) and [caching](/specification/draft/server/utilities/caching).
 
 **Request:**
 
@@ -164,7 +164,7 @@ To invoke a tool, clients send a `tools/call` request:
 
 ### Input Required Tool Results
 
-Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/utilities/mrtr#inputrequiredresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/utilities/mrtr#multi-round-trip-requests) mechanism.
+Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism.
 
 When retrying the request with input responses, clients include `inputResponses` and, if provided by the server, `requestState` in the request parameters:
 
@@ -228,7 +228,7 @@ Note that the JSON-RPC `id` **MUST** be different between the initial request an
 
 When the list of available tools changes, servers that declared the `listChanged`
 capability **SHOULD** send a notification to clients that have opened a
-[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream with
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream with
 `toolsListChanged: true`:
 
 ```json
@@ -326,7 +326,7 @@ servers and **SHOULD NOT** be relied upon for disambiguation.
 
 The `x-mcp-header` extension property allows servers to designate specific tool
 parameters to be mirrored into HTTP headers when using the
-[Streamable HTTP transport](/specification/draft/basic/transports#custom-headers-from-tool-parameters).
+[Streamable HTTP transport](/specification/draft/basic/transports/streamable-http#custom-headers-from-tool-parameters).
 This enables network intermediaries (load balancers, proxies, WAFs) to route and process
 requests based on parameter values without parsing the request body.
 
@@ -776,5 +776,7 @@ Clients **SHOULD** provide tool execution errors to language models to enable se
    - Show tool inputs to the user before calling the server, to avoid malicious or
      accidental data exfiltration
    - Validate tool results before passing to LLM
+   - Follow the [`$ref` resolution requirements](/specification/draft/basic/index#ref-resolution)
+     when validating tool inputs and outputs against `inputSchema` and `outputSchema`
    - Implement timeouts for tool calls
    - Log tool usage for audit purposes

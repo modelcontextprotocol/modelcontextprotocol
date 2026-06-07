@@ -7,14 +7,15 @@ title: Overview
 The Model Context Protocol consists of several key components that work together:
 
 - **Base Protocol**: Core JSON-RPC message types
-- **Lifecycle Management**: Protocol version negotiation and per-request capability declaration
+- **Versioning and Compatibility**: Protocol version negotiation, extension negotiation, and interoperability with earlier protocol revisions
+- **Message Patterns**: Messaging patterns supported by the core protocol including request and response, multi round-trip requests (MRTR), and subscribe and notify
 - **Authorization**: Authentication and authorization framework for HTTP-based transports
 - **Server Features**: Resources, prompts, and tools exposed by servers
-- **Client Features**: Sampling and root directory lists provided by clients
+- **Client Features**: Elicitation, sampling and root directory lists provided by clients
 - **Utilities**: Cross-cutting concerns like logging and argument completion
 
-All implementations **MUST** support the base protocol and lifecycle management
-components. Other components **MAY** be implemented based on the specific needs of the
+All implementations **MUST** support the base protocol, versioning,
+and the message patterns. Other components **MAY** be implemented based on the specific needs of the
 application.
 
 These protocol layers establish clear separation of concerns while enabling rich
@@ -29,7 +30,7 @@ these types of messages:
 
 ### Requests
 
-[Requests](/specification/draft/schema#jsonrpcrequest) are sent from the client to the server or vice versa, to initiate an operation.
+[Requests](/specification/draft/schema#jsonrpcrequest) are sent from the client to the server, to initiate an operation.
 
 ```typescript
 {
@@ -78,7 +79,7 @@ allowing servers to return different structures based on the outcome of the requ
 can use to determine how to parse and handle the `result` object.
 
 - A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
-- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
+- A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) object with additional information needed.
 - Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
 - A `resultType` of any value unrecognized by the client **MUST** be considered invalid.
 - For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
@@ -119,6 +120,53 @@ The receiver **MUST NOT** send a response.
 ```
 
 - Notifications **MUST NOT** include an ID.
+
+### Message Patterns
+
+The Model Context Protocol (MCP) supports several [Message Patterns](/specification/draft/basic/patterns) that define how clients and servers interact:
+
+1. **[Request and Response](/specification/draft/basic/patterns#request-and-response)**: A client sends a request to the server, and the server responds with a result or error.
+2. **[Multi Round-Trip Requests (MRTR)](/specification/draft/basic/patterns#multi-round-trip-requests)**: A server requires additional client input (sampling, elicitation, or roots) to complete a request.
+3. **[Subscribe and Notify](/specification/draft/basic/patterns#subscribe-and-notify)**: A client subscribes to a stream of notifications from the server, which are sent as they occur.
+
+## Statelessness
+
+The Model Context Protocol (MCP) is a **stateless protocol**: all the
+information needed to process a request is contained in the request itself.
+A server processes each request independently; no state should be inferred
+from previous requests, even those on the same connection or stream.
+
+Specifically:
+
+- Servers **MUST NOT** rely on prior requests over the same connection to
+  establish context (e.g., capabilities, protocol version, client identity).
+  Every request supplies this metadata in its [`_meta`](#meta) field.
+- Servers **SHOULD** be prepared to handle requests associated with multiple
+  tasks, threads, or conversations.
+- Servers **SHOULD NOT** require that a client reuse the same connection or process to
+  perform related operations.
+- Clients **SHOULD NOT** use an individual task, thread, or conversation as the
+  lifetime boundary for the stdio process.
+- State that needs to span multiple requests (e.g., long-running tasks,
+  application-level handles) **MUST** be referenced by an explicit identifier
+  the client passes on each request.
+
+<Note>
+  This implies that an open connection, such as a STDIO process, is not a
+  conversation or session: clients may interleave unrelated requests on the same
+  transport, and a server must not treat connection or process identity as a
+  proxy for conversation or session continuity.
+</Note>
+
+Long-lived requests like
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions)
+remain request/response; the response is just an open stream of notifications.
+Their state is scoped to the request itself, not to the connection underneath.
+
+<Info>
+  For a walkthrough of how the per-request model maps to SDK code, see the
+  [Architecture guide](/docs/learn/architecture#example).
+</Info>
 
 ## Auth
 
@@ -198,6 +246,27 @@ MCP supports JSON Schema with the following rules:
 
 - Schemas **MUST** be valid according to their declared or default dialect
 
+### `$ref` Resolution
+
+JSON Schema 2020-12 permits `$ref` to point at an absolute URI. Implementations **MUST NOT**
+automatically dereference `$ref` values that resolve to a network URI.
+
+Implementations **MAY** offer an opt-in mode that fetches non-local `$ref`s but it
+**MUST** be disabled by default and **SHOULD** enforce an allowlist of hosts or at
+minimum reject loopback, link-local, and private network addresses, apply timeouts and
+size limits, and log dereferenced URIs.
+
+Schemas that fail to validate due to an unresolved external `$ref` **SHOULD** be rejected
+rather than silently treated as permissive.
+
+### Composition-Keyword Resource Use
+
+Composition keywords (`anyOf`, `oneOf`, `allOf`, `if`/`then`/`else`) and `$defs` enable
+expressive schemas but can be expensive to validate. Implementations **SHOULD** apply
+reasonable bounds, such as a maximum schema depth, a cap on the total number of subschemas,
+or a per-validation time budget, to prevent a malicious schema from acting as a Denial-of-Service
+vector against the validator.
+
 ## General fields
 
 ### `_meta`
@@ -232,7 +301,7 @@ may reserve particular names for purpose-specific metadata, as declared in those
 Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
 in `_meta`. Servers use these to identify the client and the protocol version in use
 without relying on any prior connection state. See
-[Lifecycle][lifecycle] for version negotiation rules.
+[Versioning and Compatibility][lifecycle] for version negotiation rules.
 
 | Key                                          | Type                 | Required | Description                                               |
 | -------------------------------------------- | -------------------- | -------- | --------------------------------------------------------- |
@@ -240,6 +309,10 @@ without relying on any prior connection state. See
 | `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                   |
 | `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
 | `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
+
+A request missing any required field is malformed; the server **MUST** reject it with
+JSON-RPC error code `-32602` (Invalid params). On HTTP, the response status **MUST** be
+`400 Bad Request`.
 
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
@@ -252,8 +325,8 @@ On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] 
 the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
 client can correlate the notification with the originating subscription request.
 
-[lifecycle]: /specification/draft/basic/lifecycle
-[subscriptions-listen]: /specification/draft/basic/utilities/subscriptions
+[lifecycle]: /specification/draft/basic/versioning
+[subscriptions-listen]: /specification/draft/basic/patterns/subscriptions
 
 **OpenTelemetry trace context:**
 
