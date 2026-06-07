@@ -387,13 +387,23 @@ of band and the client is not aware of the outcome until and unless the server s
 Servers **MAY** send a `notifications/elicitation/complete` notification when an
 out-of-band interaction started by URL mode elicitation is completed. This allows clients to react programmatically if appropriate.
 
+The notification is delivered on a
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream. A
+client that wants to receive it opens (or already has) a `subscriptions/listen`
+subscription with `elicitationComplete: true` in the notification filter, waits for the
+completion notification, and then retries the original request.
+
 Servers sending notifications:
 
 - **MUST** only send the notification to the client that initiated the elicitation request.
+- **MUST** only send the notification on a `subscriptions/listen` stream whose filter
+  included `elicitationComplete: true`.
 - **MUST** include the `elicitationId` established in the original `elicitation/create` request.
 
 Clients:
 
+- **MUST** subscribe via `subscriptions/listen` with `elicitationComplete: true` to
+  receive completion notifications.
 - **MUST** ignore notifications referencing unknown or already-completed IDs.
 - **MAY** wait for this notification to automatically retry requests that received a [URLElicitationRequiredError](#error-handling), update the user interface, or otherwise continue an interaction.
 - **SHOULD** still provide manual controls that let the user retry or cancel the original request (or otherwise resume interacting with the client) if the notification never arrives.
@@ -405,6 +415,9 @@ Clients:
   "jsonrpc": "2.0",
   "method": "notifications/elicitation/complete",
   "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": "1"
+    },
     "elicitationId": "550e8400-e29b-41d4-a716-446655440000"
   }
 }
@@ -449,12 +462,13 @@ sequenceDiagram
     User-->>Client: Provide consent
 
     Client->>UserAgent: Open URL
+    Client->>Server: subscriptions/listen (elicitationComplete: true)
     Client->>Server: tools/call(id: 2, Accept Response, requestState))
     Note over Server: Server uses requestState to discover url info. <br/> It may need to block until the request is fulfilled.
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
-    Server-->>Client: notifications/elicitation/complete (optional)
+    Server-->>Client: notifications/elicitation/complete (optional,<br/>on the subscriptions/listen stream)
 
     Note over Server: Continue processing with new information
     Server-->Client: Result(id: 2, result)
