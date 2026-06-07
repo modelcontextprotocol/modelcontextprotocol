@@ -130,9 +130,22 @@ This separates **identity** (the `tag`) from **proof material** (the key), letti
 
 #### 2.6 Key distribution
 
-Two methods for the server to learn the client's public key, in priority order:
+##### Identity model & extensibility
 
-##### 2.6.1 `Signature-Agent` header (RECOMMENDED, works in all modes)
+This SEP is **opinionated on the wire profile** (§2.1–2.5: covered components, the `alg` prohibition, replay, `keyid == JWK Thumbprint`, the stable `tag`) and **pluggable on identity and key discovery**. *How* a request is signed and verified is fixed; *where* the server learns the verifying key — and any richer identity attached to it — is an extensible set of **key-resolution methods** over that same signing base.
+
+Conforming servers **MUST** implement the `Signature-Agent` baseline (§2.6.1) and **MAY** accept additional registered methods, advertising the set they accept via the capabilities block (§3.1). The design intent is a **decentralized default** — no central identity authority required — with centrally-managed identity available opt-in for deployments that want it:
+
+| Method | Identity model | Status |
+|---|---|---|
+| `Signature-Agent` (Web Bot Auth HMS Directory) | Decentralized; key self-published | **MUST** (baseline) |
+| `cnf` in `clientInfo` | Session-bound, decentralized | MAY |
+| WIMSE `Workload-Identity-Token` | Centrally-issued workload identity | MAY (registered) |
+| AAuth assertion | OAuth-extension identity | MAY (registered) |
+
+Identity beyond "the keyholder" — multi-hop / call-chain attribution to defeat the confused-deputy problem — is **out of scope** (§"What this SEP does not address"); the stable `tag` and the signed `content-digest` are the hooks a PIC / receipt-chain layer (or WIMSE) binds to per actor.
+
+##### 2.6.1 `Signature-Agent` header (RECOMMENDED baseline, works in all modes)
 
 Per [draft-meunier-http-message-signatures-directory](https://datatracker.ietf.org/doc/draft-meunier-http-message-signatures-directory/), clients **MAY** include a `Signature-Agent` header on any signed request:
 
@@ -169,6 +182,21 @@ Clients that perform `initialize` **MAY** additionally bind a key by including a
 
 The `initialize` request itself **MUST** be signed with the corresponding private key. The server binds `(mcp-session-id, jwk-thumbprint, tag)` for the lifetime of the session.
 
+##### 2.6.3 Registered optional methods (WIMSE, AAuth)
+
+Deployments that need centrally-managed or federated identity **MAY** carry it in the key-resolution slot without changing the signing base:
+
+- **WIMSE `Workload-Identity-Token`** ([draft-ietf-wimse-http-signature](https://datatracker.ietf.org/doc/draft-ietf-wimse-http-signature/)) — the token carries the verification key material and binds it to a workload identity. Suited to enterprise / multi-workload deployments with an identity authority.
+- **AAuth assertion** ([draft-hardt-aauth-protocol](https://www.ietf.org/archive/id/draft-hardt-aauth-protocol-02.html)) — for deployments already extending OAuth 2.
+
+A server is **not** required to implement these; it advertises which it accepts via §3.1. In all cases the signing profile (§2.1–2.5) is unchanged — only `keyid` resolution differs.
+
+#### 2.7 Optional canonical (JCS) content digest
+
+The baseline `content-digest` (§2.1) is the RFC 9530 digest over the exact request octets. An intermediary that **re-serializes** the JSON body (key reorder, whitespace, unicode normalization) invalidates that digest even when the payload is semantically unchanged — relevant for receipt / evidence-relay topologies (e.g. [draft-hopley-x402-payment-evidence-frame](https://datatracker.ietf.org/doc/draft-hopley-x402-payment-evidence-frame/)).
+
+For those topologies, servers and clients **MAY** negotiate an additional covered component carrying a digest computed over the **JCS-canonicalized** ([RFC 8785](https://www.rfc-editor.org/rfc/rfc8785.html)) payload, advertised + selected via the capabilities block (§3.1) so both sides agree before relying on it. The byte-exact `content-digest` remains the **MUST** baseline; the JCS variant is purely additive, for deployments whose path includes re-serializing relays. JCS is **not** mandated by default — it imports canonicalization edge cases (number/exponent form, unicode) that the common single-hop MCP topology does not need.
+
 ### 3. Server behavior
 
 #### 3.1 Capability advertisement
@@ -182,6 +210,10 @@ interface ServerCapabilities {
     httpMessageSignatures?: {
       /** Algorithms accepted, in server preference order. */
       algorithms: Array<"ed25519" | "ecdsa-p256-sha256" | "ecdsa-p384-sha384">;
+      /** Key-resolution methods accepted (§2.6). "signature-agent" is the baseline. */
+      keyResolution?: Array<"signature-agent" | "cnf" | "wimse" | "aauth">;
+      /** Content-digest profiles accepted (§2.7); defaults to ["rfc9530"]. */
+      contentDigest?: Array<"rfc9530" | "jcs-rfc8785">;
       /** Whether unsigned requests are accepted alongside signed ones. */
       requiresSignature?: boolean;
     };
@@ -403,7 +435,11 @@ Both implementations will be linked from this SEP once `Draft` → `In-Review` t
 - [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449.html) — DPoP
 - [RFC 7517](https://www.rfc-editor.org/rfc/rfc7517.html) — JSON Web Key
 - [RFC 7638](https://www.rfc-editor.org/rfc/rfc7638.html) — JWK Thumbprint
+- [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785.html) — JSON Canonicalization Scheme (JCS)
 - [draft-meunier-http-message-signatures-directory-03](https://datatracker.ietf.org/doc/draft-meunier-http-message-signatures-directory/03/)
+- [draft-ietf-wimse-http-signature](https://datatracker.ietf.org/doc/draft-ietf-wimse-http-signature/) — WIMSE Workload-to-Workload Authentication
+- [draft-hardt-aauth-protocol-02](https://www.ietf.org/archive/id/draft-hardt-aauth-protocol-02.html) — AAuth
+- [draft-hopley-x402-payment-evidence-frame](https://datatracker.ietf.org/doc/draft-hopley-x402-payment-evidence-frame/) — Payment Evidence Frame (covered-components prior art)
 - [SEP-1415](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1415) — original (dormant) proposal
 - [SEP-1932](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932) — DPoP profile
 - [SEP-1372](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1372) — init-less MCP
