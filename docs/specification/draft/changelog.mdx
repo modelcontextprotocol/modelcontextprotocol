@@ -42,6 +42,10 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
    clients **MUST** key persisted credentials by the issuer identifier, **MUST NOT** reuse them
    with a different authorization server, and **MUST** re-register when the authorization server
    changes ([SEP-2352](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2352)).
+10. Loosen `inputSchema` and `outputSchema` to allow any JSON Schema 2020-12 keywords, and
+    `structuredContent` to allow any JSON value. Add `$ref` resolution requirements and
+    composition-keyword resource bounds
+    ([SEP-2106](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2106)).
 
 ## Deprecated
 
