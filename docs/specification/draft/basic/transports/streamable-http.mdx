@@ -265,6 +265,10 @@ the header per [Server Validation](#server-validation).
 
 These headers are **REQUIRED** for compliance.
 
+If the `Mcp-Name` source value cannot be safely represented as a plain ASCII
+header value, clients **MUST** encode it using the Base64 sentinel format
+described in [Value Encoding](#value-encoding).
+
 **`tools/call` request:**
 
 ```http
@@ -445,10 +449,21 @@ representation with the following format:
 Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 ```
 
+The same encoding rule applies to the `Mcp-Name` header value. Tool and
+prompt names are only **SHOULD**-constrained to header-safe characters, so a
+name (or resource URI) outside the safe set is carried as:
+
+```text
+Mcp-Name: =?base64?{Base64EncodedValue}?=
+```
+
 The prefix `=?base64?` and suffix `?=` indicate that the value is
 Base64-encoded. These markers are case-sensitive and **MUST** appear exactly
 as shown (lowercase). Servers and intermediaries that need to inspect these
-values **MUST** decode them accordingly.
+values **MUST** decode them accordingly. In particular, servers **MUST**
+decode an encoded `Mcp-Name` or `Mcp-Param-{Name}` value before comparing it
+to the corresponding request body value during
+[Server Validation](#server-validation).
 
 To avoid ambiguity, clients **MUST** also Base64-encode any plain-ASCII
 value that matches the sentinel pattern (i.e., starts with `=?base64?`
@@ -575,6 +590,9 @@ Validation failure conditions include:
 - A required standard header (`MCP-Protocol-Version`, `Mcp-Method`,
   `Mcp-Name`) is missing.
 - A header value does not match the corresponding request body value.
+  For headers that permit the Base64 sentinel encoding (`Mcp-Name` and
+  `Mcp-Param-{Name}`), servers **MUST** decode encoded values (see
+  [Value Encoding](#value-encoding)) before comparing them to the body value.
 - A header value contains invalid characters.
 
 <Note>
