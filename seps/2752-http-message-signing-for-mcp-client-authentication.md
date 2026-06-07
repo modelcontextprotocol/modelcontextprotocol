@@ -1,7 +1,9 @@
 # SEP-2752: HTTP Message Signing for MCP Client Authentication
 
 - **Status**: Draft
-- **Type**: Standards Track
+- **Type**: Extensions Track
+- **Extension ID**: `io.modelcontextprotocol/http-message-signatures`
+- **Working Group**: MCP Authorization
 - **Created**: 2026-05-19
 - **Author(s)**: Neeraj Prasad (@njdawn)
 - **Sponsor**: None (seeking sponsor)
@@ -10,6 +12,8 @@
 ## Abstract
 
 This SEP defines an optional, additive client-authentication mechanism for MCP based on [RFC 9421 HTTP Message Signatures](https://www.rfc-editor.org/rfc/rfc9421.html). It enables MCP servers to authenticate clients with cryptographic proof-of-possession of a private key — without requiring the client to ever transmit a long-lived secret over the wire and without modifying any existing OAuth or `MCP-Session-Id` flow.
+
+This SEP is filed as an **Extensions Track** proposal per [SEP-2133](https://modelcontextprotocol.io/seps/2133-extensions): it is **not** a core-protocol change. It is the optional, opt-in extension `io.modelcontextprotocol/http-message-signatures` (home: the `ext-auth` repository), negotiated through `capabilities.extensions`, disabled by default, with **no change to the core schema**. It is complementary to — not a replacement for — OAuth and DPoP ([SEP-1932](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932)): DPoP for the OAuth-bound path, this extension for the non-OAuth / API-key / wallet-native case.
 
 The proposal is a refinement of the now-dormant SEP-1415, incorporating the technical feedback from that thread:
 
@@ -56,13 +60,14 @@ This generalizes to any MCP server fronting non-revocable side effects: payments
 
 | Proposal                                                                             | Status    | Mechanism       | Relationship                                                          |
 | ------------------------------------------------------------------------------------ | --------- | --------------- | --------------------------------------------------------------------- |
-| [SEP-1415](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1415) | Dormant   | RFC 9421        | **This SEP supersedes 1415** with technical-feedback fixes            |
-| [SEP-1932](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932)   | Open (PR) | RFC 9449 (DPoP) | Complementary — sits inside an OAuth flow. This SEP is OAuth-agnostic |
+| [SEP-2133](https://modelcontextprotocol.io/seps/2133-extensions)                     | Final     | Extensions framework | **This proposal is an Extensions Track extension under 2133** — not a core change |
+| [SEP-1415](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1415) | Dormant   | RFC 9421        | Picks up 1415's mechanism with the technical-feedback fixes, repackaged as an extension |
+| [SEP-1932](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932)   | Open (PR) | RFC 9449 (DPoP) | Complementary — DPoP for the OAuth-bound path, this for non-OAuth / wallet. No overlap in core |
 | [SEP-1036](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1036) | Final     | URL elicitation | Orthogonal — concerns user data; this concerns client identity        |
-| [SEP-1372](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1372) | Open      | Init-less MCP   | This SEP must work in both initialized and init-less modes            |
-| ext-auth (OAuth Client Credentials)                                                  | Final     | OAuth 2.0 CC    | Bearer-based; this SEP can layer on top to add PoP                    |
+| [SEP-1372](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1372) | Open      | Init-less MCP   | This extension works in both initialized and init-less modes          |
+| ext-auth (OAuth Client Credentials)                                                  | Final     | OAuth 2.0 CC    | Sibling extension in the same repo; this adds PoP for the non-OAuth case |
 
-This SEP is **additive**. Servers and clients that do not implement it are unaffected.
+As an opt-in extension this is **additive and disabled by default**. Servers and clients that do not negotiate it are unaffected.
 
 ## Specification
 
@@ -157,25 +162,28 @@ For desktop / local clients that cannot host a JWKS URL, the `data:` form is REQ
 
 This is the **only** key-distribution method that works for init-less first contact (SEP-1372).
 
-##### 2.6.2 `cnf` claim in `clientInfo` (initialize-bound mode)
+##### 2.6.2 `cnf` in the extension settings (initialize-bound mode)
 
-Clients that perform `initialize` **MAY** additionally bind a key by including a `cnf` (confirmation) claim in `clientInfo`:
+Clients that perform `initialize` **MAY** additionally bind a key by carrying a `cnf` (confirmation) member in this extension's settings object under `capabilities.extensions` (§3.1) — **not** in core `clientInfo`, so no core schema is touched:
 
 ```json
 {
   "method": "initialize",
   "params": {
-    "clientInfo": {
-      "name": "example-client",
-      "version": "1.0.0",
-      "cnf": {
-        "jwk": {
-          "kty": "OKP",
-          "crv": "Ed25519",
-          "x": "3TQjAzEPW-sE81J4eWUuI2ZQCRJKELwdco_cJa7e9pM"
+    "capabilities": {
+      "extensions": {
+        "io.modelcontextprotocol/http-message-signatures": {
+          "cnf": {
+            "jwk": {
+              "kty": "OKP",
+              "crv": "Ed25519",
+              "x": "3TQjAzEPW-sE81J4eWUuI2ZQCRJKELwdco_cJa7e9pM"
+            }
+          }
         }
       }
-    }
+    },
+    "clientInfo": { "name": "example-client", "version": "1.0.0" }
   }
 }
 ```
@@ -201,27 +209,31 @@ For those topologies, servers and clients **MAY** negotiate an additional covere
 
 #### 3.1 Capability advertisement
 
-Servers that accept signed requests **MUST** declare it in `ServerCapabilities`:
+This extension is negotiated through the `capabilities.extensions` map defined by [SEP-2133](https://modelcontextprotocol.io/seps/2133-extensions) — **not** through a new core `ServerCapabilities` field. The server advertises the extension identifier with a settings object in the `initialize` response; the client does the same in the request:
 
-```typescript
-interface ServerCapabilities {
-  // ... existing fields ...
-  authentication?: {
-    httpMessageSignatures?: {
-      /** Algorithms accepted, in server preference order. */
-      algorithms: Array<"ed25519" | "ecdsa-p256-sha256" | "ecdsa-p384-sha384">;
-      /** Key-resolution methods accepted (§2.6). "signature-agent" is the baseline. */
-      keyResolution?: Array<"signature-agent" | "cnf" | "wimse" | "aauth">;
-      /** Content-digest profiles accepted (§2.7); defaults to ["rfc9530"]. */
-      contentDigest?: Array<"rfc9530" | "jcs-rfc8785">;
-      /** Whether unsigned requests are accepted alongside signed ones. */
-      requiresSignature?: boolean;
-    };
-  };
+```json
+{
+  "capabilities": {
+    "extensions": {
+      "io.modelcontextprotocol/http-message-signatures": {
+        "algorithms": ["ed25519"],
+        "requiresSignature": false,
+        "keyResolution": ["signature-agent", "cnf"],
+        "contentDigest": ["rfc9530"]
+      }
+    }
+  }
 }
 ```
 
-Servers that set `requiresSignature: true` **MUST** reject unsigned requests with HTTP `401 Unauthorized` and an `Accept-Signature` header (§3.3).
+Settings object (an empty `{}` is permitted and means "supported, with defaults"):
+
+- `algorithms` — accepted algorithms in server preference order (`"ed25519"` baseline; `"ecdsa-p256-sha256"` / `"ecdsa-p384-sha384"` optional).
+- `requiresSignature` — when `true`, the server rejects unsigned requests; defaults to `false`.
+- `keyResolution` — accepted key-resolution methods (§2.6); `"signature-agent"` is the baseline, `"cnf"` / `"wimse"` / `"aauth"` optional.
+- `contentDigest` — accepted content-digest profiles (§2.7); defaults to `["rfc9530"]`.
+
+Per SEP-2133 the extension is **disabled by default and requires explicit opt-in**. A server that sets `requiresSignature: true` **MUST** reject unsigned requests with HTTP `401 Unauthorized` and an `Accept-Signature` header (§3.3); otherwise it **MUST** gracefully fall back to core bearer/OAuth behavior for clients that do not negotiate the extension.
 
 #### 3.2 Verification flow
 
@@ -298,37 +310,11 @@ Clients **MUST NOT**:
 - Send the `alg` signature parameter.
 - Send the private key over the wire under any circumstances.
 
-### 5. Schema changes
+### 5. Core schema impact: none
 
-A draft change to `schema/draft/schema.ts` adds:
+As an Extensions Track extension (SEP-2133) this proposal makes **no change to the core MCP schema**. All negotiation rides the existing `capabilities.extensions` map (§3.1); the key material (`cnf`), algorithm set, key-resolution methods, and content-digest profile all live inside this extension's settings object — not in core `ClientCapabilities`, `ServerCapabilities`, or `Implementation`.
 
-```typescript
-export interface ClientCapabilities {
-  // ... existing ...
-  authentication?: {
-    httpMessageSignatures?: JSONObject;
-  };
-}
-
-export interface ServerCapabilities {
-  // ... existing ...
-  authentication?: {
-    httpMessageSignatures?: {
-      algorithms: Array<string>;
-      requiresSignature?: boolean;
-    };
-  };
-}
-
-export interface Implementation extends BaseMetadata, Icons {
-  // ... existing ...
-  cnf?: {
-    jwk: JSONObject; // RFC 7517 public-key JWK
-  };
-}
-```
-
-New method: `signatures/rotateKey` (request/response shapes defined in the spec section).
+The only method the extension introduces is `signatures/rotateKey` (§3.4). It is scoped to this extension and **MUST** be routed only when the extension has been negotiated; implementations **SHOULD** treat it as namespaced to the extension identifier to avoid collisions.
 
 ### 6. Example signed request
 
@@ -428,6 +414,19 @@ Both implementations will be linked from this SEP once `Draft` → `In-Review` t
 3. Should the freshness window (300s) be server-configurable and advertised in capabilities, or fixed by the spec?
 4. Is a future signed-response counterpart in scope for a separate SEP, or should we leave that to mTLS / TLS pinning indefinitely?
 
+## Extension governance (SEP-2133)
+
+| Field | Value |
+|---|---|
+| Extension identifier | `io.modelcontextprotocol/http-message-signatures` |
+| Home repository | `modelcontextprotocol/ext-auth` (on acceptance) |
+| Incubation | `experimental-ext-http-message-signatures` (proposed), associated with the MCP Authorization Working Group |
+| Working Group | MCP Authorization |
+| License | Apache-2.0 |
+| Stability | Experimental during incubation; opt-in, disabled by default |
+
+Per SEP-2133 this is an **Extensions Track** proposal: reviewed by the Core Maintainers for inclusion as an official extension, and thereafter evolving independently under the `ext-auth` maintainers and the Authorization WG. It is OAuth-agnostic and complementary to DPoP (SEP-1932), sitting beside OAuth Client Credentials in `ext-auth`. A reference implementation in an official SDK is provided (see *Reference implementation*), satisfying the Extensions Track prerequisite. Breaking changes will use a new identifier (e.g. `io.modelcontextprotocol/http-message-signatures-v2`); non-breaking changes are negotiated through the settings object (§3.1).
+
 ## References
 
 - [RFC 9421](https://www.rfc-editor.org/rfc/rfc9421.html) — HTTP Message Signatures
@@ -440,6 +439,7 @@ Both implementations will be linked from this SEP once `Draft` → `In-Review` t
 - [draft-ietf-wimse-http-signature](https://datatracker.ietf.org/doc/draft-ietf-wimse-http-signature/) — WIMSE Workload-to-Workload Authentication
 - [draft-hardt-aauth-protocol-02](https://www.ietf.org/archive/id/draft-hardt-aauth-protocol-02.html) — AAuth
 - [draft-hopley-x402-payment-evidence-frame](https://datatracker.ietf.org/doc/draft-hopley-x402-payment-evidence-frame/) — Payment Evidence Frame (covered-components prior art)
+- [SEP-2133](https://modelcontextprotocol.io/seps/2133-extensions) — Extensions framework (this proposal is an Extensions Track extension under it)
 - [SEP-1415](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1415) — original (dormant) proposal
 - [SEP-1932](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1932) — DPoP profile
 - [SEP-1372](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1372) — init-less MCP
