@@ -956,7 +956,7 @@
             "type": "object"
         },
         "ElicitationCompleteNotification": {
-            "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.",
+            "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.\n\nThis is only sent to clients that opted in via the `elicitationComplete`\nfield of a {@link SubscriptionsListenRequestsubscriptions/listen}\nrequest, and is delivered on that subscription's stream.",
             "properties": {
                 "jsonrpc": {
                     "const": "2.0",
@@ -3332,6 +3332,10 @@
         "SubscriptionFilter": {
             "description": "The set of notification types a client may opt in to on a\n{@link SubscriptionsListenRequestsubscriptions/listen} request.\n\nEach notification type is **opt-in**; the server **MUST NOT** send\nnotification types the client has not explicitly requested here.",
             "properties": {
+                "elicitationComplete": {
+                    "description": "If true, receive {@link ElicitationCompleteNotificationnotifications/elicitation/complete}\nfor out-of-band (URL mode) elicitations initiated by this client.",
+                    "type": "boolean"
+                },
                 "promptsListChanged": {
                     "description": "If true, receive {@link PromptListChangedNotificationnotifications/prompts/list_changed}.",
                     "type": "boolean"
@@ -3622,7 +3626,7 @@
                 },
                 "inputSchema": {
                     "additionalProperties": {},
-                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
+                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nProperty schemas may carry an `x-mcp-header` annotation to mirror the\nargument value into an HTTP header on the Streamable HTTP transport. The\nannotation is only valid on properties reachable from the schema root via\na static chain of `properties` keys — not under `items`, not inside\ncomposition or conditional keywords (`oneOf`, `anyOf`, `allOf`, `not`,\n`if`/`then`/`else`), and not behind `$ref`. An `x-mcp-header` annotation\nanywhere else makes the annotation (and thus the tool definition) invalid.\nExtraction reads the instance value at that exact property path; if the\nvalue is absent, the header is omitted. See the Streamable HTTP transport\nspecification for the full rules.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
                     "properties": {
                         "$schema": {
                             "type": "string"

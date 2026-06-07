@@ -1249,6 +1249,11 @@ export interface SubscriptionFilter {
    * Replaces the former `resources/subscribe` RPC.
    */
   resourceSubscriptions?: string[];
+  /**
+   * If true, receive {@link ElicitationCompleteNotification | notifications/elicitation/complete}
+   * for out-of-band (URL mode) elicitations initiated by this client.
+   */
+  elicitationComplete?: boolean;
 }
 
 /**
@@ -3097,6 +3102,10 @@ export interface ElicitationCompleteNotificationParams extends NotificationParam
 
 /**
  * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
+ *
+ * This is only sent to clients that opted in via the `elicitationComplete`
+ * field of a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, and is delivered on that subscription's stream.
  *
  * @example Elicitation complete
  * {@includeCode ./examples/ElicitationCompleteNotification/elicitation-complete.json}
