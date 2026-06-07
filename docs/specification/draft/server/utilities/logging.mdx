@@ -67,7 +67,7 @@ When the field is present, the server **MAY** send `notifications/message`
 notifications at or above the requested level on the response stream of that
 request, before the final response. `notifications/message` is request-scoped:
 the server **MUST NOT** deliver it on a
-[`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions)
+[`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions)
 stream or on any stream other than the one carrying the response to the request
 that set the log level.
 

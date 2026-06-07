@@ -135,7 +135,7 @@ state does not change.
 
 ## Notifications
 
-Servers can push status updates via `notifications/tasks/status`. Clients opt
+Servers can push status updates via `notifications/tasks`. Clients opt
 into these through the `subscriptions/listen` mechanism. Each notification
 carries the full task state, eliminating the need for an extra `tasks/get`
 round-trip.
@@ -254,7 +254,7 @@ non-`cancelled` terminal status.
 
 <Note>
 
-MCP Tasks is an extension to the [core MCP specification](/specification). Host
+MCP Tasks is an extension to the [core MCP specification](/specification/latest). Host
 support varies by client.
 
 </Note>

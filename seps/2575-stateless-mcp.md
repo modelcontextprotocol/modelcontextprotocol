@@ -1,6 +1,6 @@
 # SEP-2575: Make MCP Stateless
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2025-06-18
 - **Author(s)**: Jonathan Hefner (@jonathanhefner), Mark Roth (@markdroth),

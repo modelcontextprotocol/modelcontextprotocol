@@ -4,8 +4,7 @@ title: Caching
 
 <div id="enable-section-numbers" />
 
-The Model Context Protocol (MCP) supports caching on list and
-resource read results. This allows clients to cache responses and reduce unnecessary re-fetching.
+The Model Context Protocol (MCP) supports caching for some results. This allows clients to cache responses and reduce unnecessary re-fetching.
 Caching is complementary to [change notifications](#interaction-with-notifications)&mdash;both
 mechanisms can coexist.
 
@@ -13,6 +12,7 @@ mechanisms can coexist.
 
 Servers MUST include caching hints on results returned by the following operations:
 
+- `server/discover`
 - `tools/list`
 - `prompts/list`
 - `resources/list`
@@ -23,7 +23,7 @@ Servers MUST include caching hints on results returned by the following operatio
 
 Cacheable Results in MCP use two fields to provide caching hints to clients:
 
-- The <b>Time-to-live (TTL) Field</b>,`ttlMs`, indicates how long the client MAY consider the result fresh.
+- The <b>Time-to-live (TTL) Field</b>,`ttlMs`, is an integer value in milliseconds specifying how long the client MAY consider the result fresh.
 - The <b>Cache Scope Field</b>,`cacheScope`, indicates the intended scope of the cached response, either `"public"` or `"private"`.
 
 ### Time-to-Live (TTL) Field
@@ -145,6 +145,11 @@ page is an independently cacheable response&mdash;consistent with how HTTP
 - If a cursor becomes invalid (e.g., the server returns an error for a previously valid
   cursor), the client **SHOULD** discard all cached pages and re-fetch from the
   beginning.
+
+Servers **MUST** apply the same `cacheScope` to all response pages for a given list
+request. For example, if the first page of a `tools/list` response has
+`cacheScope: "private"`, all subsequent pages for that request **MUST** also be
+`"private"`.
 
 ## Security Considerations
 

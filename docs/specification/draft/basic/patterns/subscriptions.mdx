@@ -110,9 +110,10 @@ them.
 A subscription ends when:
 
 - The **client** cancels it — close the SSE stream (HTTP) or send
-  `notifications/cancelled` referencing the listen request ID (stdio).
-- The **server** tears it down (e.g., during shutdown) — it closes the
-  underlying transport connection.
+  `notifications/cancelled` referencing the `subscriptions/listen` request ID (stdio).
+- The **server** tears it down (e.g., during shutdown) — it **MUST** close the SSE
+  stream (HTTP) or send `notifications/cancelled` referencing the
+  `subscriptions/listen` request ID (stdio).
 - The underlying transport closes (HTTP timeout, TCP disconnect, stdio process
   exit).
 
@@ -122,4 +123,4 @@ subscriptions — the server holds no subscription state across reconnections.
 
 See [Cancellation][cancellation] for the full rules.
 
-[cancellation]: /specification/draft/basic/utilities/cancellation
+[cancellation]: /specification/draft/basic/patterns/cancellation

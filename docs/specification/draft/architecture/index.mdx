@@ -166,11 +166,9 @@ Each capability unlocks specific protocol features on a per-request basis. For e
 - Implemented [server features](/specification/draft/server) must be advertised in the
   server's capabilities
 - Receiving resource update notifications requires opening a
-  [`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream
+  [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream
   with the desired resource URIs
-- Tool invocation requires the server to declare tool capabilities
-- [Sampling](/specification/draft/client) requires the client to declare support in its
-  capabilities
+- [Tool](/specification/draft/server/tools) invocation requires the server to declare tool capabilities
 
 This capability negotiation ensures clients and servers have a clear understanding of
 supported functionality while maintaining protocol extensibility.
