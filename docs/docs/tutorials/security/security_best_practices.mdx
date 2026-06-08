@@ -742,10 +742,18 @@ for replay resistance and auditability:
 
 The `request_digest` should be computed over a deployment-defined
 canonical representation of the method, tool name, tool arguments, and
-relevant policy context. The provider verifies that the receipt is
-fresh, intended for the current MCP server and tool, and bound to the
-same action, resource, context identifiers, and request digest before
-business logic runs.
+relevant policy context. The receipt issuer and verifier should agree
+out of band on the exact canonicalization and projection used for this
+digest. If the provider cannot reproduce the digest, the request should
+fail closed before business logic runs.
+
+Because receipts travel with client-submitted tool calls, the provider
+also needs to verify that the receipt was issued by a trusted authority
+and has not been modified by the client. This can be done with an issuer
+signature or other integrity protection the provider can validate
+independently of the client. Only after authenticity is established do
+freshness, audience, tool, resource, context, and request-digest checks
+carry security weight.
 
 The receipt state machine should remain separate from provider business
 logic. Example states include:
