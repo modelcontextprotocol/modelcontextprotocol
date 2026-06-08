@@ -104,7 +104,6 @@ A server SHOULD expose a resource at the well-known URI `skill://index.json` who
 
 ```json
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2026-06-08/skill-index.schema.json",
   "skills": [
     {
       "url": "skill://git-workflow/SKILL.md",
@@ -157,7 +156,6 @@ Index fields:
 
 | Field                          | Required   | Description                                                                                                                                   |
 | ------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `$schema`                      | Yes        | Schema version URI. Clients SHOULD match against known URIs before processing.                                                                |
 | `skills`                       | Yes        | Array of skill entries.                                                                                                                       |
 | `skills[].frontmatter`         | Yes        | Verbatim copy of the skill's `SKILL.md` YAML frontmatter, rendered as JSON. See [Frontmatter](#frontmatter).                                  |
 | `skills[].url`                 | No¹        | Resource URI of the skill's `SKILL.md`. See [Direct entries](#direct-entries).                                                                |
@@ -169,7 +167,7 @@ Index fields:
 
 ¹ Every entry MUST include `url`, a non-empty `archives`, or both.
 
-Clients SHOULD ignore unrecognized fields.
+Clients SHOULD ignore unrecognized fields. The index carries no version marker: the format is versioned by the extension itself, and an incompatible revision would be negotiated through the [capability declaration](#capability-declaration). Tolerating unrecognized fields is what allows the format to grow additively.
 
 ##### Frontmatter
 
