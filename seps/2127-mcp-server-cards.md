@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Extensions Track
 - **Created**: 2026-01-21
-- **Author(s)**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai), Tadas Antanavicius (@tadasant); on behalf of the Server Card Working Group
+- **Author(s)**: David Soria Parra (@dsp-ant), Sam Morrow (@SamMorrowDrums), Tadas Antanavicius (@tadasant); on behalf of the Server Card Working Group
 - **Sponsor**: David Soria Parra (@dsp-ant)
 - **Extension Identifier**: `io.modelcontextprotocol/server-card`
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
@@ -184,7 +184,7 @@ outstanding, Final-gating item for this extension.
 ## Working Group and Maintainers
 
 - **Working Group**: Server Card Working Group (see the [Server Card WG discussion #2563](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/2563)).
-- **Extension Maintainers**: David Soria Parra (@dsp-ant), Nick Cooper (@nickcoai), Tadas Antanavicius (@tadasant).
+- **Extension Maintainers**: David Soria Parra (@dsp-ant), Sam Morrow (@SamMorrowDrums), Tadas Antanavicius (@tadasant).
 - **Extension repository**: [modelcontextprotocol/experimental-ext-server-card](https://github.com/modelcontextprotocol/experimental-ext-server-card) (graduating to `ext-server-card` on acceptance).
 
 ## References
