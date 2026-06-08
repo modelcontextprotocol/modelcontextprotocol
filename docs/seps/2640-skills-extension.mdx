@@ -111,32 +111,54 @@ On top of that baseline, two discovery mechanisms are defined. A server MAY supp
 
 #### Enumeration via `skill://index.json`
 
-A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves. The index format follows the [Agent Skills well-known URI discovery index](https://github.com/agentskills/agentskills/pull/254), with one difference: the `url` field contains a full MCP resource URI (any scheme the server serves).
+A server SHOULD expose a resource at the well-known URI `skill://index.json` whose content is a JSON index of the skills it serves.
 
 ```json
 {
-  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2026-06-08/skill-index.schema.json",
   "skills": [
     {
-      "name": "git-workflow",
-      "type": "skill-md",
-      "description": "Follow this team's Git conventions for branching and commits",
       "url": "skill://git-workflow/SKILL.md",
-      "digest": "sha256:a1b2c3d4..."
+      "digest": "sha256:a1b2c3d4...",
+      "frontmatter": {
+        "name": "git-workflow",
+        "description": "Follow this team's Git conventions for branching and commits"
+      }
     },
     {
-      "name": "refunds",
-      "type": "skill-md",
-      "description": "Process customer refund requests per company policy",
       "url": "skill://acme/billing/refunds/SKILL.md",
-      "digest": "sha256:b2c3d4e5..."
+      "digest": "sha256:b2c3d4e5...",
+      "frontmatter": {
+        "name": "refunds",
+        "description": "Process customer refund requests per company policy",
+        "license": "Apache-2.0"
+      },
+      "archives": [
+        {
+          "url": "skill://acme/billing/refunds.tar.gz",
+          "mimeType": "application/gzip",
+          "digest": "sha256:c4d5e6f7..."
+        }
+      ]
     },
     {
-      "name": "pdf-processing",
-      "type": "archive",
-      "description": "Extract, fill, and assemble PDF documents",
-      "url": "skill://pdf-processing.tar.gz",
-      "digest": "sha256:c4d5e6f7..."
+      "frontmatter": {
+        "name": "pdf-processing",
+        "description": "Extract, fill, and assemble PDF documents",
+        "metadata": { "version": "2.1.0" }
+      },
+      "archives": [
+        {
+          "url": "skill://pdf-processing.tar.gz",
+          "mimeType": "application/gzip",
+          "digest": "sha256:d5e6f7a8..."
+        },
+        {
+          "url": "skill://pdf-processing.zip",
+          "mimeType": "application/zip",
+          "digest": "sha256:e6f7a8b9..."
+        }
+      ]
     }
   ]
 }
@@ -144,29 +166,52 @@ A server SHOULD expose a resource at the well-known URI `skill://index.json` who
 
 Index fields:
 
-| Field                  | Required | Description                                                                                                                                                       |
-| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `$schema`              | Yes      | Schema version URI. Clients SHOULD match against known URIs before processing.                                                                                    |
-| `skills`               | Yes      | Array of skill entries.                                                                                                                                           |
-| `skills[].type`        | Yes      | MUST be `"skill-md"` or `"archive"`.                                                                                                                              |
-| `skills[].description` | Yes      | The skill's `description` matching its `SKILL.md` frontmatter.                                                                                                    |
-| `skills[].url`         | Yes      | Full resource URI. See per-type semantics below.                                                                                                                  |
-| `skills[].name`        | Yes      | Matches the `SKILL.md` frontmatter `name` and the final segment of the skill path.                                                                                |
-| `skills[].digest`      | Yes      | SHA-256 content digest of the artifact, formatted as `sha256:{hex}` (64 lowercase hex characters). See [Integrity and verification](#integrity-and-verification). |
+| Field                          | Required   | Description                                                                                                                                   |
+| ------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$schema`                      | Yes        | Schema version URI. Clients SHOULD match against known URIs before processing.                                                                |
+| `skills`                       | Yes        | Array of skill entries.                                                                                                                       |
+| `skills[].frontmatter`         | Yes        | Verbatim copy of the skill's `SKILL.md` YAML frontmatter, rendered as JSON. See [Frontmatter](#frontmatter).                                  |
+| `skills[].url`                 | No¹        | Resource URI of the skill's `SKILL.md`. See [Direct entries](#direct-entries).                                                                |
+| `skills[].digest`              | With `url` | SHA-256 digest of the `SKILL.md` file. MUST be present when `url` is present, absent otherwise. See [Integrity](#integrity-and-verification). |
+| `skills[].archives`            | No¹        | Array of archive forms of the skill. See [Archives](#archives).                                                                               |
+| `skills[].archives[].url`      | Yes        | Resource URI of the archive.                                                                                                                  |
+| `skills[].archives[].mimeType` | Yes        | The archive format's media type (e.g., `application/gzip`, `application/zip`).                                                                |
+| `skills[].archives[].digest`   | Yes        | SHA-256 digest of the archive file. See [Integrity](#integrity-and-verification).                                                             |
 
-Clients SHOULD ignore unrecognized fields and SHOULD skip entries with an unrecognized `type`.
+¹ Every entry MUST include `url`, a non-empty `archives`, or both.
 
-**Skill-md entries** (`type: "skill-md"`) point `url` at the full resource URI of the skill's `SKILL.md`. Supporting files are individually addressable as sibling resources under the same skill path.
+Clients SHOULD ignore unrecognized fields.
 
-**Archive entries** (`type: "archive"`) point `url` at a single resource whose content is a packed skill directory. Per the [Agent Skills archive distribution format](https://agentskills.io/well-known-uri#archive-distribution), the archive MUST be `.tar.gz` (gzip-compressed tar, `mimeType` `application/gzip`) or `.zip` (`mimeType` `application/zip`); hosts MUST support both and SHOULD determine the format from the resource's `mimeType`, falling back to the URL suffix. Archive contents represent the skill directory directly — `SKILL.md` MUST be at the archive root, not nested inside a wrapper directory, and the archive MUST NOT contain path-traversal sequences (`..`) or absolute paths.
+##### Frontmatter
 
-The `<skill-path>` is the archive `url` with its archive suffix (`.tar.gz` or `.zip`) stripped — `skill://pdf-processing.tar.gz` unpacks to `skill://pdf-processing/`, `skill://acme/billing/refunds.zip` to `skill://acme/billing/refunds/` — and the archive contents populate `skill://<skill-path>/<file-path>` exactly as if each file were served individually. A server chooses per-skill whether to distribute as individual files or as an archive; hosts observe an identical virtual namespace either way. Archive distribution delivers a multi-file skill atomically in one round trip and can carry UNIX file metadata (executable bits, symlinks) that individual-resource distribution cannot represent — robustly for `.tar.gz`, variably for `.zip`.
+`frontmatter` is the skill's `SKILL.md` YAML frontmatter rendered verbatim as a JSON object — every field the author wrote, not a curated subset. Because the Agent Skills specification requires `name` and `description`, those fields are always present; everything else (`license`, `metadata`, fields added by future revisions of the Agent Skills specification) passes through unchanged. A host can therefore build its skill registry — names, descriptions, and whatever other metadata it understands — from a single read of the index, without fetching each `SKILL.md`.
 
-Hosts unpacking an archive MUST apply the [archive safety](https://agentskills.io/well-known-uri#archive-safety) requirements of the Agent Skills specification: reject archives containing path-traversal sequences or absolute paths, reject symlinks or hard links that resolve outside the skill directory, and enforce a limit on total unpacked size.
+The `frontmatter` object MUST be identical in content to the frontmatter of the `SKILL.md` it describes. When `url` is present, the final `<skill-path>` segment of the URI MUST equal `frontmatter.name`, per [Resource Mapping](#resource-mapping).
+
+##### Direct entries
+
+When present, `url` is the full resource URI of the skill's `SKILL.md`, readable via `resources/read`. Supporting files are individually addressable as sibling resources under the same skill path, per [Resource Mapping](#resource-mapping).
+
+##### Archives
+
+`archives` lists pre-packed forms of the entire skill directory. Each archive is a single resource whose content is the complete skill directory in an archive format; reading it via `resources/read` retrieves the skill — `SKILL.md` and all supporting files — in one round trip. When multiple archives are listed, they are alternative encodings of identical content; a host picks one whose format it supports, determined from `mimeType`.
+
+`mimeType` MUST identify an archive format. Hosts SHOULD support at least gzip-compressed tar (`application/gzip`, conventionally `.tar.gz`) and ZIP (`application/zip`); servers MAY offer additional formats but SHOULD include at least one of these two so that any conforming host can retrieve the skill.
+
+Archive layout:
+
+- `SKILL.md` MUST be at the archive root, not nested inside a wrapper directory.
+- Entry paths MUST use `/` as the separator and MUST be relative — no path-traversal sequences (`..`) and no absolute paths.
+
+Archive contents represent the skill directory directly. When an entry carries both `url` and `archives`, each archive MUST unpack to the same files that are individually addressable under the skill path — a host may fetch the skill either way and observes the same content. When an entry is archive-only, the skill's files are not individually addressable on the server; the host unpacks the archive locally and addresses its contents under `skill://<name>/<file-path>`, where `<name>` is `frontmatter.name`. In both cases the archive `url` itself carries no path semantics — it is a download location, nothing more.
+
+Compared to individual-file distribution, an archive delivers a multi-file skill atomically and can carry UNIX file metadata (executable bits, symlinks) that individual resources cannot represent — robustly for `.tar.gz`, variably for `.zip`.
+
+Archives are an unpacking attack surface. Hosts unpacking an archive MUST reject archives containing path-traversal sequences or absolute paths, reject symlinks or hard links that resolve outside the skill directory, and enforce a limit on total unpacked size to prevent decompression bombs.
 
 ##### Integrity and verification
 
-Per the Agent Skills [integrity and verification](https://github.com/agentskills/agentskills/pull/254) requirements, each skill entry includes a `digest` field containing the SHA-256 hash of the artifact's raw bytes, formatted as `sha256:{hex}` where `{hex}` is 64 lowercase hexadecimal characters. For `"skill-md"`, the artifact is the `SKILL.md` file; for `"archive"`, the artifact is the archive file.
+Digests are SHA-256 hashes of an artifact's raw bytes, formatted as `sha256:{hex}` where `{hex}` is 64 lowercase hexadecimal characters. For a skill entry's `digest`, the artifact is the `SKILL.md` file; for an archive's `digest`, the artifact is the archive file.
 
 Hosts MUST verify retrieved content against the `digest` in the index. A mismatch indicates the content is corrupted or tampered with — hosts MUST NOT use unverified content. Digests also enable efficient caching: compare a skill's `digest` against a locally cached value to determine whether the artifact has changed without re-reading it.
 
@@ -210,7 +255,7 @@ The following are recommendations for interoperable implementations. They are no
 
 This section sketches one way a host might wire MCP-served skills into an existing skills implementation. It is illustrative, not prescriptive — hosts are free to structure tools, naming, and routing however suits their architecture. The goal is that, from the model's perspective, an MCP-served skill is indistinguishable from a filesystem skill.
 
-**Registry.** At startup and on connection change, the host assembles a single internal skill registry from every origin it supports: filesystem skill directories, and `skill://index.json` from each connected MCP server that declares the `io.modelcontextprotocol/skills` extension. Each registry entry records the skill's `name`, `description`, and origin — for a filesystem skill, the local directory; for an MCP skill, the server identity and the `SKILL.md` resource URI. Origin is host bookkeeping; it is not exposed to the model.
+**Registry.** At startup and on connection change, the host assembles a single internal skill registry from every origin it supports: filesystem skill directories, and `skill://index.json` from each connected MCP server that declares the `io.modelcontextprotocol/skills` extension. Each registry entry records the skill's `name` and `description` (from the index entry's `frontmatter`) and its origin — for a filesystem skill, the local directory; for an MCP skill, the server identity and the `SKILL.md` resource URI. Origin is host bookkeeping; it is not exposed to the model.
 
 **Context.** The host surfaces the `name` and `description` of each enabled registry entry in the model's context — the same list the model already sees for filesystem skills, now with MCP-served entries mixed in. The host's UI presents the same merged list for user inspection and per-skill enable/disable, with provenance shown so users can see which server a skill came from.
 
@@ -324,9 +369,13 @@ The Agent Skills specification already defines YAML frontmatter fields, naming r
 
 ### Why Permit Archive Distribution?
 
-An earlier draft excluded `type: "archive"` on the basis that supporting files are already individually addressable as resources. The Working Group [reversed this](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-04-19-archives-permitted-as-server-side-packaging-optimization) for four reasons: dropping a distribution type that the Agent Skills discovery format defines contradicts this SEP's framing as a pure transport binding; individual-file distribution cannot guarantee atomicity across a multi-file skill read; hosts that pre-materialize skills to a local filesystem pay N+1 round trips; and UNIX file metadata (executable bits, symlinks) has no representation when files are served individually.
+An earlier draft excluded archives on the basis that supporting files are already individually addressable as resources. The Working Group [reversed this](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-04-19-archives-permitted-as-server-side-packaging-optimization) for three reasons: individual-file distribution cannot guarantee atomicity across a multi-file skill read; hosts that pre-materialize skills to a local filesystem pay N+1 round trips; and UNIX file metadata (executable bits, symlinks) has no representation when files are served individually.
 
-Reinstating archives as a server-side packaging choice — not a client-visible mode split — preserves the virtual-filesystem model: the post-unpack view is identical to individual-file distribution. The property given up is per-file `resources/subscribe` granularity, which is acceptable because subscription is not part of the skill reading model defined here.
+Attaching archives to a skill entry as alternative retrieval forms — rather than as a separate kind of skill — preserves the virtual-filesystem model: the post-unpack view is identical to individual-file distribution. The property given up is per-file `resources/subscribe` granularity, which is acceptable because subscription is not part of the skill reading model defined here.
+
+### Why Verbatim Frontmatter in the Index?
+
+The index could instead carry a curated subset of skill metadata — `name` and `description` as dedicated top-level fields. That forces a choice every time the Agent Skills frontmatter grows a field: amend this SEP to mirror it, or leave index consumers to fetch and parse every `SKILL.md` for it. Copying the frontmatter verbatim removes the choice. The index carries exactly what the skill author wrote; the fields hosts need for a registry (`name`, `description`) are guaranteed present because the Agent Skills specification requires them; and new frontmatter fields flow through with no change to this extension. A host builds its complete skill registry from a single `resources/read` of the index.
 
 ## Backward Compatibility
 
@@ -343,7 +392,7 @@ Skill content is instructional text delivered to a model, which makes it a promp
 - **No implicit local execution.** Hosts MUST NOT honor mechanisms in skill content that would cause local code execution without explicit user opt-in. This includes, non-exhaustively: hook declarations, pre/post-invocation scripts, shell commands embedded in frontmatter, or any field that a filesystem-sourced skill might use to register executable behavior on the host. Hosts MUST either ignore such fields entirely when the skill arrives over MCP, or gate them behind an explicit per-skill user approval that states what will execute and where. Silently executing server-provided code because it appeared in a skill directory is a remote code execution vector.
 - **Skills are data, not directives.** Hosts MUST NOT treat skill resources as higher-authority than other context. Explicit user policy governs whether a skill is loaded at all.
 - **Provenance and inspection.** Hosts SHOULD indicate which server a skill originates from when presenting it, SHOULD let users inspect a skill's content before it is loaded into model context, and MAY gate loading behind per-skill or per-server user approval.
-- **Archive safety.** Archive-distributed skills are an unpacking attack surface. Hosts MUST validate archives per the [Agent Skills archive safety requirements](https://agentskills.io/well-known-uri#archive-safety): reject path traversal and absolute paths, reject links resolving outside the skill directory, and bound total unpacked size to prevent decompression bombs.
+- **Archive safety.** Archive-distributed skills are an unpacking attack surface. Hosts MUST validate archives per the requirements in [Archives](#archives): reject path traversal and absolute paths, reject links resolving outside the skill directory, and bound total unpacked size to prevent decompression bombs.
 
 ## Reference Implementation
 
@@ -368,7 +417,6 @@ Per [SEP-2133], an Extensions Track SEP requires at least one reference implemen
 ## References
 
 - [Agent Skills specification](https://agentskills.io/specification)
-- [Agent Skills well-known URI discovery](https://agentskills.io/well-known-uri)
 - [SEP-2133]: Extensions
 - [SEP-2076]: Agent Skills as first-class primitive (alternative approach)
 - [Skills Over MCP Working Group charter](https://modelcontextprotocol.io/community/skills-over-mcp/charter)
