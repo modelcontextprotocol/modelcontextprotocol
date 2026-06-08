@@ -21,7 +21,7 @@ document and intentionally does not duplicate that wire-format detail.
 
 This SEP proposes adding a standardized, self-contained format to describe MCP servers, e.g. for discovery using a `.well-known` endpoint. This enables clients to automatically discover available transports, protocol versions, and connection guidance before establishing a connection.
 
-As an Extensions Track SEP (per [SEP-2133](./2133-extensions.md)), this document charters the **Server Card** extension and names its Working Group and maintainers. The detailed, normative wire format — the Server Card and `server.json` schemas, field definitions, the `.well-known` discovery mechanics, and the full security analysis — is maintained in the [experimental-ext-server-card](https://github.com/modelcontextprotocol/experimental-ext-server-card) repository rather than inline here, following the precedent set by [SEP-1865 (MCP Apps)](./1865-mcp-apps-interactive-user-interfaces-for-mcp.md).
+As an Extensions Track SEP (per [SEP-2133](./2133-extensions.md)), this document charters the **Server Card** extension and names its Working Group and maintainers. The detailed, normative wire format — the Server Card and `server.json` schemas, field definitions, the discovery mechanics, and the full security analysis — is maintained in the [experimental-ext-server-card](https://github.com/modelcontextprotocol/experimental-ext-server-card) repository rather than inline here, following the precedent set by [SEP-1865 (MCP Apps)](./1865-mcp-apps-interactive-user-interfaces-for-mcp.md).
 
 ## Motivation
 
@@ -55,7 +55,7 @@ The [AI Card](https://github.com/Agent-Card/ai-card) standard is paving a path t
 
 #### MCP Connection Details
 
-MCP Server Cards provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. The canonical `.well-known` discovery path and the relationship to the broader [AI Catalog](https://github.com/Agent-Card/ai-catalog) are specified in the extension repository's [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md).
+MCP Server Cards provide a richer, MCP-specific definition that can be used by MCP clients to actually connect and start performing MCP operations. The canonical discovery path and the relationship to the broader [AI Catalog](https://github.com/Agent-Card/ai-catalog) are specified in the extension repository's [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md).
 
 Example:
 
@@ -98,7 +98,7 @@ At a high level, the Server Card extension introduces:
 
 - **Server Card document**: A static metadata document describing a _remote_ MCP server — its identity (`name`, `version`, `description`, optional `title` / `icons` / `repository` / `websiteUrl`), its remote transport endpoints (URLs, headers, variable templates, supported protocol versions), and optional `_meta` extension metadata. Server Cards intentionally **omit primitive listings** (tools, resources, prompts); those remain subject to runtime listing via the protocol's standard list operations.
 - **`server.json` (the `Server` shape)**: A strict superset of the Server Card that additionally describes locally-runnable `packages`. This is the shape used by the MCP Registry's `server.json`. Keeping it a superset of the Server Card means a single parser and toolchain serves both use cases.
-- **`.well-known` discovery**: A predictable HTTP location (and an MCP Catalog that indexes multiple cards) from which clients can retrieve cards before connecting, with CORS and caching guidance for browser-based discovery. The canonical path, media type, and catalog format are specified in [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md).
+- **Discovery**: A predictable HTTP location (and an MCP Catalog that indexes multiple cards) from which clients can retrieve cards before connecting, with CORS and caching guidance for browser-based discovery. The canonical path, media type, and catalog format are specified in [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md).
 
 As an extension, MCP Server Cards are **optional** and additive: servers that do not publish a card continue to work normally through standard initialization (see [Backward Compatibility](#backward-compatibility)).
 
