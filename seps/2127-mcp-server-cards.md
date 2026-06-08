@@ -160,7 +160,7 @@ Server Cards are publicly accessible, read-only metadata documents served over H
 - **Transport security and MITM**: Cards SHOULD be served over HTTPS with certificate validation; because cards are advisory (the real connection still requires initialization and authentication), a compromised card primarily affects discoverability rather than security.
 - **Denial of service**: Servers SHOULD rate-limit discovery endpoints and clients SHOULD respect cache headers.
 
-The full threat model and the normative CORS/caching/transport requirements are maintained in the extension repository's [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md). Two security-relevant items do **not** yet have a settled home in the extension repository and are tracked as open items below: a dedicated card-level Denial-of-Service section, and registration of the `.well-known` URI suffix / media type with IANA.
+The full threat model and the normative CORS/caching/transport requirements are maintained in the extension repository's [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md). Two security-relevant items do **not** yet have a settled home in the extension repository and are tracked as open items below: a dedicated card-level Denial-of-Service section, and the IANA registration(s) appropriate to whichever discovery mechanism is settled on.
 
 ## Reference Implementation
 
@@ -169,17 +169,26 @@ The Server Card extension is being incubated in the
 repository, which contains the TypeScript schema source of truth, the generated JSON Schema,
 discovery documentation, and valid/invalid example documents exercised by a validation script.
 
+An SDK reference implementation is in progress in
+[python-sdk#2696 — "Add experimental Server Cards support (SEP-2127)"](https://github.com/modelcontextprotocol/python-sdk/pull/2696)
+(by @dsp-ant): server-side card construction/serving, client-side fetch/validation, and Pydantic
+models for the `ServerCard` / `Server` shapes, with tests round-tripping the conformance examples.
+
 Per [SEP-2133](./2133-extensions.md), an extension requires an **SDK reference implementation
-before it can be given "Final" status** (this is not a prerequisite for `Draft`). No SDK
-reference implementation exists yet; building one in (at least) one official MCP SDK remains an
-outstanding, Final-gating item for this extension.
+before it can be given "Final" status** (this is not a prerequisite for `Draft`). python-sdk#2696
+is **open and under review, not yet merged**, and several decisions baked into it intersect with
+the open items below (notably the discovery path and the single-source-of-truth relationship
+between the SDK models and this repo's schema). Reviewing, reconciling, and merging it therefore
+remains an outstanding, Final-gating item, tracked in [experimental-ext-server-card#16](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/16).
 
 ## Open Items
 
-- **IETF / IANA registration.** `.well-known/` URIs must be registered with the IETF per RFC 8615. The SEP authors / MCP Steering Committee are responsible for submitting a registration request to IANA for the Server Card `.well-known` URI suffix once this SEP is approved. The registration is an author/steering-committee responsibility and has no counterpart in the extension repository; it must not be lost in the move to a charter. A content **media type** registration (see below) should be filed alongside it.
-- **Canonical media type.** The extension repository's `docs/discovery.md` currently uses `application/mcp-server+json`, while the cited AI Catalog uses `application/mcp-server-card+json`. The canonical media-type string is unresolved and should be settled (and registered) before Final. Tracked as [experimental-ext-server-card#9](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/9).
-- **Canonical `.well-known` path spelling.** The path is spelled inconsistently across the surviving sources (slash form `/.well-known/mcp/server-card` in the repo README vs. dash form `/.well-known/mcp-server-card` in `schema.ts` / `docs/discovery.md`). It must converge before Final. Tracked as [experimental-ext-server-card#11](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/11).
-- **Primitive listing in discovery docs.** `docs/discovery.md` currently lists tools/resources/prompts as Server Card contents, contradicting this SEP's deliberate exclusion of primitives and the repo's own `schema.ts`. Tracked as [experimental-ext-server-card#10](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/10).
+- **Discovery mechanism.** Whether single-server cards are published at a `.well-known` URI at all — versus a catalog-referenced GET on a non-`.well-known` URL (e.g. a reserved `GET <streamable-http-url>/server-card`) — is itself unresolved. The `.well-known` framing in this charter reflects the current draft, not a locked decision. Tracked as [experimental-ext-server-card#12](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/12).
+- **Canonical discovery path / `.well-known` spelling.** If a `.well-known` path is retained, it is currently spelled inconsistently across sources — slash form `/.well-known/mcp/server-card` (repo README and the python-sdk reference implementation) vs. dash form `/.well-known/mcp-server-card` (`schema.ts` / `docs/discovery.md`). It must converge before Final; the reference implementation favors the slash form. Tracked as [experimental-ext-server-card#11](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/11).
+- **Canonical media type.** The extension repository's `docs/discovery.md` currently uses `application/mcp-server+json`, while the cited AI Catalog (the consumer) — and the emerging direction in #12 — use `application/mcp-server-card+json`. The canonical media-type string is unresolved and should be settled before Final. Tracked as [experimental-ext-server-card#9](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/9).
+- **IANA registration.** Conditional on the two items above: if a `.well-known` suffix survives, it must be registered with IANA per RFC 8615; in all cases a content **media type** registration should accompany this SEP. This is an author / MCP Steering Committee responsibility with no counterpart in the extension repository, and must not be lost in the move to a charter.
+- **Auth shape.** The initial shape is deliberately limited. An additive `auth` block on the shared `Remote` shape ([SEP-2742](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2742)) is a planned fast-follow, so the v1 schema must stay forward-compatible (e.g. `Remote` / `Input` must not be sealed against additive members) to avoid a breaking change when auth lands. Compatibility pass tracked as [experimental-ext-server-card#17](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/17); full incorporation as [experimental-ext-server-card#13](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/13).
+- **Primitive listing in discovery docs.** `docs/discovery.md` currently lists tools/resources/prompts as Server Card contents, contradicting the current shape in `schema.ts`; whether to add primitive listings at all is itself an open question. Tracked as [experimental-ext-server-card#10](https://github.com/modelcontextprotocol/experimental-ext-server-card/issues/10).
 
 ## Working Group and Maintainers
 
