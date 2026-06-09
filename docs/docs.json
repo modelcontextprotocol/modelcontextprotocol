@@ -100,7 +100,7 @@
             ]
           },
           {
-            "group": "MCP Tasks",
+            "group": "Tasks",
             "pages": [
               "extensions/tasks/overview"
             ]
