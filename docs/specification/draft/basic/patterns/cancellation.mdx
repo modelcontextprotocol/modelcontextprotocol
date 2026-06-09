@@ -5,12 +5,10 @@ title: Cancellation
 <div id="enable-section-numbers" />
 
 The Model Context Protocol (MCP) supports optional cancellation of in-progress requests
-through notification messages. Because all requests flow from client to server,
-cancellation flows in one direction as well: the client sends a cancellation notification
+through notification messages. A client **SHOULD** sends a cancellation notification
 to indicate that a request it previously issued should be terminated.
 
-There is one exception, where cancellations are sent from server to client: on stdio, a
-server **MUST** send `notifications/cancelled`
+A server **MUST** send `notifications/cancelled`
 referencing a `subscriptions/listen` request ID when it tears down that subscription
 stream (see [Subscriptions][subscriptions]). Servers **MUST NOT** send
 `notifications/cancelled` for any other purpose.
@@ -49,7 +47,7 @@ How a client signals cancellation depends on the transport:
 1. Cancellation notifications **MUST** only reference requests that:
    - Were previously issued by the client
    - Are believed to still be in-progress
-1. Server-sent cancellation notifications **MUST** only reference a
+1. Server-sent cancellation notifications **MUST** reference a
    `subscriptions/listen` request, to terminate that subscription stream
 1. Servers receiving cancellation notifications **SHOULD**:
    - Stop processing the cancelled request

@@ -5,8 +5,7 @@ title: Progress
 <div id="enable-section-numbers" />
 
 The Model Context Protocol (MCP) supports optional progress tracking for long-running
-operations through notification messages. Because all requests flow from client to
-server, progress flows in one direction as well: the server sends progress notifications
+operations through notification messages. The server **MAY** send progress notifications
 to report the status of requests the client has issued.
 
 ## Progress Flow
