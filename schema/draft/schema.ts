@@ -127,11 +127,11 @@ export interface NotificationMetaObject extends MetaObject {
    * stream (e.g. progress notifications for an in-flight request), which is
    * why it is optional here.
    *
-   * The value is derived from the JSON-RPC ID of the `subscriptions/listen`
-   * request that opened the stream: the decimal string representation of the
-   * ID if it is a number, or the ID verbatim if it is a string.
+   * The value is the JSON-RPC ID of the `subscriptions/listen` request that
+   * opened the stream, verbatim: a string ID stays a string, and a numeric
+   * ID stays a number.
    */
-  "io.modelcontextprotocol/subscriptionId"?: string;
+  "io.modelcontextprotocol/subscriptionId"?: RequestId;
 }
 
 /**
