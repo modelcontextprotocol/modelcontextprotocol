@@ -128,8 +128,7 @@ export interface NotificationMetaObject extends MetaObject {
    * why it is optional here.
    *
    * The value is the JSON-RPC ID of the `subscriptions/listen` request that
-   * opened the stream, verbatim: a string ID stays a string, and a numeric
-   * ID stays a number.
+   * opened the stream.
    */
   "io.modelcontextprotocol/subscriptionId"?: RequestId;
 }
