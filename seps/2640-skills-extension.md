@@ -19,7 +19,7 @@ Design history, experimental findings, and reference implementations are maintai
 
 This SEP defines a convention for serving [Agent Skills](https://agentskills.io/) over MCP using the existing Resources primitive. A _skill_ is a directory of files (minimally a `SKILL.md`) that provides structured workflow instructions to an agent. This extension specifies that each file in a skill directory is exposed as an MCP resource, conventionally under the `skill://` URI scheme. Skills are addressed by URI and may be read directly; a well-known `skill://index.json` resource enumerates the skills a server serves, but is not required — accommodating servers whose skill catalogs are large, generated, or otherwise unenumerable. The skill format itself — directory structure, YAML frontmatter, naming rules, and the [progressive disclosure](https://agentskills.io/specification#progressive-disclosure) model that governs how hosts stage content into context — is delegated entirely to the [Agent Skills specification](https://agentskills.io/specification); this SEP defines only the transport binding.
 
-Because the extension adds no new protocol methods or capabilities, hosts that already treat MCP resources as a virtual filesystem can consume MCP-served skills identically to local filesystem skills. The specification is accompanied by implementation guidelines for host-provided resource-reading tools and SDK-level convenience wrappers.
+The extension defines one optional protocol method — `resources/directory/read`, which lists the direct children of a directory resource, giving agents scoped navigation of a skill's supporting files. Everything else rides on existing protocol surface, so hosts that already treat MCP resources as a virtual filesystem can consume MCP-served skills identically to local filesystem skills. The specification is accompanied by implementation guidelines for host-provided resource-reading tools and SDK-level convenience wrappers.
 
 ## Motivation
 
@@ -220,19 +220,87 @@ Per [SEP-2133] extension negotiation, servers declare support for this extension
 {
   "capabilities": {
     "extensions": {
-      "io.modelcontextprotocol/skills": {}
+      "io.modelcontextprotocol/skills": {
+        "directoryRead": true
+      }
     }
   }
 }
 ```
 
-No extension-specific settings are currently defined; an empty object indicates support.
+One extension-specific setting is defined:
+
+| Setting         | Type    | Default | Meaning                                                                 |
+| --------------- | ------- | ------- | ----------------------------------------------------------------------- |
+| `directoryRead` | boolean | `false` | The server implements [`resources/directory/read`](#directory-listing). |
+
+An empty object indicates support for the extension with no optional features. Clients MUST NOT call `resources/directory/read` against a server that has not declared `directoryRead: true`.
 
 ### Reading
 
 Skill files are read via the standard `resources/read` method. No skill-specific read semantics are defined.
 
 Internal references within a skill (e.g., `SKILL.md` linking to `references/GUIDE.md`) are relative paths, as in the filesystem form of the Agent Skills specification. A client resolves a relative reference against the skill's root — `references/GUIDE.md` in `skill://acme/billing/refunds/SKILL.md` resolves to `skill://acme/billing/refunds/references/GUIDE.md` — exactly as a filesystem path would resolve. The skill's root is the directory containing `SKILL.md`, not the `skill://` scheme root.
+
+### Directory Listing
+
+A skill's instructions frequently reference a directory rather than a file: "pick the appropriate template from `templates/`", "run the matching script in `scripts/`". To act on this, the agent must learn what the directory contains. `resources/list` cannot answer that scoped question: it enumerates the server's entire resource space, not a subtree, and the servers this SEP most wants to accommodate — large, generated, or unenumerable catalogs (see [Why Is Enumeration Optional?](#why-is-enumeration-optional)) — may not implement meaningful global listing at all.
+
+This extension therefore defines one new method, `resources/directory/read`, gated behind the `directoryRead` setting of the [capability declaration](#capability-declaration).
+
+#### Directory resources
+
+A _directory resource_ is a resource whose `mimeType` is `inode/directory`. In a skill namespace served as individual files, every directory level is a directory resource: the skill root (`skill://pdf-processing`) and each subdirectory (`skill://pdf-processing/templates`). Directory URIs are written without a trailing slash. Directory resources need not appear in `resources/list`; they are addressable whether listed or not.
+
+#### `resources/directory/read`
+
+The request carries the directory's URI and an optional pagination cursor. The result carries the resource metadata of the directory's direct children — the same `Resource` objects that `resources/list` returns, with the same `nextCursor` pagination contract.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "resources/directory/read",
+  "params": {
+    "uri": "skill://pdf-processing/templates"
+  }
+}
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "resources": [
+      {
+        "uri": "skill://pdf-processing/templates/invoice.md",
+        "name": "invoice.md",
+        "mimeType": "text/markdown"
+      },
+      {
+        "uri": "skill://pdf-processing/templates/purchase-order.md",
+        "name": "purchase-order.md",
+        "mimeType": "text/markdown"
+      },
+      {
+        "uri": "skill://pdf-processing/templates/regional",
+        "name": "regional",
+        "mimeType": "inode/directory"
+      }
+    ]
+  }
+}
+```
+
+Semantics:
+
+- The method applies only to directory resources. If the URI does not exist, or exists but is not a directory resource, the server MUST return error `-32602` (Invalid params) — the same code `resources/read` uses for unknown resources.
+- The result contains every direct child of the directory: files with their ordinary resource metadata, subdirectories listed as directory resources (`mimeType: "inode/directory"`). The listing is not recursive; clients descend by calling the method again on a child directory.
+- An empty directory yields an empty `resources` array.
+- Pagination mirrors `resources/list`: when the result includes `nextCursor`, the client passes it back as `cursor` to retrieve the next page.
+
+A server that declares `directoryRead` MUST support the method for every directory within the skill namespaces it serves as individual files. The method itself is not skill-specific: a server MAY support it on any directory resource it serves, under any scheme.
 
 ## Implementation Guidelines
 
@@ -286,6 +354,8 @@ When the model calls `read_skill`, the host looks up the name in its registry an
 
 The host arranges for the model to know, when it loads an MCP-served `SKILL.md`, which server it came from and what its base URI is — for example by stating both in the `read_skill` tool result — so the model can resolve `references/GUIDE.md` to `skill://<skill-path>/references/GUIDE.md` and issue `read_resource` against the right server. A host may instead fold this into its file-read tool by mounting each server's `skill://` namespace into a virtual path and translating reads under that path into `resources/read` calls, in which case no separate `read_resource` tool is needed and the model treats every supporting file as a local path. Either way the resolution rule is the same: relative references resolve against the skill's root directory, exactly as on a filesystem.
 
+**Directory navigation.** Skill instructions may point the model at a directory rather than a file ("choose the right template from `templates/`"). When the originating server declares `directoryRead`, the host SHOULD surface this capability to the model: a `read_resource` call whose target is a directory resource can be routed to `resources/directory/read` and return the child listing, and the virtual-mount approach maps it onto the host's existing directory-listing tool — an `ls` of a mounted path becomes a `resources/directory/read` call.
+
 **Unenumerated skills.** Because enumeration is optional, a host should also accept skill URIs it has never seen listed — handed to the model by the user, by server instructions, or by another skill. A `read_resource` call for an unlisted `skill://` URI is forwarded to the named server, which either serves it or returns not-found. A host may additionally let `read_skill` accept a full URI for this case.
 
 The `read_resource` signature above includes `server` because two connected servers may both serve `skill://refunds/SKILL.md`. That is one disambiguation strategy; a host may instead rewrite URIs with a per-server prefix, scope by session, or anything else appropriate to its architecture. The tool is general-purpose — it reads any MCP resource — and is useful beyond skills.
@@ -314,6 +384,8 @@ The SDK handles: reading `SKILL.md` frontmatter to populate resource metadata, s
 skills = await client.list_skills()               # reads skill://index.json, may be empty or absent
 content = await client.read_skill_uri(
     "skill://acme/billing/refunds/SKILL.md")      # wraps resources/read, works regardless of enumeration
+entries = await client.read_directory(
+    "skill://pdf-processing/templates")           # wraps resources/directory/read
 ```
 
 These wrappers are thin — each is a single underlying protocol call with a fixed URI pattern — but they give server authors an ergonomic way to declare skills and give client authors a discoverable entry point.
@@ -360,13 +432,23 @@ An earlier draft excluded archives on the basis that supporting files are alread
 
 Attaching archives to a skill entry as alternative retrieval forms — rather than as a separate kind of skill — preserves the virtual-filesystem model: the post-unpack view is identical to individual-file distribution. The property given up is per-file `resources/subscribe` granularity, which is acceptable because subscription is not part of the skill reading model defined here.
 
+### Why a Directory Read Method?
+
+The virtual-filesystem model this SEP builds on had a read operation (`resources/read`) but no readdir. That gap is harmless while skill instructions name files explicitly, but skills routinely defer the choice to the agent — "use the template in `templates/` that matches the document type." On a filesystem the agent lists the directory; over MCP the only enumeration was `resources/list`, which is global: it returns the server's entire resource space, cannot be scoped to a subtree, and is precisely what large or generative servers — the ones that motivated optional enumeration — decline to implement. A server that cannot enumerate its catalog can still trivially enumerate one directory it is already serving.
+
+`resources/directory/read` is the readdir analog: scoped, paginated, and composable — listings mark subdirectories with `inode/directory`, so an agent descends a skill's tree exactly as it would walk a directory locally.
+
+Two alternatives were considered. Extending `resources/list` with a scope parameter would change a core method's semantics from inside an extension, and a URI-prefix filter misstates the model anyway — prefixes are string matching, not structure. Embedding a file manifest in `SKILL.md` or the index would freeze the listing at authoring or indexing time and bloat context for skills with many files; a method keeps listings live and on demand.
+
+Although introduced by this extension, the method is deliberately general — any directory resource qualifies, under any scheme — making it a candidate for promotion into the core Resources primitive if usage warrants.
+
 ### Why Verbatim Frontmatter in the Index?
 
 The index could instead carry a curated subset of skill metadata — `name` and `description` as dedicated top-level fields. That forces a choice every time the Agent Skills frontmatter grows a field: amend this SEP to mirror it, or leave index consumers to fetch and parse every `SKILL.md` for it. Copying the frontmatter verbatim removes the choice. The index carries exactly what the skill author wrote; the fields hosts need for a registry (`name`, `description`) are guaranteed present because the Agent Skills specification requires them; and new frontmatter fields flow through with no change to this extension. A host builds its complete skill registry from a single `resources/read` of the index.
 
 ## Backward Compatibility
 
-This extension introduces no new protocol methods, message types, or schema changes. A server that does not implement this extension simply exposes no `skill://` resources; existing clients are unaffected. A client that does not implement this extension sees `skill://` resources as ordinary resources, which they are.
+This extension introduces one optional protocol method, `resources/directory/read`, gated behind an explicit capability setting — a server that does not declare `directoryRead` never receives the call, and a client that predates it never issues one. It introduces no other methods, message types, or schema changes. A server that does not implement this extension simply exposes no `skill://` resources; existing clients are unaffected. A client that does not implement this extension sees `skill://` resources as ordinary resources, which they are.
 
 Existing implementations using other `skill://` URI structures will need to adjust to conform — see the Working Group's [related-work survey](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/related-work.md) for a catalog. Notably, FastMCP's widely-used [SkillsProvider](https://gofastmcp.com/servers/providers/skills) diverges on URI structure, discovery (per-skill `_manifest` vs. central index), and metadata mapping; coordinating that migration is a near-term Working Group priority. These are mechanical changes, not semantic ones.
 
