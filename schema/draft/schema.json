@@ -2254,7 +2254,7 @@
             "description": "Extends {@link MetaObject} with additional notification-specific fields. All key naming rules from `MetaObject` apply.",
             "properties": {
                 "io.modelcontextprotocol/subscriptionId": {
-                    "description": "Identifies the subscription stream a notification was delivered on. The\nserver MUST include this key on every notification delivered via a\n{@link SubscriptionsListenRequestsubscriptions/listen} stream, so the\nclient can correlate the notification with the originating subscription.\n\nThe value is derived from the JSON-RPC ID of the `subscriptions/listen`\nrequest that opened the stream: the decimal string representation of the\nID if it is a number, or the ID verbatim if it is a string.",
+                    "description": "Identifies the subscription stream a notification was delivered on. The\nserver MUST include this key on every notification delivered via a\n{@link SubscriptionsListenRequestsubscriptions/listen} stream, so the\nclient can correlate the notification with the originating subscription.\nThe key is absent on notifications not delivered via a subscription\nstream (e.g. progress notifications for an in-flight request), which is\nwhy it is optional here.\n\nThe value is derived from the JSON-RPC ID of the `subscriptions/listen`\nrequest that opened the stream: the decimal string representation of the\nID if it is a number, or the ID verbatim if it is a string.",
                     "type": "string"
                 }
             },

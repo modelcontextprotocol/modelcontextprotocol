@@ -123,6 +123,9 @@ export interface NotificationMetaObject extends MetaObject {
    * server MUST include this key on every notification delivered via a
    * {@link SubscriptionsListenRequest | subscriptions/listen} stream, so the
    * client can correlate the notification with the originating subscription.
+   * The key is absent on notifications not delivered via a subscription
+   * stream (e.g. progress notifications for an in-flight request), which is
+   * why it is optional here.
    *
    * The value is derived from the JSON-RPC ID of the `subscriptions/listen`
    * request that opened the stream: the decimal string representation of the
@@ -408,6 +411,9 @@ export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
  * headers do not match the corresponding values in the request body, or
  * because required headers are missing or malformed. For HTTP, the response
  * status code MUST be `400 Bad Request`.
+ *
+ * @example Header mismatch
+ * {@includeCode ./examples/HeaderMismatchError/header-mismatch.json}
  *
  * @category Errors
  */

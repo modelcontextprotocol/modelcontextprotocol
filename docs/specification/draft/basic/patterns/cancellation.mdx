@@ -9,7 +9,8 @@ through notification messages. Because all requests flow from client to server,
 cancellation flows in one direction as well: the client sends a cancellation notification
 to indicate that a request it previously issued should be terminated.
 
-There is one exception: on stdio, a server **MUST** send `notifications/cancelled`
+There is one exception, where cancellations are sent from server to client: on stdio, a
+server **MUST** send `notifications/cancelled`
 referencing a `subscriptions/listen` request ID when it tears down that subscription
 stream (see [Subscriptions][subscriptions]). Servers **MUST NOT** send
 `notifications/cancelled` for any other purpose.
