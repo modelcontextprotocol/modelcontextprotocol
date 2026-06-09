@@ -793,6 +793,38 @@ duplicate mutation. A provider idempotency key can be linked to the
 stable action or receipt ID, but should not be the only
 verifier-readable boundary.
 
+#### Signed Record Examples
+
+SEP-2828 is one possible signed-record pattern for this guidance, not a
+required MCP receipt schema. The useful compatibility target is the set
+of verifier obligations: bind the decision and outcome to a canonical
+request, bind them to the same call instance, link the outcome back to
+the decision, and check issuer, audience, scope, freshness, and
+integrity when the verifier has the issuer's key. Runtime truth, issuer
+trust policy, and single-use or `already_consumed` state remain outside
+the signed record.
+
+Fixture suites for signed-record profiles should include positive
+decision/outcome pairs, substituted decision or outcome negatives,
+replay and scope-drift cases, and equal-timestamp ordering cases. If two
+decision records for the same call binding have the same decision time
+and no explicit sequence or revision field, the verifier should treat
+the result as ambiguous or invalid instead of choosing a winner from file
+order, arrival order, or alphabetical ordering.
+
+If a deployment supports a fallback path without a SEP-2787 attestation,
+the decision back-link should name the fallback projection version that
+produced the digest, for example
+`tools_call_params_plus_meta_authorization_binding_v1`. That projection
+should be an inclusion rule: include the canonical `tools/call` params
+that are meant to bind to the decision, include only a named binding
+block such as `_meta.authorization_binding`, and exclude all other
+`_meta` fields by construction. Transport-local or observation-local
+metadata, such as progress tokens, trace context, UI hints, or unrelated
+SEP blocks, should not affect the digest. Missing, unknown, or malformed
+projection identifiers or binding blocks should fail closed rather than
+falling back to hashing the whole observed `_meta`.
+
 ### Scope Minimization
 
 Poor scope design increases token compromise impact, elevates user
