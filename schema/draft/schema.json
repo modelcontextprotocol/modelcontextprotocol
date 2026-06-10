@@ -955,44 +955,6 @@
             ],
             "type": "object"
         },
-        "ElicitationCompleteNotification": {
-            "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.\n\nThis is only sent to clients that opted in via the `elicitationComplete`\nfield of a {@link SubscriptionsListenRequestsubscriptions/listen}\nrequest, and is delivered on that subscription's stream.",
-            "properties": {
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "notifications/elicitation/complete",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/ElicitationCompleteNotificationParams"
-                }
-            },
-            "required": [
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
-        "ElicitationCompleteNotificationParams": {
-            "description": "Parameters for a {@link ElicitationCompleteNotificationnotifications/elicitation/complete} notification.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/NotificationMetaObject"
-                },
-                "elicitationId": {
-                    "description": "The ID of the elicitation that completed.",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "elicitationId"
-            ],
-            "type": "object"
-        },
         "EmbeddedResource": {
             "description": "The contents of a resource, embedded into a prompt or tool call result.\n\nIt is up to the client how best to render embedded resources for the benefit\nof the LLM and/or the user.",
             "properties": {
@@ -3240,9 +3202,6 @@
                 },
                 {
                     "$ref": "#/$defs/LoggingMessageNotification"
-                },
-                {
-                    "$ref": "#/$defs/ElicitationCompleteNotification"
                 }
             ]
         },
@@ -3332,10 +3291,6 @@
         "SubscriptionFilter": {
             "description": "The set of notification types a client may opt in to on a\n{@link SubscriptionsListenRequestsubscriptions/listen} request.\n\nEach notification type is **opt-in**; the server **MUST NOT** send\nnotification types the client has not explicitly requested here.",
             "properties": {
-                "elicitationComplete": {
-                    "description": "If true, receive {@link ElicitationCompleteNotificationnotifications/elicitation/complete}\nfor out-of-band (URL mode) elicitations initiated by this client.",
-                    "type": "boolean"
-                },
                 "promptsListChanged": {
                     "description": "If true, receive {@link PromptListChangedNotificationnotifications/prompts/list_changed}.",
                     "type": "boolean"
