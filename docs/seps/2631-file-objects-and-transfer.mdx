@@ -769,6 +769,21 @@ before `tools/call`, avoiding an unnecessary extra round trip.
 This SEP therefore complements, rather than replaces, SEP-2356's recommendation to use
 URL-mode elicitation when the server needs a large-file or server-controlled upload flow.
 
+### Why Recommend Host-Managed Model Exposure
+
+This SEP defines interoperable wire representations for moving files, not a requirement
+that product surfaces paste whole files into model-visible context. In many
+implementations, the better user experience is for the host or harness to expose the file
+to the model as an attachment, reference, or other managed affordance while keeping the
+raw bytes out of the prompt transcript.
+
+That is especially important for inline `data:` URIs. They remain part of the protocol
+for compatibility and small-file cases, but they are not the recommended default
+model-facing representation for a generic file. Treating file inputs as host-managed
+artifacts reduces accidental base64 dumps, transcript bloat, and avoidable sensitive-data
+exposure while still allowing the host to forward inline values verbatim when SEP-2356's
+rules or the product's approval policy call for it.
+
 ### Why Standardize Download Resolution
 
 `ResourceLink` is useful, but it is not enough by itself for generic file output. Tool
@@ -800,6 +815,11 @@ This SEP introduces important security considerations:
   policy rather than trusting client metadata.
 - Clients **SHOULD** surface the source and destination context for file transfers so
   users understand where bytes are going.
+- Hosts and harnesses **SHOULD** expose file inputs to models through references,
+  metadata, or other product affordances rather than embedding the full file bytes
+  directly into model-visible context. In particular, implementations **SHOULD NOT**
+  treat raw base64 or `data:` URI payloads as the default model-facing representation of
+  a file when a file handle or host-managed attachment affordance is available.
 - Hosts that forward a model-supplied inline `data:` URI under SEP-2356 rules **MUST NOT**
   rewrite it into a local-file upload or substitute other bytes for it.
 - Inline transfer increases the risk of oversized payloads and accidental sensitive-data
