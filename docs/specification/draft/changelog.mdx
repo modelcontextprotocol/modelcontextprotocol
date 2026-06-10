@@ -50,11 +50,14 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
     `structuredContent` to allow any JSON value. Add `$ref` resolution requirements and
     composition-keyword resource bounds
     ([SEP-2106](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2106)).
-11. Remove the `notifications/elicitation/complete` notification, introduced in
-    `2025-11-25` for URL mode elicitation. Under the
+11. Remove the `notifications/elicitation/complete` notification and the
+    `elicitationId` field of URL mode elicitation requests, both introduced in
+    `2025-11-25`. Under the
     [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern, the
     client learns the outcome of an out-of-band interaction by retrying the original
-    request, so a server-initiated completion signal no longer fits the protocol.
+    request, so a server-initiated completion signal — and the identifier used to
+    correlate it — no longer fit the protocol. Servers needing to correlate an
+    elicitation across retries encode their own identifier in `requestState`.
 
 ## Deprecated
 

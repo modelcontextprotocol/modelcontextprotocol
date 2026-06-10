@@ -889,10 +889,6 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
-                "elicitationId": {
-                    "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
-                    "type": "string"
-                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -909,7 +905,6 @@
                 }
             },
             "required": [
-                "elicitationId",
                 "message",
                 "mode",
                 "url"

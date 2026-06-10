@@ -2751,12 +2751,6 @@ export interface ElicitRequestURLParams {
   message: string;
 
   /**
-   * The ID of the elicitation, which must be unique within the context of the server.
-   * The client MUST treat this ID as an opaque value.
-   */
-  elicitationId: string;
-
-  /**
    * The URL that the user should navigate to.
    *
    * @format uri
