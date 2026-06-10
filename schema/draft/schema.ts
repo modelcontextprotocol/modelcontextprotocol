@@ -429,6 +429,31 @@ export interface MissingRequiredClientCapabilityError extends Omit<
   };
 }
 
+// Implementation-specific JSON-RPC error codes [-32000, -32099]
+/** @internal */
+export const URL_ELICITATION_REQUIRED = -32042;
+
+/**
+ * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
+ *
+ * @example Authorization required
+ * {@includeCode ./examples/URLElicitationRequiredError/authorization-required.json}
+ *
+ * @internal
+ */
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof URL_ELICITATION_REQUIRED;
+    data: {
+      elicitations: ElicitRequestURLParams[];
+      [key: string]: unknown;
+    };
+  };
+}
+
 /* Empty result */
 /**
  * A result that indicates success but carries no data.
@@ -1815,7 +1840,7 @@ export type FileInputTransferMode = "inline" | "upload";
  *
  * Selected files are carried as URI strings. The URI can be either an RFC 2397
  * `data:` URI or, when out-of-band transfer is used, a file URI prepared through
- * `files/prepareUpload`.
+ * `files/authorizeUpload`.
  *
  * Descriptor fields guide client file selection and transfer behavior; servers
  * MUST still validate inputs independently.
@@ -1845,7 +1870,7 @@ export interface FileInputDescriptor {
    *
    * If omitted, the client may choose any supported transfer mode. If present,
    * the client MUST use one of the listed modes. `"inline"` means an RFC 2397
-   * `data:` URI. `"upload"` means the client MUST use `files/prepareUpload`
+   * `data:` URI. `"upload"` means the client MUST use `files/authorizeUpload`
    * and provide the returned file URI.
    */
   transferModes?: FileInputTransferMode[];
@@ -1874,7 +1899,7 @@ export interface UriFilePayload {
  */
 export interface FileValue {
   /**
-   * The file URI to resolve through files/getDownload.
+   * The file URI to resolve through files/authorizeDownload.
    *
    * @format uri
    */
@@ -1891,6 +1916,45 @@ export interface FileValue {
    * Optional size in bytes.
    */
   size?: number;
+  /**
+   * Optional complete-file digest for integrity verification.
+   */
+  digest?: FileDigest;
+}
+
+/**
+ * Content integrity metadata for a complete file byte sequence.
+ *
+ * @category Files
+ */
+export interface FileDigest {
+  /**
+   * Digest algorithm. Implementations that produce or verify digests MUST support `sha-256`.
+   */
+  algorithm: string;
+  /**
+   * Digest value encoded as base64url without padding.
+   */
+  value: string;
+}
+
+/**
+ * Shared file reference shape returned by `files/authorize*` methods.
+ *
+ * @category Files
+ */
+export interface AuthorizedFile {
+  /**
+   * Stable file reference metadata.
+   */
+  file: FileValue;
+  /**
+   * Optional eager download authorization result for immediate use.
+   *
+   * Clients MUST treat this as advisory and be prepared to call
+   * `files/authorizeDownload` if it is absent, expired, or rejected.
+   */
+  download?: FileTransferDescriptor;
 }
 
 /**
@@ -1933,11 +1997,11 @@ export interface FileTransferDescriptor {
 }
 
 /**
- * Parameters for preparing an out-of-band file upload.
+ * Parameters for authorizing an out-of-band file upload.
  *
- * @category `files/prepareUpload`
+ * @category `files/authorizeUpload`
  */
-export interface PrepareUploadRequestParams extends RequestParams {
+export interface AuthorizeUploadRequestParams extends RequestParams {
   /**
    * Optional display filename.
    */
@@ -1950,45 +2014,48 @@ export interface PrepareUploadRequestParams extends RequestParams {
    * Optional size in bytes.
    */
   size?: number;
-}
-
-/**
- * Used by the client to prepare an out-of-band upload to the server.
- *
- * @category `files/prepareUpload`
- */
-export interface PrepareUploadRequest extends JSONRPCRequest {
-  method: "files/prepareUpload";
-  params: PrepareUploadRequestParams;
-}
-
-/**
- * The file value and transfer descriptor returned by the server.
- *
- * @category `files/prepareUpload`
- */
-export interface PrepareUploadResult extends Result {
-  file: FileValue;
-  transfer: FileTransferDescriptor;
-}
-
-/**
- * A successful response from the server for a {@link PrepareUploadRequest | files/prepareUpload} request.
- *
- * @category `files/prepareUpload`
- */
-export interface PrepareUploadResultResponse extends JSONRPCResultResponse {
-  result: PrepareUploadResult;
-}
-
-/**
- * Parameters for resolving a generated file for download.
- *
- * @category `files/getDownload`
- */
-export interface GetDownloadRequestParams extends RequestParams {
   /**
-   * The generated file URI to resolve.
+   * Optional expected complete-file digest known by the client before upload.
+   */
+  digest?: FileDigest;
+}
+
+/**
+ * Used by the client to authorize an out-of-band upload to the server.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadRequest extends JSONRPCRequest {
+  method: "files/authorizeUpload";
+  params: AuthorizeUploadRequestParams;
+}
+
+/**
+ * The file value plus upload and optional download authorizations returned by the server.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadResult extends Result, AuthorizedFile {
+  upload: FileTransferDescriptor;
+}
+
+/**
+ * A successful response from the server for a {@link AuthorizeUploadRequest | files/authorizeUpload} request.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadResultResponse extends JSONRPCResultResponse {
+  result: AuthorizeUploadResult;
+}
+
+/**
+ * Parameters for authorizing a generated file for download.
+ *
+ * @category `files/authorizeDownload`
+ */
+export interface AuthorizeDownloadRequestParams extends RequestParams {
+  /**
+   * The generated file URI to authorize for download.
    *
    * @format uri
    */
@@ -1996,29 +2063,31 @@ export interface GetDownloadRequestParams extends RequestParams {
 }
 
 /**
- * Used by the client to resolve a generated file for download.
+ * Used by the client to authorize a generated file for download.
  *
- * @category `files/getDownload`
+ * @category `files/authorizeDownload`
  */
-export interface GetDownloadRequest extends JSONRPCRequest {
-  method: "files/getDownload";
-  params: GetDownloadRequestParams;
+export interface AuthorizeDownloadRequest extends JSONRPCRequest {
+  method: "files/authorizeDownload";
+  params: AuthorizeDownloadRequestParams;
 }
 
 /**
- * The transfer descriptor returned by the server for a generated file.
+ * The file value plus download authorization returned by the server for a generated file.
  *
- * @category `files/getDownload`
+ * @category `files/authorizeDownload`
  */
-export interface GetDownloadResult extends Result, FileTransferDescriptor {}
+export interface AuthorizeDownloadResult extends Result, AuthorizedFile {
+  download: FileTransferDescriptor;
+}
 
 /**
- * A successful response from the server for a {@link GetDownloadRequest | files/getDownload} request.
+ * A successful response from the server for a {@link AuthorizeDownloadRequest | files/authorizeDownload} request.
  *
- * @category `files/getDownload`
+ * @category `files/authorizeDownload`
  */
-export interface GetDownloadResultResponse extends JSONRPCResultResponse {
-  result: GetDownloadResult;
+export interface AuthorizeDownloadResultResponse extends JSONRPCResultResponse {
+  result: AuthorizeDownloadResult;
 }
 
 /**
@@ -3028,7 +3097,7 @@ export interface StringSchema {
    * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
    * render a native file picker and populate the field with either an RFC 2397
    * `data:` URI or, when out-of-band transfer is used, a file URI prepared
-   * through `files/prepareUpload`. Filenames remain separate metadata; they are
+   * through `files/authorizeUpload`. Filenames remain separate metadata; they are
    * not carried via a `name=` parameter on the data URI.
    */
   "x-mcp-file"?: FileInputDescriptor;

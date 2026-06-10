@@ -34,7 +34,8 @@ with out-of-band file transfer and generated file outputs. SEP-2356 defines
 and uses URI strings, including RFC 2397 `data:` URIs, as the baseline input value while
 keeping URL-mode elicitation as the complementary path for server-controlled large-file
 flows. This SEP adds file-transfer URIs, capability negotiation for transfer modes, and
-control-plane methods for preparing uploads and resolving downloads.
+control-plane methods for preparing uploads and resolving downloads. It also defines
+content integrity metadata for transferred files.
 
 Under this proposal, clients can still satisfy SEP-2356 file inputs with `data:` URIs.
 When inline transfer is undesirable, clients can instead prepare an upload, receive a
@@ -92,6 +93,8 @@ The design target for this SEP is a minimal interoperable baseline:
   uploads.
 - Allow both inline `data:` URI transfer and out-of-band HTTP transfer as interoperable
   options, with per-input transfer mode control when a server needs to require one.
+- Verify optional content integrity metadata for uploaded or downloaded files when it is
+  provided.
 
 ### Non-Functional
 
@@ -130,6 +133,8 @@ This SEP defines the following principles:
    appropriate.
 5. File-valued inputs **SHOULD** be declared through SEP-2356 `x-mcp-file` annotations
    on URI string schema properties.
+6. A usable file URI **MUST** identify one immutable byte sequence for its usable
+   lifetime. Changed bytes require a new file URI.
 
 ### 2. Capabilities
 
@@ -178,12 +183,15 @@ surfaces:
 
 - file URI strings: an out-of-band value mode for SEP-2356 `x-mcp-file` fields.
 - `FileValue`: metadata for generated or returned files identified by file URI.
+- `FileDigest`: content integrity metadata for a complete file byte sequence.
+- `AuthorizedFile`: a shared parent result shape for `files/authorize*` methods that
+  carries a `FileValue` plus an optional eager download authorization.
 - `FileContent`: a new `ContentBlock` variant that wraps a `FileValue`.
 - `FileResourceContents`: a new `resources/read` resource-content variant for
   file-backed resources.
 - `FileTransferDescriptor`: the upload/download descriptor for the out-of-band data
   plane.
-- `files/prepareUpload` and `files/getDownload`: control-plane methods for resolving
+- `files/authorizeUpload` and `files/authorizeDownload`: control-plane methods for resolving
   upload and download transfer descriptors.
 
 ### 4. File Input Values and File Outputs
@@ -192,7 +200,7 @@ SEP-2356 file inputs remain URI strings. A file-valued tool argument or elicitat
 response field contains either:
 
 - a `data:` URI as defined by SEP-2356; or
-- a file URI prepared through `files/prepareUpload`.
+- a file URI prepared through `files/authorizeUpload`.
 
 Inline input continues to use SEP-2356's RFC 2397 `data:` URI form:
 
@@ -207,14 +215,42 @@ Out-of-band input uses a file URI string:
 ```
 
 For generated files and file content blocks, this SEP introduces `FileValue`: file URI
-plus optional display metadata.
+plus optional display and integrity metadata.
 
 ```json
 {
   "uri": "mcp-file://server/file_01HYZA",
   "name": "report.pdf",
   "mimeType": "application/pdf",
-  "size": 248123
+  "size": 248123,
+  "digest": {
+    "algorithm": "sha-256",
+    "value": "uU0nuZNNPgilLlLX2n2r-sSE7-N6U4D6ZVe-_rYh2sU"
+  }
+}
+```
+
+`files/authorize*` methods return an `AuthorizedFile` parent shape that carries the
+stable `FileValue` in parallel with any eager download authorization:
+
+```json
+{
+  "file": {
+    "uri": "mcp-file://server/file_01HYZA",
+    "name": "report.pdf",
+    "mimeType": "application/pdf",
+    "size": 248123,
+    "digest": {
+      "algorithm": "sha-256",
+      "value": "uU0nuZNNPgilLlLX2n2r-sSE7-N6U4D6ZVe-_rYh2sU"
+    }
+  },
+  "download": {
+    "transport": "https",
+    "method": "GET",
+    "url": "https://download.example.com/...",
+    "expiresAt": "2026-04-20T18:45:00Z"
+  }
 }
 ```
 
@@ -227,8 +263,8 @@ This SEP uses URIs for both resources and files, but they have different resolut
 contracts.
 
 A resource URI identifies resource contents and is resolved through `resources/read`. A
-file URI identifies a file transfer handle and is resolved through `files/getDownload`,
-or through the upload descriptor returned by `files/prepareUpload`.
+file URI identifies a file transfer handle and is resolved through `files/authorizeDownload`,
+or through the upload descriptor returned by `files/authorizeUpload`.
 
 Implementations **SHOULD** use distinct URI schemes or authorities for resource URIs and
 file URIs. Examples in this SEP use `mcp-resource:` for resource URIs and `mcp-file:`
@@ -241,14 +277,14 @@ Rules:
 
 - Inline input transfer **MUST** use SEP-2356 `data:` URIs.
 - Out-of-band input transfer **MUST** use file URI strings prepared through
-  `files/prepareUpload`.
+  `files/authorizeUpload`.
 - Clients **MAY** decide whether to send a file as a `data:` URI or via out-of-band
   upload when the field's `transferModes` is omitted.
 - Clients **MUST** use one of the listed modes when `transferModes` is present.
 - Clients **MUST** use a `data:` URI when `transferModes` is `["inline"]`.
-- Clients **MUST** use `files/prepareUpload` and send the returned file URI when
+- Clients **MUST** use `files/authorizeUpload` and send the returned file URI when
   `transferModes` is `["upload"]`.
-- Servers that returned a file URI from `files/prepareUpload` **MUST** accept that URI in
+- Servers that returned a file URI from `files/authorizeUpload` **MUST** accept that URI in
   an `x-mcp-file` field where they would otherwise accept a `data:` URI, subject to the
   same declared `accept` and `maxSize` constraints.
 - Servers **MUST** validate and either accept or reject file URI values using their normal
@@ -264,8 +300,22 @@ interface FileValue {
   name?: string;
   mimeType?: string;
   size?: number;
+  digest?: FileDigest;
+}
+
+interface FileDigest {
+  algorithm: string;
+  value: string; // base64url without padding
+}
+
+interface AuthorizedFile {
+  file: FileValue;
+  download?: FileTransferDescriptor;
 }
 ```
+
+Implementations that produce or verify digests **MUST** support `sha-256`. A digest
+describes the complete immutable byte sequence identified by the file URI.
 
 ### 5. Declaring File-Valued Inputs
 
@@ -354,7 +404,7 @@ Elicitation requests use the same descriptor shape:
 
 This SEP supports elicitation by allowing the eventual value for an `x-mcp-file` field to
 be either a SEP-2356 `data:` URI or, when out-of-band transfer is used, a file URI
-prepared through `files/prepareUpload`. It does not add a new elicitation mode or change
+prepared through `files/authorizeUpload`. It does not add a new elicitation mode or change
 the surrounding elicitation control flow.
 
 `x-mcp-file` **MUST** appear only where SEP-2356 allows it: on a URI string schema
@@ -373,7 +423,7 @@ File input descriptors MAY include:
   byte size enforced during upload negotiation and subsequent request validation.
 - `transferModes`: optional list of allowed transfer modes for the field. If omitted,
   the client can choose any supported mode. `"inline"` allows a `data:` URI. `"upload"`
-  allows `files/prepareUpload` and a file URI.
+  allows `files/authorizeUpload` and a file URI.
 
 As in the latest SEP-2356 draft, filenames are not carried in a `name=` parameter on the
 `data:` URI. Servers that need the original filename **SHOULD** declare a separate string
@@ -386,22 +436,27 @@ non-file path is available.
 ### 6. Upload Negotiation
 
 When a client chooses out-of-band transfer for a file in `tools/call` or elicitation, it
-calls `files/prepareUpload`:
+calls `files/authorizeUpload`. The client **SHOULD** include the expected digest when it
+already knows it:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 10,
-  "method": "files/prepareUpload",
+  "method": "files/authorizeUpload",
   "params": {
     "name": "report.pdf",
     "mimeType": "application/pdf",
-    "size": 248123
+    "size": 248123,
+    "digest": {
+      "algorithm": "sha-256",
+      "value": "uU0nuZNNPgilLlLX2n2r-sSE7-N6U4D6ZVe-_rYh2sU"
+    }
   }
 }
 ```
 
-The server responds with an upload descriptor:
+The server responds with an upload authorization:
 
 ```json
 {
@@ -412,9 +467,13 @@ The server responds with an upload descriptor:
       "uri": "mcp-file://server/file_01HXYZ",
       "name": "report.pdf",
       "mimeType": "application/pdf",
-      "size": 248123
+      "size": 248123,
+      "digest": {
+        "algorithm": "sha-256",
+        "value": "uU0nuZNNPgilLlLX2n2r-sSE7-N6U4D6ZVe-_rYh2sU"
+      }
     },
-    "transfer": {
+    "upload": {
       "transport": "https",
       "method": "POST",
       "url": "https://upload.example.com/...",
@@ -434,10 +493,13 @@ The server responds with an upload descriptor:
 ```
 
 The client uploads bytes out-of-band using the provided descriptor, then passes the
-returned file URI string in `tools/call` or the elicitation result.
+returned file URI string in `tools/call` or the elicitation result. When a digest was
+provided during authorization, the server **MUST** reject a completed upload whose bytes
+do not match it. If the server returns a `digest` in the `file` metadata, that digest is
+authoritative for the resulting file URI.
 
 If inline transfer is allowed and used instead, the client **MAY** skip
-`files/prepareUpload` and send a SEP-2356 `data:` URI string. If the field declares
+`files/authorizeUpload` and send a SEP-2356 `data:` URI string. If the field declares
 `transferModes: ["upload"]`, the client **MUST NOT** use this inline shortcut.
 
 #### Tool Call Upload Lifecycle
@@ -452,15 +514,15 @@ sequenceDiagram
     participant Upload as Upload endpoint
 
     User->>Client: Select report.pdf for analyze_document.document
-    Client->>Server: files/prepareUpload { name, mimeType, size }
-    Server-->>Client: { file: FileValue, transfer: HTTPS multipart descriptor }
+    Client->>Server: files/authorizeUpload { name, mimeType, size, digest? }
+    Server-->>Client: { file: FileValue, upload: HTTPS multipart descriptor, download?: HTTPS GET descriptor }
     Client->>Upload: POST multipart/form-data { fileField: "file", file: report.pdf, token }
     Upload-->>Client: 200 OK
     Client->>Server: tools/call analyze_document { document: "mcp-file://server/file_01HXYZ" }
     Server-->>Client: CallToolResult content or structuredContent
 
-    Note over Client,Server: prepareUpload params: { "name": "report.pdf", "mimeType": "application/pdf", "size": 248123 }
-    Note over Client,Upload: multipart body includes the file bytes under transfer.multipart.fileField
+    Note over Client,Server: authorizeUpload params may include an expected complete-file digest
+    Note over Client,Upload: multipart body includes the file bytes under upload.multipart.fileField
     Note over Client,Server: tools/call arguments.document is "mcp-file://server/file_01HXYZ"
 ```
 
@@ -498,51 +560,73 @@ Tool results may return `FileValue` objects in either `structuredContent` or a n
     "uri": "mcp-file://server/file_01HYZA",
     "name": "annotated-report.pdf",
     "mimeType": "application/pdf",
-    "size": 252001
+    "size": 252001,
+    "digest": {
+      "algorithm": "sha-256",
+      "value": "g_o9GvJ2c3BIHqS_oQYV-a8bW4FSYd9_gF9Eav8F8BA"
+    }
   }
 }
 ```
 
-Clients resolve generated files through `files/getDownload`:
+Clients **MUST** verify the received byte count and digest when those values are present
+on a file they download.
+
+Clients authorize generated files for download through `files/authorizeDownload`:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 12,
-  "method": "files/getDownload",
+  "method": "files/authorizeDownload",
   "params": {
     "uri": "mcp-file://server/file_01HYZA"
   }
 }
 ```
 
-The server responds with a download descriptor:
+The server responds with an `AuthorizedFile` that includes the stable file reference and a
+download descriptor in parallel:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 12,
   "result": {
-    "transport": "https",
-    "method": "GET",
-    "url": "https://download.example.com/...",
-    "expiresAt": "2026-04-20T18:45:00Z"
+    "file": {
+      "uri": "mcp-file://server/file_01HYZA",
+      "name": "annotated-report.pdf",
+      "mimeType": "application/pdf",
+      "size": 252001,
+      "digest": {
+        "algorithm": "sha-256",
+        "value": "g_o9GvJ2c3BIHqS_oQYV-a8bW4FSYd9_gF9Eav8F8BA"
+      }
+    },
+    "download": {
+      "transport": "https",
+      "method": "GET",
+      "url": "https://download.example.com/...",
+      "expiresAt": "2026-04-20T18:45:00Z"
+    }
   }
 }
 ```
 
-This method is the standard way to resolve generated files. Servers **MAY** also return
-`ResourceLink` objects for resource-oriented workflows, but file output interoperability
-defined by this SEP **MUST NOT** require `resources/read`. The optional resource-read
-integration in the next section is only for resources whose contents are file-backed; it
-is not required for tool-result file outputs.
+This method is the standard way to resolve generated files and the canonical refresh path
+for eager download authorizations. Servers **MAY** also return `ResourceLink` objects
+for resource-oriented workflows, but file output interoperability defined by this SEP
+**MUST NOT** require `resources/read`. The optional resource-read integration in the next
+section is only for resources whose contents are file-backed; it is not required for
+tool-result file outputs.
 
 File URI lifetime is server-defined. This SEP does not define how long a file URI
 remains resolvable, whether a URI can be resolved more than once, or whether file URIs
 are scoped to a request, task, session, user, or server. Servers
 **MUST** reject expired, unauthorized, or unknown file URIs with an appropriate
-JSON-RPC error. Clients **MUST** treat file URIs as revocable and be prepared for
-`files/getDownload` to fail even if the URI was previously returned by the server.
+JSON-RPC error. Clients **MUST** treat file URIs and eager download authorizations as
+revocable and be prepared for `files/authorizeDownload` to fail even if the URI or a
+previous download descriptor was previously returned by the server.
 
 ### 9. Resource Reads
 
@@ -560,7 +644,7 @@ bytes should be transferred out-of-band:
 }
 ```
 
-Clients resolve file-backed resource contents through `files/getDownload` in the same
+Clients resolve file-backed resource contents through `files/authorizeDownload` in the same
 way they resolve generated file outputs from tool calls. This avoids requiring large or
 sensitive resource bytes to be returned inline through JSON-RPC.
 
@@ -568,10 +652,13 @@ sensitive resource bytes to be returned inline through JSON-RPC.
 
 Implementations **SHOULD** use standard JSON-RPC errors with the following guidance:
 
-- `-32601` when `files/prepareUpload` or `files/getDownload` is not supported.
+- `-32601` when `files/authorizeUpload` or `files/authorizeDownload` is not supported.
 - `-32602` when a file URI is malformed or violates declared constraints such as
   `accept` or `maxSize`.
 - `-32603` for internal failures resolving upload or download descriptors.
+
+Servers **SHOULD** distinguish digest mismatches from other upload validation failures
+when they reject an authorized upload whose bytes do not match the declared digest.
 
 Servers **SHOULD** include machine-readable details when rejecting a file, such as:
 
@@ -594,7 +681,7 @@ than introducing a second declaration channel.
 File transfer does not need to change which argument is file-valued. It only broadens
 the URI values that may satisfy that field. A SEP-2356-only client sends a `data:` URI;
 a client that also supports this SEP may send a server-issued file URI after
-`files/prepareUpload`.
+`files/authorizeUpload`.
 
 Keeping declaration in `x-mcp-file` also avoids drift between parallel declaration
 channels. The file affordance, file selection constraints, and value schema remain
@@ -635,16 +722,16 @@ file input through SEP-2356 receives a URI string whether the client chose inlin
 transfer or out-of-band upload. This avoids a split where the same file-valued argument is
 a string for SEP-2356 clients but an object for SEP-2631 clients.
 
-For out-of-band uploads, metadata is exchanged during `files/prepareUpload`. The server
-returns a `FileValue` there so the client has a stable URI plus display metadata, and the
-server can bind that URI to the uploaded bytes and validation state. The eventual
-`tools/call` or elicitation response only needs to carry the URI string.
+For out-of-band uploads, metadata is exchanged during `files/authorizeUpload`. The server
+returns a stable `FileValue` there so the client has the file reference and display
+metadata, and can optionally include an eager download authorization in parallel. The
+eventual `tools/call` or elicitation response only needs to carry the URI string.
 
 ### Why Separate File and Resource URI Namespaces
 
 Resource URIs and file URIs have different resolution contracts. Resource URIs are
 resolved through `resources/read`; file URIs are transfer handles resolved through
-`files/getDownload` or the upload descriptor returned by `files/prepareUpload`.
+`files/authorizeDownload` or the upload descriptor returned by `files/authorizeUpload`.
 
 Keeping those namespaces distinct prevents clients from accidentally treating a
 short-lived transfer capability as a model-readable resource, and prevents servers from
@@ -661,6 +748,11 @@ implementations:
 - application-managed artifacts;
 - transient gateway handles;
 - generated artifacts with display names and MIME types.
+
+Keeping eager download authorization in a shared `AuthorizedFile` parent for the
+`files/authorize*` methods preserves that separation. `FileValue` stays a stable,
+transport-agnostic reference that tools and resources can return directly, while the RPC
+results can expose upload and download authorizations in parallel sibling fields.
 
 ### Why Separate Control Plane from Data Plane
 
@@ -681,7 +773,7 @@ URL-mode elicitation when the server needs a large-file or server-controlled upl
 
 `ResourceLink` is useful, but it is not enough by itself for generic file output. Tool
 authors need a predictable answer to "how does this generated file become downloadable or
-storable?" A dedicated `files/getDownload` method makes that path explicit.
+storable?" A dedicated `files/authorizeDownload` method makes that path explicit.
 
 ## Backward Compatibility
 
@@ -731,7 +823,7 @@ that tradeoff is preferable to making every file transfer inline.
 Conforming implementations should test at least:
 
 - upload preparation followed by successful `tools/call` with a file URI string;
-- generated file output followed by successful `files/getDownload`;
+- generated file output followed by successful `files/authorizeDownload`;
 - rejection of malformed file URI values;
 - rejection of inline files that violate server validation or policy;
 - user-driven file selection from non-filesystem sources such as browser upload surfaces.
@@ -757,10 +849,8 @@ Rejected because it preserves the current interoperability gap.
 
 ## Open Questions
 
-- Should `files/prepareUpload` require support for both raw-body and multipart HTTP
+- Should `files/authorizeUpload` require support for both raw-body and multipart HTTP
   uploads in v1, or allow servers to advertise only one?
-- Should `files/getDownload` optionally return metadata for save/open/display affordances
-  beyond the descriptor itself?
 - Should generated files be representable both as `file` content items and as structured
   content references, or should MCP pick only one normative result shape?
 - Should future work define a first-class client-owned artifact store distinct from
