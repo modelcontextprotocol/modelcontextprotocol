@@ -346,16 +346,9 @@ HTTP header.
   Parameters with type `number` are not permitted. Integer values **MUST** be within the
   safe range for integers represented using IEEE754 double-precision floating point numbers (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
 - **MUST** only be applied to properties that are _statically reachable_ from the schema
-  root: reachable via a chain consisting solely of `properties` keys. The chain **MUST
-  NOT** pass through `items` (or any other array keyword), composition keywords
-  (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords (`if`/`then`/`else`), or
-  `$ref`. Nested object properties are permitted as long as every step in the chain is a
-  `properties` key. An `x-mcp-header` annotation anywhere else makes the annotation —
-  and thus the tool definition — invalid.
-
-Header extraction is defined as reading the instance value at the exact property path of
-the annotated property (the chain of `properties` keys leading to it). If no value is
-present at that path in the call arguments, the header is omitted.
+  root, as defined in
+  [Custom Headers from Tool Parameters](/specification/draft/basic/transports/streamable-http#custom-headers-from-tool-parameters),
+  which also defines how header values are extracted from call arguments
 
 Clients using the Streamable HTTP transport **MUST** reject tool definitions where any
 `x-mcp-header` value violates these constraints. Rejection means the client **MUST**

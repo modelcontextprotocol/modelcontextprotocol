@@ -1843,15 +1843,9 @@ export interface Tool extends BaseMetadata, Icons {
    * standard validation or annotation keywords.
    *
    * Property schemas may carry an `x-mcp-header` annotation to mirror the
-   * argument value into an HTTP header on the Streamable HTTP transport. The
-   * annotation is only valid on properties reachable from the schema root via
-   * a static chain of `properties` keys — not under `items`, not inside
-   * composition or conditional keywords (`oneOf`, `anyOf`, `allOf`, `not`,
-   * `if`/`then`/`else`), and not behind `$ref`. An `x-mcp-header` annotation
-   * anywhere else makes the annotation (and thus the tool definition) invalid.
-   * Extraction reads the instance value at that exact property path; if the
-   * value is absent, the header is omitted. See the Streamable HTTP transport
-   * specification for the full rules.
+   * argument value into an HTTP header on the Streamable HTTP transport. See
+   * the Streamable HTTP transport specification for the validity and
+   * extraction rules.
    *
    * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
    */
