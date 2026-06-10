@@ -247,12 +247,6 @@ The header value **MUST** match the
 with `400 Bad Request` and a `HeaderMismatch` JSON-RPC error
 (see [Server Validation](#server-validation)).
 
-Because this revision of the core protocol defines no client-to-server
-notifications over Streamable HTTP (see
-[Sending Messages](#sending-messages)), the header–body match requirements in
-this section are stated for _requests_; header requirements for notification
-POSTs are not defined by this revision.
-
 If the server does not implement the requested protocol version (whether the
 version is unknown to the server, or is a known version the server has chosen
 not to support), it **MUST** respond with `400 Bad Request` and an
