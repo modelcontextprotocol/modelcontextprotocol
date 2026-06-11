@@ -33,8 +33,11 @@ implementation MUST reproduce or reject these as documented.
   projection content.
 - `negative/`. Tampering on the plannerDeclared and issuerAsserted
   blocks (signature verification fails on the recanonicalised body),
+  a top-level `alg` downgrade to `"none"` on a body that still carries
+  its HS256 MAC (the same recanonicalise-and-reject path catches it,
+  so a verifier MUST NOT treat the envelope as unsigned-and-accepted),
   and IEEE-754 float rejection at the canonicalisation boundary.
-  Three cases.
+  Four cases.
 
 `verifier-policy/` cases depend on validator policy that the SEP has
 not yet specified. They are not pass/fail against the wire format
@@ -62,7 +65,7 @@ Each case directory contains up to five files.
 - `canonical_signing_input.bin`. The RFC 8785 (JCS) canonical encoding
   of the body the signature was actually computed over. For positive
   cases this equals the recanonicalisation of the body present in
-  `signed_envelope.json`. For tampered cases (07, 08) it is the
+  `signed_envelope.json`. For tampered cases (07, 08, 14) it is the
   pre-tamper canonical, so the signature still verifies against these
   bytes; recanonicalising the present (tampered) body produces
   different bytes against which the signature does not verify, and

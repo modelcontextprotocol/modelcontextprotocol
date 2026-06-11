@@ -4,7 +4,8 @@
     "normative/negative": [
       "07-tampered-planner-declared",
       "08-tampered-issuer-asserted",
-      "09-ieee754-float-in-canonical-input"
+      "09-ieee754-float-in-canonical-input",
+      "14-alg-downgrade-none"
     ],
     "normative/positive": [
       "01-hs256-projection-hash-only",
