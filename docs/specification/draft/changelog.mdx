@@ -31,6 +31,21 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 4. Require standard MCP request headers (`Mcp-Method`, `Mcp-Name`) on Streamable HTTP POST requests, and add support for custom headers from tool parameters via `x-mcp-header` ([SEP-2243](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243)).
 5. Require `ttlMs` and `cacheScope` fields on results returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list` via a new `CacheableResult` interface. `ttlMs` is a freshness hint (in milliseconds) allowing clients to cache responses and reduce polling; `cacheScope` (`"public"` or `"private"`) controls whether shared intermediaries may cache the response. Both fields complement existing `listChanged` notifications ([SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549)).
 6. Change resource not found error code from `-32002` to `-32602` (Invalid Params) to align with JSON-RPC specification.
+7. Authorization servers **SHOULD** include the `iss` parameter in authorization responses per
+   [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207), and MCP clients **MUST** validate a
+   present `iss` against the recorded issuer before redeeming the authorization code
+   ([SEP-2468](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2468)).
+8. Require MCP clients to specify an appropriate `application_type` during Dynamic Client
+   Registration to avoid OpenID Connect redirect URI conflicts
+   ([SEP-837](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/837)).
+9. Clarify that client credentials are bound to the authorization server that issued them:
+   clients **MUST** key persisted credentials by the issuer identifier, **MUST NOT** reuse them
+   with a different authorization server, and **MUST** re-register when the authorization server
+   changes ([SEP-2352](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2352)).
+10. Loosen `inputSchema` and `outputSchema` to allow any JSON Schema 2020-12 keywords, and
+    `structuredContent` to allow any JSON value. Add `$ref` resolution requirements and
+    composition-keyword resource bounds
+    ([SEP-2106](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2106)).
 
 ## Deprecated
 
@@ -48,7 +63,7 @@ Features listed here remain part of the specification but are scheduled for remo
 2. Reclassify the HTTP+SSE transport (deprecated since protocol version
    `2025-03-26`) as Deprecated under the feature lifecycle policy
    ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
-   Migrate to [Streamable HTTP](/specification/draft/basic/transports#streamable-http).
+   Migrate to [Streamable HTTP](/specification/draft/basic/transports/streamable-http).
 
 3. Reclassify the `includeContext` values `"thisServer"` and `"allServers"`
    (soft-deprecated since protocol version `2025-11-25`) as Deprecated
@@ -56,9 +71,17 @@ Features listed here remain part of the specification but are scheduled for remo
    Omit the field or use `"none"`; these values will be removed no later than
    the Sampling feature itself.
 
+4. Deprecate the OAuth 2.0 Dynamic Client Registration Protocol
+   ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)) as a client registration
+   mechanism in favor of
+   [Client ID Metadata Documents](/specification/draft/basic/authorization/client-registration#client-id-metadata-documents)
+   ([PR #2858](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2858)).
+   It remains available for backwards compatibility with authorization servers that do
+   not support Client ID Metadata Documents.
+
 ## Other schema changes
 
-1. `schema.json` now correctly reflects that the Typescript definition of wminimum/maximum/default are `number`'s and not just `integers`. This was casued by using the generator using `--defaultNumberType integer` ([PR#2710](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2710)).
+1. `schema.json` now correctly reflects that the Typescript definition of minimum/maximum/default are `number`'s and not just `integers`. This was caused by running the generator using `--defaultNumberType integer` ([PR#2710](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2710)).
 
 ## Governance and process updates
 
