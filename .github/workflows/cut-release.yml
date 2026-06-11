@@ -37,7 +37,7 @@ jobs:
     if: inputs.kind == 'rc'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Validate version
         run: |
@@ -79,8 +79,8 @@ jobs:
     if: inputs.kind == 'final'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: npm
@@ -144,7 +144,7 @@ jobs:
       - name: Open release PR
         if: inputs.dry_run != 'true'
         id: pr
-        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: release/${{ inputs.version }}
           title: "Add ${{ inputs.version }} MCP specification"

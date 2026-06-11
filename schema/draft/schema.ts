@@ -166,7 +166,7 @@ export interface Notification {
  * input_required - the request requires additional input and the result contains an {@link InputRequiredResult} object with instructions for the client to provide additional input before retrying the original request.
  * @category Common Types
  */
-export type ResultType = "complete" | "input_required";
+export type ResultType = "complete" | "input_required" | string;
 
 /**
  * Common result fields.
@@ -296,15 +296,14 @@ export interface InvalidRequestError extends Error {
 /**
  * A JSON-RPC error indicating that the requested method does not exist or is not available.
  *
- * In MCP, this error is returned when a request is made for a method that requires a capability that has not been declared. This can occur in either direction:
+ * In MCP, a server returns this error when a client invokes a method the server does not implement — either a genuinely unknown method, or one gated behind a server capability the server did not advertise (e.g., calling `prompts/list` when the `prompts` capability was not advertised).
  *
- * - A server returning this error when the client requests a capability it doesn't support (e.g., requesting completions when the `completions` capability was not advertised)
- * - A client returning this error when the server requests a capability it doesn't support (e.g., requesting roots when the client did not declare the `roots` capability)
+ * A request that requires a client capability the client did not declare is signalled instead by {@link MissingRequiredClientCapabilityError} (`-32003`).
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
- * @example Roots not supported
- * {@includeCode ./examples/MethodNotFoundError/roots-not-supported.json}
+ * @example Prompts not supported
+ * {@includeCode ./examples/MethodNotFoundError/prompts-not-supported.json}
  *
  * @category Errors
  */
@@ -582,7 +581,7 @@ export interface DiscoverRequest extends JSONRPCRequest {
  *
  * @category `server/discover`
  */
-export interface DiscoverResult extends Result {
+export interface DiscoverResult extends CacheableResult {
   /**
    * MCP Protocol Versions this server supports. The client should choose a
    * version from this list for use in subsequent requests.
@@ -687,6 +686,9 @@ export interface ClientCapabilities {
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
    * per-extension settings objects. An empty object indicates support with no settings.
    *
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, with a
+   * mandatory prefix.
+   *
    * @example Extensions — MCP Apps (UI) extension with MIME type support
    * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
    */
@@ -780,6 +782,9 @@ export interface ServerCapabilities {
    * Optional MCP extensions that the server supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/tasks"), and values are per-extension settings
    * objects. An empty object indicates support with no settings.
+   *
+   * Keys MUST follow the {@link MetaObject | `_meta` key naming rules}, with a
+   * mandatory prefix.
    *
    * @example Extensions — Tasks extension support
    * {@includeCode ./examples/ServerCapabilities/extensions-tasks.json}
@@ -2750,8 +2755,17 @@ export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
   description?: string;
+  /**
+   * @TJS-type number
+   */
   minimum?: number;
+  /**
+   * @TJS-type number
+   */
   maximum?: number;
+  /**
+   * @TJS-type number
+   */
   default?: number;
 }
 
@@ -3001,6 +3015,18 @@ export interface ElicitResult {
 }
 
 /**
+ * Parameters for a {@link ElicitationCompleteNotification | notifications/elicitation/complete} notification.
+ *
+ * @category `notifications/elicitation/complete`
+ */
+export interface ElicitationCompleteNotificationParams extends NotificationParams {
+  /**
+   * The ID of the elicitation that completed.
+   */
+  elicitationId: string;
+}
+
+/**
  * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
  *
  * @example Elicitation complete
@@ -3010,12 +3036,7 @@ export interface ElicitResult {
  */
 export interface ElicitationCompleteNotification extends JSONRPCNotification {
   method: "notifications/elicitation/complete";
-  params: {
-    /**
-     * The ID of the elicitation that completed.
-     */
-    elicitationId: string;
-  };
+  params: ElicitationCompleteNotificationParams;
 }
 
 /* Client messages */
