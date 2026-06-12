@@ -507,7 +507,7 @@ that contains invalid characters (see [Value Encoding](#value-encoding)).
 Any server that processes the message body **MUST** validate that encoded
 header values, after decoding if Base64-encoded, match the corresponding
 values in the request body. Servers **MUST** reject requests with a
-`400 Bad Request` HTTP status and JSON-RPC error code `-32001`
+`400 Bad Request` HTTP status and JSON-RPC error code `-32020`
 (`HeaderMismatch`) if any validation fails.
 
 | Scenario                                 | Client Behavior                | Server Behavior                          |
@@ -550,12 +550,13 @@ When rejecting a request due to header validation failure, servers **MUST**
 return HTTP status `400 Bad Request` and **MUST** include a JSON-RPC error
 response using the following error code:
 
-| Code     | Name             | Description                                                                                                            |
-| -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+| Code     | Name                                                                | Description                                                                                                            |
+| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `-32020` | [`HeaderMismatch`](/specification/draft/schema#headermismatcherror) | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
 
-This error code is in the JSON-RPC implementation-defined server error range
-(`-32000` to `-32099`).
+This error code is allocated from the sub-range the MCP specification
+reserves for protocol-defined errors. See
+[Error Codes](/specification/draft/basic/index#error-codes).
 
 **Example error response:**
 
@@ -564,7 +565,7 @@ This error code is in the JSON-RPC implementation-defined server error range
   "jsonrpc": "2.0",
   "id": 1,
   "error": {
-    "code": -32001,
+    "code": -32020,
     "message": "Header mismatch: Mcp-Name header value 'foo' does not match body value 'bar'"
   }
 }

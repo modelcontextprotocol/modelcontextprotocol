@@ -298,7 +298,7 @@ export interface InvalidRequestError extends Error {
  *
  * In MCP, a server returns this error when a client invokes a method the server does not implement — either a genuinely unknown method, or one gated behind a server capability the server did not advertise (e.g., calling `prompts/list` when the `prompts` capability was not advertised).
  *
- * A request that requires a client capability the client did not declare is signalled instead by {@link MissingRequiredClientCapabilityError} (`-32003`).
+ * A request that requires a client capability the client did not declare is signalled instead by {@link MissingRequiredClientCapabilityError} (`-32021`).
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
@@ -357,13 +357,43 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
+/*
+ * MCP error codes.
+ *
+ * JSON-RPC 2.0 reserves `-32000` to `-32099` for implementation-defined
+ * server errors. MCP partitions that range:
+ *
+ * - `-32000` to `-32009`: implementation-defined. Existing SDKs and
+ *   implementations use codes here for their own purposes; the specification
+ *   will never define codes in this sub-range, and receivers must not assign
+ *   cross-implementation semantics to them.
+ * - `-32010` to `-32099`: reserved for error codes defined by the MCP
+ *   specification. Every code allocated here is recorded in this file.
+ *   Codes are allocated sequentially starting at `-32020` and proceeding
+ *   toward `-32099`; `-32010` to `-32019` is intentionally left unallocated
+ *   to avoid known pre-existing implementation usage.
+ *
+ * Codes defined by earlier protocol versions remain reserved and are never
+ * reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by
+ * `-32602`) and `-32042` (URL elicitation required, 2025-11-25 only).
+ */
+
+/**
+ * Error code returned when an HTTP request's headers do not match the
+ * corresponding values in the request body, or required headers are
+ * missing or malformed.
+ *
+ * @category Errors
+ */
+export const HEADER_MISMATCH = -32020;
+
 /**
  * Error code returned when a server requires a client capability that was
  * not declared in the request's `clientCapabilities`.
  *
  * @category Errors
  */
-export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
 
 /**
  * Error code returned when the request's protocol version is not supported
@@ -371,7 +401,28 @@ export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
  *
  * @category Errors
  */
-export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+export const UNSUPPORTED_PROTOCOL_VERSION = -32022;
+
+/**
+ * Returned when an HTTP request's headers do not match the corresponding
+ * values in the request body, or required headers are missing or malformed.
+ * The response status code MUST be `400 Bad Request`.
+ *
+ * This error applies only to the Streamable HTTP transport.
+ *
+ * @example Header mismatch
+ * {@includeCode ./examples/HeaderMismatchError/header-mismatch.json}
+ *
+ * @category Errors
+ */
+export interface HeaderMismatchError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof HEADER_MISMATCH;
+  };
+}
 
 /**
  * Returned when the request's protocol version is unknown to the server or
