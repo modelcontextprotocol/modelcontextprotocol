@@ -116,7 +116,7 @@ server errors. MCP partitions this range as follows:
   implementations use codes in this sub-range for their own purposes (for
   example, local timeout or connection errors). The MCP specification will
   never define error codes in this sub-range, and new implementation-defined
-  codes **SHOULD NOT** be introduced here. With the exception of the historical
+  codes **MUST NOT** be introduced here. With the exception of the historical
   codes listed below, receivers **MUST NOT** assign cross-implementation
   semantics to these codes: the same code may carry different meanings in
   different implementations.
