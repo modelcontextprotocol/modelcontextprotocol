@@ -47,8 +47,8 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
     composition-keyword resource bounds
     ([SEP-2106](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2106)).
 11. Define an [error code allocation policy](/specification/draft/basic/index#error-codes)
-    partitioning the JSON-RPC server-error range: `-32000` to `-32009` remains
-    implementation-defined (existing SDK usage is grandfathered), `-32010` to `-32099` is
+    partitioning the JSON-RPC server-error range: `-32000` to `-32019` remains
+    implementation-defined (existing SDK usage is grandfathered), `-32020` to `-32099` is
     reserved for the MCP specification. Renumber the error codes introduced in this draft
     accordingly — `HeaderMismatch` `-32001` → `-32020`, `MissingRequiredClientCapability`
     `-32003` → `-32021`, `UnsupportedProtocolVersion` `-32004` → `-32022` — and add

@@ -363,15 +363,14 @@ export interface InternalError extends Error {
  * JSON-RPC 2.0 reserves `-32000` to `-32099` for implementation-defined
  * server errors. MCP partitions that range:
  *
- * - `-32000` to `-32009`: implementation-defined. Existing SDKs and
+ * - `-32000` to `-32019`: implementation-defined. Existing SDKs and
  *   implementations use codes here for their own purposes; the specification
  *   will never define codes in this sub-range, and receivers must not assign
  *   cross-implementation semantics to them.
- * - `-32010` to `-32099`: reserved for error codes defined by the MCP
+ * - `-32020` to `-32099`: reserved for error codes defined by the MCP
  *   specification. Every code allocated here is recorded in this file.
  *   Codes are allocated sequentially starting at `-32020` and proceeding
- *   toward `-32099`; `-32010` to `-32019` is intentionally left unallocated
- *   to avoid known pre-existing implementation usage.
+ *   toward `-32099`.
  *
  * Codes defined by earlier protocol versions remain reserved and are never
  * reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by

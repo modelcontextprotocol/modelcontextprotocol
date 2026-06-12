@@ -112,7 +112,7 @@ for general protocol failures.
 JSON-RPC 2.0 reserves the range `-32000` to `-32099` for implementation-defined
 server errors. MCP partitions this range as follows:
 
-- **`-32000` to `-32009` — implementation-defined.** Existing SDKs and
+- **`-32000` to `-32019` — implementation-defined.** Existing SDKs and
   implementations use codes in this sub-range for their own purposes (for
   example, local timeout or connection errors). The MCP specification will
   never define error codes in this sub-range, and new implementation-defined
@@ -120,7 +120,7 @@ server errors. MCP partitions this range as follows:
   codes listed below, receivers **MUST NOT** assign cross-implementation
   semantics to these codes: the same code may carry different meanings in
   different implementations.
-- **`-32010` to `-32099` — reserved for the MCP specification.** Error codes
+- **`-32020` to `-32099` — reserved for the MCP specification.** Error codes
   in this sub-range are defined exclusively by the MCP specification and
   recorded in the [schema](/specification/draft/schema). Implementations
   **MUST NOT** emit codes from this sub-range with meanings other than those
@@ -135,8 +135,7 @@ Error codes defined by this version of the specification:
 | `-32022` | [`UnsupportedProtocolVersion`](/specification/draft/schema#unsupportedprotocolversionerror)           |
 
 New codes are allocated sequentially starting at `-32020` and proceeding
-toward `-32099`. Codes `-32010` to `-32019` are intentionally left unallocated
-to avoid known pre-existing implementation usage.
+toward `-32099`.
 
 Codes defined by earlier protocol versions remain reserved and will not be
 reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by
