@@ -134,9 +134,6 @@ MCP defines the following error codes:
 | `-32021` | [`MissingRequiredClientCapability`](/specification/draft/schema#missingrequiredclientcapabilityerror) |
 | `-32022` | [`UnsupportedProtocolVersion`](/specification/draft/schema#unsupportedprotocolversionerror)           |
 
-New codes are allocated sequentially starting at `-32020` and proceeding
-toward `-32099`.
-
 Codes defined by earlier protocol versions remain reserved and will not be
 reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by
 `-32602`, though [clients **SHOULD** still accept
