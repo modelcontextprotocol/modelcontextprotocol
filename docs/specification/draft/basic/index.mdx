@@ -142,9 +142,11 @@ implementing earlier versions) and `-32042` (URL elicitation required,
 2025-11-25 only).
 
 Errors that are purely local to an implementation (for example, a request
-timeout raised inside an SDK and never sent to the peer) are best represented
-outside the JSON-RPC numeric code space entirely, so they cannot be confused
-with wire-level protocol errors.
+timeout raised inside an SDK) are not currently assigned codes by this
+specification. Implementations surfacing local errors in JSON-RPC-shaped
+structures should ensure they cannot be mistaken for errors received from the
+peer. Future versions of the specification may define standard codes for
+common local error conditions in the reserved sub-range.
 
 Applications layered on top of MCP **MUST NOT** define error codes inside the
 JSON-RPC reserved range (`-32768` to `-32000`); the remainder of the integer
