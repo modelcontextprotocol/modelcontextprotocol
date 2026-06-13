@@ -1,0 +1,28 @@
+{
+  "alg": "HS256",
+  "issuerAsserted": {
+    "alg": "HS256",
+    "expSeconds": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secretVersion": "v1",
+    "sub": "agent:archiver"
+  },
+  "payloadDerived": {
+    "toolCalls": [
+      {
+        "args": {
+          "unknownField": "value"
+        },
+        "name": "delete_file",
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "plannerDeclared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requestedCapability": "filesystem.delete"
+  },
+  "version": 1
+}

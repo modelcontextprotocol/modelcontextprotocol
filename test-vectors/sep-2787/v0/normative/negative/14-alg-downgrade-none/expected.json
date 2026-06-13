@@ -1,0 +1,10 @@
+{
+  "alg": "none",
+  "bucket": "normative/negative",
+  "case_id": "14-alg-downgrade-none",
+  "notes": "Top-level alg downgraded to \"none\" after signing while the HS256 MAC is retained. alg is part of the signed body, so re-canonicalising and re-verifying the present body must fail. A verifier MUST NOT treat the envelope as unsigned-and-accepted.",
+  "rejection_dimension": "algorithm_downgrade",
+  "verification_result": false,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}

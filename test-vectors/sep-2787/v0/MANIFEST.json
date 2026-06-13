@@ -1,0 +1,59 @@
+{
+  "acceptance_gate": "One independent implementation reads the fixtures and produces the same canonical bytes and signature verification results for every NORMATIVE case. POLICY cases come online once the SEP names skew tolerance, alg whitelist, schema, and verifier alg-acceptance.",
+  "buckets": {
+    "normative/negative": [
+      "07-tampered-planner-declared",
+      "08-tampered-issuer-asserted",
+      "09-ieee754-float-in-canonical-input",
+      "14-alg-downgrade-none"
+    ],
+    "normative/positive": [
+      "01-hs256-projection-hash-only",
+      "02-es256-projection-hash-only",
+      "03-rs256-projection-hash-only",
+      "04-hs256-ref",
+      "05-hs256-projection",
+      "06-rs256-projection"
+    ],
+    "verifier-policy/negative": [
+      "10-ttl-expired-past-skew",
+      "11-unsupported-alg-hs512",
+      "12-args-commitment-missing-discriminator",
+      "13-hs256-envelope-against-es256-verifier"
+    ]
+  },
+  "keys": {
+    "es256_private.pem": {
+      "sha256": "0fc948b5aa0b07495628bf44660afa843b644c896a0af4f2317633ae634d2d94",
+      "type": "ec_private_key_pkcs8_pem"
+    },
+    "es256_public.pem": {
+      "sha256": "f2c84537db1320a89b1fae26b7d955da87b6a2476c75c1f3b9c43b6f16d9d5ce",
+      "type": "ec_public_key_spki_pem"
+    },
+    "hs256_secret.bin": {
+      "sha256": "425ed4e4a36b30ea21b90e21c712c649e8214c29b7eaf68089d1039c6e55384c",
+      "type": "shared_secret_bytes_32"
+    },
+    "rs256_private.pem": {
+      "sha256": "baf843b506a2cc8d52798d2dca0ebf1c5e361d95d3060bd64d78531d0d1face5",
+      "type": "rsa_private_key_pkcs8_pem"
+    },
+    "rs256_public.pem": {
+      "sha256": "8cdd915908c3d6d83ce74eb667a5576d8424d5adfc3e626d6acca11576c9f438",
+      "type": "rsa_public_key_spki_pem"
+    }
+  },
+  "license": "Apache-2.0",
+  "name": "sep-2787-vectors",
+  "pinned_values": {
+    "expSecondsDefault": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secretVersion": "v1",
+    "sub": "agent:archiver"
+  },
+  "provenance": "Derived from tests/test_attestation_sep2787*.py at commit 5ea7cd3 of vaaraio/vaara (tag sep2787-ref-v2, merged via vaaraio/vaara#151).",
+  "schema_version": "v0"
+}

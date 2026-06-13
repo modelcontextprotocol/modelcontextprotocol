@@ -1,0 +1,11 @@
+{
+  "alg": "ES256",
+  "args_commitment_kind": "hash_only_projection",
+  "bucket": "normative/positive",
+  "case_id": "02-es256-projection-hash-only",
+  "notes": "ES256 signatures are randomised; verify against the public key rather than reproducing hex.",
+  "signature_hex_deterministic": false,
+  "verification_result": true,
+  "verifying_material": "keys/es256_public.pem",
+  "verifying_material_type": "ec_public_key_spki_pem"
+}
