@@ -414,6 +414,12 @@
         "pages": [
           "seps/index",
           {
+            "group": "Draft",
+            "pages": [
+              "seps/2631-file-objects-and-transfer"
+            ]
+          },
+          {
             "group": "Final",
             "pages": [
               "seps/414-request-meta",
