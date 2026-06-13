@@ -874,10 +874,6 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
-                "elicitationId": {
-                    "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
-                    "type": "string"
-                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -894,7 +890,6 @@
                 }
             },
             "required": [
-                "elicitationId",
                 "message",
                 "mode",
                 "url"
@@ -937,44 +932,6 @@
             },
             "required": [
                 "action"
-            ],
-            "type": "object"
-        },
-        "ElicitationCompleteNotification": {
-            "description": "An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.",
-            "properties": {
-                "jsonrpc": {
-                    "const": "2.0",
-                    "type": "string"
-                },
-                "method": {
-                    "const": "notifications/elicitation/complete",
-                    "type": "string"
-                },
-                "params": {
-                    "$ref": "#/$defs/ElicitationCompleteNotificationParams"
-                }
-            },
-            "required": [
-                "jsonrpc",
-                "method",
-                "params"
-            ],
-            "type": "object"
-        },
-        "ElicitationCompleteNotificationParams": {
-            "description": "Parameters for a {@link ElicitationCompleteNotificationnotifications/elicitation/complete} notification.",
-            "properties": {
-                "_meta": {
-                    "$ref": "#/$defs/MetaObject"
-                },
-                "elicitationId": {
-                    "description": "The ID of the elicitation that completed.",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "elicitationId"
             ],
             "type": "object"
         },
@@ -3174,9 +3131,6 @@
                 },
                 {
                     "$ref": "#/$defs/LoggingMessageNotification"
-                },
-                {
-                    "$ref": "#/$defs/ElicitationCompleteNotification"
                 }
             ]
         },
@@ -3556,7 +3510,7 @@
                 },
                 "inputSchema": {
                     "additionalProperties": {},
-                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
+                    "description": "A JSON Schema object defining the expected parameters for the tool.\n\nTool arguments are always JSON objects, so `type: \"object\"` is required at the root.\nBeyond that, any JSON Schema 2020-12 keyword may appear alongside `type` — including\ncomposition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords\n(`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other\nstandard validation or annotation keywords.\n\nProperty schemas may carry an `x-mcp-header` annotation to mirror the\nargument value into an HTTP header on the Streamable HTTP transport. See\nthe Streamable HTTP transport specification for the validity and\nextraction rules.\n\nDefaults to JSON Schema 2020-12 when no explicit `$schema` is provided.",
                     "properties": {
                         "$schema": {
                             "type": "string"
