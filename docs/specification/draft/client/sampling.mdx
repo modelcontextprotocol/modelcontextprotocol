@@ -60,8 +60,10 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 ```json
 {
-  "capabilities": {
-    "sampling": {}
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "sampling": {}
+    }
   }
 }
 ```
@@ -70,9 +72,11 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 ```json
 {
-  "capabilities": {
-    "sampling": {
-      "tools": {}
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "sampling": {
+        "tools": {}
+      }
     }
   }
 }
@@ -82,9 +86,11 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 ```json
 {
-  "capabilities": {
-    "sampling": {
-      "context": {}
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "sampling": {
+        "context": {}
+      }
     }
   }
 }
@@ -108,7 +114,7 @@ Clients that support sampling **MUST** declare the `sampling` capability in
 
 To request a language model generation during the processing of a client request, servers send an `InputRequiredResult` containing a `sampling/createMessage` request:
 
-**Request:**
+**Input request (delivered inside [`InputRequiredResult.inputRequests`](/specification/draft/basic/patterns/mrtr#inputrequests)):**
 
 ```json
 {
@@ -141,19 +147,17 @@ To request a language model generation during the processing of a client request
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "role": "assistant",
-    "content": {
-      "type": "text",
-      "text": "The capital of France is Paris."
-    },
-    "model": "claude-3-sonnet-20240307",
-    "stopReason": "endTurn"
-  }
+  "role": "assistant",
+  "content": {
+    "type": "text",
+    "text": "The capital of France is Paris."
+  },
+  "model": "claude-3-sonnet-20240307",
+  "stopReason": "endTurn"
 }
 ```
 
@@ -204,7 +208,7 @@ sequenceDiagram
 
 To request LLM generation with tool use capabilities, servers include `tools` and optionally `toolChoice` in the request:
 
-**Request (Server -> Client):**
+**Input request (Server -> Client, delivered inside `InputRequiredResult.inputRequests`):**
 
 ```json
 {
@@ -243,33 +247,31 @@ To request LLM generation with tool use capabilities, servers include `tools` an
 }
 ```
 
-**Response (Client -> Server):**
+**Client result (Client -> Server, returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "call_abc123",
-        "name": "get_weather",
-        "input": {
-          "city": "Paris"
-        }
-      },
-      {
-        "type": "tool_use",
-        "id": "call_def456",
-        "name": "get_weather",
-        "input": {
-          "city": "London"
-        }
+  "role": "assistant",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "call_abc123",
+      "name": "get_weather",
+      "input": {
+        "city": "Paris"
       }
-    ],
-    "model": "claude-3-sonnet-20240307",
-    "stopReason": "toolUse"
-  }
+    },
+    {
+      "type": "tool_use",
+      "id": "call_def456",
+      "name": "get_weather",
+      "input": {
+        "city": "London"
+      }
+    }
+  ],
+  "model": "claude-3-sonnet-20240307",
+  "stopReason": "toolUse"
 }
 ```
 
@@ -282,7 +284,7 @@ After receiving tool use requests from the LLM, the server typically:
 3. Receives the LLM's response (which might contain new tool uses)
 4. Repeats as many times as needed (server might cap the maximum number of iterations, and e.g. pass `toolChoice: {mode: "none"}` on the last iteration to force a final result)
 
-**Follow-up request (Server -> Client) with tool results:**
+**Follow-up input request (Server -> Client, delivered inside `InputRequiredResult.inputRequests`) with tool results:**
 
 ```json
 {
@@ -357,19 +359,17 @@ After receiving tool use requests from the LLM, the server typically:
 }
 ```
 
-**Final response (Client -> Server):**
+**Final client result (Client -> Server, returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "role": "assistant",
-    "content": {
-      "type": "text",
-      "text": "Based on the current weather data:\n\n- **Paris**: 18°C and partly cloudy - quite pleasant!\n- **London**: 15°C and rainy - you'll want an umbrella.\n\nParis has slightly warmer and drier conditions today."
-    },
-    "model": "claude-3-sonnet-20240307",
-    "stopReason": "endTurn"
-  }
+  "role": "assistant",
+  "content": {
+    "type": "text",
+    "text": "Based on the current weather data:\n\n- **Paris**: 18°C and partly cloudy - quite pleasant!\n- **London**: 15°C and rainy - you'll want an umbrella.\n\nParis has slightly warmer and drier conditions today."
+  },
+  "model": "claude-3-sonnet-20240307",
+  "stopReason": "endTurn"
 }
 ```
 
