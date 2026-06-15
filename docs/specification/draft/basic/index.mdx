@@ -112,19 +112,16 @@ for general protocol failures.
 JSON-RPC 2.0 reserves the range `-32000` to `-32099` for implementation-defined
 server errors. MCP partitions this range as follows:
 
-- **`-32000` to `-32019` — implementation-defined.** Existing SDKs and
-  implementations use codes in this sub-range for their own purposes (for
-  example, local timeout or connection errors). The MCP specification will
-  never define error codes in this sub-range, and new implementation-defined
-  codes **MUST NOT** be introduced here. With the exception of the historical
-  codes listed below, receivers **MUST NOT** assign cross-implementation
-  semantics to these codes: the same code may carry different meanings in
-  different implementations.
+- **`-32000` to `-32019` — legacy.** Codes in this sub-range were allocated by
+  implementations before this policy was introduced. New codes **MUST NOT** be
+  allocated in this sub-range. Apart from `-32002` and `-32042` (see below),
+  receivers **MUST NOT** assume any specific meaning for these codes.
 - **`-32020` to `-32099` — reserved for the MCP specification.** Error codes
   in this sub-range are defined exclusively by the MCP specification and
   recorded in the [schema](/specification/draft/schema). Implementations
-  **MUST NOT** emit codes from this sub-range with meanings other than those
-  defined by the specification.
+  **MUST NOT** emit any code from this sub-range that is not defined by this
+  specification and **MUST** use defined codes only with their specified
+  meanings.
 
 MCP defines the following error codes:
 
@@ -135,11 +132,13 @@ MCP defines the following error codes:
 | `-32022` | [`UnsupportedProtocolVersion`](/specification/draft/schema#unsupportedprotocolversionerror)           |
 
 Codes defined by earlier protocol versions remain reserved and will not be
-reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by
-`-32602`, though [clients **SHOULD** still accept
-`-32002`](/specification/draft/server/resources#error-handling) from servers
-implementing earlier versions) and `-32042` (URL elicitation required,
-2025-11-25 only).
+reused. Implementations of this protocol version **MUST NOT** emit these codes:
+
+- `-32002` — resource not found (2025-11-25 and earlier; replaced by `-32602`).
+  Clients [**SHOULD** still
+  accept `-32002`](/specification/draft/server/resources#error-handling) from
+  servers implementing earlier versions.
+- `-32042` — URL elicitation required (2025-11-25 only).
 
 Errors that are purely local to an implementation (for example, a request
 timeout raised inside an SDK) are not currently assigned codes by this
