@@ -16,6 +16,30 @@ const MODERN_SCHEMAS = ['2025-11-25', 'draft'];
 // All schema versions to generate
 const ALL_SCHEMAS = [...LEGACY_SCHEMAS, ...MODERN_SCHEMAS];
 
+/**
+ * Build the canonical `$id` for a given schema version, so the generated
+ * `schema.json` is self-describing about which MCP protocol version it
+ * represents (independent of the directory it lives in).
+ */
+function schemaId(version: string): string {
+  return `https://modelcontextprotocol.io/schemas/${version}/schema.json`;
+}
+
+/**
+ * Add a top-level `$id` to a generated schema document.
+ *
+ * `typescript-json-schema --id` is intentionally not used here: it additionally
+ * rewrites every internal `$ref` to an absolute URL. We only want the
+ * self-describing `$id` while keeping the existing fragment-only refs, so we
+ * inject it directly after the opening brace (before `$schema`).
+ */
+function addSchemaId(content: string, version: string): string {
+  return content.replace(
+    /^\{\n/,
+    `{\n    "$id": ${JSON.stringify(schemaId(version))},\n`
+  );
+}
+
 // Check if we're in check mode (validate existing schemas match generated ones)
 const CHECK_MODE = process.argv.includes('--check');
 
@@ -76,6 +100,8 @@ async function generateSchema(version: string, check: boolean = false): Promise<
         expectedSchema = expectedSchema.replace(/#\/definitions\//g, '#/$defs/');
       }
 
+      expectedSchema = addSchemaId(expectedSchema, version);
+
       // Compare
       if (existingSchema.trim() !== expectedSchema.trim()) {
         console.error(`  ✗ Schema ${version} is out of date!`);
@@ -103,6 +129,13 @@ async function generateSchema(version: string, check: boolean = false): Promise<
     if (!LEGACY_SCHEMAS.includes(version)) {
       applyJsonSchema202012Transformations(schemaJson);
     }
+
+    // Add the self-describing `$id` for the protocol version
+    writeFileSync(
+      schemaJson,
+      addSchemaId(readFileSync(schemaJson, 'utf-8'), version),
+      'utf-8'
+    );
 
     console.log(`  ✓ Generated schema for ${version}`);
     return true;
