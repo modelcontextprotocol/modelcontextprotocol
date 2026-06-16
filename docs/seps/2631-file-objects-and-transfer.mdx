@@ -786,9 +786,18 @@ rules or the product's approval policy call for it.
 
 ### Why Standardize Download Resolution
 
-`ResourceLink` is useful, but it is not enough by itself for generic file output. Tool
-authors need a predictable answer to "how does this generated file become downloadable or
-storable?" A dedicated `files/authorizeDownload` method makes that path explicit.
+`ResourceLink` is useful, but it is not enough by itself for generic file output. At a
+surface level, a `ResourceLink` and a file-valued output can look quite similar: both can
+carry a URI plus display metadata such as name, MIME type, or size. The important
+difference is the resolution contract. A `ResourceLink` points at something the client can
+read through `resources/read`; a file-valued output points at a file transfer handle the
+client resolves through `files/authorizeDownload`.
+
+That distinction matters for interoperability. Tool authors need a predictable answer to
+"how does this generated file become downloadable or storable?" without requiring clients
+to treat short-lived transfer capabilities as model-readable resources or requiring
+servers to expose file outputs through `resources/read`. A dedicated `files/authorizeDownload`
+method makes that path explicit.
 
 ## Backward Compatibility
 

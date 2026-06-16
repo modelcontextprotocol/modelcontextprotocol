@@ -414,12 +414,6 @@
         "pages": [
           "seps/index",
           {
-            "group": "Draft",
-            "pages": [
-              "seps/2631-file-objects-and-transfer"
-            ]
-          },
-          {
             "group": "Final",
             "pages": [
               "seps/414-request-meta",
@@ -463,6 +457,12 @@
               "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2663-tasks-extension"
+            ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2631-file-objects-and-transfer"
             ]
           }
         ]
