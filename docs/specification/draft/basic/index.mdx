@@ -114,7 +114,8 @@ server errors. MCP partitions this range as follows:
 
 - **`-32000` to `-32019` — legacy.** Codes in this sub-range were allocated by
   implementations before this policy was introduced. New codes **MUST NOT** be
-  allocated in this sub-range. Apart from `-32002` and `-32042` (see below),
+  allocated in this sub-range, and new implementations **SHOULD NOT** use codes
+  from this sub-range at all. Apart from `-32002` and `-32042` (see below),
   receivers **MUST NOT** assume any specific meaning for these codes.
 - **`-32020` to `-32099` — reserved for the MCP specification.** Error codes
   in this sub-range are defined exclusively by the MCP specification and
@@ -147,9 +148,9 @@ structures should ensure they cannot be mistaken for errors received from the
 peer. Future versions of the specification may define standard codes for
 common local error conditions in the reserved sub-range.
 
-Applications layered on top of MCP **MUST NOT** define error codes inside the
-JSON-RPC reserved range (`-32768` to `-32000`); the remainder of the integer
-space is available for application-defined errors.
+New error codes for purposes not defined by this specification **SHOULD** be
+allocated outside the JSON-RPC reserved range (`-32768` to `-32000`); the
+remainder of the integer space is available for application-defined errors.
 
 ### Notifications
 
