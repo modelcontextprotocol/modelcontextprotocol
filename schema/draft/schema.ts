@@ -1918,6 +1918,11 @@ export interface Tool extends BaseMetadata, Icons {
    * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
    * standard validation or annotation keywords.
    *
+   * Property schemas may carry an `x-mcp-header` annotation to mirror the
+   * argument value into an HTTP header on the Streamable HTTP transport. See
+   * the Streamable HTTP transport specification for the validity and
+   * extraction rules.
+   *
    * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
    */
   inputSchema: { $schema?: string; type: "object"; [key: string]: unknown };
@@ -2760,12 +2765,6 @@ export interface ElicitRequestURLParams {
   message: string;
 
   /**
-   * The ID of the elicitation, which must be unique within the context of the server.
-   * The client MUST treat this ID as an opaque value.
-   */
-  elicitationId: string;
-
-  /**
    * The URL that the user should navigate to.
    *
    * @format uri
@@ -3092,31 +3091,6 @@ export interface ElicitResult {
   content?: { [key: string]: string | number | boolean | string[] };
 }
 
-/**
- * Parameters for a {@link ElicitationCompleteNotification | notifications/elicitation/complete} notification.
- *
- * @category `notifications/elicitation/complete`
- */
-export interface ElicitationCompleteNotificationParams extends NotificationParams {
-  /**
-   * The ID of the elicitation that completed.
-   */
-  elicitationId: string;
-}
-
-/**
- * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
- *
- * @example Elicitation complete
- * {@includeCode ./examples/ElicitationCompleteNotification/elicitation-complete.json}
- *
- * @category `notifications/elicitation/complete`
- */
-export interface ElicitationCompleteNotification extends JSONRPCNotification {
-  method: "notifications/elicitation/complete";
-  params: ElicitationCompleteNotificationParams;
-}
-
 /* Client messages */
 /** @internal */
 export type ClientRequest =
@@ -3148,7 +3122,6 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
-  | ElicitationCompleteNotification
   | SubscriptionsAcknowledgedNotification;
 
 /** @internal */
