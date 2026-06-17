@@ -507,6 +507,7 @@
             "group": "Interest Group Charters",
             "pages": [
               "community/interest-groups/auth",
+              "community/interest-groups/enterprise-managed-authorization",
               "community/interest-groups/security",
               "community/interest-groups/tool-annotations"
             ]
