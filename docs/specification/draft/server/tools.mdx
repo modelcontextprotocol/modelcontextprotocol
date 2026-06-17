@@ -9,6 +9,14 @@ language models. Tools enable models to interact with external systems, such as 
 databases, calling APIs, or performing computations. Each tool is uniquely identified by
 a name and includes metadata describing its schema.
 
+<Note>
+  For brevity, the request examples on this page omit the required `_meta`
+  request metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  these fields; see [`_meta`](/specification/draft/basic/index#meta).
+</Note>
+
 ## User Interaction Model
 
 Tools in MCP are designed to be **model-controlled**, meaning that the language model can
@@ -541,6 +549,7 @@ Example valid response for this tool:
   "jsonrpc": "2.0",
   "id": 5,
   "result": {
+    "resultType": "complete",
     "content": [
       {
         "type": "text",
@@ -589,6 +598,7 @@ Example valid response for a tool with array output:
   "jsonrpc": "2.0",
   "id": 6,
   "result": {
+    "resultType": "complete",
     "content": [
       {
         "type": "text",
@@ -749,6 +759,7 @@ Tools use two error reporting mechanisms:
      "jsonrpc": "2.0",
      "id": 4,
      "result": {
+       "resultType": "complete",
        "content": [
          {
            "type": "text",
