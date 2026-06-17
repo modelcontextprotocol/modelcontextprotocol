@@ -353,8 +353,10 @@ HTTP header.
 - **MUST** only be applied to parameters with primitive types (integer, string, boolean).
   Parameters with type `number` are not permitted. Integer values **MUST** be within the
   safe range for integers represented using IEEE754 double-precision floating point numbers (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
-- **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
-  only top-level properties
+- **MUST** only be applied to properties that are _statically reachable_ from the schema
+  root, as defined in
+  [Custom Headers from Tool Parameters](/specification/draft/basic/transports/streamable-http#custom-headers-from-tool-parameters),
+  which also defines how header values are extracted from call arguments
 
 Clients using the Streamable HTTP transport **MUST** reject tool definitions where any
 `x-mcp-header` value violates these constraints. Rejection means the client **MUST**
