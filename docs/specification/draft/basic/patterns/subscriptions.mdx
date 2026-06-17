@@ -62,7 +62,7 @@ omitted.
   "method": "notifications/subscriptions/acknowledged",
   "params": {
     "_meta": {
-      "io.modelcontextprotocol/subscriptionId": "1"
+      "io.modelcontextprotocol/subscriptionId": 1
     },
     "notifications": {
       "toolsListChanged": true,
@@ -78,8 +78,11 @@ any unsupported types gracefully.
 ## Receiving Notifications
 
 All notifications delivered on the stream carry
-`io.modelcontextprotocol/subscriptionId` in `_meta`, matching the ID of the
-`subscriptions/listen` request that opened the stream. On stdio, where all messages
+`io.modelcontextprotocol/subscriptionId` in `_meta`, identifying the
+`subscriptions/listen` request that opened the stream. The value is the JSON-RPC ID of
+the `subscriptions/listen` request. In the examples above, the request used `"id": 1`,
+so the acknowledgment and all subsequent notifications carry the subscription ID `1`.
+On stdio, where all messages
 share a single channel, clients **MUST** use this field to correlate notifications
 with their originating subscription.
 
@@ -89,7 +92,7 @@ with their originating subscription.
   "method": "notifications/resources/updated",
   "params": {
     "_meta": {
-      "io.modelcontextprotocol/subscriptionId": "1"
+      "io.modelcontextprotocol/subscriptionId": 1
     },
     "uri": "file:///project/config.json"
   }
@@ -102,8 +105,8 @@ A client **MAY** have multiple active subscriptions concurrently — for example
 one listening for tools-list changes and another for resource updates. Each
 subscription is identified by the JSON-RPC request ID of its
 `subscriptions/listen` request, and every notification on the stream carries
-that ID in `io.modelcontextprotocol/subscriptionId` so clients can demultiplex
-them.
+that ID in
+`io.modelcontextprotocol/subscriptionId` so clients can demultiplex them.
 
 ## Cancellation
 
