@@ -10,7 +10,8 @@ mechanisms can coexist.
 
 ## Cacheable Results
 
-Servers MUST include caching hints on results returned by the following operations:
+Servers MUST include caching hints on results with `resultType: "complete"` returned by
+the following operations:
 
 - `server/discover`
 - `tools/list`
@@ -18,6 +19,22 @@ Servers MUST include caching hints on results returned by the following operatio
 - `resources/list`
 - `resources/templates/list`
 - `resources/read`
+
+Interim results with `resultType: "input_required"` (see
+[multi round-trip requests](/specification/draft/basic/patterns/mrtr)) are not cacheable
+and carry no caching hints.
+
+## Cache Key
+
+A cached response is identified by the request method together with the request
+parameters that affect the result (for example, the `uri` for `resources/read`, or the
+`cursor` for paginated list requests). Clients **MUST NOT** serve a cached response for
+a request whose method or parameters differ from the request that produced it.
+
+Results produced by retrying a request through the
+[multi round-trip requests](/specification/draft/basic/patterns/mrtr) mechanism&mdash;that
+is, requests carrying `inputResponses` or `requestState`&mdash;**MUST NOT** be cached,
+as they depend on inputs that are not part of the cache key.
 
 ## Cacheable Model
 

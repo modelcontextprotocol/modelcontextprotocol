@@ -53,10 +53,12 @@ Clients that support elicitation **MUST** declare the `elicitation` capability i
 
 ```json
 {
-  "capabilities": {
-    "elicitation": {
-      "form": {},
-      "url": {}
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "elicitation": {
+        "form": {},
+        "url": {}
+      }
     }
   }
 }
@@ -66,8 +68,10 @@ For backwards compatibility, an empty capabilities object is equivalent to decla
 
 ```jsonc
 {
-  "capabilities": {
-    "elicitation": {}, // Equivalent to { "form": {} }
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "elicitation": {}, // Equivalent to { "form": {} }
+    },
   },
 }
 ```
@@ -126,7 +130,6 @@ The schema is restricted to these primitive types:
      "description": "Description text",
      "minLength": 3,
      "maxLength": 50,
-     "pattern": "^[A-Za-z]+$",
      "format": "email",
      "default": "user@example.com"
    }
@@ -237,7 +240,7 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 #### Example: Simple Text Request
 
-**Request:**
+**Input request (delivered inside [`InputRequiredResult.inputRequests`](/specification/draft/basic/patterns/mrtr#inputrequests)):**
 
 ```json
 {
@@ -258,22 +261,20 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "action": "accept",
-    "content": {
-      "name": "octocat"
-    }
+  "action": "accept",
+  "content": {
+    "name": "octocat"
   }
 }
 ```
 
 #### Example: Structured Data Request
 
-**Request:**
+**Input request (delivered inside `InputRequiredResult.inputRequests`):**
 
 ```json
 {
@@ -305,17 +306,15 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "action": "accept",
-    "content": {
-      "name": "Monalisa Octocat",
-      "email": "octocat@github.com",
-      "age": 30
-    }
+  "action": "accept",
+  "content": {
+    "name": "Monalisa Octocat",
+    "email": "octocat@github.com",
+    "age": 30
   }
 }
 ```
@@ -332,10 +331,9 @@ URL mode elicitation enables servers to direct users to external URLs for out-of
 
 URL mode elicitation requests **MUST** specify `mode: "url"`, a `message`, and include these additional parameters:
 
-| Name            | Type   | Description                               |
-| --------------- | ------ | ----------------------------------------- |
-| `url`           | string | The URL that the user should navigate to. |
-| `elicitationId` | string | A unique identifier for the elicitation.  |
+| Name  | Type   | Description                               |
+| ----- | ------ | ----------------------------------------- |
+| `url` | string | The URL that the user should navigate to. |
 
 The `url` parameter **MUST** contain a valid URL.
 
@@ -354,61 +352,35 @@ The `url` parameter **MUST** contain a valid URL.
 This example shows a URL mode elicitation request directing the user to a secure URL where they can provide sensitive information (an API key, for example).
 The same request could direct the user into an OAuth authorization flow, or a payment flow. The only difference is the URL and the message.
 
-**Request:**
+**Input request (delivered inside `InputRequiredResult.inputRequests`):**
 
 ```json
 {
   "method": "elicitation/create",
   "params": {
     "mode": "url",
-    "elicitationId": "550e8400-e29b-41d4-a716-446655440000",
     "url": "https://mcp.example.com/ui/set_api_key",
     "message": "Please provide your API key to continue."
   }
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "action": "accept"
-  }
+  "action": "accept"
 }
 ```
 
 The response with `action: "accept"` indicates that the user has consented to the
 interaction. It does not mean that the interaction is complete. The interaction occurs out
-of band and the client is not aware of the outcome until and unless the server sends a notification indicating completion.
-
-### Completion Notifications for URL Mode Elicitation
-
-Servers **MAY** send a `notifications/elicitation/complete` notification when an
-out-of-band interaction started by URL mode elicitation is completed. This allows clients to react programmatically if appropriate.
-
-Servers sending notifications:
-
-- **MUST** only send the notification to the client that initiated the elicitation request.
-- **MUST** include the `elicitationId` established in the original `elicitation/create` request.
-
-Clients:
-
-- **MUST** ignore notifications referencing unknown or already-completed IDs.
-- **MAY** wait for this notification to automatically retry requests that received a [URLElicitationRequiredError](#error-handling), update the user interface, or otherwise continue an interaction.
-- **SHOULD** still provide manual controls that let the user retry or cancel the original request (or otherwise resume interacting with the client) if the notification never arrives.
-
-#### Example
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/elicitation/complete",
-  "params": {
-    "elicitationId": "550e8400-e29b-41d4-a716-446655440000"
-  }
-}
-```
+of band and the client is not directly informed of the outcome. When the client retries
+the original request, the server determines from the echoed `requestState` (or its own
+stored state) whether the out-of-band interaction has completed, and either returns the
+final result or responds with another `InputRequiredResult`. Clients **SHOULD** provide
+manual controls that let the user retry or cancel the original request (or otherwise
+resume interacting with the client).
 
 ## Message Flow
 
@@ -454,7 +426,6 @@ sequenceDiagram
 
     Note over User,UserAgent: User interaction
     UserAgent-->>Server: Interaction complete
-    Server-->>Client: notifications/elicitation/complete (optional)
 
     Note over Server: Continue processing with new information
     Server-->Client: Result(id: 2, result)
@@ -465,7 +436,7 @@ sequenceDiagram
 Elicitation responses use a three-action model to clearly distinguish between different user actions. These actions apply to both form and URL elicitation modes.
 
 ```json
-"result": {
+{
   "action": "accept", // or "decline" or "cancel"
   "content": {
     "propertyName": "value",
@@ -688,7 +659,7 @@ To prevent this attack, the server **MUST** ensure that the user who started the
 There are many ways to achieve this and the best way will depend on the specific implementation.
 
 As a common, non-normative example, consider a case where the MCP server is accessible via the web and desires to perform a third-party authorization code flow.
-To prevent the phishing attack, the server would create a URL mode elicitation to `https://mcp.example.com/connect?elicitationId=...` rather than the third-party authorization endpoint.
+To prevent the phishing attack, the server would create a URL mode elicitation to `https://mcp.example.com/connect?...` rather than the third-party authorization endpoint.
 This "connect URL" must ensure the user who opened the page is the same user for whom the elicitation was generated.
 It would, for example, check that the user has a valid session cookie and that the session cookie is for the same user who was using the MCP client to generate the URL mode elicitation.
 This could be done by comparing the authoritative subject (`sub` claim) from the MCP server's authorization server to the subject from the session cookie.
