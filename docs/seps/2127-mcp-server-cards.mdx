@@ -38,11 +38,12 @@ MCP clients currently lack efficient mechanisms to discover information about MC
 
 - **Manual Endpoint Configuration**: Users must manually configure transport URLs for each server, with no standardized discovery mechanism.
 - **No Domain-Level Discovery**: Clients cannot automatically discover available MCP servers on a domain. This prevents automated integration scenarios, such as registry crawling or service auto-detection.
+- **Hosted Domain Constraints**: Some domain owners can publish DNS records but cannot reliably control `/.well-known/` routing, especially when their public website is hosted by a third-party site builder or SaaS platform.
 - **Expensive Initialization**: Every capability query requires a full initialization sequence. This round-trip is costly, difficult to cache efficiently, and creates unnecessary latency for simple metadata retrieval.
 
 ### Proposed Solution
 
-This SEP introduces **MCP Server Cards** – structured metadata documents that servers expose through standardized mechanisms. The primary mechanism is a `.well-known` endpoint and similar mechanism appropriate for the transport. These provide static server information without requiring connection establishment. In addition the same information is served via a well known MCP resource.
+This SEP introduces **MCP Server Cards** – structured metadata documents that servers expose through standardized mechanisms. The primary mechanism is a `.well-known` endpoint and similar mechanism appropriate for the transport. These provide static server information without requiring connection establishment. In addition the same information is served via a well known MCP resource. Deployments MAY also advertise MCP Server Card discovery metadata using optional DNS bootstrap, as described below. DNS bootstrap does not replace `/.well-known/` discovery and does not require encoding full Server Cards in DNS.
 
 ### Enabled Use Cases
 
@@ -52,7 +53,7 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 ### Design Philosophy
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what transports and protocol versions are available, while initialization handles the communication handshake.
+The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what transports and protocol versions are available, while initialization handles the communication handshake. Multiple bootstrap mechanisms, including `/.well-known/` and DNS, can converge on the same Server Card URLs.
 
 ### Discovery
 
@@ -322,9 +323,62 @@ Servers MAY include cache headers for the discovery document:
 Cache-Control: public, max-age=3600
 ```
 
+#### Optional DNS Bootstrap
+
+Clients MAY use DNS as an optional bootstrap mechanism to locate MCP Server Card discovery metadata for a domain before, or in parallel with, fetching `/.well-known/mcp-server-card`.
+
+DNS bootstrap is not a replacement for the `.well-known` Server Card endpoint. It also does not require complete Server Cards to be encoded in DNS. Instead, DNS provides an authoritative, cache-friendly pointer to discovery metadata such as:
+
+- an HTTPS URL for a Server Card;
+- an HTTPS URL for an AI Card catalog that references one or more MCP Server Cards; or
+- a DNS-published services document that contains MCP Server Card URLs.
+
+This distinction avoids the main limitation of DNS-only discovery. A DNS record answers "where is the discovery document for this domain?" The referenced Server Card, AI Card catalog, or services document answers "which MCP servers are available, and where are their concrete connection details?" This preserves support for path-based, port-based, multi-server, and third-party-hosted MCP deployments.
+
+One possible substrate for DNS bootstrap is [Intelligence-over-DNS (IOD)](https://github.com/markjr/Intelligence-over-DNS), which defines DNSSEC-backed publication of structured, machine-readable service metadata using DNS TXT records. This SEP does not require IOD as a normative dependency; it is provided as an example of how DNS-published service metadata can point to MCP discovery documents without putting the Server Card itself in DNS.
+
+For example, a domain could publish an IOD-style services document:
+
+```dns
+_iod.example.com. TXT "v=1; idx=_iod.index; alg=jcs+jws; enc=zstd+b64url; dnssec=required"
+_iod.index.example.com. TXT "id=services;type=services;hash=...;ttl=3600"
+```
+
+The decoded services document could then contain URLs for MCP Server Cards or related catalogs:
+
+```json
+{
+  "iod_version": "1.0",
+  "zone": "example.com",
+  "services": {
+    "mcp_servers": [
+      {
+        "role": "primary",
+        "url": "https://mcp.example.com",
+        "serverCardUrl": "https://mcp.example.com/.well-known/mcp-server-card/weather"
+      }
+    ],
+    "ai_catalogs": [
+      {
+        "url": "https://example.com/.well-known/ai-catalog.json"
+      }
+    ]
+  },
+  "last_updated": "2026-06-17T00:00:00Z"
+}
+```
+
+Clients that implement DNS bootstrap:
+
+- MUST still validate HTTPS, media types, and schema conformance for fetched Server Cards and catalogs.
+- MUST validate DNSSEC when the DNS discovery mechanism requires DNSSEC.
+- MUST NOT treat DNS-discovered metadata as authorization or as authoritative for access-control decisions.
+- SHOULD fall back to `/.well-known/mcp-server-card` when no usable DNS bootstrap metadata exists.
+- SHOULD reconcile fetched Server Card metadata with runtime behavior after connection, because Server Cards are advisory discovery metadata.
+
 ### Other Considered Endpoints
 
-**DNS-based discovery**: We considered using DNS TXT records for discovery, similar to DKIM or SPF. However, this approach would be limited to domain-level discovery and wouldn't work for path-based or port-based MCP servers, making it too restrictive.
+**DNS-only Server Card discovery**: We considered encoding MCP Server Cards directly in DNS TXT records, similar to DKIM or SPF. This approach would be limited to domain-level discovery and would not work well for path-based or port-based MCP servers, making it too restrictive. However, this limitation does not apply to the optional DNS bootstrap mechanism described above, where DNS only points to an HTTPS Server Card, AI Card catalog, or services document that can then reference arbitrary path-specific and port-specific Server Card URLs.
 
 **Header-based discovery**: We considered using HTTP headers (similar to Link headers) to advertise server card locations. While this could work, it requires an HTTP request to the main endpoint first, eliminating many of the benefits of pre-connection discovery.
 
@@ -338,6 +392,14 @@ The `.well-known` URI pattern is an established IETF standard (RFC 8615) used by
 - Requires no prior knowledge of server configuration
 - Works with standard HTTP infrastructure (caches, CDNs, load balancers)
 - Is already familiar to developers working with web services
+
+### Why Optional DNS Bootstrap?
+
+DNS bootstrap complements `.well-known` discovery for domains where the domain owner can publish DNS records but cannot reliably place files under `/.well-known/`. This can happen when a domain's public website is hosted on infrastructure that abstracts away web-root routing, while DNS remains under the domain owner's control.
+
+DNS is intentionally limited to bootstrap metadata. It should not be used to serialize complete MCP Server Cards or to model every MCP transport endpoint directly. Instead, DNS points to a Server Card, AI Card catalog, or services document over HTTPS. That referenced document can then describe path-specific, port-specific, multi-server, or third-party-hosted deployments without inheriting DNS TXT record size and structure constraints.
+
+This makes DNS bootstrap additive rather than competing: `/.well-known/` remains the primary standardized HTTP discovery path, while DNS provides an optional authoritative pointer when HTTP path control is unavailable or when clients want a domain-level preflight mechanism.
 
 ### Why Adopt `server.json`'s shape?
 
@@ -363,11 +425,12 @@ This SEP is fully backward compatible with existing MCP implementations:
 - Clients that don't support server cards can ignore them and use the initialization handshake as before.
 - The server card schema is designed to mirror the initialization response structure, minimizing implementation complexity for servers that want to support both.
 - No changes to the core MCP protocol messages or initialization flow are required.
+- DNS bootstrap is optional. Clients that do not implement it can continue to use `/.well-known/mcp-server-card` and the standard initialization handshake.
 
 ### Migration Path
 
 1. **Phase 1** (Optional): Servers can begin exposing server cards without requiring client support
-2. **Phase 2** (Recommended): Clients can implement server card fetching for enhanced discovery and pre-connection validation
+2. **Phase 2** (Recommended): Clients can implement server card fetching for enhanced discovery and pre-connection validation. Clients MAY also implement optional DNS bootstrap as a preflight mechanism for domain-level discovery.
 3. **Phase 3** (Future): The ecosystem can develop tooling around server cards for registries, security scanning, and automated discovery
 
 ## Security Implications
@@ -384,6 +447,14 @@ Server cards are publicly accessible by design. Servers MUST NOT include sensiti
 ### Primitive Information
 
 Server cards intentionally exclude primitive definitions (tools, resources, prompts). This avoids a class of security concerns where clients might trust a static manifest's tool descriptions for access-control or safety decisions, when the actual primitives at runtime may differ due to auth scoping, feature flags, configuration, or other dynamic factors. Primitives SHOULD always be discovered and validated through the protocol's standard list operations after connection establishment.
+
+### DNS Bootstrap
+
+DNS-discovered metadata is advisory discovery metadata, not authorization metadata. A client MUST NOT grant access, skip authentication, or make access-control decisions solely because a DNS record points to a Server Card or catalog.
+
+Clients that implement DNS bootstrap MUST validate DNSSEC when the selected DNS discovery mechanism requires DNSSEC. Clients MUST also validate TLS certificates, content types, and schema conformance when fetching any HTTPS resources discovered through DNS.
+
+If DNS bootstrap points to an intermediate services document or catalog, clients SHOULD apply the same validation and caching rules to the final Server Card that they would have applied if it had been discovered directly through `/.well-known/mcp-server-card`. Clients SHOULD also reconcile the advertised Server Card metadata with the server's actual runtime behavior after connection establishment.
 
 ### CORS Requirements
 
@@ -420,5 +491,8 @@ The registration will include:
 
 - [RFC 8414: OAuth 2.0 Authorization Server Metadata](https://datatracker.ietf.org/doc/html/rfc8414)
 - [RFC 8615: Well-Known URIs](https://datatracker.ietf.org/doc/html/rfc8615)
+- [RFC 4033: DNS Security Introduction and Requirements](https://datatracker.ietf.org/doc/html/rfc4033)
+- [RFC 8785: JSON Canonicalization Scheme (JCS)](https://datatracker.ietf.org/doc/html/rfc8785)
+- [Intelligence-over-DNS (IOD)](https://github.com/markjr/Intelligence-over-DNS)
 - [MCP Protocol Specification](https://modelcontextprotocol.io/specification)
 - [Original GitHub Issue #1649](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1649)
