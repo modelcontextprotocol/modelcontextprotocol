@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32042,
+    "message": "Additional user input is required.",
+    "data": {
+      "elicitations": [
+        {
+          "mode": "url",
+          "elicitationId": "550e8400-e29b-41d4-a716-446655440000",
+          "url": "https://mcp.example.com/ui/set_api_key",
+          "message": "Please provide your API key to continue."
+        }
+      ]
+    }
+  }
+}

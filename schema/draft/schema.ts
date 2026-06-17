@@ -184,7 +184,7 @@ export interface Result {
    * server implementing an earlier protocol version (which does not include
    * `resultType`), the client MUST treat the absent field as `"complete"`.
    */
-  resultType: ResultType;
+  resultType?: ResultType;
   [key: string]: unknown;
 }
 
@@ -425,6 +425,31 @@ export interface MissingRequiredClientCapabilityError extends Omit<
        * The capabilities the server requires from the client to process this request.
        */
       requiredCapabilities: ClientCapabilities;
+    };
+  };
+}
+
+// Implementation-specific JSON-RPC error codes [-32000, -32099]
+/** @internal */
+export const URL_ELICITATION_REQUIRED = -32042;
+
+/**
+ * An error response that indicates that the server requires the client to provide additional information via an elicitation request.
+ *
+ * @example Authorization required
+ * {@includeCode ./examples/URLElicitationRequiredError/authorization-required.json}
+ *
+ * @internal
+ */
+export interface URLElicitationRequiredError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof URL_ELICITATION_REQUIRED;
+    data: {
+      elicitations: ElicitRequestURLParams[];
+      [key: string]: unknown;
     };
   };
 }
@@ -681,6 +706,61 @@ export interface ClientCapabilities {
     url?: JSONObject;
   };
 
+  /**
+   * Present if the client supports file-valued inputs or outputs.
+   */
+  files?: {
+    /**
+     * Whether the client can upload file bytes out-of-band and use file URI
+     * values for file-valued inputs.
+     */
+    upload?: boolean;
+    /**
+     * Whether the client can download file-valued outputs out-of-band.
+     */
+    download?: boolean;
+    /**
+     * Out-of-band file transfer families supported by this client.
+     */
+    transports?: FileTransport[];
+  };
+
+  /**
+   * Present if the client supports task-augmented requests.
+   */
+  tasks?: {
+    /**
+     * Whether this client supports {@link ListTasksRequest | tasks/list}.
+     */
+    list?: JSONObject;
+    /**
+     * Whether this client supports {@link CancelTaskRequest | tasks/cancel}.
+     */
+    cancel?: JSONObject;
+    /**
+     * Specifies which request types can be augmented with tasks.
+     */
+    requests?: {
+      /**
+       * Task support for sampling-related requests.
+       */
+      sampling?: {
+        /**
+         * Whether the client supports task-augmented `sampling/createMessage` requests.
+         */
+        createMessage?: JSONObject;
+      };
+      /**
+       * Task support for elicitation-related requests.
+       */
+      elicitation?: {
+        /**
+         * Whether the client supports task-augmented {@link ElicitRequest | elicitation/create} requests.
+         */
+        create?: JSONObject;
+      };
+    };
+  };
   /**
    * Optional MCP extensions that the client supports. Keys are extension identifiers
    * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
@@ -1740,6 +1820,277 @@ export interface CallToolRequest extends JSONRPCRequest {
 }
 
 /**
+ * A transport family used to move file bytes out-of-band.
+ *
+ * @category Files
+ */
+export type FileTransport = "https";
+
+/**
+ * Transfer mode for a file-valued input.
+ *
+ * @category Files
+ */
+export type FileInputTransferMode = "inline" | "upload";
+
+/**
+ * Value of the `x-mcp-file` JSON Schema extension keyword. When present on a
+ * `{"type": "string", "format": "uri"}` property, it marks the property as a
+ * file input that clients SHOULD render as a native file picker.
+ *
+ * Selected files are carried as URI strings. The URI can be either an RFC 2397
+ * `data:` URI or, when out-of-band transfer is used, a file URI prepared through
+ * `files/authorizeUpload`.
+ *
+ * Descriptor fields guide client file selection and transfer behavior; servers
+ * MUST still validate inputs independently.
+ *
+ * @category Files
+ */
+export interface FileInputDescriptor {
+  /**
+   * Media type patterns and/or dot-prefixed file extensions the client SHOULD
+   * use to filter file selection.
+   *
+   * Supports exact MIME types (`"image/png"`), wildcard subtypes
+   * (`"image/*"`), and dot-prefixed extensions (`".pdf"`). Extension entries
+   * are picker hints only; server-side validation compares media types.
+   */
+  accept?: string[];
+  /**
+   * Maximum accepted size in bytes for each individual file.
+   *
+   * For inline `data:` URI values, this is the decoded byte size. For file URI
+   * values, this is the uploaded file byte size enforced during upload
+   * negotiation and subsequent request validation.
+   */
+  maxSize?: number;
+  /**
+   * Transfer modes allowed for this file input.
+   *
+   * If omitted, the client may choose any supported transfer mode. If present,
+   * the client MUST use one of the listed modes. `"inline"` means an RFC 2397
+   * `data:` URI. `"upload"` means the client MUST use `files/authorizeUpload`
+   * and provide the returned file URI.
+   */
+  transferModes?: FileInputTransferMode[];
+}
+
+/**
+ * Out-of-band URI payload for a file or resource.
+ *
+ * @category Files
+ */
+export interface UriFilePayload {
+  /**
+   * Stable URI for the file within the originating party's namespace.
+   *
+   * This URI identifies a file handle, but does not imply the file is available via resources/read.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
+ * A file-valued output or content item.
+ *
+ * @category Files
+ */
+export interface FileValue {
+  /**
+   * The file URI to resolve through files/authorizeDownload.
+   *
+   * @format uri
+   */
+  uri: string;
+  /**
+   * Optional display filename.
+   */
+  name?: string;
+  /**
+   * Optional MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional size in bytes.
+   */
+  size?: number;
+  /**
+   * Optional complete-file digest for integrity verification.
+   */
+  digest?: FileDigest;
+}
+
+/**
+ * Content integrity metadata for a complete file byte sequence.
+ *
+ * @category Files
+ */
+export interface FileDigest {
+  /**
+   * Digest algorithm. Implementations that produce or verify digests MUST support `sha-256`.
+   */
+  algorithm: string;
+  /**
+   * Digest value encoded as base64url without padding.
+   */
+  value: string;
+}
+
+/**
+ * Shared file reference shape returned by `files/authorize*` methods.
+ *
+ * @category Files
+ */
+export interface AuthorizedFile {
+  /**
+   * Stable file reference metadata.
+   */
+  file: FileValue;
+  /**
+   * Optional eager download authorization result for immediate use.
+   *
+   * Clients MUST treat this as advisory and be prepared to call
+   * `files/authorizeDownload` if it is absent, expired, or rejected.
+   */
+  download?: FileTransferDescriptor;
+}
+
+/**
+ * HTTPS descriptor for moving file bytes out-of-band.
+ *
+ * @category Files
+ */
+export interface FileTransferDescriptor {
+  transport: "https";
+  method: "GET" | "PUT" | "POST";
+  /**
+   * The upload or download URL.
+   *
+   * @format uri
+   */
+  url: string;
+  /**
+   * Headers the client SHOULD include when using this descriptor.
+   */
+  headers?: { [key: string]: string };
+  /**
+   * Multipart form details for POST uploads.
+   */
+  multipart?: {
+    /**
+     * The multipart form field that carries the file bytes.
+     */
+    fileField: string;
+    /**
+     * Additional multipart form fields to include.
+     */
+    fields?: { [key: string]: string };
+  };
+  /**
+   * The time after which this descriptor is no longer valid.
+   *
+   * @format date-time
+   */
+  expiresAt?: string;
+}
+
+/**
+ * Parameters for authorizing an out-of-band file upload.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadRequestParams extends RequestParams {
+  /**
+   * Optional display filename.
+   */
+  name?: string;
+  /**
+   * Optional MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional size in bytes.
+   */
+  size?: number;
+  /**
+   * Optional expected complete-file digest known by the client before upload.
+   */
+  digest?: FileDigest;
+}
+
+/**
+ * Used by the client to authorize an out-of-band upload to the server.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadRequest extends JSONRPCRequest {
+  method: "files/authorizeUpload";
+  params: AuthorizeUploadRequestParams;
+}
+
+/**
+ * The file value plus upload and optional download authorizations returned by the server.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadResult extends Result, AuthorizedFile {
+  upload: FileTransferDescriptor;
+}
+
+/**
+ * A successful response from the server for a {@link AuthorizeUploadRequest | files/authorizeUpload} request.
+ *
+ * @category `files/authorizeUpload`
+ */
+export interface AuthorizeUploadResultResponse extends JSONRPCResultResponse {
+  result: AuthorizeUploadResult;
+}
+
+/**
+ * Parameters for authorizing a generated file for download.
+ *
+ * @category `files/authorizeDownload`
+ */
+export interface AuthorizeDownloadRequestParams extends RequestParams {
+  /**
+   * The generated file URI to authorize for download.
+   *
+   * @format uri
+   */
+  uri: string;
+}
+
+/**
+ * Used by the client to authorize a generated file for download.
+ *
+ * @category `files/authorizeDownload`
+ */
+export interface AuthorizeDownloadRequest extends JSONRPCRequest {
+  method: "files/authorizeDownload";
+  params: AuthorizeDownloadRequestParams;
+}
+
+/**
+ * The file value plus download authorization returned by the server for a generated file.
+ *
+ * @category `files/authorizeDownload`
+ */
+export interface AuthorizeDownloadResult extends Result, AuthorizedFile {
+  download: FileTransferDescriptor;
+}
+
+/**
+ * A successful response from the server for a {@link AuthorizeDownloadRequest | files/authorizeDownload} request.
+ *
+ * @category `files/authorizeDownload`
+ */
+export interface AuthorizeDownloadResultResponse extends JSONRPCResultResponse {
+  result: AuthorizeDownloadResult;
+}
+
+/**
  * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
  *
  * @example Tools list changed
@@ -2718,8 +3069,7 @@ export interface ElicitRequest {
 }
 
 /**
- * Restricted schema definitions that only allow primitive types
- * without nested objects or arrays.
+ * Restricted schema definitions that allow primitive form fields.
  *
  * @category `elicitation/create`
  */
@@ -2743,6 +3093,14 @@ export interface StringSchema {
   maxLength?: number;
   format?: "email" | "uri" | "date" | "date-time";
   default?: string;
+  /**
+   * Marks this string as a file input when `format` is `"uri"`. Clients SHOULD
+   * render a native file picker and populate the field with either an RFC 2397
+   * `data:` URI or, when out-of-band transfer is used, a file URI prepared
+   * through `files/authorizeUpload`. Filenames remain separate metadata; they are
+   * not carried via a `name=` parameter on the data URI.
+   */
+  "x-mcp-file"?: FileInputDescriptor;
 }
 
 /**

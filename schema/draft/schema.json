@@ -55,6 +55,216 @@
             ],
             "type": "object"
         },
+        "AuthorizeDownloadRequest": {
+            "description": "Used by the client to authorize a generated file for download.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/authorizeDownload",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/AuthorizeDownloadRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "AuthorizeDownloadRequestParams": {
+            "description": "Parameters for authorizing a generated file for download.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "uri": {
+                    "description": "The generated file URI to authorize for download.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "_meta",
+                "uri"
+            ],
+            "type": "object"
+        },
+        "AuthorizeDownloadResult": {
+            "description": "The file value plus download authorization returned by the server for a generated file.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "download": {
+                    "$ref": "#/$defs/FileTransferDescriptor",
+                    "description": "Optional eager download authorization result for immediate use.\n\nClients MUST treat this as advisory and be prepared to call\n`files/authorizeDownload` if it is absent, expired, or rejected."
+                },
+                "file": {
+                    "$ref": "#/$defs/FileValue",
+                    "description": "Stable file reference metadata."
+                },
+                "resultType": {
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "download",
+                "file"
+            ],
+            "type": "object"
+        },
+        "AuthorizeDownloadResultResponse": {
+            "description": "A successful response from the server for a {@link AuthorizeDownloadRequestfiles/authorizeDownload} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/AuthorizeDownloadResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
+            "type": "object"
+        },
+        "AuthorizeUploadRequest": {
+            "description": "Used by the client to authorize an out-of-band upload to the server.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "method": {
+                    "const": "files/authorizeUpload",
+                    "type": "string"
+                },
+                "params": {
+                    "$ref": "#/$defs/AuthorizeUploadRequestParams"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "method",
+                "params"
+            ],
+            "type": "object"
+        },
+        "AuthorizeUploadRequestParams": {
+            "description": "Parameters for authorizing an out-of-band file upload.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/RequestMetaObject"
+                },
+                "digest": {
+                    "$ref": "#/$defs/FileDigest",
+                    "description": "Optional expected complete-file digest known by the client before upload."
+                },
+                "mimeType": {
+                    "description": "Optional MIME type.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Optional display filename.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Optional size in bytes.",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "_meta"
+            ],
+            "type": "object"
+        },
+        "AuthorizeUploadResult": {
+            "description": "The file value plus upload and optional download authorizations returned by the server.",
+            "properties": {
+                "_meta": {
+                    "$ref": "#/$defs/MetaObject"
+                },
+                "download": {
+                    "$ref": "#/$defs/FileTransferDescriptor",
+                    "description": "Optional eager download authorization result for immediate use.\n\nClients MUST treat this as advisory and be prepared to call\n`files/authorizeDownload` if it is absent, expired, or rejected."
+                },
+                "file": {
+                    "$ref": "#/$defs/FileValue",
+                    "description": "Stable file reference metadata."
+                },
+                "resultType": {
+                    "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
+                    "type": "string"
+                },
+                "upload": {
+                    "$ref": "#/$defs/FileTransferDescriptor"
+                }
+            },
+            "required": [
+                "file",
+                "upload"
+            ],
+            "type": "object"
+        },
+        "AuthorizeUploadResultResponse": {
+            "description": "A successful response from the server for a {@link AuthorizeUploadRequestfiles/authorizeUpload} request.",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/$defs/AuthorizeUploadResult"
+                }
+            },
+            "required": [
+                "id",
+                "jsonrpc",
+                "result"
+            ],
+            "type": "object"
+        },
+        "AuthorizedFile": {
+            "description": "Shared file reference shape returned by `files/authorize*` methods.",
+            "properties": {
+                "download": {
+                    "$ref": "#/$defs/FileTransferDescriptor",
+                    "description": "Optional eager download authorization result for immediate use.\n\nClients MUST treat this as advisory and be prepared to call\n`files/authorizeDownload` if it is absent, expired, or rejected."
+                },
+                "file": {
+                    "$ref": "#/$defs/FileValue",
+                    "description": "Stable file reference metadata."
+                }
+            },
+            "required": [
+                "file"
+            ],
+            "type": "object"
+        },
         "BaseMetadata": {
             "description": "Base interface for metadata with name (identifier) and title (display name) properties.",
             "properties": {
@@ -145,7 +355,6 @@
             },
             "required": [
                 "cacheScope",
-                "resultType",
                 "ttlMs"
             ],
             "type": "object"
@@ -230,8 +439,7 @@
                 }
             },
             "required": [
-                "content",
-                "resultType"
+                "content"
             ],
             "type": "object"
         },
@@ -331,6 +539,28 @@
                     "description": "Optional MCP extensions that the client supports. Keys are extension identifiers\n(e.g., \"io.modelcontextprotocol/oauth-client-credentials\"), and values are\nper-extension settings objects. An empty object indicates support with no settings.\n\nKeys MUST follow the {@link MetaObject`_meta` key naming rules}, with a\nmandatory prefix.",
                     "type": "object"
                 },
+                "files": {
+                    "description": "Present if the client supports file-valued inputs or outputs.",
+                    "properties": {
+                        "download": {
+                            "description": "Whether the client can download file-valued outputs out-of-band.",
+                            "type": "boolean"
+                        },
+                        "transports": {
+                            "description": "Out-of-band file transfer families supported by this client.",
+                            "items": {
+                                "const": "https",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        "upload": {
+                            "description": "Whether the client can upload file bytes out-of-band and use file URI\nvalues for file-valued inputs.",
+                            "type": "boolean"
+                        }
+                    },
+                    "type": "object"
+                },
                 "roots": {
                     "description": "Present if the client supports listing roots.",
                     "properties": {},
@@ -346,6 +576,46 @@
                         "tools": {
                             "$ref": "#/$defs/JSONObject",
                             "description": "Whether the client supports tool use via `tools` and `toolChoice` parameters."
+                        }
+                    },
+                    "type": "object"
+                },
+                "tasks": {
+                    "description": "Present if the client supports task-augmented requests.",
+                    "properties": {
+                        "cancel": {
+                            "$ref": "#/$defs/JSONObject",
+                            "description": "Whether this client supports {@link CancelTaskRequest tasks/cancel}."
+                        },
+                        "list": {
+                            "$ref": "#/$defs/JSONObject",
+                            "description": "Whether this client supports {@link ListTasksRequest tasks/list}."
+                        },
+                        "requests": {
+                            "description": "Specifies which request types can be augmented with tasks.",
+                            "properties": {
+                                "elicitation": {
+                                    "description": "Task support for elicitation-related requests.",
+                                    "properties": {
+                                        "create": {
+                                            "$ref": "#/$defs/JSONObject",
+                                            "description": "Whether the client supports task-augmented {@link ElicitRequestelicitation/create} requests."
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "sampling": {
+                                    "description": "Task support for sampling-related requests.",
+                                    "properties": {
+                                        "createMessage": {
+                                            "$ref": "#/$defs/JSONObject",
+                                            "description": "Whether the client supports task-augmented `sampling/createMessage` requests."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
                         }
                     },
                     "type": "object"
@@ -518,8 +788,7 @@
                 }
             },
             "required": [
-                "completion",
-                "resultType"
+                "completion"
             ],
             "type": "object"
         },
@@ -767,7 +1036,6 @@
             "required": [
                 "cacheScope",
                 "capabilities",
-                "resultType",
                 "serverInfo",
                 "supportedVersions",
                 "ttlMs"
@@ -863,10 +1131,10 @@
         "ElicitRequestParams": {
             "anyOf": [
                 {
-                    "$ref": "#/$defs/ElicitRequestFormParams"
+                    "$ref": "#/$defs/ElicitRequestURLParams"
                 },
                 {
-                    "$ref": "#/$defs/ElicitRequestURLParams"
+                    "$ref": "#/$defs/ElicitRequestFormParams"
                 }
             ],
             "description": "The parameters for a request to elicit additional information from the user via the client."
@@ -1052,6 +1320,151 @@
             ],
             "type": "object"
         },
+        "FileDigest": {
+            "description": "Content integrity metadata for a complete file byte sequence.",
+            "properties": {
+                "algorithm": {
+                    "description": "Digest algorithm. Implementations that produce or verify digests MUST support `sha-256`.",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Digest value encoded as base64url without padding.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "algorithm",
+                "value"
+            ],
+            "type": "object"
+        },
+        "FileInputDescriptor": {
+            "description": "Value of the `x-mcp-file` JSON Schema extension keyword. When present on a\n`{\"type\": \"string\", \"format\": \"uri\"}` property, it marks the property as a\nfile input that clients SHOULD render as a native file picker.\n\nSelected files are carried as URI strings. The URI can be either an RFC 2397\n`data:` URI or, when out-of-band transfer is used, a file URI prepared through\n`files/authorizeUpload`.\n\nDescriptor fields guide client file selection and transfer behavior; servers\nMUST still validate inputs independently.",
+            "properties": {
+                "accept": {
+                    "description": "Media type patterns and/or dot-prefixed file extensions the client SHOULD\nuse to filter file selection.\n\nSupports exact MIME types (`\"image/png\"`), wildcard subtypes\n(`\"image/*\"`), and dot-prefixed extensions (`\".pdf\"`). Extension entries\nare picker hints only; server-side validation compares media types.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "maxSize": {
+                    "description": "Maximum accepted size in bytes for each individual file.\n\nFor inline `data:` URI values, this is the decoded byte size. For file URI\nvalues, this is the uploaded file byte size enforced during upload\nnegotiation and subsequent request validation.",
+                    "type": "integer"
+                },
+                "transferModes": {
+                    "description": "Transfer modes allowed for this file input.\n\nIf omitted, the client may choose any supported transfer mode. If present,\nthe client MUST use one of the listed modes. `\"inline\"` means an RFC 2397\n`data:` URI. `\"upload\"` means the client MUST use `files/authorizeUpload`\nand provide the returned file URI.",
+                    "items": {
+                        "$ref": "#/$defs/FileInputTransferMode"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "FileInputTransferMode": {
+            "description": "Transfer mode for a file-valued input.",
+            "enum": [
+                "inline",
+                "upload"
+            ],
+            "type": "string"
+        },
+        "FileTransferDescriptor": {
+            "description": "HTTPS descriptor for moving file bytes out-of-band.",
+            "properties": {
+                "expiresAt": {
+                    "description": "The time after which this descriptor is no longer valid.",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "headers": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Headers the client SHOULD include when using this descriptor.",
+                    "type": "object"
+                },
+                "method": {
+                    "enum": [
+                        "GET",
+                        "POST",
+                        "PUT"
+                    ],
+                    "type": "string"
+                },
+                "multipart": {
+                    "description": "Multipart form details for POST uploads.",
+                    "properties": {
+                        "fields": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "Additional multipart form fields to include.",
+                            "type": "object"
+                        },
+                        "fileField": {
+                            "description": "The multipart form field that carries the file bytes.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "fileField"
+                    ],
+                    "type": "object"
+                },
+                "transport": {
+                    "const": "https",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The upload or download URL.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "method",
+                "transport",
+                "url"
+            ],
+            "type": "object"
+        },
+        "FileTransport": {
+            "const": "https",
+            "description": "A transport family used to move file bytes out-of-band.",
+            "type": "string"
+        },
+        "FileValue": {
+            "description": "A file-valued output or content item.",
+            "properties": {
+                "digest": {
+                    "$ref": "#/$defs/FileDigest",
+                    "description": "Optional complete-file digest for integrity verification."
+                },
+                "mimeType": {
+                    "description": "Optional MIME type.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Optional display filename.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Optional size in bytes.",
+                    "type": "integer"
+                },
+                "uri": {
+                    "description": "The file URI to resolve through files/authorizeDownload.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
+            ],
+            "type": "object"
+        },
         "GetPromptRequest": {
             "description": "Used by the client to get a prompt provided by the server.",
             "properties": {
@@ -1130,8 +1543,7 @@
                 }
             },
             "required": [
-                "messages",
-                "resultType"
+                "messages"
             ],
             "type": "object"
         },
@@ -1315,9 +1727,6 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "resultType"
-            ],
             "type": "object"
         },
         "InputResponse": {
@@ -1669,7 +2078,6 @@
             "required": [
                 "cacheScope",
                 "prompts",
-                "resultType",
                 "ttlMs"
             ],
             "type": "object"
@@ -1758,7 +2166,6 @@
             "required": [
                 "cacheScope",
                 "resourceTemplates",
-                "resultType",
                 "ttlMs"
             ],
             "type": "object"
@@ -1847,7 +2254,6 @@
             "required": [
                 "cacheScope",
                 "resources",
-                "resultType",
                 "ttlMs"
             ],
             "type": "object"
@@ -1966,7 +2372,6 @@
             },
             "required": [
                 "cacheScope",
-                "resultType",
                 "tools",
                 "ttlMs"
             ],
@@ -2287,9 +2692,6 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "resultType"
-            ],
             "type": "object"
         },
         "ParseError": {
@@ -2341,7 +2743,7 @@
                     "$ref": "#/$defs/LegacyTitledEnumSchema"
                 }
             ],
-            "description": "Restricted schema definitions that only allow primitive types\nwithout nested objects or arrays."
+            "description": "Restricted schema definitions that allow primitive form fields."
         },
         "ProgressNotification": {
             "description": "An out-of-band notification used to inform the receiver of a progress update for a long-running request.",
@@ -2613,7 +3015,6 @@
             "required": [
                 "cacheScope",
                 "contents",
-                "resultType",
                 "ttlMs"
             ],
             "type": "object"
@@ -2989,9 +3390,6 @@
                     "type": "string"
                 }
             },
-            "required": [
-                "resultType"
-            ],
             "type": "object"
         },
         "ResultType": {
@@ -3256,6 +3654,10 @@
                 "type": {
                     "const": "string",
                     "type": "string"
+                },
+                "x-mcp-file": {
+                    "$ref": "#/$defs/FileInputDescriptor",
+                    "description": "Marks this string as a file input when `format` is `\"uri\"`. Clients SHOULD\nrender a native file picker and populate the field with either an RFC 2397\n`data:` URI or, when out-of-band transfer is used, a file URI prepared\nthrough `files/authorizeUpload`. Filenames remain separate metadata; they are\nnot carried via a `name=` parameter on the data URI."
                 }
             },
             "required": [
@@ -3728,6 +4130,58 @@
             ],
             "type": "object"
         },
+        "URLElicitationRequiredError": {
+            "description": "An error response that indicates that the server requires the client to provide additional information via an elicitation request.",
+            "properties": {
+                "error": {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Error"
+                        },
+                        {
+                            "properties": {
+                                "code": {
+                                    "const": -32042,
+                                    "type": "integer"
+                                },
+                                "data": {
+                                    "additionalProperties": {},
+                                    "properties": {
+                                        "elicitations": {
+                                            "items": {
+                                                "$ref": "#/$defs/ElicitRequestURLParams"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "required": [
+                                        "elicitations"
+                                    ],
+                                    "type": "object"
+                                }
+                            },
+                            "required": [
+                                "code",
+                                "data"
+                            ],
+                            "type": "object"
+                        }
+                    ]
+                },
+                "id": {
+                    "$ref": "#/$defs/RequestId"
+                },
+                "jsonrpc": {
+                    "const": "2.0",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "error",
+                "jsonrpc"
+            ],
+            "type": "object"
+        },
         "UnsupportedProtocolVersionError": {
             "description": "Returned when the request's protocol version is unknown to the server or\nunsupported (e.g., a known experimental or draft version the server has\nchosen not to implement). For HTTP, the response status code MUST be\n`400 Bad Request`.",
             "properties": {
@@ -3873,6 +4327,20 @@
             "required": [
                 "enum",
                 "type"
+            ],
+            "type": "object"
+        },
+        "UriFilePayload": {
+            "description": "Out-of-band URI payload for a file or resource.",
+            "properties": {
+                "uri": {
+                    "description": "Stable URI for the file within the originating party's namespace.\n\nThis URI identifies a file handle, but does not imply the file is available via resources/read.",
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uri"
             ],
             "type": "object"
         }
