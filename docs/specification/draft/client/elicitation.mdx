@@ -53,10 +53,12 @@ Clients that support elicitation **MUST** declare the `elicitation` capability i
 
 ```json
 {
-  "capabilities": {
-    "elicitation": {
-      "form": {},
-      "url": {}
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "elicitation": {
+        "form": {},
+        "url": {}
+      }
     }
   }
 }
@@ -66,8 +68,10 @@ For backwards compatibility, an empty capabilities object is equivalent to decla
 
 ```jsonc
 {
-  "capabilities": {
-    "elicitation": {}, // Equivalent to { "form": {} }
+  "_meta": {
+    "io.modelcontextprotocol/clientCapabilities": {
+      "elicitation": {}, // Equivalent to { "form": {} }
+    },
   },
 }
 ```
@@ -126,7 +130,6 @@ The schema is restricted to these primitive types:
      "description": "Description text",
      "minLength": 3,
      "maxLength": 50,
-     "pattern": "^[A-Za-z]+$",
      "format": "email",
      "default": "user@example.com"
    }
@@ -237,7 +240,7 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 
 #### Example: Simple Text Request
 
-**Request:**
+**Input request (delivered inside [`InputRequiredResult.inputRequests`](/specification/draft/basic/patterns/mrtr#inputrequests)):**
 
 ```json
 {
@@ -258,22 +261,20 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "action": "accept",
-    "content": {
-      "name": "octocat"
-    }
+  "action": "accept",
+  "content": {
+    "name": "octocat"
   }
 }
 ```
 
 #### Example: Structured Data Request
 
-**Request:**
+**Input request (delivered inside `InputRequiredResult.inputRequests`):**
 
 ```json
 {
@@ -305,17 +306,15 @@ Note that complex nested structures, arrays of objects (beyond enums), and other
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "action": "accept",
-    "content": {
-      "name": "Monalisa Octocat",
-      "email": "octocat@github.com",
-      "age": 30
-    }
+  "action": "accept",
+  "content": {
+    "name": "Monalisa Octocat",
+    "email": "octocat@github.com",
+    "age": 30
   }
 }
 ```
@@ -354,7 +353,7 @@ The `url` parameter **MUST** contain a valid URL.
 This example shows a URL mode elicitation request directing the user to a secure URL where they can provide sensitive information (an API key, for example).
 The same request could direct the user into an OAuth authorization flow, or a payment flow. The only difference is the URL and the message.
 
-**Request:**
+**Input request (delivered inside `InputRequiredResult.inputRequests`):**
 
 ```json
 {
@@ -368,13 +367,11 @@ The same request could direct the user into an OAuth authorization flow, or a pa
 }
 ```
 
-**Response:**
+**Client result (returned inside `inputResponses` on the retried request):**
 
 ```json
 {
-  "result": {
-    "action": "accept"
-  }
+  "action": "accept"
 }
 ```
 
@@ -395,7 +392,7 @@ Servers sending notifications:
 Clients:
 
 - **MUST** ignore notifications referencing unknown or already-completed IDs.
-- **MAY** wait for this notification to automatically retry requests that received a [URLElicitationRequiredError](#error-handling), update the user interface, or otherwise continue an interaction.
+- **MAY** wait for this notification to automatically retry requests that received an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) (echoing back its `requestState`), update the user interface, or otherwise continue an interaction.
 - **SHOULD** still provide manual controls that let the user retry or cancel the original request (or otherwise resume interacting with the client) if the notification never arrives.
 
 #### Example
@@ -465,7 +462,7 @@ sequenceDiagram
 Elicitation responses use a three-action model to clearly distinguish between different user actions. These actions apply to both form and URL elicitation modes.
 
 ```json
-"result": {
+{
   "action": "accept", // or "decline" or "cancel"
   "content": {
     "propertyName": "value",

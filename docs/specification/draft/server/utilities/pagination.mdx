@@ -12,6 +12,14 @@ Pagination is especially important when connecting to external services over the
 internet, but also useful for local integrations to avoid performance issues with large
 data sets.
 
+<Note>
+  For brevity, the request examples on this page omit the required `_meta`
+  request metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  these fields; see [`_meta`](/specification/draft/basic/index#meta).
+</Note>
+
 ## Pagination Model
 
 Pagination in MCP uses an opaque cursor-based approach, instead of numbered pages.
@@ -32,8 +40,11 @@ Pagination starts when the server sends a **response** that includes:
   "jsonrpc": "2.0",
   "id": "123",
   "result": {
+    "resultType": "complete",
     "resources": [...],
-    "nextCursor": "eyJwYWdlIjogM30="
+    "nextCursor": "eyJwYWdlIjogM30=",
+    "ttlMs": 300000,
+    "cacheScope": "public"
   }
 }
 ```
