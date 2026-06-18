@@ -115,8 +115,8 @@ server errors. MCP partitions this range as follows:
 - **`-32000` to `-32019` — legacy.** Codes in this sub-range were allocated by
   implementations before this policy was introduced. New codes **MUST NOT** be
   allocated in this sub-range, and new implementations **SHOULD NOT** use codes
-  from this sub-range at all. Apart from `-32002` and `-32042` (see below),
-  receivers **MUST NOT** assume any specific meaning for these codes.
+  from this sub-range at all. Apart from `-32002` (see below), receivers
+  **MUST NOT** assume any specific meaning for these codes.
 - **`-32020` to `-32099` — reserved for the MCP specification.** Error codes
   in this sub-range are defined exclusively by the MCP specification and
   recorded in the [schema](/specification/draft/schema). Implementations
