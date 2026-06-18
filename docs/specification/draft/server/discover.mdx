@@ -57,15 +57,6 @@ identity. This operation supports [caching](/specification/draft/server/utilitie
 }
 ```
 
-### Response Fields
-
-| Field               | Type                 | Required | Description                                                                                  |
-| ------------------- | -------------------- | -------- | -------------------------------------------------------------------------------------------- |
-| `supportedVersions` | `string[]`           | yes      | Protocol versions the server supports. The client should choose one for subsequent requests. |
-| `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                          |
-| `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                     |
-| `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                    |
-
 ## When to Call
 
 Calling `server/discover` is optional for clients — a client may invoke any
@@ -87,3 +78,17 @@ See [Protocol Version Negotiation](/specification/draft/basic/versioning#protoco
 for the full version-selection flow. For HTTP-specific status codes returned for
 unknown methods, see the [Protocol Version Header](/specification/draft/basic/transports/streamable-http#protocol-version-header)
 section in Transports.
+
+## Data Types
+
+### DiscoverResult
+
+A discovery result includes:
+
+- `supportedVersions`: Protocol versions the server supports. The client should
+  choose one of these for subsequent requests.
+- `capabilities`: Capabilities the server supports (tools, resources, prompts,
+  etc.)
+- `serverInfo`: Name and version of the server software
+- `instructions`: Optional natural-language guidance for LLMs on how to use
+  this server effectively
