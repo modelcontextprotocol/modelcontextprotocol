@@ -174,6 +174,8 @@ Clients SHOULD ignore unrecognized fields. The index carries no version marker: 
 
 The `frontmatter` object MUST be identical in content to the frontmatter of the `SKILL.md` it describes. When `url` is present, the final `<skill-path>` segment of the URI MUST equal `frontmatter.name`, per [Resource Mapping](#resource-mapping).
 
+Within the frontmatter `metadata` object, keys prefixed with `io.modelcontextprotocol/` are reserved for metadata defined by MCP extensions. This extension currently defines no such keys. Implementations SHOULD ignore keys under this prefix that they do not recognize.
+
 ##### Direct entries
 
 When present, `url` is the full resource URI of the skill's `SKILL.md`, readable via `resources/read`. Supporting files are individually addressable as sibling resources under the same skill path, per [Resource Mapping](#resource-mapping).
