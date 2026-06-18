@@ -1,0 +1,106 @@
+---
+title: Primitive Grouping Charter
+description: Charter for the MCP Primitive Grouping Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Primitive Grouping Interest Group explores how MCP Primitives (Tools, Resources, Prompts, Tasks) might be organized, beyond the flat lists maintained by the protocol, and how such organization might benefit both MCP servers and clients. Flat primitive lists can be long and cumbersome: they overload model context, consume tokens, and offer server authors little structure to manage. The IG gathers use cases and constraints, evaluates existing and proposed approaches, and produces recommendations and reference experiments that flow into the [SEP process](/community/sep-guidelines).
+
+## Scope
+
+### In Scope
+
+- **Requirements gathering**: documenting use cases and constraints for organizing MCP primitives
+- **Pattern exploration**: testing and evaluating various approaches to grouping (not mutually exclusive)
+- **Proof of concepts**: maintaining a shared repository of reference implementations and experimental findings
+- **Problem statements and recommendations**: producing a clear recommendation on whether grouping belongs in a convention, a protocol extension, or both
+
+### Out of Scope
+
+- **Approving spec changes**: this IG does not have authority to approve protocol changes; recommendations flow through the SEP process
+- **Implementation mandates**: the group can document patterns but cannot require specific client or server behavior
+
+### Related Groups
+
+- **[Tool Annotations IG](/community/interest-groups/tool-annotations)** - annotation-based filtering and selection of primitives intersects with how primitives are organized and surfaced
+- **[Skills Over MCP WG](/community/working-groups/skills-over-mcp)** - capability discovery and progressive disclosure overlap with grouping as a way to manage large primitive sets
+
+## Problem Statement
+
+Flat lists of MCP primitives can be long and cumbersome to work with.
+
+- **Context overload** - when loaded into the context of an LLM, a large primitive list can overwhelm the model and lead to confusion and poor selection
+- **Costly operation** - long lists can consume many tokens, leading to higher costs for users
+- **Poor developer experience** - the lack of organizational tools for primitives makes them harder to manage and maintain
+
+## Leadership
+
+| Role        | Name        | Organization             | GitHub                                               | Term    |
+| ----------- | ----------- | ------------------------ | ---------------------------------------------------- | ------- |
+| Facilitator | Tapan Chugh | University of Washington | [@chughtapan](https://github.com/chughtapan)         | Initial |
+| Facilitator | Sam Morrow  | GitHub                   | [@SamMorrowDrums](https://github.com/SamMorrowDrums) | Initial |
+
+## Membership
+
+| Name        | Organization             | GitHub                                               | Discord | Level       |
+| ----------- | ------------------------ | ---------------------------------------------------- | ------- | ----------- |
+| Tapan Chugh | University of Washington | [@chughtapan](https://github.com/chughtapan)         |         | Facilitator |
+| Sam Morrow  | GitHub                   | [@SamMorrowDrums](https://github.com/SamMorrowDrums) |         | Facilitator |
+| Cliff Hall  | Futurescale              | [@cliffhall](https://github.com/cliffhall)           |         | Maintainer  |
+
+## Operations
+
+| Meeting    | Frequency | Duration | Purpose                                                        |
+| ---------- | --------- | -------- | -------------------------------------------------------------- |
+| Discussion | TBD       | TBD      | Requirements alignment, approach review, experimental findings |
+
+Open to anyone. Join via the [MCP Contributors Discord](/community/communication#discord).
+
+## Discussion Topics
+
+The following items form the IG's current work agenda. This list is not exhaustive and will evolve as the group identifies new areas of interest.
+
+| Item                               | Status      | Champion         | Notes                                                             |
+| ---------------------------------- | ----------- | ---------------- | ----------------------------------------------------------------- |
+| Requirements alignment             | In Progress | All facilitators | Review approaches, identify common requirements and gaps          |
+| Experimental findings repo section | Proposed    | TBD              | Dedicated repo section for implementations and evaluation results |
+| MCP Grouping Convention v0.1       | Proposed    | TBD              | Documented pattern (not spec) for grouping of primitives          |
+
+## Lifecycle
+
+**Current Status: Active Exploration**
+
+### Graduation Criteria (IG → WG)
+
+This IG may propose becoming a Working Group if:
+
+- Clear consensus emerges on an approach requiring sustained spec work
+- Cross-cutting coordination requires formal authority delegation
+- At least two Core Maintainers sponsor WG formation
+
+### Retirement Criteria
+
+- Problem space resolved (conventions established, absorbed into other WGs)
+- Insufficient participation to maintain momentum
+- Community consensus that grouping doesn't belong in MCP protocol scope
+
+## Success Criteria
+
+- **Short-term**: documented consensus on requirements and evaluation of existing approaches
+- **Medium-term**: clear recommendation (convention vs. protocol extension vs. both)
+- **Long-term**: interoperable grouping convention across MCP servers and clients
+
+## Resources
+
+- [Experimental repo](https://github.com/modelcontextprotocol/experimental-ext-grouping) - incubation space for the Primitive Grouping Interest Group
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-06-18 | Initial charter |
