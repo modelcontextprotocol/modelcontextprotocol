@@ -65,8 +65,12 @@ RPC inline and handle
 if the server does not support the requested version. However, `server/discover`
 is useful in two scenarios:
 
-- **Up-front version selection.** The client learns the server's supported
-  versions before sending any other request, avoiding a round-trip error.
+- **Presenting server information.** While a client doesn't need to call
+  `server/discover` to use the server, it's a convenient way to retrieve the
+  server's identity, capabilities, and supported versions in a single request.
+  For example, a client can present the capabilities a server supports from a
+  single `server/discover` response instead of probing with separate
+  `tools/list`, `prompts/list`, and `resources/list` requests.
 - **stdio backward-compatibility probe.** On stdio, there is no per-request
   HTTP status code to drive fallback. A client that supports both modern
   (per-request `_meta`) and legacy (`initialize` handshake) servers **SHOULD**
