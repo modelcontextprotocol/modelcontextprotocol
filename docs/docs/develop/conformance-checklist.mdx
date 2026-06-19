@@ -1,0 +1,52 @@
+---
+title: MCP implementation conformance checklist
+description: Practical checklist for validating MCP implementations against protocol expectations
+---
+
+This checklist helps implementers validate client or server behavior before production rollout.
+
+## 1) Lifecycle and capability negotiation
+
+- Confirm `initialize` and `initialized` sequencing is correct.
+- Verify advertised capabilities match actual implemented behavior.
+- Ensure unsupported features are omitted rather than partially advertised.
+
+## 2) Transport behavior
+
+Validate transport-specific requirements for your chosen mode (`stdio` or remote transports):
+
+- Request/response correlation is stable and deterministic.
+- Streaming or long-running responses are surfaced with expected progress semantics.
+- Reconnect and retry behavior does not duplicate side effects.
+
+## 3) Error handling expectations
+
+- Return structured protocol errors for invalid params and unsupported methods.
+- Ensure timeouts/cancellations are explicit and observable to callers.
+- Avoid leaking internal stack traces or sensitive implementation details.
+
+## 4) Tool, resource, and prompt boundaries
+
+- Tool schemas are strict enough to prevent ambiguous invocation.
+- Resource reads and prompt generation have explicit access boundaries.
+- High-impact tool actions include guardrails and confirmation policy.
+
+## 5) Compatibility checks with reference servers/SDKs
+
+- Exercise your implementation against at least one reference server/client.
+- Validate behavior against current schema version expectations.
+- Document any intentional deviations and rationale.
+
+## 6) Operational readiness
+
+- Capture request/response traces for debugging and audits.
+- Test with realistic concurrency and failure scenarios.
+- Define upgrade and rollback procedures for protocol-version changes.
+
+## Suggested evidence to attach in PRs/issues
+
+- Minimal reproduction scripts
+- Log/tracing snippets showing expected protocol behavior
+- Test coverage notes for changed conformance areas
+
+For contribution workflow details, see the [community contributing guide](/community/contributing).
