@@ -74,7 +74,6 @@
           {
             "group": "Examples",
             "pages": [
-              "clients",
               "examples"
             ]
           }
@@ -98,6 +97,12 @@
               "extensions/auth/overview",
               "extensions/auth/oauth-client-credentials",
               "extensions/auth/enterprise-managed-authorization"
+            ]
+          },
+          {
+            "group": "Tasks",
+            "pages": [
+              "extensions/tasks/overview"
             ]
           }
         ]
@@ -310,21 +315,38 @@
             "pages": [
               "specification/draft/index",
               "specification/draft/changelog",
+              "specification/draft/deprecated",
               "specification/draft/architecture/index",
               {
                 "group": "Base Protocol",
                 "pages": [
                   "specification/draft/basic/index",
-                  "specification/draft/basic/lifecycle",
-                  "specification/draft/basic/transports",
-                  "specification/draft/basic/authorization",
+                  "specification/draft/basic/versioning",
                   {
-                    "group": "Utilities",
+                    "group": "Message Patterns",
                     "pages": [
-                      "specification/draft/basic/utilities/cancellation",
-                      "specification/draft/basic/utilities/ping",
-                      "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/tasks"
+                      "specification/draft/basic/patterns/index",
+                      "specification/draft/basic/patterns/mrtr",
+                      "specification/draft/basic/patterns/subscriptions",
+                      "specification/draft/basic/patterns/cancellation",
+                      "specification/draft/basic/patterns/progress"
+                    ]
+                  },
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http"
+                    ]
+                  },
+                  {
+                    "group": "Authorization",
+                    "pages": [
+                      "specification/draft/basic/authorization/index",
+                      "specification/draft/basic/authorization/authorization-server-discovery",
+                      "specification/draft/basic/authorization/client-registration",
+                      "specification/draft/basic/authorization/security-considerations"
                     ]
                   }
                 ]
@@ -341,12 +363,14 @@
                 "group": "Server Features",
                 "pages": [
                   "specification/draft/server/index",
+                  "specification/draft/server/discover",
                   "specification/draft/server/prompts",
                   "specification/draft/server/resources",
                   "specification/draft/server/tools",
                   {
                     "group": "Utilities",
                     "pages": [
+                      "specification/draft/server/utilities/caching",
                       "specification/draft/server/utilities/completion",
                       "specification/draft/server/utilities/logging",
                       "specification/draft/server/utilities/pagination"
@@ -416,17 +440,23 @@
               "seps/1850-pr-based-sep-workflow",
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
+              "seps/2106-json-schema-2020-12",
               "seps/2133-extensions",
               "seps/2148-contributor-ladder",
               "seps/2149-working-group-charter-template",
-              "seps/2243-http-standardization"
-            ]
-          },
-          {
-            "group": "Accepted",
-            "pages": [
+              "seps/2164-resource-not-found-error",
               "seps/2207-oidc-refresh-token-guidance",
-              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+              "seps/2243-http-standardization",
+              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
+              "seps/2322-MRTR",
+              "seps/2468-recommend-issuer-claim-for-auth",
+              "seps/2484-conformance-tests-required-for-final-seps",
+              "seps/2549-TTL-for-list-results",
+              "seps/2567-sessionless-mcp",
+              "seps/2575-stateless-mcp",
+              "seps/2577-deprecate-roots-sampling-and-logging",
+              "seps/2596-spec-feature-lifecycle-and-deprecation",
+              "seps/2663-tasks-extension"
             ]
           }
         ]
@@ -455,6 +485,7 @@
             "pages": [
               "community/governance",
               "community/contributor-ladder",
+              "community/feature-lifecycle",
               "community/sdk-tiers",
               "community/antitrust"
             ]
@@ -462,12 +493,23 @@
           {
             "group": "Working Group Charters",
             "pages": [
-              "community/file-uploads/charter",
-              "community/inspector-v2/charter",
-              "community/interceptors/charter",
-              "community/server-card/charter",
-              "community/skills-over-mcp/charter",
-              "community/triggers-events/charter"
+              "community/working-groups/file-uploads",
+              "community/working-groups/inspector-v2",
+              "community/working-groups/interceptors",
+              "community/working-groups/registry",
+              "community/working-groups/sdk",
+              "community/working-groups/server-card",
+              "community/working-groups/skills-over-mcp",
+              "community/working-groups/triggers-events"
+            ]
+          },
+          {
+            "group": "Interest Group Charters",
+            "pages": [
+              "community/interest-groups/auth",
+              "community/interest-groups/enterprise-managed-authorization",
+              "community/interest-groups/security",
+              "community/interest-groups/tool-annotations"
             ]
           },
           {
@@ -496,6 +538,54 @@
     }
   },
   "redirects": [
+    {
+      "source": "/clients",
+      "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/community/auth/charter",
+      "destination": "/community/interest-groups/auth"
+    },
+    {
+      "source": "/community/tool-annotations/charter",
+      "destination": "/community/interest-groups/tool-annotations"
+    },
+    {
+      "source": "/community/file-uploads/charter",
+      "destination": "/community/working-groups/file-uploads"
+    },
+    {
+      "source": "/community/inspector-v2/charter",
+      "destination": "/community/working-groups/inspector-v2"
+    },
+    {
+      "source": "/community/interceptors/charter",
+      "destination": "/community/working-groups/interceptors"
+    },
+    {
+      "source": "/community/registry/charter",
+      "destination": "/community/working-groups/registry"
+    },
+    {
+      "source": "/community/sdk/charter",
+      "destination": "/community/working-groups/sdk"
+    },
+    {
+      "source": "/community/server-card/charter",
+      "destination": "/community/working-groups/server-card"
+    },
+    {
+      "source": "/community/skills-over-mcp/charter",
+      "destination": "/community/working-groups/skills-over-mcp"
+    },
+    {
+      "source": "/community/triggers-events/charter",
+      "destination": "/community/working-groups/triggers-events"
+    },
+    {
+      "source": "/specification/draft/basic/lifecycle",
+      "destination": "/specification/draft/basic/versioning"
+    },
     {
       "source": "/specification/versioning",
       "destination": "/docs/learn/versioning"
@@ -657,6 +747,10 @@
     {
       "source": "/docs/extensions/apps",
       "destination": "/extensions/apps/overview"
+    },
+    {
+      "source": "/docs/extensions/tasks",
+      "destination": "/extensions/tasks/overview"
     },
     {
       "source": "/community/seps",

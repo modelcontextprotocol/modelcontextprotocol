@@ -2,7 +2,7 @@
 
 This document lists current maintainers in the Model Context Protocol project.
 
-**Last updated:** April 8, 2026
+**Last updated:** May 1, 2026
 
 ## Lead Maintainers
 
@@ -12,7 +12,6 @@ This document lists current maintainers in the Model Context Protocol project.
 ## Core Maintainers
 
 - [Caitie McCaffrey](https://github.com/CaitieM20)
-- [Che Liu](https://github.com/pwwpche)
 - [Clare Liguori](https://github.com/clareliguori)
 - [Kurtis Van Gent](https://github.com/kurtisvg)
 - [Nick Aldridge](https://github.com/000-000-000-000-000)
@@ -23,6 +22,8 @@ This document lists current maintainers in the Model Context Protocol project.
 ## Emeritus
 
 - [Justin Spahr-Summers](https://github.com/jspahrsummers) (Co-Inventor, Lead Maintainer Emeritus)
+- [Basil Hosmer](https://github.com/bhosmer-ant) (Core Maintainer Emeritus)
+- [Che Liu](https://github.com/pwwpche) (Core Maintainer Emeritus)
 
 ## SDK Maintainers
 
@@ -120,11 +121,14 @@ This document lists current maintainers in the Model Context Protocol project.
 
 ### Registry
 
-- [Toby Padilla](https://github.com/toby)
 - [Tadas Antanavicius](https://github.com/tadasant)
-- [Adam Jones](https://github.com/domdomegg)
 - [Radoslav (Rado) Dimitrov](https://github.com/rdimitrov)
 - [Bob Dickinson](https://github.com/BobDickinson)
+
+#### Registry Emeritus
+
+- [Adam Jones](https://github.com/domdomegg)
+- [Toby Padilla](https://github.com/toby)
 
 ### MCPB (Model Context Protocol Bundle)
 
@@ -189,10 +193,11 @@ This document lists current maintainers in the Model Context Protocol project.
 - [Shaun Smith](https://github.com/evalstate)
 - [Harvey Tuch](https://github.com/htuch)
 
-### Server Identity Working Group
+### Server Card Working Group
 
+- [Tadas Antanavicius](https://github.com/tadasant)
 - [David Soria Parra](https://github.com/dsp-ant)
-- [Nick Cooper](https://github.com/nickcoai)
+- [Sam Morrow](https://github.com/SamMorrowDrums)
 
 ### Agents Working Group
 
@@ -208,6 +213,15 @@ This document lists current maintainers in the Model Context Protocol project.
 ### Primitive Grouping Interest Group
 
 - [Tapan Chugh](https://github.com/chughtapan)
+- [Sam Morrow](https://github.com/SamMorrowDrums)
+
+### Tool Annotations Interest Group
+
+- [Sam Morrow](https://github.com/SamMorrowDrums)
+
+### Tool Scopes Working Group
+
+- [Sam Morrow](https://github.com/SamMorrowDrums)
 
 ## About This Document
 

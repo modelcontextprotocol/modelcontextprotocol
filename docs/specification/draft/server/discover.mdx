@@ -1,0 +1,94 @@
+---
+title: Discovery
+---
+
+<div id="enable-section-numbers" />
+
+`server/discover` lets a client query a server's supported protocol versions,
+capabilities, and identity before sending any other requests. Servers **MUST**
+implement it.
+
+## Request
+
+The request carries no body parameters beyond the standard `_meta`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "discover-1",
+  "method": "server/discover",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "ExampleClient",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  }
+}
+```
+
+## Response
+
+The server replies with its supported protocol versions, capabilities, and
+identity. This operation supports [caching](/specification/draft/server/utilities/caching).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "discover-1",
+  "result": {
+    "resultType": "complete",
+    "supportedVersions": ["2026-07-28"],
+    "capabilities": {
+      "tools": {},
+      "resources": {}
+    },
+    "serverInfo": {
+      "name": "ExampleServer",
+      "version": "1.0.0"
+    },
+    "instructions": "This server provides weather and resource utilities.",
+    "ttlMs": 3600000,
+    "cacheScope": "public"
+  }
+}
+```
+
+## When to Call
+
+Calling `server/discover` is optional for clients — a client may invoke any
+RPC inline and handle
+[`UnsupportedProtocolVersionError`](/specification/draft/schema#unsupportedprotocolversionerror)
+if the server does not support the requested version. However, `server/discover`
+is useful in two scenarios:
+
+- **Up-front version selection.** The client learns the server's supported
+  versions before sending any other request, avoiding a round-trip error.
+- **stdio backward-compatibility probe.** On stdio, there is no per-request
+  HTTP status code to drive fallback. A client that supports both modern
+  (per-request `_meta`) and legacy (`initialize` handshake) servers **SHOULD**
+  send `server/discover` first; see
+  [stdio: Backward Compatibility](/specification/draft/basic/transports/stdio#backward-compatibility)
+  for the fallback rules.
+
+See [Protocol Version Negotiation](/specification/draft/basic/versioning#protocol-version-negotiation)
+for the full version-selection flow. For HTTP-specific status codes returned for
+unknown methods, see the [Protocol Version Header](/specification/draft/basic/transports/streamable-http#protocol-version-header)
+section in Transports.
+
+## Data Types
+
+### DiscoverResult
+
+A discovery result includes:
+
+- `supportedVersions`: Protocol versions the server supports. The client should
+  choose one of these for subsequent requests.
+- `capabilities`: Capabilities the server supports (tools, resources, prompts,
+  etc.)
+- `serverInfo`: Name and version of the server software
+- `instructions`: Optional natural-language guidance for LLMs on how to use
+  this server effectively
