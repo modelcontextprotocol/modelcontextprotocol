@@ -90,6 +90,20 @@ request to the MCP endpoint.
    `Content-Type: text/event-stream` (an SSE response stream). The client
    **MUST** support both.
 
+<Note>
+
+This revision of the core protocol defines no client-to-server
+_notifications_ over Streamable HTTP. The only client-sent notification in
+the core protocol, `notifications/cancelled`, is used only on the
+[stdio](/specification/draft/basic/transports/stdio) transport; on
+Streamable HTTP, closing the SSE response stream is itself the cancellation
+signal and no `notifications/cancelled` message is expected (see
+[Cancellation][cancellation]). The notification rules above describe the
+transport mechanics for a notification POST; header requirements for
+notification POSTs are not defined by this revision.
+
+</Note>
+
 ## Receiving Messages
 
 When the server returns an SSE response stream
@@ -260,10 +274,14 @@ the header per [Server Validation](#server-validation).
 
 | Header Name  | Source Field                  | Required For                                           |
 | ------------ | ----------------------------- | ------------------------------------------------------ |
-| `Mcp-Method` | `method`                      | All requests and notifications                         |
+| `Mcp-Method` | `method`                      | All requests                                           |
 | `Mcp-Name`   | `params.name` or `params.uri` | `tools/call`, `resources/read`, `prompts/get` requests |
 
 These headers are **REQUIRED** for compliance.
+
+If the `Mcp-Name` source value cannot be safely represented as a plain ASCII
+header value, clients **MUST** encode it using the Base64 sentinel format
+described in [Value Encoding](#value-encoding).
 
 **`tools/call` request:**
 
@@ -354,8 +372,19 @@ the header name `Mcp-Param-{name}`.
   string, boolean). Parameters with type `number` are not permitted.
   Integer values **MUST** be within the safe range for JavaScript
   (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
-- **MAY** be applied to properties at any nesting depth within the
-  `inputSchema`, not only top-level properties
+- **MUST** only be applied to properties that are _statically reachable_
+  from the schema root: reachable via a chain consisting solely of
+  `properties` keys. The chain **MUST NOT** pass through `items` (or any
+  other array keyword), composition keywords (`oneOf`, `anyOf`, `allOf`,
+  `not`), conditional keywords (`if`/`then`/`else`), or `$ref`. Nested
+  object properties are permitted as long as every step in the chain is a
+  `properties` key. An `x-mcp-header` annotation anywhere else makes the
+  annotation — and thus the tool definition — invalid.
+
+Header extraction is defined as reading the instance value at the exact
+property path of the annotated property (the chain of `properties` keys
+leading to it). If no value is present at that path in the call arguments,
+the header is omitted.
 
 Clients using the Streamable HTTP transport **MUST** reject tool definitions
 where any `x-mcp-header` value violates these constraints. Rejection means
@@ -445,10 +474,21 @@ representation with the following format:
 Mcp-Param-{Name}: =?base64?{Base64EncodedValue}?=
 ```
 
+The same encoding rule applies to the `Mcp-Name` header value. Tool and
+prompt names are only **SHOULD**-constrained to header-safe characters, so a
+name (or resource URI) outside the safe set is carried as:
+
+```text
+Mcp-Name: =?base64?{Base64EncodedValue}?=
+```
+
 The prefix `=?base64?` and suffix `?=` indicate that the value is
 Base64-encoded. These markers are case-sensitive and **MUST** appear exactly
 as shown (lowercase). Servers and intermediaries that need to inspect these
-values **MUST** decode them accordingly.
+values **MUST** decode them accordingly. In particular, servers **MUST**
+decode an encoded `Mcp-Name` or `Mcp-Param-{Name}` value before comparing it
+to the corresponding request body value during
+[Server Validation](#server-validation).
 
 To avoid ambiguity, clients **MUST** also Base64-encode any plain-ASCII
 value that matches the sentinel pattern (i.e., starts with `=?base64?`
@@ -476,7 +516,9 @@ When constructing a `tools/call` request via HTTP transport, the client
 2. Append the `Mcp-Method` header and, if applicable, `Mcp-Name` header to
    the request.
 3. Inspect the tool's `inputSchema` for properties marked with
-   `x-mcp-header` and extract the value for each parameter.
+   `x-mcp-header` and extract the value at each annotated property's exact
+   property path, omitting the header when no value is present (see
+   [Schema Extension](#schema-extension)).
 4. Encode the values according to the [Value Encoding](#value-encoding)
    rules.
 5. Append a `Mcp-Param-{Name}: {Value}` header to the request.
@@ -507,7 +549,7 @@ that contains invalid characters (see [Value Encoding](#value-encoding)).
 Any server that processes the message body **MUST** validate that encoded
 header values, after decoding if Base64-encoded, match the corresponding
 values in the request body. Servers **MUST** reject requests with a
-`400 Bad Request` HTTP status and JSON-RPC error code `-32001`
+`400 Bad Request` HTTP status and JSON-RPC error code `-32020`
 (`HeaderMismatch`) if any validation fails.
 
 | Scenario                                 | Client Behavior                | Server Behavior                          |
@@ -550,12 +592,13 @@ When rejecting a request due to header validation failure, servers **MUST**
 return HTTP status `400 Bad Request` and **MUST** include a JSON-RPC error
 response using the following error code:
 
-| Code     | Name             | Description                                                                                                            |
-| -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+| Code     | Name                                                                | Description                                                                                                            |
+| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `-32020` | [`HeaderMismatch`](/specification/draft/schema#headermismatcherror) | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
 
-This error code is in the JSON-RPC implementation-defined server error range
-(`-32000` to `-32099`).
+This error code is allocated from the sub-range the MCP specification
+reserves for protocol-defined errors. See
+[Error Codes](/specification/draft/basic/index#error-codes).
 
 **Example error response:**
 
@@ -564,7 +607,7 @@ This error code is in the JSON-RPC implementation-defined server error range
   "jsonrpc": "2.0",
   "id": 1,
   "error": {
-    "code": -32001,
+    "code": -32020,
     "message": "Header mismatch: Mcp-Name header value 'foo' does not match body value 'bar'"
   }
 }
@@ -575,6 +618,9 @@ Validation failure conditions include:
 - A required standard header (`MCP-Protocol-Version`, `Mcp-Method`,
   `Mcp-Name`) is missing.
 - A header value does not match the corresponding request body value.
+  For headers that permit the Base64 sentinel encoding (`Mcp-Name` and
+  `Mcp-Param-{Name}`), servers **MUST** decode encoded values (see
+  [Value Encoding](#value-encoding)) before comparing them to the body value.
 - A header value contains invalid characters.
 
 <Note>

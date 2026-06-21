@@ -111,6 +111,29 @@ export interface RequestMetaObject extends MetaObject {
 }
 
 /**
+ * Extends {@link MetaObject} with additional notification-specific fields. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @category Common Types
+ */
+export interface NotificationMetaObject extends MetaObject {
+  /**
+   * Identifies the subscription stream a notification was delivered on. The
+   * server MUST include this key on every notification delivered via a
+   * {@link SubscriptionsListenRequest | subscriptions/listen} stream, so the
+   * client can correlate the notification with the originating subscription.
+   * The key is absent on notifications not delivered via a subscription
+   * stream (e.g. progress notifications for an in-flight request), which is
+   * why it is optional here.
+   *
+   * The value is the JSON-RPC ID of the `subscriptions/listen` request that
+   * opened the stream.
+   */
+  "io.modelcontextprotocol/subscriptionId"?: RequestId;
+}
+
+/**
  * A progress token, used to associate progress notifications with the original request.
  *
  * @category Common Types
@@ -147,7 +170,7 @@ export interface Request {
  * @category Common Types
  */
 export interface NotificationParams {
-  _meta?: MetaObject;
+  _meta?: NotificationMetaObject;
 }
 
 /** @internal */
@@ -298,7 +321,7 @@ export interface InvalidRequestError extends Error {
  *
  * In MCP, a server returns this error when a client invokes a method the server does not implement — either a genuinely unknown method, or one gated behind a server capability the server did not advertise (e.g., calling `prompts/list` when the `prompts` capability was not advertised).
  *
- * A request that requires a client capability the client did not declare is signalled instead by {@link MissingRequiredClientCapabilityError} (`-32003`).
+ * A request that requires a client capability the client did not declare is signalled instead by {@link MissingRequiredClientCapabilityError} (`-32021`).
  *
  * @see {@link https://www.jsonrpc.org/specification#error_object | JSON-RPC 2.0 Error Object}
  *
@@ -357,13 +380,42 @@ export interface InternalError extends Error {
   code: typeof INTERNAL_ERROR;
 }
 
+/*
+ * MCP error codes.
+ *
+ * JSON-RPC 2.0 reserves `-32000` to `-32099` for implementation-defined
+ * server errors. MCP partitions that range:
+ *
+ * - `-32000` to `-32019`: implementation-defined. Existing SDKs and
+ *   implementations use codes here for their own purposes; the specification
+ *   will never define codes in this sub-range, and receivers must not assign
+ *   cross-implementation semantics to them.
+ * - `-32020` to `-32099`: reserved for error codes defined by the MCP
+ *   specification. Every code allocated here is recorded in this file.
+ *   Codes are allocated sequentially starting at `-32020` and proceeding
+ *   toward `-32099`.
+ *
+ * Codes defined by earlier protocol versions remain reserved and are never
+ * reused: `-32002` (resource not found, 2025-11-25 and earlier; replaced by
+ * `-32602`) and `-32042` (URL elicitation required, 2025-11-25 only).
+ */
+
+/**
+ * Error code returned when the HTTP headers of a request do not match the
+ * corresponding values in the request body, or required headers are
+ * missing or malformed.
+ *
+ * @category Errors
+ */
+export const HEADER_MISMATCH = -32020;
+
 /**
  * Error code returned when a server requires a client capability that was
  * not declared in the request's `clientCapabilities`.
  *
  * @category Errors
  */
-export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
 
 /**
  * Error code returned when the request's protocol version is not supported
@@ -371,7 +423,27 @@ export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
  *
  * @category Errors
  */
-export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+export const UNSUPPORTED_PROTOCOL_VERSION = -32022;
+
+/**
+ * Returned when a server rejects a request because the values in the HTTP
+ * headers do not match the corresponding values in the request body, or
+ * because required headers are missing or malformed. For HTTP, the response
+ * status code MUST be `400 Bad Request`.
+ *
+ * @example Header mismatch
+ * {@includeCode ./examples/HeaderMismatchError/header-mismatch.json}
+ *
+ * @category Errors
+ */
+export interface HeaderMismatchError extends Omit<
+  JSONRPCErrorResponse,
+  "error"
+> {
+  error: Error & {
+    code: typeof HEADER_MISMATCH;
+  };
+}
 
 /**
  * Returned when the request's protocol version is unknown to the server or
@@ -529,9 +601,9 @@ export interface CancelledNotificationParams extends NotificationParams {
   /**
    * The ID of the request to cancel.
    *
-   * This MUST correspond to the ID of a request previously issued in the same direction.
+   * This MUST correspond to the ID of a request the client previously issued.
    */
-  requestId?: RequestId;
+  requestId: RequestId;
 
   /**
    * An optional string describing the reason for the cancellation. This MAY be logged or presented to the user.
@@ -540,7 +612,9 @@ export interface CancelledNotificationParams extends NotificationParams {
 }
 
 /**
- * This notification can be sent by either side to indicate that it is cancelling a previously-issued request.
+ * This notification is sent by the client to indicate that it is cancelling a request it previously issued.
+ *
+ * On stdio, the server also sends this notification, solely to terminate a {@link SubscriptionsListenRequest | subscriptions/listen} stream: it references the ID of the `subscriptions/listen` request that opened the stream. Servers MUST NOT use this notification to cancel any other request.
  *
  * The request SHOULD still be in-flight, but due to communication latency, it is always possible that this notification MAY arrive after the request has already finished.
  *
@@ -1007,11 +1081,13 @@ export interface CacheableResult extends Result {
    * Indicates the intended scope of the cached response, analogous to HTTP
    * `Cache-Control: public` vs `Cache-Control: private`.
    *
-   * - `"public"`: Any client or intermediary (e.g., shared gateway, proxy)
-   *   MAY cache the response and serve it to any user.
-   * - `"private"`: Only the requesting user's client MAY cache the response.
-   *   Shared caches (e.g., multi-tenant gateways) MUST NOT serve a cached
-   *   copy to a different user.
+   * - `"public"`: The response does not contain user-specific data. Any
+   *   client or intermediary (e.g., shared gateway, caching proxy) MAY cache
+   *   the response and serve it across authorization contexts.
+   * - `"private"`: The response MAY be cached and reused only within the
+   *   same authorization context. Caches MUST NOT be shared across
+   *   authorization contexts (e.g., a different access token requires a
+   *   different cache).
    *
    */
   cacheScope: "public" | "private";
@@ -1154,7 +1230,7 @@ export interface ReadResourceResultResponse extends JSONRPCResultResponse {
 }
 
 /**
- * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This may be issued by servers without any previous subscription from the client.
+ * An optional notification from the server to the client, informing it that the list of resources it can read from has changed. This is only delivered on a {@link SubscriptionsListenRequest | subscriptions/listen} stream when the client requested it via the `resourcesListChanged` filter field.
  *
  * @example Resources list changed
  * {@includeCode ./examples/ResourceListChangedNotification/resources-list-changed.json}
@@ -1598,7 +1674,7 @@ export interface EmbeddedResource {
   _meta?: MetaObject;
 }
 /**
- * An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This may be issued by servers without any previous subscription from the client.
+ * An optional notification from the server to the client, informing it that the list of prompts it offers has changed. This is only delivered on a {@link SubscriptionsListenRequest | subscriptions/listen} stream when the client requested it via the `promptsListChanged` filter field.
  *
  * @example Prompts list changed
  * {@includeCode ./examples/PromptListChangedNotification/prompts-list-changed.json}
@@ -1740,7 +1816,7 @@ export interface CallToolRequest extends JSONRPCRequest {
 }
 
 /**
- * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This may be issued by servers without any previous subscription from the client.
+ * An optional notification from the server to the client, informing it that the list of tools it offers has changed. This is only delivered on a {@link SubscriptionsListenRequest | subscriptions/listen} stream when the client requested it via the `toolsListChanged` filter field.
  *
  * @example Tools list changed
  * {@includeCode ./examples/ToolListChangedNotification/tools-list-changed.json}
@@ -1841,6 +1917,11 @@ export interface Tool extends BaseMetadata, Icons {
    * composition keywords (`oneOf`, `anyOf`, `allOf`, `not`), conditional keywords
    * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
    * standard validation or annotation keywords.
+   *
+   * Property schemas may carry an `x-mcp-header` annotation to mirror the
+   * argument value into an HTTP header on the Streamable HTTP transport. See
+   * the Streamable HTTP transport specification for the validity and
+   * extraction rules.
    *
    * Defaults to JSON Schema 2020-12 when no explicit `$schema` is provided.
    */
@@ -2571,7 +2652,9 @@ export interface PromptReference extends BaseMetadata {
  */
 export interface ListRootsRequest {
   method: "roots/list";
-  params?: RequestParams;
+  params?: {
+    _meta?: MetaObject;
+  };
 }
 
 /**
@@ -2680,12 +2763,6 @@ export interface ElicitRequestURLParams {
    * The message to present to the user explaining why the interaction is needed.
    */
   message: string;
-
-  /**
-   * The ID of the elicitation, which must be unique within the context of the server.
-   * The client MUST treat this ID as an opaque value.
-   */
-  elicitationId: string;
 
   /**
    * The URL that the user should navigate to.
@@ -3014,31 +3091,6 @@ export interface ElicitResult {
   content?: { [key: string]: string | number | boolean | string[] };
 }
 
-/**
- * Parameters for a {@link ElicitationCompleteNotification | notifications/elicitation/complete} notification.
- *
- * @category `notifications/elicitation/complete`
- */
-export interface ElicitationCompleteNotificationParams extends NotificationParams {
-  /**
-   * The ID of the elicitation that completed.
-   */
-  elicitationId: string;
-}
-
-/**
- * An optional notification from the server to the client, informing it of a completion of a out-of-band elicitation request.
- *
- * @example Elicitation complete
- * {@includeCode ./examples/ElicitationCompleteNotification/elicitation-complete.json}
- *
- * @category `notifications/elicitation/complete`
- */
-export interface ElicitationCompleteNotification extends JSONRPCNotification {
-  method: "notifications/elicitation/complete";
-  params: ElicitationCompleteNotificationParams;
-}
-
 /* Client messages */
 /** @internal */
 export type ClientRequest =
@@ -3054,7 +3106,7 @@ export type ClientRequest =
   | ListToolsRequest;
 
 /** @internal */
-export type ClientNotification = CancelledNotification | ProgressNotification;
+export type ClientNotification = CancelledNotification;
 
 /** @internal */
 export type ClientResult = EmptyResult;
@@ -3070,7 +3122,6 @@ export type ServerNotification =
   | ResourceListChangedNotification
   | ToolListChangedNotification
   | PromptListChangedNotification
-  | ElicitationCompleteNotification
   | SubscriptionsAcknowledgedNotification;
 
 /** @internal */
