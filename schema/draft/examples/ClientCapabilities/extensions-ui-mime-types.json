@@ -1,6 +1,6 @@
 {
   "extensions": {
-    "io.modelcontextprotocol/apps": {
+    "io.modelcontextprotocol/ui": {
       "mimeTypes": ["text/html;profile=mcp-app"]
     }
   }

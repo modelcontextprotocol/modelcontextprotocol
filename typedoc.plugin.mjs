@@ -234,8 +234,13 @@ function renderReflection(reflection, context) {
     el.tagName = "div";
   });
 
-  // Remove ids for `@see` blocks because they are not unique
-  $('[id="see"]').removeAttr("id");
+  // `@see` and `@deprecated` block headings are not useful link targets — their
+  // ids collide across reflections, and the dangling permalink icon points
+  // nowhere once the id is stripped. Remove both the id and the permalink icon.
+  $('[id="see"],[id^="deprecated"]').each((_, el) => {
+    $(el).removeAttr("id");
+    $(el).find("a.tsd-anchor-icon").remove();
+  });
 
   // Copy member type signature text into its heading anchor, and remove the
   // signature (which is redundant with the overall type signature).
