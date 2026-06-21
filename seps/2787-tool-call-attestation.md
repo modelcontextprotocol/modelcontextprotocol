@@ -341,6 +341,7 @@ This prevents ambiguity about which layer is responsible for which claim. For ex
 Offline transcript, OTLP, and audit systems need to place an attested `tools/call` back into the agent tree that produced it. The attestation envelope already binds the agent's identity (`issuerAsserted.sub`) and timing (`issuerAsserted.iat`), but those alone are insufficient for workflow joinability — a long-running session may issue hundreds of attestations sharing the same `sub` and overlapping `iat` windows.
 
 The correlation fields (`sessionId`, `turnId`, `toolCallId`, `agentLineage`) are workflow metadata asserted by the planner, not by the issuer. They belong in `plannerDeclared` because:
+
 - The planner (client/agent framework) owns the workflow context — it knows which session, turn, and tool call produced this request.
 - The issuer (attestation service) does not need to understand or validate the workflow topology; it only attests that the planner presented these values at signing time.
 - Downstream consumers can reconstruct the agent invocation tree without modifying the verifier or issuer, since the signed envelope carries the correlation data natively.
