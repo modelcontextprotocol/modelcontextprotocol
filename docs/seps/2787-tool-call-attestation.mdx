@@ -169,6 +169,23 @@ interface Attestation {
      *  the deployment.
      */
     requestedCapability?: string;
+
+    /** Correlation handles for linking this attestation back to
+     *  the agent workflow that produced it. These do not prove
+     *  execution outcome — they only make the signed request
+     *  joinable with the local conversation/trace record.
+     *  Useful for offline replay, OTLP export, and audit
+     *  tree reconstruction.
+     */
+    sessionId?: string;
+    turnId?: string;
+    toolCallId?: string;
+
+    /** Agent lineage when known (e.g. "parent:alice/child:bob").
+     *  Enables reconstructing the agent invocation tree that led
+     *  to this tool call.
+     */
+    agentLineage?: string;
   };
 
   /** Fields computed deterministically from the tool call
@@ -335,6 +352,20 @@ Every field in the envelope originates from one of three sources: the issuer (cr
 
 This prevents ambiguity about which layer is responsible for which claim. For example, `intent` is planner-declared: the issuer attests it was presented, but the issuer does not vouch for its truthfulness. The grouping makes this contract self-documenting and machine-checkable.
 
+### Why Correlation Fields in plannerDeclared
+
+Offline transcript, OTLP, and audit systems need to place an attested `tools/call` back into the agent tree that produced it. The attestation envelope already binds the agent's identity (`issuerAsserted.sub`) and timing (`issuerAsserted.iat`), but those alone are insufficient for workflow joinability — a long-running session may issue hundreds of attestations sharing the same `sub` and overlapping `iat` windows.
+
+The correlation fields (`sessionId`, `turnId`, `toolCallId`, `agentLineage`) are workflow metadata asserted by the planner, not by the issuer. They belong in `plannerDeclared` because:
+
+- The planner (client/agent framework) owns the workflow context — it knows which session, turn, and tool call produced this request.
+- The issuer (attestation service) does not need to understand or validate the workflow topology; it only attests that the planner presented these values at signing time.
+- Downstream consumers can reconstruct the agent invocation tree without modifying the verifier or issuer, since the signed envelope carries the correlation data natively.
+
+These fields are purely for joinability — they do not prove execution outcome. They make the signed request joinable with the local conversation/trace record that produced it. Without them, a consumer can verify an attestation's cryptographic integrity but cannot determine where the attested call sits in the workflow.
+
+Execution receipts (`_ack`), which close the loop from "this was requested" to "this actually happened and here was the result", remain deferred to a follow-up extension. The correlation fields are orthogonal to the execution-receipt debate.
+
 ### Why Nonce + TTL Instead of Prevents-Replay
 
 A nonce cache bounded by the attestation TTL is simpler and more robust than relying on monotonically increasing counters across potentially unreliable clients. The TTL prevents unbounded nonce storage. Thirty-second clock skew tolerance covers typical NTP drift margins.
@@ -405,6 +436,8 @@ The `plannerDeclared.intent` field is human-readable and signed. It is visible t
 The `serverFingerprint` field identifies which MCP server was the target of a tool call. In multi-tenant or cross-org deployments, the set of servers an agent calls may reveal deployment topology, vendor relationships, or internal tooling choices. Deployments SHOULD evaluate whether the fingerprint alone constitutes sensitive metadata in their regulatory context.
 
 The `issuerAsserted.iss` field identifies the attestation issuer. In deployments where the issuer is a dedicated notary or compliance service, the issuer's identity is public by design — the attestation is meant to be verifiable by third parties. However, the issuer's request volume (inferred from attestation issuance rate) may leak operational metadata. Issuers concerned about traffic analysis MAY consider deploying behind a privacy-preserving relay.
+
+The `plannerDeclared.sessionId` and `plannerDeclared.agentLineage` fields may reveal agent invocation topology, session duration, or organizational structure. In multi-tenant or cross-org deployments where attestations are shared with external verifiers, these fields SHOULD be omitted or redacted unless the workflow topology is intentionally transparent. Deployments SHOULD evaluate whether these fields constitute sensitive metadata under their regulatory context.
 
 ### Execution Acknowledgement (Deferred)
 
