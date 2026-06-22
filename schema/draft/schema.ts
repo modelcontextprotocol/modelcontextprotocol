@@ -1331,7 +1331,7 @@ export interface SubscriptionsListenResultMeta extends MetaObject {
  * @category `subscriptions/listen`
  */
 export interface SubscriptionsListenResult extends Result {
-  _meta?: SubscriptionsListenResultMeta;
+  _meta: SubscriptionsListenResultMeta;
 }
 
 /**
