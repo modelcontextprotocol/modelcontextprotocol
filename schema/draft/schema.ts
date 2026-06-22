@@ -1315,7 +1315,7 @@ export interface SubscriptionsListenResultMeta extends MetaObject {
    * `subscriptions/listen` request that opened the stream (and equals this
    * response's `id`).
    */
-  "io.modelcontextprotocol/subscriptionId"?: RequestId;
+  "io.modelcontextprotocol/subscriptionId": RequestId;
 }
 
 /**
