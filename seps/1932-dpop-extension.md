@@ -11,11 +11,11 @@
 
 ## Abstract
 
-This SEP defines DPoP (Demonstrating Proof of Possession) as an optional extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. The proposal uses OAuth 2.0 Demonstrating Proof-of-Possession at the Application Layer (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
+This SEP defines DPoP (Demonstrating Proof of Possession) as an optional extension for the Model Context Protocol to support sender-constrained access tokens. The extension binds OAuth 2.0 access tokens to cryptographic key pairs controlled by MCP clients, requiring clients to demonstrate possession of the corresponding private key with each request. The proposal uses OAuth 2.0 Demonstrating Proof-of-Possession (DPoP) ([RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449)).
 
 ## Motivation
 
-MCP’s current authorization model uses bearer tokens, which can be reused by an unauthorized party if the token is leaked, intercepted or exfiltrated. If an access token is intercepted, through network eavesdropping, compromised logs, or other means, an attacker use the token from a MCP client under its control to access protected MCP resources until the token expires.
+MCP’s current authorization model uses bearer tokens, which can be reused by an unauthorized party if the token is leaked, intercepted or exfiltrated. If an access token is intercepted, through network eavesdropping, compromised logs, or other means, an attacker use the token from a MCP client under its control to access protected MCP servers until the token expires.
 
 DPoP addresses this by making tokens "sender-constrained" so that even if an attacker obtains an access token, they cannot use it without also possessing or controlling the correspondiong client's private key. This significantly raises the bar for attackers.
 
