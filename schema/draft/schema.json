@@ -3404,6 +3404,7 @@
                 }
             },
             "required": [
+                "_meta",
                 "resultType"
             ],
             "type": "object"
@@ -3416,6 +3417,9 @@
                     "description": "Identifies the subscription stream this response closes, so the client can\ncorrelate it with the originating subscription — mirroring the same key on\nthe stream's notifications. The value is the JSON-RPC ID of the\n`subscriptions/listen` request that opened the stream (and equals this\nresponse's `id`)."
                 }
             },
+            "required": [
+                "io.modelcontextprotocol/subscriptionId"
+            ],
             "type": "object"
         },
         "TextContent": {
