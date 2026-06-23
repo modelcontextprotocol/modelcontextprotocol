@@ -141,6 +141,19 @@ buffer. Without this header, proxies may accumulate messages before sending
 them to the client, introducing unwanted latency and potentially breaking the
 real-time nature of SSE communication.
 
+<Note>
+
+For long-lived streams — in particular the
+[`subscriptions/listen`][subscriptions-listen] response stream — servers are
+encouraged to periodically emit an SSE comment line (a line beginning with a
+colon, e.g. `:\r\n`) as a keep-alive. This keeps the connection from being
+closed by intermediaries or client idle timeouts during quiet periods when no
+notifications are flowing. Per the [SSE specification][sse], any line beginning
+with a colon is a comment that carries no event data; clients must ignore such
+lines and must not treat them as malformed input.
+
+</Note>
+
 Resumable SSE streams via `Last-Event-ID` are not supported.
 
 [notifications-progress]: /specification/draft/basic/patterns/progress
