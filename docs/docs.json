@@ -37,7 +37,7 @@
               "docs/learn/architecture",
               "docs/learn/server-concepts",
               "docs/learn/client-concepts",
-              "docs/learn/versioning"
+              "specification/versioning"
             ]
           },
           {
@@ -45,15 +45,8 @@
             "pages": [
               "docs/develop/connect-local-servers",
               "docs/develop/connect-remote-servers",
-              "docs/develop/build-with-agent-skills",
               "docs/develop/build-server",
-              {
-                "group": "Clients",
-                "pages": [
-                  "docs/develop/build-client",
-                  "docs/develop/clients/client-best-practices"
-                ]
-              },
+              "docs/develop/build-client",
               "docs/sdk",
               {
                 "group": "Security",
@@ -67,14 +60,7 @@
           {
             "group": "Developer tools",
             "pages": [
-              "docs/tools/inspector",
-              "docs/tools/debugging"
-            ]
-          },
-          {
-            "group": "Examples",
-            "pages": [
-              "examples"
+              "docs/tools/inspector"
             ]
           }
         ]
@@ -97,12 +83,6 @@
               "extensions/auth/overview",
               "extensions/auth/oauth-client-credentials",
               "extensions/auth/enterprise-managed-authorization"
-            ]
-          },
-          {
-            "group": "Tasks",
-            "pages": [
-              "extensions/tasks/overview"
             ]
           }
         ]
@@ -315,38 +295,21 @@
             "pages": [
               "specification/draft/index",
               "specification/draft/changelog",
-              "specification/draft/deprecated",
               "specification/draft/architecture/index",
               {
                 "group": "Base Protocol",
                 "pages": [
                   "specification/draft/basic/index",
-                  "specification/draft/basic/versioning",
+                  "specification/draft/basic/lifecycle",
+                  "specification/draft/basic/transports",
+                  "specification/draft/basic/authorization",
                   {
-                    "group": "Message Patterns",
+                    "group": "Utilities",
                     "pages": [
-                      "specification/draft/basic/patterns/index",
-                      "specification/draft/basic/patterns/mrtr",
-                      "specification/draft/basic/patterns/subscriptions",
-                      "specification/draft/basic/patterns/cancellation",
-                      "specification/draft/basic/patterns/progress"
-                    ]
-                  },
-                  {
-                    "group": "Transports",
-                    "pages": [
-                      "specification/draft/basic/transports/index",
-                      "specification/draft/basic/transports/stdio",
-                      "specification/draft/basic/transports/streamable-http"
-                    ]
-                  },
-                  {
-                    "group": "Authorization",
-                    "pages": [
-                      "specification/draft/basic/authorization/index",
-                      "specification/draft/basic/authorization/authorization-server-discovery",
-                      "specification/draft/basic/authorization/client-registration",
-                      "specification/draft/basic/authorization/security-considerations"
+                      "specification/draft/basic/utilities/cancellation",
+                      "specification/draft/basic/utilities/ping",
+                      "specification/draft/basic/utilities/progress",
+                      "specification/draft/basic/utilities/tasks"
                     ]
                   }
                 ]
@@ -363,14 +326,12 @@
                 "group": "Server Features",
                 "pages": [
                   "specification/draft/server/index",
-                  "specification/draft/server/discover",
                   "specification/draft/server/prompts",
                   "specification/draft/server/resources",
                   "specification/draft/server/tools",
                   {
                     "group": "Utilities",
                     "pages": [
-                      "specification/draft/server/utilities/caching",
                       "specification/draft/server/utilities/completion",
                       "specification/draft/server/utilities/logging",
                       "specification/draft/server/utilities/pagination"
@@ -410,112 +371,73 @@
         ]
       },
       {
-        "tab": "SEPs",
-        "pages": [
-          "seps/index",
-          {
-            "group": "Final",
-            "pages": [
-              "seps/414-request-meta",
-              "seps/932-model-context-protocol-governance",
-              "seps/973-expose-additional-metadata-for-implementations-res",
-              "seps/985-align-oauth-20-protected-resource-metadata-with-rf",
-              "seps/986-specify-format-for-tool-names",
-              "seps/990-enable-enterprise-idp-policy-controls-during-mcp-o",
-              "seps/991-enable-url-based-client-registration-using-oauth-c",
-              "seps/994-shared-communication-practicesguidelines",
-              "seps/1024-mcp-client-security-requirements-for-local-server-",
-              "seps/1034--support-default-values-for-all-primitive-types-in",
-              "seps/1036-url-mode-elicitation-for-secure-out-of-band-intera",
-              "seps/1046-support-oauth-client-credentials-flow-in-authoriza",
-              "seps/1302-formalize-working-groups-and-interest-groups-in-mc",
-              "seps/1303-input-validation-errors-as-tool-execution-errors",
-              "seps/1319-decouple-request-payload-from-rpc-methods-definiti",
-              "seps/1330-elicitation-enum-schema-improvements-and-standards",
-              "seps/1577--sampling-with-tools",
-              "seps/1613-establish-json-schema-2020-12-as-default-dialect-f",
-              "seps/1686-tasks",
-              "seps/1699-support-sse-polling-via-server-side-disconnect",
-              "seps/1730-sdks-tiering-system",
-              "seps/1850-pr-based-sep-workflow",
-              "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
-              "seps/2085-governance-succession-and-amendment",
-              "seps/2106-json-schema-2020-12",
-              "seps/2133-extensions",
-              "seps/2148-contributor-ladder",
-              "seps/2149-working-group-charter-template",
-              "seps/2164-resource-not-found-error",
-              "seps/2207-oidc-refresh-token-guidance",
-              "seps/2243-http-standardization",
-              "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests",
-              "seps/2322-MRTR",
-              "seps/2468-recommend-issuer-claim-for-auth",
-              "seps/2484-conformance-tests-required-for-final-seps",
-              "seps/2549-TTL-for-list-results",
-              "seps/2567-sessionless-mcp",
-              "seps/2575-stateless-mcp",
-              "seps/2577-deprecate-roots-sampling-and-logging",
-              "seps/2596-spec-feature-lifecycle-and-deprecation",
-              "seps/2663-tasks-extension"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "Community",
         "pages": [
-          {
-            "group": "Get Involved",
-            "pages": [
-              "community/contributing",
-              "community/communication",
-              "community/working-interest-groups",
-              "community/charter-template"
-            ]
-          },
-          {
-            "group": "Propose Changes",
-            "pages": [
-              "community/design-principles",
-              "community/sep-guidelines"
-            ]
-          },
+          "community/contributing",
+          "community/communication",
           {
             "group": "Governance",
             "pages": [
               "community/governance",
-              "community/contributor-ladder",
-              "community/feature-lifecycle",
+              "community/sep-guidelines",
               "community/sdk-tiers",
+              "community/working-interest-groups",
               "community/antitrust"
             ]
           },
           {
-            "group": "Working Group Charters",
+            "group": "SEPs",
             "pages": [
-              "community/working-groups/file-uploads",
-              "community/working-groups/inspector-v2",
-              "community/working-groups/interceptors",
-              "community/working-groups/registry",
-              "community/working-groups/sdk",
-              "community/working-groups/server-card",
-              "community/working-groups/skills-over-mcp",
-              "community/working-groups/triggers-events"
-            ]
-          },
-          {
-            "group": "Interest Group Charters",
-            "pages": [
-              "community/interest-groups/auth",
-              "community/interest-groups/enterprise-managed-authorization",
-              "community/interest-groups/security",
-              "community/interest-groups/tool-annotations"
+              "community/seps/index",
+              {
+                "group": "Final",
+                "pages": [
+                  "community/seps/414-request-meta",
+                  "community/seps/932-model-context-protocol-governance",
+                  "community/seps/973-expose-additional-metadata-for-implementations-res",
+                  "community/seps/985-align-oauth-20-protected-resource-metadata-with-rf",
+                  "community/seps/986-specify-format-for-tool-names",
+                  "community/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o",
+                  "community/seps/991-enable-url-based-client-registration-using-oauth-c",
+                  "community/seps/994-shared-communication-practicesguidelines",
+                  "community/seps/1024-mcp-client-security-requirements-for-local-server-",
+                  "community/seps/1034--support-default-values-for-all-primitive-types-in",
+                  "community/seps/1036-url-mode-elicitation-for-secure-out-of-band-intera",
+                  "community/seps/1046-support-oauth-client-credentials-flow-in-authoriza",
+                  "community/seps/1302-formalize-working-groups-and-interest-groups-in-mc",
+                  "community/seps/1303-input-validation-errors-as-tool-execution-errors",
+                  "community/seps/1319-decouple-request-payload-from-rpc-methods-definiti",
+                  "community/seps/1330-elicitation-enum-schema-improvements-and-standards",
+                  "community/seps/1577--sampling-with-tools",
+                  "community/seps/1613-establish-json-schema-2020-12-as-default-dialect-f",
+                  "community/seps/1686-tasks",
+                  "community/seps/1699-support-sse-polling-via-server-side-disconnect",
+                  "community/seps/1730-sdks-tiering-system",
+                  "community/seps/1850-pr-based-sep-workflow",
+                  "community/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
+                  "community/seps/2085-governance-succession-and-amendment",
+                  "community/seps/2133-extensions"
+                ]
+              },
+              {
+                "group": "Draft",
+                "pages": [
+                  "community/seps/2188-elicitation-timeout-coordination"
+                ]
+              }
             ]
           },
           {
             "group": "Roadmap",
             "pages": [
               "development/roadmap"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "clients",
+              "examples"
             ]
           }
         ]
@@ -539,58 +461,6 @@
   },
   "redirects": [
     {
-      "source": "/clients",
-      "destination": "/docs/getting-started/intro"
-    },
-    {
-      "source": "/community/auth/charter",
-      "destination": "/community/interest-groups/auth"
-    },
-    {
-      "source": "/community/tool-annotations/charter",
-      "destination": "/community/interest-groups/tool-annotations"
-    },
-    {
-      "source": "/community/file-uploads/charter",
-      "destination": "/community/working-groups/file-uploads"
-    },
-    {
-      "source": "/community/inspector-v2/charter",
-      "destination": "/community/working-groups/inspector-v2"
-    },
-    {
-      "source": "/community/interceptors/charter",
-      "destination": "/community/working-groups/interceptors"
-    },
-    {
-      "source": "/community/registry/charter",
-      "destination": "/community/working-groups/registry"
-    },
-    {
-      "source": "/community/sdk/charter",
-      "destination": "/community/working-groups/sdk"
-    },
-    {
-      "source": "/community/server-card/charter",
-      "destination": "/community/working-groups/server-card"
-    },
-    {
-      "source": "/community/skills-over-mcp/charter",
-      "destination": "/community/working-groups/skills-over-mcp"
-    },
-    {
-      "source": "/community/triggers-events/charter",
-      "destination": "/community/working-groups/triggers-events"
-    },
-    {
-      "source": "/specification/draft/basic/lifecycle",
-      "destination": "/specification/draft/basic/versioning"
-    },
-    {
-      "source": "/specification/versioning",
-      "destination": "/docs/learn/versioning"
-    },
-    {
       "source": "/specification/latest",
       "destination": "/specification/2025-11-25",
       "permanent": false
@@ -603,22 +473,6 @@
     {
       "source": "/tutorials/building-a-client",
       "destination": "/docs/develop/build-client"
-    },
-    {
-      "source": "/tutorials/building-a-client-node",
-      "destination": "/docs/develop/build-client"
-    },
-    {
-      "source": "/tutorials/building-mcp-with-llms",
-      "destination": "/docs/develop/build-with-agent-skills"
-    },
-    {
-      "source": "/faqs",
-      "destination": "/docs/getting-started/intro"
-    },
-    {
-      "source": "/docs/tutorials/use-local-mcp-server",
-      "destination": "/docs/develop/connect-local-servers"
     },
     {
       "source": "/quickstart",
@@ -657,40 +511,8 @@
       "destination": "/specification/2025-06-18/basic/transports"
     },
     {
-      "source": "/legacy/tools/debugging",
-      "destination": "/docs/tools/debugging"
-    },
-    {
-      "source": "/legacy/concepts/architecture",
-      "destination": "/specification/latest/architecture"
-    },
-    {
-      "source": "/legacy/concepts/elicitation",
-      "destination": "/specification/latest/client/elicitation"
-    },
-    {
-      "source": "/legacy/concepts/prompts",
-      "destination": "/specification/latest/server/prompts"
-    },
-    {
-      "source": "/legacy/concepts/resources",
-      "destination": "/specification/latest/server/resources"
-    },
-    {
-      "source": "/legacy/concepts/roots",
-      "destination": "/specification/latest/client/roots"
-    },
-    {
-      "source": "/legacy/concepts/sampling",
-      "destination": "/specification/latest/client/sampling"
-    },
-    {
-      "source": "/legacy/concepts/tools",
-      "destination": "/specification/latest/server/tools"
-    },
-    {
-      "source": "/legacy/concepts/transports",
-      "destination": "/specification/latest/basic/transports"
+      "source": "/docs/tools/debugging",
+      "destination": "/legacy/tools/debugging"
     },
     {
       "source": "/legacy/tools/inspector",
@@ -747,18 +569,6 @@
     {
       "source": "/docs/extensions/apps",
       "destination": "/extensions/apps/overview"
-    },
-    {
-      "source": "/docs/extensions/tasks",
-      "destination": "/extensions/tasks/overview"
-    },
-    {
-      "source": "/community/seps",
-      "destination": "/seps"
-    },
-    {
-      "source": "/community/seps/:slug*",
-      "destination": "/seps/:slug*"
     }
   ],
   "contextual": {

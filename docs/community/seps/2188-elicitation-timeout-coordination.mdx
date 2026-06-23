@@ -1,0 +1,236 @@
+---
+title: "SEP-2188: Elicitation Timeout Coordination"
+sidebarTitle: "SEP-2188: Elicitation Timeout Coordination"
+description: "Elicitation Timeout Coordination"
+---
+
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    Draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Standards Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 2188                                                                            |
+| **Title**     | Elicitation Timeout Coordination                                                |
+| **Status**    | Draft                                                                           |
+| **Type**      | Standards Track                                                                 |
+| **Created**   | 2026-02-27                                                                      |
+| **Author(s)** | Arsalan Shakil ([@ArsalanShakil](https://github.com/ArsalanShakil))             |
+| **Sponsor**   | None (seeking sponsor)                                                          |
+| **PR**        | [#2188](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2188) |
+
+---
+
+## Abstract
+
+This SEP introduces a `notifications/elicitation/pending` notification that servers can send to clients before issuing an `elicitation/create` request during in-flight request processing. The notification includes the `requestId` of the original request (e.g., a tool call) so the client can suspend or extend its timeout for that request while waiting for user input. This addresses the problem described in [#2006](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/2006), where tool calls timeout because the client has no way to know that a server is waiting for user input via elicitation.
+
+## Motivation
+
+When a server issues a form-mode elicitation during a tool call, the client's configured request timeout may expire before the user has a chance to respond. This creates a poor user experience: the tool call fails with a timeout error even though the server is actively and legitimately waiting for user input.
+
+Consider this scenario:
+
+1. Client sends `tools/call` with a 60-second request timeout
+2. Server processes the tool call and determines it needs user input
+3. Server sends `elicitation/create` (mode: form) to the client
+4. The user sees the form but takes more than 60 seconds to respond
+5. The client's timeout fires and the `tools/call` fails
+
+This is particularly problematic because:
+
+- **The client has no advance notice** that an elicitation is coming. It cannot preemptively extend the timeout.
+- **URL mode has partial coverage** via `notifications/elicitation/complete` and `URLElicitationRequiredError`, but form mode has no such coordination mechanism.
+- **The task system helps but isn't always appropriate**. Task-augmented requests (which return immediately with a task ID) can avoid the timeout issue, but not all tool calls warrant full task lifecycle management. Simple "ask the user a question and continue" patterns shouldn't require task infrastructure.
+- **Progress notifications can reset the timeout clock**, but this is a workaround rather than a proper coordination mechanism. Servers would need to send artificial progress notifications that don't represent actual progress.
+
+The existing protocol lacks a lightweight, purpose-built mechanism for timeout coordination when elicitation is involved.
+
+## Specification
+
+### New Notification: `notifications/elicitation/pending`
+
+A new optional server-to-client notification is introduced:
+
+```typescript
+export interface ElicitationPendingNotification extends JSONRPCNotification {
+  method: "notifications/elicitation/pending";
+  params: {
+    /**
+     * The ID of the original request that triggered this elicitation.
+     * This allows the client to associate the pending elicitation with
+     * the request whose timeout should be adjusted.
+     */
+    requestId: RequestId;
+
+    /**
+     * An optional hint for how long the server expects to wait for
+     * user input, in milliseconds. Clients MAY use this to set an
+     * appropriate timeout for the elicitation itself.
+     */
+    timeout?: number;
+
+    /**
+     * An optional human-readable message explaining why the
+     * elicitation is needed.
+     */
+    message?: string;
+  };
+}
+```
+
+### Server Behavior
+
+- Servers **MAY** send `notifications/elicitation/pending` before issuing an `elicitation/create` request when the elicitation is triggered by another in-flight request (e.g., a tool call).
+- The `requestId` field **MUST** correspond to the ID of a currently in-flight request from the client.
+- Servers **SHOULD** include a `timeout` hint when the expected user interaction time is known.
+- Servers **SHOULD** provide a descriptive `message` to help clients show appropriate context to users.
+
+### Client Behavior
+
+Upon receiving a `notifications/elicitation/pending` notification:
+
+- Clients **SHOULD** suspend or extend the timeout for the request identified by `requestId`.
+- Clients **SHOULD** resume normal timeout behavior after the corresponding elicitation completes (via user response or cancellation).
+- Clients **MAY** use the `timeout` hint to set an appropriate maximum wait time for the elicitation itself.
+- Clients **MAY** display the `message` to users to provide context.
+- Clients **MUST** still enforce a maximum timeout to prevent indefinite waits, even when a pending notification is received.
+- Clients **MUST** ignore notifications referencing unknown request IDs.
+
+### Schema Changes
+
+The `ElicitationPendingNotification` interface is added to the `ServerNotification` union type:
+
+```typescript
+export type ServerNotification =
+  | CancelledNotification
+  | ProgressNotification
+  | LoggingMessageNotification
+  | ResourceUpdatedNotification
+  | ResourceListChangedNotification
+  | ToolListChangedNotification
+  | PromptListChangedNotification
+  | ElicitationPendingNotification // New
+  | ElicitationCompleteNotification
+  | TaskStatusNotification;
+```
+
+### Message Flow
+
+```
+Client                          Server
+  |                                |
+  |  tools/call (id: 42)          |
+  |------------------------------->|
+  |  Start request timeout         |
+  |                                |
+  |                                |  Server needs user input
+  |                                |
+  |  notifications/elicitation/    |
+  |  pending (requestId: 42)      |
+  |<-------------------------------|
+  |  Suspend/extend timeout        |
+  |                                |
+  |  elicitation/create            |
+  |  (mode: form)                  |
+  |<-------------------------------|
+  |                                |
+  |  User fills in form...         |
+  |                                |
+  |  Elicitation response          |
+  |------------------------------->|
+  |  Resume normal timeout         |
+  |                                |
+  |  tools/call result (id: 42)   |
+  |<-------------------------------|
+```
+
+### Example: Basic Pending Notification
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/elicitation/pending",
+  "params": {
+    "requestId": 42,
+    "message": "User input required to continue processing the tool call"
+  }
+}
+```
+
+### Example: Pending Notification with Timeout Hint
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/elicitation/pending",
+  "params": {
+    "requestId": "abc-123",
+    "timeout": 300000,
+    "message": "Please provide your GitHub credentials to access the repository"
+  }
+}
+```
+
+## Rationale
+
+### Design Decisions
+
+**Why a new notification rather than extending progress notifications?**
+
+Progress notifications (`notifications/progress`) are designed to report incremental progress on work being performed. Repurposing them to signal "waiting for user input" would be semantically misleading. A dedicated notification clearly communicates intent and allows clients to implement specific timeout behavior.
+
+**Why not require task-augmented requests?**
+
+The task system (SEP-1686) provides robust lifecycle management for long-running operations, including an `input_required` status. However, requiring task augmentation for every tool call that might trigger an elicitation adds unnecessary complexity. Many tool calls are simple and synchronous — they just occasionally need user input. This proposal provides a lightweight alternative.
+
+**Why include `requestId` instead of a separate elicitation identifier?**
+
+The `requestId` directly ties the notification to the request whose timeout needs adjustment. This is simpler than introducing a new identifier and requiring clients to maintain a mapping between elicitation IDs and request IDs.
+
+**Why is the `timeout` field optional?**
+
+Not all servers can predict how long user input will take. Some elicitations are simple confirmations (seconds), while others involve complex form filling or decision-making (minutes). Making the timeout optional allows servers to provide guidance when they can, without requiring it.
+
+### Alternative Approaches Considered
+
+1. **Extending `elicitation/create` with a `requestId` field**: This was considered but rejected because the elicitation request goes from server to client, while the timeout adjustment needs to reference a client-to-server request. A notification sent before the elicitation request is a cleaner separation.
+
+2. **Adding a timeout extension field to `RequestMetaObject`**: This would let servers specify upfront that a request might need extra time. However, it doesn't solve the core problem — the server doesn't know it needs elicitation until processing has begun.
+
+3. **Client-side heuristic**: Clients could automatically extend timeouts whenever they receive an `elicitation/create` request. However, the client may not always be able to correlate the elicitation with a specific in-flight request, especially if multiple requests are in flight simultaneously.
+
+4. **Using progress notifications as a workaround**: Servers could send periodic progress notifications to keep the timeout clock alive. This works but is semantically incorrect and wastes bandwidth with meaningless progress updates.
+
+## Backward Compatibility
+
+This proposal introduces no breaking changes:
+
+- The new notification is **optional** — servers are not required to send it.
+- Existing clients that do not understand `notifications/elicitation/pending` will simply ignore it (per JSON-RPC notification semantics).
+- No changes to existing message formats, capabilities, or error codes.
+- Servers can adopt this notification incrementally without coordinating with client updates.
+
+## Security Implications
+
+This proposal has minimal security implications:
+
+- **No new data exposure**: The notification only references an existing `requestId` that both parties already know.
+- **No authentication changes**: The notification uses the same transport and session as all other protocol messages.
+- **Denial of service consideration**: A malicious server could send excessive pending notifications. However, clients already must handle arbitrary notifications from servers, and the recommendation to enforce a maximum timeout provides protection against indefinite waits.
+- **No new attack surfaces**: The notification is purely informational and does not change any server or client state beyond timeout management.
+
+## Reference Implementation
+
+A prototype implementation will be provided in the TypeScript SDK demonstrating:
+
+1. Server-side: Sending `notifications/elicitation/pending` before `elicitation/create` during tool call processing
+2. Client-side: Suspending and resuming request timeouts upon receiving the notification
+3. Integration test showing the timeout coordination in action
+
+_Reference implementation to be completed before this SEP can reach "Final" status._
