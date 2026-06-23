@@ -1301,6 +1301,40 @@ export interface SubscriptionsListenRequest extends JSONRPCRequest {
 }
 
 /**
+ * Extends {@link MetaObject} with the subscription-stream identifier carried by a
+ * {@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResultMeta extends MetaObject {
+  /**
+   * Identifies the subscription stream this response closes, so the client can
+   * correlate it with the originating subscription — mirroring the same key on
+   * the stream's notifications. The value is the JSON-RPC ID of the
+   * `subscriptions/listen` request that opened the stream (and equals this
+   * response's `id`).
+   */
+  "io.modelcontextprotocol/subscriptionId": RequestId;
+}
+
+/**
+ * The response to a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, signalling that the subscription has ended gracefully (for example,
+ * during server shutdown). Because the listen stream is long-lived, this result
+ * is sent only when the server tears the subscription down; an abrupt transport
+ * close carries no response. The result body is otherwise empty.
+ *
+ * @example Subscription closed gracefully
+ * {@includeCode ./examples/SubscriptionsListenResult/listen-closed.json}
+ *
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResult extends Result {
+  _meta: SubscriptionsListenResultMeta;
+}
+
+/**
  * Parameters for a {@link SubscriptionsAcknowledgedNotification | notifications/subscriptions/acknowledged} notification.
  *
  * @category `notifications/subscriptions/acknowledged`
@@ -3134,6 +3168,7 @@ export type ServerResult =
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | SubscriptionsListenResult
   | CallToolResult
   | ListToolsResult
   | InputRequiredResult;
