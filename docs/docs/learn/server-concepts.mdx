@@ -277,4 +277,8 @@ Consider a personalized AI travel planner application, with three connected serv
    - `createCalendarEvent()` - Adds the trip to the user's calendar
    - `sendEmail()` - Sends confirmation with trip details
 
+   **Why does the AI call `checkWeather()`?** The prompt template defines the _intent_ ("plan a vacation"), not a fixed script of tool calls. None of the prompt's arguments mention weather—the AI decides to check it by reasoning over the task and the tool descriptions that connected servers advertise (discovered via `tools/list`). Forecasts are useful for trip planning, so the model requests `checkWeather()` on its own. Tool selection is AI-driven inference, not something the template dictates.
+
+   **What if no Weather Server is connected?** The AI can only call tools that connected servers expose. If no Weather Server is present, `checkWeather()` is not available, and the AI proceeds with the tools it has. Weather here is an optional enrichment rather than a requirement—the workflow adapts to whichever capabilities are connected.
+
 **The result:** Through multiple MCP servers, the user researched and booked a Barcelona trip tailored to their schedule. The "Plan a Vacation" prompt guided the AI to combine Resources (calendar availability and travel history) with Tools (searching flights, booking hotels, updating calendars) across different servers—gathering context and executing the booking. A task that could have taken hours was completed in minutes using MCP.
