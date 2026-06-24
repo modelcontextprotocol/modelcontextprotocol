@@ -128,9 +128,9 @@ specification and add support for the new standard into their products:
 - **Read the requirements:** the
   [Enterprise-Managed Authorization page](https://modelcontextprotocol.io/extensions/auth/enterprise-managed-authorization)
   documents the flow for clients, servers, and authorization servers.
-- **Source and draft spec:** see the
+- **Source and spec:** see the
   [ext-auth repository](https://github.com/modelcontextprotocol/ext-auth) and the
-  [draft specification](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/draft/enterprise-managed-authorization.mdx)
+  [specification](https://github.com/modelcontextprotocol/ext-auth/blob/main/specification/stable/enterprise-managed-authorization.mdx)
   for the latest in EMA evolution as well as any support materials that will help you get
   started.
 
