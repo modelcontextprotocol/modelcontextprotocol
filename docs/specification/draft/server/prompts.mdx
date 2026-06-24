@@ -9,6 +9,14 @@ templates to clients. Prompts allow servers to provide structured messages and
 instructions for interacting with language models. Clients can discover available
 prompts, retrieve their contents, and provide arguments to customize them.
 
+<Note>
+  For brevity, the request examples on this page omit the required `_meta`
+  request metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  these fields; see [`_meta`](/specification/draft/basic/index#meta).
+</Note>
+
 ## User Interaction Model
 
 Prompts are designed to be **user-controlled**, meaning they are exposed from servers to

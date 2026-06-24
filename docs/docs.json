@@ -493,21 +493,23 @@
           {
             "group": "Working Group Charters",
             "pages": [
-              "community/file-uploads/charter",
-              "community/inspector-v2/charter",
-              "community/interceptors/charter",
-              "community/registry/charter",
-              "community/sdk/charter",
-              "community/server-card/charter",
-              "community/skills-over-mcp/charter",
-              "community/triggers-events/charter"
+              "community/working-groups/file-uploads",
+              "community/working-groups/inspector-v2",
+              "community/working-groups/interceptors",
+              "community/working-groups/registry",
+              "community/working-groups/sdk",
+              "community/working-groups/server-card",
+              "community/working-groups/skills-over-mcp",
+              "community/working-groups/triggers-events"
             ]
           },
           {
             "group": "Interest Group Charters",
             "pages": [
-              "community/auth/charter",
-              "community/tool-annotations/charter"
+              "community/interest-groups/auth",
+              "community/interest-groups/enterprise-managed-authorization",
+              "community/interest-groups/security",
+              "community/interest-groups/tool-annotations"
             ]
           },
           {
@@ -539,6 +541,46 @@
     {
       "source": "/clients",
       "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/community/auth/charter",
+      "destination": "/community/interest-groups/auth"
+    },
+    {
+      "source": "/community/tool-annotations/charter",
+      "destination": "/community/interest-groups/tool-annotations"
+    },
+    {
+      "source": "/community/file-uploads/charter",
+      "destination": "/community/working-groups/file-uploads"
+    },
+    {
+      "source": "/community/inspector-v2/charter",
+      "destination": "/community/working-groups/inspector-v2"
+    },
+    {
+      "source": "/community/interceptors/charter",
+      "destination": "/community/working-groups/interceptors"
+    },
+    {
+      "source": "/community/registry/charter",
+      "destination": "/community/working-groups/registry"
+    },
+    {
+      "source": "/community/sdk/charter",
+      "destination": "/community/working-groups/sdk"
+    },
+    {
+      "source": "/community/server-card/charter",
+      "destination": "/community/working-groups/server-card"
+    },
+    {
+      "source": "/community/skills-over-mcp/charter",
+      "destination": "/community/working-groups/skills-over-mcp"
+    },
+    {
+      "source": "/community/triggers-events/charter",
+      "destination": "/community/working-groups/triggers-events"
     },
     {
       "source": "/specification/draft/basic/lifecycle",

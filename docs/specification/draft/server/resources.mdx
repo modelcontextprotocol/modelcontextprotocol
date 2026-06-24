@@ -10,6 +10,14 @@ language models, such as files, database schemas, or application-specific inform
 Each resource is uniquely identified by a
 [URI](https://datatracker.ietf.org/doc/html/rfc3986).
 
+<Note>
+  For brevity, the request examples on this page omit the required `_meta`
+  request metadata (`io.modelcontextprotocol/protocolVersion`,
+  `io.modelcontextprotocol/clientInfo`, and
+  `io.modelcontextprotocol/clientCapabilities`). Every request **MUST** include
+  these fields; see [`_meta`](/specification/draft/basic/index#meta).
+</Note>
+
 ## User Interaction Model
 
 Resources in MCP are designed to be **application-driven**, with host applications
@@ -245,7 +253,7 @@ changes.
   "jsonrpc": "2.0",
   "method": "notifications/resources/updated",
   "params": {
-    "_meta": { "io.modelcontextprotocol/subscriptionId": "4" },
+    "_meta": { "io.modelcontextprotocol/subscriptionId": 4 },
     "uri": "file:///project/src/main.rs"
   }
 }
