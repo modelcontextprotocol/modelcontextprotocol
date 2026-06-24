@@ -114,11 +114,42 @@ A subscription ends when:
 
 - The **client** cancels it — close the SSE stream (HTTP) or send
   `notifications/cancelled` referencing the `subscriptions/listen` request ID (stdio).
-- The **server** tears it down (e.g., during shutdown) — it **MUST** close the SSE
-  stream (HTTP) or send `notifications/cancelled` referencing the
-  `subscriptions/listen` request ID (stdio).
+- The **server** tears it down (e.g., during shutdown) — it **SHOULD** send the
+  empty `subscriptions/listen` response to signal a graceful end (see
+  [Graceful Closure](#graceful-closure)), then close the stream.
 - The underlying transport closes (HTTP timeout, TCP disconnect, stdio process
   exit).
+
+### Graceful Closure
+
+When the server ends a subscription on its own initiative (for example, during
+shutdown), it **SHOULD** respond to the original `subscriptions/listen` request
+with an empty result before closing the stream. This is the JSON-RPC response to
+the long-lived request, correlated by its `id`, and signals that the subscription
+ended gracefully — as opposed to an abrupt transport drop, which carries no
+response.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "complete",
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": 1
+    }
+  }
+}
+```
+
+Like every other message on the stream, the response carries
+`io.modelcontextprotocol/subscriptionId` in `_meta`, identifying which
+subscription it closes. The value matches the JSON-RPC `id` of the originating
+`subscriptions/listen` request.
+
+A client that receives this response knows the subscription closed cleanly; a
+transport that closes without it indicates an unexpected disconnect, which the
+client **MAY** treat as a trigger to reconnect.
 
 On **stdio**, if the connection is terminated and then re-established, the
 client **MUST** re-send `subscriptions/listen` to re-establish its
