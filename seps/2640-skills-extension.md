@@ -214,7 +214,7 @@ Digests are SHA-256 hashes of an artifact's raw bytes, formatted as `sha256:{hex
 
 Hosts MUST verify retrieved content against the `digest` in the index. A mismatch indicates the content is corrupted or tampered with — hosts MUST NOT use unverified content. Digests also enable efficient caching: compare a skill's `digest` against a locally cached value to determine whether the artifact has changed without re-reading it.
 
-Hosts MUST verify retrieved content against the `digest` in the index. A mismatch indicates the content is corrupted or tampered with - hosts MUST NOT use unverified content. Digests also enable efficient caching: compare a skill's `digest` against a locally cached value to determine whether the artifact has changed without re-reading it.
+Digests are unsigned and supplied by the same server that supplies the content. A match proves the two are consistent, not that either is trustworthy. Any intermediary on the path, such as a gateway, can rewrite both the index and the content together. Hosts MUST NOT treat a digest match as a security boundary.
 
 After fetching and digest-verifying a `SKILL.md` whose entry appeared in the index, hosts MUST parse its YAML frontmatter and compare it field-by-field against the entry's `frontmatter`. Any discrepancy MUST be treated as a verification failure equivalent to a digest mismatch, and the skill MUST NOT be loaded. This enforces the [Frontmatter](#frontmatter) identity requirement on the host side, so that what a user approves from the index is what the model actually receives.
 
