@@ -111,34 +111,84 @@ visibility, and stateless per-turn re-negotiation in one move, while
 preserving the "lean into HTTP for what it already does well" approach that
 has guided MCP's authorization story.
 
-### Scope: user-facing content (and beyond)
+### Scope: which fields are eligible for translation
 
 The mechanism itself is entirely optional (see the note at the start of
 [Specification](#specification)). When a server **does** choose to honor
-`acceptLanguage`, this SEP scopes the negotiation to **user-facing
-content**: strings that an MCP client surfaces directly in a user
-interface and that the human user reads. Typical user-facing fields
-(non-exhaustive) include:
+`acceptLanguage`, the rules below define exactly which fields it may
+translate. The classification follows the schema's own framing of each
+field: where a doc-comment says "intended for UI" or "human-readable
+title", the field is display-only; where it says "hint to the model" or
+"improve the LLM's understanding", the field is model-facing.
 
-- `title` and `description` on tools, resources, prompts, and server
-  metadata (rendered in tool pickers, capability lists, settings, etc.)
-- Error `message` strings intended for surfacing in a UI
-- Notification messages (e.g. `logging/message`) that may be rendered to
-  the user
-- Any other field the host explicitly displays to the user without
-  passing it through the model first
+#### MUST translate
 
-In addition, servers **MAY** translate body content returned from
-`tools/call`, `resources/read`, and `prompts/get`. This content is
-primarily model-facing and the model is generally language-flexible, but
-localizing it can still be valuable, for example when the content is
-likely to be quoted back to the user verbatim, or when the data is
-inherently locale-specific (legal text, dates, currency formatting,
-units). The choice is left to the server.
+These fields are classified by the schema as display-only. A server
+honoring `acceptLanguage` **MUST** localize them when a localized form
+is available.
 
-Out of scope in all cases: machine-interpreted values such as tool
-names, identifiers, URIs, schema field names, enum tokens, and MIME
-types, whose semantics depend on the literal string.
+- `BaseMetadata.title` on every type that extends it: `Tool`, `Resource`,
+  `ResourceTemplate`, `Prompt`, `PromptArgument`, `Implementation`,
+  `PromptReference`.
+- `ToolAnnotations.title`.
+- `ElicitRequestFormParams.message` and `ElicitRequestURLParams.message`.
+- In `ElicitRequestFormParams.requestedSchema`, the `title` and
+  `description` of each property. Elicitation schemas are rendered as
+  forms in the client; the model does not consume them.
+- `ProgressNotification.message`.
+- `JSONRPCError.message` when intended for user display (see the
+  _Localized errors_ subsection of [Specification](#specification) for
+  how to opt in).
+
+#### MAY translate, with explicit caveat
+
+These fields are either explicitly model-facing in the schema or
+dual-purpose (model and human). Servers **MAY** translate them, but
+**MUST** be aware that doing so changes what the language model sees and
+can affect tool-selection, planning, and other agent behavior. Real
+agent implementations wire these fields directly into the model prompt:
+for example, the open-source Codex agent passes `Tool.description`
+unmodified into the OpenAI Responses API tool definition, and includes
+both `title` and `description` in its tool-search index. Servers SHOULD
+ensure translations preserve the technical meaning faithfully, and
+SHOULD test agent behavior against translated catalogues.
+
+- `Tool.description`, `Resource.description`,
+  `ResourceTemplate.description`. The schema explicitly describes these
+  as a "hint to the model".
+- `Prompt.description`, `PromptArgument.description`,
+  `Implementation.description`. The schema describes these as
+  human-readable context; in practice hosts surface them to both users
+  and models.
+- Property-level `title` and `description` inside `Tool.inputSchema` and
+  `Tool.outputSchema`. These appear inside the function definition the
+  model receives via standard function-calling APIs, and some hosts also
+  render them in parameter-confirmation UIs.
+- Body content of `tools/call`, `resources/read`, and `prompts/get`.
+  This includes the body of [MCP Apps] UI resources
+  (`text/html;profile=mcp-app` and related content types), where the
+  body literally is the rendered user interface and should respect the
+  user's language.
+- `LoggingMessageNotification.data` when the server's logger contract
+  defines `data` (or a string field within it) as user-facing.
+
+#### MUST NOT translate
+
+These values are machine-interpreted; their semantics depend on the
+literal string and translation would break interoperability.
+
+- `BaseMetadata.name` on every type that extends it.
+- URIs and URI templates (including `Resource.uri`, `ResourceTemplate.uriTemplate`,
+  `ResourceLink.uri`, and any URI appearing in elicitation, sampling,
+  or notification payloads).
+- MIME types.
+- JSON Schema property _keys_. Only the `title` and `description`
+  _values_ inside a schema are eligible for translation.
+- Enum token values (the string the schema lists in `enum` or `const`),
+  capability identifiers, error `code` values, method names, and
+  `_meta` keys.
+
+[MCP Apps]: ./1865-mcp-apps-interactive-user-interfaces-for-mcp.md
 
 ## Specification
 
