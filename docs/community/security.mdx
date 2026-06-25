@@ -48,7 +48,7 @@ vulnerabilities. One of the most common is stdio peer attacks, summarized below.
 ### Stdio transport trust boundary
 
 When using the stdio transport, the client spawns the server as a local subprocess and both
-run with equivalent environment-level privilege. The SDK does not defend either peer
+might run with equivalent environment-level privilege. The SDK does not defend either peer
 against a malicious counterpart across the stdio channel: a malicious server already has
 arbitrary code execution by virtue of being run, and a malicious client already has full
 process control over the server it spawned.
