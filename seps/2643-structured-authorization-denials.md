@@ -1,10 +1,11 @@
 # SEP-2643: Structured Authorization Denials
 
 - **Status**: Draft
-- **Type**: Standards Track
+- **Type**: Extensions Track
 - **Created**: 2026-04-20
-- **Author(s)**: Monmohan Singh (@monmohan)
+- **Author(s)**: Monmohan Singh (@monmohan); on behalf of the MCP Fine-Grained Authorization Working Group
 - **Sponsor**: None (Will expect Nate Barbettini - WG Lead to update)
+- **Extension Identifier**: `io.modelcontextprotocol/structured-authorization-denials`
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2643
 
 ## Abstract
@@ -20,6 +21,10 @@ This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for
 3. **Support for structured remediation data at denial**: OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. Adopted OAuth standards do not yet provide a way to carry such structured requirements back to the client at denial time. An IETF individual draft, [`draft-zehavi-oauth-rar-metadata`](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization_details`, with the structured data placed in a JSON response body. The draft is HTTP-specific, and this SEP proposes to adopt the same pattern at the JSON-RPC layer so it applies across MCP transports.
 
 ## Specification
+
+### Extension Identifier
+
+This extension is identified as: `io.modelcontextprotocol/structured-authorization-denials`.
 
 ### Authorization Denial Envelope
 
