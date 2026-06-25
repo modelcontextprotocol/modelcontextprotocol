@@ -19,7 +19,7 @@ The request carries no body parameters beyond the standard `_meta`:
   "method": "server/discover",
   "params": {
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "DRAFT-2026-v1",
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientInfo": {
         "name": "ExampleClient",
         "version": "1.0.0"
@@ -33,7 +33,7 @@ The request carries no body parameters beyond the standard `_meta`:
 ## Response
 
 The server replies with its supported protocol versions, capabilities, and
-identity:
+identity. This operation supports [caching](/specification/draft/server/utilities/caching).
 
 ```json
 {
@@ -41,7 +41,7 @@ identity:
   "id": "discover-1",
   "result": {
     "resultType": "complete",
-    "supportedVersions": ["DRAFT-2026-v1"],
+    "supportedVersions": ["2026-07-28"],
     "capabilities": {
       "tools": {},
       "resources": {}
@@ -50,19 +50,12 @@ identity:
       "name": "ExampleServer",
       "version": "1.0.0"
     },
-    "instructions": "This server provides weather and resource utilities."
+    "instructions": "This server provides weather and resource utilities.",
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }
 ```
-
-### Response Fields
-
-| Field               | Type                 | Required | Description                                                                                  |
-| ------------------- | -------------------- | -------- | -------------------------------------------------------------------------------------------- |
-| `supportedVersions` | `string[]`           | yes      | Protocol versions the server supports. The client should choose one for subsequent requests. |
-| `capabilities`      | `ServerCapabilities` | yes      | Capabilities the server supports (tools, resources, prompts, etc.).                          |
-| `serverInfo`        | `Implementation`     | yes      | Name and version of the server software.                                                     |
-| `instructions`      | `string`             | no       | Natural-language guidance for LLMs on how to use this server effectively.                    |
 
 ## When to Call
 
@@ -72,15 +65,34 @@ RPC inline and handle
 if the server does not support the requested version. However, `server/discover`
 is useful in two scenarios:
 
-- **Up-front version selection.** The client learns the server's supported
-  versions before sending any other request, avoiding a round-trip error.
-- **STDIO backward-compatibility probe.** On stdio, there is no per-request
+- **Presenting server information.** While a client doesn't need to call
+  `server/discover` to use the server, it's a convenient way to retrieve the
+  server's identity, capabilities, and supported versions in a single request.
+  For example, a client can present the capabilities a server supports from a
+  single `server/discover` response instead of probing with separate
+  `tools/list`, `prompts/list`, and `resources/list` requests.
+- **stdio backward-compatibility probe.** On stdio, there is no per-request
   HTTP status code to drive fallback. A client that supports both modern
   (per-request `_meta`) and legacy (`initialize` handshake) servers **SHOULD**
-  send `server/discover` first. If the server returns `Method not found`
-  (`-32601`), the client falls back to the `initialize` handshake.
+  send `server/discover` first; see
+  [stdio: Backward Compatibility](/specification/draft/basic/transports/stdio#backward-compatibility)
+  for the fallback rules.
 
-See [Protocol Version Negotiation](/specification/draft/basic/lifecycle#protocol-version-negotiation)
+See [Protocol Version Negotiation](/specification/draft/basic/versioning#protocol-version-negotiation)
 for the full version-selection flow. For HTTP-specific status codes returned for
-unknown methods, see the [Protocol Version Header](/specification/draft/basic/transports#protocol-version-header)
+unknown methods, see the [Protocol Version Header](/specification/draft/basic/transports/streamable-http#protocol-version-header)
 section in Transports.
+
+## Data Types
+
+### DiscoverResult
+
+A discovery result includes:
+
+- `supportedVersions`: Protocol versions the server supports. The client should
+  choose one of these for subsequent requests.
+- `capabilities`: Capabilities the server supports (tools, resources, prompts,
+  etc.)
+- `serverInfo`: Name and version of the server software
+- `instructions`: Optional natural-language guidance for LLMs on how to use
+  this server effectively
