@@ -567,7 +567,7 @@ const mcpPostHandler = async (req: express.Request, res: express.Response) => {
     const server = createMcpServer();
     await server.connect(transport);
   } else {
-    res.status(400).json({
+    res.status(404).json({
       jsonrpc: "2.0",
       error: {
         code: -32000,
