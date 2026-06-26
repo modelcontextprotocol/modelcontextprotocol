@@ -1,0 +1,19 @@
+{
+  "alg": "HS256",
+  "issuerAsserted": {
+    "alg": "HS256",
+    "expSeconds": 1.5,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n",
+    "secretVersion": "v1",
+    "sub": "s"
+  },
+  "payloadDerived": {
+    "toolCalls": []
+  },
+  "plannerDeclared": {
+    "intent": "x"
+  },
+  "version": 1
+}

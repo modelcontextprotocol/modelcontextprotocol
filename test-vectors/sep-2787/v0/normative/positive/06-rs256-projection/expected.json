@@ -1,0 +1,11 @@
+{
+  "alg": "RS256",
+  "args_commitment_kind": "projection",
+  "bucket": "normative/positive",
+  "case_id": "06-rs256-projection",
+  "notes": "HS256 / RS256 (PKCS1v15) are deterministic; re-signing canonical_signing_input.bin reproduces signed_envelope.signature.",
+  "signature_hex_deterministic": true,
+  "verification_result": true,
+  "verifying_material": "keys/rs256_public.pem",
+  "verifying_material_type": "rsa_public_key_spki_pem"
+}

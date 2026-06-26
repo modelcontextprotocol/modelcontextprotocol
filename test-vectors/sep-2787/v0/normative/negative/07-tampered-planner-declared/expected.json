@@ -1,0 +1,10 @@
+{
+  "alg": "HS256",
+  "bucket": "normative/negative",
+  "case_id": "07-tampered-planner-declared",
+  "notes": "Intent tampered after signing. Re-canonicalising and re-verifying must fail.",
+  "rejection_dimension": "signature_mismatch",
+  "verification_result": false,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}

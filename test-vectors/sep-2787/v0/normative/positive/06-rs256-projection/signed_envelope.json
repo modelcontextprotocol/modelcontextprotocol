@@ -1,0 +1,30 @@
+{
+  "alg": "RS256",
+  "issuerAsserted": {
+    "alg": "RS256",
+    "expSeconds": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secretVersion": "v1",
+    "sub": "agent:archiver"
+  },
+  "payloadDerived": {
+    "toolCalls": [
+      {
+        "args": {
+          "projection": "{\"policy\":\"Q4-retention\",\"redacted_path\":\"<redacted>\"}",
+          "projectionDigest": "sha256:acf154b947d3d10ba56a73c06b2af4d344dc0e2faeb191af96f81328557a48ac"
+        },
+        "name": "delete_file",
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "plannerDeclared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requestedCapability": "filesystem.delete"
+  },
+  "signature": "87dfc9f4b3f067271a04eafc536c818305d15a7d5d772e087c45ab59d20acb981f372e859d8fbe37c56c88e5640c0d8bc0b11efe4575187b25df2931e8558d93b199e88510f1556cd5d4c0569d5f69c1ccf36881b0e6dbb0522113f6efca00bb732a6f2f9d0fec8e077e2ace782126d57d135a7ca54bb7fda1dc9c5f270dbe10d91b0c8252e7cfd1067ffbd5dddab163d43a8c36db4ea91e94ebbb2f5333178c6e8c1ce815fe8aeff89e76c7615cf2d4ca5a58456ecc72f6e69ae89849ce86e6c2e54b1911cab6518a0d8f02e05f299a689c9673d4ee54037cefdb4eede27928dd3b6b10a1a6a58685bc809fa65a1ef9257761552e364238679b96c92f9465d4",
+  "version": 1
+}

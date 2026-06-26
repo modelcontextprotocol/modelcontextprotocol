@@ -1,0 +1,11 @@
+{
+  "alg": "HS256",
+  "bucket": "verifier-policy/negative",
+  "case_id": "10-ttl-expired-past-skew",
+  "notes": "iat well in past. Verifier with default skew must reject on TTL.",
+  "policy_dependency": "clock_skew_seconds",
+  "verification_result": false,
+  "verify_at_epoch": 1577923200,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}

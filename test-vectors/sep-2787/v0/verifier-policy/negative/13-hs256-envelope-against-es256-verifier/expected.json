@@ -1,0 +1,10 @@
+{
+  "alg": "HS256",
+  "bucket": "verifier-policy/negative",
+  "case_id": "13-hs256-envelope-against-es256-verifier",
+  "notes": "HS256 envelope handed to an ES256-only verifier. Alg-acceptance policy rejects.",
+  "policy_dependency": "alg_acceptance",
+  "verification_result": false,
+  "verifying_material": "keys/es256_public.pem",
+  "verifying_material_type": "ec_public_key_spki_pem"
+}

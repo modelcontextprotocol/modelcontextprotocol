@@ -1,0 +1,30 @@
+{
+  "alg": "HS512",
+  "issuerAsserted": {
+    "alg": "HS512",
+    "expSeconds": 300,
+    "iat": "2026-05-26T12:00:00Z",
+    "iss": "issuer://test",
+    "nonce": "n0_sep2787_v0_fixtures_pinned_",
+    "secretVersion": "v1",
+    "sub": "agent:archiver"
+  },
+  "payloadDerived": {
+    "toolCalls": [
+      {
+        "args": {
+          "projection": "{\"digest\":\"sha256:866290b000d2128e0a3188a7207d447090415dc321bfcc0ceed355bd7fd3e8f8\"}",
+          "projectionDigest": "sha256:031037d68e5734d3c48fa18fb1ed5e0a3b8ec61fa4cf2823b7320436452ca84a"
+        },
+        "name": "delete_file",
+        "serverFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    ]
+  },
+  "plannerDeclared": {
+    "intent": "archive obsolete report per Q4 retention policy",
+    "requestedCapability": "filesystem.delete"
+  },
+  "signature": "c9c3f6a5df79dca62a5120b51a2d8ca965222256bad78588750e83b2dc023f40",
+  "version": 1
+}

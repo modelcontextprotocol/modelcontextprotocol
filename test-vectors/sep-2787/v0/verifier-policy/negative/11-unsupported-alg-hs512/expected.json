@@ -1,0 +1,10 @@
+{
+  "alg": "HS512",
+  "bucket": "verifier-policy/negative",
+  "case_id": "11-unsupported-alg-hs512",
+  "notes": "alg HS512 outside supported set {HS256, ES256, RS256}. Verifier must reject.",
+  "policy_dependency": "alg_whitelist",
+  "verification_result": false,
+  "verifying_material": "keys/hs256_secret.bin",
+  "verifying_material_type": "shared_secret_bytes_32"
+}
