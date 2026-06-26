@@ -458,6 +458,12 @@
               "seps/2596-spec-feature-lifecycle-and-deprecation",
               "seps/2663-tasks-extension"
             ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2419-cache-hint-tool-result"
+            ]
           }
         ]
       },
