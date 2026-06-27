@@ -268,7 +268,9 @@ Consider a personalized AI travel planner application, with three connected serv
 
    The AI first reads all selected resources to gather context - identifying available dates from the calendar, learning preferred airlines and hotel types from travel preferences, and discovering previously enjoyed locations from past trips.
 
-   Using this context, the AI then executes a series of Tools:
+   The prompt template starts the planning workflow, but it does not have to list every tool call in advance. The AI application can see the tools exposed by connected servers and decides which ones are useful for the user's goal. In this example, because a Weather Server is connected and weather can affect travel plans, the AI chooses to call `checkWeather()`. If the Weather Server were not connected, that tool would not be available, so the AI would need to continue without it, ask the user to connect a weather source, or use another available source of weather context.
+
+   Using the available context and tools, the AI then executes a series of Tools:
    - `searchFlights()` - Queries airlines for NYC to Barcelona flights
    - `checkWeather()` - Retrieves climate forecasts for travel dates
 
