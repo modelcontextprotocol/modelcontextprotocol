@@ -1,6 +1,6 @@
 # SEP-2596: Specification Feature Lifecycle and Deprecation Policy
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Process
 - **Created**: 2026-04-17
 - **Author(s)**: Den Delimarsky (@localden)

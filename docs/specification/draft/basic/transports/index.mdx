@@ -1,0 +1,89 @@
+---
+title: Overview
+---
+
+<div id="enable-section-numbers" />
+
+This page defines what a transport must provide to carry MCP messages, the
+standard transport bindings, and the requirements for defining new ones.
+
+Protocol semantics are identical on every transport. A transport is a
+**binding**: it defines how messages are framed and delivered, how request
+metadata is carried, and how cancellation and termination are signaled. It
+does not define what the messages mean: the
+[message patterns](/specification/draft/basic/patterns) are part of the core
+protocol and are the same on every binding. The binding pages specify the
+standard transports:
+
+1. [stdio](/specification/draft/basic/transports/stdio): newline-delimited
+   messages over the standard streams of a client-launched subprocess.
+2. [Streamable HTTP](/specification/draft/basic/transports/streamable-http):
+   each message is an HTTP POST to a single MCP endpoint; replies arrive as
+   a JSON object or a request-scoped SSE stream.
+
+It is also possible for clients and servers to implement
+[custom transports](#custom-transports).
+
+## Messages
+
+MCP uses JSON-RPC to encode messages. JSON-RPC messages **MUST** be UTF-8
+encoded.
+
+A binding **MUST** deliver client-sent _requests_ and _notifications_ to the
+server, and server-sent _responses_ and _notifications_ to the client. No
+other message direction exists: per the
+[message patterns](/specification/draft/basic/patterns), servers do not
+initiate JSON-RPC requests and clients do not send JSON-RPC responses.
+
+## Request Metadata
+
+All protocol metadata travels in the message body: every request carries its
+protocol version, client identity, and client capabilities in
+[`_meta.io.modelcontextprotocol/*`](/specification/draft/basic/index#meta)
+fields.
+
+A binding **MAY** additionally mirror selected body fields into envelope
+metadata. The Streamable HTTP transport mirrors them into
+[HTTP headers](/specification/draft/basic/transports/streamable-http#request-metadata)
+so that intermediaries can route and inspect requests without parsing the
+body. The body remains the source of truth; bindings that mirror metadata
+define how mismatches are rejected.
+
+## Cancellation
+
+Each binding defines how a client abandons an in-flight request: on stdio
+the client sends a `notifications/cancelled` notification; on Streamable
+HTTP it closes the request's response stream. The protocol-level rules are
+the same everywhere; see
+[Cancellation](/specification/draft/basic/patterns/cancellation).
+
+## Custom Transports
+
+Clients and servers **MAY** implement additional custom transport mechanisms
+to suit their specific needs. The protocol is transport-agnostic and can be
+implemented over any communication channel that supports bidirectional
+message exchange.
+
+Implementers who choose to support custom transports **MUST** preserve the
+JSON-RPC message format, the
+[message patterns](/specification/draft/basic/patterns), and the per-request
+metadata model. Custom transports **SHOULD** document their connection
+establishment, message framing, and cancellation patterns to aid
+interoperability.
+
+Custom transports that run over a reliable bidirectional byte stream (e.g.,
+Unix domain sockets or TCP) **SHOULD** reuse the
+[stdio framing](/specification/draft/basic/transports/stdio) rather than
+defining a new one: the stdio binding is just newline-delimited JSON-RPC
+over a byte stream, and only its process-lifecycle rules are specific to
+standard streams.
+
+## Backward Compatibility
+
+Earlier protocol revisions established a connection-scoped session with an
+`initialize` handshake and allowed servers to initiate JSON-RPC requests.
+Clients and servers that interoperate with those revisions detect the
+counterpart's era and fall back as described in
+[Versioning: Backward Compatibility](/specification/draft/basic/versioning#backward-compatibility-with-initialization-based-versions),
+which includes a compatibility matrix for implementors. Each binding page
+describes its transport-specific detection mechanics.
