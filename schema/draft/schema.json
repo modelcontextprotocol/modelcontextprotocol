@@ -783,6 +783,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -919,6 +920,7 @@
                 }
             },
             "required": [
+                "elicitationId",
                 "message",
                 "mode",
                 "url"
