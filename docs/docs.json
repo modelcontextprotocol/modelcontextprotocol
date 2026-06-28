@@ -456,7 +456,12 @@
               "seps/2575-stateless-mcp",
               "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
-              "seps/2663-tasks-extension",
+              "seps/2663-tasks-extension"
+            ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
               "seps/2828-server-side-signed-execution-record"
             ]
           }
