@@ -337,16 +337,24 @@ HTTP header.
 **Constraints on `x-mcp-header` values:**
 
 - **MUST NOT** be empty
-- **MUST** contain only ASCII characters, excluding space and `:`
+- **MUST** match HTTP field-name token syntax (`1*tchar`, [RFC 9110 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-5.1))
+- **MUST NOT** contain control characters, including carriage return (CR, `\r`) or
+  line feed (LF, `\n`)
 - **MUST** be case-insensitively unique among all `x-mcp-header` values in the
   `inputSchema`
-- **MUST** only be applied to parameters with primitive types (number, string, boolean)
+- **MUST** only be applied to parameters with primitive types (integer, string, boolean).
+  Parameters with type `number` are not permitted. Integer values **MUST** be within the
+  safe range for integers represented using IEEE754 double-precision floating point numbers (−2<sup>53</sup>+1 to 2<sup>53</sup>−1)
+- **MAY** be applied to properties at any nesting depth within the `inputSchema`, not
+  only top-level properties
 
-Clients **MUST** reject tool definitions where any `x-mcp-header` value violates these
-constraints. Rejection means the client **MUST** exclude the invalid tool from the result
-of `tools/list`. Clients **SHOULD** log a warning when rejecting a tool definition,
-including the tool name and the reason for rejection. This ensures that a single
-malformed tool definition does not prevent other valid tools from being used.
+Clients using the Streamable HTTP transport **MUST** reject tool definitions where any
+`x-mcp-header` value violates these constraints. Rejection means the client **MUST**
+exclude the invalid tool from the result of `tools/list`. Clients **SHOULD** log a
+warning when rejecting a tool definition, including the tool name and the reason for
+rejection. This ensures that a single malformed tool definition does not prevent other
+valid tools from being used. Clients using other transports (e.g., stdio) **MAY** ignore
+`x-mcp-header` annotations entirely.
 
 **Example tool definition with `x-mcp-header`:**
 

@@ -23,11 +23,6 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 
 7. Multi Round-Trip Requests (MRTR) pattern introduced which replaces the previous approach of sending server-initiated requests, such as `roots/list`, `sampling/createMessage`, or `elicitation/create`. Servers return `inputRequests`, a new resultType containing the additional information needed to process the request. Clients respond with `inputResponses` on the next request providing the requested information. ([SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)).
 
-8. Deprecate the Roots, Sampling, and Logging features
-   ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
-   These features remain fully functional during the deprecation window but new
-   implementations should not add support for them.
-
 ## Minor changes
 
 1. Add `extensions` field to `ClientCapabilities` and `ServerCapabilities` to support optional [extensions](/docs/extensions/overview) beyond the core protocol.
@@ -37,13 +32,42 @@ the previous revision, [2025-11-25](/specification/2025-11-25).
 5. Require `ttlMs` and `cacheScope` fields on results returned by `tools/list`, `prompts/list`, `resources/list`, `resources/read`, and `resources/templates/list` via a new `CacheableResult` interface. `ttlMs` is a freshness hint (in milliseconds) allowing clients to cache responses and reduce polling; `cacheScope` (`"public"` or `"private"`) controls whether shared intermediaries may cache the response. Both fields complement existing `listChanged` notifications ([SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2549)).
 6. Change resource not found error code from `-32002` to `-32602` (Invalid Params) to align with JSON-RPC specification.
 
+## Deprecated
+
+Features listed here remain part of the specification but are scheduled for removal under the [feature lifecycle and deprecation policy](/community/feature-lifecycle). New implementations should not adopt them. The [deprecated features registry](/specification/draft/deprecated) tracks every feature currently in the Deprecated state.
+
+1. Deprecate the Roots, Sampling, and Logging features
+   ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)).
+   These features remain fully functional during the deprecation window but new
+   implementations should not add support for them. Suggested migrations: pass
+   directories or files via tool parameters, resource URIs, or server
+   configuration instead of Roots; integrate directly with LLM provider APIs
+   instead of Sampling; log to `stderr` (stdio) or use OpenTelemetry instead of
+   Logging.
+
+2. Reclassify the HTTP+SSE transport (deprecated since protocol version
+   `2025-03-26`) as Deprecated under the feature lifecycle policy
+   ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+   Migrate to [Streamable HTTP](/specification/draft/basic/transports#streamable-http).
+
+3. Reclassify the `includeContext` values `"thisServer"` and `"allServers"`
+   (soft-deprecated since protocol version `2025-11-25`) as Deprecated
+   ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
+   Omit the field or use `"none"`; these values will be removed no later than
+   the Sampling feature itself.
+
 ## Other schema changes
 
-N/A
+1. `schema.json` now correctly reflects that the Typescript definition of wminimum/maximum/default are `number`'s and not just `integers`. This was casued by using the generator using `--defaultNumberType integer` ([PR#2710](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2710)).
 
 ## Governance and process updates
 
-N/A
+1. Adopt a specification
+   [feature lifecycle and deprecation policy](/community/feature-lifecycle)
+   defining the Active, Deprecated, and Removed feature states, a minimum
+   twelve-month deprecation window, and a
+   [registry of deprecated features](/specification/draft/deprecated)
+   ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
 
 ## Process changes
 

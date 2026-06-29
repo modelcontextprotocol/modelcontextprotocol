@@ -79,6 +79,8 @@ can use to determine how to parse and handle the `result` object.
 
 - A `resultType` of `"complete"` indicates the request completed successfully and the result contains the final content.
 - A `resultType` of `"input_required"` indicates the request is incomplete and more information is needed to process the request. The result contains an `InputRequiredResult` object with additional information needed.
+- Extensions **MAY** add additional `ResultType` values. The set of supported `ResultType` values **MUST** be created from the set defined in the core protocol and include any additional values of supported extensions that are advertised via capabilities.
+- A `resultType` of any value unrecognized by the client **MUST** be considered invalid.
 - For backward compatibility with servers implementing earlier protocol versions, which do not include `resultType`, clients **MUST** treat an absent `resultType` as `"complete"`.
 
 #### Error Responses
@@ -232,12 +234,12 @@ in `_meta`. Servers use these to identify the client and the protocol version in
 without relying on any prior connection state. See
 [Lifecycle][lifecycle] for version negotiation rules.
 
-| Key                                          | Type                 | Required | Description                                                 |
-| -------------------------------------------- | -------------------- | -------- | ----------------------------------------------------------- |
-| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"DRAFT-2026-v1"`) |
-| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                     |
-| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request                |
-| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request   |
+| Key                                          | Type                 | Required | Description                                               |
+| -------------------------------------------- | -------------------- | -------- | --------------------------------------------------------- |
+| `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"2026-07-28"`)  |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                   |
+| `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
+| `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
 
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
