@@ -313,34 +313,6 @@
         ]
       },
       {
-        "tab": "Extensions",
-        "pages": [
-          "extensions/overview",
-          "extensions/client-matrix",
-          {
-            "group": "MCP Apps",
-            "pages": [
-              "extensions/apps/overview",
-              "extensions/apps/build"
-            ]
-          },
-          {
-            "group": "Authorization Extensions",
-            "pages": [
-              "extensions/auth/overview",
-              "extensions/auth/oauth-client-credentials",
-              "extensions/auth/enterprise-managed-authorization"
-            ]
-          },
-          {
-            "group": "Tasks",
-            "pages": [
-              "extensions/tasks/overview"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "Specification",
         "versions": [
           {
@@ -612,6 +584,34 @@
                 ]
               },
               "specification/draft/schema"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
+          },
+          {
+            "group": "Authorization Extensions",
+            "pages": [
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
+            ]
+          },
+          {
+            "group": "Tasks",
+            "pages": [
+              "extensions/tasks/overview"
             ]
           }
         ]
