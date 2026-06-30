@@ -26,64 +26,7 @@
         "tab": "Documentation",
         "versions": [
           {
-            "version": "Version 2026-07-28 (latest)",
-            "pages": [
-              {
-                "group": "Get started",
-                "pages": [
-                  "docs/2026-07-28/getting-started/intro"
-                ]
-              },
-              {
-                "group": "About MCP",
-                "pages": [
-                  "docs/2026-07-28/learn/architecture",
-                  "docs/2026-07-28/learn/server-concepts",
-                  "docs/2026-07-28/learn/client-concepts",
-                  "docs/2026-07-28/learn/versioning"
-                ]
-              },
-              {
-                "group": "Develop with MCP",
-                "pages": [
-                  "docs/2026-07-28/develop/connect-local-servers",
-                  "docs/2026-07-28/develop/connect-remote-servers",
-                  "docs/2026-07-28/develop/build-with-agent-skills",
-                  "docs/2026-07-28/develop/build-server",
-                  {
-                    "group": "Clients",
-                    "pages": [
-                      "docs/2026-07-28/develop/build-client",
-                      "docs/2026-07-28/develop/clients/client-best-practices"
-                    ]
-                  },
-                  "docs/2026-07-28/sdk",
-                  {
-                    "group": "Security",
-                    "pages": [
-                      "docs/2026-07-28/tutorials/security/authorization",
-                      "docs/2026-07-28/tutorials/security/security_best_practices"
-                    ]
-                  }
-                ]
-              },
-              {
-                "group": "Developer tools",
-                "pages": [
-                  "docs/2026-07-28/tools/inspector",
-                  "docs/2026-07-28/tools/debugging"
-                ]
-              },
-              {
-                "group": "Examples",
-                "pages": [
-                  "examples"
-                ]
-              }
-            ]
-          },
-          {
-            "version": "Version 2025-11-25",
+            "version": "Version 2025-11-25 (latest)",
             "pages": [
               {
                 "group": "Get started",
@@ -300,6 +243,63 @@
                 "pages": [
                   "docs/2024-11-05/tools/inspector",
                   "docs/2024-11-05/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
+                ]
+              }
+            ]
+          },
+          {
+            "version": "Draft",
+            "pages": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "docs/draft/getting-started/intro"
+                ]
+              },
+              {
+                "group": "About MCP",
+                "pages": [
+                  "docs/draft/learn/architecture",
+                  "docs/draft/learn/server-concepts",
+                  "docs/draft/learn/client-concepts",
+                  "docs/draft/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/draft/develop/connect-local-servers",
+                  "docs/draft/develop/connect-remote-servers",
+                  "docs/draft/develop/build-with-agent-skills",
+                  "docs/draft/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/draft/develop/build-client",
+                      "docs/draft/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/draft/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/draft/tutorials/security/authorization",
+                      "docs/draft/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  "docs/draft/tools/inspector",
+                  "docs/draft/tools/debugging"
                 ]
               },
               {
@@ -776,7 +776,7 @@
   "redirects": [
     {
       "source": "/clients",
-      "destination": "/docs/2026-07-28/getting-started/intro"
+      "destination": "/docs/2025-11-25/getting-started/intro"
     },
     {
       "source": "/community/auth/charter",
@@ -824,7 +824,7 @@
     },
     {
       "source": "/specification/versioning",
-      "destination": "/docs/2026-07-28/learn/versioning"
+      "destination": "/docs/2025-11-25/learn/versioning"
     },
     {
       "source": "/specification/latest",
@@ -838,31 +838,31 @@
     },
     {
       "source": "/tutorials/building-a-client",
-      "destination": "/docs/2026-07-28/develop/build-client"
+      "destination": "/docs/2025-11-25/develop/build-client"
     },
     {
       "source": "/tutorials/building-a-client-node",
-      "destination": "/docs/2026-07-28/develop/build-client"
+      "destination": "/docs/2025-11-25/develop/build-client"
     },
     {
       "source": "/tutorials/building-mcp-with-llms",
-      "destination": "/docs/2026-07-28/develop/build-with-agent-skills"
+      "destination": "/docs/2025-11-25/develop/build-with-agent-skills"
     },
     {
       "source": "/faqs",
-      "destination": "/docs/2026-07-28/getting-started/intro"
+      "destination": "/docs/2025-11-25/getting-started/intro"
     },
     {
       "source": "/docs/tutorials/use-local-mcp-server",
-      "destination": "/docs/2026-07-28/develop/connect-local-servers"
+      "destination": "/docs/2025-11-25/develop/connect-local-servers"
     },
     {
       "source": "/quickstart",
-      "destination": "/docs/2026-07-28/develop/build-server"
+      "destination": "/docs/2025-11-25/develop/build-server"
     },
     {
       "source": "/docs/concepts/architecture",
-      "destination": "/docs/2026-07-28/learn/architecture"
+      "destination": "/docs/2025-11-25/learn/architecture"
     },
     {
       "source": "/docs/concepts/elicitation",
@@ -894,7 +894,7 @@
     },
     {
       "source": "/legacy/tools/debugging",
-      "destination": "/docs/2026-07-28/tools/debugging"
+      "destination": "/docs/2025-11-25/tools/debugging"
     },
     {
       "source": "/legacy/concepts/architecture",
@@ -930,31 +930,31 @@
     },
     {
       "source": "/legacy/tools/inspector",
-      "destination": "/docs/2026-07-28/tools/inspector"
+      "destination": "/docs/2025-11-25/tools/inspector"
     },
     {
       "source": "/introduction",
-      "destination": "/docs/2026-07-28/getting-started/intro"
+      "destination": "/docs/2025-11-25/getting-started/intro"
     },
     {
       "source": "/docs/concepts",
-      "destination": "/docs/2026-07-28/learn/architecture"
+      "destination": "/docs/2025-11-25/learn/architecture"
     },
     {
       "source": "/docs/tutorials/use-remote-mcp-server",
-      "destination": "/docs/2026-07-28/develop/connect-remote-servers"
+      "destination": "/docs/2025-11-25/develop/connect-remote-servers"
     },
     {
       "source": "/quickstart/user",
-      "destination": "/docs/2026-07-28/develop/connect-local-servers"
+      "destination": "/docs/2025-11-25/develop/connect-local-servers"
     },
     {
       "source": "/quickstart/server",
-      "destination": "/docs/2026-07-28/develop/build-server"
+      "destination": "/docs/2025-11-25/develop/build-server"
     },
     {
       "source": "/quickstart/client",
-      "destination": "/docs/2026-07-28/develop/build-client"
+      "destination": "/docs/2025-11-25/develop/build-client"
     },
     {
       "source": "/development/contributing",
@@ -962,15 +962,15 @@
     },
     {
       "source": "/specification/draft/basic/security_best_practices",
-      "destination": "/docs/2026-07-28/tutorials/security/security_best_practices"
+      "destination": "/docs/draft/tutorials/security/security_best_practices"
     },
     {
       "source": "/specification/2025-11-25/basic/security_best_practices",
-      "destination": "/docs/2026-07-28/tutorials/security/security_best_practices"
+      "destination": "/docs/2025-11-25/tutorials/security/security_best_practices"
     },
     {
       "source": "/specification/2025-06-18/basic/security_best_practices",
-      "destination": "/docs/2026-07-28/tutorials/security/security_best_practices"
+      "destination": "/docs/2025-11-25/tutorials/security/security_best_practices"
     },
     {
       "source": "/extensions",
@@ -998,42 +998,42 @@
     },
     {
       "source": "/docs/latest",
-      "destination": "/docs/2026-07-28/getting-started/intro",
+      "destination": "/docs/2025-11-25/getting-started/intro",
       "permanent": false
     },
     {
       "source": "/docs/latest/:slug*",
-      "destination": "/docs/2026-07-28/:slug*",
+      "destination": "/docs/2025-11-25/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/sdk",
-      "destination": "/docs/2026-07-28/sdk",
+      "destination": "/docs/2025-11-25/sdk",
       "permanent": false
     },
     {
       "source": "/docs/getting-started/:slug*",
-      "destination": "/docs/2026-07-28/getting-started/:slug*",
+      "destination": "/docs/2025-11-25/getting-started/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/learn/:slug*",
-      "destination": "/docs/2026-07-28/learn/:slug*",
+      "destination": "/docs/2025-11-25/learn/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/develop/:slug*",
-      "destination": "/docs/2026-07-28/develop/:slug*",
+      "destination": "/docs/2025-11-25/develop/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/tools/:slug*",
-      "destination": "/docs/2026-07-28/tools/:slug*",
+      "destination": "/docs/2025-11-25/tools/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/tutorials/:slug*",
-      "destination": "/docs/2026-07-28/tutorials/:slug*",
+      "destination": "/docs/2025-11-25/tutorials/:slug*",
       "permanent": false
     }
   ],

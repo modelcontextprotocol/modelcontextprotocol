@@ -15,7 +15,7 @@ We'll build a server that exposes two tools: `get_alerts` and `get_forecast`. Th
 
 <Note>
 
-Servers can connect to any client. We've chosen Claude for Desktop here for simplicity, but we also have a guide on [building your own client](/docs/2026-07-28/develop/build-client).
+Servers can connect to any client. We've chosen Claude for Desktop here for simplicity, but we also have a guide on [building your own client](/docs/draft/develop/build-client).
 
 </Note>
 
@@ -23,9 +23,9 @@ Servers can connect to any client. We've chosen Claude for Desktop here for simp
 
 MCP servers can provide three main types of capabilities:
 
-1. **[Resources](/docs/2026-07-28/learn/server-concepts#resources)**: File-like data that can be read by clients (like API responses or file contents)
-2. **[Tools](/docs/2026-07-28/learn/server-concepts#tools)**: Functions that can be called by the LLM (with user approval)
-3. **[Prompts](/docs/2026-07-28/learn/server-concepts#prompts)**: Pre-written templates that help users accomplish specific tasks
+1. **[Resources](/docs/draft/learn/server-concepts#resources)**: File-like data that can be read by clients (like API responses or file contents)
+2. **[Tools](/docs/draft/learn/server-concepts#tools)**: Functions that can be called by the LLM (with user approval)
+3. **[Prompts](/docs/draft/learn/server-concepts#prompts)**: Pre-written templates that help users accomplish specific tasks
 
 This tutorial will primarily focus on tools.
 
@@ -267,7 +267,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -751,7 +751,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -1431,7 +1431,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -1705,7 +1705,7 @@ This will start the server and listen for incoming requests on standard input/ou
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -2015,7 +2015,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -2453,7 +2453,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -2898,7 +2898,7 @@ Let's now test your server from an existing MCP host, Claude for Desktop.
 
 <Note>
 
-Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/2026-07-28/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
+Claude for Desktop is not yet available on Linux. Linux users can proceed to the [Building a client](/docs/draft/develop/build-client) tutorial to build an MCP client that connects to the server we just built.
 
 </Note>
 
@@ -3055,7 +3055,7 @@ If Claude attempts to use the tools but they fail:
 
 **None of this is working. What do I do?**
 
-Please refer to our [debugging guide](/docs/2026-07-28/tools/debugging) for better debugging tools and more detailed guidance.
+Please refer to our [debugging guide](/docs/draft/tools/debugging) for better debugging tools and more detailed guidance.
 
 </Accordion>
 <Accordion title="Weather API Issues">
@@ -3084,7 +3084,7 @@ This isn't an error - it just means there are no current weather alerts for that
 
 <Note>
 
-For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/2026-07-28/tools/debugging)
+For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/draft/tools/debugging)
 
 </Note>
 
@@ -3094,24 +3094,20 @@ For more advanced troubleshooting, check out our guide on [Debugging MCP](/docs/
   <Card
     title="Building a client"
     icon="outlet"
-    href="/docs/2026-07-28/develop/build-client"
+    href="/docs/draft/develop/build-client"
   >
     Learn how to build your own MCP client that can connect to your server
   </Card>
   <Card title="Example servers" icon="grid" href="/examples">
     Check out our gallery of official MCP servers and implementations
   </Card>
-  <Card
-    title="Debugging Guide"
-    icon="bug"
-    href="/docs/2026-07-28/tools/debugging"
-  >
+  <Card title="Debugging Guide" icon="bug" href="/docs/draft/tools/debugging">
     Learn how to effectively debug MCP servers and integrations
   </Card>
   <Card
     title="Build with Agent Skills"
     icon="comments"
-    href="/docs/2026-07-28/develop/build-with-agent-skills"
+    href="/docs/draft/develop/build-with-agent-skills"
   >
     Use agent skills to guide AI coding assistants through server design
   </Card>

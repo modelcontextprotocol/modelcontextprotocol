@@ -11,7 +11,7 @@ available in the MCP ecosystem.
 
 MCP provides several tools for debugging at different levels:
 
-1. **[MCP Inspector](/docs/2026-07-28/tools/inspector)**: interactive, transport-agnostic
+1. **[MCP Inspector](/docs/draft/tools/inspector)**: interactive, transport-agnostic
    testing UI. Connect to stdio or Streamable HTTP servers, invoke
    [tools](/specification/latest/server/tools),
    [prompts](/specification/latest/server/prompts), and
@@ -90,7 +90,7 @@ Important events to log:
 ## Common issues
 
 The examples below use Claude Desktop's
-[`claude_desktop_config.json`](/docs/2026-07-28/develop/connect-local-servers); the same
+[`claude_desktop_config.json`](/docs/draft/develop/connect-local-servers); the same
 principles apply to any stdio-based MCP client.
 
 ### Working directory
@@ -171,7 +171,7 @@ When servers fail to connect:
 
 1. Check client logs
 2. Verify server process is running
-3. Test standalone with [Inspector](/docs/2026-07-28/tools/inspector)
+3. Test standalone with [Inspector](/docs/draft/tools/inspector)
 4. Verify
    [protocol compatibility](/specification/latest/basic/lifecycle#version-negotiation)
 5. Check
@@ -262,7 +262,7 @@ Use the Network panel to inspect:
 ### Development cycle
 
 1. Initial Development
-   - Use [Inspector](/docs/2026-07-28/tools/inspector) for basic testing
+   - Use [Inspector](/docs/draft/tools/inspector) for basic testing
    - Implement core functionality
    - Add logging points
 
@@ -278,7 +278,7 @@ To test changes efficiently:
 - **Configuration changes**: Restart the MCP client
 - **Server code changes**: Restart the client (for Claude Desktop, fully quit
   and reopen; closing the window is not enough)
-- **Quick iteration**: Use [Inspector](/docs/2026-07-28/tools/inspector) during
+- **Quick iteration**: Use [Inspector](/docs/draft/tools/inspector) during
   development
 
 ## Best practices
@@ -318,7 +318,7 @@ When debugging:
    - Monitor access patterns
 
 For a full treatment of MCP attack vectors and mitigations, see
-[Security Best Practices](/docs/2026-07-28/tutorials/security/security_best_practices).
+[Security Best Practices](/docs/draft/tutorials/security/security_best_practices).
 
 ## Getting help
 
@@ -326,7 +326,7 @@ When encountering issues:
 
 1. **First Steps**
    - Check server logs
-   - Test with [Inspector](/docs/2026-07-28/tools/inspector)
+   - Test with [Inspector](/docs/draft/tools/inspector)
    - Review configuration
    - Verify environment
 
@@ -346,21 +346,21 @@ When encountering issues:
   <Card
     title="MCP Inspector"
     icon="magnifying-glass"
-    href="/docs/2026-07-28/tools/inspector"
+    href="/docs/draft/tools/inspector"
   >
     Learn to use the MCP Inspector
   </Card>
   <Card
     title="Build an MCP server"
     icon="code"
-    href="/docs/2026-07-28/develop/build-server"
+    href="/docs/draft/develop/build-server"
   >
     Walk through building a server from scratch
   </Card>
   <Card
     title="Connect local servers"
     icon="plug"
-    href="/docs/2026-07-28/develop/connect-local-servers"
+    href="/docs/draft/develop/connect-local-servers"
   >
     Full claude_desktop_config.json reference and troubleshooting
   </Card>

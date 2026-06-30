@@ -16,12 +16,15 @@ const SECTIONS = [
     latestAliasPath: "/specification/latest",
     storageKey: "mcp-latest-spec-version",
     noun: "specification",
+    draftMessage: "You are viewing a draft of a not-yet-finalized specification.",
   },
   {
     pathRegex: /\/docs\/(\d{4}-\d{2}-\d{2}|draft|latest)(\/.*)?$/,
     latestAliasPath: "/docs/latest",
     storageKey: "mcp-latest-docs-version",
     noun: "documentation",
+    draftMessage:
+      "You are viewing draft documentation for a not-yet-finalized specification.",
   },
 ];
 const BANNER_ATTR = "data-spec-version-banner";
@@ -155,7 +158,7 @@ async function insertWarningBanner() {
 
     const isDraft = current.version === DRAFT_VERSION;
     const message = isDraft
-      ? "You are viewing a draft of a not-yet-finalized specification."
+      ? current.section.draftMessage
       : `You are viewing an older version (${current.version}) of the ${current.section.noun}.`;
 
     const banner = createBanner(message, latestHref, linkText, isDraft);
