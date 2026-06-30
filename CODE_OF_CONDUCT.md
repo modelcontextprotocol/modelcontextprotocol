@@ -118,10 +118,13 @@ When submitting an appeal, please include:
 
 - The account or username affected by the action
 - The action you are appealing (for example, a temporary or permanent ban)
-- Why you believe the action should be reconsidered
+- Why you believe the action should be reconsidered, with thorough evidence supporting
+  any surrounding context
 
-Appeals are reviewed by the moderation and lead maintainer team. We will consider your
-request and respond as promptly and fairly as we can.
+Appeals are reviewed by the moderation and lead maintainer team. While we will make an
+effort to respond to appeals filed in good faith, bandwidth contraints mean we may not
+be able to respond to every appeal. We will only review one appeal per enforcement action,
+so please be thorough when submitting your appeal.
 
 ## Attribution
 
