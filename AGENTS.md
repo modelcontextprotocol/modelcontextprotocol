@@ -27,7 +27,7 @@ This change was submitted despite me reading the rules and understanding AI cont
 ## Documentation Structure
 
 - `docs/` - Mintlify site (`npm run serve:docs`)
-  - `docs/docs/` - guides and tutorials
+  - `docs/docs/` - guides and tutorials, versioned like the spec: `docs/docs/[YYYY-MM-DD]/` per spec version, with the newest version as the canonical docs
   - `docs/specification/` - MCP specification (more formal, versioned)
 - `blog/` - Hugo blog (`npm run serve:blog`)
 
