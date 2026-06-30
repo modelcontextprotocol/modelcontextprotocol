@@ -122,7 +122,7 @@ When submitting an appeal, please include:
   any surrounding context
 
 Appeals are reviewed by the moderation and lead maintainer team. While we will make an
-effort to respond to appeals filed in good faith, bandwidth contraints mean we may not
+effort to respond to appeals filed in good faith, bandwidth constraints mean we may not
 be able to respond to every appeal. We will only review one appeal per enforcement action,
 so please be thorough when submitting your appeal.
 
