@@ -4,12 +4,7 @@
  * @category Common Types
  */
 export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONObject
-  | JSONArray;
+  string | number | boolean | null | JSONObject | JSONArray;
 
 /**
  * @category Common Types
@@ -29,9 +24,7 @@ export type JSONArray = JSONValue[];
  * @category JSON-RPC
  */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "2026-07-28";
@@ -511,15 +504,11 @@ export type EmptyResult = Result;
 
 /** @internal */
 export type InputRequest =
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest;
+  CreateMessageRequest | ListRootsRequest | ElicitRequest;
 
 /** @internal */
 export type InputResponse =
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult;
+  CreateMessageResult | ListRootsResult | ElicitResult;
 
 /**
  * A map of server-initiated requests that the client must fulfill.
@@ -2268,11 +2257,7 @@ export interface Annotations {
  * @category Content
  */
 export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Text provided to or from an LLM.
@@ -2812,8 +2797,7 @@ export interface ElicitRequestURLParams {
  * @category `elicitation/create`
  */
 export type ElicitRequestParams =
-  | ElicitRequestFormParams
-  | ElicitRequestURLParams;
+  ElicitRequestFormParams | ElicitRequestURLParams;
 
 /**
  * A request from the server to elicit additional information from the user via the client.
@@ -2835,10 +2819,7 @@ export interface ElicitRequest {
  * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema;
+  StringSchema | NumberSchema | BooleanSchema | EnumSchema;
 
 /**
  * @example Email input schema
@@ -2963,8 +2944,7 @@ export interface TitledSingleSelectEnumSchema {
  */
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
-  | UntitledSingleSelectEnumSchema
-  | TitledSingleSelectEnumSchema;
+  UntitledSingleSelectEnumSchema | TitledSingleSelectEnumSchema;
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
@@ -3063,8 +3043,7 @@ export interface TitledMultiSelectEnumSchema {
  */
 // Combined multiple selection enumeration
 export type MultiSelectEnumSchema =
-  | UntitledMultiSelectEnumSchema
-  | TitledMultiSelectEnumSchema;
+  UntitledMultiSelectEnumSchema | TitledMultiSelectEnumSchema;
 
 /**
  * Use {@link TitledSingleSelectEnumSchema} instead.
@@ -3090,9 +3069,7 @@ export interface LegacyTitledEnumSchema {
  */
 // Union type for all enum schemas
 export type EnumSchema =
-  | SingleSelectEnumSchema
-  | MultiSelectEnumSchema
-  | LegacyTitledEnumSchema;
+  SingleSelectEnumSchema | MultiSelectEnumSchema | LegacyTitledEnumSchema;
 
 /**
  * The result returned by the client for an {@link ElicitRequest| elicitation/create} request.
