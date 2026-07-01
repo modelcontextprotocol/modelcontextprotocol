@@ -1,17 +1,24 @@
 <svg viewBox="0 0 960 272" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+  <defs>
+    <pattern id="wip" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <rect width="6" height="12" fill="var(--line)"/>
+    </pattern>
+  </defs>
   <style>
-    :root { --fg:#18181b; --muted:#71717a; --line:#d4d4d8; --accent:#0ea5e9; }
+    :root { --fg:#18181b; --muted:#71717a; --line:#d4d4d8; --accent:#0ea5e9; --bg:#ffffff; }
     @media (prefers-color-scheme: dark) {
-      :root { --fg:#e4e4e7; --muted:#a1a1aa; --line:#3f3f46; --accent:#38bdf8; }
+      :root { --fg:#e4e4e7; --muted:#a1a1aa; --line:#3f3f46; --accent:#38bdf8; --bg:#18181b; }
     }
-    .box     { fill: none; stroke: var(--fg);    stroke-width: 1.5; rx: 8; }
-    .box-mut { fill: none; stroke: var(--muted); stroke-width: 1.5; rx: 8; }
-    .box-acc { fill: none; stroke: var(--accent);stroke-width: 1.5; rx: 8; }
-    .pill    { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+    .box     { fill: none; stroke: var(--fg);    stroke-width: 1.5; }
+    .box-mut { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+    .box-acc { fill: none; stroke: var(--accent);stroke-width: 1.5; }
+    .box-wip { fill: url(#wip); stroke: var(--muted); stroke-width: 1.5; }
     .lbl     { fill: var(--fg);    font-size: 14px; text-anchor: middle; dominant-baseline: middle; }
     .lbl-sm  { fill: var(--muted); font-size: 12px; text-anchor: middle; dominant-baseline: middle; }
+    .lbl-wip { fill: var(--muted); font-size: 13px; text-anchor: middle; dominant-baseline: middle; font-weight: 600; }
     .tier    { fill: var(--muted); font-size: 11px; text-anchor: end; dominant-baseline: middle; letter-spacing: 0.08em; font-weight: 600; }
     .ver     { fill: var(--accent); font-size: 12px; text-anchor: middle; font-family: ui-monospace,Menlo,monospace; font-weight: 600; }
+    .chip    { fill: var(--bg); stroke: var(--muted); stroke-width: 1.5; }
   </style>
 
   <!-- tier labels -->
@@ -39,20 +46,21 @@
   <text class="lbl-sm" x="857" y="71">SaaS API</text>
 
   <!-- middle layer: SDKs -->
-  <rect class="box-acc" x="152" y="118" width="160" height="54" rx="8"/>
-  <text class="lbl" x="232" y="145">Python</text>
+  <rect class="box-acc" x="152" y="118" width="148" height="54" rx="8"/>
+  <text class="lbl" x="226" y="145">Python</text>
 
-  <rect class="box-acc" x="324" y="118" width="160" height="54" rx="8"/>
-  <text class="lbl" x="404" y="145">TypeScript</text>
+  <rect class="box-acc" x="309" y="118" width="148" height="54" rx="8"/>
+  <text class="lbl" x="383" y="145">TypeScript</text>
 
-  <rect class="box-acc" x="496" y="118" width="160" height="54" rx="8"/>
-  <text class="lbl" x="576" y="145">Go</text>
+  <rect class="box-acc" x="466" y="118" width="148" height="54" rx="8"/>
+  <text class="lbl" x="540" y="145">Go</text>
 
-  <rect class="box-acc" x="668" y="118" width="160" height="54" rx="8"/>
-  <text class="lbl" x="748" y="145">C#</text>
+  <rect class="box-acc" x="623" y="118" width="148" height="54" rx="8"/>
+  <text class="lbl" x="697" y="145">C#</text>
 
-  <rect class="pill" x="842" y="132" width="86" height="26" rx="13"/>
-  <text class="lbl-sm" x="885" y="145">+ more</text>
+  <rect class="box-wip" x="780" y="118" width="148" height="54" rx="8"/>
+  <rect class="chip" x="812" y="133" width="84" height="24" rx="12"/>
+  <text class="lbl-wip" x="854" y="145">+ more</text>
 
   <!-- bottom layer: spec -->
   <rect class="box" x="152" y="192" width="776" height="66" rx="8"/>
