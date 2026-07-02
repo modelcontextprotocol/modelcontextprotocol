@@ -123,7 +123,7 @@
             "description": "A result that supports a time-to-live (TTL) hint for client-side caching.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -208,7 +208,7 @@
             "description": "The result returned by the server for a {@link CallToolRequesttools/call} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "content": {
                     "description": "A list of content objects that represent the unstructured result of the tool call.",
@@ -501,7 +501,7 @@
             "description": "The result returned by the server for a {@link CompleteRequestcompletion/complete} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "completion": {
                     "properties": {
@@ -740,7 +740,7 @@
             "description": "The result returned by the server for a {@link DiscoverRequestserver/discover} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -764,7 +764,7 @@
                 },
                 "serverInfo": {
                     "$ref": "#/$defs/Implementation",
-                    "description": "Information about the server software implementation."
+                    "description": "Information about the server software implementation.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
                 },
                 "supportedVersions": {
                     "description": "MCP Protocol Versions this server supports. The client should choose a\nversion from this list for use in subsequent requests.",
@@ -1084,7 +1084,7 @@
             "description": "The result returned by the server for a {@link GetPromptRequestprompts/get} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "description": {
                     "description": "An optional description for the prompt.",
@@ -1310,7 +1310,7 @@
             "description": "An InputRequiredResult sent by the server to indicate that additional input is needed\nbefore the request can be completed.\n\nAt least one of `inputRequests` or `requestState` MUST be present.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "inputRequests": {
                     "$ref": "#/$defs/InputRequests"
@@ -1644,7 +1644,7 @@
             "description": "The result returned by the server for a {@link ListPromptsRequestprompts/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -1733,7 +1733,7 @@
             "description": "The result returned by the server for a {@link ListResourceTemplatesRequestresources/templates/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -1822,7 +1822,7 @@
             "description": "The result returned by the server for a {@link ListResourcesRequestresources/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -1947,7 +1947,7 @@
             "description": "The result returned by the server for a {@link ListToolsRequesttools/list} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -2299,7 +2299,7 @@
         "PaginatedResult": {
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
@@ -2600,7 +2600,7 @@
             "description": "The result returned by the server for a {@link ReadResourceRequestresources/read} request.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "cacheScope": {
                     "description": "Indicates the intended scope of the cached response, analogous to HTTP\n`Cache-Control: public` vs `Cache-Control: private`.\n\n- `\"public\"`: The response does not contain user-specific data. Any\n  client or intermediary (e.g., shared gateway, caching proxy) MAY cache\n  the response and serve it across authorization contexts.\n- `\"private\"`: The response MAY be cached and reused only within the\n  same authorization context. Caches MUST NOT be shared across\n  authorization contexts (e.g., a different access token requires a\n  different cache).",
@@ -2700,7 +2700,7 @@
                 },
                 "io.modelcontextprotocol/clientInfo": {
                     "$ref": "#/$defs/Implementation",
-                    "description": "Identifies the client software making the request. Required.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional."
+                    "description": "Identifies the client software making the request. Optional.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the client and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Servers\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
                 },
                 "io.modelcontextprotocol/logLevel": {
                     "$ref": "#/$defs/LoggingLevel",
@@ -2717,7 +2717,6 @@
             },
             "required": [
                 "io.modelcontextprotocol/clientCapabilities",
-                "io.modelcontextprotocol/clientInfo",
                 "io.modelcontextprotocol/protocolVersion"
             ],
             "type": "object"
@@ -3005,7 +3004,7 @@
             "description": "Common result fields.",
             "properties": {
                 "_meta": {
-                    "$ref": "#/$defs/MetaObject"
+                    "$ref": "#/$defs/ResultMetaObject"
                 },
                 "resultType": {
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
@@ -3015,6 +3014,16 @@
             "required": [
                 "resultType"
             ],
+            "type": "object"
+        },
+        "ResultMetaObject": {
+            "description": "Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.",
+            "properties": {
+                "io.modelcontextprotocol/serverInfo": {
+                    "$ref": "#/$defs/Implementation",
+                    "description": "Identifies the server software producing the response. Optional.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                }
+            },
             "type": "object"
         },
         "ResultType": {
@@ -3410,8 +3419,12 @@
             "type": "object"
         },
         "SubscriptionsListenResultMeta": {
-            "description": "Extends {@link MetaObject} with the subscription-stream identifier carried by a\n{@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.",
+            "description": "Extends {@link ResultMetaObject} with the subscription-stream identifier carried by a\n{@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.",
             "properties": {
+                "io.modelcontextprotocol/serverInfo": {
+                    "$ref": "#/$defs/Implementation",
+                    "description": "Identifies the server software producing the response. Optional.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                },
                 "io.modelcontextprotocol/subscriptionId": {
                     "$ref": "#/$defs/RequestId",
                     "description": "Identifies the subscription stream this response closes, so the client can\ncorrelate it with the originating subscription — mirroring the same key on\nthe stream's notifications. The value is the JSON-RPC ID of the\n`subscriptions/listen` request that opened the stream (and equals this\nresponse's `id`)."

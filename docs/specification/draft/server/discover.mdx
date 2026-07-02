@@ -96,3 +96,10 @@ A discovery result includes:
 - `serverInfo`: Name and version of the server software
 - `instructions`: Optional natural-language guidance for LLMs on how to use
   this server effectively
+
+<Note>
+  `serverInfo` is self-reported by the server and is not verified by the
+  protocol. It is intended for display, logging, and debugging. Clients **SHOULD
+  NOT** use it to change their behavior, and **SHOULD NOT** rely on it for
+  security decisions.
+</Note>

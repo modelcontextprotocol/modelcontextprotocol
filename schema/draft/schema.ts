@@ -75,12 +75,17 @@ export interface RequestMetaObject extends MetaObject {
    */
   "io.modelcontextprotocol/protocolVersion": string;
   /**
-   * Identifies the client software making the request. Required.
+   * Identifies the client software making the request. Optional.
    *
    * The {@link Implementation} schema requires `name` and `version`; other
    * fields are optional.
+   *
+   * The value is self-reported by the client and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Servers
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
    */
-  "io.modelcontextprotocol/clientInfo": Implementation;
+  "io.modelcontextprotocol/clientInfo"?: Implementation;
   /**
    * The client's capabilities for this specific request. Required.
    *
@@ -124,6 +129,28 @@ export interface NotificationMetaObject extends MetaObject {
    * opened the stream.
    */
   "io.modelcontextprotocol/subscriptionId"?: RequestId;
+}
+
+/**
+ * Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @category Common Types
+ */
+export interface ResultMetaObject extends MetaObject {
+  /**
+   * Identifies the server software producing the response. Optional.
+   *
+   * The {@link Implementation} schema requires `name` and `version`; other
+   * fields are optional.
+   *
+   * The value is self-reported by the server and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Clients
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
+   */
+  "io.modelcontextprotocol/serverInfo"?: Implementation;
 }
 
 /**
@@ -190,7 +217,7 @@ export type ResultType = "complete" | "input_required" | string;
  * @category Common Types
  */
 export interface Result {
-  _meta?: MetaObject;
+  _meta?: ResultMetaObject;
   /**
    * Indicates the type of the result, which allows the client to determine
    * how to parse the result object.
@@ -656,6 +683,11 @@ export interface DiscoverResult extends CacheableResult {
   capabilities: ServerCapabilities;
   /**
    * Information about the server software implementation.
+   *
+   * The value is self-reported by the server and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Clients
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
    */
   serverInfo: Implementation;
   /**
@@ -1290,13 +1322,13 @@ export interface SubscriptionsListenRequest extends JSONRPCRequest {
 }
 
 /**
- * Extends {@link MetaObject} with the subscription-stream identifier carried by a
+ * Extends {@link ResultMetaObject} with the subscription-stream identifier carried by a
  * {@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
  * @category `subscriptions/listen`
  */
-export interface SubscriptionsListenResultMeta extends MetaObject {
+export interface SubscriptionsListenResultMeta extends ResultMetaObject {
   /**
    * Identifies the subscription stream this response closes, so the client can
    * correlate it with the originating subscription — mirroring the same key on
