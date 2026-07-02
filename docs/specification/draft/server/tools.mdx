@@ -170,6 +170,112 @@ To invoke a tool, clients send a `tools/call` request:
 }
 ```
 
+### Streaming Tool Results
+
+For long-running tools, servers MAY stream intermediate progress notifications and
+partial result chunks during `tools/call` execution, providing visibility into progress
+before the final result arrives.
+
+#### Capabilities
+
+Servers that support streaming tool results MUST declare `streaming: true` in their
+`tools` capability:
+
+```json
+{
+  "capabilities": {
+    "tools": {
+      "listChanged": true,
+      "streaming": true
+    }
+  }
+}
+```
+
+#### Notifications
+
+During a `tools/call`, the server sends one or more
+`notifications/tool/progress` notifications before the final `CallToolResult`:
+
+**Progress with content chunk:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/tool/progress",
+  "params": {
+    "requestId": 2,
+    "toolName": "search_kb",
+    "progress": 0.3,
+    "message": "Querying primary index...",
+    "seq": 0,
+    "contentChunk": {
+      "type": "text",
+      "text": "Found 3 documents matching query in primary index."
+    }
+  }
+}
+```
+
+**Subsequent chunk:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/tool/progress",
+  "params": {
+    "requestId": 2,
+    "toolName": "search_kb",
+    "progress": 0.7,
+    "message": "Querying secondary index...",
+    "seq": 1,
+    "contentChunk": {
+      "type": "text",
+      "text": "Secondary index returned 2 additional results."
+    }
+  }
+}
+```
+
+`requestId` is the JSON-RPC `id` from the originating `tools/call` request and is the
+primary correlation key — it disambiguates concurrent calls to the same tool.
+`toolName` is informational only.
+
+The `contentChunk` field is optional and follows the same
+[ContentBlock](#content-types) types used in the final result. The `seq` field is
+**required** (when `contentChunk` is present) and provides a monotonic ordering
+guarantee — each notification for the same `requestId` MUST increment `seq` by
+exactly 1. Clients MUST use `seq` to reorder chunks before rendering.
+
+The final `CallToolResult` is the authoritative response. Clients MUST replace
+any progressively rendered content with the final result when it arrives.
+
+#### Message Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Note over Client,Server: Tool invocation with streaming
+    Client->>Server: tools/call (id: 2)
+    Server--)Client: notifications/tool/progress (requestId: 2, seq: 0)
+    Server--)Client: notifications/tool/progress (requestId: 2, seq: 1)
+    Server-->>Client: CallToolResult (id: 2, authoritative)
+    Note over Client: Replace progressive content with final result
+```
+
+#### Client Handling
+
+Clients that do not recognize `notifications/tool/progress` will silently ignore it
+(standard JSON-RPC behavior). Clients that support streaming MUST:
+
+1. **Correlate** notifications to active tool calls using `requestId`
+2. **Order** chunks by `seq` (strictly monotonic per `requestId`)
+3. **Discard** notifications for unknown or already-completed `requestId` values
+4. **Render** content progressively as chunks arrive
+5. **Replace** with the authoritative `CallToolResult` when received
+
 ### Input Required Tool Results
 
 Servers **MAY** respond to `tools/call` with an [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr#inputrequiredresult) to indicate that additional input is needed before the tool call can be completed. This follows the [multi round-trip requests](/specification/draft/basic/patterns/mrtr#multi-round-trip-requests) mechanism.

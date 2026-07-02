@@ -1,0 +1,15 @@
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/tool/progress",
+  "params": {
+    "requestId": 2,
+    "toolName": "search_kb",
+    "progress": 0.6,
+    "message": "Processing results...",
+    "seq": 2,
+    "contentChunk": {
+      "type": "text",
+      "text": "Aggregated 5 results from primary and secondary indexes."
+    }
+  }
+}

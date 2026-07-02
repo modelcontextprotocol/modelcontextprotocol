@@ -1,0 +1,11 @@
+{
+  "requestId": 2,
+  "toolName": "search_kb",
+  "progress": 0.3,
+  "message": "Querying primary index...",
+  "seq": 0,
+  "contentChunk": {
+    "type": "text",
+    "text": "Found 3 documents matching query in primary index."
+  }
+}

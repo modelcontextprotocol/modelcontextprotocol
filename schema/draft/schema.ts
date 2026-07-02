@@ -840,6 +840,11 @@ export interface ServerCapabilities {
      * Whether this server supports notifications for changes to the tool list.
      */
     listChanged?: boolean;
+    /**
+     * Whether this server supports streaming intermediate tool results
+     * via `notifications/tool/progress` during tool execution.
+     */
+    streaming?: boolean;
   };
   /**
    * Optional MCP extensions that the server supports. Keys are extension identifiers
@@ -1849,6 +1854,86 @@ export interface CallToolRequest extends JSONRPCRequest {
 export interface ToolListChangedNotification extends JSONRPCNotification {
   method: "notifications/tools/list_changed";
   params?: NotificationParams;
+}
+
+/**
+ * Parameters for a {@link ToolProgressNotification | notifications/tool/progress} notification.
+ *
+ * @example Search tool progress with content chunk
+ * {@includeCode ./examples/ToolProgressNotificationParams/tool-progress-search-params.json}
+ *
+ * @category `notifications/tool/progress`
+ */
+export interface ToolProgressNotificationParams extends NotificationParams {
+  /**
+   * The JSON-RPC request ID of the originating `tools/call` request.
+   * Used to correlate this notification with the correct tool call,
+   * particularly when multiple calls to the same tool run concurrently.
+   */
+  requestId: RequestId;
+
+  /**
+   * The name of the tool being executed (informational).
+   */
+  toolName: string;
+
+  /**
+   * The progress thus far, as a normalized value between 0 and 1 (inclusive).
+   * This SHOULD increase monotonically.
+   *
+   * @TJS-type number
+   * @minimum 0
+   * @maximum 1
+   */
+  progress: number;
+
+  /**
+   * Total number of items to process (or total progress required), if known.
+   * When present alongside `progress`, both values share the same unit
+   * (e.g., `progress: 3`, `total: 10` means 3 of 10 items complete).
+   * When absent, `progress` is a normalized 0–1 value.
+   *
+   * @TJS-type number
+   */
+  total?: number;
+
+  /**
+   * An optional message describing the current progress.
+   */
+  message?: string;
+
+  /**
+   * Monotonic sequence number for ordering chunks within this tool call (0-based).
+   * MUST be present when `contentChunk` is provided. SHOULD be present otherwise.
+   * Each notification for the same `requestId` MUST increment `seq` by exactly 1.
+   *
+   * @TJS-type number
+   */
+  seq: number;
+
+  /**
+   * An optional intermediate result chunk, following the ContentBlock type.
+   * Servers MAY emit partial results incrementally before the final CallToolResult.
+   * If multiple content blocks need to be emitted at the same point, send
+   * multiple progress notifications with consecutive `seq` values.
+   */
+  contentChunk?: ContentBlock;
+}
+
+/**
+ * A notification sent by the server during a `tools/call` to report progress and
+ * optionally stream intermediate result chunks. The server MUST still send the
+ * final `CallToolResult` after this notification, and the final result is the
+ * authoritative response.
+ *
+ * @example Search tool progress with content chunk
+ * {@includeCode ./examples/ToolProgressNotification/tool-progress-search.json}
+ *
+ * @category `notifications/tool/progress`
+ */
+export interface ToolProgressNotification extends JSONRPCNotification {
+  method: "notifications/tool/progress";
+  params: ToolProgressNotificationParams;
 }
 
 /**
@@ -3132,6 +3217,7 @@ export type ServerNotification =
   | ResourceUpdatedNotification
   | ResourceListChangedNotification
   | ToolListChangedNotification
+  | ToolProgressNotification
   | PromptListChangedNotification
   | SubscriptionsAcknowledgedNotification;
 
