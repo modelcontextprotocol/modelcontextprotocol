@@ -1,11 +1,11 @@
-# SEP-{NUMBER}: Tamper-Evident Audit Record Contract
+# SEP-3004: Tamper-Evident Audit Record Contract
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-06-02
 - **Author(s)**: Scott Rhodes ([@scottrhodes](https://github.com/scottrhodes)) <contact@notboatanchor.com>, Notboatanchor Labs LLC; Syed Maaz Ahmed ([@MaazAhmed47](https://github.com/MaazAhmed47)), Interlock; Alfredo Metere ([@metereconsulting](https://github.com/metereconsulting)), Enclawed LLC
 - **Sponsor**: None (seeking)
-- **PR**: (this PR)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3004
 
 ## Abstract
 
