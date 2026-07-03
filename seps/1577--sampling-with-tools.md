@@ -142,15 +142,9 @@ In the "Possible Follow ups" Section below, we give examples of features that we
   type SamplingMessage = UserMessage | AssistantMessage; // NEW
 
   type AssistantMessageContent =
-    | TextContent
-    | ImageContent
-    | AudioContent
-    | ToolUseContent;
+    TextContent | ImageContent | AudioContent | ToolUseContent;
   type UserMessageContent =
-    | TextContent
-    | ImageContent
-    | AudioContent
-    | ToolResultContent;
+    TextContent | ImageContent | AudioContent | ToolResultContent;
   interface AssistantMessage {
     // NEW
     role: "assistant";
