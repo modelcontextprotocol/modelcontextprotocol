@@ -453,7 +453,7 @@ When rejecting a request due to header validation failure, servers MUST return a
 
 | Code     | Name             | Description                                                                                                            |
 | -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `-32001` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
+| `-32020` | `HeaderMismatch` | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
 
 This error code is in the JSON-RPC implementation-defined server error range (`-32000` to `-32099`).
 
@@ -464,7 +464,7 @@ This error code is in the JSON-RPC implementation-defined server error range (`-
   "jsonrpc": "2.0",
   "id": 1,
   "error": {
-    "code": -32001,
+    "code": -32020,
     "message": "Header mismatch: Mcp-Name header value 'foo' does not match body value 'bar'"
   }
 }
@@ -492,7 +492,7 @@ Custom headers (those defined via `x-mcp-header`) follow the same validation rul
 | Parameter not in arguments               | Client MUST omit the header    | Server MUST NOT expect the header        |
 | Client omits header but value is in body | Non-conforming client          | Server MUST reject the request           |
 
-When rejecting requests due to missing or invalid custom headers, the server MUST return HTTP status `400 Bad Request` with JSON-RPC error code `-32001` (`HeaderMismatch`).
+When rejecting requests due to missing or invalid custom headers, the server MUST return HTTP status `400 Bad Request` with JSON-RPC error code `-32020` (`HeaderMismatch`).
 
 ## Rationale
 
@@ -681,9 +681,9 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 | Test Case                  | Header Value             | Body Value                  | Expected Behavior                                   |
 | -------------------------- | ------------------------ | --------------------------- | --------------------------------------------------- |
-| Method mismatch            | `Mcp-Method: tools/call` | `"method": "prompts/get"`   | Server MUST reject with 400 and error code `-32001` |
-| Tool name mismatch         | `Mcp-Name: foo`          | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32001` |
-| Missing required header    | (no `Mcp-Method`)        | Valid body                  | Server MUST reject with 400 and error code `-32001` |
+| Method mismatch            | `Mcp-Method: tools/call` | `"method": "prompts/get"`   | Server MUST reject with 400 and error code `-32020` |
+| Tool name mismatch         | `Mcp-Name: foo`          | `"params": {"name": "bar"}` | Server MUST reject with 400 and error code `-32020` |
+| Missing required header    | (no `Mcp-Method`)        | Valid body                  | Server MUST reject with 400 and error code `-32020` |
 | Extra whitespace in header | `Mcp-Name:  foo `        | `"params": {"name": "foo"}` | Server MUST accept (trim whitespace per HTTP spec)  |
 
 #### Special Characters in Values
@@ -750,8 +750,8 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Test Case                 | Header Value             | Expected Behavior                                                                                 |
 | ------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------- |
 | Valid Base64              | `=?base64?SGVsbG8=?=`    | Server decodes to `"Hello"` and validates                                                         |
-| Invalid Base64 padding    | `=?base64?SGVsbG8?=`     | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
-| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Invalid Base64 padding    | `=?base64?SGVsbG8?=`     | Server MUST reject with 400 and error code `-32020`; Intermediary MAY reject with 400 status code |
+| Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32020`; Intermediary MAY reject with 400 status code |
 | Missing prefix            | `SGVsbG8=`               | Server treats as literal value, not Base64                                                        |
 | Missing suffix            | `=?base64?SGVsbG8=`      | Server treats as literal value, not Base64                                                        |
 | Non-lowercase prefix      | `=?BASE64?SGVsbG8=?=`    | Server treats as literal value, not Base64                                                        |
@@ -768,8 +768,8 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 
 | Test Case                              | Header Present        | Body Value                  | Expected Behavior                                                                                 |
 | -------------------------------------- | --------------------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
-| Standard header omitted, value in body | No `Mcp-Name`         | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
-| Custom header omitted, value in body   | No `Mcp-Param-Region` | `"region": "us-west1"`      | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
+| Standard header omitted, value in body | No `Mcp-Name`         | `"params": {"name": "foo"}` | Server MUST reject with 400 and error code `-32020`; Intermediary MAY reject with 400 status code |
+| Custom header omitted, value in body   | No `Mcp-Param-Region` | `"region": "us-west1"`      | Server MUST reject with 400 and error code `-32020`; Intermediary MAY reject with 400 status code |
 
 ## Reference Implementation
 
