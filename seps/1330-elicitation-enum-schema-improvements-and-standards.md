@@ -83,7 +83,8 @@ export type TitledSingleSelectEnumSchema = {
 
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
-  UntitledSingleSelectEnumSchema | TitledSingleSelectEnumSchema;
+  | UntitledSingleSelectEnumSchema
+  | TitledSingleSelectEnumSchema;
 ```
 
 ### 3. Introduce Multiple Selection Enums (with Titled and Untitled varieties)
@@ -121,7 +122,8 @@ export type TitledMultiSelectEnumSchema = {
 
 // Combined Multiple select enumeration
 export type MultiSelectEnumSchema =
-  UntitledMultiSelectEnumSchema | TitledMultiSelectEnumSchema;
+  | UntitledMultiSelectEnumSchema
+  | TitledMultiSelectEnumSchema;
 ```
 
 ### 4. Combine All Varieties as `EnumSchema`
@@ -131,7 +133,9 @@ The final `EnumSchema` rolls up the legacy, multi-select, and single-select sche
 ```typescript
 // Combined legacy, multiple, and single select enumeration
 export type EnumSchema =
-  SingleSelectEnumSchema | MultiSelectEnumSchema | LegacyEnumSchema;
+  | SingleSelectEnumSchema
+  | MultiSelectEnumSchema
+  | LegacyEnumSchema;
 ```
 
 ### 5. Extend ElicitResult
