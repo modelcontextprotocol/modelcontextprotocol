@@ -245,9 +245,7 @@ For JSON-RPC (STDIO, SSE), the attestation is carried in the `_meta` field of th
     "name": "delete_file",
     "arguments": { "path": "/archive/2024-Q3.md" },
     "_meta": {
-      "attestation": {
-        /* Attestation object */
-      }
+      "attestation": {/* Attestation object */}
     }
   }
 }
