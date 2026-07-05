@@ -100,7 +100,7 @@
             ]
           },
           {
-            "group": "MCP Tasks",
+            "group": "Tasks",
             "pages": [
               "extensions/tasks/overview"
             ]
@@ -321,16 +321,32 @@
                 "group": "Base Protocol",
                 "pages": [
                   "specification/draft/basic/index",
-                  "specification/draft/basic/lifecycle",
-                  "specification/draft/basic/transports",
-                  "specification/draft/basic/authorization",
+                  "specification/draft/basic/versioning",
                   {
-                    "group": "Utilities",
+                    "group": "Message Patterns",
                     "pages": [
-                      "specification/draft/basic/utilities/cancellation",
-                      "specification/draft/basic/utilities/progress",
-                      "specification/draft/basic/utilities/subscriptions",
-                      "specification/draft/basic/utilities/mrtr"
+                      "specification/draft/basic/patterns/index",
+                      "specification/draft/basic/patterns/mrtr",
+                      "specification/draft/basic/patterns/subscriptions",
+                      "specification/draft/basic/patterns/cancellation",
+                      "specification/draft/basic/patterns/progress"
+                    ]
+                  },
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/draft/basic/transports/index",
+                      "specification/draft/basic/transports/stdio",
+                      "specification/draft/basic/transports/streamable-http"
+                    ]
+                  },
+                  {
+                    "group": "Authorization",
+                    "pages": [
+                      "specification/draft/basic/authorization/index",
+                      "specification/draft/basic/authorization/authorization-server-discovery",
+                      "specification/draft/basic/authorization/client-registration",
+                      "specification/draft/basic/authorization/security-considerations"
                     ]
                   }
                 ]
@@ -440,12 +456,7 @@
               "seps/2575-stateless-mcp",
               "seps/2577-deprecate-roots-sampling-and-logging",
               "seps/2596-spec-feature-lifecycle-and-deprecation",
-              "seps/2663-tasks-extension"
-            ]
-          },
-          {
-            "group": "Draft",
-            "pages": [
+              "seps/2663-tasks-extension",
               "seps/2809-attested-tool-server-admission"
             ]
           }
@@ -477,25 +488,32 @@
               "community/contributor-ladder",
               "community/feature-lifecycle",
               "community/sdk-tiers",
+              "community/security",
               "community/antitrust"
             ]
           },
           {
             "group": "Working Group Charters",
             "pages": [
-              "community/file-uploads/charter",
-              "community/inspector-v2/charter",
-              "community/interceptors/charter",
-              "community/sdk/charter",
-              "community/server-card/charter",
-              "community/skills-over-mcp/charter",
-              "community/triggers-events/charter"
+              "community/working-groups/file-uploads",
+              "community/working-groups/inspector-v2",
+              "community/working-groups/interceptors",
+              "community/working-groups/registry",
+              "community/working-groups/sdk",
+              "community/working-groups/server-card",
+              "community/working-groups/skills-over-mcp",
+              "community/working-groups/triggers-events"
             ]
           },
           {
             "group": "Interest Group Charters",
             "pages": [
-              "community/tool-annotations/charter"
+              "community/interest-groups/auth",
+              "community/interest-groups/enterprise-managed-authorization",
+              "community/interest-groups/financial-services",
+              "community/interest-groups/primitive-grouping",
+              "community/interest-groups/security",
+              "community/interest-groups/tool-annotations"
             ]
           },
           {
@@ -527,6 +545,50 @@
     {
       "source": "/clients",
       "destination": "/docs/getting-started/intro"
+    },
+    {
+      "source": "/community/auth/charter",
+      "destination": "/community/interest-groups/auth"
+    },
+    {
+      "source": "/community/tool-annotations/charter",
+      "destination": "/community/interest-groups/tool-annotations"
+    },
+    {
+      "source": "/community/file-uploads/charter",
+      "destination": "/community/working-groups/file-uploads"
+    },
+    {
+      "source": "/community/inspector-v2/charter",
+      "destination": "/community/working-groups/inspector-v2"
+    },
+    {
+      "source": "/community/interceptors/charter",
+      "destination": "/community/working-groups/interceptors"
+    },
+    {
+      "source": "/community/registry/charter",
+      "destination": "/community/working-groups/registry"
+    },
+    {
+      "source": "/community/sdk/charter",
+      "destination": "/community/working-groups/sdk"
+    },
+    {
+      "source": "/community/server-card/charter",
+      "destination": "/community/working-groups/server-card"
+    },
+    {
+      "source": "/community/skills-over-mcp/charter",
+      "destination": "/community/working-groups/skills-over-mcp"
+    },
+    {
+      "source": "/community/triggers-events/charter",
+      "destination": "/community/working-groups/triggers-events"
+    },
+    {
+      "source": "/specification/draft/basic/lifecycle",
+      "destination": "/specification/draft/basic/versioning"
     },
     {
       "source": "/specification/versioning",

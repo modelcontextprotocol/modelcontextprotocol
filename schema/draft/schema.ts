@@ -4,12 +4,7 @@
  * @category Common Types
  */
 export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONObject
-  | JSONArray;
+  string | number | boolean | null | JSONObject | JSONArray;
 
 /**
  * @category Common Types
@@ -29,9 +24,7 @@ export type JSONArray = JSONValue[];
  * @category JSON-RPC
  */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "2026-07-28";
@@ -511,15 +504,11 @@ export type EmptyResult = Result;
 
 /** @internal */
 export type InputRequest =
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest;
+  CreateMessageRequest | ListRootsRequest | ElicitRequest;
 
 /** @internal */
 export type InputResponse =
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult;
+  CreateMessageResult | ListRootsResult | ElicitResult;
 
 /**
  * A map of server-initiated requests that the client must fulfill.
@@ -1298,6 +1287,40 @@ export interface SubscriptionsListenRequestParams extends RequestParams {
 export interface SubscriptionsListenRequest extends JSONRPCRequest {
   method: "subscriptions/listen";
   params: SubscriptionsListenRequestParams;
+}
+
+/**
+ * Extends {@link MetaObject} with the subscription-stream identifier carried by a
+ * {@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResultMeta extends MetaObject {
+  /**
+   * Identifies the subscription stream this response closes, so the client can
+   * correlate it with the originating subscription — mirroring the same key on
+   * the stream's notifications. The value is the JSON-RPC ID of the
+   * `subscriptions/listen` request that opened the stream (and equals this
+   * response's `id`).
+   */
+  "io.modelcontextprotocol/subscriptionId": RequestId;
+}
+
+/**
+ * The response to a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, signalling that the subscription has ended gracefully (for example,
+ * during server shutdown). Because the listen stream is long-lived, this result
+ * is sent only when the server tears the subscription down; an abrupt transport
+ * close carries no response. The result body is otherwise empty.
+ *
+ * @example Subscription closed gracefully
+ * {@includeCode ./examples/SubscriptionsListenResult/listen-closed.json}
+ *
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResult extends Result {
+  _meta: SubscriptionsListenResultMeta;
 }
 
 /**
@@ -2234,11 +2257,7 @@ export interface Annotations {
  * @category Content
  */
 export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Text provided to or from an LLM.
@@ -2778,8 +2797,7 @@ export interface ElicitRequestURLParams {
  * @category `elicitation/create`
  */
 export type ElicitRequestParams =
-  | ElicitRequestFormParams
-  | ElicitRequestURLParams;
+  ElicitRequestFormParams | ElicitRequestURLParams;
 
 /**
  * A request from the server to elicit additional information from the user via the client.
@@ -2801,10 +2819,7 @@ export interface ElicitRequest {
  * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema;
+  StringSchema | NumberSchema | BooleanSchema | EnumSchema;
 
 /**
  * @example Email input schema
@@ -2929,8 +2944,7 @@ export interface TitledSingleSelectEnumSchema {
  */
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
-  | UntitledSingleSelectEnumSchema
-  | TitledSingleSelectEnumSchema;
+  UntitledSingleSelectEnumSchema | TitledSingleSelectEnumSchema;
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
@@ -3029,8 +3043,7 @@ export interface TitledMultiSelectEnumSchema {
  */
 // Combined multiple selection enumeration
 export type MultiSelectEnumSchema =
-  | UntitledMultiSelectEnumSchema
-  | TitledMultiSelectEnumSchema;
+  UntitledMultiSelectEnumSchema | TitledMultiSelectEnumSchema;
 
 /**
  * Use {@link TitledSingleSelectEnumSchema} instead.
@@ -3056,9 +3069,7 @@ export interface LegacyTitledEnumSchema {
  */
 // Union type for all enum schemas
 export type EnumSchema =
-  | SingleSelectEnumSchema
-  | MultiSelectEnumSchema
-  | LegacyTitledEnumSchema;
+  SingleSelectEnumSchema | MultiSelectEnumSchema | LegacyTitledEnumSchema;
 
 /**
  * The result returned by the client for an {@link ElicitRequest| elicitation/create} request.
@@ -3134,6 +3145,7 @@ export type ServerResult =
   | ListResourceTemplatesResult
   | ListResourcesResult
   | ReadResourceResult
+  | SubscriptionsListenResult
   | CallToolResult
   | ListToolsResult
   | InputRequiredResult;
