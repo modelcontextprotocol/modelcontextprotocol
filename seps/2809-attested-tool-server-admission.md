@@ -117,9 +117,75 @@ tool absent from it _before_ any network dispatch, regardless of what
 
 ### Audit
 
-A conforming host **SHOULD** append a tamper-evident record for every admission
+A conforming host **MUST** append a tamper-evident record for every admission
 decision (allow / deny / warn) and every tool-authorization denial, carrying the
-resolved `signerKeyId`/`clearance` or the denial reason.
+resolved `signerKeyId`/`clearance` or the denial reason. _Tamper-evident_ means
+the record is committed to an append-only construction in which each record is
+cryptographically chained to its predecessor, such that removal, reordering, or
+mutation of any record is detectable by chain verification. An unrecorded
+admission decision is unauditable and therefore non-conforming.
+
+Such records **SHOULD** conform to the `admission-control` extension profile of
+the Tamper-Evident Audit Record Contract
+([SEP-3004](https://modelcontextprotocol.io/seps/3004-tamper-evident-audit-record-contract)),
+whose canonical form, shared integrity chain, and `C-REC-1`…`C-REC-7` conformance
+vectors give the tamper-evidence an interoperable, independently verifiable shape
+across implementations. SEP-3004 §2.2 names this extension and defers its
+registration to this SEP; the profile is defined immediately below. Conformance to
+SEP-3004 is a **SHOULD**, not a **MUST**: a host **MAY** satisfy the requirement
+above with any tamper-evident construction (for example, its own hash-chained
+audit log) and adopt the SEP-3004 profile to gain cross-implementation audit
+interoperability.
+
+### Audit record profile: `admission-control`
+
+This defines the `admission-control` extension named by SEP-3004 §2.2, which
+cross-references this SEP for the definition. A host that conforms its admission
+records to SEP-3004 (the **SHOULD** above) carries the admission decision under
+this type id. Every value defined here is a JSON string, keeping the extension
+body within SEP-3004's string-only canonical form (§2.3); enumerated fields are
+closed string vocabularies. Keys are serialized in the every-level lexicographic
+sort SEP-3004 §2.3 mandates.
+
+**Type id:** `admission-control`
+
+**Required fields**
+
+| Field                | Type          | Description                                                                                                                                                                                                                                                                                                           |
+| -------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server_id`          | string        | Stable identifier of the tool server whose admission was evaluated (its discovery identity, §Discovery).                                                                                                                                                                                                              |
+| `clearance_decision` | string (enum) | The gate verdict: `admitted` (the clearance assertion verified and all verification rules passed), `denied` (a verification rule failed, the server is outside the trust root, or the requested tool is outside the allow-list), or `deferred` (admission requires an out-of-band decision, e.g. a first-use prompt). |
+
+**Optional fields**
+
+| Field                  | Type   | Description                                                                                                                                                                                                                                                                                    |
+| ---------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clearance_level`      | string | The resolved `clearance` sensitivity classification from the Server Attestation Document.                                                                                                                                                                                                      |
+| `trust_root_id`        | string | Identifier of the trust root against which the assertion was verified (§Trust establishment).                                                                                                                                                                                                  |
+| `assertion_uri`        | string | The well-known URI (RFC 8615) the clearance assertion was retrieved from (§Discovery).                                                                                                                                                                                                         |
+| `assertion_serial`     | string | Version/serial of the clearance assertion, for correlating admission across rotations.                                                                                                                                                                                                         |
+| `requested_tool`       | string | The specific tool the recorded event attempted to invoke.                                                                                                                                                                                                                                      |
+| `tool_allowlist_scope` | string | The tools admitted for this server, encoded as a single canonical string: the allow-listed tool names normalized and lexicographically sorted (per SEP-3004 §2.3 ordering), joined by a single U+0020 space. The empty string denotes deny-by-default. Tool identifiers contain no whitespace. |
+
+**`event_type` vocabulary** (§2.9)
+
+| `event_type`        | Emitted when                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| `tool_call`         | A tool invocation is evaluated against the admission gate.                           |
+| `server_discovery`  | A server's clearance assertion is evaluated for the first time.                      |
+| `admission_recheck` | An already-admitted server is re-verified (assertion rotation or trust-root update). |
+
+**Outcome binding** (SEP-3004 §2.1.1)
+
+The `clearance_decision` is decision _evidence_ that informs the record's base
+`outcome`; the base `outcome` states the enforcement result. The binding is:
+
+- `clearance_decision: admitted` → `outcome: allowed`
+- `clearance_decision: denied` → `outcome: denied`
+- `clearance_decision: deferred` → `outcome: deferred`
+
+A record whose base `outcome` is `allowed` **MUST NOT** carry `clearance_decision:
+denied`, and vice versa.
 
 ### Trust establishment
 
@@ -353,7 +419,12 @@ A production reference implementation ships in the open `enclawed-oss`
 distribution — [github.com/enclawed/enclawed-oss](https://github.com/enclawed/enclawed-oss) — at
 `extensions/mcp-attested` (with a first-party Google Workspace bridge at
 `extensions/mcp-google-workspace`). It includes a JSON Schema, an error registry,
-and machine-checkable conformance vectors.
+and machine-checkable conformance vectors. This SEP was reverse-derived from that
+implementation; the mechanism existed and ran in production before the wire format
+was written down. Every admission decision (allow / deny / warn) and every
+tool-authorization denial is appended to a hash-chained, append-only audit log
+with chain verification, satisfying the §Audit **MUST** with an ATSA-native record
+shape (SEP-3004 profile conformance is the remaining **SHOULD**).
 
 ### Prototype and evaluation
 
@@ -412,5 +483,9 @@ Special thanks to:
   archived record: doi:10.5281/zenodo.20349263.
 - RFC 2119 / RFC 8174 (requirement keywords), RFC 8414 (OAuth AS Metadata),
   RFC 8615 (Well-Known URIs), RFC 8032 (Ed25519), RFC 9116 (`security.txt`).
+- Tamper-Evident Audit Record Contract:
+  [SEP-3004](https://modelcontextprotocol.io/seps/3004-tamper-evident-audit-record-contract)
+  (in progress; PR #3004) — the record contract the `admission-control` profile
+  above conforms to.
 - Reference implementation: [github.com/enclawed/enclawed-oss](https://github.com/enclawed/enclawed-oss) —
   `extensions/mcp-attested`.
