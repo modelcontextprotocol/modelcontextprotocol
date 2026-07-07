@@ -88,3 +88,26 @@ are redirected out of this repo entirely:
 ## Commit Guidelines
 
 - Do not include model names or details (e.g., "Claude", "Opus") in commit messages
+
+## For AI coding agents
+
+- **Purpose:** Quick, actionable guidance for assistants working in this repo.
+- **Quick start:**
+  - Install dependencies: `npm install`
+  - Run full validation + generation: `npm run prep`
+  - Useful targets: `npm run generate:schema`, `npm run check`, `npm run format`
+- **Key locations:**
+  - Schema source (source-of-truth): [schema/2025-11-25/schema.ts](schema/2025-11-25/schema.ts)
+  - Generated schema/docs: [schema/*/schema.json](schema/2025-11-25/schema.json) and [docs/specification](docs/specification)
+  - SEPs: [seps/](seps/)
+  - Doc site: [docs/](docs/) (Mintlify)
+  - Generation scripts: [scripts/](scripts/)
+- **Conventions & pitfalls:**
+  - Schemas use date-based versioning. Edit the TypeScript source, then run `npm run generate`.
+  - Always run `npm run check:schema:md` after schema changes to keep generated MDX in sync.
+  - Do not duplicate documentation — link to existing pages (see `docs/` and `CONTRIBUTING.md`).
+- **PR guidance:**
+  - SEPs are submitted as PRs that add files under `seps/`.
+  - Use the templates in `.github/ISSUE_TEMPLATE/` when filing issues.
+- **Where to look first:** `README.md`, `CONTRIBUTING.md`, `package.json`, and `AGENTS.md` itself for workflow and commands.
+
