@@ -363,6 +363,9 @@ A request missing any required field is malformed; the server **MUST** reject it
 JSON-RPC error code `-32602` (Invalid params). On HTTP, the response status **MUST** be
 `400 Bad Request`.
 
+Clients **SHOULD** include `io.modelcontextprotocol/clientInfo` on every request
+unless specifically configured not to do so.
+
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
 `io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
@@ -372,9 +375,9 @@ HTTP, the response status **MUST** be `400 Bad Request`.
 
 **Per-response protocol fields:**
 
-Servers **MAY** include the following `io.modelcontextprotocol/*` field in a
-result's `_meta` to identify themselves without relying on any prior
-connection state:
+Servers **SHOULD** include the following `io.modelcontextprotocol/*` field in
+every result's `_meta`, unless specifically configured not to do so, to
+identify themselves without relying on any prior connection state:
 
 | Key                                  | Type             | Required | Description             |
 | ------------------------------------ | ---------------- | -------- | ----------------------- |

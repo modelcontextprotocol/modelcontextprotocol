@@ -46,9 +46,11 @@ identity. This operation supports [caching](/specification/draft/server/utilitie
       "tools": {},
       "resources": {}
     },
-    "serverInfo": {
-      "name": "ExampleServer",
-      "version": "1.0.0"
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "ExampleServer",
+        "version": "1.0.0"
+      }
     },
     "instructions": "This server provides weather and resource utilities.",
     "ttlMs": 3600000,
@@ -93,7 +95,8 @@ A discovery result includes:
   choose one of these for subsequent requests.
 - `capabilities`: Capabilities the server supports (tools, resources, prompts,
   etc.)
-- `serverInfo`: Name and version of the server software
+- `_meta['io.modelcontextprotocol/serverInfo']`: Name and version of the server
+  software. Servers **SHOULD** include this field.
 - `instructions`: Optional natural-language guidance for LLMs on how to use
   this server effectively
 

@@ -762,10 +762,6 @@
                     "description": "Indicates the type of the result, which allows the client to determine\nhow to parse the result object.\n\nServers implementing this protocol version MUST include this field.\nFor backward compatibility, when a client receives a result from a\nserver implementing an earlier protocol version (which does not include\n`resultType`), the client MUST treat the absent field as `\"complete\"`.",
                     "type": "string"
                 },
-                "serverInfo": {
-                    "$ref": "#/$defs/Implementation",
-                    "description": "Information about the server software implementation.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
-                },
                 "supportedVersions": {
                     "description": "MCP Protocol Versions this server supports. The client should choose a\nversion from this list for use in subsequent requests.",
                     "items": {
@@ -783,7 +779,6 @@
                 "cacheScope",
                 "capabilities",
                 "resultType",
-                "serverInfo",
                 "supportedVersions",
                 "ttlMs"
             ],
@@ -2700,7 +2695,7 @@
                 },
                 "io.modelcontextprotocol/clientInfo": {
                     "$ref": "#/$defs/Implementation",
-                    "description": "Identifies the client software making the request. Optional.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the client and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Servers\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                    "description": "Identifies the client software making the request. Clients SHOULD\ninclude this field on every request unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the client and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Servers\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
                 },
                 "io.modelcontextprotocol/logLevel": {
                     "$ref": "#/$defs/LoggingLevel",
@@ -3021,7 +3016,7 @@
             "properties": {
                 "io.modelcontextprotocol/serverInfo": {
                     "$ref": "#/$defs/Implementation",
-                    "description": "Identifies the server software producing the response. Optional.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                    "description": "Identifies the server software producing the response. Servers SHOULD\ninclude this field on every response unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
                 }
             },
             "type": "object"
@@ -3423,7 +3418,7 @@
             "properties": {
                 "io.modelcontextprotocol/serverInfo": {
                     "$ref": "#/$defs/Implementation",
-                    "description": "Identifies the server software producing the response. Optional.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
+                    "description": "Identifies the server software producing the response. Servers SHOULD\ninclude this field on every response unless specifically configured not\nto do so.\n\nThe {@link Implementation} schema requires `name` and `version`; other\nfields are optional.\n\nThe value is self-reported by the server and is not verified by the\nprotocol. It is intended for display, logging, and debugging. Clients\nSHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for\nsecurity decisions."
                 },
                 "io.modelcontextprotocol/subscriptionId": {
                     "$ref": "#/$defs/RequestId",

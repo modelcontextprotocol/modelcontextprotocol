@@ -75,7 +75,9 @@ export interface RequestMetaObject extends MetaObject {
    */
   "io.modelcontextprotocol/protocolVersion": string;
   /**
-   * Identifies the client software making the request. Optional.
+   * Identifies the client software making the request. Clients SHOULD
+   * include this field on every request unless specifically configured not
+   * to do so.
    *
    * The {@link Implementation} schema requires `name` and `version`; other
    * fields are optional.
@@ -140,7 +142,9 @@ export interface NotificationMetaObject extends MetaObject {
  */
 export interface ResultMetaObject extends MetaObject {
   /**
-   * Identifies the server software producing the response. Optional.
+   * Identifies the server software producing the response. Servers SHOULD
+   * include this field on every response unless specifically configured not
+   * to do so.
    *
    * The {@link Implementation} schema requires `name` and `version`; other
    * fields are optional.
@@ -681,15 +685,6 @@ export interface DiscoverResult extends CacheableResult {
    * The capabilities of the server.
    */
   capabilities: ServerCapabilities;
-  /**
-   * Information about the server software implementation.
-   *
-   * The value is self-reported by the server and is not verified by the
-   * protocol. It is intended for display, logging, and debugging. Clients
-   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
-   * security decisions.
-   */
-  serverInfo: Implementation;
   /**
    * Natural-language guidance describing the server and its features.
    *
