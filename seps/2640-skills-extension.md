@@ -69,7 +69,9 @@ Further constraints:
 
 Per RFC 3986, the first segment of `<skill-path>` occupies the authority component. This carries no special semantics under this convention and clients MUST NOT attempt DNS or network resolution of it.
 
-A server MAY instead serve skills under another scheme native to its domain (e.g., `github://owner/repo/skills/refunds/SKILL.md`), provided each skill is listed in the [`skill://index.json`](#enumeration-via-skillindexjson) resource. The index is the authoritative record of which resources are skills; outside the index, hosts recognize skills by the `skill://` scheme prefix. The structural constraints above — `<skill-path>` ending in the skill name, `SKILL.md` explicit in the URI, no nesting — apply regardless of scheme.
+A server MAY serve skills under another scheme native to its domain (e.g., `github://owner/repo/skills/refunds/SKILL.md`). No scheme is privileged: the structural constraints above — `<skill-path>` ending in the skill name, `SKILL.md` explicit in the URI, no nesting — apply regardless of scheme, and the [`skill://index.json`](#enumeration-via-skillindexjson) resource is equally optional under all of them.
+
+Skill identity does not depend on the scheme. A host learns that a resource is a skill in one of two ways: from an entry in [`skill://index.json`](#enumeration-via-skillindexjson), which is the authoritative record of the skills a server publishes; or from an explicit reference — the server's `instructions` field, another skill, or the user. This holds for every scheme, `skill://` included. A host MUST NOT conclude that a resource is a skill merely because its URI carries a particular scheme.
 
 #### Examples
 
@@ -171,7 +173,7 @@ The `skill://index.json` resource is served via `resources/read` like any other 
 
 A server whose skill catalog is large, generated on demand, or otherwise unenumerable MAY decline to expose `skill://index.json`, or MAY expose a partial index. Hosts MUST NOT treat an absent or empty index as proof that a server has no skills.
 
-The URI `skill://index.json` is reserved and does not conflict with any valid `<skill-path>`: skill names may contain only lowercase letters, digits, and hyphens, so `index.json` cannot be a skill name.
+The URI `skill://index.json` is reserved and does not conflict with any valid `<skill-path>`: skill names may contain only lowercase letters, digits, and hyphens, so `index.json` cannot be a skill name. A server serves its index at this URI whatever scheme its skills use — the index is a discovery resource, not a skill, so a single well-known location keeps discovery uniform across schemes.
 
 #### Pointer from Server Instructions
 
@@ -205,7 +207,7 @@ An empty object indicates support for the extension with no optional features. C
 
 Skill files are read via the standard `resources/read` method. No skill-specific read semantics are defined.
 
-Internal references within a skill (e.g., `SKILL.md` linking to `references/GUIDE.md`) are relative paths, as in the filesystem form of the Agent Skills specification. A client resolves a relative reference against the skill's root — `references/GUIDE.md` in `skill://acme/billing/refunds/SKILL.md` resolves to `skill://acme/billing/refunds/references/GUIDE.md` — exactly as a filesystem path would resolve. The skill's root is the directory containing `SKILL.md`, not the `skill://` scheme root.
+Internal references within a skill (e.g., `SKILL.md` linking to `references/GUIDE.md`) are relative paths, as in the filesystem form of the Agent Skills specification. A client resolves a relative reference against the skill's root — `references/GUIDE.md` in `skill://acme/billing/refunds/SKILL.md` resolves to `skill://acme/billing/refunds/references/GUIDE.md` — exactly as a filesystem path would resolve. The skill's root is the directory containing `SKILL.md`, not the scheme root.
 
 ### Directory Listing
 
