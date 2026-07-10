@@ -173,7 +173,7 @@ async def process_query(self, query: str) -> str:
     available_tools = [{
         "name": tool.name,
         "description": tool.description,
-        "input_schema": tool.inputSchema
+        "input_schema": tool.input_schema
     } for tool in response.tools]
 
     # Initial Claude API call
@@ -449,7 +449,7 @@ If you see:
 Before starting, ensure your system meets these requirements:
 
 - Mac or Windows computer
-- Node.js 17 or higher installed
+- Node.js 20 or higher installed
 - Latest version of `npm` installed
 - Anthropic API key (Claude)
 
@@ -468,7 +468,7 @@ cd mcp-client-typescript
 npm init -y
 
 # Install dependencies
-npm install @anthropic-ai/sdk @modelcontextprotocol/sdk dotenv
+npm install @anthropic-ai/sdk @modelcontextprotocol/client dotenv
 
 # Install dev dependencies
 npm install -D @types/node typescript
@@ -486,7 +486,7 @@ cd mcp-client-typescript
 npm init -y
 
 # Install dependencies
-npm install @anthropic-ai/sdk @modelcontextprotocol/sdk dotenv
+npm install @anthropic-ai/sdk @modelcontextprotocol/client dotenv
 
 # Install dev dependencies
 npm install -D @types/node typescript
@@ -562,8 +562,8 @@ import {
   MessageParam,
   Tool,
 } from "@anthropic-ai/sdk/resources/messages/messages.mjs";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Client } from "@modelcontextprotocol/client";
+import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import readline from "readline/promises";
 import dotenv from "dotenv";
 
