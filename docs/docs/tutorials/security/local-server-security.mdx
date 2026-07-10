@@ -51,6 +51,25 @@ command before it runs
 but a consent dialog only helps if you know what to look for. That is what
 the rest of this guide is about.
 
+### The stdio Trust Model
+
+Most local servers use the stdio transport: your client spawns the server as
+a subprocess, and the two communicate over stdin and stdout. That design
+carries an assumption worth stating plainly: **the client and a stdio server
+share one trust domain.** They run side by side with the same privileges,
+and neither the protocol nor the SDKs defend one against the other — a
+server already has code execution on your machine by virtue of being
+launched, so there is no boundary between the two processes for a transport
+to enforce.
+
+Two practical consequences:
+
+- Your real security decisions happen **before launch**: what you install
+  (provenance) and how you run it (isolation). The stdio transport is not a
+  sandbox.
+- If you run a server at reduced privilege, that boundary is yours to
+  enforce — a container, sandbox, or VM, as described below.
+
 ### Threats This Guide Addresses
 
 1. **A malicious server.** Typosquatted package names, lookalike
@@ -237,6 +256,10 @@ A workable starting posture:
   managed machines — for example, "third-party servers run in containers
   with no home-directory mounts" — rather than leaving isolation to each
   user's initiative.
+- **Deploy centrally where local access is not required.** A server that
+  only wraps a SaaS API does not need to run on every laptop; a centrally
+  managed remote deployment gives you one instance to patch, audit, and
+  control instead of hundreds.
 - **Inventory continuously.** Client configuration files live in known
   locations on each platform. Your endpoint management tooling can collect
   them, giving you a live answer to "who is running what, at which version,
