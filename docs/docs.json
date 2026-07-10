@@ -59,7 +59,8 @@
                 "group": "Security",
                 "pages": [
                   "docs/tutorials/security/authorization",
-                  "docs/tutorials/security/security_best_practices"
+                  "docs/tutorials/security/security_best_practices",
+                  "docs/tutorials/security/local-server-security"
                 ]
               }
             ]
