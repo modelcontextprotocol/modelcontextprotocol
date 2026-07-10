@@ -18,8 +18,10 @@ MCP provides several tools for debugging at different levels:
    [resources](/specification/latest/server/resources), and watch the
    notification stream. This should be your first stop.
 2. **Server logging**: structured logs to stderr (stdio transport) or via
-   [`notifications/message`](/specification/latest/server/utilities/logging#log-message-notifications)
-   (all transports).
+   [OpenTelemetry](https://opentelemetry.io/) (all transports). The protocol's
+   [logging](/specification/draft/server/utilities/logging) feature
+   (`notifications/message`) is deprecated as of protocol version `2026-07-28`
+   but remains available during the deprecation window.
 3. **Client developer tools**: most MCP clients expose logs and connection
    state. See [Debugging in Claude Desktop](#debugging-in-claude-desktop)
    below for one example, or consult your client's documentation.
@@ -41,12 +43,19 @@ will interfere with protocol operation.
 </Warning>
 
 For servers using the
-[Streamable HTTP transport](/specification/latest/basic/transports#streamable-http),
-stderr is not captured by the client. Use the log message notifications below,
-your own server-side log aggregation, or standard HTTP tooling (curl, browser
-DevTools Network panel) to inspect requests,
-[`Mcp-Session-Id` headers](/specification/latest/basic/transports#session-management),
-and SSE streams.
+[Streamable HTTP transport](/specification/draft/basic/transports/streamable-http),
+stderr is not captured by the client. Use your own server-side log aggregation
+or [OpenTelemetry](https://opentelemetry.io/), or standard HTTP tooling (curl,
+browser DevTools Network panel) to inspect requests and SSE streams.
+
+<Warning>
+
+The protocol's [logging](/specification/draft/server/utilities/logging)
+feature is deprecated as of protocol version `2026-07-28`. It remains available
+during the deprecation window, but new servers should log to stderr (stdio
+transport) or use [OpenTelemetry](https://opentelemetry.io/) instead.
+
+</Warning>
 
 For all [transports](/specification/latest/basic/transports), you can also
 provide logging to the client by sending a log message notification:
@@ -74,10 +83,11 @@ await server.sendLoggingMessage({
 
 MCP defines eight
 [RFC 5424 severity levels](/specification/latest/server/utilities/logging#log-levels)
-(`debug` through `emergency`). Clients can adjust the minimum level at runtime
-via the
-[`logging/setLevel`](/specification/latest/server/utilities/logging#setting-log-level)
-request.
+(`debug` through `emergency`). Clients opt in to log messages per request by
+setting the
+[`io.modelcontextprotocol/logLevel`](/specification/draft/server/utilities/logging#per-request-log-level)
+field in the request's `_meta`. Servers must not send `notifications/message`
+for requests that omit this field.
 
 Important events to log:
 
@@ -173,17 +183,19 @@ When servers fail to connect:
 2. Verify server process is running
 3. Test standalone with [Inspector](/docs/draft/tools/inspector)
 4. Verify
-   [protocol compatibility](/specification/latest/basic/lifecycle#version-negotiation)
-5. Check
-   [capability negotiation](/specification/latest/basic/lifecycle#capability-negotiation):
-   error [`-32602`](/specification/latest/basic/lifecycle#error-handling) is
-   the standard JSON-RPC "Invalid params" code and is returned in many
-   contexts. One common cause is a server sending
+   [protocol compatibility](/specification/draft/basic/versioning#protocol-version-negotiation)
+5. Check the declared capabilities: error
+   [`-32602`](/specification/draft/basic#error-codes) is the standard
+   JSON-RPC "Invalid params" code and is returned in many contexts, including
+   requests whose `_meta` is missing a required field. A server that returns
    [sampling](/specification/latest/client/sampling) or
-   [elicitation](/specification/latest/client/elicitation) requests to a
-   client that hasn't declared that capability. Inspect the
-   [`initialize` exchange](/specification/latest/basic/lifecycle#initialization)
-   to verify both sides declared what you expect
+   [elicitation](/specification/latest/client/elicitation) requests in an
+   [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr) needs the
+   client to declare the matching capability, and responds with
+   [`-32021` (`MissingRequiredClientCapability`)](/specification/draft/basic#error-codes)
+   when a required capability is missing. Inspect the
+   `io.modelcontextprotocol/clientCapabilities` field in your requests'
+   `_meta` to verify the client declares what you expect
 
 ## Debugging in Claude Desktop
 

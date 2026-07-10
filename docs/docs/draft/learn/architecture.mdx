@@ -129,9 +129,9 @@ For more details about server primitives see [server concepts](./server-concepts
 
 MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
 
-- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. They can use the `sampling/createMessage` method to request a language model completion from the client's AI application.
-- **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/create` method to request additional information from the user.
-- **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
+- **Sampling (deprecated)**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. Following the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern, the server responds to a client request with an `InputRequiredResult` carrying a `sampling/createMessage` request, and the client retries the original request with the completion. Sampling is deprecated as of protocol version `2026-07-28`; new implementations should integrate directly with LLM provider APIs.
+- **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. Following the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern, the server responds to a client request with an `InputRequiredResult` carrying an `elicitation/create` request, and the client retries the original request with the user's input.
+- **Logging (deprecated)**: Enables servers to send log messages to clients for debugging and monitoring purposes. Logging is deprecated as of protocol version `2026-07-28`; new implementations should log to `stderr` (stdio transport) or use OpenTelemetry.
 
 For more details about client primitives see [client concepts](./client-concepts).
 

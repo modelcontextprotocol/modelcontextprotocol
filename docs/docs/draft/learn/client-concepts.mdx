@@ -25,6 +25,13 @@ Elicitation enables servers to request specific information from users during in
 
 Elicitation provides a structured way for servers to gather necessary information on demand. Instead of requiring all information up front or failing when data is missing, servers can pause their operations to request specific inputs from users. This creates more flexible interactions where servers adapt to user needs rather than following rigid patterns.
 
+Elicitation supports two modes:
+
+- **Form mode**: The server asks the client to collect structured data from the user. The request includes a schema that the client uses to build an input form and validate the response.
+- **URL mode**: The server provides a URL for the user to open. The interaction happens out of band and its data never passes through the client, which makes this mode suitable for sensitive flows such as credential entry or third-party OAuth authorization.
+
+Elicitation follows the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) (MRTR) pattern. When a server needs user input while processing a request such as `tools/call`, it responds with an `InputRequiredResult` whose `inputRequests` field carries one or more `elicitation/create` requests. The client gathers the input and retries the original request, attaching the collected `inputResponses` and echoing back any `requestState` the server included.
+
 **Elicitation flow:**
 
 ```mermaid
@@ -33,27 +40,30 @@ sequenceDiagram
     participant Client
     participant Server
 
-    Note over Server,Client: Server initiates elicitation
-    Server->>Client: elicitation/create
+    Client->>Server: tools/call (id: 1)
+    Note over Server: Server needs more information
+    Server-->>Client: InputRequiredResult with elicitation/create request
 
     Note over Client,User: Human interaction
     Client->>User: Present elicitation UI
     User-->>Client: Provide requested information
 
-    Note over Server,Client: Complete request
-    Client-->>Server: Return user response
+    Note over Client,Server: Retry request with user input
+    Client->>Server: tools/call (id: 2, inputResponses)
 
     Note over Server: Continue processing with new information
+    Server-->>Client: Final result
 ```
 
-The flow enables dynamic information gathering. Servers can request specific data when needed, users provide information through appropriate UI, and servers continue processing with the newly acquired context.
+The flow enables dynamic information gathering. Servers can request specific data when needed, users provide information through appropriate UI, and servers complete the retried request with the newly acquired context.
 
-**Elicitation components example:**
+**Elicitation request example (delivered inside `InputRequiredResult.inputRequests`):**
 
 ```typescript
 {
   method: "elicitation/create",
   params: {
+    mode: "form",
     message: "Please confirm your Barcelona vacation booking details:",
     requestedSchema: {
       type: "object",
@@ -100,9 +110,18 @@ Elicitation interactions are designed to be clear, contextual, and respectful of
 
 **Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), decline to provide information with optional explanation, or cancel the entire operation. Clients validate responses against the provided schema before returning them to servers.
 
-**Privacy considerations**: Elicitation never requests passwords or API keys. Clients warn about suspicious requests and let users review data before sending.
+**URL handling**: For URL mode, clients show the full URL and gather explicit consent before opening it, and never fetch the URL automatically. The client only learns whether the user consented; the interaction itself stays between the user and the target site.
+
+**Privacy considerations**: Servers must not use form mode to request sensitive information such as passwords, API keys, access tokens, or payment credentials. Those interactions belong in URL mode, which keeps the data out of band so it never passes through the client or the LLM context. Clients warn about suspicious requests and let users review form data before sending.
 
 ### Roots
+
+<Warning>
+  The Roots feature is [deprecated](/specification/draft/deprecated) as of
+  protocol version `2026-07-28` and is scheduled for removal in a future
+  revision. New implementations should not adopt it. Instead, pass directories
+  or files via tool parameters, resource URIs, or server configuration.
+</Warning>
 
 Roots define filesystem boundaries for server operations, allowing clients to specify which directories servers should focus on.
 
@@ -119,7 +138,7 @@ Roots are a mechanism for clients to communicate filesystem access boundaries to
 }
 ```
 
-Roots are exclusively filesystem paths and always use the `file://` URI scheme. They help servers understand project boundaries, workspace organization, and accessible directories. The roots list can be updated dynamically as users work with different projects or folders, with servers receiving notifications through `roots/list_changed` when boundaries change.
+Roots are exclusively filesystem paths and always use the `file://` URI scheme. They help servers understand project boundaries, workspace organization, and accessible directories. The roots list can change as users work with different projects or folders. Servers pick up the updated boundaries the next time they request the roots list.
 
 #### Example: Travel Planning Workspace
 
@@ -133,7 +152,7 @@ The client provides filesystem roots to the travel planning server:
 
 When the agent creates a Barcelona itinerary, well-behaved servers respect these boundaries—accessing templates, saving the new itinerary, and referencing client documents within the specified roots. Servers typically access files within roots by using relative paths from the root directories or by utilizing file search tools that respect the root boundaries.
 
-If the agent opens an archive folder like `file:///Users/agent/archive/2023-trips`, the client updates the roots list via `roots/list_changed`.
+If the agent opens an archive folder like `file:///Users/agent/archive/2023-trips`, the client adds it to the roots list, and the server sees the new boundary on its next `roots/list` request.
 
 For a complete implementation of a server that respects roots, see the [filesystem server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) in the official servers repository.
 
@@ -153,11 +172,22 @@ Roots are typically managed automatically by host applications based on user act
 
 ### Sampling
 
+<Warning>
+  The Sampling feature is [deprecated](/specification/draft/deprecated) as of
+  protocol version `2026-07-28` and is scheduled for removal in a future
+  revision. New implementations should not adopt it. Instead, integrate directly
+  with LLM provider APIs.
+</Warning>
+
 Sampling allows servers to request language model completions through the client, enabling agentic behaviors while maintaining security and user control.
 
 #### Overview
 
 Sampling enables servers to perform AI-dependent tasks without directly integrating with or paying for AI models. Instead, servers can request that the client—which already has AI model access—handle these tasks on their behalf. This approach puts the client in complete control of user permissions and security measures. Because sampling requests occur within the context of other operations—like a tool analyzing data—and are processed as separate model calls, they maintain clear boundaries between different contexts, allowing for more efficient use of the context window.
+
+Like elicitation, sampling follows the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern. When a server needs a completion while processing a request such as `tools/call`, it responds with an `InputRequiredResult` whose `inputRequests` field carries a `sampling/createMessage` request. The client obtains the generation and retries the original request with the response included in `inputResponses`.
+
+Servers can also request tool use during sampling by including a `tools` array and an optional `toolChoice` field in the request. The tool definitions are scoped to that sampling request and do not need to correspond to tools the server exposes. Clients declare support through the `sampling.tools` capability, and servers must not send tool-enabled sampling requests to clients that have not declared it. See [sampling](/specification/draft/client/sampling#tools-in-sampling) in the specification for details.
 
 **Sampling flow:**
 
@@ -168,8 +198,9 @@ sequenceDiagram
     participant Client
     participant Server
 
-    Note over Server,Client: Server initiates sampling
-    Server->>Client: sampling/createMessage
+    Client->>Server: tools/call (id: 1)
+    Note over Server: Server needs an LLM completion
+    Server-->>Client: InputRequiredResult with sampling/createMessage request
 
     Note over Client,User: Human-in-the-loop review
     Client->>User: Present request for approval
@@ -183,13 +214,14 @@ sequenceDiagram
     Client->>User: Present response for approval
     User-->>Client: Review and approve/modify
 
-    Note over Server,Client: Complete request
-    Client-->>Server: Return approved response
+    Note over Client,Server: Retry request with approved response
+    Client->>Server: tools/call (id: 2, inputResponses)
+    Server-->>Client: Final result
 ```
 
-The flow ensures security through multiple human-in-the-loop checkpoints. Users review and can modify both the initial request and the generated response before it returns to the server.
+The flow ensures security through multiple human-in-the-loop checkpoints. Users review and can modify both the initial request and the generated response before the client retries the original request with it.
 
-**Request parameters example:**
+**Request parameters example (the `params` of a `sampling/createMessage` request delivered inside `InputRequiredResult.inputRequests`):**
 
 ```typescript
 {
@@ -232,4 +264,4 @@ While not a requirement, sampling is designed to allow human-in-the-loop control
 
 **Configuration options**: Users can set model preferences, configure auto-approval for trusted operations, or require approval for everything. Clients may provide options to redact sensitive information.
 
-**Security considerations**: Both clients and servers must handle sensitive data appropriately during sampling. Clients should implement rate limiting and validate all message content. The human-in-the-loop design ensures that server-initiated AI interactions cannot compromise security or access sensitive data without explicit user consent.
+**Security considerations**: Both clients and servers must handle sensitive data appropriately during sampling. Clients should implement rate limiting and validate all message content. The human-in-the-loop design ensures that server-requested AI interactions cannot compromise security or access sensitive data without explicit user consent.
