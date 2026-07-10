@@ -483,6 +483,19 @@ session ID by the server, and an unauthorized party is able to obtain
 and use that same session ID to impersonate the original client and
 perform unauthorized actions on their behalf.
 
+<Note>
+
+Protocol revision `2026-07-28`
+[removes protocol-level sessions and the `Mcp-Session-Id` header](/specification/draft/changelog)
+from the Streamable HTTP transport. Servers implementing the current
+revision do not mint session IDs, so the attacks below apply to servers
+implementing protocol versions `2025-11-25` and earlier. Servers that
+need cross-call state under the current revision instead mint explicit
+state handles and receive them back as ordinary tool arguments. See
+[Securing state handles](#securing-state-handles) below.
+
+</Note>
+
 #### Session Hijack Prompt Injection
 
 ```mermaid
@@ -529,8 +542,9 @@ sequenceDiagram
 
 #### Attack Description
 
-When you have multiple stateful HTTP servers that handle MCP requests,
-the following attack vectors are possible:
+When you have multiple stateful HTTP servers that handle MCP requests
+using protocol versions `2025-11-25` and earlier, the following attack
+vectors are possible:
 
 **Session Hijack Prompt Injection**
 
@@ -538,7 +552,7 @@ the following attack vectors are possible:
 1. The attacker obtains an existing session ID and sends a malicious
    event to **Server B** with said session ID.
    - When a server supports
-     [redelivery/resumable streams](/specification/latest/basic/transports#resumability-and-redelivery),
+     [redelivery/resumable streams](/specification/2025-11-25/basic/transports#resumability-and-redelivery),
      deliberately terminating the request before receiving the response
      could lead to it being resumed by the original client via the GET
      request for server sent events.
@@ -567,10 +581,37 @@ the following attack vectors are possible:
    attacker as a legitimate user, allowing unauthorized access or
    actions.
 
-#### Mitigation
+#### Securing state handles
 
-To prevent session hijacking and event injection attacks, the following
-mitigations should be implemented:
+Under protocol revision `2026-07-28`, the protocol is
+[stateless](/specification/draft/basic/index#statelessness): servers
+that need state spanning multiple requests mint an explicit handle
+(for example a shopping cart ID or a workflow ID) and receive it back
+as an ordinary tool argument on each request. A guessed or stolen
+handle raises the same impersonation risk as a hijacked session ID, so
+the same discipline applies:
+
+MCP servers that implement authorization **MUST** verify all inbound
+requests. MCP servers **MUST NOT** treat possession of a state handle
+as authentication.
+
+MCP servers **SHOULD** use secure, non-deterministic handles generated
+with secure random number generators. Avoid predictable or sequential
+identifiers that could be guessed by an attacker. Expiring handles can
+also reduce the risk.
+
+MCP servers **SHOULD** bind handles server-side to the authenticated
+user, for example by keying stored state as `<user_id>:<handle>` where
+the user ID is derived from the verified token rather than supplied by
+the client, and reject a handle presented by any other principal. This
+ensures that even if an attacker guesses a handle, they cannot
+impersonate another user.
+
+#### Mitigation for session-based versions
+
+Servers that still implement protocol versions `2025-11-25` and
+earlier should implement the following mitigations to prevent session
+hijacking and event injection attacks:
 
 MCP servers that implement authorization **MUST** verify all inbound
 requests. MCP Servers **MUST NOT** use sessions for authentication.
