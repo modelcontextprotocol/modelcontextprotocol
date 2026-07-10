@@ -66,11 +66,12 @@ access the resource. For more on how clients should select scopes, see the
 section in the authorization spec.
 
 The `WWW-Authenticate` pointer is optional. Servers can instead serve the PRM document only
-at the well-known URIs defined in RFC 9728, and clients must fall back to constructing those
-URIs when the header carries no `resource_metadata` parameter: first the well-known path
-derived from the MCP endpoint path (for example,
+at the well-known URIs required by the discovery spec, and clients must fall back to
+constructing those URIs when the header carries no `resource_metadata` parameter: first the
+RFC 9728 path-inserted URI derived from the MCP endpoint path (for example,
 `https://your-server.com/.well-known/oauth-protected-resource/mcp`), then the root
-`https://your-server.com/.well-known/oauth-protected-resource`. See
+`https://your-server.com/.well-known/oauth-protected-resource` (an MCP extension of
+RFC 9728 for path-bearing endpoints). See
 [Protected Resource Metadata Discovery Requirements](/specification/draft/basic/authorization/authorization-server-discovery#protected-resource-metadata-discovery-requirements)
 for the details.
 
@@ -387,8 +388,6 @@ This scope will be required for clients to access tools on your MCP server.
 Finally, go to **Frontend SDKs → Authorized applications** and add the domain where your
 authorization UI will be hosted (e.g., `http://localhost:3002` for local development). This
 allows Stytch to redirect back to your application after the user authenticates.
-
-{/* TODO: add stytch-authorized-apps screenshot */}
 
 #### Build the Authorization UI
 
@@ -864,10 +863,14 @@ app.listen(3001, () => {
 ```
 
 The `getClient` callback is where CIMD happens. When a URL-formatted `client_id` is
-received, it fetches the metadata document from that URL and applies the validation the
+received, it fetches the metadata document from that URL and applies the document-level
+validation the
 [Client Registration spec](/specification/draft/basic/authorization/client-registration)
 requires of authorization servers: the document's `client_id` must exactly match the URL,
-and the required fields must be present.
+and the required fields must be present. The spec additionally requires authorization
+servers to validate the `redirect_uri` in each authorization request against the document's
+`redirect_uris`, a check the SDK's authorization endpoint performs using the client
+returned here.
 
 For more details, see the
 [TypeScript SDK documentation](https://github.com/modelcontextprotocol/typescript-sdk).
@@ -957,8 +960,6 @@ With the server running, connect an MCP client (like
 4. The client uses CIMD and initiates the OAuth flow
 5. A browser window opens to your authorization UI with the Stytch login
 6. After authentication, the client receives a token and retries the tool call
-
-{/* TODO: add stytch-login screenshot */}
 
 You can also use [client.dev](https://client.dev/) as a reference authorization server that
 supports CIMD out of the box for quick testing and experimentation.
@@ -1425,8 +1426,9 @@ issues are called out below.
 - **Return proper challenges**. On 401, include `WWW-Authenticate` with `Bearer`, `realm`,
   `resource_metadata`, and the `scope` needed for the resource so clients can discover how
   to authenticate and what to request. The `resource_metadata` pointer is optional, and
-  clients fall back to the RFC 9728 well-known URIs (path-based first, then root) when it is
-  absent, so make sure the Protected Resource Metadata document is served there.
+  clients fall back to the well-known URIs when it is absent (the RFC 9728 path-inserted
+  URI first, then the root URI MCP adds as an extension of RFC 9728), so make sure the
+  Protected Resource Metadata document is served there.
 - **Validate the `iss` on authorization responses**. Authorization servers should attach the
   `iss` parameter to authorization responses, including error responses, per
   [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207). Clients must compare a received
