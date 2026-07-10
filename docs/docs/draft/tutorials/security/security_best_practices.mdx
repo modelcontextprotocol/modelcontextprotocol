@@ -275,6 +275,21 @@ MCP server's authorization endpoint. Setting this cookie before consent
 approval renders the consent screen ineffective, as an attacker could
 bypass it by crafting a malicious authorization request.
 
+**Issuer (`iss`) Validation**
+
+Validating `state` alone does not verify which authorization server
+issued the callback. When acting as an OAuth client, before redirecting
+the user-agent, record the `issuer` value from the selected
+authorization server's validated metadata alongside the PKCE verifier
+and `state`. When the callback carries an `iss` parameter
+([RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207)), clients
+**MUST** compare it to the recorded issuer using simple string
+comparison and reject the response on mismatch, as required by
+[Authorization Response Validation](/specification/draft/basic/authorization#authorization-response-validation).
+This applies to error responses as well: on mismatch, the client
+**MUST NOT** act on or display `error`, `error_description`, or
+`error_uri`.
+
 ### Token Passthrough
 
 "Token passthrough" is an anti-pattern where an MCP server accepts

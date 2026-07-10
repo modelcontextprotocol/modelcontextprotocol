@@ -12,7 +12,7 @@ actions, authorization ensures only permitted users can access its endpoints.
 MCP doesn't require a specific identity provider or auth system. Instead, it builds on
 [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13) conventions to let clients
 and servers establish trust in a consistent way. For the full details, see the
-[Authorization specification](/specification/latest/basic/authorization).
+[Authorization specification](/specification/draft/basic/authorization).
 
 ## When Should You Use Authorization?
 
@@ -27,7 +27,7 @@ While authorization for MCP servers is **optional**, it is strongly recommended 
 <Tip>
 **Authorization for Local MCP Servers**
 
-For MCP servers using the [STDIO transport](/specification/latest/basic/transports#stdio), you
+For MCP servers using the [STDIO transport](/specification/draft/basic/transports/stdio), you
 can use environment-based credentials or credentials provided by third-party libraries embedded
 directly in the MCP server instead. Because a STDIO-built MCP server runs locally, it has
 access to a range of flexible options when it comes to acquiring user credentials that may or
@@ -48,8 +48,9 @@ Let's walk through what happens when a client wants to connect to your protected
 When your MCP client first tries to connect, your server responds with a `401 Unauthorized`
 and tells the client where to find authorization information, captured in a
 [Protected Resource Metadata (PRM) document](https://datatracker.ietf.org/doc/html/rfc9728).
-The document is hosted by the MCP server, follows a predictable path pattern, and is provided
-to the client in the `resource_metadata` parameter within the `WWW-Authenticate` header.
+The document is hosted by the MCP server, follows a predictable path pattern, and can be
+provided to the client in the `resource_metadata` parameter within the `WWW-Authenticate`
+header.
 
 ```http
 HTTP/1.1 401 Unauthorized
@@ -61,8 +62,17 @@ WWW-Authenticate: Bearer realm="mcp",
 This tells the client that authorization is required for the MCP server, where to get the
 necessary information to kickstart the authorization flow, and which scopes are needed to
 access the resource. For more on how clients should select scopes, see the
-[Scope Selection Strategy](/specification/latest/basic/authorization#scope-selection-strategy)
+[Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy)
 section in the authorization spec.
+
+The `WWW-Authenticate` pointer is optional. Servers can instead serve the PRM document only
+at the well-known URIs defined in RFC 9728, and clients must fall back to constructing those
+URIs when the header carries no `resource_metadata` parameter: first the well-known path
+derived from the MCP endpoint path (for example,
+`https://your-server.com/.well-known/oauth-protected-resource/mcp`), then the root
+`https://your-server.com/.well-known/oauth-protected-resource`. See
+[Protected Resource Metadata Discovery Requirements](/specification/draft/basic/authorization/authorization-server-discovery#protected-resource-metadata-discovery-requirements)
+for the details.
 
 </Step>
 
@@ -87,7 +97,12 @@ You can see a more comprehensive example in
 <Step title="Authorization Server Discovery">
 Next, the client discovers what the authorization server can do by fetching its metadata.
 If the PRM document lists more than one authorization server, the client can decide which
-one to use.
+one to use. Each entry is an independent authorization server: clients must keep
+registration state (client credentials, tokens) separate per authorization server, keyed by
+its `issuer` identifier, and must not reuse credentials issued by one authorization server
+with another. See
+[Authorization Server Location](/specification/draft/basic/authorization/authorization-server-discovery#authorization-server-location)
+for the requirements.
 
 With an authorization server selected, the client will then construct a standard metadata URI
 and issue a request to the
@@ -140,7 +155,9 @@ to the client with an authorization code that the client exchanges for tokens:
 The access token is what the client will use to authenticate requests to the MCP server.
 This step follows standard
 [OAuth 2.1 authorization code with PKCE](https://oauth.net/2/grant-types/authorization-code/)
-conventions.
+conventions. PKCE helps prevent authorization code interception and injection attacks by
+requiring clients to create a secret verifier-challenge pair, ensuring that only the
+original requestor can exchange an authorization code for tokens.
 
 </Step>
 
@@ -156,6 +173,13 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiIs...
 
 The MCP server will need to validate the token and process the request if the token is valid
 and has the required permissions.
+
+If a later operation needs permissions the token does not carry, the server responds with a
+`403 Forbidden` and an `insufficient_scope` challenge that should list the scopes the
+operation requires. The client then re-authorizes with the union of its previously requested
+scopes and the challenged scopes, so permissions granted earlier are not lost. See
+[Scope Challenge Handling](/specification/draft/basic/authorization#scope-challenge-handling)
+in the authorization spec for the step-up authorization flow.
 
 </Step>
 </Steps>
@@ -195,11 +219,43 @@ client metadata from this URL, eliminating the need for pre-registration or dyna
 - Include required fields: `client_id` (must match the URL), `client_name`, `redirect_uris`
 - Ensure the document is publicly accessible
 
+A metadata document looks like this:
+
+```json
+{
+  "client_id": "https://app.example.com/oauth/client-metadata.json",
+  "client_name": "Example MCP Client",
+  "client_uri": "https://app.example.com",
+  "logo_uri": "https://app.example.com/logo.png",
+  "redirect_uris": [
+    "http://127.0.0.1:3000/callback",
+    "http://localhost:3000/callback"
+  ],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+Client IDs based on Client ID Metadata Documents are portable across authorization servers,
+since they are self-hosted HTTPS URLs resolved by the authorization server on demand. No
+re-registration is needed when the authorization server changes.
+
 ### Pre-Registration
 
 Pre-registration is appropriate when the client and authorization server have an existing
 relationship. The client can have embedded client registration information (client ID and
-optionally client credentials) that it uses to complete the authorization flow.
+optionally client credentials) that it uses to complete the authorization flow. This could
+be:
+
+1. A client ID (and, if applicable, client credentials) hardcoded specifically for the MCP
+   client to use when interacting with that authorization server, or
+2. A UI that allows users to enter these details after registering an OAuth client
+   themselves (e.g., through a configuration interface hosted by the server).
+
+Pre-registered credentials are specific to the authorization server that issued them. If the
+authorization server advertised by the MCP server changes, the client must not reuse the old
+credentials with the new server.
 
 ### Dynamic Client Registration
 
@@ -213,7 +269,41 @@ optionally client credentials) that it uses to complete the authorization flow.
 Dynamic Client Registration
 ([RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)) allows clients to programmatically
 register with an authorization server by sending a registration request containing client
-metadata.
+metadata to the `registration_endpoint`:
+
+```json
+{
+  "client_name": "My MCP Client",
+  "redirect_uris": ["http://localhost:3000/callback"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "application_type": "native"
+}
+```
+
+If the registration succeeds, the authorization server returns the client registration
+information, including the issued `client_id`.
+
+Clients must set an appropriate `application_type`: `"native"` for desktop applications,
+mobile apps, CLI tools, and locally-hosted web applications accessed via `localhost`, and
+`"web"` for remote browser-based applications. When authorization servers support OpenID
+Connect (OIDC) and Dynamic Client Registration, they may enforce additional constraints on
+redirect URIs based on the `application_type` parameter as defined in
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
+Omitting it defaults to `"web"` under OIDC, which can conflict with native-style redirect
+URIs. Non-OIDC servers safely ignore the parameter, as
+[RFC 7591 Section 2](https://datatracker.ietf.org/doc/html/rfc7591#section-2)
+requires servers to ignore client metadata they do not understand.
+
+Clients must be prepared for registrations rejected over redirect URI constraints: surface a
+meaningful error to the user or developer, and optionally retry with an adjusted
+`application_type` or with redirect URIs the authorization server accepts.
+
+Credentials obtained through DCR are bound to the authorization server that issued them.
+Clients that persist them must key that registration state by the authorization server's
+`issuer` identifier and must not reuse it across authorization servers. See
+[Authorization Server Binding](/specification/draft/basic/authorization/client-registration#authorization-server-binding)
+in the authorization spec.
 
 **When to use DCR:**
 
@@ -229,9 +319,9 @@ metadata.
 
 ### Fallback Priority
 
-For the recommended priority order when clients support multiple registration options, see the
-[Client Registration Approaches](/specification/latest/basic/authorization#client-registration-approaches)
-section in the authorization spec.
+For the recommended priority order when clients support multiple registration options, see
+[Client Registration](/specification/draft/basic/authorization/client-registration)
+in the authorization spec.
 
 ## Implementing Client Registration
 
@@ -656,14 +746,14 @@ In TypeScript, the MCP server proxies OAuth endpoints to Stytch using
 so you serve the AS metadata yourself before `mcpAuthRouter`:
 
 ```typescript
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import {
+  createMcpExpressApp,
   mcpAuthRouter,
   createOAuthMetadata,
-} from "@modelcontextprotocol/sdk/server/auth/router.js";
-import { ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
+  ProxyOAuthServerProvider,
+} from "@modelcontextprotocol/express";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
 
@@ -740,19 +830,17 @@ app.all("/mcp", async (req, res) => {
     {
       title: "Addition Tool",
       description: "Add two numbers together",
-      inputSchema: {
+      inputSchema: z.object({
         a: z.number().describe("First number"),
         b: z.number().describe("Second number"),
-      },
+      }),
     },
     async ({ a, b }) => ({
       content: [{ type: "text", text: `${a} + ${b} = ${a + b}` }],
     }),
   );
 
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-  });
+  const transport = new NodeStreamableHTTPServerTransport();
 
   res.on("close", () => {
     transport.close().catch(() => {});
@@ -1049,14 +1137,14 @@ scope we created earlier will be required for access.
 <Tab title="TypeScript">
 
 ```typescript
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import {
+  createMcpExpressApp,
   mcpAuthRouter,
   createOAuthMetadata,
-} from "@modelcontextprotocol/sdk/server/auth/router.js";
-import { ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
+  ProxyOAuthServerProvider,
+} from "@modelcontextprotocol/express";
 import { z } from "zod";
 
 const KEYCLOAK_URL = "http://localhost:8080/realms/master";
@@ -1118,19 +1206,17 @@ app.all("/mcp", async (req, res) => {
     {
       title: "Addition Tool",
       description: "Add two numbers together",
-      inputSchema: {
+      inputSchema: z.object({
         a: z.number().describe("First number"),
         b: z.number().describe("Second number"),
-      },
+      }),
     },
     async ({ a, b }) => ({
       content: [{ type: "text", text: `${a} + ${b} = ${a + b}` }],
     }),
   );
 
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-  });
+  const transport = new NodeStreamableHTTPServerTransport();
 
   res.on("close", () => {
     transport.close().catch(() => {});
@@ -1299,7 +1385,7 @@ You will be able to invoke individual tools with the help of the `#` sign in the
 
 For comprehensive security guidance, including attack vectors, mitigation strategies, and
 implementation best practices, make sure to read through
-[Security Best Practices](/specification/draft/basic/security_best_practices). A few key
+[Security Best Practices](/docs/draft/tutorials/security/security_best_practices). A few key
 issues are called out below.
 
 - **Do not implement token validation or authorization logic by yourself**. Use off-the-shelf,
@@ -1327,7 +1413,16 @@ issues are called out below.
   secret for end‑user flows. Store all secrets in a proper secret manager, not in source
   control.
 - **Return proper challenges**. On 401, include `WWW-Authenticate` with `Bearer`, `realm`,
-  and `resource_metadata` so clients can discover how to authenticate.
+  `resource_metadata`, and the `scope` needed for the resource so clients can discover how
+  to authenticate and what to request. The `resource_metadata` pointer is optional, and
+  clients fall back to the RFC 9728 well-known URIs (path-based first, then root) when it is
+  absent, so make sure the Protected Resource Metadata document is served there.
+- **Validate the `iss` on authorization responses**. Authorization servers should attach the
+  `iss` parameter to authorization responses, including error responses, per
+  [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207). Clients must compare a received
+  `iss` against the issuer they recorded before redirecting, using simple string comparison,
+  and reject the response on mismatch. See
+  [Authorization Response Validation](/specification/draft/basic/authorization#authorization-response-validation).
 - **DCR (Dynamic Client Registration) controls**. If using the legacy DCR approach, be aware
   of constraints specific to your organization, such as trusted hosts, required vetting, and
   audited registrations. Unauthenticated DCR means that anyone can register any client with
@@ -1341,8 +1436,11 @@ issues are called out below.
   server.
 - **Error detail leakage**. Return generic messages to clients, but log detailed reasons with
   correlation IDs internally to aid troubleshooting without exposing internals.
-- **Session identifier hardening**. Treat `Mcp-Session-Id` as untrusted input; never tie
-  authorization to it. Regenerate on auth changes and validate lifecycle server‑side.
+- **Never tie authorization to session identifiers**. The current draft transport removes
+  protocol-level sessions, and servers ignore any `Mcp-Session-Id` header sent by older
+  clients. If your server keeps its own application-level session state, treat identifiers
+  as untrusted input and derive authorization decisions from the validated access token
+  only.
 
 ## Related Standards and Documentation
 
@@ -1357,11 +1455,13 @@ MCP authorization builds on these well-established standards:
 - **[RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)**: Dynamic Client Registration
 - **[RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)**: Protected Resource Metadata
 - **[RFC 8707](https://datatracker.ietf.org/doc/html/rfc8707)**: Resource Indicators
+- **[RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207)**: Authorization Server Issuer
+  Identification
 
 For additional details, refer to:
 
-- [Authorization Specification](/specification/latest/basic/authorization)
-- [Security Best Practices](/specification/latest/basic/security_best_practices)
+- [Authorization Specification](/specification/draft/basic/authorization)
+- [Security Best Practices](/docs/draft/tutorials/security/security_best_practices)
 - [Available MCP SDKs](/docs/draft/sdk)
 
 Understanding these standards will help you implement authorization correctly and
