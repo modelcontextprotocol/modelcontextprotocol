@@ -745,13 +745,15 @@ In TypeScript, the MCP server proxies OAuth endpoints to Stytch using
 so you serve the AS metadata yourself before `mcpAuthRouter`:
 
 ```typescript
-import { McpServer } from "@modelcontextprotocol/server";
+import { McpServer, checkResourceAllowed } from "@modelcontextprotocol/server";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import {
   createMcpExpressApp,
   mcpAuthRouter,
   createOAuthMetadata,
   ProxyOAuthServerProvider,
+  requireBearerAuth,
+  getOAuthProtectedResourceMetadataUrl,
 } from "@modelcontextprotocol/express";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
@@ -773,6 +775,23 @@ const provider = new ProxyOAuthServerProvider({
     const { payload } = await jwtVerify(token, JWKS, {
       issuer: STYTCH_DOMAIN,
     });
+
+    // Reject tokens that were not issued for this server (RFC 8707)
+    const audiences = Array.isArray(payload.aud)
+      ? payload.aud
+      : payload.aud
+        ? [payload.aud]
+        : [];
+    const audienceAllowed = audiences.some((aud) =>
+      checkResourceAllowed({
+        requestedResource: aud,
+        configuredResource: SERVER_URL,
+      }),
+    );
+    if (!audienceAllowed) {
+      throw new Error("Token audience does not match this server");
+    }
+
     return {
       token,
       clientId: (payload.sub as string) ?? "",
@@ -828,7 +847,15 @@ app.use(
   }),
 );
 
-app.all("/mcp", async (req, res) => {
+// Require a valid bearer token on the MCP endpoint. Requests without one
+// receive a 401 with a WWW-Authenticate challenge pointing at the PRM document.
+const authMiddleware = requireBearerAuth({
+  verifier: provider,
+  requiredScopes: [],
+  resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(SERVER_URL),
+});
+
+app.all("/mcp", authMiddleware, async (req, res) => {
   const server = new McpServer({ name: "example-server", version: "1.0.0" });
 
   server.registerTool(
@@ -861,6 +888,12 @@ app.listen(3001, () => {
   console.log("MCP server listening on http://localhost:3001/mcp");
 });
 ```
+
+`requireBearerAuth` protects the `/mcp` route. It runs the provider's `verifyAccessToken`
+on every request and answers unauthenticated or invalid ones with a `401` and a
+`WWW-Authenticate` challenge pointing at the Protected Resource Metadata. Inside
+`verifyAccessToken`, `checkResourceAllowed` rejects tokens whose `aud` claim does not
+match this server, as the spec requires.
 
 The `getClient` callback is where CIMD happens. When a URL-formatted `client_id` is
 received, it fetches the metadata document from that URL and applies the document-level
@@ -1148,13 +1181,14 @@ scope we created earlier will be required for access.
 <Tab title="TypeScript">
 
 ```typescript
-import { McpServer } from "@modelcontextprotocol/server";
+import { McpServer, checkResourceAllowed } from "@modelcontextprotocol/server";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import {
   createMcpExpressApp,
   mcpAuthRouter,
-  createOAuthMetadata,
   ProxyOAuthServerProvider,
+  requireBearerAuth,
+  getOAuthProtectedResourceMetadataUrl,
 } from "@modelcontextprotocol/express";
 import { z } from "zod";
 
@@ -1188,6 +1222,19 @@ const provider = new ProxyOAuthServerProvider({
     const data = await response.json();
     if (!data.active) throw new Error("Token is not active");
 
+    // Reject tokens that were not issued for this server (RFC 8707)
+    if (!data.aud) throw new Error("Token audience (aud) missing");
+    const audiences: string[] = Array.isArray(data.aud) ? data.aud : [data.aud];
+    const audienceAllowed = audiences.some((aud) =>
+      checkResourceAllowed({
+        requestedResource: aud,
+        configuredResource: SERVER_URL,
+      }),
+    );
+    if (!audienceAllowed) {
+      throw new Error(`Token audience does not match ${SERVER_URL}`);
+    }
+
     return {
       token,
       clientId: data.client_id,
@@ -1209,7 +1256,15 @@ app.use(
   }),
 );
 
-app.all("/mcp", async (req, res) => {
+// Require a valid bearer token on the MCP endpoint. Requests without one
+// receive a 401 with a WWW-Authenticate challenge pointing at the PRM document.
+const authMiddleware = requireBearerAuth({
+  verifier: provider,
+  requiredScopes: [],
+  resourceMetadataUrl: getOAuthProtectedResourceMetadataUrl(SERVER_URL),
+});
+
+app.all("/mcp", authMiddleware, async (req, res) => {
   const server = new McpServer({ name: "example-server", version: "1.0.0" });
 
   server.registerTool(
@@ -1242,6 +1297,12 @@ app.listen(3000, () => {
   console.log("MCP server listening on http://localhost:3000/mcp");
 });
 ```
+
+After confirming the token is active, `verifyAccessToken` checks the introspection
+response's `aud` claim with `checkResourceAllowed` and rejects tokens issued for another
+resource. `requireBearerAuth` guards the `/mcp` route, so requests without a valid token
+receive a `401` with a `WWW-Authenticate` challenge pointing at the Protected Resource
+Metadata.
 
 </Tab>
 <Tab title="C#">
