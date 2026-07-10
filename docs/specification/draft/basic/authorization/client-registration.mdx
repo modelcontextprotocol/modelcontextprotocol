@@ -35,38 +35,19 @@ Key requirements include:
 
 **For MCP Clients:**
 
-- Clients **MUST** host their metadata document at an HTTPS URL following RFC requirements
-- The `client_id` URL **MUST** use the "https" scheme and contain a path component, e.g. `https://example.com/client.json`
-- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris`
-- Clients **MUST** ensure the `client_id` value in the metadata matches the document URL exactly
+- Clients **MUST** host their metadata document at an HTTPS URL that conforms to the client identifier requirements of [Section 3 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-3), e.g. `https://example.com/client.json`
+- Clients **MUST** ensure the `client_id` value in the metadata matches the document URL as required by [Section 4.1 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-4.1)
+- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris` (the Client ID Metadata Document specification requires only `client_id`; this specification additionally requires the other two)
 - Clients **MAY** use `private_key_jwt` for client authentication (e.g., for requests to the token endpoint) with appropriate JWKS configuration as described in [Section 6.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)
 
 **For Authorization Servers:**
 
 - **SHOULD** fetch metadata documents when encountering URL-formatted client_ids
 - **MUST** validate that the fetched document's `client_id` matches the URL exactly
-- **SHOULD** cache metadata respecting HTTP cache headers
+- **MAY** cache metadata documents and, when caching, **SHOULD** respect HTTP cache headers, as described in [Section 4.4 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-4.4)
 - **MUST** validate redirect URIs presented in an authorization request against those in the metadata document
 - **MUST** validate the document structure is valid JSON and contains required fields
 - **SHOULD** follow the security considerations in [Section 6 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6) and in [Client ID Metadata Document Security](/specification/draft/basic/authorization/security-considerations#client-id-metadata-document-security)
-
-### Example Metadata Document
-
-```json
-{
-  "client_id": "https://app.example.com/oauth/client-metadata.json",
-  "client_name": "Example MCP Client",
-  "client_uri": "https://app.example.com",
-  "logo_uri": "https://app.example.com/logo.png",
-  "redirect_uris": [
-    "http://127.0.0.1:3000/callback",
-    "http://localhost:3000/callback"
-  ],
-  "grant_types": ["authorization_code"],
-  "response_types": ["code"],
-  "token_endpoint_auth_method": "none"
-}
-```
 
 ### Client ID Metadata Documents Flow
 
@@ -127,13 +108,7 @@ or [pre-registration](#pre-registration) if unavailable.
 
 ## Pre-registration
 
-MCP clients **SHOULD** support an option for static client credentials such as those supplied by a pre-registration flow. This could be:
-
-1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
-   interacting with that authorization server, or
-2. Present a UI to users that allows them to enter these details, after registering an
-   OAuth client themselves (e.g., through a configuration interface hosted by the
-   server).
+MCP clients **SHOULD** support an option for static client credentials such as those supplied by a pre-registration flow.
 
 ## Dynamic Client Registration
 
@@ -145,22 +120,14 @@ MCP clients **SHOULD** support an option for static client credentials such as t
 </Warning>
 
 MCP clients and authorization servers **MAY** support the
-OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591)
-to allow MCP clients to obtain OAuth client IDs without user interaction.
+OAuth 2.0 Dynamic Client Registration Protocol [RFC7591](https://datatracker.ietf.org/doc/html/rfc7591).
 This option is included for backwards compatibility with earlier versions of the MCP authorization spec.
 
 ### Application Type and Redirect URI Constraints
 
-When authorization servers support OpenID Connect (OIDC) and
-Dynamic Client Registration, they may enforce additional
-constraints on redirect URIs based on the `application_type`
-parameter as defined in
-[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
-
 MCP clients **MUST** specify an appropriate `application_type`
-during Dynamic Client Registration. Omitting it defaults to
-`"web"` under OIDC, which can conflict with native-style redirect
-URIs; non-OIDC servers safely ignore the parameter.
+during Dynamic Client Registration, as defined in
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
 
 - **Native applications** (desktop applications, mobile apps,
   CLI tools, and locally-hosted web applications accessed via
@@ -195,8 +162,3 @@ authorization server. If the authorization server indicated by
 protected resource metadata no longer matches the one the
 credentials were registered with, clients **SHOULD** surface an
 error rather than silently attempting to use mismatched credentials.
-
-Client IDs based on Client ID Metadata Documents are portable
-across authorization servers, since they are self-hosted HTTPS URLs
-resolved by the authorization server on demand. No re-registration
-is needed when the authorization server changes.

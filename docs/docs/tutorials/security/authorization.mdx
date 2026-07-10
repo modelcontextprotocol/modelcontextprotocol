@@ -77,9 +77,38 @@ and retrieve another set of metadata properties that will allow it to know the e
 </Step>
 
 <Step title="Client Registration">
-With all the metadata out of the way, the client now needs to make sure that it's registered with the authorization server. This can be done in two ways.
+With all the metadata out of the way, the client now needs to make sure that it's registered with the authorization server. This can be done in a few ways.
 
-First, the client can be **pre-registered** with a given authorization server, in which case it can have embedded client registration information that it uses to complete the authorization flow.
+First, the client can be **pre-registered** with a given authorization server, in which case it can have embedded client registration information that it uses to complete the authorization flow. This could be:
+
+1. Hardcode a client ID (and, if applicable, client credentials) specifically for the MCP client to use when
+   interacting with that authorization server, or
+2. Present a UI to users that allows them to enter these details, after registering an
+   OAuth client themselves (e.g., through a configuration interface hosted by the
+   server).
+
+Second, the client can use a **Client ID Metadata Document** (CIMD), where the client uses an HTTPS URL that it controls as its `client_id` and hosts its own metadata at that URL for the authorization server to fetch. A metadata document looks like this:
+
+```json
+{
+  "client_id": "https://app.example.com/oauth/client-metadata.json",
+  "client_name": "Example MCP Client",
+  "client_uri": "https://app.example.com",
+  "logo_uri": "https://app.example.com/logo.png",
+  "redirect_uris": [
+    "http://127.0.0.1:3000/callback",
+    "http://localhost:3000/callback"
+  ],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+Client IDs based on Client ID Metadata Documents are portable
+across authorization servers, since they are self-hosted HTTPS URLs
+resolved by the authorization server on demand. No re-registration
+is needed when the authorization server changes.
 
 Alternatively, the client can use **Dynamic Client Registration** (DCR) to dynamically register itself with the authorization server. The latter scenario requires the authorization server to support DCR. If the authorization server does support DCR, the client will send a request to the `registration_endpoint` with its information:
 
@@ -93,6 +122,17 @@ Alternatively, the client can use **Dynamic Client Registration** (DCR) to dynam
 ```
 
 If the registration succeeds, the authorization server will return a JSON blob with client registration information.
+
+When authorization servers support OpenID Connect (OIDC) and
+Dynamic Client Registration, they may enforce additional
+constraints on redirect URIs based on the `application_type`
+parameter as defined in
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
+Omitting it defaults to
+`"web"` under OIDC, which can conflict with native-style redirect
+URIs; non-OIDC servers safely ignore the parameter, as
+[RFC 7591 Section 2](https://datatracker.ietf.org/doc/html/rfc7591#section-2)
+requires servers to ignore client metadata they do not understand.
 
 <Tip>
 **No DCR or Pre-Registration**
@@ -115,7 +155,7 @@ The client will now need to open a browser to the `/authorize` endpoint, where t
 }
 ```
 
-The access token is what the client will use to authenticate requests to the MCP server. This step follows standard [OAuth 2.1 authorization code with PKCE](https://oauth.net/2/grant-types/authorization-code/) conventions.
+The access token is what the client will use to authenticate requests to the MCP server. This step follows standard [OAuth 2.1 authorization code with PKCE](https://oauth.net/2/grant-types/authorization-code/) conventions. PKCE helps prevent authorization code interception and injection attacks by requiring clients to create a secret verifier-challenge pair, ensuring that only the original requestor can exchange an authorization code for tokens.
 
 </Step>
 

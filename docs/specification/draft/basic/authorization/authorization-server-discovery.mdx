@@ -18,16 +18,13 @@ The specific use of `authorization_servers` is beyond the scope of this specific
 OAuth 2.0 Protected Resource Metadata ([RFC9728](https://datatracker.ietf.org/doc/html/rfc9728)) for
 guidance on implementation details.
 
-Implementors should note that Protected Resource Metadata documents
-can define multiple authorization servers. The responsibility for
-selecting which authorization server to use lies with the MCP client,
-following the guidelines specified in
+The responsibility for selecting which authorization server to use
+lies with the MCP client, following the guidelines specified in
 [RFC9728 Section 7.6 "Authorization Servers"](https://datatracker.ietf.org/doc/html/rfc9728#name-authorization-servers).
 
 When multiple authorization servers are listed in `authorization_servers`, each is an
-independent OAuth 2.0 authorization server. Consistent with
-[RFC 6749 Section 2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-2.2), client
-identifiers are unique to the authorization server that issued them. Clients **MUST** maintain
+independent OAuth 2.0 authorization server whose client identifiers are unique to it
+([RFC 6749 Section 2.2](https://datatracker.ietf.org/doc/html/rfc6749#section-2.2)). Clients **MUST** maintain
 separate registration state (client credentials, tokens) per authorization server and
 **MUST NOT** assume that credentials valid for one authorization server will be accepted by
 another. See
@@ -40,17 +37,15 @@ MCP servers **MUST** implement one of the following discovery mechanisms to prov
 
 1. **WWW-Authenticate Header**: Include the resource metadata URL in the `WWW-Authenticate` HTTP header under `resource_metadata` when returning `401 Unauthorized` responses, as described in [RFC9728 Section 5.1](https://datatracker.ietf.org/doc/html/rfc9728#name-www-authenticate-response).
 
-2. **Well-Known URI**: Serve metadata at a well-known URI as specified in [RFC9728](https://datatracker.ietf.org/doc/html/rfc9728). This can be either:
-   - At the path of the server's MCP endpoint: `https://example.com/public/mcp` could host metadata at `https://example.com/.well-known/oauth-protected-resource/public/mcp`
-   - At the root: `https://example.com/.well-known/oauth-protected-resource`
+2. **Well-Known URI**: Serve metadata at a well-known URI constructed as specified in [RFC9728 Section 3](https://datatracker.ietf.org/doc/html/rfc9728#section-3). This can be either:
+   - At the path of the server's MCP endpoint
+   - At the root: `https://example.com/.well-known/oauth-protected-resource` (an MCP extension of RFC 9728 Section 3 for path-bearing endpoints)
 
-MCP clients **MUST** support both discovery mechanisms and use the resource metadata URL from the parsed `WWW-Authenticate` headers when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
+MCP clients **MUST** support both discovery mechanisms and **MUST** be able to parse `WWW-Authenticate` headers on `HTTP 401 Unauthorized` responses, using the resource metadata URL from them when present; otherwise, they **MUST** fall back to constructing and requesting the well-known URIs in the order listed above.
 
-MCP clients **MUST** be able to parse `WWW-Authenticate` headers and respond appropriately to `HTTP 401 Unauthorized` responses from the MCP server.
-
-Servers can also include a `scope` parameter in the `WWW-Authenticate` challenge to indicate the
-scopes required for accessing the resource; the scope semantics and the associated client behavior
-are defined in the [Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy) section.
+Servers can also include a `scope` parameter in the `WWW-Authenticate` challenge; the scope
+semantics and the associated client behavior are defined in the
+[Scope Selection Strategy](/specification/draft/basic/authorization#scope-selection-strategy) section.
 
 ## Authorization Server Metadata Discovery
 
@@ -91,7 +86,7 @@ For issuer URLs without path components
 2. OpenID Connect Discovery 1.0:
    `https://auth.example.com/.well-known/openid-configuration`
 
-After retrieving a metadata document, MCP clients **MUST** validate it as required by [RFC8414 Section 3.3](https://datatracker.ietf.org/doc/html/rfc8414#section-3.3) or [OpenID Connect Discovery Section 4.3](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation): the `issuer` value in the document **MUST** be identical to the issuer identifier used to construct the well-known URL. If they differ, the client **MUST NOT** use the metadata. For example, a document fetched from `https://attacker.example/.well-known/oauth-authorization-server` that contains `"issuer": "https://honest.example"` **MUST** be rejected.
+After retrieving a metadata document, MCP clients **MUST** validate it as required by [RFC8414 Section 3.3](https://datatracker.ietf.org/doc/html/rfc8414#section-3.3) or [OpenID Connect Discovery Section 4.3](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation): the `issuer` value in the document **MUST** be identical to the issuer identifier used to construct the well-known URL. If they differ, the client **MUST NOT** use the metadata.
 
 ## Sequence Diagram
 
