@@ -788,7 +788,14 @@ const provider = new ProxyOAuthServerProvider({
         headers: { Accept: "application/json" },
       });
       if (!resp.ok) return undefined;
-      return await resp.json();
+      const metadata = await resp.json();
+      // The spec requires the document's client_id to match the URL exactly
+      // and the required fields to be present
+      if (metadata.client_id !== clientId) return undefined;
+      if (!metadata.client_name || !Array.isArray(metadata.redirect_uris)) {
+        return undefined;
+      }
+      return metadata;
     } catch {
       return undefined;
     }
@@ -856,8 +863,11 @@ app.listen(3001, () => {
 });
 ```
 
-The `getClient` callback is where CIMD happens — when a URL-formatted `client_id` is
-received, it fetches the metadata document from that URL and validates it.
+The `getClient` callback is where CIMD happens. When a URL-formatted `client_id` is
+received, it fetches the metadata document from that URL and applies the validation the
+[Client Registration spec](/specification/draft/basic/authorization/client-registration)
+requires of authorization servers: the document's `client_id` must exactly match the URL,
+and the required fields must be present.
 
 For more details, see the
 [TypeScript SDK documentation](https://github.com/modelcontextprotocol/typescript-sdk).
@@ -962,8 +972,8 @@ supports CIMD out of the box for quick testing and experimentation.
 - **`client_id` mismatch**: The `client_id` field in the metadata document must exactly match
   the URL where the document is hosted. Even trailing slash differences will cause validation
   failures.
-- **Missing required fields**: Ensure `client_name`, `redirect_uris`, and
-  `token_endpoint_auth_method` are present in your metadata document.
+- **Missing required fields**: Ensure `client_id`, `client_name`, and `redirect_uris` are
+  present in your metadata document.
 - **HTTPS requirement**: The metadata document URL must use HTTPS (not HTTP) with a path
   component.
 - **Scopes must be registered**: Custom scopes must be registered in your identity provider's
@@ -1437,10 +1447,11 @@ issues are called out below.
 - **Error detail leakage**. Return generic messages to clients, but log detailed reasons with
   correlation IDs internally to aid troubleshooting without exposing internals.
 - **Never tie authorization to session identifiers**. The current draft transport removes
-  protocol-level sessions, and servers ignore any `Mcp-Session-Id` header sent by older
-  clients. If your server keeps its own application-level session state, treat identifiers
-  as untrusted input and derive authorization decisions from the validated access token
-  only.
+  protocol-level sessions. Servers that support only the draft revision should ignore any
+  `Mcp-Session-Id` header sent by older clients, and servers that still support earlier
+  revisions must never derive authorization from it. If your server keeps its own
+  application-level session state, treat identifiers as untrusted input and derive
+  authorization decisions from the validated access token only.
 
 ## Related Standards and Documentation
 
