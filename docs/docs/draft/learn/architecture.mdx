@@ -326,7 +326,7 @@ Each tool object in the response includes several key fields:
 - **`description`**: Detailed explanation of what the tool does and when to use it
 - **`inputSchema`**: A JSON Schema that defines the expected input parameters, enabling type validation and providing clear documentation about required and optional parameters
 
-The result also carries `ttlMs` and `cacheScope`, caching hints that tell the client how long it may reuse the listing before fetching it again.
+The result also carries two caching hints: `ttlMs` tells the client how long it may reuse the listing before fetching it again, and `cacheScope` indicates whether the response may be cached publicly (shared across users and intermediaries) or only privately for the current user.
 
 #### How This Works in AI Applications
 
