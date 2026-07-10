@@ -115,8 +115,10 @@ sequenceDiagram
     Host-->>Model: Salesforce server available
 
     Model->>Host: enable_server("salesforce")
-    Host->>Server: Initialize connection
-    Server-->>Host: Server capabilities + tools
+    Host->>Server: server/discover
+    Server-->>Host: Supported versions + capabilities
+    Host->>Server: tools/list
+    Server-->>Host: Tool definitions
     Host-->>Model: Salesforce server connected
 
     Note over Model: Task complete
