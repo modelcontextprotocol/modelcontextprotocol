@@ -439,7 +439,7 @@ When constructing a `tools/call` request via HTTP transport, the client MUST:
 1. Encode the values according to the rules in [Value Encoding](#value-encoding)
 1. Append a `Mcp-Param-{Name}: {Value}` header to the request:
 
-> **Implementation Note**: If the client does not have the tool's `inputSchema` (e.g., `tools/list` has not yet been called) or the cached schema is stale (e.g., its TTL has expired), the client SHOULD send the request without custom `Mcp-Param-*` headers. If the server rejects the request because required custom headers are missing, the client SHOULD call `tools/list` to obtain the current `inputSchema`, then retry the original request with the appropriate headers. Clients MAY pre-load tool definitions via other means (e.g., from a previous session or configuration) to enable header emission without a prior `tools/list` call.
+> **Implementation Note**: Clients MUST construct `Mcp-Param-*` headers using the most recently obtained `inputSchema` for the tool. A client that has never obtained the tool's `inputSchema` SHOULD send the request without `Mcp-Param-*` headers. If the server rejects the request because required `Mcp-Param-*` headers are missing or do not match the body, the client SHOULD call `tools/list` to obtain the current `inputSchema`, then retry the original request with the appropriate headers. Clients MAY pre-load tool definitions via other means (e.g., from a previous session or configuration) to enable header emission without a prior `tools/list` call.
 
 #### Server Behavior
 
@@ -754,7 +754,7 @@ This section defines edge cases that conformance tests MUST cover to ensure inte
 | Invalid Base64 characters | `=?base64?SGVs!!!bG8=?=` | Server MUST reject with 400 and error code `-32001`; Intermediary MAY reject with 400 status code |
 | Missing prefix            | `SGVsbG8=`               | Server treats as literal value, not Base64                                                        |
 | Missing suffix            | `=?base64?SGVsbG8=`      | Server treats as literal value, not Base64                                                        |
-| Malformed wrapper         | `=?BASE64?SGVsbG8=?=`    | Server MUST accept (case-insensitive prefix)                                                      |
+| Non-lowercase prefix      | `=?BASE64?SGVsbG8=?=`    | Server treats as literal value, not Base64                                                        |
 
 #### Null and Missing Values
 

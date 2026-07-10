@@ -1,0 +1,87 @@
+---
+title: Authorization Charter
+description: Charter for the MCP Authorization Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Authorization Interest Group provides a venue for MCP implementers, identity-provider vendors, and security practitioners to surface real-world authorization challenges encountered when deploying MCP clients and servers. The group gathers use cases, documents gaps in the current OAuth 2.1–based authorization specification, and incubates validated problems until they are scoped well enough to propose a focused Working Group via the standard [group-creation process](/community/working-interest-groups#creating-a-working-group) to drive the corresponding [SEPs](/community/sep-guidelines).
+
+## Scope
+
+### In Scope
+
+- **Deployment experience reports**: how implementers have integrated the current authorization spec (OAuth 2.1, [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) Protected Resource Metadata, [RFC 7591](https://www.rfc-editor.org/rfc/rfc7591) Dynamic Client Registration, Client ID Metadata Documents) with real authorization servers, and where it falls short
+- **Enterprise identity integration**: requirements and friction points when connecting MCP servers to enterprise IdPs (Okta, Entra ID, Ping, Keycloak, etc.), including SSO, tenant isolation, and admin consent flows
+- **Delegated and agentic access**: use cases for on-behalf-of token exchange, downstream resource access, audience restriction, and consent when an MCP client acts through chains of agents or tools
+- **Scope and permission granularity**: whether and how MCP servers should advertise fine-grained scopes (per-tool, per-resource) and how clients should request and present them
+- **Credentials for non-HTTP transports**: patterns for stdio, WebSocket, and future transports where the HTTP authorization spec does not directly apply
+- **Client identity and registration**: operator experience with Dynamic Client Registration, Client ID Metadata Documents, software statements, and pre-registered clients
+- **Threat modelling input**: cataloguing authorization-related attack surfaces (token confusion, confused-deputy, audience mismatch, redirect handling) to inform Security Best Practices documentation
+- **Proposing Working Groups**: once a problem is validated and scoped, the IG submits a Working Group creation proposal via the standard `#wg-ig-group-creation` process; approval remains with community moderators and core maintainers
+- **Problem statements and requirements**: use-case catalogues and recommendations published to GitHub Discussions for consumption by SEP authors and Working Groups
+
+### Out of Scope
+
+- **Authentication of end users to MCP clients**: how a host application authenticates its own users is a host concern, not a protocol concern
+- **Transport security (TLS, mTLS, certificate handling)**: belongs to the Transports WG
+- **Server identity, provenance, and trust signalling**: belongs to the Server Card / Registry efforts
+- **End-user product configuration walk-throughs**: the IG discusses patterns, not step-by-step setup for individual IdP products. Vendor-reported constraints on what an authorization server can or cannot implement _are_ in scope as deployment experience
+- **Competitively sensitive or non-public business information**, per the [MCP Antitrust Policy](/community/antitrust)
+
+### Related Groups
+
+- **[Enterprise-Managed Authorization IG](/community/interest-groups/enterprise-managed-authorization)**: coordinates IdP, client, and server interoperability testing for the EMA extension produced by the Profiles WG; spec-change requests surfaced there are routed back to this group
+- **Transports WG**: authorization is currently specified at the HTTP transport level; changes to transports affect where credentials are carried
+- **Agents WG**: delegated/on-behalf-of access and consent for multi-agent chains overlap heavily with agentic use cases
+- **[Server Card WG](/community/working-groups/server-card) / [Registry](/community/working-groups/registry)**: client and server identity, discovery metadata, and trust establishment intersect with how authorization servers and resource servers are located and verified
+- **SDK Maintainers**: SDKs ship the auth client implementations; IG findings should inform cross-SDK auth ergonomics
+
+## Leadership
+
+| Role        | Name          | Organization | GitHub                                     | Term    |
+| ----------- | ------------- | ------------ | ------------------------------------------ | ------- |
+| Facilitator | Aaron Parecki | Okta         | [@aaronpk](https://github.com/aaronpk)     | Initial |
+| Facilitator | Darin McAdams | Amazon       | [@D-McAdams](https://github.com/D-McAdams) | Initial |
+| Facilitator | Paul Carleton | Anthropic    | [@pcarleton](https://github.com/pcarleton) | Initial |
+
+## Membership
+
+Open to anyone; no formal membership or approval step is required to join the channel, attend calls, or contribute.
+
+Join the `#auth-ig` channel on the [MCP Contributors Discord](/community/communication#discord) or open a thread in the Authorization category of [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions). If your topic clearly matches one of the Working Groups in the table below, you can post directly in that WG's channel. Calls are open and attendance is optional — async participation via Discord and GitHub is equally valued.
+
+## Operations
+
+| Meeting         | Frequency     | Duration | Purpose                                                                      |
+| --------------- | ------------- | -------- | ---------------------------------------------------------------------------- |
+| Discussion Call | Every 2 weeks | 45 min   | Use-case sharing, problem triage, WG proposal decisions, implementer reports |
+
+Discord: [#auth-ig](https://discord.com/channels/1358869848138059966/1360835991749001368)
+
+### Working Group Incubation
+
+A topic graduates to a Working Group proposal when it has a written problem statement in GitHub Discussions and rough consensus on a bi-weekly call (recorded in published notes). A facilitator then files the standard WG creation template in `#wg-ig-group-creation`, citing that discussion. The IG's role ends at the proposal; approval remains with community moderators and core maintainers.
+
+## Deliverables & Success Metrics
+
+The IG incubates problems until they are well-scoped, then proposes focused Working Groups to drive specific SEPs. Each spawned WG maintains its own charter; this list is a directory, not a substitute. The IG stewards [modelcontextprotocol/ext-auth](https://github.com/modelcontextprotocol/ext-auth), where individual WGs land authorization extension specifications via PR.
+
+| Working Group              | Discord                        | Focus                                                                                                                                                                               | Status    | Charter |
+| -------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| Client Registration        | `#auth-wg-client-registration` | Dynamic Client Registration, Client ID Metadata Documents, software statements, and pre-registered client workflows                                                                 | Completed | —       |
+| Mix-up Protection          | `#auth-wg-mixup-protection`    | Mitigating OAuth authorization-server mix-up and token-audience confusion attacks                                                                                                   | Completed | —       |
+| Profiles                   | `#auth-wg-profiles`            | Extension specifications for additional grant types and token-binding mechanisms (Client Credentials, Enterprise-Managed Authorization, DPoP, Workload Identity Federation)         | Completed | —       |
+| Tool Scopes                | `#auth-wg-tool-scopes`         | Per-tool OAuth scope advertisement, step-up authorization / scope challenge, and client-side scope accumulation — mechanics within the OAuth scope-string model                     | Active    | Pending |
+| Fine-Grained Authorization | `#auth-wg-fine-grained-authz`  | Authorization granularity beyond scope strings — Rich Authorization Requests ([RFC 9396](https://www.rfc-editor.org/rfc/rfc9396)), remediation hints, and multi-credential handling | Active    | Pending |
+| Improve DevX               | `#auth-wg-improve-devx`        | Best-practices guidance and tutorials for building secure MCP clients and servers, beyond the normative spec                                                                        | Completed | —       |
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-06-02 | Initial charter |
