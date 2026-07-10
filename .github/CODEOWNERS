@@ -11,10 +11,12 @@
 /blog/ @dsp-ant @localden
 
 # Working Group and Interest Group governance (SEP-2149)
-# WG/IG overview pages require approval by Maintainers
-/docs/community/*/overview.mdx @modelcontextprotocol/maintainers
 # WG/IG charter documents require approval from Core Maintainers
-/docs/community/*/charter.mdx @modelcontextprotocol/core-maintainers
+/docs/community/working-groups/ @modelcontextprotocol/core-maintainers
+/docs/community/interest-groups/ @modelcontextprotocol/core-maintainers
+# WG/IG overview pages require approval by Maintainers (more specific, listed after)
+/docs/community/working-groups/*/overview.mdx @modelcontextprotocol/maintainers
+/docs/community/interest-groups/*/overview.mdx @modelcontextprotocol/maintainers
 
 # Authorization-related files - @auth team should be notified
 /docs/specification/**/authorization.mdx @modelcontextprotocol/core-maintainers @modelcontextprotocol/auth-wg

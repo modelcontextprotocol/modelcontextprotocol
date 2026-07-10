@@ -1,6 +1,6 @@
 # SEP-2484: Require Conformance Tests for Standards Track SEPs to Reach Final Status
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Process
 - **Created**: 2026-03-27
 - **Author(s)**: Paul Carleton (@pcarleton)

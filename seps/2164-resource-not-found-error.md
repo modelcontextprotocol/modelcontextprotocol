@@ -1,6 +1,6 @@
 # SEP-2164: Standardize Resource Not Found Error Code
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-01-28
 - **Author(s)**: Peter Alexander (@pja-ant)
