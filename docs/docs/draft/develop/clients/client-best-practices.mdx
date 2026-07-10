@@ -139,6 +139,15 @@ When implementing progressive discovery:
 | **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                                                                                                                |
 | **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities.                                                                                                 |
 
+When caching list results, follow the server's caching hints (see the specification's
+[caching utility](/specification/draft/server/utilities/caching)). Each `tools/list` result
+carries a `ttlMs` field, a freshness hint in milliseconds. Treat the cached result as fresh
+for that long and re-fetch once it expires. A `list_changed` notification invalidates the
+cached result immediately, even if the TTL has not expired. The result's `cacheScope` field
+controls sharing. A `"private"` result may only be reused within the same authorization
+context, so never serve it for a different access token. Only `"public"` results may be
+shared across users or served from a shared cache.
+
 ### Interaction with Prompt Caching
 
 Most providers cache the prompt prefix, including the `tools` array. Adding or removing tool
