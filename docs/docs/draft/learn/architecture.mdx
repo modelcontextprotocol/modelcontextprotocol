@@ -255,6 +255,7 @@ Now that the connection is established, the client can discover available tools 
     "jsonrpc": "2.0",
     "id": 2,
     "result": {
+      "resultType": "complete",
       "tools": [
         {
           "name": "calculator_arithmetic",
@@ -315,7 +316,7 @@ Each tool object in the response includes several key fields:
 - **`description`**: Detailed explanation of what the tool does and when to use it
 - **`inputSchema`**: A JSON Schema that defines the expected input parameters, enabling type validation and providing clear documentation about required and optional parameters
 
-The result also carries two caching fields that list and read operations must include:
+The result is marked `"resultType": "complete"` and carries two caching fields that complete list and read results must include:
 
 - **`ttlMs`**: A freshness hint in milliseconds. The client may treat the response as fresh for this long before re-fetching. Here `300000` means the tool list can be cached for five minutes.
 - **`cacheScope`**: Indicates who may cache the response. `"public"` responses contain no user-specific data and may be served from shared caches. `"private"` responses may only be reused within the same authorization context.
@@ -424,12 +425,22 @@ Change notifications are opt-in. To receive them, the client opens a long-lived 
   "id": 4,
   "method": "subscriptions/listen",
   "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    },
     "notifications": {
       "toolsListChanged": true
     }
   }
 }
 ```
+
+Every client request carries the `io.modelcontextprotocol/protocolVersion`, `clientInfo`, and `clientCapabilities` fields in `_meta`, so the server can identify the client without relying on connection state.
 
 The server acknowledges the filter with `notifications/subscriptions/acknowledged` as the first message on the stream, then delivers matching notifications as changes occur. The server never sends notification types the client did not request.
 
@@ -467,7 +478,17 @@ Upon receiving this notification, the client typically reacts by requesting the 
 {
   "jsonrpc": "2.0",
   "id": 5,
-  "method": "tools/list"
+  "method": "tools/list",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  }
 }
 ```
 
