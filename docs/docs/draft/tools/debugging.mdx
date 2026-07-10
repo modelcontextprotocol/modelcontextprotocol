@@ -18,7 +18,7 @@ MCP provides several tools for debugging at different levels:
    [resources](/specification/latest/server/resources), and watch the
    notification stream. This should be your first stop.
 2. **Server logging**: structured logs to stderr (stdio transport) or via
-   [`notifications/message`](/specification/draft/server/utilities/logging#log-message-notifications)
+   [`notifications/message`](/specification/latest/server/utilities/logging#log-message-notifications)
    (all transports).
 3. **Client developer tools**: most MCP clients expose logs and connection
    state. See [Debugging in Claude Desktop](#debugging-in-claude-desktop)
@@ -41,25 +41,14 @@ will interfere with protocol operation.
 </Warning>
 
 For servers using the
-[Streamable HTTP transport](/specification/draft/basic/transports/streamable-http),
+[Streamable HTTP transport](/specification/latest/basic/transports#streamable-http),
 stderr is not captured by the client. Use the log message notifications below,
 your own server-side log aggregation, or standard HTTP tooling (curl, browser
-DevTools Network panel) to inspect requests, the
-[request metadata headers](/specification/draft/basic/transports/streamable-http#request-metadata)
-(`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`), and SSE streams.
+DevTools Network panel) to inspect requests,
+[`Mcp-Session-Id` headers](/specification/latest/basic/transports#session-management),
+and SSE streams.
 
-<Warning>
-
-The [Logging feature](/specification/draft/server/utilities/logging)
-(`notifications/message` and the per-request
-`io.modelcontextprotocol/logLevel` field) is deprecated as of protocol version
-`2026-07-28`. New implementations should not adopt it. Prefer logging to
-stderr on stdio transports, or [OpenTelemetry](https://opentelemetry.io/) for
-structured observability.
-
-</Warning>
-
-For all [transports](/specification/draft/basic/transports), you can also
+For all [transports](/specification/latest/basic/transports), you can also
 provide logging to the client by sending a log message notification:
 
 <CodeGroup>
@@ -84,12 +73,11 @@ await server.sendLoggingMessage({
 </CodeGroup>
 
 MCP defines eight
-[RFC 5424 severity levels](/specification/draft/server/utilities/logging#log-levels)
-(`debug` through `emergency`). Clients set the minimum level per request via
-the
-[`io.modelcontextprotocol/logLevel`](/specification/draft/server/utilities/logging#requesting-log-messages)
-field in `_meta`. Servers only emit `notifications/message` for requests that
-include it.
+[RFC 5424 severity levels](/specification/latest/server/utilities/logging#log-levels)
+(`debug` through `emergency`). Clients can adjust the minimum level at runtime
+via the
+[`logging/setLevel`](/specification/latest/server/utilities/logging#setting-log-level)
+request.
 
 Important events to log:
 
