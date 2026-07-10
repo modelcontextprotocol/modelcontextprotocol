@@ -18,7 +18,7 @@ MCP provides several tools for debugging at different levels:
    [resources](/specification/latest/server/resources), and watch the
    notification stream. This should be your first stop.
 2. **Server logging**: structured logs to stderr (stdio transport) or via
-   [`notifications/message`](/specification/latest/server/utilities/logging#log-message-notifications)
+   [`notifications/message`](/specification/draft/server/utilities/logging#log-message-notifications)
    (all transports).
 3. **Client developer tools**: most MCP clients expose logs and connection
    state. See [Debugging in Claude Desktop](#debugging-in-claude-desktop)
@@ -29,7 +29,7 @@ MCP provides several tools for debugging at different levels:
 ### Server-side logging
 
 When building a server that uses the local
-[stdio transport](/specification/latest/basic/transports#stdio), all messages
+[stdio transport](/specification/draft/basic/transports/stdio), all messages
 logged to stderr (standard error) will be captured by the host application
 automatically.
 
@@ -41,14 +41,14 @@ will interfere with protocol operation.
 </Warning>
 
 For servers using the
-[Streamable HTTP transport](/specification/latest/basic/transports#streamable-http),
+[Streamable HTTP transport](/specification/draft/basic/transports/streamable-http),
 stderr is not captured by the client. Use the log message notifications below,
 your own server-side log aggregation, or standard HTTP tooling (curl, browser
-DevTools Network panel) to inspect requests,
-[`Mcp-Session-Id` headers](/specification/latest/basic/transports#session-management),
-and SSE streams.
+DevTools Network panel) to inspect requests, the
+[request metadata headers](/specification/draft/basic/transports/streamable-http#request-metadata)
+(`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`), and SSE streams.
 
-For all [transports](/specification/latest/basic/transports), you can also
+For all [transports](/specification/draft/basic/transports), you can also
 provide logging to the client by sending a log message notification:
 
 <CodeGroup>
@@ -73,15 +73,16 @@ await server.sendLoggingMessage({
 </CodeGroup>
 
 MCP defines eight
-[RFC 5424 severity levels](/specification/latest/server/utilities/logging#log-levels)
-(`debug` through `emergency`). Clients can adjust the minimum level at runtime
-via the
-[`logging/setLevel`](/specification/latest/server/utilities/logging#setting-log-level)
-request.
+[RFC 5424 severity levels](/specification/draft/server/utilities/logging#log-levels)
+(`debug` through `emergency`). Clients set the minimum level per request via
+the
+[`io.modelcontextprotocol/logLevel`](/specification/draft/server/utilities/logging#requesting-log-messages)
+field in `_meta`. Servers only emit `notifications/message` for requests that
+include it.
 
 Important events to log:
 
-- Initialization steps
+- Startup steps
 - Resource access
 - Tool execution
 - Error conditions
@@ -145,9 +146,9 @@ To override the default variables or provide your own, you can specify an
 }
 ```
 
-### Server initialization
+### Server startup
 
-Common initialization problems:
+Common startup problems:
 
 1. **Path Issues**
    - Incorrect server executable path
@@ -173,17 +174,24 @@ When servers fail to connect:
 2. Verify server process is running
 3. Test standalone with [Inspector](/docs/draft/tools/inspector)
 4. Verify
-   [protocol compatibility](/specification/latest/basic/lifecycle#version-negotiation)
-5. Check
-   [capability negotiation](/specification/latest/basic/lifecycle#capability-negotiation):
-   error [`-32602`](/specification/latest/basic/lifecycle#error-handling) is
-   the standard JSON-RPC "Invalid params" code and is returned in many
-   contexts. One common cause is a server sending
-   [sampling](/specification/latest/client/sampling) or
-   [elicitation](/specification/latest/client/elicitation) requests to a
-   client that hasn't declared that capability. Inspect the
-   [`initialize` exchange](/specification/latest/basic/lifecycle#initialization)
-   to verify both sides declared what you expect
+   [protocol compatibility](/docs/draft/learn/versioning#negotiation): call
+   [`server/discover`](/specification/draft/server/discover) to see which
+   protocol versions the server supports. An
+   `UnsupportedProtocolVersionError` (`-32022`) lists the server's supported
+   versions in its `data` field
+5. Check the
+   [per-request `_meta` fields](/specification/draft/basic/index#meta):
+   every request must carry `io.modelcontextprotocol/protocolVersion`,
+   `io.modelcontextprotocol/clientInfo`, and
+   `io.modelcontextprotocol/clientCapabilities`. A request missing any of
+   these is rejected with error `-32602` (Invalid params), the same code
+   returned for many other malformed inputs. If the server needs a capability
+   the request's `clientCapabilities` did not declare, such as
+   [elicitation](/specification/draft/client/elicitation), it returns a
+   `MissingRequiredClientCapabilityError` (`-32021`) naming the missing
+   capabilities. Inspect the request's `_meta` and the
+   [`server/discover`](/specification/draft/server/discover) response to
+   verify both sides declared what you expect
 
 ## Debugging in Claude Desktop
 
