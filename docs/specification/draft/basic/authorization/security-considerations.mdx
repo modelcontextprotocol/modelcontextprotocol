@@ -41,7 +41,7 @@ This requirement is unconditional: the exception that OAuth 2.1 Section 7.5.2 gr
 
 MCP clients **MUST** use the `S256` code challenge method when technically capable, as required by [OAuth 2.1 Section 4.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-4.1.1).
 
-MCP clients **MUST** rely on authorization server metadata to verify PKCE support; this specification permits no other detection mechanism:
+MCP clients **MUST** rely on authorization server metadata to verify PKCE support. This specification permits no other detection mechanism:
 
 - **OAuth 2.0 Authorization Server Metadata**: If `code_challenge_methods_supported` is absent, the authorization server does not support PKCE ([RFC 8414 Section 2](https://datatracker.ietf.org/doc/html/rfc8414#section-2)) and MCP clients **MUST** refuse to proceed.
 
@@ -104,11 +104,11 @@ before forwarding to third-party authorization servers (which may require additi
 
 An attacker can gain unauthorized access or otherwise compromise an MCP server if the server accepts tokens issued for other resources.
 
-MCP servers **MUST** validate inbound access tokens before processing the request, following the guidelines in [OAuth 2.1 - Section 5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#section-5.2), and **MUST** only accept tokens specifically intended for themselves, rejecting tokens that do not include them in the audience claim (for example, as described in [RFC9068](https://www.rfc-editor.org/rfc/rfc9068.html)) or that otherwise fail to identify them as the intended recipient; OAuth 2.1 states audience restriction as a **SHOULD**, and this specification makes it unconditional. Servers **MUST** take all necessary steps to ensure no data is returned to unauthorized parties. See the [Security Best Practices Token Passthrough section](/docs/tutorials/security/security_best_practices#token-passthrough) for details.
+MCP servers **MUST** validate inbound access tokens before processing the request, following the guidelines in [OAuth 2.1 - Section 5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#section-5.2), and **MUST** only accept tokens specifically intended for themselves, rejecting tokens that do not include them in the audience claim (for example, as described in [RFC9068](https://www.rfc-editor.org/rfc/rfc9068.html)) or that otherwise fail to identify them as the intended recipient. OAuth 2.1 states audience restriction as a **SHOULD**, and this specification makes it unconditional. Servers **MUST** take all necessary steps to ensure no data is returned to unauthorized parties. See the [Security Best Practices Token Passthrough section](/docs/tutorials/security/security_best_practices#token-passthrough) for details.
 
 If the MCP server makes requests to upstream APIs, it may act as an OAuth client to them. The access token used at the upstream API is a separate token, issued by the upstream authorization server. The MCP server **MUST NOT** pass through the token it received from the MCP client.
 
 MCP clients **MUST** implement and use the `resource` parameter as specified in the
-[Resource Parameter Implementation](/specification/draft/basic/authorization#resource-parameter-implementation) section;
+[Resource Parameter Implementation](/specification/draft/basic/authorization#resource-parameter-implementation) section.
 [RFC 9728 Section 7.4](https://datatracker.ietf.org/doc/html/rfc9728#section-7.4) recommends this
 practice, and this specification requires it.

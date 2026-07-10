@@ -37,7 +37,7 @@ Key requirements include:
 
 - Clients **MUST** host their metadata document at an HTTPS URL that conforms to the client identifier requirements of [Section 3 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-3), e.g. `https://example.com/client.json`
 - Clients **MUST** ensure the `client_id` value in the metadata matches the document URL as required by [Section 4.1 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-4.1)
-- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris` (the Client ID Metadata Document specification requires only `client_id`; this specification additionally requires the other two)
+- The metadata document **MUST** include at least the following properties: `client_id`, `client_name`, `redirect_uris` (the Client ID Metadata Document specification requires only `client_id`, and this specification additionally requires the other two)
 - Clients **MAY** use `private_key_jwt` for client authentication (e.g., for requests to the token endpoint) with appropriate JWKS configuration as described in [Section 6.2 of Client ID Metadata Document](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)
 
 **For Authorization Servers:**

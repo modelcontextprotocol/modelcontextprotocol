@@ -99,7 +99,7 @@ Dynamic Client Registration, following the requirements and selection priority d
 MCP servers **SHOULD** include a `scope` parameter, as defined in
 [RFC 6750 Section 3](https://datatracker.ietf.org/doc/html/rfc6750#section-3), in the
 `WWW-Authenticate` header of `401 Unauthorized` responses. RFC 6750 makes this attribute
-OPTIONAL; this specification raises its emission to **SHOULD**.
+OPTIONAL. This specification raises its emission to **SHOULD**.
 
 The scopes included in the `WWW-Authenticate` challenge **MAY** match `scopes_supported`, be a subset
 or superset of it, or an alternative collection that is neither a strict subset nor
@@ -109,7 +109,7 @@ challenge as authoritative for the current operation. These scopes are required 
 satisfy the current request. When re-authorizing, clients **SHOULD** include these scopes
 alongside any previously granted scopes to avoid losing permissions needed for other operations
 (see [Step-Up Authorization Flow](#step-up-authorization-flow)). Servers **SHOULD** strive for
-consistency in how they construct scope sets; [RFC 9728 Section 2](https://datatracker.ietf.org/doc/html/rfc9728#section-2)
+consistency in how they construct scope sets. [RFC 9728 Section 2](https://datatracker.ietf.org/doc/html/rfc9728#section-2)
 permits `scopes_supported` to be non-exhaustive.
 
 Example 401 response with scope guidance:
@@ -190,7 +190,7 @@ sequenceDiagram
 
 Before redirecting the user-agent, the client **MUST** record the `issuer` value from the selected authorization server's validated metadata document (see [Authorization Server Metadata Discovery](/specification/draft/basic/authorization/authorization-server-discovery#authorization-server-metadata-discovery)) and associate it with the same per-request record used to store the PKCE code verifier (and the `state` value, if used). The validation in this section depends on that recorded value being authentic; it provides no protection if the expected issuer was obtained from an unvalidated source.
 
-MCP authorization servers **SHOULD** include the `iss` parameter in authorization responses, including error responses, as defined in [RFC9207 Section 2](https://datatracker.ietf.org/doc/html/rfc9207#section-2); RFC 9207 binds only servers that opt in, and this specification profiles support as a **SHOULD**. Authorization servers that include the `iss` parameter **MUST** advertise it in their metadata as required by [RFC9207 Section 2.3](https://datatracker.ietf.org/doc/html/rfc9207#section-2.3).
+MCP authorization servers **SHOULD** include the `iss` parameter in authorization responses, including error responses, as defined in [RFC9207 Section 2](https://datatracker.ietf.org/doc/html/rfc9207#section-2). RFC 9207 binds only servers that opt in, and this specification profiles support as a **SHOULD**. Authorization servers that include the `iss` parameter **MUST** advertise it in their metadata as required by [RFC9207 Section 2.3](https://datatracker.ietf.org/doc/html/rfc9207#section-2.3).
 
 On receiving the authorization response, MCP clients **MUST** apply the validation in [RFC9207 Section 2.4](https://datatracker.ietf.org/doc/html/rfc9207#section-2.4) before transmitting the authorization code to any token endpoint:
 
@@ -207,12 +207,12 @@ The third row applies the local-policy provision in [RFC9207 Section 2.4](https:
 
 A future revision of this specification is expected to upgrade authorization server inclusion of `iss` from **SHOULD** to **MUST**. Implementers are encouraged to emit and validate `iss` now to ease that transition; client rejection behavior on `iss` absence will continue to be keyed on `authorization_response_iss_parameter_supported` until that revision defines the upgrade path.
 
-This validation applies equally to error responses ([RFC 9207 Section 2](https://datatracker.ietf.org/doc/html/rfc9207#section-2)); on mismatch the client **MUST NOT** act on or display `error`, `error_description`, or `error_uri`.
+This validation applies equally to error responses ([RFC 9207 Section 2](https://datatracker.ietf.org/doc/html/rfc9207#section-2)). On mismatch the client **MUST NOT** act on or display `error`, `error_description`, or `error_uri`.
 
 ## Resource Parameter Implementation
 
 MCP clients **MUST** implement Resource Indicators for OAuth 2.0 as defined in [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707.html).
-RFC 8707 makes the `resource` parameter OPTIONAL and permits multiple values; this specification
+RFC 8707 makes the `resource` parameter OPTIONAL and permits multiple values. This specification
 tightens both: the parameter **MUST** be included in both authorization requests and token requests
 ([RFC 8707 Sections 2.1 and 2.2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2.1)), and its
 single value **MUST** be the canonical URI of the MCP server that the client intends to use the
@@ -226,11 +226,11 @@ For the purposes of this specification, the canonical URI of an MCP server is de
 
 MCP clients **SHOULD** follow the guidance in [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2) when selecting the resource value, including its recommendation to provide the most specific URI possible. While the canonical form uses lowercase scheme and host components, implementations **SHOULD** accept uppercase scheme and host components for robustness and interoperability.
 
-[RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2) defines the requirements on the value, including that it be an absolute URI without a fragment component; a valid canonical URI for an MCP server is, for example, `https://mcp.example.com/mcp`.
+[RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2) defines the requirements on the value, including that it be an absolute URI without a fragment component. A valid canonical URI for an MCP server is, for example, `https://mcp.example.com/mcp`.
 
 > **Note:** While both `https://mcp.example.com/` (with trailing slash) and `https://mcp.example.com` (without trailing slash) are technically valid absolute URIs according to [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986), implementations **SHOULD** consistently use the form without the trailing slash for better interoperability unless the trailing slash is semantically significant for the specific resource.
 
-MCP clients **MUST** send this parameter regardless of whether authorization servers support it; [RFC 8707 Sections 2.1 and 2.2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2.1) show its use in both request types.
+MCP clients **MUST** send this parameter regardless of whether authorization servers support it. [RFC 8707 Sections 2.1 and 2.2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2.1) show its use in both request types.
 
 ## Access Token Usage
 
@@ -241,7 +241,7 @@ Access token handling when making requests to MCP servers **MUST** conform to th
 Specifically:
 
 1. MCP clients **MUST** use the Authorization request header field defined in
-   [OAuth 2.1 Section 5.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.1);
+   [OAuth 2.1 Section 5.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.1).
    OAuth 2.1 states this method as a **SHOULD** and also allows the form-encoded body method of
    [OAuth 2.1 Section 5.1.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.1.2),
    while this specification requires the header method exclusively:
@@ -289,7 +289,7 @@ tokens are not a resource requirement.
 
 ## Error Handling
 
-Servers **MUST** return the HTTP status codes defined in [RFC 6750 Section 3.1](https://datatracker.ietf.org/doc/html/rfc6750#section-3.1) for authorization errors: 400 for malformed authorization requests (`invalid_request`), 401 when authorization is required or the token is invalid (`invalid_token`), and 403 for invalid scopes or insufficient permissions (`insufficient_scope`). RFC 6750 states these mappings as per-code SHOULDs; this specification requires them.
+Servers **MUST** return the HTTP status codes defined in [RFC 6750 Section 3.1](https://datatracker.ietf.org/doc/html/rfc6750#section-3.1) for authorization errors: 400 for malformed authorization requests (`invalid_request`), 401 when authorization is required or the token is invalid (`invalid_token`), and 403 for invalid scopes or insufficient permissions (`insufficient_scope`). RFC 6750 states these mappings as per-code SHOULDs. This specification requires them.
 
 ### Scope Challenge Handling
 
@@ -307,7 +307,7 @@ scope during runtime operations, the server **SHOULD** respond with an
 additions to that specification:
 
 - Servers **SHOULD** include the `scope` parameter, listing the scopes needed to satisfy the
-  current operation (RFC 6750 makes this a MAY); servers are not required to include the
+  current operation (RFC 6750 makes this a MAY). Servers are not required to include the
   client's previously granted scopes.
 - Servers **SHOULD** include a `resource_metadata` parameter
   ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728)) carrying the URI of the Protected
@@ -327,7 +327,7 @@ Servers **SHOULD** be consistent in their scope inclusion strategy to provide pr
 Servers **SHOULD** consider the user experience impact when determining which scopes to include in the
 response, as misconfigured scopes may require frequent user interaction.
 
-Scope accumulation across operations is a client-side responsibility; see the
+Scope accumulation across operations is a client-side responsibility. See the
 [Step-Up Authorization Flow](#step-up-authorization-flow) for the scope-union requirement.
 
 Example insufficient scope response:
