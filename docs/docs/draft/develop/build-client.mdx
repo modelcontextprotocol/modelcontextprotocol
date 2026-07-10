@@ -2084,6 +2084,481 @@ If you see:
 
 </Tab>
 
+<Tab title="Rust">
+
+[You can find the complete code for this tutorial here.](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/mcp-client-rust)
+
+## System Requirements
+
+Before starting, ensure your Linux system meets these requirements:
+
+- Latest stable version of [Rust and Cargo](https://www.rust-lang.org/tools/install)
+- Anthropic API key (Claude)
+- A Python, Node.js, or executable MCP server to connect to
+
+## Setting Up Your Environment
+
+First, create a new Rust project:
+
+```bash
+cargo new mcp-client-rust
+cd mcp-client-rust
+```
+
+Replace the contents of `Cargo.toml` with the following:
+
+```toml Cargo.toml
+[package]
+name = "mcp-client-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+genai = "0.4.2"
+rmcp = { version = "0.8.0", features = ["server", "client", "transport-io", "transport-child-process"] }
+tokio = { version = "1.47.1", features = ["full"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde_json = "1.0.128"
+dotenvy = "0.15.7"
+reqwest = "0.12.23"
+```
+
+The [`rmcp`](https://github.com/modelcontextprotocol/rust-sdk) crate provides the Rust MCP SDK and child-process transport. This example uses the [`genai`](https://github.com/jeremychone/rust-genai) crate to send requests to Claude and represent tools in the model request.
+
+## Setting Up Your API Key
+
+You'll need an Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+
+Create a `.env` file to store it:
+
+```bash
+echo "ANTHROPIC_API_KEY=your-api-key-goes-here" > .env
+```
+
+Add `.env` to your `.gitignore`:
+
+```bash
+echo ".env" >> .gitignore
+```
+
+<Warning>
+
+Make sure you keep your `ANTHROPIC_API_KEY` secure!
+
+</Warning>
+
+## Creating the Client
+
+Open `src/main.rs` and replace its contents as you work through the following sections.
+
+### Imports and Client Structure
+
+First, add the imports, model constant, and basic client structure:
+
+```rust
+use anyhow::{Context, Result, bail};
+use genai::Client;
+use genai::chat::{
+    ChatMessage, ChatRequest, ChatResponse, ContentPart, Tool as GenaiTool, ToolResponse,
+};
+use rmcp::model::{CallToolRequestParam, Tool as McpTool};
+use rmcp::service::{RoleClient, RunningService, ServiceExt};
+use rmcp::transport::TokioChildProcess;
+use serde_json::Value;
+use tokio::io::{self, AsyncBufReadExt, BufReader};
+use tokio::process::Command;
+
+const MODEL_ANTHROPIC: &str = "claude-sonnet-4-20250514";
+
+struct MCPClient {
+    anthropic: Client,
+    session: Option<RunningService<RoleClient, ()>>,
+    tools: Vec<GenaiTool>,
+}
+```
+
+The client keeps the model API client, the active MCP session, and the tools advertised by the connected server.
+
+### Client Initialization
+
+Next, initialize the model client and start without an MCP session or tools:
+
+```rust
+impl MCPClient {
+    fn new() -> Result<Self> {
+        Ok(MCPClient {
+            anthropic: Client::default(),
+            session: None,
+            tools: Vec::new(),
+        })
+    }
+
+    // Additional methods will go here.
+}
+```
+
+`genai::Client::default()` reads the `ANTHROPIC_API_KEY` environment variable when it sends a request.
+
+### Server Connection Management
+
+Add this method inside the `impl MCPClient` block:
+
+```rust
+async fn connect_to_server(&mut self, server_args: &[String]) -> Result<()> {
+    if self.session.is_some() {
+        bail!("Client is already connected to a server");
+    }
+
+    let mut command = Command::new(&server_args[0]);
+    command.args(&server_args[1..]);
+
+    let process = TokioChildProcess::new(command)
+        .with_context(|| format!("Failed to spawn server process for {:?}", server_args))?;
+
+    let session = ().serve(process).await?;
+
+    let rmcp_tools = session
+        .list_all_tools()
+        .await
+        .context("Unable to list tools from server")?;
+
+    let tool_names: Vec<String> = rmcp_tools
+        .iter()
+        .map(|tool| tool.name.to_string())
+        .collect();
+
+    println!("Connected to server with tools: {tool_names:?}");
+
+    self.tools = convert_tools(&rmcp_tools);
+    self.session = Some(session);
+    Ok(())
+}
+```
+
+This method:
+
+1. Starts the server as a child process using the command and arguments supplied on the command line
+2. Establishes an MCP session over stdio
+3. Lists all tools advertised by the server
+4. Converts those tools into the format used in model requests
+
+### Converting MCP Tools
+
+Add this function outside the `impl MCPClient` block:
+
+```rust
+fn convert_tools(tools: &[McpTool]) -> Vec<GenaiTool> {
+    tools
+        .iter()
+        .map(|tool| GenaiTool {
+            name: tool.name.to_string(),
+            description: tool.description.as_deref().map(str::to_string),
+            schema: Some(Value::Object(tool.input_schema.as_ref().clone())),
+            config: None,
+        })
+        .collect()
+}
+```
+
+MCP and model APIs describe tools with similar information but different Rust types. `convert_tools` maps each MCP tool's name, description, and input schema into a `genai` tool definition.
+
+### Sending Model Requests
+
+Add this helper method inside `impl MCPClient`:
+
+```rust
+async fn request_model(&self, chat_req: &ChatRequest) -> Result<ChatResponse> {
+    let response = self
+        .anthropic
+        .exec_chat(MODEL_ANTHROPIC, chat_req.clone(), None)
+        .await
+        .context("Anthropic chat request failed")?;
+
+    Ok(response)
+}
+```
+
+This keeps model request handling in one place and adds useful context if the API request fails.
+
+### Query Processing Logic
+
+Now add the core query-processing method inside `impl MCPClient`:
+
+```rust
+async fn process_query(&mut self, query: &str) -> Result<String> {
+    let session = self
+        .session
+        .as_ref()
+        .context("Client is not connected to any server")?;
+
+    let mut messages = vec![ChatMessage::user(query)];
+    let mut final_text = Vec::new();
+
+    // Initial Claude API call with tools
+    let mut chat_req = ChatRequest::new(messages.clone()).with_tools(self.tools.clone());
+    let mut chat_rsp = self.request_model(&chat_req).await?;
+
+    // Process response content - collect text and handle tool calls
+    for text in chat_rsp.texts() {
+        final_text.push(text.to_string());
+    }
+
+    let tool_calls = chat_rsp.tool_calls();
+    if !tool_calls.is_empty() {
+        // Append assistant's response to message history
+        messages.push(ChatMessage::assistant(chat_rsp.content.clone()));
+
+        // Execute each tool call and collect responses
+        let mut tool_results = Vec::new();
+        for tool_call in tool_calls {
+            // Add information about the tool call to final text
+            let tool_args_str = serde_json::to_string(&tool_call.fn_arguments)
+                .unwrap_or_else(|_| "{}".to_string());
+
+            final_text.push(format!(
+                "[Calling tool {} with args {}]",
+                tool_call.fn_name, tool_args_str
+            ));
+
+            // Query the MCP server
+            let tool_result = session
+                .call_tool(CallToolRequestParam {
+                    name: tool_call.fn_name.clone().into(),
+                    arguments: tool_call.fn_arguments.as_object().cloned(),
+                })
+                .await
+                .with_context(|| format!("Tool call {} failed", tool_call.fn_name))?;
+
+            let payload = serde_json::to_string(&tool_result)
+                .context("Failed to serialize tool result")?;
+
+            tool_results.push(ContentPart::ToolResponse(ToolResponse::new(
+                tool_call.call_id.clone(),
+                payload,
+            )));
+        }
+
+        // Append tool responses to message history
+        messages.push(ChatMessage::user(tool_results));
+
+        // Build the next request and query model
+        chat_req = ChatRequest::new(messages.clone());
+        chat_rsp = self.request_model(&chat_req).await?;
+
+        // Collect text from response
+        for text in chat_rsp.texts() {
+            final_text.push(text.to_string());
+        }
+    }
+
+    Ok(final_text.join("\n"))
+}
+```
+
+The method first sends the user's query and available tools to Claude. When Claude requests tools, the client executes each request through the MCP session, sends the results back to Claude, and collects the final text response.
+
+### Interactive Chat Interface
+
+Add the interactive terminal loop inside `impl MCPClient`:
+
+```rust
+async fn chat_loop(&mut self) -> Result<()> {
+    println!("\nMCP Client Started!");
+    println!("Type your queries or 'quit' to exit.");
+
+    let mut stdin = BufReader::new(io::stdin());
+    let mut input = String::new();
+
+    loop {
+        print!("\nQuery: ");
+        std::io::Write::flush(&mut std::io::stdout())?;
+
+        input.clear();
+        if stdin.read_line(&mut input).await? == 0 {
+            break; // EOF
+        }
+
+        let query = input.trim();
+        if query.eq_ignore_ascii_case("quit") {
+            break;
+        }
+        if query.is_empty() {
+            continue;
+        }
+
+        match self.process_query(query).await {
+            Ok(response) => println!("\n{}", response),
+            Err(err) => println!("\nError: {}", err),
+        }
+    }
+
+    Ok(())
+}
+```
+
+The loop accepts queries until the user types `quit` or closes standard input. Query errors are printed without terminating the client.
+
+### Cleanup
+
+Add this method inside `impl MCPClient` to stop the MCP session and child process:
+
+```rust
+async fn cleanup(&mut self) -> Result<()> {
+    if let Some(session) = self.session.take() {
+        let _ = session.cancel().await;
+    }
+    Ok(())
+}
+```
+
+### Main Entry Point
+
+Finally, add the asynchronous entry point outside the `impl MCPClient` block:
+
+```rust
+#[tokio::main]
+async fn main() -> Result<()> {
+    dotenvy::dotenv().context("Failed to load env file")?;
+
+    let mut args = std::env::args();
+    let _ = args.next();
+    let server_args: Vec<String> = args.collect();
+
+    if server_args.is_empty() {
+        eprintln!("Usage: cargo run -- <server_script_or_binary> [args...]");
+        std::process::exit(1);
+    }
+
+    let mut client = MCPClient::new()?;
+
+    let result = async {
+        client.connect_to_server(&server_args).await?;
+        client.chat_loop().await
+    }
+    .await;
+
+    let cleanup_result = client.cleanup().await;
+
+    result?;
+    cleanup_result?;
+
+    Ok(())
+}
+```
+
+The entry point loads `.env`, treats all remaining command-line arguments as the server command, connects the client, starts the chat loop, and ensures cleanup runs before exiting.
+
+### Verify the Complete File
+
+Before running the client, confirm the items in `src/main.rs` are placed at the correct scope:
+
+- `new`, `connect_to_server`, `process_query`, `request_model`, `chat_loop`, and `cleanup` are methods inside the single `impl MCPClient` block.
+- `main` and `convert_tools` are functions outside the `impl MCPClient` block.
+
+Rust does not require these items to appear in a particular order, but methods and free functions must be placed in the correct scope. Compare your file with the [complete `src/main.rs` example](https://github.com/modelcontextprotocol/quickstart-resources/blob/main/mcp-client-rust/src/main.rs), then check that it compiles:
+
+```bash
+cargo fmt --check
+cargo check
+```
+
+## Running the Client
+
+Use `cargo run --` followed by the command you would normally use to start the MCP server:
+
+```bash
+# Python server
+cargo run -- python path/to/server.py
+
+# Node.js server
+cargo run -- node path/to/build/index.js
+
+# Executable server
+cargo run -- path/to/server-binary
+```
+
+Running bare `cargo run` without a server command prints the usage message and exits.
+
+<Note>
+
+If you're continuing [the weather tutorial from the server quickstart](https://github.com/modelcontextprotocol/quickstart-resources/tree/main/weather-server-rust), build the server first and then run a command similar to: `cargo run -- ../weather-server-rust/target/debug/weather`
+
+</Note>
+
+The client will:
+
+1. Start and connect to the specified MCP server
+2. List the tools available from that server
+3. Start an interactive chat session where you can:
+   - Enter queries
+   - See tool executions
+   - Get responses from Claude
+
+## How It Works
+
+When you submit a query:
+
+1. The client sends your query and the server's available tools to Claude
+2. Claude decides which tools, if any, to use
+3. The client executes requested tools through the MCP session
+4. Tool results are sent back to Claude
+5. Claude provides a natural language response
+6. The response is displayed in the terminal
+
+## Best Practices
+
+1. **Error Handling**
+   - Add context to errors at process, MCP, model API, and serialization boundaries
+   - Report individual query errors without terminating the interactive session
+   - Validate server commands before running them
+
+2. **Resource Management**
+   - Always cancel the MCP session during cleanup
+   - Ensure cleanup runs even when connection or chat-loop operations fail
+   - Avoid starting a second server while a session is active
+
+3. **Security**
+   - Store API keys securely in `.env`
+   - Review the tools exposed by a server before allowing model-driven calls
+   - Connect only to servers and executable commands you trust
+
+## Troubleshooting
+
+### Server Command Issues
+
+The arguments after `cargo run --` must form a complete command. Interpreted server scripts need their runtime:
+
+```bash
+# Correct
+cargo run -- python ./server/weather.py
+cargo run -- node ./server/build/index.js
+
+# Incorrect: a Python script is not necessarily executable by itself
+cargo run -- ./server/weather.py
+```
+
+If a command cannot be found, use its absolute path or verify it is available in your `PATH`.
+
+### Environment File Issues
+
+If you see `Failed to load env file`, ensure `.env` exists in the directory where you run the client.
+
+If the model request reports a missing API key, confirm that `.env` contains:
+
+```text
+ANTHROPIC_API_KEY=your-api-key-goes-here
+```
+
+### Tool and Response Errors
+
+- `Unable to list tools from server`: Verify the server starts successfully and communicates over stdio
+- `Tool call ... failed`: Verify the server tool's required arguments and environment variables
+- `Failed to serialize tool result`: Inspect the server's response for unsupported or malformed content
+
+</Tab>
+
 </Tabs>
 
 ## Next steps
