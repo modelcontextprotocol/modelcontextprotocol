@@ -313,7 +313,7 @@ The client can discover available tools by sending a `tools/list` request. This 
 
 #### Understanding the Tool Discovery Request
 
-The `tools/list` request carries no parameters beyond the standard `_meta` fields that accompany every MCP request.
+The `tools/list` request requires no parameters beyond the standard `_meta` fields that accompany every MCP request. It also accepts an optional `cursor` parameter for [pagination](/specification/draft/server/utilities/pagination), which the example above omits.
 
 #### Understanding the Tool Discovery Response
 
@@ -462,7 +462,24 @@ Change notifications are opt-in. The client opens a long-lived stream with a [`s
 }
 ```
 
-When the server's available tools change—such as when new functionality becomes available, existing tools are modified, or tools become temporarily unavailable—the server delivers a notification on that stream:
+The first message the server sends on the stream is always `notifications/subscriptions/acknowledged`. Its `notifications` field reflects the subset of the requested filter the server agreed to honor, with unsupported notification types omitted:
+
+```json Acknowledgment
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/subscriptions/acknowledged",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/subscriptionId": 4
+    },
+    "notifications": {
+      "toolsListChanged": true
+    }
+  }
+}
+```
+
+After the acknowledgment, when the server's available tools change—such as when new functionality becomes available, existing tools are modified, or tools become temporarily unavailable—the server delivers a notification on that stream:
 
 ```json Notification
 {

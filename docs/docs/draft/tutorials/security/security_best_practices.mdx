@@ -492,7 +492,7 @@ revision do not mint session IDs, so the attacks below apply to servers
 implementing protocol versions `2025-11-25` and earlier. Servers that
 need cross-call state under the current revision instead mint explicit
 state handles and receive them back as ordinary tool arguments. See
-[Securing state handles](#securing-state-handles) below.
+[Securing State Handles](#securing-state-handles) below.
 
 </Note>
 
@@ -581,7 +581,7 @@ vectors are possible:
    attacker as a legitimate user, allowing unauthorized access or
    actions.
 
-#### Securing state handles
+#### Securing State Handles
 
 Under protocol revision `2026-07-28`, the protocol is
 [stateless](/specification/draft/basic/index#statelessness): servers
@@ -607,7 +607,7 @@ the client, and reject a handle presented by any other principal. This
 ensures that even if an attacker guesses a handle, they cannot
 impersonate another user.
 
-#### Mitigation for session-based versions
+#### Mitigation for Session-Based Versions
 
 Servers that still implement protocol versions `2025-11-25` and
 earlier should implement the following mitigations to prevent session

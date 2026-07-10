@@ -48,6 +48,17 @@ DevTools Network panel) to inspect requests, the
 [request metadata headers](/specification/draft/basic/transports/streamable-http#request-metadata)
 (`MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`), and SSE streams.
 
+<Warning>
+
+The [Logging feature](/specification/draft/server/utilities/logging)
+(`notifications/message` and the per-request
+`io.modelcontextprotocol/logLevel` field) is deprecated as of protocol version
+`2026-07-28`. New implementations should not adopt it. Prefer logging to
+stderr on stdio transports, or [OpenTelemetry](https://opentelemetry.io/) for
+structured observability.
+
+</Warning>
+
 For all [transports](/specification/draft/basic/transports), you can also
 provide logging to the client by sending a log message notification:
 
