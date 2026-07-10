@@ -89,15 +89,24 @@ Key aspects of the flow:
 
 To support Enterprise-Managed Authorization, your client must:
 
-1. **Declare support** in the `initialize` request:
+1. **Declare support** in its per-request capabilities:
 
-```json
+```jsonc
 {
-  "capabilities": {
-    "extensions": {
-      "io.modelcontextprotocol/enterprise-managed-authorization": {}
-    }
-  }
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "...",
+  "params": {
+    // Other fields...
+    "_meta": {
+      // Other fields...
+      "io.modelcontextprotocol/clientCapabilities": {
+        "extensions": {
+          "io.modelcontextprotocol/enterprise-managed-authorization": {},
+        },
+      },
+    },
+  },
 }
 ```
 
