@@ -536,20 +536,12 @@ When constructing a `tools/call` request via HTTP transport, the client
    rules.
 5. Append a `Mcp-Param-{Name}: {Value}` header to the request.
 
-<Note>
-
-Clients **MUST** construct `Mcp-Param-*` headers using the most recently
-obtained `inputSchema` for the tool. A client that has never obtained the
-tool's `inputSchema` **SHOULD** send the request without `Mcp-Param-*`
-headers. If the server rejects the request because required `Mcp-Param-*`
-headers are missing or do not match the body, the client **SHOULD** call
-`tools/list` to obtain the current `inputSchema`, then retry the original
-request with the appropriate headers. Clients **MAY** pre-load tool
-definitions via other means (e.g., from a previous session or
-configuration) to enable header emission without a prior `tools/list`
-call.
-
-</Note>
+If the server rejects a request with a
+[`HeaderMismatch`](#server-validation) error because required
+`Mcp-Param-*` headers are missing or do not match the body, the client
+**SHOULD** call `tools/list` to check for changes to the tool's
+`inputSchema`, then retry the original request with the appropriate
+headers.
 
 #### Server Behavior for Custom Headers
 
