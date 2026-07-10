@@ -135,9 +135,7 @@ MCP also defines primitives that _clients_ can expose. These primitives allow MC
 
 For more details about client primitives see [client concepts](./client-concepts).
 
-Besides server and client primitives, the protocol offers cross-cutting utility primitives that augment how requests are executed:
-
-- **Tasks (Experimental)**: Durable execution wrappers that enable deferred result retrieval and status tracking for MCP requests (e.g., expensive computations, workflow automation, batch processing, multi-step operations)
+Besides server and client primitives, the protocol supports optional [extensions](/extensions/overview) that build on the core protocol. For example, the [Tasks extension](/extensions/tasks/overview) lets servers return a durable handle for long-running requests, so clients can poll for status and retrieve the result later.
 
 #### Notifications
 
