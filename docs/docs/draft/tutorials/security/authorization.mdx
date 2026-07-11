@@ -27,15 +27,10 @@ While authorization for MCP servers is **optional**, it is strongly recommended 
 <Tip>
 **Authorization for Local MCP Servers**
 
-For MCP servers using the [STDIO transport](/specification/draft/basic/transports/stdio), you
-can use environment-based credentials or credentials provided by third-party libraries embedded
-directly in the MCP server instead. Because a STDIO-built MCP server runs locally, it has
-access to a range of flexible options when it comes to acquiring user credentials that may or
-may not rely on in-browser authentication and authorization flows.
-
-OAuth flows, in turn, are designed for HTTP-based transports where the MCP server is
-remotely-hosted and the client uses OAuth to establish that a user is authorized to access
-said remote server.
+MCP servers using the [STDIO transport](/specification/draft/basic/transports/stdio) run
+locally, so they can acquire user credentials from the environment or from third-party
+libraries embedded in the server instead. OAuth flows are designed for HTTP-based transports
+where the client must establish that a user is authorized to access a remotely-hosted server.
 
 </Tip>
 
@@ -66,12 +61,10 @@ access the resource. For more on how clients should select scopes, see the
 section in the authorization spec.
 
 The `WWW-Authenticate` pointer is optional. Servers can instead serve the PRM document only
-at the well-known URIs required by the discovery spec, and clients must fall back to
-constructing those URIs when the header carries no `resource_metadata` parameter: first the
-RFC 9728 path-inserted URI derived from the MCP endpoint path (for example,
-`https://your-server.com/.well-known/oauth-protected-resource/mcp`), then the root
-`https://your-server.com/.well-known/oauth-protected-resource` (an MCP extension of
-RFC 9728 for path-bearing endpoints). See
+at the well-known URIs. When the header carries no `resource_metadata` parameter, clients
+must fall back to those URIs, trying the path-inserted form (for example,
+`https://your-server.com/.well-known/oauth-protected-resource/mcp`) before the root
+`https://your-server.com/.well-known/oauth-protected-resource`. See
 [Protected Resource Metadata Discovery Requirements](/specification/draft/basic/authorization/authorization-server-discovery#protected-resource-metadata-discovery-requirements)
 for the details.
 
@@ -98,10 +91,9 @@ You can see a more comprehensive example in
 <Step title="Authorization Server Discovery">
 Next, the client discovers what the authorization server can do by fetching its metadata.
 If the PRM document lists more than one authorization server, the client can decide which
-one to use. Each entry is an independent authorization server: clients must keep
-registration state (client credentials, tokens) separate per authorization server, keyed by
-its `issuer` identifier, and must not reuse credentials issued by one authorization server
-with another. See
+one to use. Clients must keep registration state (client credentials, tokens) separate per
+authorization server, keyed by its `issuer` identifier, and must not reuse credentials
+across authorization servers. See
 [Authorization Server Location](/specification/draft/basic/authorization/authorization-server-discovery#authorization-server-location)
 for the requirements.
 
@@ -285,20 +277,14 @@ metadata to the `registration_endpoint`:
 If the registration succeeds, the authorization server returns the client registration
 information, including the issued `client_id`.
 
-Clients must set an appropriate `application_type`: `"native"` for desktop applications,
-mobile apps, CLI tools, and locally-hosted web applications accessed via `localhost`, and
-`"web"` for remote browser-based applications. When authorization servers support OpenID
-Connect (OIDC) and Dynamic Client Registration, they may enforce additional constraints on
-redirect URIs based on the `application_type` parameter as defined in
-[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html).
-Omitting it defaults to `"web"` under OIDC, which can conflict with native-style redirect
-URIs. Non-OIDC servers safely ignore the parameter, as
-[RFC 7591 Section 2](https://datatracker.ietf.org/doc/html/rfc7591#section-2)
-requires servers to ignore client metadata they do not understand.
-
-Clients must be prepared for registrations rejected over redirect URI constraints: surface a
-meaningful error to the user or developer, and optionally retry with an adjusted
-`application_type` or with redirect URIs the authorization server accepts.
+Clients must set an appropriate `application_type` as defined in
+[OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html):
+`"native"` for desktop applications, mobile apps, CLI tools, and locally-hosted web
+applications accessed via `localhost`, and `"web"` for remote browser-based applications.
+Authorization servers that implement OIDC may reject registrations whose redirect URIs do
+not match the declared `application_type`. When that happens, clients should surface a
+meaningful error to the user or developer and can retry with an adjusted `application_type`
+or with redirect URIs the authorization server accepts.
 
 Credentials obtained through DCR are bound to the authorization server that issued them.
 Clients that persist them must key that registration state by the authorization server's
@@ -1089,10 +1075,9 @@ use this to access all of the tools on our MCP server.
 After creating the scope, make sure that you assign its type to **Default** and have flipped
 the **Include in token scope** switch, as this will be needed for token validation.
 
-Let's now also set up an **audience** for our Keycloak-issued tokens. An audience is important
-to configure because it embeds the intended destination directly into the issued access token.
-This helps your MCP server to verify that the token it got was actually meant for it rather
-than some other API. This is key to help avoid token passthrough scenarios.
+Let's now also set up an **audience** for our Keycloak-issued tokens. The audience embeds
+the intended destination directly into the issued access token, which lets your MCP server
+verify the token was meant for it and helps avoid token passthrough scenarios.
 
 To do this, open your `mcp:tools` client scope and click on **Mappers**, followed by
 **Configure a new mapper**. Select **Audience**.
@@ -1150,9 +1135,8 @@ talk to Keycloak for things like
 1. Enable **Client authentication** and click **Next**.
 1. Click **Save**.
 
-Worth noting that token introspection is just _one of_ the available approaches to validate
-tokens. This can also be done with the help of standalone libraries, specific to each
-language and platform.
+Token introspection is one way to validate tokens. Standalone libraries specific to each
+language and platform work as well.
 
 When you open the client details, go to **Credentials** and take note of the **Client Secret**.
 
@@ -1487,9 +1471,8 @@ issues are called out below.
 - **Return proper challenges**. On 401, include `WWW-Authenticate` with `Bearer`, `realm`,
   `resource_metadata`, and the `scope` needed for the resource so clients can discover how
   to authenticate and what to request. The `resource_metadata` pointer is optional, and
-  clients fall back to the well-known URIs when it is absent (the RFC 9728 path-inserted
-  URI first, then the root URI MCP adds as an extension of RFC 9728), so make sure the
-  Protected Resource Metadata document is served there.
+  clients fall back to the well-known URIs when it is absent, so make sure the Protected
+  Resource Metadata document is served there.
 - **Validate the `iss` on authorization responses**. Authorization servers should attach the
   `iss` parameter to authorization responses, including error responses, per
   [RFC 9207](https://datatracker.ietf.org/doc/html/rfc9207). Clients must compare a received
