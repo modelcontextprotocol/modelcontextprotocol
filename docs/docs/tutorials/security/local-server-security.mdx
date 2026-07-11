@@ -70,6 +70,11 @@ Two practical consequences:
 - If you run a server at reduced privilege, that boundary is yours to
   enforce — a container, sandbox, or VM, as described below.
 
+The trust domain is also cumulative. Every server you configure shares the
+same model context, so a malicious server can influence how the agent uses
+the tools of every other server. Each install extends the surface all the
+others are exposed to.
+
 ### Threats This Guide Addresses
 
 1. **A malicious server.** Typosquatted package names, lookalike
@@ -83,6 +88,19 @@ Two practical consequences:
    given.
 3. **A compromised dependency.** The server author is honest, but one of the
    packages in its dependency tree was compromised in a supply chain attack.
+4. **A poisoned tool catalog.** Tool names and descriptions are instructions
+   your model reads. A server can hide directives in them that steer the
+   agent — including how it uses _other_ servers' tools — without the
+   poisoned tool ever being invoked (often called tool poisoning, or tool
+   shadowing when it targets another server's tools). Definitions are not
+   fixed at install time either: a server can quietly change them after you
+   approved it (a rug pull), so a one-time consent dialog and package
+   pinning do not cover this surface.
+5. **A vulnerable server or bridge.** A legitimate, unmodified component can
+   still be the way in. Local bridges that connect stdio clients to remote
+   servers have had critical flaws triggered by nothing more than connecting
+   to a malicious endpoint, and local developer tools listening on a port
+   have been exploited directly from a web page.
 
 Out of scope: attackers with physical access to your machine, targeted
 nation-state attacks, and protocol-level attacks (see the linked documents
@@ -97,7 +115,9 @@ further" step, and a default if you are unsure.
 
 A listing on a registry is not an endorsement. Docker Hub, ghcr.io, npm,
 PyPI, and NuGet will host almost anything, and a package being popular or
-well-named guarantees neither that it is safe nor that it is current.
+well-named guarantees neither that it is safe nor that it is current. Even
+curated MCP catalogs describe their own vetting as best-effort: curation
+reduces risk, it does not take on accountability for what you run.
 
 Before installing a server:
 
@@ -109,7 +129,9 @@ Before installing a server:
   actually refers to, not a lookalike.
 - **Pin the version.** Install a specific version rather than `latest`, so
   a compromised future release does not walk onto your machine through an
-  auto-update.
+  auto-update. Pair the pin with a deliberate update habit: when a security
+  advisory lands for something you pinned, the pin is what keeps you
+  vulnerable.
 - **Prefer artifacts with provenance metadata.** Signed artifacts, build
   attestations, and SBOMs (software bills of materials) let you verify who
   built the artifact and what is inside it — including which MCP SDK and
@@ -118,10 +140,34 @@ Before installing a server:
 **Going further**: verify signatures and attestations rather than just
 noting their presence (for example with Sigstore tooling or your registry's
 attestation verification), and generate your own SBOM from the artifact (for
-example with Syft or Trivy) instead of trusting the published one.
+example with Syft or Trivy) instead of trusting the published one. Some
+registries and runtimes can verify signatures at launch time rather than
+only at install, turning provenance from a one-time check into a standing
+one.
 
 **If unsure**: only install servers whose source code you can read and whose
 publisher you can identify, and pin the exact version.
+
+## Treat Tool Definitions as Untrusted Input
+
+Installing a server is not the last trust decision. At runtime, the server
+sends your client its tool names and descriptions, and the model reads them
+as instructions — an injection surface that install-time review does not
+cover.
+
+- **Read the tool list before you rely on a server.** Most clients can show
+  each tool's description. If a description contains instructions that have
+  nothing to do with the tool's job, remove the server.
+- **Prefer clients that pin tool definitions.** Some clients record tool
+  definitions when you first approve a server and ask again when they
+  change. The protocol does not require this, so it is a property worth
+  choosing a client for.
+- **Keep the roster small.** Because all configured servers share the
+  model's context, every server you add extends the surface the others are
+  exposed to.
+
+**If unsure**: install few servers, skim their tool descriptions once, and
+favor a client that re-prompts when a tool definition changes.
 
 ## Run Servers in an Isolated Environment
 
@@ -225,6 +271,15 @@ loss.
   restricts them to their expected destinations and logs the attempts that
   fall outside it.
 
+<Note>
+  Egress is not the only network concern. Local MCP plumbing that listens on a
+  port — bridges to remote servers, development tools, locally hosted HTTP
+  servers — is reachable by other local processes and, through your browser, by
+  websites. Binding to 127.0.0.1 is not an authentication boundary: such
+  components need real authentication and origin validation, and they need
+  prompt updates when advisories land.
+</Note>
+
 **Going further**: give each server its own egress allowlist via a proxy,
 and alert on destinations outside it — unexpected egress is often the first
 observable sign that something on this page has gone wrong.
@@ -264,6 +319,10 @@ A workable starting posture:
   locations on each platform. Your endpoint management tooling can collect
   them, giving you a live answer to "who is running what, at which version,
   from which source."
+- **Keep an audit trail.** Where your tooling supports it, log MCP activity
+  on managed machines — which server, which tool, when — so an incident
+  review can reconstruct what a compromised or overreaching server actually
+  did instead of guessing from its permissions.
 - **Plan for the fleet incident.** When a widely used local server (or the
   SDK inside it) turns out to be vulnerable, you need to: find every
   instance (the inventory above), block its egress at the proxy or firewall
@@ -296,6 +355,8 @@ For your own machine:
   possible
 - Servers without a network need run with egress disabled; the rest have
   a known list of destinations
+- I have skimmed each server's tool descriptions, and my client re-prompts
+  when a tool definition changes
 
 For a fleet:
 
@@ -304,6 +365,7 @@ For a fleet:
 - We continuously inventory MCP client configurations on managed
   machines
 - We have a documented default isolation posture for local servers
+- We keep audit logs of MCP activity on managed machines
 - We can block a specific server's egress and rotate its credentials
   across the fleet
 
