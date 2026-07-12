@@ -3312,7 +3312,7 @@
             "type": "object"
         },
         "SubscriptionsAcknowledgedNotification": {
-            "description": "Sent by the server as the first message on a\n{@link SubscriptionsListenRequestsubscriptions/listen} stream to acknowledge\nthat the subscription has been established and to report which notification\ntypes it agreed to honor.",
+            "description": "Sent by the server to acknowledge that a\n{@link SubscriptionsListenRequestsubscriptions/listen} subscription has been\nestablished and to report which notification types it agreed to honor.\n\nThis notification MUST be the first message the server sends carrying the\nsubscription's ID in `io.modelcontextprotocol/subscriptionId`. The server MUST\nNOT send any notification on the subscription before acknowledging it. On\nstdio, where every subscription shares one channel, this ordering is defined\nper subscription ID and not per channel: messages belonging to other\nsubscriptions MAY be interleaved before it.",
             "properties": {
                 "jsonrpc": {
                     "const": "2.0",

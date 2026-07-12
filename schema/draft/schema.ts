@@ -1339,10 +1339,16 @@ export interface SubscriptionsAcknowledgedNotificationParams extends Notificatio
 }
 
 /**
- * Sent by the server as the first message on a
- * {@link SubscriptionsListenRequest | subscriptions/listen} stream to acknowledge
- * that the subscription has been established and to report which notification
- * types it agreed to honor.
+ * Sent by the server to acknowledge that a
+ * {@link SubscriptionsListenRequest | subscriptions/listen} subscription has been
+ * established and to report which notification types it agreed to honor.
+ *
+ * This notification MUST be the first message the server sends carrying the
+ * subscription's ID in `io.modelcontextprotocol/subscriptionId`. The server MUST
+ * NOT send any notification on the subscription before acknowledging it. On
+ * stdio, where every subscription shares one channel, this ordering is defined
+ * per subscription ID and not per channel: messages belonging to other
+ * subscriptions MAY be interleaved before it.
  *
  * @example Listen acknowledged
  * {@includeCode ./examples/SubscriptionsAcknowledgedNotification/listen-acknowledged.json}
