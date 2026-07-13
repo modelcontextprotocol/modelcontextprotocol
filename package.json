@@ -52,7 +52,7 @@
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "glob": "^13.0.6",
-    "prettier": "^3.9.4",
+    "prettier": "^3.9.5",
     "remark-mdx": "^3.1.1",
     "remark-parse": "^11.0.0",
     "tsx": "^4.23.1",
