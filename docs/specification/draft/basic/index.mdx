@@ -343,6 +343,23 @@ implementations **MUST NOT** make assumptions about values at these keys.
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
 
+**Reserved keys:**
+
+The following `_meta` keys are currently reserved by this specification:
+
+| Key                                          | Description                                                 | Defined in                                                         |
+| -------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+| `io.modelcontextprotocol/protocolVersion`    | Protocol version for a request                              | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/draft/server/utilities/logging)           |
+| `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/draft/basic/patterns/subscriptions) |
+| `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                |
+
+[Extensions](/specification/draft/basic/versioning#extension-negotiation) may
+define additional `_meta` keys under the reserved prefix; these are specified in
+each extension's documentation.
+
 **Per-request protocol fields:**
 
 Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
