@@ -60,7 +60,9 @@ share one trust domain.** They run side by side with the same privileges,
 and neither the protocol nor the SDKs defend one against the other — a
 server already has code execution on your machine by virtue of being
 launched, so there is no boundary between the two processes for a transport
-to enforce.
+to enforce. This is by design: the SDKs assume full trust between stdio
+peers, and any isolation or security fencing around a local server is the
+responsibility of the host application and of whoever operates the machine.
 
 Two practical consequences:
 
@@ -106,10 +108,19 @@ Out of scope: attackers with physical access to your machine, targeted
 nation-state attacks, and protocol-level attacks (see the linked documents
 above).
 
-The mitigations below follow one principle: **treat a third-party local
-server as untrusted code with exactly the privileges you hand it — and hand
-it as few as possible.** Each section gives a baseline, an optional "going
-further" step, and a default if you are unsure.
+Before the mitigations, one fact that shapes them all: **no check proves
+what a server will do.** The protocol cannot guarantee that a server is
+what it claims or does only what it promises. Provenance signals — a
+readable repository, signatures, an SBOM, a curated listing — tell you who
+you are trusting, not that the trust is warranted, and short of auditing
+and building every release yourself, you cannot verify behavior in advance.
+
+The mitigations below therefore follow one principle: **treat a third-party
+local server as untrusted code with exactly the privileges you hand it —
+and hand it as few as possible.** Vetting reduces the odds of a bad trust
+decision; containment decides what a bad one costs. Each section gives a
+baseline, an optional "going further" step, and a default if you are
+unsure.
 
 ## Check Provenance Before You Install
 
