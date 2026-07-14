@@ -343,6 +343,25 @@ implementations **MUST NOT** make assumptions about values at these keys.
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
 
+**Reserved keys:**
+
+The following `_meta` keys are reserved by this specification:
+
+| Key                                          | Description                                                 | Defined in                                                         |
+| -------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+| `progressToken`                              | Opts the request into progress notifications                | [Progress](/specification/draft/basic/patterns/progress)           |
+| `io.modelcontextprotocol/protocolVersion`    | Protocol version for a request                              | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/draft/server/utilities/logging)           |
+| `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/draft/basic/patterns/subscriptions) |
+| `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                |
+
+Official [extensions](/specification/draft/basic/versioning#extension-negotiation)
+define additional `_meta` keys under the `io.modelcontextprotocol/` prefix, and
+third-party extensions use their own vendor prefix.
+In both cases the keys are specified in the extension's documentation.
+
 **Per-request protocol fields:**
 
 Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
