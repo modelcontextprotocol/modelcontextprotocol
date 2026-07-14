@@ -103,6 +103,8 @@ can use to determine how to parse and handle the `result` object.
 - Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
 - Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
+- Error responses **MAY** include a `data` member with additional information of any type, such
+  as nested errors.
 
 #### Error Codes
 
@@ -319,14 +321,11 @@ vector against the validator.
 
 ### `_meta`
 
-The `_meta` property/parameter is reserved by MCP to allow clients and servers
+The `_meta` property/parameter is used by MCP to allow clients and servers
 to attach additional metadata to their interactions.
 
 Certain key names are reserved by MCP for protocol-level metadata, as specified below;
-implementations MUST NOT make assumptions about values at these keys.
-
-Additionally, definitions in the [schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.ts)
-may reserve particular names for purpose-specific metadata, as declared in those definitions.
+implementations **MUST NOT** make assumptions about values at these keys.
 
 **Key name format:** valid `_meta` key names have two segments: an optional **prefix**, and a **name**.
 
