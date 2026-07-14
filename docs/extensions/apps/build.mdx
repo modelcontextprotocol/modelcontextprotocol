@@ -5,7 +5,7 @@ description: Getting started guide for building interactive UI applications with
 
 ## Prerequisites
 
-You'll need [Node.js](https://nodejs.org/en/download) 20 or higher. Familiarity
+You'll need [Node.js](https://nodejs.org/en/download) 18 or higher. Familiarity
 with [MCP tools](/specification/latest/server/tools) and
 [resources](/specification/latest/server/resources) is recommended since MCP
 Apps combine both primitives. Experience with the
@@ -181,7 +181,7 @@ The server registers the tool and serves the UI resource. The UI resource will e
 <Step title="Install dependencies">
 
 ```bash
-npm install @modelcontextprotocol/ext-apps @modelcontextprotocol/server @modelcontextprotocol/node
+npm install @modelcontextprotocol/ext-apps @modelcontextprotocol/sdk
 npm install -D typescript vite vite-plugin-singlefile express cors @types/express @types/cors tsx
 ```
 
@@ -270,8 +270,8 @@ bundled HTML. Here's the complete server file:
 // server.ts
 console.log("Starting MCP App server...");
 
-import { McpServer } from "@modelcontextprotocol/server";
-import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   registerAppTool,
   registerAppResource,
@@ -334,7 +334,7 @@ expressApp.use(cors());
 expressApp.use(express.json());
 
 expressApp.post("/mcp", async (req, res) => {
-  const transport = new NodeStreamableHTTPServerTransport({
+  const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
