@@ -358,7 +358,7 @@ The following `_meta` keys are currently reserved by this specification:
 | `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                |
 
 [Extensions](/specification/draft/basic/versioning#extension-negotiation) may
-define additional `_meta` keys under the reserved prefix; these are specified in
+define additional `_meta` keys under the `io.modelcontextprotocol/` prefix, and
 each extension's documentation.
 
 **Per-request protocol fields:**
