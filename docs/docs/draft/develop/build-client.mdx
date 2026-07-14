@@ -19,6 +19,7 @@ Before starting, ensure your system meets these requirements:
 - Mac or Windows computer
 - Latest Python version installed
 - Latest version of `uv` installed
+- You must use the Python MCP SDK 2.0.0b1 or higher
 
 ## Setting Up Your Environment
 
@@ -38,7 +39,7 @@ uv venv
 source .venv/bin/activate
 
 # Install required packages
-uv add mcp anthropic python-dotenv
+uv add "mcp==2.0.0b1" anthropic python-dotenv
 
 # Remove boilerplate files
 rm main.py
@@ -59,7 +60,7 @@ uv venv
 .venv\Scripts\activate
 
 # Install required packages
-uv add mcp anthropic python-dotenv
+uv add "mcp==2.0.0b1" anthropic python-dotenv
 
 # Remove boilerplate files
 del main.py
