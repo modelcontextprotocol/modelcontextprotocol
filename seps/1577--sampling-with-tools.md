@@ -40,7 +40,7 @@ This SEP introduces `tools` & `toolChoice` params to `sampling/createMessage` an
 
 - [Sampling](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling) doesn't support tool calling, although it's a cornerstone of modern agentic behaviour. Without explicit support for it, MCP servers that use Sampling can either try and emulate tool calling w/ complex prompting / custom parsing of the outputs, or are limited to simpler, non-agentic requests. Adding support for tool calling could unlock many novel use cases in the MCP ecosystem.
 
-- Context inclusion is ambiguously defined (see [this doc](https://docs.google.com/document/d/1KUsloHpsjR4fdXdJuofb9jUuK0XWi88clbRm9sWE510/edit?tab=t.0#heading=h.edw7oyac2e87)): it makes it particularly tricky to fully implement sampling, which along with other precautions needed for sampling (unaffected by this SEP) may have contributed to [low adoption of the feature in clients](https://modelcontextprotocol.io/clients#feature-support-matrix) (feature was introduced in the MCP Nov 2024 spec).
+- Context inclusion is ambiguously defined (see [this doc](https://docs.google.com/document/d/1KUsloHpsjR4fdXdJuofb9jUuK0XWi88clbRm9sWE510/edit?tab=t.0#heading=h.edw7oyac2e87)): it makes it particularly tricky to fully implement sampling, which along with other precautions needed for sampling (unaffected by this SEP) may have contributed to [low adoption of the feature in clients](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/3ce9008e5182c0d18002da56edc9e13d8fcf2597/docs/clients.mdx#feature-support-matrix) (feature was introduced in the MCP Nov 2024 spec).
 
 Please note some related work:
 
