@@ -110,17 +110,17 @@ Elicitation interactions are designed to be clear, contextual, and respectful of
 
 **Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), decline to provide information with optional explanation, or cancel the entire operation. Clients validate responses against the provided schema before returning them to servers.
 
-**URL handling**: For URL mode, clients show the full URL and gather explicit consent before opening it, and never fetch the URL automatically. The client only learns whether the user consented; the interaction itself stays between the user and the target site.
+**URL handling**: For URL mode, clients show the full URL and gather explicit consent before opening it, and never fetch the URL automatically. The client only learns whether the user consented. The interaction itself stays between the user and the target site.
 
 **Privacy considerations**: Servers must not use form mode to request sensitive information such as passwords, API keys, access tokens, or payment credentials. Those interactions belong in URL mode, which keeps the data out of band so it never passes through the client or the LLM context. Clients warn about suspicious requests and let users review form data before sending.
 
 ### Roots
 
 <Warning>
-  The Roots feature is [deprecated](/specification/draft/deprecated) as of
-  protocol version `2026-07-28` and is scheduled for removal in a future
-  revision. New implementations should not adopt it. Instead, pass directories
-  or files via tool parameters, resource URIs, or server configuration.
+  Roots are [deprecated](/specification/draft/deprecated) as of protocol version
+  `2026-07-28` and scheduled for removal. New implementations should pass
+  directories or files via tool parameters, resource URIs, or server
+  configuration instead.
 </Warning>
 
 Roots define filesystem boundaries for server operations, allowing clients to specify which directories servers should focus on.
@@ -173,10 +173,9 @@ Roots are typically managed automatically by host applications based on user act
 ### Sampling
 
 <Warning>
-  The Sampling feature is [deprecated](/specification/draft/deprecated) as of
-  protocol version `2026-07-28` and is scheduled for removal in a future
-  revision. New implementations should not adopt it. Instead, integrate directly
-  with LLM provider APIs.
+  Sampling is [deprecated](/specification/draft/deprecated) as of protocol
+  version `2026-07-28` and scheduled for removal. New implementations should
+  integrate directly with LLM provider APIs instead.
 </Warning>
 
 Sampling allows servers to request language model completions through the client, enabling agentic behaviors while maintaining security and user control.
