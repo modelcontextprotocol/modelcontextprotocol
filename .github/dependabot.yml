@@ -9,3 +9,8 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+    ignore:
+      # typedoc has no release supporting TypeScript 7; a major bump breaks
+      # `npm ci` on its peer range. Drop this once typedoc supports it.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
