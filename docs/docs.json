@@ -823,6 +823,42 @@
       "destination": "/specification/draft/basic/versioning"
     },
     {
+      "source": "/specification/draft/basic/utilities/ping",
+      "destination": "/specification/draft/changelog"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/cancellation",
+      "destination": "/specification/draft/basic/patterns/cancellation"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/progress",
+      "destination": "/specification/draft/basic/patterns/progress"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/tasks",
+      "destination": "/extensions/tasks/overview"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/lifecycle",
+      "destination": "/specification/2026-07-28/basic/versioning"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/ping",
+      "destination": "/specification/2026-07-28/changelog"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/cancellation",
+      "destination": "/specification/2026-07-28/basic/patterns/cancellation"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/progress",
+      "destination": "/specification/2026-07-28/basic/patterns/progress"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/tasks",
+      "destination": "/extensions/tasks/overview"
+    },
+    {
       "source": "/specification/versioning",
       "destination": "/docs/2025-11-25/learn/versioning"
     },
