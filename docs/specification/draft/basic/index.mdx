@@ -103,7 +103,8 @@ can use to determine how to parse and handle the `result` object.
 - Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
 - Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
-- Error responses **MAY** include additional information of any type, for example detailed error informationo or nested errors.
+- Error responses **MAY** include a `data` member with additional information of any type, such
+  as nested errors.
 
 #### Error Codes
 
