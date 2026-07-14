@@ -211,7 +211,7 @@ In this example, the capability negotiation demonstrates how MCP primitives are 
 
 **Server Capabilities**:
 
-- `"tools": {"listChanged": true}` - The server supports the tools primitive AND can send `tools/list_changed` notifications when its tool list changes
+- `"tools": {"listChanged": true}` - The server supports the tools primitive and can honor a `toolsListChanged` filter in `subscriptions/listen`. Clients that request this filter receive `notifications/tools/list_changed` when the tool list changes.
 - `"resources": {}` - The server also supports the resources primitive (can handle `resources/list` and `resources/read` methods)
 
 After successful initialization, the client sends a notification to indicate it's ready:
@@ -247,7 +247,17 @@ Now that the connection is established, the client can discover available tools 
   {
     "jsonrpc": "2.0",
     "id": 2,
-    "method": "tools/list"
+    "method": "tools/list",
+    "params": {
+      "_meta": {
+        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+        "io.modelcontextprotocol/clientInfo": {
+          "name": "example-client",
+          "version": "1.0.0"
+        },
+        "io.modelcontextprotocol/clientCapabilities": {}
+      }
+    }
   }
   ```
   ```json Tools List Response
@@ -303,7 +313,7 @@ Now that the connection is established, the client can discover available tools 
 
 #### Understanding the Tool Discovery Request
 
-The `tools/list` request is simple, containing no parameters.
+The `tools/list` request carries only the standard `_meta` fields that identify the client on every request, with no tool-specific parameters.
 
 #### Understanding the Tool Discovery Response
 
