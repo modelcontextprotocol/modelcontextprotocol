@@ -590,6 +590,22 @@
       "destination": "/specification/draft/basic/versioning"
     },
     {
+      "source": "/specification/draft/basic/utilities/cancellation",
+      "destination": "/specification/draft/basic/patterns/cancellation"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/mrtr",
+      "destination": "/specification/draft/basic/patterns/mrtr"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/progress",
+      "destination": "/specification/draft/basic/patterns/progress"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/subscriptions",
+      "destination": "/specification/draft/basic/patterns/subscriptions"
+    },
+    {
       "source": "/specification/versioning",
       "destination": "/docs/learn/versioning"
     },
