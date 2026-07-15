@@ -1,15 +1,11 @@
 # SEP-3094: Granular citations format
 
-## 1. Preamble
-
-```
-SEP: 3094
-Title: Granular citations format
-Author: Karthik Palaniappan (karthik.palaniappan@thomsonreuters.com)
-Status: Awaiting sponsor
-Type: Standards Track
-PR: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3094
-```
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-07-15
+- **Author(s)**: Karthik Palaniappan (karthik.palaniappan@thomsonreuters.com) (@karth295)
+- **Sponsor**: None
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3094
 
 ## 2. Abstract
 
