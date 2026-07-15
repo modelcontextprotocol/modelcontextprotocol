@@ -55,17 +55,16 @@ suffix defined in
 for authorization server metadata discovery. MCP does not define
 an application-specific well-known URI suffix.
 
-To handle different issuer URL formats and ensure
-interoperability with both OAuth 2.0 Authorization Server
-Metadata and OpenID Connect Discovery 1.0 specifications, MCP
-clients **MUST** attempt multiple well-known endpoints when
-discovering authorization server metadata.
-
-The discovery approach is based on
-[RFC 8414 Section 3.1 "Authorization Server Metadata Request"](https://datatracker.ietf.org/doc/html/rfc8414#section-3.1)
-for OAuth 2.0 Authorization Server Metadata discovery and
+To interoperate with both OAuth 2.0 Authorization Server
+Metadata and OpenID Connect Discovery 1.0, MCP clients **MUST**
+attempt multiple well-known endpoints when discovering
+authorization server metadata. Well-known URL construction is
+defined in
+[RFC 8414 Section 3.1](https://datatracker.ietf.org/doc/html/rfc8414#section-3.1)
+and
+[OpenID Connect Discovery 1.0 Section 4](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig).
 [RFC 8414 Section 5 "Compatibility Notes"](https://datatracker.ietf.org/doc/html/rfc8414#section-5)
-for OpenID Connect Discovery 1.0 interoperability.
+covers the interoperability between the two.
 
 For issuer URLs with path components
 (e.g., `https://auth.example.com/tenant1`), clients **MUST**
@@ -79,12 +78,9 @@ try endpoints in the following priority order:
    `https://auth.example.com/tenant1/.well-known/openid-configuration`
 
 For issuer URLs without path components
-(e.g., `https://auth.example.com`), clients **MUST** try:
-
-1. OAuth 2.0 Authorization Server Metadata:
-   `https://auth.example.com/.well-known/oauth-authorization-server`
-2. OpenID Connect Discovery 1.0:
-   `https://auth.example.com/.well-known/openid-configuration`
+(e.g., `https://auth.example.com`), clients **MUST** try the
+`oauth-authorization-server` well-known URI first, then
+`openid-configuration`, each at the root of the issuer URL.
 
 After retrieving a metadata document, MCP clients **MUST** validate it as required by [RFC8414 Section 3.3](https://datatracker.ietf.org/doc/html/rfc8414#section-3.3) or [OpenID Connect Discovery Section 4.3](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation): the `issuer` value in the document **MUST** be identical to the issuer identifier used to construct the well-known URL. If they differ, the client **MUST NOT** use the metadata.
 

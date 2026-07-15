@@ -256,14 +256,13 @@ Note that authorization **MUST** be included in every HTTP request from client t
 
 ### Token Handling
 
-MCP servers, acting in their role as an OAuth 2.1 resource server, **MUST** validate access tokens as described in
-[OAuth 2.1 Section 5.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.2).
+MCP servers, acting in their role as an OAuth 2.1 resource server, **MUST** validate access
+tokens and respond to validation failures as described in
+[OAuth 2.1 Section 5.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.2)
+and [Section 5.3](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.3).
 MCP servers **MUST** validate that access tokens were issued specifically for them as the intended audience,
 according to [RFC 8707 Section 2](https://www.rfc-editor.org/rfc/rfc8707.html#section-2).
-If validation fails, servers **MUST** respond according to
-[OAuth 2.1 Section 5.3](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-5.3)
-error handling requirements. Invalid or expired tokens **MUST** receive a HTTP 401
-response.
+Invalid or expired tokens **MUST** receive a HTTP 401 response.
 
 MCP clients **MUST NOT** send tokens to the MCP server other than ones issued by the MCP server's authorization server.
 
