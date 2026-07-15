@@ -103,6 +103,56 @@ can use to determine how to parse and handle the `result` object.
 - Error responses **MUST** include the same ID as the request they correspond to (except in error cases where the ID could not be read due a malformed request).
 - Error responses **MUST** include an `error` field with a `code` and `message`.
 - Error codes **MUST** be integers.
+- Error responses **MAY** include a `data` member with additional information of any type, such
+  as nested errors.
+
+#### Error Codes
+
+MCP uses the standard JSON-RPC 2.0 error codes (`-32700`, `-32600` to `-32603`)
+for general protocol failures.
+
+JSON-RPC 2.0 reserves the range `-32000` to `-32099` for implementation-defined
+server errors. MCP partitions this range as follows:
+
+- **`-32000` to `-32019` — legacy.** Codes in this sub-range were allocated by
+  implementations before this policy was introduced. New codes **MUST NOT** be
+  allocated in this sub-range, and new implementations **SHOULD NOT** use codes
+  from this sub-range at all. Apart from `-32002` (see below), receivers
+  **MUST NOT** assume any specific meaning for these codes.
+- **`-32020` to `-32099` — reserved for the MCP specification.** Error codes
+  in this sub-range are defined exclusively by the MCP specification and
+  recorded in the [schema](/specification/draft/schema). Implementations
+  **MUST NOT** emit any code from this sub-range that is not defined by this
+  specification and **MUST** use defined codes only with their specified
+  meanings.
+
+MCP defines the following error codes:
+
+| Code     | Name                                                                                                  |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| `-32020` | [`HeaderMismatch`](/specification/draft/schema#headermismatcherror)                                   |
+| `-32021` | [`MissingRequiredClientCapability`](/specification/draft/schema#missingrequiredclientcapabilityerror) |
+| `-32022` | [`UnsupportedProtocolVersion`](/specification/draft/schema#unsupportedprotocolversionerror)           |
+
+Codes defined by earlier protocol versions remain reserved and will not be
+reused. Implementations of this protocol version **MUST NOT** emit these codes:
+
+- `-32002` — resource not found (2025-11-25 and earlier; replaced by `-32602`).
+  Clients [**SHOULD** still
+  accept `-32002`](/specification/draft/server/resources#error-handling) from
+  servers implementing earlier versions.
+- `-32042` — URL elicitation required (2025-11-25 only).
+
+Errors that are purely local to an implementation (for example, a request
+timeout raised inside an SDK) are not currently assigned codes by this
+specification. Implementations surfacing local errors in JSON-RPC-shaped
+structures should ensure they cannot be mistaken for errors received from the
+peer. Future versions of the specification may define standard codes for
+common local error conditions in the reserved sub-range.
+
+New error codes for purposes not defined by this specification **SHOULD** be
+allocated outside the JSON-RPC reserved range (`-32768` to `-32000`); the
+remainder of the integer space is available for application-defined errors.
 
 ### Notifications
 
@@ -271,14 +321,11 @@ vector against the validator.
 
 ### `_meta`
 
-The `_meta` property/parameter is reserved by MCP to allow clients and servers
+The `_meta` property/parameter is used by MCP to allow clients and servers
 to attach additional metadata to their interactions.
 
 Certain key names are reserved by MCP for protocol-level metadata, as specified below;
-implementations MUST NOT make assumptions about values at these keys.
-
-Additionally, definitions in the [schema](https://github.com/modelcontextprotocol/specification/blob/main/schema/draft/schema.ts)
-may reserve particular names for purpose-specific metadata, as declared in those definitions.
+implementations **MUST NOT** make assumptions about values at these keys.
 
 **Key name format:** valid `_meta` key names have two segments: an optional **prefix**, and a **name**.
 
@@ -295,6 +342,25 @@ may reserve particular names for purpose-specific metadata, as declared in those
 
 - Unless empty, MUST begin and end with an alphanumeric character (`[a-z0-9A-Z]`).
 - MAY contain hyphens (`-`), underscores (`_`), dots (`.`), and alphanumerics in between.
+
+**Reserved keys:**
+
+The following `_meta` keys are reserved by this specification:
+
+| Key                                          | Description                                                 | Defined in                                                         |
+| -------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+| `progressToken`                              | Opts the request into progress notifications                | [Progress](/specification/draft/basic/patterns/progress)           |
+| `io.modelcontextprotocol/protocolVersion`    | Protocol version for a request                              | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/draft/server/utilities/logging)           |
+| `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/draft/basic/patterns/subscriptions) |
+| `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                |
+
+Official [extensions](/specification/draft/basic/versioning#extension-negotiation)
+define additional `_meta` keys under the `io.modelcontextprotocol/` prefix, and
+third-party extensions use their own vendor prefix.
+In both cases the keys are specified in the extension's documentation.
 
 **Per-request protocol fields:**
 
@@ -318,7 +384,7 @@ A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
 `io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
 [`MissingRequiredClientCapabilityError`](/specification/draft/schema#missingrequiredclientcapabilityerror)
-(`-32003`) whose `data.requiredCapabilities` lists the missing capabilities. On
+(`-32021`) whose `data.requiredCapabilities` lists the missing capabilities. On
 HTTP, the response status **MUST** be `400 Bad Request`.
 
 On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
