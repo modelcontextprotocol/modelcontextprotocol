@@ -6,7 +6,7 @@ title: Architecture
 
 The Model Context Protocol (MCP) follows a client-host-server architecture where each
 host can run multiple client instances. MCP is a stateless protocol: every request is
-self-contained and carries its own protocol version, client identity, and capabilities.
+self-contained and carries its own protocol version and capabilities.
 This architecture enables users to integrate AI capabilities across applications while
 maintaining clear security boundaries and isolating concerns. Built on JSON-RPC, MCP
 provides a protocol focused on context exchange and sampling coordination between
@@ -141,7 +141,7 @@ sequenceDiagram
 
     loop Client Requests
         Host->>Client: User- or model-initiated action
-        Client->>Server: Request (with _meta: version, clientInfo, clientCapabilities)
+        Client->>Server: Request (with _meta: version, clientCapabilities)
         alt Server requires client input
             Server-->>Client: InputRequiredResult (e.g. sampling/createMessage)
             Client->>Host: Forward to AI

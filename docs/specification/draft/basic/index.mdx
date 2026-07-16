@@ -364,15 +364,16 @@ In both cases the keys are specified in the extension's documentation.
 
 **Per-request protocol fields:**
 
-Every client request **MUST** include the following `io.modelcontextprotocol/*` fields
-in `_meta`. Servers use these to identify the client and the protocol version in use
-without relying on any prior connection state. See
+Client requests carry the following `io.modelcontextprotocol/*` fields in `_meta`;
+fields marked as required **MUST** be included on every request. Servers use these
+to identify the protocol version and capabilities in use without relying on any
+prior connection state. See
 [Versioning and Compatibility][lifecycle] for version negotiation rules.
 
 | Key                                          | Type                 | Required | Description                                               |
 | -------------------------------------------- | -------------------- | -------- | --------------------------------------------------------- |
 | `io.modelcontextprotocol/protocolVersion`    | `string`             | Yes      | Protocol version for this request (e.g., `"2026-07-28"`)  |
-| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | Yes      | Client name and version                                   |
+| `io.modelcontextprotocol/clientInfo`         | `Implementation`     | No       | Client name and version                                   |
 | `io.modelcontextprotocol/clientCapabilities` | `ClientCapabilities` | Yes      | Client capabilities relevant to this request              |
 | `io.modelcontextprotocol/logLevel`           | `LoggingLevel`       | No       | Minimum log level the server should emit for this request |
 
@@ -380,12 +381,33 @@ A request missing any required field is malformed; the server **MUST** reject it
 JSON-RPC error code `-32602` (Invalid params). On HTTP, the response status **MUST** be
 `400 Bad Request`.
 
+Clients **SHOULD** include `io.modelcontextprotocol/clientInfo` on every request
+unless specifically configured not to do so.
+
 A server **MUST NOT** rely on capabilities the client has not declared. If
 processing a request requires a capability the client did not include in
 `io.modelcontextprotocol/clientCapabilities`, the server **MUST** return a
 [`MissingRequiredClientCapabilityError`](/specification/draft/schema#missingrequiredclientcapabilityerror)
 (`-32021`) whose `data.requiredCapabilities` lists the missing capabilities. On
 HTTP, the response status **MUST** be `400 Bad Request`.
+
+**Per-response protocol fields:**
+
+Servers **SHOULD** include the following `io.modelcontextprotocol/*` field in
+every result's `_meta`, unless specifically configured not to do so, to
+identify themselves without relying on any prior connection state:
+
+| Key                                  | Type             | Required | Description             |
+| ------------------------------------ | ---------------- | -------- | ----------------------- |
+| `io.modelcontextprotocol/serverInfo` | `Implementation` | No       | Server name and version |
+
+<Note>
+  `io.modelcontextprotocol/clientInfo` and `io.modelcontextprotocol/serverInfo`
+  are self-reported by the sender and are not verified by the protocol. They are
+  intended for display, logging, and debugging. Implementations **SHOULD NOT**
+  use them to change the behavior of the client or server, and **SHOULD NOT**
+  rely on them for security decisions.
+</Note>
 
 On notifications delivered via a [`subscriptions/listen`][subscriptions-listen] stream,
 the server **MUST** include `io.modelcontextprotocol/subscriptionId` in `_meta` so the
