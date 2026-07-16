@@ -158,7 +158,7 @@ Servers MUST apply the same cacheScope to all response pages for a given list re
 
 ### Error handling
 
-- For backwards compatibility, If `ttlMs` is missing, clients SHOULD assume a default ttlMs of 0 (immediately stale) and rely on their own caching heuristics or notifications.
+- For backwards compatibility, If `ttlMs` is missing, clients SHOULD assume a default `ttlMs` of `0` (immediately stale) and rely on their own caching heuristics or notifications.
 - If `ttlMs` is present but is a negative integer, the client SHOULD ignore it and behave as if it were 0 (immediately stale).
 
 ## Rationale
