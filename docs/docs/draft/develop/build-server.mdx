@@ -72,7 +72,7 @@ logging.info("Processing request")
 ### System requirements
 
 - Python 3.10 or higher installed.
-- You must use the Python MCP SDK 2.0.0b1 or higher.
+- You must use the Python MCP SDK 2.0.0 or higher.
 
 ### Set up your environment
 
@@ -106,7 +106,7 @@ uv venv
 source .venv/bin/activate
 
 # Install dependencies
-uv add "mcp[cli]==2.0.0b1" httpx
+uv add "mcp[cli]" httpx
 
 # Create our server file
 touch weather.py
@@ -122,7 +122,7 @@ uv venv
 .venv\Scripts\activate
 
 # Install dependencies
-uv add "mcp[cli]==2.0.0b1" httpx
+uv add mcp[cli] httpx
 
 # Create our server file
 new-item weather.py

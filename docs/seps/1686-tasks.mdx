@@ -28,7 +28,7 @@ description: "Tasks"
 
 ## Abstract
 
-> This SEP is preserved as a historical record of the experimental tasks feature shipped in the `2025-11-25` specification. The code examples below are non-normative pseudocode written against the v1 SDKs. The `2026-07-28` specification moves tasks out of the core protocol and into the `io.modelcontextprotocol/tasks` extension ([SEP-2663](./2663-tasks-extension.md)).
+> This SEP is preserved as a historical record of the experimental tasks feature shipped in the `2025-11-25` specification. The code examples below are non-normative pseudocode written against the v1 SDKs. The draft specification moves tasks out of the core protocol and into the `io.modelcontextprotocol/tasks` extension ([SEP-2663](./2663-tasks-extension.md)).
 
 This SEP improves support for task-based workflows in the Model Context Protocol (MCP). It introduces both the **task primitive** and the associated **task ID**, which can be used to query the state and results of a task, up to a server-defined duration after the task has completed. This primitive is designed to augment other requests (such as tool calls) to enable call-now, fetch-later execution patterns across all requests for servers that support this primitive.
 
