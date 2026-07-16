@@ -1019,20 +1019,26 @@ The chatbot can:
 The MCP client supports additional configuration options:
 
 - Client customization through `McpSyncClientCustomizer` or `McpAsyncClientCustomizer`
-- Multiple clients with multiple transport types: `STDIO` and `SSE` (Server-Sent Events)
+- Multiple clients with multiple transport types: `STDIO` and Streamable HTTP
 - Integration with Spring AI's tool execution framework
 - Automatic client initialization and lifecycle management
+
+To connect to a remote MCP server over Streamable HTTP, configure a connection URL:
+
+```properties
+spring.ai.mcp.client.streamable-http.connections.server1.url=http://localhost:8080
+```
 
 For WebFlux-based applications, you can use the WebFlux starter instead:
 
 ```xml
 <dependency>
     <groupId>org.springframework.ai</groupId>
-    <artifactId>spring-ai-mcp-client-webflux-spring-boot-starter</artifactId>
+    <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
 </dependency>
 ```
 
-This provides similar functionality but uses a WebFlux-based SSE transport implementation, recommended for production deployments.
+This provides similar functionality but uses a WebFlux-based Streamable HTTP transport implementation, recommended for production deployments.
 
 </Tab>
 

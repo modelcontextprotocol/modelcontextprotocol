@@ -1117,7 +1117,8 @@ For more information, see the [MCP Client Boot Starters](https://docs.spring.io/
 
 ## More Java MCP Server examples
 
-The [starter-webflux-server](https://github.com/spring-projects/spring-ai-examples/tree/main/model-context-protocol/weather/starter-webflux-server) demonstrates how to create an MCP server using SSE transport.
+The [starter-webflux-server](https://github.com/spring-projects/spring-ai-examples/tree/main/model-context-protocol/weather/starter-webflux-server) demonstrates how to create an HTTP-based MCP server with the WebFlux starter.
+Set the `spring.ai.mcp.server.protocol=STREAMABLE` property to serve it over Streamable HTTP.
 It showcases how to define and register MCP Tools, Resources, and Prompts, using the Spring Boot's auto-configuration capabilities.
 
 </Tab>
