@@ -1,4 +1,4 @@
-# SEP-1763: Interceptors for Model Context Protocol
+# SEP-2624: Interceptors for Model Context Protocol
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -824,17 +824,17 @@ Key semantics:
 
 #### Priority Resolution
 
-When ordering mutations, the invoker resolves phase-specific priorities:
+When ordering mutations, the invoker resolves phase-specific priorities. If the chain entry has `overrides.priorityHint`, it takes precedence over the interceptor's declared default:
 
 ```typescript
 function resolvePriority(
-  interceptor: Interceptor,
+  entry: ChainEntry,
   phase: "request" | "response",
 ): number {
-  if (interceptor.priorityHint === undefined) return 0;
-  if (typeof interceptor.priorityHint === "number")
-    return interceptor.priorityHint;
-  return interceptor.priorityHint[phase] ?? 0;
+  const hint = entry.overrides?.priorityHint ?? entry.interceptor.priorityHint;
+  if (hint === undefined) return 0;
+  if (typeof hint === "number") return hint;
+  return hint[phase] ?? 0;
 }
 ```
 
@@ -1048,13 +1048,31 @@ Chain execution is a **convenience utility**, provided by SDKs to enforce the ex
 
 > Important: The execution model defined above MUST be followed by all implementations, whether invoking interceptors individually via `interceptor/invoke` or using this convenience utility.
 
+##### Capability vs Policy
+
+The chain distinguishes between two layers of interceptor configuration:
+
+- **Capability** (server-declared): The interceptor's type, hooks, and `configSchema` as advertised via `interceptors/list`. These describe what the interceptor _can_ do.
+- **Policy** (invoker-declared): Execution parameters such as `failOpen`, `priorityHint`, `mode`, `timeoutMs`, and hook narrowing that the invoker provides via `overrides` on each chain entry. These describe how the interceptor _should_ behave in a specific deployment.
+
+Interceptor servers declare **defaults** for policy fields (`failOpen`, `priorityHint`, `mode`) alongside their capabilities. Invokers MAY provide **overrides** per-interceptor in the chain to adjust execution policy. When an override is present, it takes precedence over the server-declared default. Hook overrides can only **narrow** the set of events (restrict to a subset of declared hooks), never **widen** (add events the interceptor does not declare). Implementations MUST reject override hooks that reference events not present in the interceptor's declared hooks.
+
+This separation enables:
+
+- Same interceptor running in different modes across deployments (audit in staging, active in production)
+- Platform teams adjusting `failOpen` and `timeoutMs` based on SLO requirements without modifying interceptor servers
+- Fine-grained routing via hook narrowing without server-side changes
+
+##### Orchestration
+
 The orchestration pattern is as follows:
 
 1. **Discover:** Call `interceptors/list` on one or more MCP servers to collect all registered interceptors.
-2. **Merge & Sort:** Combine all discovered interceptors into a single chain, sorted by `priorityHint` (ascending, with alphabetical tie-breaking by interceptor name).
-3. **Order by Trust Boundary:** Apply the trust-boundary-aware execution model — mutations before validations when sending, validations before mutations when receiving.
-4. **Execute:** Call `interceptor/invoke` on the appropriate MCP server for each interceptor. Mutations MUST be invoked sequentially (each receiving the output of the previous). Validations MAY be invoked in parallel.
-5. **Aggregate:** Collect all results, assembling the final payload and validation summary.
+2. **Resolve Policy:** For each chain entry, merge `overrides` with interceptor defaults (overrides take precedence). Filter entries whose override `hooks` exclude the current event/phase.
+3. **Sort:** Order mutations by resolved `priorityHint` (ascending, with alphabetical tie-breaking by interceptor name).
+4. **Order by Trust Boundary:** Apply the trust-boundary-aware execution model — mutations before validations when sending, validations before mutations when receiving.
+5. **Execute:** Call `interceptor/invoke` on the appropriate MCP server for each interceptor, applying resolved `failOpen`, `mode`, and `timeoutMs`. Mutations MUST be invoked sequentially (each receiving the output of the previous). Validations MAY be invoked in parallel.
+6. **Aggregate:** Collect all results, assembling the final payload and validation summary.
 
 SDK libraries are expected to provide reference implementations of this orchestration logic so that individual applications do not need to implement it from scratch.
 
@@ -1079,7 +1097,8 @@ interface InterceptorChain {
 
 interface ChainEntry {
   /**
-   * The interceptor descriptor (as returned by interceptors/list)
+   * The interceptor descriptor (as returned by interceptors/list).
+   * Contains the interceptor's capabilities and author-declared defaults.
    */
   interceptor: {
     name: string;
@@ -1089,7 +1108,7 @@ interface ChainEntry {
       phase: "request" | "response";
     }>;
     priorityHint?: number | { request?: number; response?: number };
-    mode?: "audit";
+    mode?: "active" | "audit";
     failOpen?: boolean;
   };
 
@@ -1099,6 +1118,54 @@ interface ChainEntry {
    * The concrete type is implementation-specific.
    */
   server: MCPServerConnection;
+
+  /**
+   * Optional invoker-side overrides for this interceptor's execution policy.
+   * Fields present here take precedence over the interceptor's declared defaults.
+   */
+  overrides?: InterceptorOverrides;
+}
+
+interface InterceptorOverrides {
+  /**
+   * Override failure routing policy for this interceptor.
+   * Takes precedence over the interceptor's declared failOpen default.
+   */
+  failOpen?: boolean;
+
+  /**
+   * Override mutation ordering priority.
+   * Takes precedence over the interceptor's declared priorityHint default.
+   * Ignored for validation interceptors.
+   */
+  priorityHint?: number | { request?: number; response?: number };
+
+  /**
+   * Override execution mode.
+   * Takes precedence over the interceptor's declared mode default.
+   * - "active": Normal blocking / transforming behavior
+   * - "audit": Non-blocking operation (log-only for validators, shadow for mutators)
+   */
+  mode?: "active" | "audit";
+
+  /**
+   * Per-interceptor timeout in milliseconds.
+   * If exceeded, the interceptor is cancelled and the resolved failOpen
+   * determines whether the message proceeds or is blocked.
+   */
+  timeoutMs?: number;
+
+  /**
+   * Narrow the interceptor's declared hooks.
+   * Each entry MUST be a subset of the interceptor's declared hooks.
+   * If provided, the interceptor is only invoked for matching events/phases
+   * from this narrowed set rather than its full declared hooks.
+   * Implementations MUST reject overrides that widen beyond declared hooks.
+   */
+  hooks?: Array<{
+    events: InterceptionEvent[];
+    phase: "request" | "response";
+  }>;
 }
 ```
 
@@ -1276,6 +1343,77 @@ For a `tools/call` event, assume the following interceptor are available:
 ];
 ```
 
+##### Example: Chain Entries with Overrides
+
+The following example shows how invoker-side overrides adjust execution policy without modifying interceptor servers:
+
+```typescript
+// Chain entries with invoker overrides applied:
+[
+  {
+    interceptor: {
+      name: "pii-redactor",
+      type: "mutation",
+      hooks: [
+        { events: ["tools/call", "llm/completion"], phase: "request" },
+        { events: ["tools/call", "llm/completion"], phase: "response" },
+      ],
+      priorityHint: { request: -1000, response: 1000 },
+      failOpen: false,
+    },
+    server: serverA,
+    overrides: {
+      // Override priority for this deployment
+      priorityHint: { request: -2000, response: 2000 },
+      // Set a per-interceptor timeout
+      timeoutMs: 3000,
+      // Narrow hooks: only intercept tools/call, not llm/completion
+      hooks: [
+        { events: ["tools/call"], phase: "request" },
+        { events: ["tools/call"], phase: "response" },
+      ],
+    },
+  },
+  {
+    interceptor: {
+      name: "audit-logger",
+      type: "validation",
+      hooks: [
+        { events: ["*"], phase: "request" },
+        { events: ["*"], phase: "response" },
+      ],
+      mode: "audit",
+      failOpen: true,
+    },
+    server: serverB,
+    overrides: {
+      // Promote from audit to active in production
+      mode: "active",
+    },
+  },
+  {
+    interceptor: {
+      name: "schema-validator",
+      type: "validation",
+      hooks: [{ events: ["tools/call"], phase: "request" }],
+      failOpen: false,
+    },
+    server: serverC,
+    overrides: {
+      // Known fragile interceptor: fail-open in this deployment
+      failOpen: true,
+      timeoutMs: 2000,
+    },
+  },
+];
+```
+
+In this example:
+
+- `pii-redactor` runs with higher priority and tighter timeout than the author declared, and only for `tools/call` (not `llm/completion`)
+- `audit-logger` is promoted from audit mode to active, making its violations blocking
+- `schema-validator` is configured fail-open with a short timeout because the invoker knows it can be unreliable
+
 ##### Full Request/Response Cycle
 
 ```
@@ -1344,12 +1482,14 @@ During initialization, servers declare interceptor support:
   jsonrpc: "2.0",
   id: 1,
   result: {
-    protocolVersion: "2024-11-05",
+    protocolVersion: "2025-06-18",
     capabilities: {
-      interceptor?: {
-        // Events this server's interceptor can handle
-        supportedEvents: InterceptionEvent[];
-      },
+      extensions: {
+        "io.modelcontextprotocol/interceptors": {
+          // Events this server's interceptors can handle
+          supportedEvents: InterceptionEvent[];
+        }
+      }
       // ...existing capabilities
     },
     serverInfo: {
@@ -1545,7 +1685,18 @@ Mutations declare `priorityHint` (default: 0) which can differ by phase. Benefit
 
 Alternative (global fixed ordering) rejected as too rigid for phase-aware operations like compression/decompression.
 
-**4. Other Design Choices**
+**4. Separation of Capability and Policy**
+
+The chain separates interceptor **capability** (what the server advertises) from execution **policy** (what the invoker configures via `overrides`):
+
+- **Deployment flexibility**: The same interceptor can run in audit mode in staging and active mode in production without server changes
+- **SLO adaptation**: Platform teams adjust `failOpen` and `timeoutMs` per-deployment based on reliability requirements
+- **Routing control**: Hook narrowing lets invokers restrict which events reach an interceptor without server reconfiguration
+- **Author defaults respected**: Server-declared values remain meaningful as recommended configuration; overrides are opt-in
+
+Alternative (policy only at server side) rejected because enterprise deployments need invoker-side control over execution behavior without coupling to interceptor authors' choices. Alternative (no server defaults) rejected because it forces every invoker to fully configure every interceptor.
+
+**5. Other Design Choices**
 
 - **Hook-Based Targeting**: Interceptors declare specific hooks (vs. all traffic) for performance and security
 - **Severity Levels** (info/warn/error): Graduated response vs. binary pass/fail enables audit logging without blocking
