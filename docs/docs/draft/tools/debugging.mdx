@@ -180,12 +180,12 @@ When servers fail to connect:
    versions in its `data` field
 5. Check the
    [per-request `_meta` fields](/specification/draft/basic/index#meta):
-   every request must carry `io.modelcontextprotocol/protocolVersion`,
-   `io.modelcontextprotocol/clientInfo`, and
-   `io.modelcontextprotocol/clientCapabilities`. A request missing any of
-   these is rejected with error `-32602` (Invalid params), the same code
-   returned for many other malformed inputs. If the server needs a capability
-   the request's `clientCapabilities` did not declare, such as
+   every request must carry `io.modelcontextprotocol/protocolVersion` and
+   `io.modelcontextprotocol/clientCapabilities`, and clients should also
+   include `io.modelcontextprotocol/clientInfo`. A request missing either
+   required field is rejected with error `-32602` (Invalid params), the same
+   code returned for many other malformed inputs. If the server needs a
+   capability the request's `clientCapabilities` did not declare, such as
    [elicitation](/specification/draft/client/elicitation), it returns a
    `MissingRequiredClientCapabilityError` (`-32021`) naming the missing
    capabilities. Inspect the request's `_meta` and the
