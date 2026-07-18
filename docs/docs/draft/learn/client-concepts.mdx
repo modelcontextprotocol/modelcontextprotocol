@@ -227,9 +227,12 @@ The flow ensures security through multiple human-in-the-loop checkpoints. Users 
   messages: [
     {
       role: "user",
-      content: "Analyze these flight options and recommend the best choice:\n" +
-               "[47 flights with prices, times, airlines, and layovers]\n" +
-               "User preferences: morning departure, max 1 layover"
+      content: {
+        type: "text",
+        text: "Analyze these flight options and recommend the best choice:\n" +
+              "[47 flights with prices, times, airlines, and layovers]\n" +
+              "User preferences: morning departure, max 1 layover"
+      }
     }
   ],
   modelPreferences: {
