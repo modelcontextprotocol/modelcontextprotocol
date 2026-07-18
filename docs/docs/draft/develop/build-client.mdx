@@ -1018,7 +1018,7 @@ The chatbot can:
 
 The MCP client supports additional configuration options:
 
-- Client customization through `McpSyncClientCustomizer` or `McpAsyncClientCustomizer`
+- Client customization through `McpClientCustomizer<McpClient.SyncSpec>` or `McpClientCustomizer<McpClient.AsyncSpec>` beans
 - Multiple clients with multiple transport types: `STDIO` and Streamable HTTP
 - Integration with Spring AI's tool execution framework
 - Automatic client initialization and lifecycle management
