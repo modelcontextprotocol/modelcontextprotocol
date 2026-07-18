@@ -450,9 +450,9 @@ Change notifications are opt-in. To receive them, the client opens a long-lived 
 }
 ```
 
-Every client request carries the `io.modelcontextprotocol/protocolVersion`, `clientInfo`, and `clientCapabilities` fields in `_meta`, so the server can identify the client without relying on connection state.
+Every client request carries the `io.modelcontextprotocol/protocolVersion` and `io.modelcontextprotocol/clientCapabilities` fields in `_meta`, and normally `io.modelcontextprotocol/clientInfo` as well, so the server can identify the client without relying on connection state.
 
-The server acknowledges the filter with `notifications/subscriptions/acknowledged` as the first message on the stream, then delivers matching notifications as changes occur. The server never sends notification types the client did not request.
+The server acknowledges the filter with `notifications/subscriptions/acknowledged`, which is the first message carrying that subscription's ID in `_meta`, then delivers matching notifications as changes occur. The server never sends notification types the client did not request.
 
 #### Understanding Tool List Change Notifications
 
