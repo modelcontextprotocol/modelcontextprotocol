@@ -44,14 +44,14 @@ will interfere with protocol operation.
 For servers using the
 [Streamable HTTP transport](/specification/draft/basic/transports/streamable-http),
 stderr is not captured by the client. Use your own server-side log aggregation
-or [OpenTelemetry](https://opentelemetry.io/), or standard HTTP tooling (curl,
-browser DevTools Network panel) to inspect requests and SSE streams.
+or [OpenTelemetry](https://opentelemetry.io/) for logs, and standard HTTP
+tooling (curl, browser DevTools Network panel) to inspect requests and SSE
+streams.
 
 <Warning>
 
-Logging is deprecated as of protocol version `2026-07-28`. It remains
-available during the deprecation window, but new servers should log to stderr
-(stdio transport) or use [OpenTelemetry](https://opentelemetry.io/) instead.
+The `notifications/message` mechanism below is deprecated as of protocol
+version `2026-07-28`. It remains available during the deprecation window.
 
 </Warning>
 
