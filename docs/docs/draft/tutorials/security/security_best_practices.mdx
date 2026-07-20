@@ -282,6 +282,8 @@ tokens from an MCP client without validating that the tokens were
 properly issued _to the MCP server_ and passes them through to the
 downstream API.
 
+An attacker can gain unauthorized access or otherwise compromise an
+MCP server if the server accepts tokens issued for other resources.
 This vulnerability has two critical dimensions:
 
 1. **Audience validation failures.** When an MCP server doesn't verify
@@ -1014,9 +1016,8 @@ nature of MCP clients, which typically lack domain-specific knowledge
 to make informed decisions about individual scope selection.
 Requesting all available scopes allows the authorization server and
 end-user to determine appropriate permissions during the consent
-process.
-
-This approach minimizes user friction while following the principle of least privilege.
+process, minimizing user friction while following the principle of
+least privilege.
 
 <Note>
   Scope accumulation across operations is a client-side responsibility. Clients
