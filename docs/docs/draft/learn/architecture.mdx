@@ -141,7 +141,7 @@ Besides server and client primitives, the protocol offers cross-cutting utility 
 
 #### Notifications
 
-The protocol supports real-time notifications to enable dynamic updates between servers and clients. For example, when a server's available tools change—such as when new functionality becomes available or existing tools are modified—the server can send tool update notifications to inform connected clients about these changes. Notifications are sent as JSON-RPC 2.0 notification messages (without expecting a response). Change notifications are opt-in: the client opens a long-lived [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream naming the notification types it wants to receive, and the server delivers matching notifications on that stream.
+The protocol supports real-time notifications to enable dynamic updates between servers and clients. For example, when a server's available tools change (such as when new functionality becomes available or existing tools are modified), the server can send tool update notifications to inform connected clients about these changes. Notifications are sent as JSON-RPC 2.0 notification messages (without expecting a response). Change notifications are opt-in: the client opens a long-lived [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream naming the notification types it wants to receive, and the server delivers matching notifications on that stream.
 
 ## Example
 
@@ -240,7 +240,7 @@ async with stdio_client(server_config) as (read, write):
 </Step>
 
 <Step title="Tool Discovery (Primitives)">
-The client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism — it allows clients to understand what tools are available on the server before attempting to use them.
+The client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism: it allows clients to understand what tools are available on the server before attempting to use them.
 
 <CodeGroup>
   ```json Tools List Request
@@ -481,7 +481,7 @@ The first message the server sends on the stream is always `notifications/subscr
 }
 ```
 
-After the acknowledgment, when the server's available tools change—such as when new functionality becomes available, existing tools are modified, or tools become temporarily unavailable—the server delivers a notification on that stream:
+After the acknowledgment, when the server's available tools change (new functionality becomes available, existing tools are modified, or tools become temporarily unavailable), the server delivers a notification on that stream:
 
 ```json Notification
 {
