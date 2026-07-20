@@ -410,7 +410,6 @@
               "seps/1850-pr-based-sep-workflow",
               "seps/1865-mcp-apps-interactive-user-interfaces-for-mcp",
               "seps/2085-governance-succession-and-amendment",
-              "seps/2127-mcp-server-cards",
               "seps/2133-extensions",
               "seps/2148-contributor-ladder",
               "seps/2149-working-group-charter-template"
@@ -420,6 +419,12 @@
             "group": "Accepted",
             "pages": [
               "seps/2260-Require-Server-requests-to-be-associated-with-Client-requests"
+            ]
+          },
+          {
+            "group": "Draft",
+            "pages": [
+              "seps/2127-mcp-server-cards"
             ]
           }
         ]
