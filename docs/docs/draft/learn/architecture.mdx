@@ -464,7 +464,7 @@ Change notifications are opt-in. The client opens a long-lived stream with a [`s
 }
 ```
 
-The first message the server sends on the stream is always `notifications/subscriptions/acknowledged`. Its `notifications` field reflects the subset of the requested filter the server agreed to honor, with unsupported notification types omitted:
+The server acknowledges the subscription with `notifications/subscriptions/acknowledged`, which is the first message carrying that subscription's ID in `_meta` (the server sends no other notification for that subscription before it). Its `notifications` field reflects the subset of the requested filter the server agreed to honor, with unsupported notification types omitted:
 
 ```json Acknowledgment
 {
