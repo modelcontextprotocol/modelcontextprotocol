@@ -190,7 +190,7 @@ Specifically:
 
 - Servers **MUST NOT** rely on prior requests over the same connection to
   establish context (e.g., capabilities, protocol version, client identity).
-  Every request supplies this metadata in its [`_meta`](#meta) field.
+  Every request supplies this metadata in its [`_meta`](#_meta) field.
 - Servers **SHOULD** be prepared to handle requests associated with multiple
   tasks, threads, or conversations.
 - Servers **SHOULD NOT** require that a client reuse the same connection or process to
