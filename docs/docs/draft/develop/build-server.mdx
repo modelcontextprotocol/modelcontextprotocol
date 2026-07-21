@@ -72,7 +72,7 @@ logging.info("Processing request")
 ### System requirements
 
 - Python 3.10 or higher installed.
-- You must use the Python MCP SDK 1.2.0 or higher.
+- You must use the Python MCP SDK 2.0.0 or higher.
 
 ### Set up your environment
 
@@ -142,17 +142,17 @@ Add these to the top of your `weather.py`:
 from typing import Any
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-# Initialize FastMCP server
-mcp = FastMCP("weather")
+# Initialize MCPServer
+mcp = MCPServer("weather")
 
 # Constants
 NWS_API_BASE = "https://api.weather.gov"
 USER_AGENT = "weather-app/1.0"
 ```
 
-The FastMCP class uses Python type hints and docstrings to automatically generate tool definitions, making it easy to create and maintain MCP tools.
+The MCPServer class uses Python type hints and docstrings to automatically generate tool definitions, making it easy to create and maintain MCP tools.
 
 ### Helper functions
 
@@ -398,7 +398,7 @@ node --version
 npm --version
 ```
 
-For this tutorial, you'll need Node.js version 16 or higher.
+For this tutorial, you'll need Node.js version 20 or higher.
 
 Now, let's create and set up our project:
 
@@ -413,7 +413,7 @@ cd weather
 npm init -y
 
 # Install dependencies
-npm install @modelcontextprotocol/sdk zod@3
+npm install @modelcontextprotocol/server zod
 npm install -D @types/node typescript
 
 # Create our files
@@ -430,7 +430,7 @@ cd weather
 npm init -y
 
 # Install dependencies
-npm install @modelcontextprotocol/sdk zod@3
+npm install @modelcontextprotocol/server zod
 npm install -D @types/node typescript
 
 # Create our files
@@ -463,6 +463,7 @@ Create a `tsconfig.json` in the root of your project:
     "target": "ES2022",
     "module": "Node16",
     "moduleResolution": "Node16",
+    "types": ["node"],
     "outDir": "./build",
     "rootDir": "./src",
     "strict": true,
@@ -484,8 +485,8 @@ Now let's dive into building your server.
 Add these to the top of your `src/index.ts`:
 
 ```typescript
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
 
 const NWS_API_BASE = "https://api.weather.gov";
@@ -582,12 +583,12 @@ server.registerTool(
   "get_alerts",
   {
     description: "Get weather alerts for a state",
-    inputSchema: {
+    inputSchema: z.object({
       state: z
         .string()
         .length(2)
         .describe("Two-letter state code (e.g. CA, NY)"),
-    },
+    }),
   },
   async ({ state }) => {
     const stateCode = state.toUpperCase();
@@ -635,7 +636,7 @@ server.registerTool(
   "get_forecast",
   {
     description: "Get weather forecast for a location",
-    inputSchema: {
+    inputSchema: z.object({
       latitude: z
         .number()
         .min(-90)
@@ -646,7 +647,7 @@ server.registerTool(
         .min(-180)
         .max(180)
         .describe("Longitude of the location"),
-    },
+    }),
   },
   async ({ latitude, longitude }) => {
     // Get grid point data
