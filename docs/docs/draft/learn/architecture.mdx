@@ -108,7 +108,7 @@ MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol
 
 #### Statelessness and discovery
 
-MCP is a <Tooltip tip="Every request contains all the information needed to process it, so servers infer nothing from previous requests">stateless protocol</Tooltip>: there is no connection handshake or protocol-level session. Every request carries the protocol version and the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> relevant to that request in its `_meta` field, so the server can process each request on its own. Clients should also identify themselves in the same field unless configured not to. Servers advertise their supported versions and capabilities through the mandatory [`server/discover`](/specification/draft/server/discover) request, which clients may send before any other request. Detailed information can be found in the [specification](/specification/draft/basic/index#statelessness), and the [example](#example) showcases the per-request metadata and the discovery sequence.
+MCP is a <Tooltip tip="Every request contains all the information needed to process it, so servers infer nothing from previous requests">stateless protocol</Tooltip>. Every request carries the protocol version and the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> relevant to that request in its `_meta` field, so the server can process each request on its own. Clients should also identify themselves in the same field unless configured not to. Servers advertise their supported versions and capabilities through the mandatory [`server/discover`](/specification/draft/server/discover) request, which clients may send before any other request. Detailed information can be found in the [specification](/specification/draft/basic/index#statelessness), and the [example](#example) showcases the per-request metadata and the discovery sequence.
 
 #### Primitives
 
@@ -152,7 +152,7 @@ This section provides a step-by-step walkthrough of an MCP client-server interac
 <Steps>
 <Step title="Discovery">
 
-There is no connection handshake in MCP. As described in the [statelessness and discovery](#statelessness-and-discovery) section, every request carries the protocol version and client capabilities in its `_meta` field, and clients should also include their identity there. A client that wants to learn what a server supports before issuing other requests sends a `server/discover` request, which every server must implement.
+As described in the [statelessness and discovery](#statelessness-and-discovery) section, every MCP request carries the protocol version and client capabilities in its `_meta` field, and clients should also include their identity there. A client that wants to learn what a server supports before issuing other requests sends a `server/discover` request, which every server must implement.
 
 <CodeGroup>
   ```json Discover Request
