@@ -44,8 +44,8 @@ Features that are currently Deprecated are listed in the
 
 ## Negotiation
 
-There is no negotiation handshake. Every request declares the protocol version it is
-using via the `io.modelcontextprotocol/protocolVersion` key in its
+Every request declares the protocol version it is using via the
+`io.modelcontextprotocol/protocolVersion` key in its
 [`_meta`](/specification/draft/basic/index#meta) field, and the server accepts or
 rejects each request independently. On Streamable HTTP, the same value is also carried
 in the
