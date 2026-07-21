@@ -674,7 +674,10 @@ async processQuery(query: string) {
 
       messages.push({
         role: "user",
-        content: result.content as string,
+        content: result.content
+          .filter((block) => block.type === "text")
+          .map((block) => block.text)
+          .join("\n"),
       });
 
       const response = await this.anthropic.messages.create({
