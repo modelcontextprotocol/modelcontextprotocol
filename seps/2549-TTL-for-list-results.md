@@ -1,6 +1,6 @@
 # SEP-2549: TTL for List Results
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-04-09
 - **Author(s)**: Caitie McCaffrey (@CaitieM20)
@@ -158,6 +158,7 @@ Servers MUST apply the same cacheScope to all response pages for a given list re
 
 ### Error handling
 
+- For backwards compatibility, If `ttlMs` is missing, clients SHOULD assume a default `ttlMs` of `0` (immediately stale) and rely on their own caching heuristics or notifications.
 - If `ttlMs` is present but is a negative integer, the client SHOULD ignore it and behave as if it were 0 (immediately stale).
 
 ## Rationale
@@ -185,7 +186,7 @@ MCP is transport-agnostic. While HTTP-based transports could theoretically use `
 
 ## Backward Compatibility
 
-- Existing servers that do not provide it continue to work unchanged. If a `ttlMs` field is missing, clients SHOULD assume a default ttlMs of 0 (immediately stale) and rely on their own caching heuristincs or notifications, which is the current behavior.
+- Existing servers that do not provide it continue to work unchanged. If a `ttlMs` field is missing, clients SHOULD assume a default ttlMs of 0 (immediately stale) and rely on their own caching heuristics or notifications, which is the current behavior.
 - Existing clients that do not understand the field will ignore it, as MCP result objects permit additional properties via `[key: string]: unknown` on the `Result` base type.
 - `cacheScope` is required because there is no safe default for older servers. The server must explicitly declare the intended cache scope to prevent unintended caching of user-specific data.
 - No existing fields or behaviors are modified or removed.

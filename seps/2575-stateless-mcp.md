@@ -1,6 +1,6 @@
 # SEP-2575: Make MCP Stateless
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2025-06-18
 - **Author(s)**: Jonathan Hefner (@jonathanhefner), Mark Roth (@markdroth),
@@ -171,7 +171,7 @@ return a JSON-RPC error response. For HTTP, the response status code MUST be
 `400 Bad Request`. The error MUST conform to the following structure:
 
 ```ts
-export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+export const UNSUPPORTED_PROTOCOL_VERSION = -32022;
 
 export interface UnsupportedProtocolVersionError extends Omit<
   JSONRPCErrorResponse,
@@ -377,7 +377,7 @@ the missing capabilities. For HTTP, the response status code MUST be
 `400 Bad Request`.
 
 ```ts
-export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
 
 export interface MissingRequiredClientCapabilityError extends Omit<
   JSONRPCErrorResponse,

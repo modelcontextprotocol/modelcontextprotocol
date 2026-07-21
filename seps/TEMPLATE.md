@@ -3,7 +3,7 @@
 > **Note**: This template provides a standard structure for SEPs. You may adapt sections based on the specific needs of your proposal. For example, Process SEPs may not need a "Backward Compatibility" section, while Standards Track SEPs should include detailed technical specifications.
 
 - **Status**: Draft | In-Review | Accepted | Rejected | Withdrawn | Final | Superseded | Dormant
-- **Type**: Standards Track | Informational | Process
+- **Type**: Standards Track | Informational | Process | Extensions Track
 - **Created**: YYYY-MM-DD
 - **Author(s)**: Name <email> (@github-username)
 - **Sponsor**: @github-username (or "None" if seeking sponsor)

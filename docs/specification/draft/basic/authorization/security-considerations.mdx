@@ -1,0 +1,156 @@
+---
+title: Authorization Security Considerations
+sidebarTitle: Security Considerations
+---
+
+<div id="enable-section-numbers" />
+
+This document outlines security requirements that implementers **MUST** consider when
+building MCP clients and servers.
+
+Additionally, implementors **MUST** follow OAuth 2.1 security best practices as outlined in
+[OAuth 2.1 Section 7. "Security Considerations"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#name-security-considerations).
+
+## Token Audience Binding and Validation
+
+[RFC 8707](https://www.rfc-editor.org/rfc/rfc8707.html) Resource Indicators provide critical security benefits by binding tokens to their intended
+audiences **when the Authorization Server supports the capability**. To enable current and future adoption:
+
+- MCP clients **MUST** include the `resource` parameter in authorization and token requests as specified in the [Resource Parameter Implementation](/specification/draft/basic/authorization#resource-parameter-implementation) section
+- MCP servers **MUST** validate that tokens presented to them were specifically issued for their use
+
+The [Security Best Practices document](/docs/tutorials/security/security_best_practices#token-passthrough)
+outlines why token audience validation is crucial and why token passthrough is explicitly forbidden.
+
+## Token Theft
+
+Attackers who obtain tokens stored by the client, or tokens cached or logged on the server can access protected resources with
+requests that appear legitimate to resource servers.
+
+Clients and servers **MUST** implement secure token storage and follow OAuth best practices,
+as outlined in [OAuth 2.1, Section 7.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.1).
+
+Authorization servers **SHOULD** issue short-lived access tokens to reduce the impact of leaked tokens.
+For public clients, authorization servers **MUST** rotate refresh tokens as described in [OAuth 2.1 Section 4.3.1 "Token Endpoint Extension"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-4.3.1).
+
+## Communication Security
+
+Implementations **MUST** follow [OAuth 2.1 Section 1.5 "Communication Security"](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-1.5).
+
+Specifically:
+
+1. All authorization server endpoints **MUST** be served over HTTPS.
+1. All redirect URIs **MUST** be either `localhost` or use HTTPS.
+
+## Authorization Code Protection
+
+An attacker who has gained access to an authorization code contained in an authorization response can try to redeem the authorization code for an access token or otherwise make use of the authorization code.
+(Further described in [OAuth 2.1 Section 7.5](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.5))
+
+To mitigate this, MCP clients **MUST** implement PKCE according to [OAuth 2.1 Section 7.5.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.5.2) and **MUST** verify PKCE support before proceeding with authorization.
+PKCE helps prevent authorization code interception and injection attacks by requiring clients to create a secret verifier-challenge pair, ensuring that only the original requestor can exchange an authorization code for tokens.
+
+MCP clients **MUST** use the `S256` code challenge method when technically capable, as required by [OAuth 2.1 Section 4.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-4.1.1).
+
+Since OAuth 2.1 and PKCE specifications do not define a mechanism for clients to discover PKCE support, MCP clients **MUST** rely on authorization server metadata to verify this capability:
+
+- **OAuth 2.0 Authorization Server Metadata**: If `code_challenge_methods_supported` is absent, the authorization server does not support PKCE and MCP clients **MUST** refuse to proceed.
+
+- **OpenID Connect Discovery 1.0**: While the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata) does not define `code_challenge_methods_supported`, this field is commonly included by OpenID providers. MCP clients **MUST** verify the presence of `code_challenge_methods_supported` in the provider metadata response. If the field is absent, MCP clients **MUST** refuse to proceed.
+
+Authorization servers providing OpenID Connect Discovery 1.0 **MUST** include `code_challenge_methods_supported` in their metadata to ensure MCP compatibility.
+
+## Mix-Up Attacks
+
+An MCP client typically interacts with many authorization servers over its lifetime. An attacker that controls one of those authorization servers may attempt to have the client send it an authorization code or token issued by a different, honest authorization server (a mix-up attack, described in [RFC9207 Section 1](https://datatracker.ietf.org/doc/html/rfc9207#section-1)).
+
+[Authorization Response Validation](/specification/draft/basic/authorization#authorization-response-validation) mitigates this by binding the response to the authorization server the client recorded before redirecting, so the authorization code cannot be redeemed at an unintended token endpoint. PKCE alone does not prevent this attack because the client transmits the `code_verifier` to the attacker's token endpoint. Resource indicators do not help when the attacker's authorization server is intercepting requests before they hit the honest authorization server. This mitigation depends on honest authorization servers emitting `iss`; it provides no protection against an honest server that does not.
+
+## Open Redirection
+
+An attacker may craft malicious redirect URIs to direct users to phishing sites.
+
+MCP clients **MUST** have redirect URIs registered with the authorization server.
+
+Authorization servers **MUST** validate exact redirect URIs against pre-registered values to prevent redirection attacks.
+
+MCP clients **SHOULD** use and verify state parameters in the authorization code flow
+and discard any results that do not include or have a mismatch with the original state.
+
+Authorization servers **MUST** take precautions to prevent redirecting user agents to untrusted URI's, following suggestions laid out in [OAuth 2.1 Section 7.12.2](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-13#section-7.12.2)
+
+Authorization servers **SHOULD** only automatically redirect the user agent if it trusts the redirection URI. If the URI is not trusted, the authorization server MAY inform the user and rely on the user to make the correct decision.
+
+## Client ID Metadata Document Security
+
+When implementing [Client ID Metadata Documents](/specification/draft/basic/authorization/client-registration#client-id-metadata-documents), authorization servers **MUST** consider the security implications
+detailed in [OAuth Client ID Metadata Document, Section 6](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-security-considerations).
+Key considerations include:
+
+### Authorization Server Abuse Protection
+
+The authorization server takes a URL as input from an unknown client and fetches that URL.
+A malicious client could use this to trigger the authorization server to make requests to arbitrary URLs,
+such as requests to private administration endpoints the authorization server has access to.
+
+Authorization servers fetching metadata documents **SHOULD** consider
+[Server-Side Request Forgery (SSRF)](https://developer.mozilla.org/docs/Web/Security/Attacks/SSRF) risks, as described in [OAuth Client ID Metadata Document: Server Side Request Forgery (SSRF) Attacks](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-00#name-server-side-request-forgery).
+
+### Localhost Redirect URI Risks
+
+Client ID Metadata Documents cannot prevent `localhost` URL impersonation by themselves. An attacker can claim to be any client by:
+
+1. Providing the legitimate client's metadata URL as their `client_id`
+2. Binding to the any `localhost` port, and providing that address as the redirect_uri
+3. Receiving the authorization code via the redirect when the user approves
+
+The server will see the legitimate client's metadata document and the user will see the legitimate client's name, making attack detection difficult.
+
+Authorization servers:
+
+- **SHOULD** display additional warnings for `localhost`-only redirect URIs
+- **MAY** require additional attestation mechanisms for enhanced security
+- **MUST** clearly display the redirect URI hostname during authorization
+
+### Trust Policies
+
+Authorization servers **MAY** implement domain-based trust policies:
+
+- Allowlists for trusted domains (for protected servers)
+- Accept any HTTPS `client_id` (for open servers)
+- Reputation checks for unknown domains
+- Restrictions based on domain age or certificate validation
+- Display the CIMD and other associated client hostnames prominently to prevent phishing
+
+Servers maintain full control over their access policies.
+
+## Confused Deputy Problem
+
+Attackers can exploit MCP servers acting as intermediaries to third-party APIs, leading to [confused deputy vulnerabilities](/docs/tutorials/security/security_best_practices#confused-deputy-problem).
+By using stolen authorization codes, they can obtain access tokens without user consent.
+
+MCP proxy servers using static client IDs **MUST** obtain user consent for each
+[dynamically registered client](/specification/draft/basic/authorization/client-registration#dynamic-client-registration)
+before forwarding to third-party authorization servers (which may require additional consent).
+
+## Access Token Privilege Restriction
+
+An attacker can gain unauthorized access or otherwise compromise an MCP server if the server accepts tokens issued for other resources.
+
+This vulnerability has two critical dimensions:
+
+1. **Audience validation failures.** When an MCP server doesn't verify that tokens were specifically intended for it (for example, via the audience claim, as mentioned in [RFC9068](https://www.rfc-editor.org/rfc/rfc9068.html)), it may accept tokens originally issued for other services. This breaks a fundamental OAuth security boundary, allowing attackers to reuse legitimate tokens across different services than intended.
+2. **Token passthrough.** If the MCP server not only accepts tokens with incorrect audiences but also forwards these unmodified tokens to downstream services, it can potentially cause the ["confused deputy" problem](#confused-deputy-problem), where the downstream API may incorrectly trust the token as if it came from the MCP server or assume the token was validated by the upstream API. See the [Token Passthrough section](/docs/tutorials/security/security_best_practices#token-passthrough) of the Security Best Practices guide for additional details.
+
+MCP servers **MUST** validate access tokens before processing the request, ensuring the access token is issued specifically for the MCP server, and take all necessary steps to ensure no data is returned to unauthorized parties.
+
+A MCP server **MUST** follow the guidelines in [OAuth 2.1 - Section 5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-13.html#section-5.2) to validate inbound tokens.
+
+MCP servers **MUST** only accept tokens specifically intended for themselves and **MUST** reject tokens that do not include them in the audience claim or otherwise verify that they are the intended recipient of the token. See the [Security Best Practices Token Passthrough section](/docs/tutorials/security/security_best_practices#token-passthrough) for details.
+
+If the MCP server makes requests to upstream APIs, it may act as an OAuth client to them. The access token used at the upstream API is a separate token, issued by the upstream authorization server. The MCP server **MUST NOT** pass through the token it received from the MCP client.
+
+MCP clients **MUST** implement and use the `resource` parameter as defined in [RFC 8707 - Resource Indicators for OAuth 2.0](https://www.rfc-editor.org/rfc/rfc8707.html)
+to explicitly specify the target resource for which the token is being requested. This requirement aligns with the recommendation in
+[RFC 9728 Section 7.4](https://datatracker.ietf.org/doc/html/rfc9728#section-7.4). This ensures that access tokens are bound to their intended resources and
+cannot be misused across different services.

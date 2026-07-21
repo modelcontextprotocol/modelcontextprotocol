@@ -112,6 +112,9 @@ released as Current, Tier 1 SDKs:
   `DeprecationWarning`, Node.js's `process.emitWarning`, or a configurable
   logger).
 
+A Tier 1 SDK that consistently fails to surface a Deprecated feature is subject to the
+[Tier Relegation Process](/community/sdk-tiers#tier-relegation).
+
 ## Removing a Feature
 
 1. Once a feature is set for removal, the removal is executed at the discretion
@@ -121,6 +124,8 @@ released as Current, Tier 1 SDKs:
    example extending or shortening the timeline
    ([Expedited removal](#expedited-removal)) or restoring the feature to Active
    ([Feature states](#feature-states)).
+
+Features may remain Deprecated, without removal, for much longer than the minimum deprecation window.
 
 ## Expedited Removal
 
@@ -133,3 +138,17 @@ in the deprecation SEP or, where the risk surfaces after that SEP is already
 Final, in a short expedited-removal SEP that references it. The shortened
 window must still provide at least ninety days between the feature becoming
 Deprecated and its earliest removal.
+
+## Roles
+
+| Action                                         | Who                                                                                             |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Propose deprecation, extension, or restoration | Any contributor, per the SEP process                                                            |
+| Sponsor                                        | A Maintainer or Core Maintainer, per the SEP process                                            |
+| Approve a deprecation SEP                      | Core Maintainers, per the [governance decision process](/community/governance#decision-process) |
+| Decide a removal during release preparation    | Core Maintainers, per the [governance decision process](/community/governance#decision-process) |
+| Approve an extension or restoration SEP        | Core Maintainers, per the [governance decision process](/community/governance#decision-process) |
+| Approve expedited removal                      | Core Maintainers, per the [governance decision process](/community/governance#decision-process) |
+
+Lead Maintainers retain veto authority over each of the approvals
+above, per the [governance roles](/community/governance#roles) definition.

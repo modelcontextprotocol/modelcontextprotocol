@@ -6,7 +6,7 @@ title: Architecture
 
 The Model Context Protocol (MCP) follows a client-host-server architecture where each
 host can run multiple client instances. MCP is a stateless protocol: every request is
-self-contained and carries its own protocol version, client identity, and capabilities.
+self-contained and carries its own protocol version and capabilities.
 This architecture enables users to integrate AI capabilities across applications while
 maintaining clear security boundaries and isolating concerns. Built on JSON-RPC, MCP
 provides a protocol focused on context exchange and sampling coordination between
@@ -141,7 +141,7 @@ sequenceDiagram
 
     loop Client Requests
         Host->>Client: User- or model-initiated action
-        Client->>Server: Request (with _meta: version, clientInfo, clientCapabilities)
+        Client->>Server: Request (with _meta: version, clientCapabilities)
         alt Server requires client input
             Server-->>Client: InputRequiredResult (e.g. sampling/createMessage)
             Client->>Host: Forward to AI
@@ -166,11 +166,9 @@ Each capability unlocks specific protocol features on a per-request basis. For e
 - Implemented [server features](/specification/draft/server) must be advertised in the
   server's capabilities
 - Receiving resource update notifications requires opening a
-  [`subscriptions/listen`](/specification/draft/basic/utilities/subscriptions) stream
+  [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) stream
   with the desired resource URIs
-- Tool invocation requires the server to declare tool capabilities
-- [Sampling](/specification/draft/client) requires the client to declare support in its
-  capabilities
+- [Tool](/specification/draft/server/tools) invocation requires the server to declare tool capabilities
 
 This capability negotiation ensures clients and servers have a clear understanding of
 supported functionality while maintaining protocol extensibility.
