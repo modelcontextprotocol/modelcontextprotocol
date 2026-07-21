@@ -19,7 +19,6 @@ Before starting, ensure your system meets these requirements:
 - Mac or Windows computer
 - Latest Python version installed
 - Latest version of `uv` installed
-- You must use the Python MCP SDK 2.0.0 or higher
 
 ## Setting Up Your Environment
 
@@ -174,7 +173,7 @@ async def process_query(self, query: str) -> str:
     available_tools = [{
         "name": tool.name,
         "description": tool.description,
-        "input_schema": tool.input_schema
+        "input_schema": tool.inputSchema
     } for tool in response.tools]
 
     # Initial Claude API call
@@ -450,7 +449,7 @@ If you see:
 Before starting, ensure your system meets these requirements:
 
 - Mac or Windows computer
-- Node.js 20 or higher installed
+- Node.js 17 or higher installed
 - Latest version of `npm` installed
 - Anthropic API key (Claude)
 
@@ -469,7 +468,7 @@ cd mcp-client-typescript
 npm init -y
 
 # Install dependencies
-npm install @anthropic-ai/sdk @modelcontextprotocol/client dotenv
+npm install @anthropic-ai/sdk @modelcontextprotocol/sdk dotenv
 
 # Install dev dependencies
 npm install -D @types/node typescript
@@ -487,7 +486,7 @@ cd mcp-client-typescript
 npm init -y
 
 # Install dependencies
-npm install @anthropic-ai/sdk @modelcontextprotocol/client dotenv
+npm install @anthropic-ai/sdk @modelcontextprotocol/sdk dotenv
 
 # Install dev dependencies
 npm install -D @types/node typescript
@@ -517,7 +516,6 @@ Create a `tsconfig.json` in the root of your project:
     "target": "ES2022",
     "module": "Node16",
     "moduleResolution": "Node16",
-    "types": ["node"],
     "outDir": "./build",
     "rootDir": "./",
     "strict": true,
@@ -564,8 +562,8 @@ import {
   MessageParam,
   Tool,
 } from "@anthropic-ai/sdk/resources/messages/messages.mjs";
-import { Client } from "@modelcontextprotocol/client";
-import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import readline from "readline/promises";
 import dotenv from "dotenv";
 
@@ -674,10 +672,7 @@ async processQuery(query: string) {
 
       messages.push({
         role: "user",
-        content: result.content
-          .filter((block) => block.type === "text")
-          .map((block) => block.text)
-          .join("\n"),
+        content: result.content as string,
       });
 
       const response = await this.anthropic.messages.create({
