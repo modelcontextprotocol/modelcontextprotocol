@@ -29,7 +29,7 @@ A remote server **MUST** be publicly accessible at its specified URL.
 
 ## Transport Type
 
-Remote servers can use the Streamable HTTP transport (recommended) or the SSE transport. Remote servers can also support both transports simultaneously at different URLs.
+Remote servers can use the Streamable HTTP transport (recommended) or the SSE transport. The SSE transport is [Deprecated](/specification/draft/deprecated); new remote servers **SHOULD** use Streamable HTTP. Remote servers can also support both transports simultaneously at different URLs.
 
 Specify the transport by setting the `type` property of the `remotes` entry to either `"streamable-http"` or `"sse"`:
 
