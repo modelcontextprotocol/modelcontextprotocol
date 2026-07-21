@@ -662,8 +662,8 @@ class Config:
 
     def validate(self) -> None:
         """Validate configuration."""
-        if self.TRANSPORT not in ["sse", "streamable-http"]:
-            raise ValueError(f"Invalid transport: {self.TRANSPORT}. Must be 'sse' or 'streamable-http'")
+        if self.TRANSPORT != "streamable-http":
+            raise ValueError(f"Invalid transport: {self.TRANSPORT}. Must be 'streamable-http'")
 
 
 # Global configuration instance

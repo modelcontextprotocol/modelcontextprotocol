@@ -3020,7 +3020,7 @@ When you ask a question:
 Claude.app logging related to MCP is written to log files in `~/Library/Logs/Claude`:
 
 - `mcp.log` will contain general logging about MCP connections and connection failures.
-- Files named `mcp-server-SERVERNAME.log` will contain error (stderr) logging from the named server.
+- Files named `mcp-server-SERVERNAME.log` will contain the stderr output from the named server. Stdio servers may use stderr for all their logging, so these files are not limited to errors.
 
 You can run the following command to list recent logs and follow along with any new ones:
 
