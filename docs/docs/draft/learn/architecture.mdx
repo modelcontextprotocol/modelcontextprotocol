@@ -211,7 +211,7 @@ In this example, the capability negotiation demonstrates how MCP primitives are 
 
 **Server Capabilities**:
 
-- `"tools": {"listChanged": true}` - The server supports the tools primitive and can honor a `toolsListChanged` filter in `subscriptions/listen`. Clients that request this filter receive `notifications/tools/list_changed` when the tool list changes.
+- `"tools": {"listChanged": true}` - The server supports the tools primitive and can honor a `toolsListChanged` filter in [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions). Clients that request this filter receive `notifications/tools/list_changed` when the tool list changes.
 - `"resources": {}` - The server also supports the resources primitive (can handle `resources/list` and `resources/read` methods)
 
 After successful initialization, the client sends a notification to indicate it's ready:
@@ -313,7 +313,7 @@ Now that the connection is established, the client can discover available tools 
 
 #### Understanding the Tool Discovery Request
 
-The `tools/list` request carries only the standard `_meta` fields that identify the client on every request, with no tool-specific parameters.
+The `tools/list` request is simple, containing no parameters.
 
 #### Understanding the Tool Discovery Response
 
@@ -326,10 +326,7 @@ Each tool object in the response includes several key fields:
 - **`description`**: Detailed explanation of what the tool does and when to use it
 - **`inputSchema`**: A JSON Schema that defines the expected input parameters, enabling type validation and providing clear documentation about required and optional parameters
 
-The result is marked `"resultType": "complete"` and carries two caching fields that complete list and read results must include:
-
-- **`ttlMs`**: A freshness hint in milliseconds. The client may treat the response as fresh for this long before re-fetching. Here `300000` means the tool list can be cached for five minutes.
-- **`cacheScope`**: Indicates who may cache the response. `"public"` responses contain no user-specific data and may be served from shared caches. `"private"` responses may only be reused within the same authorization context.
+The result is marked `"resultType": "complete"` and carries two caching fields. `ttlMs` is a freshness hint in milliseconds, so this tool list can be cached for five minutes. `cacheScope` indicates who may reuse the response. The specification's [caching utility](/specification/draft/server/utilities/caching) defines the full rules.
 
 #### How This Works in AI Applications
 
@@ -425,7 +422,7 @@ async def handle_tool_call(conversation, tool_name, arguments):
 <Step title="Real-time Updates (Notifications)">
 MCP supports real-time notifications that enable servers to inform clients about changes without being explicitly requested. This demonstrates the notification system, a key feature that keeps MCP connections synchronized and responsive.
 
-#### Opting In with `subscriptions/listen`
+#### Subscribing to Changes
 
 Change notifications are opt-in. To receive them, the client opens a long-lived notification stream by sending a `subscriptions/listen` request with a `notifications` filter naming the event types it wants. Here the client asks for tool list changes:
 
