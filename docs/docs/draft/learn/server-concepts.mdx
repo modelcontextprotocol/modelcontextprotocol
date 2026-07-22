@@ -119,7 +119,7 @@ Resource Templates include metadata such as title, description, and expected MIM
 | `resources/read`           | Retrieve resource contents      | Resource data with metadata            |
 | `subscriptions/listen`     | Monitor resource changes        | Stream of update notifications         |
 
-To watch specific resources for changes, a client sends a `subscriptions/listen` request with the resource URIs listed in the `resourceSubscriptions` filter. The server delivers `notifications/resources/updated` on the resulting stream whenever a watched resource changes.
+To watch specific resources for changes, a client sends a [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) request with the resource URIs listed in the `resourceSubscriptions` filter. The server delivers `notifications/resources/updated` on the resulting stream whenever a watched resource changes.
 
 #### Example: Getting Travel Planning Context
 

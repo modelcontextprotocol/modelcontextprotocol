@@ -424,7 +424,7 @@ MCP supports real-time notifications that enable servers to inform clients about
 
 #### Subscribing to Changes
 
-Change notifications are opt-in. To receive them, the client opens a long-lived notification stream by sending a `subscriptions/listen` request with a `notifications` filter naming the event types it wants. Here the client asks for tool list changes:
+Change notifications are opt-in. To receive them, the client opens a long-lived notification stream by sending a [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) request with a `notifications` filter naming the event types it wants. Here the client asks for tool list changes:
 
 ```json Request
 {
