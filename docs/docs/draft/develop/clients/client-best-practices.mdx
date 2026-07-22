@@ -141,7 +141,8 @@ When implementing progressive discovery:
 
 ### Caching
 
-Each `tools/list` result carries `ttlMs` and `cacheScope` hints. Follow them as defined in the
+Each list result (such as `tools/list`), as well as each `server/discover` and
+`resources/read` result, carries `ttlMs` and `cacheScope` hints. Follow them as defined in the
 specification's [caching utility](/specification/draft/server/utilities/caching). In particular,
 treat a cached list as stale once a `list_changed` notification arrives, even before its TTL
 expires.
