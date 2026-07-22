@@ -86,7 +86,7 @@ A server that has negotiated this extension **MAY** return `CreateTaskResult` in
 
 A server **MUST NOT** return `CreateTaskResult` to a client that did not include the extension capability on its request, regardless of prior declarations. A client that has negotiated this extension **MUST** be prepared to handle either `CallToolResult` or `CreateTaskResult` in response to any supported request it issues. A client that receives `CreateTaskResult` in response to an unsupported request type **MUST** interpret this as an invalid response to the request.
 
-If a server is unable to service a request to a client that does not declare this extension capability without returning `CreateTaskResult`, the server **MUST** return an error with the code `-32003` (Missing Required Client Capability), indicating the required extension in the error response:
+If a server is unable to service a request to a client that does not declare this extension capability without returning `CreateTaskResult`, the server **MUST** return an error with the code `-32021` (Missing Required Client Capability), indicating the required extension in the error response:
 
 ```jsonl
 {
@@ -94,7 +94,7 @@ If a server is unable to service a request to a client that does not declare thi
   "id": 1,
   "error": {
     // MISSING_REQUIRED_CLIENT_CAPABILITY
-    "code": -32003,
+    "code": -32021,
     // Message provided for example purposes only. The content of this example message is non-normative.
     "message": "Missing required client capability",
     "data": {
@@ -464,7 +464,7 @@ If a client requests task status notifications but does not declare the `io.mode
   "id": 12,
   "error": {
     // MISSING_REQUIRED_CLIENT_CAPABILITY
-    "code": -32003,
+    "code": -32021,
     // Message provided for example purposes only. The content of this example message is non-normative.
     "message": "Missing required client capability",
     "data": {
@@ -794,7 +794,7 @@ Servers **MUST** return standard JSON-RPC errors for the following protocol erro
   - Servers **MUST** return this error for `tasks/get`.
   - Servers **SHOULD** return this error for `tasks/update` and `tasks/cancel`.
 - Internal errors: `-32603` (Internal error)
-- Missing required client capabilities: `-32003` (Missing Required Client Capability)
+- Missing required client capabilities: `-32021` (Missing Required Client Capability)
   - Servers **MUST** return this error for non-declaring clients requesting task notifications on `subscriptions/listen`.
   - Servers **MUST** return this error for non-declaring clients issuing `tasks/get`, `tasks/update`, and `tasks/cancel` requests.
 
