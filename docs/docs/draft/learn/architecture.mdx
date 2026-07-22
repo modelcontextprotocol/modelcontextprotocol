@@ -230,11 +230,11 @@ The AI application's MCP client manager connects to configured servers and store
 ```python Pseudo-code for AI application discovery
 # Pseudo Code
 async with stdio_client(server_config) as (read, write):
-    async with ClientSession(read, write) as session:
-        discover_response = await session.discover()
+    async with Client(read, write) as client:
+        discover_response = await client.discover()
         if discover_response.capabilities.tools:
-            app.register_mcp_server(session, supports_tools=True)
-        app.set_server_ready(session)
+            app.register_mcp_server(client, supports_tools=True)
+        app.set_server_ready(client)
 ```
 
 </Step>
@@ -337,11 +337,13 @@ The AI application fetches available tools from all connected MCP servers and co
 ```python Pseudo-code for AI application tool discovery
 # Pseudo-code using MCP Python SDK patterns
 available_tools = []
-for session in app.mcp_server_sessions():
-    tools_response = await session.list_tools()
+for client in app.mcp_clients():
+    tools_response = await client.list_tools()
     available_tools.extend(tools_response.tools)
 conversation.register_available_tools(available_tools)
 ```
+
+Clients that federate many servers can use [progressive tool discovery](/docs/draft/develop/clients/client-best-practices#progressive-tool-discovery) rather than loading every tool upfront.
 
 </Step>
 
@@ -427,8 +429,8 @@ When the language model decides to use a tool during a conversation, the AI appl
 ```python
 # Pseudo-code for AI application tool execution
 async def handle_tool_call(conversation, tool_name, arguments):
-    session = app.find_mcp_session_for_tool(tool_name)
-    result = await session.call_tool(tool_name, arguments)
+    client = app.find_mcp_client_for_tool(tool_name)
+    result = await client.call_tool(tool_name, arguments)
     conversation.add_tool_result(result.content)
 ```
 
@@ -546,9 +548,9 @@ When the AI application receives a notification about changed tools, it immediat
 
 ```python
 # Pseudo-code for AI application notification handling
-async def handle_tools_changed_notification(session):
-    tools_response = await session.list_tools()
-    app.update_available_tools(session, tools_response.tools)
+async def handle_tools_changed_notification(client):
+    tools_response = await client.list_tools()
+    app.update_available_tools(client, tools_response.tools)
     if app.conversation.is_active():
         app.conversation.notify_llm_of_new_capabilities()
 ```
