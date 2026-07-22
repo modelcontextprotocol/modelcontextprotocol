@@ -476,120 +476,48 @@ in MCP clients.
   SSRF in the context of the most critical web application security
   risks
 
-### Session Hijacking
+### State Handle Hijacking
 
-Session hijacking is an attack vector where a client is provided a
-session ID by the server, and an unauthorized party is able to obtain
-and use that same session ID to impersonate the original client and
-perform unauthorized actions on their behalf.
-
-#### Session Hijack Prompt Injection
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant ServerA
-    participant Queue
-    participant ServerB
-    participant Attacker
-
-    Client->>ServerA: Initialize (connect to streamable HTTP server)
-    ServerA-->>Client: Respond with session ID
-
-    Attacker->>ServerB: Access/guess session ID
-    Note right of Attacker: Attacker knows/guesses session ID
-
-    Attacker->>ServerB: Trigger event (malicious payload, using session ID)
-    ServerB->>Queue: Enqueue event (keyed by session ID)
-
-    ServerA->>Queue: Poll for events (using session ID)
-    Queue-->>ServerA: Event data (malicious payload)
-
-    ServerA-->>Client: Async response (malicious payload)
-    Client->>Client: Acts based on malicious payload
-```
-
-#### Session Hijack Impersonation
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-    participant Attacker
-
-    Client->>Server: Initialize (login/authenticate)
-    Server-->>Client: Respond with session ID (persistent session created)
-
-    Attacker->>Server: Access/guess session ID
-    Note right of Attacker: Attacker knows/guesses session ID
-
-    Attacker->>Server: Make API call (using session ID, no re-auth)
-    Server-->>Attacker: Respond as if Attacker is Client (session hijack)
-```
+MCP is [stateless](/specification/draft/basic/index#statelessness) and
+has no protocol-level sessions. Servers that need state spanning
+multiple requests mint an explicit handle, such as a shopping cart ID
+or a workflow ID, and receive it back as an ordinary tool argument on
+each request. State handle hijacking is an attack vector where an
+unauthorized party obtains or guesses such a handle and uses it to
+access or modify another user's state.
 
 #### Attack Description
 
-When you have multiple stateful HTTP servers that handle MCP requests,
-the following attack vectors are possible:
-
-**Session Hijack Prompt Injection**
-
-1. The client connects to **Server A** and receives a session ID.
-1. The attacker obtains an existing session ID and sends a malicious
-   event to **Server B** with said session ID.
-   - When a server supports
-     [redelivery/resumable streams](/specification/latest/basic/transports#resumability-and-redelivery),
-     deliberately terminating the request before receiving the response
-     could lead to it being resumed by the original client via the GET
-     request for server sent events.
-   - If a particular server initiates server sent events as a
-     consequence of a tool call such as a
-     `notifications/tools/list_changed`, where it is possible to affect
-     the tools that are offered by the server, a client could end up
-     with tools that they were not aware were enabled.
-
-1. **Server B** enqueues the event (associated with session ID) into a
-   shared queue.
-1. **Server A** polls the queue for events using the session ID and
-   retrieves the malicious payload.
-1. **Server A** sends the malicious payload to the client as an
-   asynchronous or resumed response.
-1. The client receives and acts on the malicious payload, leading to
-   potential compromise.
-
-**Session Hijack Impersonation**
-
-1. The MCP client authenticates with the MCP server, creating a
-   persistent session ID.
-2. The attacker obtains the session ID.
-3. The attacker makes calls to the MCP server using the session ID.
-4. MCP server does not check for additional authorization and treats the
-   attacker as a legitimate user, allowing unauthorized access or
-   actions.
+1. The MCP server mints a state handle for an authenticated user and
+   returns it in a tool result.
+2. The attacker obtains or guesses the handle.
+3. The attacker calls the MCP server's tools with the handle as an
+   argument.
+4. The MCP server does not check whether the handle belongs to the
+   caller and operates on the original user's state, allowing
+   unauthorized access or actions.
 
 #### Mitigation
 
-To prevent session hijacking and event injection attacks, the following
-mitigations should be implemented:
-
 MCP servers that implement authorization **MUST** verify all inbound
-requests. MCP Servers **MUST NOT** use sessions for authentication.
+requests. MCP servers **MUST NOT** treat possession of a state handle
+as authentication.
 
-MCP servers **MUST** use secure, non-deterministic session IDs.
-Generated session IDs (e.g., UUIDs) **SHOULD** use secure random number
-generators. Avoid predictable or sequential session identifiers that
-could be guessed by an attacker. Rotating or expiring session IDs can
+MCP servers **SHOULD** use secure, non-deterministic handles generated
+with secure random number generators. Avoid predictable or sequential
+identifiers that could be guessed by an attacker. Expiring handles can
 also reduce the risk.
 
-MCP servers **SHOULD** bind session IDs to user-specific information.
-When storing or transmitting session-related data (e.g., in a queue),
-combine the session ID with information unique to the authorized user,
-such as their internal user ID. Use a key format like
-`<user_id>:<session_id>`. This ensures that even if an attacker guesses
-a session ID, they cannot impersonate another user as the user ID is
-derived from the user token and not provided by the client.
+MCP servers **SHOULD** bind handles server-side to the authenticated
+user, for example by keying stored state as `<user_id>:<handle>` where
+the user ID is derived from the verified token rather than supplied by
+the client, and reject a handle presented by any other principal. This
+ensures that even if an attacker guesses a handle, they cannot
+impersonate another user.
 
-MCP servers can optionally leverage additional unique identifiers.
+For guidance on securing the server-assigned session IDs used by
+protocol version `2025-11-25` and earlier, see
+[Session Hijacking in the 2025-11-25 version of this page](/docs/2025-11-25/tutorials/security/security_best_practices#session-hijacking).
 
 ### Local MCP Server Compromise
 
