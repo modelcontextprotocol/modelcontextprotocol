@@ -1,4 +1,4 @@
-# SEP-0000: App-Rendered Elicitations for MCP Apps
+# SEP-3118: App-Rendered Elicitations for MCP Apps
 
 - **Status**: Draft
 - **Type**: Extensions Track
@@ -6,7 +6,7 @@
 - **Author(s)**: Kyle Rubenok (@krubenok)
 - **Sponsor**: None (seeking sponsor)
 - **Extension Identifier**: `io.modelcontextprotocol/ui`
-- **PR**: TBD
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3118
 
 ## Abstract
 
