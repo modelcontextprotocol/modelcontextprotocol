@@ -168,6 +168,7 @@ export type ProgressToken = string | number;
  * An opaque token used to represent a cursor for pagination.
  *
  * @category Common Types
+ * @maxLength 8192
  */
 export type Cursor = string;
 
@@ -590,6 +591,8 @@ export interface InputRequiredResult extends Result {
    * retries the original request.
    * Note: The client must treat this as an opaque blob; it must not
    * interpret it in any way.
+   *
+   * @maxLength 65536
    */
   requestState?: string;
 }
@@ -899,6 +902,7 @@ export interface Icon {
    * executable JavaScript.
    *
    * @format uri
+   * @pattern ^(https?://|data:image/)
    */
   src: string;
 
@@ -942,6 +946,8 @@ export interface Icons {
    * Clients that support rendering icons SHOULD also support:
    * - `image/svg+xml` - SVG images (scalable but requires security precautions)
    * - `image/webp` - WebP images (modern, efficient format)
+   *
+   * @maxItems 20
    */
   icons?: Icon[];
 }
@@ -954,6 +960,8 @@ export interface Icons {
 export interface BaseMetadata {
   /**
    * Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).
+   *
+   * @maxLength 256
    */
   name: string;
 
@@ -976,6 +984,8 @@ export interface BaseMetadata {
 export interface Implementation extends BaseMetadata, Icons {
   /**
    * The version of this implementation.
+   *
+   * @maxLength 64
    */
   version: string;
 
@@ -1015,12 +1025,14 @@ export interface ProgressNotificationParams extends NotificationParams {
    * The progress thus far. This should increase every time progress is made, even if the total is unknown.
    *
    * @TJS-type number
+   * @minimum 0
    */
   progress: number;
   /**
    * Total number of items to process (or total progress required), if known.
    *
    * @TJS-type number
+   * @minimum 0
    */
   total?: number;
   /**
@@ -1090,6 +1102,7 @@ export interface CacheableResult extends Result {
    *   milliseconds after receiving the response.
    *
    * @minimum 0
+   * @maximum 86400000
    */
   ttlMs: number;
 
@@ -1283,6 +1296,8 @@ export interface SubscriptionFilter {
   /**
    * Subscribe to {@link ResourceUpdatedNotification | notifications/resources/updated} for these resource URIs.
    * Replaces the former `resources/subscribe` RPC.
+   *
+   * @maxItems 1000
    */
   resourceSubscriptions?: string[];
 }
@@ -1454,6 +1469,8 @@ export interface Resource extends BaseMetadata, Icons {
    * The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.
    *
    * This can be used by Hosts to display file sizes and estimate context window usage.
+   *
+   * @minimum 0
    */
   size?: number;
 
@@ -1589,6 +1606,8 @@ export interface ListPromptsResultResponse extends JSONRPCResultResponse {
 export interface GetPromptRequestParams extends InputResponseRequestParams {
   /**
    * The name of the prompt or prompt template.
+   *
+   * @maxLength 256
    */
   name: string;
   /**
@@ -1850,6 +1869,8 @@ export interface CallToolResultResponse extends JSONRPCResultResponse {
 export interface CallToolRequestParams extends InputResponseRequestParams {
   /**
    * The name of the tool.
+   *
+   * @maxLength 256
    */
   name: string;
   /**
@@ -2022,6 +2043,8 @@ export interface LoggingMessageNotificationParams extends NotificationParams {
   level: LoggingLevel;
   /**
    * An optional name of the logger issuing this message.
+   *
+   * @maxLength 256
    */
   logger?: string;
   /**
@@ -2089,6 +2112,9 @@ export type LoggingLevel =
  * @category `sampling/createMessage`
  */
 export interface CreateMessageRequestParams {
+  /**
+   * @maxItems 1000
+   */
   messages: SamplingMessage[];
   /**
    * The server's preferences for which model to select. The client MAY ignore these preferences.
@@ -2118,8 +2144,13 @@ export interface CreateMessageRequestParams {
    * The requested maximum number of tokens to sample (to prevent runaway completions).
    *
    * The client MAY choose to sample fewer tokens than the requested maximum.
+   *
+   * @minimum 1
    */
   maxTokens: number;
+  /**
+   * @maxItems 50
+   */
   stopSequences?: string[];
   /**
    * Optional metadata to pass through to the LLM provider. The format of this metadata is provider-specific.
@@ -2128,6 +2159,8 @@ export interface CreateMessageRequestParams {
   /**
    * Tools that the model may use during generation.
    * The client MUST return an error if this field is provided but {@link ClientCapabilities.sampling.tools} is not declared.
+   *
+   * @maxItems 128
    */
   tools?: Tool[];
   /**
@@ -2397,11 +2430,15 @@ export interface ToolUseContent {
    * A unique identifier for this tool use.
    *
    * This ID is used to match tool results to their corresponding tool uses.
+   *
+   * @maxLength 256
    */
   id: string;
 
   /**
    * The name of the tool to call.
+   *
+   * @maxLength 256
    */
   name: string;
 
@@ -2436,6 +2473,8 @@ export interface ToolResultContent {
    * The ID of the tool use this result corresponds to.
    *
    * This MUST match the ID from a previous {@link ToolUseContent}.
+   *
+   * @maxLength 256
    */
   toolUseId: string;
 
@@ -2501,6 +2540,8 @@ export interface ModelPreferences {
    *
    * The client SHOULD prioritize these hints over the numeric priorities, but
    * MAY still use the priorities to select from ambiguous matches.
+   *
+   * @maxItems 10
    */
   hints?: ModelHint[];
 
@@ -2749,6 +2790,7 @@ export interface Root {
    * other URI schemes.
    *
    * @format uri
+   * @pattern ^file://
    */
   uri: string;
   /**
@@ -2817,9 +2859,18 @@ export interface ElicitRequestURLParams {
   message: string;
 
   /**
+   * The ID of the elicitation, which must be unique within the context of the server.
+   * The client MUST treat this ID as an opaque value.
+   *
+   * @maxLength 256
+   */
+  elicitationId: string;
+
+  /**
    * The URL that the user should navigate to.
    *
    * @format uri
+   * @pattern ^https?://
    */
   url: string;
 }

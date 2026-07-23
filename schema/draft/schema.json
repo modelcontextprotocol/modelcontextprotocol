@@ -60,6 +60,7 @@
             "properties": {
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
@@ -139,6 +140,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -192,6 +194,7 @@
                 },
                 "name": {
                     "description": "The name of the tool.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "requestState": {
@@ -609,12 +612,14 @@
                 },
                 "maxTokens": {
                     "description": "The requested maximum number of tokens to sample (to prevent runaway completions).\n\nThe client MAY choose to sample fewer tokens than the requested maximum.",
+                    "minimum": 1,
                     "type": "integer"
                 },
                 "messages": {
                     "items": {
                         "$ref": "#/$defs/SamplingMessage"
                     },
+                    "maxItems": 1000,
                     "type": "array"
                 },
                 "metadata": {
@@ -629,6 +634,7 @@
                     "items": {
                         "type": "string"
                     },
+                    "maxItems": 50,
                     "type": "array"
                 },
                 "systemPrompt": {
@@ -647,6 +653,7 @@
                     "items": {
                         "$ref": "#/$defs/Tool"
                     },
+                    "maxItems": 128,
                     "type": "array"
                 }
             },
@@ -708,6 +715,7 @@
         },
         "Cursor": {
             "description": "An opaque token used to represent a cursor for pagination.",
+            "maxLength": 8192,
             "type": "string"
         },
         "DiscoverRequest": {
@@ -771,6 +779,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -884,6 +893,11 @@
         "ElicitRequestURLParams": {
             "description": "The parameters for a request to elicit information from the user via a URL in the client.",
             "properties": {
+                "elicitationId": {
+                    "description": "The ID of the elicitation, which must be unique within the context of the server.\nThe client MUST treat this ID as an opaque value.",
+                    "maxLength": 256,
+                    "type": "string"
+                },
                 "message": {
                     "description": "The message to present to the user explaining why the interaction is needed.",
                     "type": "string"
@@ -896,10 +910,12 @@
                 "url": {
                     "description": "The URL that the user should navigate to.",
                     "format": "uri",
+                    "pattern": "^https?://",
                     "type": "string"
                 }
             },
             "required": [
+                "elicitationId",
                 "message",
                 "mode",
                 "url"
@@ -1063,6 +1079,7 @@
                 },
                 "name": {
                     "description": "The name of the prompt or prompt template.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "requestState": {
@@ -1183,6 +1200,7 @@
                 "src": {
                     "description": "A standard URI pointing to an icon resource. May be an HTTP/HTTPS URL or a\n`data:` URI with Base64-encoded image data.\n\nConsumers SHOULD take steps to ensure URLs serving icons are from the\nsame domain as the client/server or a trusted domain.\n\nConsumers SHOULD take appropriate precautions when consuming SVGs as they can contain\nexecutable JavaScript.",
                     "format": "uri",
+                    "pattern": "^(https?://|data:image/)",
                     "type": "string"
                 },
                 "theme": {
@@ -1207,6 +1225,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 }
             },
@@ -1255,10 +1274,12 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
@@ -1267,6 +1288,7 @@
                 },
                 "version": {
                     "description": "The version of this implementation.",
+                    "maxLength": 64,
                     "type": "string"
                 },
                 "websiteUrl": {
@@ -1651,6 +1673,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "prompts": {
@@ -1665,6 +1688,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -1740,6 +1764,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resourceTemplates": {
@@ -1754,6 +1779,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -1829,6 +1855,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resources": {
@@ -1843,6 +1870,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -1954,6 +1982,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resultType": {
@@ -1968,6 +1997,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2052,6 +2082,7 @@
                 },
                 "logger": {
                     "description": "An optional name of the logger issuing this message.",
+                    "maxLength": 256,
                     "type": "string"
                 }
             },
@@ -2160,6 +2191,7 @@
                     "items": {
                         "$ref": "#/$defs/ModelHint"
                     },
+                    "maxItems": 10,
                     "type": "array"
                 },
                 "intelligencePriority": {
@@ -2283,6 +2315,7 @@
                 },
                 "cursor": {
                     "description": "An opaque token representing the current pagination position.\nIf provided, the server should return results starting after this cursor.",
+                    "maxLength": 8192,
                     "type": "string"
                 }
             },
@@ -2298,6 +2331,7 @@
                 },
                 "nextCursor": {
                     "description": "An opaque token representing the pagination position after the last returned result.\nIf present, there may be more results available.",
+                    "maxLength": 8192,
                     "type": "string"
                 },
                 "resultType": {
@@ -2395,6 +2429,7 @@
                 },
                 "progress": {
                     "description": "The progress thus far. This should increase every time progress is made, even if the total is unknown.",
+                    "minimum": 0,
                     "type": "number"
                 },
                 "progressToken": {
@@ -2403,6 +2438,7 @@
                 },
                 "total": {
                     "description": "Total number of items to process (or total progress required), if known.",
+                    "minimum": 0,
                     "type": "number"
                 }
             },
@@ -2441,10 +2477,12 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
@@ -2466,6 +2504,7 @@
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "required": {
@@ -2524,6 +2563,7 @@
             "properties": {
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
@@ -2624,6 +2664,7 @@
                 },
                 "ttlMs": {
                     "description": "A hint from the server indicating how long (in milliseconds) the\nclient MAY cache this response before re-fetching. Semantics are\nanalogous to HTTP Cache-Control max-age.\n\n- If 0, The response SHOULD be considered immediately stale,\n  The client MAY re-fetch every time the result is needed.\n- If positive, the client SHOULD consider the result fresh for this many\n  milliseconds after receiving the response.",
+                    "maximum": 86400000,
                     "minimum": 0,
                     "type": "integer"
                 }
@@ -2747,6 +2788,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 },
                 "mimeType": {
@@ -2755,10 +2797,12 @@
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "size": {
                     "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "minimum": 0,
                     "type": "integer"
                 },
                 "title": {
@@ -2817,6 +2861,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 },
                 "mimeType": {
@@ -2825,10 +2870,12 @@
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "size": {
                     "description": "The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.\n\nThis can be used by Hosts to display file sizes and estimate context window usage.",
+                    "minimum": 0,
                     "type": "integer"
                 },
                 "title": {
@@ -2910,6 +2957,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 },
                 "mimeType": {
@@ -2918,6 +2966,7 @@
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "title": {
@@ -3046,6 +3095,7 @@
                 "uri": {
                     "description": "The URI identifying the root. This *must* start with `file://` for now.\nThis restriction may be relaxed in future versions of the protocol to allow\nother URI schemes.",
                     "format": "uri",
+                    "pattern": "^file://",
                     "type": "string"
                 }
             },
@@ -3302,6 +3352,7 @@
                     "items": {
                         "type": "string"
                     },
+                    "maxItems": 1000,
                     "type": "array"
                 },
                 "resourcesListChanged": {
@@ -3613,6 +3664,7 @@
                     "items": {
                         "$ref": "#/$defs/Icon"
                     },
+                    "maxItems": 20,
                     "type": "array"
                 },
                 "inputSchema": {
@@ -3634,6 +3686,7 @@
                 },
                 "name": {
                     "description": "Intended for programmatic or logical use, but used as a display name in past specs or fallback (if title isn't present).",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "outputSchema": {
@@ -3742,6 +3795,7 @@
                 },
                 "toolUseId": {
                     "description": "The ID of the tool use this result corresponds to.\n\nThis MUST match the ID from a previous {@link ToolUseContent}.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "type": {
@@ -3765,6 +3819,7 @@
                 },
                 "id": {
                     "description": "A unique identifier for this tool use.\n\nThis ID is used to match tool results to their corresponding tool uses.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "input": {
@@ -3774,6 +3829,7 @@
                 },
                 "name": {
                     "description": "The name of the tool to call.",
+                    "maxLength": 256,
                     "type": "string"
                 },
                 "type": {
