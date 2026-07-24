@@ -1,92 +1,77 @@
 # SEP-2448: Server Execution Telemetry
 
 - **Status**: Draft
-- **Type**: Standards Track
+- **Type**: Extensions Track
 - **Created**: 2026-03-23
 - **Author(s)**: Sankara Avula (@savula15), Evan Tahler (@evantahler), Yash Sheth (@yashsheth46) and Guru Sattanathan (@avoguru)
 - **Sponsor**: Kurtis Van Gent (@kurtisvg)
+- **Extension Identifier**: `io.modelcontextprotocol/server-execution-telemetry`
+- **Working Group**: _Pending (see [Governance and Working Group](#governance-and-working-group))_
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2448
 
 ## Abstract
 
-This SEP defines a standard MCP capability that allows servers to return OpenTelemetry spans to clients in response to service side operations. This covers `tools/call` and `resources/read`, the two MCP operations that involve opaque server side processing most relevant to cross-organization observability. Clients can then ingest these spans into their own observability backend, providing end-to-end distributed tracing across organizational boundaries without requiring a shared collector.
+This SEP defines an **optional MCP extension** that allows a server to return OpenTelemetry (OTel) spans to the requesting client, in-band, in the response to a `tools/call` or `resources/read`. Spans are carried under `_meta.otel` as standard [OTLP JSON](https://opentelemetry.io/docs/specs/otlp/) (`resourceSpans`), so a client can forward them to its own collector without any shared or federated telemetry infrastructure.
 
-This SEP defines a delivery mechanism for a client visible trace slice, a server-selected subset of trace data that the server determines is appropriate to disclose to the requesting client. It complements SEP-414 by enabling the response-side return of execution spans. Together, these SEPs enable distributed trace stitching across organizational boundaries without requiring shared collectors or federated observability infrastructure.
+The extension is defined as an **Extensions Track** proposal per [SEP-2133](./2133-extensions.md) rather than a core-protocol capability. It is **purely opt-in per request** and requires no capability handshake: a client that wants server spans sets a flag in the request `_meta`; a server that does not implement the extension ignores it and behaves exactly as it does today. This aligns with the stateless-first, per-request-capabilities model established by [SEP-2575](./2575-stateless-mcp.md).
 
-Servers advertise the **serverExecutionTelemetry** capability during initialization. Clients request span data via **\_meta.otel** in tools/call and resources/read requests, and servers return spans under the same `_meta.otel` key in responses.
+This extension is deliberately **narrow and security-first**. It does **not** replace the traditional model in which a service exports telemetry to its own collector; it addresses the specific case where that model does not apply: cross-organization MCP calls where no shared collector exists and the party debugging is the client, not the server operator. Because returned telemetry crosses a trust boundary, the extension makes the ingest contract normative: returned spans are **server-attributed and client-untrusted**, **volume-bounded**, and **MUST NOT be re-emitted under the client's own identity**.
+
+It complements [SEP-414](./414-request-meta.md), which defines the request-side propagation of the client's trace context into MCP servers; this extension defines the response-side return of the resulting server spans.
 
 ## Motivation
 
-MCP enables agents to call tools hosted by MCP servers operated by different organizations. SEP-414 enables propagation of the client's `traceparent` to MCP servers. However, there is currently no standardized mechanism for servers to return execution telemetry to clients.
+MCP enables an agent to call tools and read resources hosted by MCP servers operated by **different organizations**. SEP-414 already standardizes propagating the client's W3C `traceparent` into those servers via `_meta`. There is, however, no standard way for the server to return the resulting execution telemetry to the client, so the server side of a cross-organization call remains a black box to the caller.
 
-In cross-organization MCP scenarios, this creates a one-way observability gap:
+### Why the traditional "export to your own collector" model is not sufficient here
 
-1. Tool execution appears as a black box: the client sees a single `mcp.call_tool` span, everything the server does (auth checks, API calls, cache operations etc..) is invisible.
-2. Resource reads are equally opaque: `resources/read` can involve expensive server-side I/O, ACL checks, remote API lookups, and format conversion. When a resource read is denied or slow, the client has no visibility into why.
-3. Guardrail or runtime control decisions are not observable: when a server blocks a tool call due to policy denial or auth failure, the client has no structured visibility into which processing stage failed or why.
-4. Server-side latency breakdown cannot be stitched into client traces: clients cannot debug server-side bottlenecks or accurately attribute latency across the call boundary.
+The standard observability model, in which each service exports its own spans to its own (possibly federated) collector and traces are stitched together in a shared backend, is the correct model whenever it is feasible, and this extension does **not** try to replace it. The gap it addresses is the case where that model **cannot** apply:
 
-In traditional OpenTelemetry deployments, services export spans to shared or federated collectors. This model does not apply to many cross-organization MCP deployments:
+1. **No shared collector exists, and often cannot.** Across organizational boundaries, the client has no access to the vendor's collector, the two parties frequently use different, unfederated backends, and server-side spans may contain infrastructure details unsuitable for raw external exposure. Trace stitching in a shared backend is simply not available.
 
-- Server operators typically do not expose collector access to external clients.
-- Clients and servers may use different telemetry backends with no federation.
-- Server-side spans may contain sensitive infrastructure details unsuitable for external exposure.
+2. **MCP composition is dynamic and N-way at runtime.** An agent assembles tools from many independently operated servers, chosen per task. Federated collection would require bilateral, pre-provisioned observability integration for every client/server pair (`O(clients × servers)` setup), which is antithetical to MCP's zero-configuration, dynamic composition. In-band passback rides the request the agent is already making: no additional infrastructure, no per-vendor integration.
 
-This observability gap is particularly relevant for:
+3. **The telemetry consumer is frequently not the server operator.** In agent deployments, the party debugging a slow or failing tool call is the agent/application developer or the end user, someone who has no account on the vendor's observability backend and never will. "Expose a collector" presumes a relationship that does not exist in the ad-hoc composition model.
 
-- Enterprise agents calling vendor-operated MCP servers which has become the de facto integration pattern.
-- Multi-tenant MCP platforms serving customers with independent observability systems
-- Compliance sensitive deployments requiring structured visibility into tool execution and control decisions
+4. **MCP already standardized the request half.** SEP-414 blessed propagating the client's trace context _into_ servers. This extension is the response-side symmetry of a mechanism the protocol already has; it closes a loop MCP deliberately opened, rather than importing a new concern.
 
-This SEP defines an explicit, opt-in mechanism for returning a minimal trace slice directly in MCP responses, without requiring shared infrastructure. Together with SEP-414, it enables a full-circle telemetry story for MCP.
+### No existing standard fills this gap
+
+Response-side and propagation standards in the broader ecosystem carry **identifiers and flags, not span data**: [HTTP `Server-Timing`](https://www.w3.org/TR/server-timing/) conveys named metric strings (and deliberately omits start times), and W3C Trace Context, AWS X-Ray (`X-Amzn-Trace-Id`), gRPC (`grpc-trace-bin`), and Sentry propagate trace/span IDs only. IDs are of little use to a cross-organization client precisely because it **cannot query the server's backend** to resolve them. The one widely deployed mechanism that returns full structured spans in a response body (GraphQL/Apollo Federation's [`extensions.ftv1`](https://www.apollographql.com/docs/federation/metrics), which returns a subgraph's trace as protobuf inside the response `extensions` map) is an established precedent for **in-band telemetry return**, but it is intra-organization (subgraph → gateway, one operator, a trusted control plane).
+
+The novel contribution of this extension is therefore not the in-band delivery pattern (which Apollo demonstrates) nor the wire format (which is standard OTLP JSON), but the **cross-organization trust boundary**. That is why the bulk of this specification is the ingest and security contract rather than the transport.
+
+### Where this is valuable
+
+- Enterprise agents calling vendor-operated MCP servers, which has become a de facto integration pattern.
+- Multi-tenant MCP platforms serving customers who run independent observability systems.
+- Compliance-sensitive deployments requiring structured visibility into tool execution and control decisions.
 
 ## Specification
 
-### Protocol Key and Terminology
+This section uses [BCP 14](https://www.rfc-editor.org/info/bcp14) ([RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119), [RFC 8174](https://datatracker.ietf.org/doc/html/rfc8174)) keywords.
 
-The capability is advertised as `serverExecutionTelemetry` in the server's capabilities object. Telemetry request and response data is carried under `_meta.otel` in `tools/call` and `resources/read` messages.
+### Extension Identifier and Terminology
 
-This document uses **telemetry passback** (and **span passback** when referring specifically to trace spans) to refer to the mechanism defined by the `serverExecutionTelemetry` capability: the in-band return of OpenTelemetry data from server to client via `_meta.otel`.
+The extension identifier is `io.modelcontextprotocol/server-execution-telemetry`. Telemetry request and response data is carried under the `_meta.otel` key in `tools/call` and `resources/read` messages.
 
-### Server Capability Advertisement
+This document uses **telemetry passback** (and **span passback** when referring specifically to trace spans) for the mechanism defined here: the in-band return of OpenTelemetry data from server to client via `_meta.otel`.
 
-In the initialize response, an MCP server that supports span passback **MUST** advertise `serverExecutionTelemetry`:
+> **Note on the `_meta` key name.** Following the precedent set by SEP-414 (which documents `traceparent`/`tracestate`/`baggage` as an intentional exception to `_meta` DNS-prefixing for W3C Trace Context and OpenTelemetry ecosystem compatibility), this extension uses the unprefixed `otel` key for continuity with that ecosystem and with the existing OTel MCP semantic conventions. Whether extension-introduced `_meta` keys should be prefixed with the extension identifier is called out in [Open Questions](#open-questions-and-future-work).
 
-```json
-{
-  "capabilities": {
-    "serverExecutionTelemetry": {
-      "version": "2026-03-01",
-      "signals": {
-        "traces": { "supported": true }
-      }
-    }
-  }
-}
-```
+### Negotiation (per-request, no handshake)
 
-| Field                      | Type    | Description                                                                 |
-| -------------------------- | ------- | --------------------------------------------------------------------------- |
-| `version`                  | string  | Schema version (date based)                                                 |
-| `signals.traces.supported` | boolean | Whether span passback is available (metrics may be supported too in future) |
+Consistent with the stateless-first model of [SEP-2575](./2575-stateless-mcp.md), this extension requires **no capability handshake and no session state**:
+
+- A client that wants span passback **MAY** set the opt-in flag under `_meta.otel` on any individual `tools/call` or `resources/read` request.
+- A server that implements this extension **SHOULD** return spans as specified below. A server that does not implement it **MUST** ignore the unknown `_meta.otel` key and process the request normally (this follows directly from existing `_meta` handling; unknown keys are always ignored).
+- A client **MUST NOT** assume passback is available, and **MUST** treat its absence in a response as normal.
+
+Because the opt-in and its absence are both safe and self-contained, no advertised capability is required for correctness. Servers **MAY** additionally advertise support for discoverability purposes via the `extensions` map returned by `server/discover` (per SEP-2133 negotiation), but this advertisement is **advisory and non-binding** and clients **MUST NOT** depend on it.
 
 ### Client Request
 
-Clients **MAY** explicitly request span passback by setting `_meta.otel` on a `tools/call` or `resources/read` request
-
-```json
-{
-  "_meta": {
-    "traceparent": "00-abcdef1234567890abcdef1234567890-1234567890abcdef-01",
-    "otel": {
-      "traces": {
-        "request": true,
-        "detailed": false
-      }
-    }
-  }
-}
-```
+A client opts in by setting `_meta.otel` on the request:
 
 ```json
 {
@@ -111,160 +96,185 @@ Clients **MAY** explicitly request span passback by setting `_meta.otel` on a `t
 | `otel.traces.request`  | boolean | `true` to opt into receiving spans in the response             |
 | `otel.traces.detailed` | boolean | `false` = root + direct children only; `true` = full span tree |
 
-The traceparent field ([W3C Trace Context](https://www.w3.org/TR/trace-context/)) is passed alongside but outside the otel key. Trace context propagation via traceparent in MCP requests follows the mechanism defined in SEP-414.
+The `traceparent` field ([W3C Trace Context](https://www.w3.org/TR/trace-context/)) is passed alongside but outside the `otel` key. Trace context propagation via `traceparent` in MCP requests follows the mechanism defined in SEP-414.
 
-**Interaction with `traceparent` trace-flags.** `otel.traces.request` is independent of the W3C Trace Context sampled bit. When `otel.traces.request` is `true`, servers SHOULD return passback spans regardless of the `traceparent` trace-flags value, subject to server policy (e.g. sampling, throttling, or capability restrictions). The trace-flags bit conveys the client's upstream sampling decision for its own trace pipeline; it does not override an explicit passback request. When `otel.traces.request` is `false` or absent, servers MAY use the trace-flags bit as one signal among others when deciding whether to record server-side spans.
+**Interaction with `traceparent` trace-flags.** `otel.traces.request` is independent of the W3C Trace Context sampled bit. When `otel.traces.request` is `true`, servers **SHOULD** return passback spans regardless of the `traceparent` trace-flags value, subject to server policy (e.g. sampling, throttling, or capability restrictions). The trace-flags bit conveys the client's upstream sampling decision for its own trace pipeline; it does not override an explicit passback request. When `otel.traces.request` is `false` or absent, servers **MAY** use the trace-flags bit as one signal among others when deciding whether to record server-side spans.
 
 ### Server Response
 
-When span passback is requested, servers **MUST** return spans under `_meta.otel` in the JSON-RPC response.
+When span passback is requested and honored, servers **MUST** return spans under `_meta.otel` in the JSON-RPC response, encoded as OTLP JSON (see [OTLP JSON Encoding](#otlp-json-encoding)):
 
 ```json
 {
- "_meta": {
-   "otel": {
-     "traces": {
-       "resourceSpans": [
-         {
-           "resource": {
-             "attributes": [
-               { "key": "service.name", "value": { "stringValue": "mcp-weather-server" } }
-             ]
-           },
-           "scopeSpans": [
-             {
-               "scope": { "name": "server-execution-telemetry" },
-               "spans": [ ... ]
-             }
-           ]
-         }
-       ]
-     }
-   }
- }
-}
-```
-
-```json
-{
- "result": {
-   "contents": [
-     {
-       "uri": "file:///data/report.csv",
-       "mimeType": "text/csv",
-       "text": "id,name,value\n1,alpha,100\n..."
-     }
-   ],
-   "_meta": {
-     "otel": {
-       "traces": {
-         "resourceSpans": [
-           {
-             "resource": {
-               "attributes": [
-                 { "key": "service.name", "value": { "stringValue": "mcp-data-server" } }
-               ]
-             },
-             "scopeSpans": [
-               {
-                 "scope": { "name": "server-execution-telemetry" },
-                 "spans": [ ... ]
-               }
-             ]
-           }
-         ]
-       }
-     }
-   }
- }
+  "result": {
+    "contents": [
+      {
+        "uri": "file:///data/report.csv",
+        "mimeType": "text/csv",
+        "text": "id,name,value\n1,alpha,100\n..."
+      }
+    ],
+    "_meta": {
+      "otel": {
+        "traces": {
+          "resourceSpans": [
+            {
+              "resource": {
+                "attributes": [
+                  {
+                    "key": "service.name",
+                    "value": { "stringValue": "mcp-data-server" }
+                  }
+                ]
+              },
+              "scopeSpans": [
+                {
+                  "scope": { "name": "server-execution-telemetry" },
+                  "spans": ["..."]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
 }
 ```
 
 | Field                  | Type  | Description                                                                                                                        |
 | ---------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `traces.resourceSpans` | array | Verbatim [OTLP JSON](https://opentelemetry.io/docs/specs/otlp/) `resourceSpans`; the client can POST this directly to `/v1/traces` |
+| `traces.resourceSpans` | array | Standard [OTLP JSON](https://opentelemetry.io/docs/specs/otlp/) `resourceSpans`; the client can POST this directly to `/v1/traces` |
+
+The `resourceSpans` value **MUST** include a `resource` identifying the producing server (see [Provenance and Client Ingest Contract](#provenance-and-client-ingest-contract)).
+
+### OTLP JSON Encoding
+
+Returned spans **MUST** be encoded as OTLP JSON, the proto3 JSON mapping of [`opentelemetry-proto`](https://github.com/open-telemetry/opentelemetry-proto), with `resourceSpans` at the top level. This is the same payload an [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) receiver accepts at `/v1/traces` with `Content-Type: application/json`. Two conformance points implementers must observe, per the OTLP specification:
+
+- `traceId`, `spanId`, and `parentSpanId` **MUST** be case-insensitive **hex-encoded** strings (not base64, which stock proto3 JSON would use for `bytes` fields).
+- Enum fields (e.g. span `kind`, `status.code`) **MUST** be encoded as integers.
+
+This encoding is directly producible from, and ingestible by, existing OpenTelemetry SDKs:
+
+- **Producing (server side).** Go exposes `ptrace.JSONMarshaler`; JavaScript exposes `JsonTraceSerializer` (`@opentelemetry/otlp-transformer`); Python exposes the OTLP protobuf encoder (`encode_spans`) and, as of the `opentelemetry-exporter-otlp-json-common` package (released mid-2026), a public helper that emits spec-compliant hex-ID OTLP JSON directly. Implementers should confirm the exact API against the SDK version they pin.
+- **Ingesting (client side).** The `resourceSpans` payload can be POSTed directly to an OTLP/HTTP JSON receiver at `/v1/traces`. Clients do not need to reconstruct live SDK span objects (SDK spans are immutable by design); forwarding the OTLP payload to a collector is the intended path.
+
+Implementers should be aware that (a) only the server's sampled spans are returned, (b) absolute timestamps reflect the server's clock (potential skew), and (c) a downstream collector will not add a `service.name` the server omitted; hence the requirement that the server set its own `resource` identity.
 
 ### Span Ownership Model
 
-This SEP establishes the following ownership model for spans in a passback exchange:
+This extension establishes the following ownership model for spans in a passback exchange:
 
-- The MCP client creates a span for the tool call or resources read and passes its context via traceparent to the server.
+- The MCP client creates a span for the tool call or resource read and passes its context via `traceparent` to the server.
 - The MCP server creates a server span parented to that client span.
 - The server returns the server span (and optional child spans) via `_meta.otel`.
-- The client ingests these spans without modifying them.
+- The client ingests these spans **without modifying them** (see the ingest contract below).
 
-This ensures a single client → server relationship in the distributed trace, no duplicate or phantom spans are introduced.
+This ensures a single client → server relationship in the distributed trace; no duplicate or phantom spans are introduced.
 
-**Scope note:** This specification addresses single-hop telemetry passback between an MCP client and its directly connected MCP server. Multi-hop chain propagation, where an MCP server acts as a client to another MCP server is anticipated but deferred to a future SEP. To preserve trace continuity in multi-hop scenarios, servers that call external MCP tools **SHOULD** forward
-\_meta.traceparent even if they do not support telemetry passback themselves.
+**Scope note.** This specification addresses single-hop telemetry passback between an MCP client and its directly connected MCP server. Multi-hop chain propagation, where an MCP server acts as a client to another MCP server, is anticipated but deferred to a future revision. To preserve trace continuity in multi-hop scenarios, servers that call external MCP tools **SHOULD** forward `_meta.traceparent` even if they do not support telemetry passback themselves.
 
-### Public Span Model - Best Practices
+### Telemetry Volume Bounds
+
+Because a returned payload must be forwarded by the client to its own collector, an unbounded payload is a denial-of-service and cost vector against the client. This extension therefore makes volume bounding normative rather than deferring it:
+
+- The `detailed: false` default (root span plus direct children only) is the primary guard and **SHOULD** be the server's default response shape.
+- Servers **SHOULD** apply the OpenTelemetry span limits as a baseline ceiling on returned spans: by default at most 128 attributes, 128 events, and 128 links per span (see [OTel span limits](https://opentelemetry.io/docs/specs/otel/trace/sdk/)). Because OTel leaves **attribute value length unbounded by default**, servers **SHOULD** additionally cap attribute value lengths and the total number of returned spans.
+- Clients **MUST** bound what they will ingest from a single response (maximum span count and total byte size) and **MUST** safely discard telemetry that exceeds their configured limits, without failing the underlying `tools/call`/`resources/read` result.
+
+Concrete recommended numeric caps, truncation ordering, and a server signal indicating telemetry was truncated are deferred to [Open Questions](#open-questions-and-future-work); the normative requirement here is that both sides **MUST** enforce _some_ bound.
+
+### Provenance and Client Ingest Contract
+
+Returned telemetry crosses a trust boundary and describes work the client did not itself observe. OpenTelemetry does not solve provenance for this case: telemetry origin (`service.name` and the rest of the OTLP `Resource`) is **self-asserted and freely rewritable** by any node in a pipeline, there is **no standardized signing or attestation** of span origin, and OTLP itself defines **no submission authentication** ("who may report" is gated only at the collector/deployment layer). The protocol must therefore state the contract that OpenTelemetry will not enforce.
+
+- Returned spans are **server-attributed and client-untrusted**. The server's `resource` identity (e.g. `service.name`) **MUST** be present in the payload and **MUST** be preserved by the client.
+- A client **MUST NOT** re-emit returned spans under its own `Resource`/`service.name`. Doing so would launder the server's claims as the client's own observations and could bypass restrictions the server's own telemetry pipeline would enforce ("reporting on behalf of the client"). When forwarding, the client **MUST** carry the server's origin identity with the spans.
+- To support correlation without double-counting, a client that both records its own client span and ingests passback spans **MUST** be able to join them via stable identifiers (the client's `traceId`/`spanId`, the server's `traceId`/`spanId`, and the tool-call/request identifier). If a server both exports spans to its own backend and returns them via passback, these identifiers let observers link the two observations rather than count them as two separate executions.
+- Clients **SHOULD** validate, sanitize, and apply appropriate storage or forwarding controls before exporting returned telemetry to downstream systems, exactly as they would for any other externally supplied, untrusted input.
+
+### Public Span Model: Best Practices
 
 The server determines which spans to return. The following best practices guide server implementers in constructing a useful public span set:
 
-1. The response SHOULD contain a root server span representing the tool call or resources read, parented to the client's traceparent. This gives the client a single entry point to anchor the returned spans in its trace.
-2. Servers SHOULD surface spans for major execution stages such as authentication, policy evaluation, and tool handler invocation as direct children of the root span. These provide a top-level breakdown of where time was spent and what decisions were made, without requiring the client to understand internal implementation details.
-3. Span names and attributes SHOULD use generic labels rather than exposing internal service names, credentials, policy definitions, or business payloads. Servers SHOULD sanitize spans before returning them.
-4. When the tool is not executed (due to policy denial, authentication failure, or other pre-execution checks), servers MAY still return spans for the processing stages that did execute. Servers MAY include `_meta` span data in JSON-RPC error responses. Span status MAY be set independently of JSON-RPC error semantics.
-5. Span names and attributes SHOULD align with the [OpenTelemetry MCP semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/) where applicable, so passback spans are consistent across server implementations and ingestible by clients without per-vendor mapping.
+1. The response **SHOULD** contain a root server span representing the tool call or resource read, parented to the client's `traceparent`. This gives the client a single entry point to anchor the returned spans in its trace.
+2. Servers **SHOULD** surface spans for major execution stages such as authentication, policy evaluation, and tool handler invocation as direct children of the root span, giving a top-level breakdown of where time was spent and what decisions were made without exposing internal implementation details.
+3. Span names and attributes **SHOULD** use generic labels rather than exposing internal service names, credentials, policy definitions, or business payloads. Servers **SHOULD** sanitize spans before returning them.
+4. When the tool is not executed (due to policy denial, authentication failure, or other pre-execution checks), servers **MAY** still return spans for the processing stages that did execute. Servers **MAY** include `_meta` span data in JSON-RPC error responses. Span status **MAY** be set independently of JSON-RPC error semantics.
+5. Span names and attributes **SHOULD** align with the [OpenTelemetry MCP semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md) where applicable (see [Semantic Convention Alignment](#semantic-convention-alignment)), so passback spans are consistent across server implementations and ingestible by clients without per-vendor mapping.
 
 ## Rationale
 
-### Design Decisions
+### Why an extension rather than a core capability
 
-- **Per-layer opt-in:** The server advertises support, and the client explicitly requests spans for each call. This ensures neither party is required to participate in telemetry exchange by default.
-- **Standard OTLP representation:** Returned spans use unmodified OTLP JSON (`resourceSpans`) and are directly POSTable to any `/v1/traces` endpoint. No custom serialization or proprietary format is introduced.
+Per the extensions framework ([SEP-2133](./2133-extensions.md)), the recommended path for optional or experimental behavior is an extension, not a core-protocol addition. Defining this as an **Extensions Track** proposal lets the feature incubate and evolve on its own cadence based on real-world implementation feedback, without adding surface area or complexity to the core protocol. This is exactly the reasoning [SEP-2663](./2663-tasks-extension.md) used to move Tasks out of core and into `io.modelcontextprotocol/tasks`. If the extension stabilizes and achieves broad adoption, promotion to the core protocol remains an explicit later step.
 
-**Why Not HTTP Server-Timing?**
+### Standard OTLP representation
 
-Mechanisms such as [HTTP Server-Timing](https://www.w3.org/TR/server-timing) provide trace identifiers but do not provide span data. They still require access to the server's telemetry backend to retrieve actual spans, which is precisely the access that cross-organization MCP deployments lack. This SEP returns span data directly in the response, eliminating the need for shared backend access.
+Returned spans use unmodified OTLP JSON (`resourceSpans`), directly POSTable to any `/v1/traces` endpoint. No custom serialization or proprietary format is introduced. See [OTLP JSON Encoding](#otlp-json-encoding) for the concrete SDK production/ingestion paths, which answer how an implementation generates this from existing spans and forwards it without bespoke code.
 
-**How is this related to SEP-414?**
+### Why in-band, and why not `Server-Timing` or a response trace header
 
-SEP-414 handles the request side of distributed tracing in MCP whereas this SEP handles the response side. Together, SEP-414 and this SEP enable complete bidirectional distributed tracing across MCP without requiring shared collectors or shared observability infrastructure.
+Mechanisms such as [HTTP `Server-Timing`](https://www.w3.org/TR/server-timing) provide metric strings, and W3C Trace Context / X-Ray / gRPC / Sentry provide trace identifiers, but none provide span data, and resolving an identifier still requires access to the server's telemetry backend, which is precisely the access cross-organization MCP deployments lack. (Note: contrary to a common misconception, there is **no** standardized `traceresponse` response header in any published W3C specification; the current W3C direction is a `Server-Timing: trace` metric that likewise carries only IDs and flags.) Returning the span data directly in the response eliminates the need for shared backend access. The in-band pattern itself is established prior art via GraphQL/Apollo `extensions.ftv1`; this extension applies it across a trust boundary Apollo does not address, which is why the security contract is normative.
+
+### Relationship to SEP-414
+
+[SEP-414](./414-request-meta.md) handles the request side of distributed tracing in MCP (propagating the client's `traceparent` into the server via `_meta`); this extension handles the response side (returning the resulting server spans). Together they enable bidirectional distributed tracing across MCP without shared collectors or federated observability infrastructure.
+
+### Semantic Convention Alignment
+
+The OpenTelemetry MCP semantic conventions have moved to the [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/mcp.md) repository and are currently at **Development** (experimental) stability. Implementers should align passback spans with the vocabulary defined there, noting that MCP-specific attributes are limited to `mcp.method.name`, `mcp.protocol.version`, `mcp.session.id`, and `mcp.resource.uri`, while related concepts reuse existing conventions (e.g. `gen_ai.tool.name` for the tool name, `jsonrpc.request.id` for the request id). OpenTelemetry defines **no convention for exchanging or "passing back" spans between parties** (cross-party linkage there is by context propagation only), so alignment here means reusing the attribute vocabulary and span shape, not claiming conformance to a span-exchange convention. Enumerating which names/attributes are REQUIRED vs. RECOMMENDED for passback spans is deferred to [Open Questions](#open-questions-and-future-work).
+
+## Governance and Working Group
+
+As an Extensions Track proposal, this SEP must be associated with a Working Group or Interest Group responsible for the extension, and must have at least one reference implementation in an official SDK prior to formal review (per SEP-2133). This SEP proposes to incubate the extension under an observability-focused Interest Group; the authors are actively seeking association with an existing Working Group or, failing that, will propose forming one. Resolving this association is a prerequisite for advancing the SEP and is tracked as an open action below.
 
 ## Backward Compatibility
 
-This SEP introduces no backward-incompatible changes. It adds a new optional capability that existing MCP clients and servers can safely ignore if unrecognized.
+This extension introduces no backward-incompatible changes. It is purely additive:
 
-- Servers that do not support telemetry passback omit `serverExecutionTelemetry` from their capabilities, and clients therefore do not request passback.
-- Clients that do not support telemetry passback omit `otel` from request `_meta`, and servers therefore continue normal behavior.
-- The change is purely additive and does not alter existing message semantics.
-
-## Open Questions and Future Work
-
-The following items are intentionally out of scope for this SEP and are anticipated to be addressed in follow-up specifications. They are documented here so implementers understand the boundaries of what this SEP defines versus what remains to be standardized.
-
-- **Payload size guidance.** Recommended caps for span payload size, truncation behavior, drop-priority order, and a corresponding server signal indicating telemetry was truncated. This SEP intentionally leaves size limits transport and deployment dependent. The `detailed: false` default is the primary guard against oversized payloads today.
-
-- **Continuous / incremental passback.** This SEP covers single-response passback on `tools/call` and `resources/read`. A notification-style channel for delivering spans during long-running or streamed operations (e.g. progress notifications, streamable HTTP) is a separate design and MAY be addressed in a follow-up SEP.
-
-- **Server-side telemetry policy signaling.** A structured response signal for servers to communicate the applied policy back to clients, including:
-  - **Throttling.** A server field indicating that spans were withheld or rate-limited, with a reason and optional retry hint, so clients can reason about gaps in returned telemetry.
-
-  - **Sampling composition.** Server-side sampling semantics, how a server's sampling ratio composes with `traceparent` trace flags and explicit `otel.traces.request: true`, and what the server reports back when a given call was not sampled.
-
-  - **Preference reconciliation.** A way for the server to communicate the delta between what the client requested and what was returned (sampled, truncated, redacted, etc.) so the client can correctly interpret the payload.
-
-- **Semantic convention alignment.** Enumerating which [OpenTelemetry MCP semantic convention](https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/) span names and attributes are REQUIRED vs. RECOMMENDED for passback spans, beyond the general alignment guidance in the "Public Span Model - Best Practices" section.
-
-## Reference Implementation
-
-A reference implementation is available in Arcade MCP in `feat/serverExecutionTelemetry` ([PR #797](https://github.com/ArcadeAI/arcade-mcp/pull/797)).
-
-Explainer video: TBD
+- Servers that do not implement the extension omit `_meta.otel` from responses; clients therefore receive no passback and behave normally.
+- Clients that do not implement the extension omit `otel` from request `_meta`; servers therefore continue normal behavior.
+- Unknown `_meta` keys are ignored by both parties, so no existing message semantics change.
 
 ## Security Implications
 
-Telemetry passback crosses organizational trust boundaries and therefore **MUST** be treated as potentially sensitive and untrusted.
+Telemetry passback crosses organizational trust boundaries and therefore **MUST** be treated as potentially sensitive and untrusted on both sides. The normative controls are specified in [Telemetry Volume Bounds](#telemetry-volume-bounds) and [Provenance and Client Ingest Contract](#provenance-and-client-ingest-contract); this section summarizes the threat model.
 
-**MCP servers**
+**Threats.**
 
-- MUST NOT include secrets, credentials, tokens, or other sensitive data in returned telemetry.
-- SHOULD apply the same data handling and redaction standards used for any other externally visible telemetry.
+- **Oversized / malicious payload (server → client).** A server could return a very large or high-cardinality span set, which the client must then forward to its own collector: a denial-of-service and cost amplification against the client, potentially doubled because the client re-exports it. Mitigated by the mandatory volume bounds (both parties enforce a limit; client safely discards over-limit telemetry).
+- **Provenance laundering / reporting bypass.** If a client re-emits server spans under its own `Resource` identity, the server's claims are attributed to the client, and telemetry that the server's own pipeline might have blocked or rate-limited can enter the client's pipeline "on behalf of the client." Mitigated by requiring the server's origin identity to be present and preserved, and prohibiting re-emission under the client's identity. This control is necessary because OpenTelemetry does not enforce origin authenticity (origin is self-asserted, freely rewritable, and unsigned).
+- **Sensitive data disclosure (server side).** Server spans may contain infrastructure details, credentials, or business payloads. Mitigated by the sanitization best practices and the requirement below.
 
-**MCP clients**
+**MCP servers.**
 
-- MUST validate trace lineage against the originating request context, including the parent trace ID where applicable.
-- SHOULD treat returned spans as untrusted external telemetry.
-- SHOULD validate, sanitize, and apply appropriate storage or forwarding controls before exporting returned telemetry to downstream systems.
+- **MUST NOT** include secrets, credentials, tokens, or other sensitive data in returned telemetry.
+- **SHOULD** apply the same data-handling and redaction standards used for any other externally visible telemetry.
+- **SHOULD** bound the volume of returned telemetry as specified above.
+
+**MCP clients.**
+
+- **MUST** treat returned spans as untrusted external telemetry.
+- **MUST** bound the volume of telemetry ingested from a single response.
+- **MUST** preserve server origin identity and **MUST NOT** re-emit returned spans under the client's own identity.
+- **MUST** validate trace lineage against the originating request context, including the parent trace ID where applicable.
+- **SHOULD** validate, sanitize, and apply appropriate storage or forwarding controls before exporting returned telemetry to downstream systems.
+
+## Open Questions and Future Work
+
+The following items are intentionally out of scope for this SEP and are anticipated to be addressed in follow-up work or during incubation.
+
+- **Working Group / Interest Group association** and finalization of the extension identifier and its `_meta` key namespacing (unprefixed `otel` vs. an extension-prefixed key). Association is a prerequisite for formal review (see [Governance and Working Group](#governance-and-working-group)).
+- **Concrete payload-size guidance.** Recommended numeric caps, truncation behavior, drop-priority order, and a server signal indicating telemetry was truncated. This SEP mandates that a bound exist but leaves specific limits transport- and deployment-dependent.
+- **Continuous / incremental passback.** A notification-style channel for delivering spans during long-running or streamed operations (e.g. progress notifications, streamable HTTP) is a separate design and is deferred. This SEP covers single-response passback on `tools/call` and `resources/read`.
+- **Server-side telemetry policy signaling.** A structured response signal for a server to communicate applied policy back to the client, including: **throttling** (spans withheld/rate-limited, with reason and optional retry hint); **sampling composition** (how a server's sampling ratio composes with `traceparent` trace-flags and explicit `otel.traces.request: true`, and what is reported when a call was not sampled); and **preference reconciliation** (communicating the delta between what the client requested and what was returned: sampled, truncated, redacted).
+- **Broader method coverage.** The `_meta.otel` mechanism is not method-specific; extending passback beyond `tools/call` and `resources/read` is additive and can follow implementation feedback.
+- **Semantic convention alignment.** Enumerating which OpenTelemetry MCP semantic-convention span names and attributes are REQUIRED vs. RECOMMENDED for passback spans, beyond the general alignment guidance above.
+
+## Reference Implementation
+
+A reference implementation is available in Arcade MCP in `feat/serverExecutionTelemetry` ([PR #797](https://github.com/ArcadeAI/arcade-mcp/pull/797)). The OTLP JSON production path is further supported by the official OpenTelemetry `opentelemetry-exporter-otlp-json-common` package.
+
+Explainer video: TBD
