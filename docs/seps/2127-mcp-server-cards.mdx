@@ -80,7 +80,7 @@ We can develop and iterate on MCP Server Cards independently from AI Catalog, as
 
 MCP Server Cards describe _remote_ MCP connectivity only. The MCP Registry's [`server.json`](https://github.com/modelcontextprotocol/registry/blob/main/docs/reference/server-json/generic-server-json.md) separately describes registry entries, including locally installable packages and their runtime configuration. The Registry owns that schema; the Server Card extension does not define a `Server` superset or package-installation types.
 
-Where the formats cover the same concepts, such as identity, documentation, and remote endpoints, they use compatible metadata where practical. A Registry entry can reference or embed a card's remote information, while vendors that need to attach installation hints directly to a card can use namespaced `_meta`.
+Where the formats cover the same concepts, such as identity, documentation, and remote endpoints, they use compatible metadata where practical. A Registry entry can reference or embed a card's remote information.
 
 ## Specification
 
