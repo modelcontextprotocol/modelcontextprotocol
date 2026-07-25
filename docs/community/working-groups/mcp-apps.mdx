@@ -1,0 +1,183 @@
+---
+title: MCP Apps Charter
+description: Charter for the MCP Apps Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The MCP Apps Working Group defines how MCP servers deliver interactive user
+interfaces to hosts. The group emerged from the convergence of MCP-UI and the
+OpenAI Apps SDK into a single open standard via
+[SEP-1865](/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp)
+(Extensions Track, Final), which introduces predeclared UI resources (the
+`ui://` URI scheme), tool-to-UI association through metadata, and
+bi-directional host/UI communication over MCP's JSON-RPC base protocol. The WG
+produces specification extensions, SDKs, reference implementations, and host
+guidance because interactive UI touches the protocol spec, SDK surface, host
+security model, and client rendering behavior across the ecosystem (Claude,
+ChatGPT, VS Code, Goose, Postman, and others).
+
+## Scope
+
+### In Scope
+
+- **Specification Work**: The MCP Apps Extension
+  ([modelcontextprotocol/ext-apps](https://github.com/modelcontextprotocol/ext-apps))
+  and related SEPs, including UI resource declaration, tool metadata, lifecycle
+  and messaging (`ui/*` methods and notifications), and content-type profiles
+  (initially `text/html;profile=mcp-app`) under the
+  `io.modelcontextprotocol/ui` namespace.
+- **Future Content Types & Rendering Targets**: Non-HTML view mimetypes,
+  container-agnostic rendering, and declarative or generative UI directions,
+  including A2UI interoperability.
+- **SDKs & Reference Implementations**: The MCP Apps SDK
+  (`@modelcontextprotocol/ext-apps`), example servers, the reference host, and
+  host integration references demonstrating secure rendering and
+  bi-directional communication.
+- **Security Model**: Sandboxing, origin isolation, CSP guidance, auditability
+  of UI-initiated actions, and threat-model documentation for host
+  implementers.
+- **Conformance**: Host compatibility tests, an official MCP App validator, and
+  the definition of what "spec-conformant" means for both apps and hosts.
+- **Cross-Cutting Concerns**: Coordination with the Registry WG (app
+  discoverability and metadata), Agents WG (UI in agentic loops), Security IG
+  (sandboxing and UI-initiated tool calls), SDK WG and SDK maintainers
+  (per-language support), and external projects (A2UI, AG-UI, and community
+  frameworks).
+- **Documentation**: Specification sections and guidance for app authors and
+  host implementers.
+
+### Out of Scope
+
+- **Host-specific design systems**: Hosts control final look-and-feel. The WG
+  standardizes the contract, not visual design.
+- **Client implementation mandates**: We document rendering and security
+  patterns but cannot require specific host behavior beyond spec conformance.
+- **General agent orchestration**: Agent loops and sub-agent coordination
+  belong to the Agents WG. This WG covers only the UI surface.
+- **Core protocol changes**: Changes to base MCP semantics are proposed through
+  the [SEP process](/community/sep-guidelines) and owned by the relevant group
+  or Core Maintainers. This WG owns the Apps extension, not the base protocol.
+
+### Related Groups
+
+- **Agents WG**: interactive UI within agentic flows and task lifecycles.
+- **[Registry WG](/community/working-groups/registry)**: app metadata,
+  discovery, and distribution.
+- **[Security IG](/community/interest-groups/security)**: sandboxing model and
+  review of UI-initiated actions.
+- **[SDK WG](/community/working-groups/sdk)**: per-language MCP Apps support
+  and SDK consistency.
+
+## Leadership
+
+| Role | Name        | Organization | GitHub                               | Term    |
+| ---- | ----------- | ------------ | ------------------------------------ | ------- |
+| Lead | Ido Salomon | MCP-UI       | [@idosal](https://github.com/idosal) | Initial |
+| Lead | Liad Yosef  | MCP-UI / Ora | [@liady](https://github.com/liady)   | Initial |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name               | Organization               | GitHub                                                     | Discord | Level       |
+| ------------------ | -------------------------- | ---------------------------------------------------------- | ------- | ----------- |
+| Ido Salomon        | MCP-UI                     | [@idosal](https://github.com/idosal)                       |         | Lead        |
+| Liad Yosef         | MCP-UI / Ora               | [@liady](https://github.com/liady)                         |         | Lead        |
+| Olivier Chafik     | Anthropic / MCP Maintainer | [@ochafik](https://github.com/ochafik)                     |         | WG Member   |
+| Jonathan Hefner    | MCP Maintainer             | [@jonathanhefner](https://github.com/jonathanhefner)       |         | WG Member   |
+| Anton Pidkuiko     | MCP Maintainer             | [@antonpk1](https://github.com/antonpk1)                   |         | WG Member   |
+| Nick Cooper        | OpenAI                     | [@nickcoai](https://github.com/nickcoai)                   |         | WG Member   |
+| Max Stoiber        | OpenAI                     | [@mstoiber-oai](https://github.com/mstoiber-oai)           |         | Participant |
+| Dominic Farolino   | Google / Chromium          | [@domfarolino](https://github.com/domfarolino)             |         | Participant |
+| Cameron Yick       | Datadog                    | [@hydrosquall](https://github.com/hydrosquall)             |         | Participant |
+| Frédéric Barthelet | Alpic                      | [@fredericbarthelet](https://github.com/fredericbarthelet) |         | Participant |
+| Ola Hungerford     | Nordstrom                  | [@olaservo](https://github.com/olaservo)                   |         | Participant |
+| Yann Jouanin       |                            | [@yannj-fr](https://github.com/yannj-fr)                   |         | Participant |
+
+## Operations
+
+| Meeting         | Frequency                        | Duration | Purpose                                                                  |
+| --------------- | -------------------------------- | -------- | ------------------------------------------------------------------------ |
+| Working Session | Tri-weekly (Wednesday, 08:00 PT) | 60 min   | Spec review, SDK coordination, host implementation feedback; open to all |
+| Office Hours    | Monthly (planned)                | 30 min   | Open Q&A for app authors, host implementers, and newcomers               |
+
+Meetings are published at
+[meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io) under the
+`#mcp-apps-wg` tag. Agendas and notes are maintained as a public rolling
+document, the
+[MCP Apps Workgroup Agenda](https://docs.google.com/document/d/103S6IjN9D80ntbPIcK3mP_ZWdeFom2Mq8qpkpIsXRVI/edit),
+and are posted per the MCP meeting policy. The group has met since
+2025-12-17.
+
+Discord: `#mcp-apps-wg`
+
+## Resources
+
+- Extension specification & SDK:
+  [modelcontextprotocol/ext-apps](https://github.com/modelcontextprotocol/ext-apps)
+  (npm: `@modelcontextprotocol/ext-apps`)
+- SEP: [SEP-1865](/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp)
+- Ecosystem docs: [MCP Apps overview](/extensions/apps/overview) and
+  [Build an MCP App](/extensions/apps/build)
+- Documentation & API reference:
+  [apps.extensions.modelcontextprotocol.io](https://apps.extensions.modelcontextprotocol.io/)
+- Issue tracker:
+  [ext-apps issues](https://github.com/modelcontextprotocol/ext-apps/issues)
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+Live tracking is in
+[ext-apps issues](https://github.com/modelcontextprotocol/ext-apps/issues) and
+pull requests. Headline workstreams:
+
+| Item                                                                                                                                                 | Status      | Target Date | Champion                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----------- | -------------------------------------------------------------------------------------- |
+| Spec maintenance & next revision (current: 2026-01-26)                                                                                               | In Progress |             | [@idosal](https://github.com/idosal), [@liady](https://github.com/liady)               |
+| MCP Apps SDK (`@modelcontextprotocol/ext-apps`, stable 1.x)                                                                                          | Maintained  |             | MCP Apps SDK maintainers                                                               |
+| Host compatibility & conformance test suite ([#674](https://github.com/modelcontextprotocol/ext-apps/issues/674))                                    | In Progress |             | [@idosal](https://github.com/idosal)                                                   |
+| Reusable views & view session identity ([#430](https://github.com/modelcontextprotocol/ext-apps/issues/430))                                         | In Progress |             | [@mstoiber-oai](https://github.com/mstoiber-oai), [@idosal](https://github.com/idosal) |
+| Rendering architecture: decouple requirements from the double-sandboxed iframe ([#716](https://github.com/modelcontextprotocol/ext-apps/issues/716)) | In Review   |             | [@domfarolino](https://github.com/domfarolino)                                         |
+| Dynamic View Content via embedded resources ([#699](https://github.com/modelcontextprotocol/ext-apps/pull/699))                                      | Proposal    |             | [@liady](https://github.com/liady)                                                     |
+| Views not tied to a specific tool call ([#672](https://github.com/modelcontextprotocol/ext-apps/issues/672))                                         | In Progress |             | [@mstoiber-oai](https://github.com/mstoiber-oai), [@liady](https://github.com/liady)   |
+| Authoring toolkit: Agent Skills, reference host (`basic-host`), example suite                                                                        | Maintained  |             | TBD                                                                                    |
+
+### Success Criteria
+
+- Published, stable extension specification (2026-01-26 revision shipped) with
+  a maintained SDK and reference host, and responsive triage of spec and SDK
+  issues.
+- A conformance suite that host implementers can run, with results published so
+  app authors know what works where.
+- Interoperable MCP Apps running unmodified across multiple major hosts, with
+  the documented security model adopted by those hosts.
+- A clear, specified path for content types beyond HTML.
+- MCP Apps established as the standard UI layer of the agentic web: a single
+  app implementation reaching every MCP host.
+
+## Changelog
+
+| Date       | Change                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| 2025-11-21 | SEP-1865 proposed; MCP-UI and OpenAI Apps SDK approaches unified under the MCP Apps banner |
+| 2025-12-17 | First MCP Apps Working Group meeting                                                       |
+| 2026-01-26 | MCP Apps extension specification revision 2026-01-26 published                             |
+| 2026-01-28 | SEP-1865 marked Final and merged                                                           |
+| 2026-07-26 | Initial charter                                                                            |
