@@ -112,7 +112,7 @@ from dotenv import load_dotenv
 
 load_dotenv()  # load environment variables from .env
 
-MODEL = "claude-sonnet-4-20250514"
+MODEL = "claude-opus-5"
 anthropic = Anthropic()
 ```
 
@@ -638,7 +638,7 @@ async processQuery(query: string) {
   ];
 
   const response = await this.anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-opus-5",
     max_tokens: 1000,
     messages,
     tools: this.tools,
@@ -670,7 +670,7 @@ async processQuery(query: string) {
       });
 
       const response = await this.anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-opus-5",
         max_tokens: 1000,
         messages,
       });
@@ -1238,7 +1238,7 @@ suspend fun processQuery(query: String): String {
 
     val response = anthropic.messages().create(
         MessageCreateParams.builder()
-            .model("claude-sonnet-4-20250514")
+            .model("claude-opus-5")
             .maxTokens(1024)
             .messages(messages)
             .tools(tools)
@@ -1274,7 +1274,7 @@ suspend fun processQuery(query: String): String {
 
                 val aiResponse = anthropic.messages().create(
                     MessageCreateParams.builder()
-                        .model("claude-sonnet-4-20250514")
+                        .model("claude-opus-5")
                         .maxTokens(1024)
                         .messages(messages)
                         .build(),
@@ -1585,7 +1585,7 @@ using var anthropicClient = new AnthropicClient(new APIAuthentication(builder.Co
 var options = new ChatOptions
 {
     MaxOutputTokens = 1000,
-    ModelId = "claude-sonnet-4-20250514",
+    ModelId = "claude-opus-5",
     Tools = [.. tools]
 };
 
@@ -1760,7 +1760,7 @@ require "json"
 require "mcp"
 
 class MCPClient
-  ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+  ANTHROPIC_MODEL = "claude-opus-5"
 
   def initialize
     @mcp_client = nil
@@ -2170,7 +2170,7 @@ use serde_json::Value;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
-const MODEL_ANTHROPIC: &str = "claude-sonnet-4-20250514";
+const MODEL_ANTHROPIC: &str = "claude-opus-5";
 
 struct MCPClient {
     anthropic: Client,
