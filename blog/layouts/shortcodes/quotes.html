@@ -51,9 +51,18 @@
         return Math.round(track.scrollLeft / track.clientWidth);
       }
 
+      /* Scroll targets must be snap points (card starts), not raw
+         page-width multiples: with scroll-snap mandatory the browser
+         re-snaps a between-cards target to the nearest card start, and
+         near the end of the track that basin is the end position itself,
+         which made backward nav from the last page a no-op. */
       function goTo(i) {
+        var max = track.scrollWidth - track.clientWidth;
+        var card = track.querySelector(".mcp-quote");
+        var step = card ? card.getBoundingClientRect().width : track.clientWidth;
+        var left = Math.floor((i * track.clientWidth) / step + 0.001) * step;
         track.scrollTo({
-          left: i * track.clientWidth,
+          left: Math.min(left, max),
           behavior: reduceMotion.matches ? "auto" : "smooth",
         });
       }
