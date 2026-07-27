@@ -918,7 +918,7 @@
     },
     {
       "source": "/docs/concepts/sampling",
-      "destination": "/specification/2025-06-18/client/sampling"
+      "destination": "/specification/latest/client/sampling"
     },
     {
       "source": "/docs/concepts/tools",
