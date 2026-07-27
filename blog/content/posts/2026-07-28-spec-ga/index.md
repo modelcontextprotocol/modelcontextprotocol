@@ -102,16 +102,16 @@ The SDKs implement APIs that allow you to build both servers and clients with th
 As with any large release, the work that we're doing with MCP would not be possible without contributions from folks across the ecosystem. We're also especially grateful to a number of contributors and partners who helped us test and validate the spec before it became generally available.
 
 {{< quotes >}}
-{{< quote name="Nick Cooper" title="MTS & MCP Core Maintainer" company="OpenAI" >}}
+{{< quote name="Nick Cooper" title="MTS & MCP Core Maintainer" company="OpenAI" logo="openai.png" >}}
 MCP is now about a year and a half old. Thanks to feedback from developers and others who have worked with us, it's evolving into a more mature protocol that incorporates lessons from decades of web protocol design. As with prior revisions, the most interesting part will be seeing the unexpected things people build with it.
 {{< /quote >}}
-{{< quote name="Swami Sivasubramanian" title="VP of Agentic AI" company="AWS" >}}
+{{< quote name="Swami Sivasubramanian" title="VP of Agentic AI" company="AWS" logo="aws.svg" >}}
 AWS and Anthropic are committed to supporting the MCP community and helping developers ship enterprise-grade agents at scale. With the new MCP specification and its stateless protocol core available in Amazon Bedrock AgentCore, developers can deploy MCP servers on standard, scalable infrastructure without managing sessions or persistent connections. Tasks, one of the first official MCP extensions and contributed by AWS, brings support for reliable, long-running agents, so developers can spend less time on infrastructure and more time innovating.
 {{< /quote >}}
 {{< quote name="Anna Berenberg" title="Engineering Fellow" company="Google Cloud" >}}
 The 2026-07-28 Model Context Protocol release represents a massive leap forward in enterprise AI scalability. By evolving into a stateless architecture, this specification removes the friction of deploying agentic workflows at scale. At Google Cloud, we are excited to leverage these powerful new capabilities across our ecosystem of developer tools. This release provides the robust, secure, and extensible foundation that our customers (and our own teams) need to build the next generation of AI applications, and we are proud to continue shaping the future of this open standard together.
 {{< /quote >}}
-{{< quote name="Josh Clemm" title="VP of Engineering" company="Figma" >}}
+{{< quote name="Josh Clemm" title="VP of Engineering" company="Figma" logo="figma.svg" >}}
 More builders are using our MCP server to bring generated outputs into Figma's canvas, where they can explore, riff and refine them with their team into products that stand out. As that usage grows, our stateless architecture can scale with it, and with MCP Apps, Tasks, and Enterprise-Managed Authorization, we can do even more to keep design and code together in one, connected flow.
 {{< /quote >}}
 {{< quote name="Alex Salazar" title="CEO & Co-Founder" company="Arcade.dev" >}}
@@ -132,7 +132,7 @@ Moving MCP to a stateless protocol makes it easier to scale our own service and 
 {{< quote name="Inian Parameshwaran" title="Head of Product" company="Supabase" >}}
 Supporting elicitations has been on our roadmap for a while, but since Supabase MCP runs statelessly, it wasn't something we could do easily. MRTR changes that - it allows our tools to confirm with the user before it acts, like the cost of a new project before it's created, or a query that would delete data. We're excited to support elicitations.
 {{< /quote >}}
-{{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" >}}
+{{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" logo="honeycomb.png" >}}
 At honeycomb.io, we've seen fantastic adoption of MCP - nearly 20% of all monthly interactive queries are now made by agents! The new specification release allows us to support more advanced features such as elicitations while running at enterprise scale.
 {{< /quote >}}
 {{< /quotes >}}
