@@ -116,6 +116,33 @@
     color: var(--secondary);
 }
 
+/* Attributions start on the same line in every card. The track exposes three
+   explicit rows (logo / quote / attribution) and each card adopts them via
+   subgrid, so the quote row is sized by the longest quote in the set and
+   every attribution starts at the same y, on every carousel page. Long
+   quotes spill downward inside that row; short cards keep the open space.
+   Browsers without subgrid keep the flex column above, where attributions
+   bottom-align instead. Skipped under 600px, where cards show one per view
+   and cross-card alignment would only add empty space. */
+@media (min-width: 600px) {
+    @supports (grid-template-rows: subgrid) {
+        .mcp-quotes-track {
+            grid-template-rows: auto auto auto;
+        }
+
+        .post-content .mcp-quote {
+            display: grid;
+            grid-template-rows: subgrid;
+            grid-row: span 3;
+        }
+
+        .post-content .mcp-quote .mcp-quote-attrib {
+            margin-top: 0;
+            align-self: start;
+        }
+    }
+}
+
 /* ─── Carousel controls ──────────────────────────────────────────────────── */
 .mcp-quotes-nav {
     display: flex;
