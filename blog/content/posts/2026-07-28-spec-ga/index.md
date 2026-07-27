@@ -132,6 +132,9 @@ Moving MCP to a stateless protocol makes it easier to scale our own service and 
 {{< quote name="Inian Parameshwaran" title="Head of Product" company="Supabase" >}}
 Supporting elicitations has been on our roadmap for a while, but since Supabase MCP runs statelessly, it wasn't something we could do easily. MRTR changes that - it allows our tools to confirm with the user before it acts, like the cost of a new project before it's created, or a query that would delete data. We're excited to support elicitations.
 {{< /quote >}}
+{{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" >}}
+At honeycomb.io, we've seen fantastic adoption of MCP - nearly 20% of all monthly interactive queries are now made by agents! The new specification release allows us to support more advanced features such as elicitations while running at enterprise scale.
+{{< /quote >}}
 {{< /quotes >}}
 
 ## Getting started
