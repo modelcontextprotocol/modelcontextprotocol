@@ -108,7 +108,7 @@ MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol
 
 #### Statelessness and discovery
 
-MCP is a <Tooltip tip="Every request contains all the information needed to process it, so servers infer nothing from previous requests">stateless protocol</Tooltip>. Every request carries the protocol version and the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> relevant to that request in its `_meta` field, so the server can process each request on its own. Clients should also identify themselves in the same field unless configured not to. Servers advertise their supported versions and capabilities through the mandatory [`server/discover`](/specification/draft/server/discover) request, which clients may send before any other request. Detailed information can be found in the [specification](/specification/draft/basic/index#statelessness), and the [example](#example) showcases the per-request metadata and the discovery sequence.
+MCP is a <Tooltip tip="Every request contains all the information needed to process it, so servers infer nothing from previous requests">stateless protocol</Tooltip>. Every request carries the protocol version and the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> relevant to that request in its `_meta` field, so the server can process each request on its own. Clients also identify themselves in the same field on every request. Servers advertise their supported versions and capabilities through the mandatory [`server/discover`](/specification/draft/server/discover) request, which clients may send before any other request. Detailed information can be found in the [specification](/specification/draft/basic/index#statelessness), and the [example](#example) showcases the per-request metadata and the discovery sequence.
 
 #### Primitives
 
@@ -155,7 +155,7 @@ This section provides a step-by-step walkthrough of an MCP client-server interac
 <Steps>
 <Step title="Discovery">
 
-As described in the [statelessness and discovery](#statelessness-and-discovery) section, every MCP request carries the protocol version and client capabilities in its `_meta` field, and clients should also include their identity there. A client that wants to learn what a server supports before issuing other requests sends a `server/discover` request, which every server must implement. The discovery response is typically cacheable, meaning it can be re-used so the discovery flow does not need to be performed for every request.
+As described in the [statelessness and discovery](#statelessness-and-discovery) section, every MCP request carries the protocol version, the client capabilities, and the client identity in its `_meta` field. A client that wants to learn what a server supports before issuing other requests sends a `server/discover` request, which every server must implement. The discovery response is typically cacheable, meaning it can be re-used so the discovery flow does not need to be performed for every request.
 
 <CodeGroup>
   ```json Discover Request
@@ -190,11 +190,9 @@ As described in the [statelessness and discovery](#statelessness-and-discovery) 
         },
         "resources": {}
       },
-      "_meta": {
-        "io.modelcontextprotocol/serverInfo": {
-          "name": "example-server",
-          "version": "1.0.0"
-        }
+      "serverInfo": {
+        "name": "example-server",
+        "version": "1.0.0"
       },
       "ttlMs": 3600000,
       "cacheScope": "public"
@@ -211,7 +209,7 @@ The `_meta` fields and the discovery response together serve several purposes:
 
 2. **Capability Discovery**: The client declares its capabilities in `io.modelcontextprotocol/clientCapabilities` on every request, and the server returns its own `capabilities` object from `server/discover`. This tells each party which [primitives](#primitives) the other can handle (tools, resources, prompts) and whether change [notifications](#notifications) are available, so unsupported operations are never attempted.
 
-3. **Identity Exchange**: The `io.modelcontextprotocol/clientInfo` field in the request's `_meta` and the `io.modelcontextprotocol/serverInfo` field in the result's `_meta` provide identification and versioning information for debugging and compatibility purposes.
+3. **Identity Exchange**: The `io.modelcontextprotocol/clientInfo` field in the request's `_meta` and the `serverInfo` field in the result body provide identification and versioning information for debugging and compatibility purposes.
 
 In this example, the exchange demonstrates how MCP capabilities are declared:
 
@@ -467,7 +465,7 @@ Change notifications are opt-in. To receive them, the client opens a long-lived 
 }
 ```
 
-Every client request carries the `io.modelcontextprotocol/protocolVersion` and `io.modelcontextprotocol/clientCapabilities` fields in `_meta`, and normally `io.modelcontextprotocol/clientInfo` as well, so the server can identify the client without relying on connection state.
+Every client request carries the `io.modelcontextprotocol/protocolVersion`, `io.modelcontextprotocol/clientInfo`, and `io.modelcontextprotocol/clientCapabilities` fields in `_meta`, so the server can identify the client without relying on connection state.
 
 The server acknowledges the subscription with `notifications/subscriptions/acknowledged`, which is the first message carrying that subscription's ID in `_meta` (the server sends no other notification for that subscription before it). Its `notifications` field reflects the subset of the requested filter the server agreed to honor, with unsupported notification types omitted:
 
