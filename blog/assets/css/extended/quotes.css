@@ -119,6 +119,16 @@
     max-width: 100%;
 }
 
+/* PaperMod gives .post-content img a 1rem vertical margin and rounded
+   corners, which pushed raster logos 16px below the svg and text logos.
+   Reset both (with the same .post-content specificity bump the other
+   resets use) so every logo kind starts on the same top line. */
+.post-content .mcp-quote-logo svg,
+.post-content .mcp-quote-logo img {
+    margin: 0;
+    border-radius: 0;
+}
+
 .mcp-quote-logo-text {
     font-size: 18px;
     font-weight: 400;
