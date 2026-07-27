@@ -228,16 +228,14 @@ Calling `server/discover` is optional. Because every request carries the same `_
 
 #### How This Works in AI Applications
 
-The AI application's MCP client manager connects to configured servers and stores their discovered capabilities for later use. The application uses this information to determine which servers can provide specific types of functionality (tools, resources, prompts) and whether they support real-time updates.
+The AI application's MCP client manager connects to configured servers and stores their discovered capabilities for later use. The application uses this information to determine which servers can provide specific types of functionality (tools, resources, prompts) and whether they support real-time updates. In the Python SDK, discovery happens while the client connects. The results are then available on the client object.
 
 ```python Pseudo-code for AI application discovery
 # Pseudo Code
-async with stdio_client(server_config) as (read, write):
-    async with Client(read, write) as client:
-        discover_response = await client.discover()
-        if discover_response.capabilities.tools:
-            app.register_mcp_server(client, supports_tools=True)
-        app.set_server_ready(client)
+async with Client(stdio_client(server_config)) as client:
+    if client.server_capabilities.tools:
+        app.register_mcp_server(client, supports_tools=True)
+    app.set_server_ready(client)
 ```
 
 </Step>
@@ -547,15 +545,17 @@ This notification pattern extends beyond tools to other MCP primitives, enabling
 
 #### How This Works in AI Applications
 
-When the AI application receives a notification about changed tools, it immediately refreshes its tool registry and updates the LLM's available capabilities. This ensures that ongoing conversations always have access to the most current set of tools, and the LLM can dynamically adapt to new functionality as it becomes available.
+The AI application keeps a notification stream open for the changes it cares about. When one arrives, it immediately refreshes its tool registry and updates the LLM's available capabilities. This ensures that ongoing conversations always have access to the most current set of tools, and the LLM can dynamically adapt to new functionality as it becomes available.
 
 ```python
 # Pseudo-code for AI application notification handling
-async def handle_tools_changed_notification(client):
-    tools_response = await client.list_tools()
-    app.update_available_tools(client, tools_response.tools)
-    if app.conversation.is_active():
-        app.conversation.notify_llm_of_new_capabilities()
+async def follow_tool_changes(client):
+    async with client.listen(tools_list_changed=True) as sub:
+        async for _event in sub:
+            tools_response = await client.list_tools()
+            app.update_available_tools(client, tools_response.tools)
+            if app.conversation.is_active():
+                app.conversation.notify_llm_of_new_capabilities()
 ```
 
 </Step>
