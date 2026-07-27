@@ -30,7 +30,7 @@ Version negotiation happens entirely **client-side**. When the web client is use
 
 Once connected, the negotiated era is reported in the connection header and in **Connection Info**. On a modern connection, `server/discover` also supplies `serverInfo`, `capabilities` (including `extensions`), `instructions`, and the list of `supportedVersions`.
 
-<Frame caption="TODO: Server Settings with the Protocol Era selector (auto / legacy / modern)">
+<Frame caption="Server Settings — the Protocol Era selector, with all three choices.">
   <img src="/images/inspector/settings-protocol-era.png" />
 </Frame>
 
@@ -73,8 +73,12 @@ Reproduce with `test-servers/configs/logging-modern-http.json`.
   </Tab>
 </Tabs>
 
-<Frame caption="TODO: Logs tab side by side — legacy Set Active Level vs. modern Log Level per Request">
-  <img src="/images/inspector/logs-era-fork.png" />
+<Frame caption="Legacy: the Logs tab offers a session-scoped Set Active Level control, and a log arrives after calling send_notification.">
+  <img src="/images/inspector/logs-legacy.png" />
+</Frame>
+
+<Frame caption="Modern: the same tab instead offers Log Level per Request. The level is stamped on every outgoing request, and the log rides that request's stream.">
+  <img src="/images/inspector/logs-modern.png" />
 </Frame>
 
 ---
@@ -100,7 +104,7 @@ Reproduce with `test-servers/configs/subscriptions-modern-http.json`.
   </Tab>
 </Tabs>
 
-<Frame caption="TODO: Resources tab Subscriptions section, modern, showing the Listening stream-status badge">
+<Frame caption="A modern subscription: the Subscriptions section carries a LISTENING stream-status badge that a legacy subscription has no need for.">
   <img src="/images/inspector/resources-subscriptions-modern.png" />
 </Frame>
 
@@ -131,8 +135,12 @@ Reproduce with `test-servers/configs/tasks-modern-http.json` (tools `modern_task
   </Tab>
 </Tabs>
 
-<Frame caption="TODO: Tasks tab in both eras — legacy tasks/list-backed table vs. modern polled handles with an inlined result">
-  <img src="/images/inspector/tasks-era-fork.png" />
+<Frame caption="Legacy: the Tasks tab is populated from tasks/list, and the payload is fetched with a blocking tasks/result.">
+  <img src="/images/inspector/tasks-legacy.png" />
+</Frame>
+
+<Frame caption="Modern: the client polls tasks/get on handles it already holds, and the completed task inlines its result — note resultType: complete in the full task object.">
+  <img src="/images/inspector/tasks-modern.png" />
 </Frame>
 
 ---
@@ -160,7 +168,7 @@ The Inspector drives MRTR **manually** — it does not auto-fulfill — so each 
   requests aren't allowed there. MRTR is its modern replacement.
 </Note>
 
-<Frame caption="TODO: The pending-request modal answering an input_required round, plus the grouped MRTR conversation in the Protocol view">
+<Frame caption="An MRTR round paused at the pending-request modal, tagged input_required. Answering it retries the original request.">
   <img src="/images/inspector/mrtr-pending-request.png" />
 </Frame>
 
@@ -185,7 +193,7 @@ Reproduce with `test-servers/configs/xmcpheader-modern-http.json`.
   limitation.
 </Warning>
 
-<Frame caption="TODO: Tools sidebar with the Excluded (SEP-2243) divider, and a detail panel showing Mirrored request headers">
+<Frame caption="get_weather shows its mirrored city → Mcp-Param-City header, while invalid_header_tool is struck through under the Excluded (SEP-2243) divider.">
   <img src="/images/inspector/tools-sep2243.png" />
 </Frame>
 
@@ -214,8 +222,12 @@ The modern era standardizes a set of `Mcp-*` HTTP headers and introduces a riche
 | `trigger_unsupported_version` | `400` | `-32022`      | Unsupported protocol version (`data.supported` lists what is). |
 | `trigger_method_not_found`    | `404` | `-32601`      | Method not found.                                              |
 
-<Frame caption="TODO: Network tab showing highlighted Mcp-* headers, and the Protocol tab rendering a -32022 with data.supported">
-  <img src="/images/inspector/network-modern-errors.png" />
+<Frame caption="The Network tab shows the HTTP layer — here the 400 Bad Request the strict server answered with.">
+  <img src="/images/inspector/network-modern-headers.png" />
+</Frame>
+
+<Frame caption="The Protocol tab renders the same failure as a typed spec error: -32022 UnsupportedProtocolVersion, with the versions the server does support.">
+  <img src="/images/inspector/protocol-modern-error.png" />
 </Frame>
 
 ---

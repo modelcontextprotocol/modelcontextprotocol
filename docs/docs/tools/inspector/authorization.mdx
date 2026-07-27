@@ -36,7 +36,7 @@ Remote MCP servers are usually protected. The Inspector implements the full [aut
   </Step>
 </Steps>
 
-<Frame caption="TODO: The web client's Connection Info / Auth panel showing discovery, client registration, and token state">
+<Frame caption="Connection Info after a completed OAuth flow: the authorization status, the dynamically registered client, and the granted scopes.">
   <img src="/images/inspector/auth-connection-info.png" />
 </Frame>
 
@@ -92,10 +92,6 @@ Proceed with step-up authorization? [y/N]
 ```
 
 Answer **y** to continue — piped input works (`echo y | …`), as long as it's newline-terminated or stdin closes. **N**, or EOF with no answer, declines. A non-TTY stdin that sends nothing within 5 seconds fails with `auth_required`, which is distinct from an explicit decline. Enterprise-managed step-up re-mints silently, with no prompt.
-
-<Frame caption="TODO: The web client's re-authorization banner after a mid-session 401">
-  <img src="/images/inspector/auth-reauth-banner.png" />
-</Frame>
 
 ## Non-interactive and CI runs
 

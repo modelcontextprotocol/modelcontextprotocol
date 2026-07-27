@@ -50,7 +50,7 @@ Production `--web` serves a built bundle. In the published package that bundle a
 
 **Network** and **Console** are mutually exclusive in practice — one is for HTTP transports, the other for stdio.
 
-<Frame caption="TODO: The full tab bar on a connected modern HTTP server">
+<Frame caption="The tab bar on a connected server. Which tabs appear depends on the capabilities the server reported.">
   <img src="/images/inspector/web-tab-bar.png" />
 </Frame>
 
@@ -58,7 +58,7 @@ Production `--web` serves a built bundle. In the published package that bundle a
 
 **Tasks**, **Logs**, **Protocol**, **Network**, and **Console** form a _monitor group_. Pin the group and they leave the tab bar and move into a resizable right-hand column, so you can watch traffic while working in Tools or Resources. The column width and the selected monitor tab persist across reloads.
 
-<Frame caption="TODO: Tools screen with the monitoring sidebar pinned, showing the Protocol stream alongside">
+<Frame caption="The monitoring sidebar pinned beside the Tools screen — the Protocol stream stays visible while you work.">
   <img src="/images/inspector/web-monitor-sidebar.png" />
 </Frame>
 
@@ -88,7 +88,7 @@ Per-server settings are where the interesting knobs live:
 - **Headers**, **timeouts**, and **OAuth** fields.
 - **Fetch lists one page at a time** — when off, list results are auto-aggregated across pages on connect; when on, each list loads page 1 only with a **Load next page** control and an _N pages loaded_ status. Reproduce with `test-servers/configs/pagination-http.json`, which paginates 12 tools, resources, and prompts into three pages each.
 
-<Frame caption="TODO: Server Settings, expanded, showing Protocol Era, Advertised Extensions, and Roots">
+<Frame caption="Server Settings with Advertised Extensions expanded. Unchecking one changes what the Inspector declares at connect.">
   <img src="/images/inspector/web-server-settings.png" />
 </Frame>
 
@@ -98,7 +98,7 @@ Select a tool to see its description, its input schema rendered as a form, and i
 
 Modern-era servers add two things here — mirrored `Mcp-Param-*` headers and excluded tools, plus the distinct `-32602` error panels. Both are covered in [Protocol eras](/docs/tools/inspector/protocol-eras#tools-mirrored-headers-and-excluded-tools).
 
-<Frame caption="TODO: Tools tab with a schema-driven argument form and a rendered result">
+<Frame caption="A tool call and its rendered result. The argument form collapses into the result panel once the call returns.">
   <img src="/images/inspector/web-tools.png" />
 </Frame>
 
@@ -106,7 +106,7 @@ Modern-era servers add two things here — mirrored `Mcp-Param-*` headers and ex
 
 Lists resources and resource templates with their MIME types and descriptions, reads content on selection, and offers **Subscribe** on servers that support subscriptions. The subscription mechanics differ by era — see [Resource subscriptions](/docs/tools/inspector/protocol-eras#resource-subscriptions).
 
-<Frame caption="TODO: Resources tab with a resource read and an active subscription">
+<Frame caption="A resource read, with an active subscription listed below the resource list.">
   <img src="/images/inspector/web-resources.png" />
 </Frame>
 
@@ -114,7 +114,7 @@ Lists resources and resource templates with their MIME types and descriptions, r
 
 Lists prompt templates with their arguments, and renders the generated messages for the arguments you supply — the fastest way to confirm a prompt actually produces what you intended.
 
-<Frame caption="TODO: Prompts tab showing arguments and the generated message preview">
+<Frame caption="A prompt rendered with the arguments supplied — the fastest way to confirm it produces what you intended.">
   <img src="/images/inspector/web-prompts.png" />
 </Frame>
 
@@ -130,7 +130,7 @@ A few operational notes:
 
 See [Recipes](/docs/tools/inspector/recipes#reviewing-an-mcp-app) for the CLI-first automated review flow.
 
-<Frame caption="TODO: Apps tab with a rendered app widget, messages panel, and app logs">
+<Frame caption="An MCP App rendered in its sandboxed frame, with the app’s own logs below it.">
   <img src="/images/inspector/web-apps.png" />
 </Frame>
 
@@ -144,7 +144,7 @@ Three views of the same traffic at three altitudes:
 
 Secrets are masked in these views, and entries can be cleared or exported.
 
-<Frame caption="TODO: Protocol tab with a request/response pair expanded">
+<Frame caption="The Protocol tab with an entry expanded, showing the full JSON-RPC exchange.">
   <img src="/images/inspector/web-protocol.png" />
 </Frame>
 
