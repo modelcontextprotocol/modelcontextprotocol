@@ -30,7 +30,7 @@ MCP provides several tools for debugging at different levels:
 ### Server-side logging
 
 When building a server that uses the local
-[stdio transport](/specification/latest/basic/transports#stdio), all messages
+[stdio transport](/specification/draft/basic/transports/stdio), all messages
 logged to stderr (standard error) will be captured by the host application
 automatically.
 
@@ -89,7 +89,7 @@ for requests that omit this field.
 
 Important events to log:
 
-- Initialization steps
+- Startup steps
 - Resource access
 - Tool execution
 - Error conditions
@@ -153,9 +153,9 @@ To override the default variables or provide your own, you can specify an
 }
 ```
 
-### Server initialization
+### Server startup
 
-Common initialization problems:
+Common startup problems:
 
 1. **Path Issues**
    - Incorrect server executable path
@@ -181,19 +181,24 @@ When servers fail to connect:
 2. Verify server process is running
 3. Test standalone with [Inspector](/docs/draft/tools/inspector)
 4. Verify
-   [protocol compatibility](/specification/draft/basic/versioning#protocol-version-negotiation)
-5. Check the declared capabilities: error
-   [`-32602`](/specification/draft/basic#error-codes) is the standard
-   JSON-RPC "Invalid params" code and is returned in many contexts, including
-   requests whose `_meta` is missing a required field. A server that returns
-   [sampling](/specification/latest/client/sampling) or
-   [elicitation](/specification/latest/client/elicitation) requests in an
-   [`InputRequiredResult`](/specification/draft/basic/patterns/mrtr) needs the
-   client to declare the matching capability, and responds with
-   [`-32021` (`MissingRequiredClientCapability`)](/specification/draft/basic#error-codes)
-   when a required capability is missing. Inspect the
-   `io.modelcontextprotocol/clientCapabilities` field in your requests'
-   `_meta` to verify the client declares what you expect
+   [protocol compatibility](/docs/draft/learn/versioning#negotiation): call
+   [`server/discover`](/specification/draft/server/discover) to see which
+   protocol versions the server supports. An
+   `UnsupportedProtocolVersionError` (`-32022`) lists the server's supported
+   versions in its `data` field
+5. Check the
+   [per-request `_meta` fields](/specification/draft/basic/index#meta):
+   every request must carry `io.modelcontextprotocol/protocolVersion` and
+   `io.modelcontextprotocol/clientCapabilities`, and clients should also
+   include `io.modelcontextprotocol/clientInfo`. A request missing either
+   required field is rejected with error `-32602` (Invalid params), the same
+   code returned for many other malformed inputs. If the server needs a
+   capability the request's `clientCapabilities` did not declare, such as
+   [elicitation](/specification/draft/client/elicitation), it returns a
+   `MissingRequiredClientCapabilityError` (`-32021`) naming the missing
+   capabilities. Inspect the request's `_meta` and the
+   [`server/discover`](/specification/draft/server/discover) response to
+   verify both sides declared what you expect
 
 ## Debugging in Claude Desktop
 
