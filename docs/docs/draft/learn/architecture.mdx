@@ -86,7 +86,7 @@ This layer includes:
 
 - **Discovery**: Lets clients query a server's supported protocol versions, capabilities, and identity through the `server/discover` request
 - **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
-- **Client features**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
+- **Client features**: Enables servers to elicit input from the user. Sampling is [deprecated](/specification/draft/deprecated) as of protocol version `2026-07-28`.
 - **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
 
 #### Transport layer
@@ -129,15 +129,18 @@ For more details about server primitives see [server concepts](./server-concepts
 
 MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
 
-- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. They can use the `sampling/createMessage` method to request a language model completion from the client's AI application.
-- **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/create` method to request additional information from the user.
-- **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
+- **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. Servers request user input with the `elicitation/create` method.
+
+Elicitation requests are delivered through the [Multi Round-Trip Requests](/specification/draft/basic/patterns/mrtr) pattern, explained in the [elicitation overview](/docs/draft/learn/client-concepts#elicitation).
+
+**Deprecated**: The following client primitives are deprecated as of protocol version `2026-07-28`.
+
+- **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. Servers request completions with the `sampling/createMessage` method, also delivered through the Multi Round-Trip Requests pattern. New implementations should integrate directly with LLM provider APIs.
+- **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes. New implementations should log to `stderr` (stdio transport) or use OpenTelemetry.
 
 For more details about client primitives see [client concepts](./client-concepts).
 
-Besides server and client primitives, the protocol offers cross-cutting utility primitives that augment how requests are executed:
-
-- **Tasks (Experimental)**: Durable execution wrappers that enable deferred result retrieval and status tracking for MCP requests (e.g., expensive computations, workflow automation, batch processing, multi-step operations)
+Besides server and client primitives, the protocol supports optional [extensions](/extensions/overview) that build on the core protocol. For example, the [Tasks extension](/extensions/tasks/overview) lets servers return a durable handle for long-running requests, so clients can poll for status and retrieve the result later.
 
 #### Notifications
 
