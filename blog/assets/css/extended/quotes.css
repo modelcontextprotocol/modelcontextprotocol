@@ -2,8 +2,22 @@
 /* A row of testimonial cards separated by hairline dividers. The track is a
    scroll-snap carousel; nav controls are injected by the shortcode's script
    and stay hidden when everything fits one view. */
+
+/* The strip breaks out of the prose column: symmetric negative margins grow
+   it toward the viewport edges, capped at 1200px so it stays sane on wide
+   monitors. The viewport bound is 50vw - 50% - 32px per side. 100vw includes
+   the page scrollbar, so the 32px gutter both absorbs the scrollbar width
+   and keeps a visible margin, which is what prevents a page-level horizontal
+   scrollbar. The prose column is centered in the viewport, so symmetric
+   margins keep the strip centered too. */
 .mcp-quotes {
-    margin: 40px 0;
+    --mcp-quotes-bleed: max(0px, min((1200px - 100%) / 2, 50vw - 50% - 32px));
+    margin: 40px calc(-1 * var(--mcp-quotes-bleed));
+}
+
+/* A lone quote is a pull quote, not a strip: it stays in the prose column. */
+.mcp-quotes:has(.mcp-quote:only-child) {
+    --mcp-quotes-bleed: 0px;
 }
 
 .mcp-quotes-track {
@@ -20,15 +34,35 @@
     display: none;
 }
 
+/* When more cards exist than fit one view, they are sized a bit narrower so
+   a slice of the next card peeks at the right edge, signaling that the strip
+   scrolls. Sets that fit exactly (1, 2, or 3 cards per breakpoint) keep the
+   full division and no peek. */
+@media (max-width: 599px) {
+    .mcp-quotes-track:has(> .mcp-quote + .mcp-quote) {
+        grid-auto-columns: calc(100% - 44px);
+    }
+}
+
 @media (min-width: 600px) {
     .mcp-quotes-track {
         grid-auto-columns: 50%;
     }
 }
 
+@media (min-width: 600px) and (max-width: 899px) {
+    .mcp-quotes-track:has(> .mcp-quote:nth-child(3)) {
+        grid-auto-columns: calc((100% - 56px) / 2);
+    }
+}
+
 @media (min-width: 900px) {
     .mcp-quotes-track {
         grid-auto-columns: calc(100% / 3);
+    }
+
+    .mcp-quotes-track:has(> .mcp-quote:nth-child(4)) {
+        grid-auto-columns: calc((100% - 72px) / 3);
     }
 }
 
@@ -60,10 +94,11 @@
     max-width: 640px;
 }
 
+/* 1-up mobile: tighter padding, but keep the hairline so the peeking next
+   card reads as a separate card. */
 @media (max-width: 599px) {
     .post-content .mcp-quote {
-        padding-inline: 0 16px;
-        border-inline-start: none;
+        padding-inline: 16px;
     }
 }
 

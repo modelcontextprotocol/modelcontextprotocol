@@ -60,8 +60,9 @@
 
       function update() {
         var i = current();
-        prev.disabled = i <= 0;
-        next.disabled = i >= pageCount() - 1;
+        var max = track.scrollWidth - track.clientWidth;
+        prev.disabled = track.scrollLeft <= 2;
+        next.disabled = track.scrollLeft >= max - 2;
         dots.forEach(function (dot, j) {
           dot.setAttribute("aria-current", j === i ? "true" : "false");
         });
@@ -91,7 +92,16 @@
       build();
     }
 
-    document.querySelectorAll(".mcp-quotes").forEach(init);
+    /* This script is emitted with the first quotes block, before later
+       blocks on the page exist, so wait for the full DOM. */
+    function initAll() {
+      document.querySelectorAll(".mcp-quotes").forEach(init);
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initAll);
+    } else {
+      initAll();
+    }
   })();
 </script>
 {{- end -}}
