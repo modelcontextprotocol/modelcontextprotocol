@@ -1,0 +1,177 @@
+/* ─── Quote cards (quotes / quote shortcodes) ────────────────────────────── */
+/* A row of testimonial cards separated by hairline dividers. The track is a
+   scroll-snap carousel; nav controls are injected by the shortcode's script
+   and stay hidden when everything fits one view. */
+.mcp-quotes {
+    margin: 40px 0;
+}
+
+.mcp-quotes-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+}
+
+.mcp-quotes-track::-webkit-scrollbar {
+    display: none;
+}
+
+@media (min-width: 600px) {
+    .mcp-quotes-track {
+        grid-auto-columns: 50%;
+    }
+}
+
+@media (min-width: 900px) {
+    .mcp-quotes-track {
+        grid-auto-columns: calc(100% / 3);
+    }
+}
+
+.post-content .mcp-quote {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 24px;
+    border-inline-start: 1px solid var(--border);
+    scroll-snap-align: start;
+}
+
+.post-content .mcp-quote:first-child {
+    padding-inline-start: 0;
+    border-inline-start: none;
+}
+
+/* A lone quote reads as a pull quote: full track width, capped measure. */
+.mcp-quotes-track:has(> .mcp-quote:only-child) {
+    grid-auto-columns: 100%;
+}
+
+.post-content .mcp-quote:only-child {
+    padding-inline-end: 0;
+}
+
+.post-content .mcp-quote:only-child .mcp-quote-text {
+    max-width: 640px;
+}
+
+@media (max-width: 599px) {
+    .post-content .mcp-quote {
+        padding-inline: 0 16px;
+        border-inline-start: none;
+    }
+}
+
+/* Logos render at a common cap height regardless of the SVG's own aspect
+   ratio. Inline SVGs inherit currentColor so they track the theme. */
+.mcp-quote-logo {
+    display: block;
+    height: 28px;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+.mcp-quote-logo svg,
+.mcp-quote-logo img {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+}
+
+.mcp-quote-logo-text {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 28px;
+    letter-spacing: -0.01em;
+    color: var(--primary);
+}
+
+/* Reset PaperMod's blockquote treatment (left bar, italic-ish inset). */
+.post-content .mcp-quote-text {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 16px;
+    font-style: normal;
+    line-height: 1.6;
+    color: var(--content);
+}
+
+.post-content .mcp-quote-text p {
+    display: inline;
+    margin: 0;
+    font-size: inherit;
+}
+
+.post-content .mcp-quote-attrib {
+    margin-top: auto;
+    padding-top: 16px;
+    font-size: 14px;
+    color: var(--secondary);
+}
+
+/* ─── Carousel controls ──────────────────────────────────────────────────── */
+.mcp-quotes-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 28px;
+}
+
+.mcp-quotes-nav[hidden] {
+    display: none;
+}
+
+.mcp-quotes-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: var(--primary);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+    .mcp-quotes-btn:not(:disabled):hover {
+        border-color: var(--primary);
+    }
+}
+
+.mcp-quotes-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.mcp-quotes-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mcp-quotes-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    background: var(--tertiary);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.mcp-quotes-dot[aria-current="true"] {
+    background: var(--primary);
+}

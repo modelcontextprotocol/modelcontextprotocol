@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 146 28" fill="none" aria-hidden="true">
+  <path d="M3 4 L11 14 L3 24" stroke="#dc2626" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 4 L22 14 L14 24" stroke="#f87171" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="34" y="20" textLength="106" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="600" letter-spacing="-0.2" fill="currentColor">Vexelworks</text>
+</svg>
