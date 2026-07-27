@@ -67,7 +67,19 @@
           {
             "group": "Developer tools",
             "pages": [
-              "docs/tools/inspector",
+              {
+                "group": "Inspector",
+                "pages": [
+                  "docs/tools/inspector",
+                  "docs/tools/inspector/protocol-eras",
+                  "docs/tools/inspector/web",
+                  "docs/tools/inspector/cli",
+                  "docs/tools/inspector/tui",
+                  "docs/tools/inspector/configuration",
+                  "docs/tools/inspector/authorization",
+                  "docs/tools/inspector/recipes"
+                ]
+              },
               "docs/tools/debugging"
             ]
           },

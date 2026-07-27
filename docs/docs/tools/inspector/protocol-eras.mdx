@@ -1,0 +1,227 @@
+---
+title: Protocol eras
+description: How the Inspector negotiates legacy vs. modern MCP, and how every feature changes across the fork
+---
+
+The 2026-07-28 revision of MCP changed enough of the wire protocol that a debugging tool cannot pretend the difference away. The Inspector therefore treats **protocol era** as a first-class, per-server setting, orthogonal to the transport: the same HTTP URL can be inspected as a legacy server or as a modern one, and several tabs render meaningfully different UI and traffic depending on which.
+
+This page explains the setting, how negotiation works, and then walks the fork feature by feature.
+
+## The `Protocol Era` setting
+
+Each server carries a `protocolEra` of `legacy`, `auto`, or `modern`. In the web client it lives in **Server Settings**; in a catalog or config file it is the `protocolEra` field; in the CLI and TUI it comes from that same file.
+
+| Era      | What the Inspector does at connect                                                      |
+| -------- | --------------------------------------------------------------------------------------- |
+| `legacy` | **The default.** Plain `initialize`, no probing at all.                                 |
+| `auto`   | Probe `server/discover` first, and fall back to `initialize` on any non-modern outcome. |
+| `modern` | Pin exactly `2026-07-28`. No fallback — a non-modern server fails loudly.               |
+
+<Note>
+  **Why `legacy` is the default, and not `auto`.** A debugging tool must not
+  auto-probe. A `server/discover` probe stalls against silent legacy stdio
+  servers, and it pollutes the recorded transcript you came here to read. Opting
+  into `auto` or `modern` is a deliberate act, so what you see in the Protocol
+  tab is what your server would have seen from a client behaving the way you
+  configured.
+</Note>
+
+Version negotiation happens entirely **client-side**. When the web client is used, the Node backend simply pumps JSON-RPC bytes; the `server/discover` probe and the per-request `_meta` envelope travel as ordinary message bodies. Nothing about era selection depends on which of the three clients you use.
+
+Once connected, the negotiated era is reported in the connection header and in **Connection Info**. On a modern connection, `server/discover` also supplies `serverInfo`, `capabilities` (including `extensions`), `instructions`, and the list of `supportedVersions`.
+
+<Frame caption="TODO: Server Settings with the Protocol Era selector (auto / legacy / modern)">
+  <img src="/images/inspector/settings-protocol-era.png" />
+</Frame>
+
+## Reproducing every fork locally
+
+The Inspector repository ships **composable test servers** whose JSON configs are ready-made reproductions of each behavior below. Clone the repo, build the test servers, and point the Inspector at the relevant config — each section names the one to use.
+
+```bash
+git clone https://github.com/modelcontextprotocol/inspector
+cd inspector && npm install && npm run build
+cd clients/web && npm run test-servers:build
+```
+
+---
+
+## Logging
+
+<Tabs>
+  <Tab title="Legacy">
+
+Logging is **session-scoped**. The client sends `logging/setLevel` once, and the server emits `notifications/message` at or above that level for the rest of the session.
+
+The **Logs** tab shows a **Set Active Level** selector plus a **Set** button. Choose a level, click Set, and subsequent server logs stream into the panel.
+
+Reproduce with `test-servers/configs/logging-legacy-http.json`.
+
+  </Tab>
+  <Tab title="Modern">
+
+`logging/setLevel` is **gone**. Instead the client opts in **per request**, by stamping `_meta["io.modelcontextprotocol/logLevel"]` on each outgoing request. A server MUST NOT emit `notifications/message` for a request that did not opt in.
+
+The **Logs** tab therefore shows a **Log Level per Request** control instead. Pick a level and every subsequent request carries the stamp — visible in the Network tab's request body. Logs emitted while handling a request ride that request's SSE response stream.
+
+Set the control to **Off** and the `logLevel` key is omitted entirely, so the same tool call produces no logs at all. That silence is correct behavior, not a bug.
+
+The per-server default is `debug` (opted in at the most verbose level, since the Inspector is a debugging tool); set `modernLogLevel: "off"` on a server to opt back out by default.
+
+Reproduce with `test-servers/configs/logging-modern-http.json`.
+
+  </Tab>
+</Tabs>
+
+<Frame caption="TODO: Logs tab side by side — legacy Set Active Level vs. modern Log Level per Request">
+  <img src="/images/inspector/logs-era-fork.png" />
+</Frame>
+
+---
+
+## Resource subscriptions
+
+<Tabs>
+  <Tab title="Legacy">
+
+Clicking **Subscribe** on a resource sends `resources/subscribe`. The Subscriptions section lists the URI with no stream chrome. When the resource changes, the server emits `notifications/resources/updated` and the subscribed tile's last-updated time is stamped.
+
+Reproduce with `test-servers/configs/subscriptions-legacy-http.json`, which also serves an `update_resource` tool so you can drive the notification round-trip yourself.
+
+  </Tab>
+  <Tab title="Modern">
+
+The same **Subscribe** button instead sends **`subscriptions/listen`**, whose filter carries `resourceSubscriptions` plus the `resourcesListChanged` opt-in, and resolves on `notifications/subscriptions/acknowledged`.
+
+Because the subscription is now a long-lived stream rather than a session flag, the Subscriptions section grows a **stream-status badge** in its header: `Connecting…` → `Listening`. If the stream drops, the Inspector reconnects by re-listing.
+
+Reproduce with `test-servers/configs/subscriptions-modern-http.json`.
+
+  </Tab>
+</Tabs>
+
+<Frame caption="TODO: Resources tab Subscriptions section, modern, showing the Listening stream-status badge">
+  <img src="/images/inspector/resources-subscriptions-modern.png" />
+</Frame>
+
+---
+
+## Tasks
+
+Tasks change the most across the fork — including _how the tab is gated_.
+
+<Tabs>
+  <Tab title="Legacy">
+
+The **Tasks** tab appears when the server advertises `capabilities.tasks`. Run a tool with **Run as task** enabled and the tab lists it, populated by `tasks/list` and polled with `tasks/get`. The completed payload is fetched with a **blocking `tasks/result`**, and **Cancel** sends `tasks/cancel`.
+
+Reproduce with `test-servers/configs/tasks-legacy-http.json`.
+
+  </Tab>
+  <Tab title="Modern">
+
+Tasks are an **extension** — `io.modelcontextprotocol/tasks` ([SEP-2663](/seps/2663-tasks-extension)) — so the tab is gated on the _negotiated extension_, not on `capabilities.tasks`.
+
+Run a tool as a task and `tools/call` returns a `CreateTaskResult` (`resultType: "task"` — visible in the Protocol and Network tabs). The Inspector polls **`tasks/get`** only; there is no `tasks/list`, so **Refresh** re-polls the handles the client already knows about. A completed task **inlines its result** — no blocking `tasks/result` call.
+
+A task that needs more information moves to `input_required` and surfaces an embedded elicitation through the pending-request modal. Answering it sends **`tasks/update`** carrying the `inputResponses`, and the next poll completes.
+
+Reproduce with `test-servers/configs/tasks-modern-http.json` (tools `modern_task` and `modern_input_task`).
+
+  </Tab>
+</Tabs>
+
+<Frame caption="TODO: Tasks tab in both eras — legacy tasks/list-backed table vs. modern polled handles with an inlined result">
+  <img src="/images/inspector/tasks-era-fork.png" />
+</Frame>
+
+---
+
+## Multi-round tool results (MRTR)
+
+On the modern era a tool can return `input_required` instead of a final result, embedding an elicitation, a sampling request, or a `roots/list` request. The client answers it and retries with a new id until the call reaches `complete`.
+
+The Inspector drives MRTR **manually** — it does not auto-fulfill — so each round pauses at the **pending-request modal**, tagged `input_required`, for you to answer. The Protocol view groups the whole exchange as one MRTR conversation rather than as unrelated calls.
+
+`test-servers/configs/mrtr-showcase-http.json` bundles every shape in one modern server:
+
+| Tool            | What it exercises                                                             |
+| --------------- | ----------------------------------------------------------------------------- |
+| `mrtr_confirm`  | A single elicitation round.                                                   |
+| `mrtr_two_step` | Two elicitation rounds, threaded through `requestState`.                      |
+| `mrtr_sample`   | An embedded sampling request → the Sampling panel.                            |
+| `mrtr_roots`    | An embedded `roots/list`, answered silently from configured roots — no modal. |
+| `mrtr_edge`     | An `inputRequests`-only round, then a `requestState`-only round.              |
+| `mrtr_loop`     | Never completes — trips the client's `MRTR_MAX_ROUNDS` bound.                 |
+
+<Note>
+  The legacy `collect_elicitation` pattern — a server calling
+  `server.elicitInput` — **errors** on the 2026-07-28 leg, because server→client
+  requests aren't allowed there. MRTR is its modern replacement.
+</Note>
+
+<Frame caption="TODO: The pending-request modal answering an input_required round, plus the grouped MRTR conversation in the Protocol view">
+  <img src="/images/inspector/mrtr-pending-request.png" />
+</Frame>
+
+---
+
+## Tools: mirrored headers and excluded tools
+
+[SEP-2243](/seps/2243-http-standardization) lets a tool annotate an argument with `x-mcp-header`, asking a Streamable HTTP client to mirror that argument's value into an `Mcp-Param-*` request header.
+
+The Inspector surfaces both halves of that contract in the **Tools** tab:
+
+- A tool with a **valid** annotation shows a **"Mirrored request headers (SEP-2243)"** section in its detail panel — e.g. `city → Mcp-Param-City`.
+- A tool with an **invalid** annotation (say, a header name of `"Bad Header"` — the space makes it an invalid RFC 9110 token) appears struck through in the sidebar under an **"Excluded (SEP-2243)"** divider, with the reason on hover. A conforming client MUST drop such a tool from `tools/list`; the Inspector shows you _why_ it was dropped rather than silently hiding it.
+
+Reproduce with `test-servers/configs/xmcpheader-modern-http.json`.
+
+<Warning>
+  **`Mcp-Param-*` mirroring is skipped by the SDK in the browser.** Calling a
+  mirrored tool from the *web* client omits the header, so a strict server
+  answers `-32020`. The same tool called from the **CLI** or **TUI** — both Node
+  — mirrors correctly. This is an SDK environment check, not an Inspector
+  limitation.
+</Warning>
+
+<Frame caption="TODO: Tools sidebar with the Excluded (SEP-2243) divider, and a detail panel showing Mirrored request headers">
+  <img src="/images/inspector/tools-sep2243.png" />
+</Frame>
+
+### The new `-32602` error panels
+
+Under the modern era a `tools/call` that rejects with `-32602` renders as a distinct **error panel** rather than an `isError` result:
+
+- **Unknown Tool** — when the message names a missing tool. Reproduce by calling a tool the server dropped from its list.
+- **Invalid Parameters** — any other `-32602`. Reproduce with the `trigger_invalid_params` tool in the config above.
+
+---
+
+## Network and Protocol: headers and the error taxonomy
+
+The modern era standardizes a set of `Mcp-*` HTTP headers and introduces a richer JSON-RPC error taxonomy ([SEP-2243](/seps/2243-http-standardization) / [SEP-2575](/seps/2575-stateless-mcp)). The two monitoring tabs divide the work:
+
+- The **Network** tab is the HTTP view — mirrored `Mcp-*` headers are highlighted and sentinel values decoded.
+- The **Protocol** tab is the JSON-RPC view — each spec error renders distinctly rather than as a generic failure.
+
+`test-servers/configs/modern-network-http.json` serves four tools that produce a real HTTP status plus a JSON-RPC error body, one per class:
+
+| Tool                          | HTTP  | JSON-RPC code | Meaning                                                        |
+| ----------------------------- | ----- | ------------- | -------------------------------------------------------------- |
+| `trigger_header_mismatch`     | `400` | `-32020`      | A required mirrored header was missing or wrong.               |
+| `trigger_missing_capability`  | `400` | `-32021`      | The request needed a capability that wasn't negotiated.        |
+| `trigger_unsupported_version` | `400` | `-32022`      | Unsupported protocol version (`data.supported` lists what is). |
+| `trigger_method_not_found`    | `404` | `-32601`      | Method not found.                                              |
+
+<Frame caption="TODO: Network tab showing highlighted Mcp-* headers, and the Protocol tab rendering a -32022 with data.supported">
+  <img src="/images/inspector/network-modern-errors.png" />
+</Frame>
+
+---
+
+## Sessions
+
+A legacy Streamable HTTP connection carries a session id and tears down with an HTTP `DELETE`. A modern connection is **sessionless and per-request** — the SDK skips the upstream `DELETE` when there is no session id, and disconnect is purely local.
+
+This has a practical consequence when writing your own test servers: a stateless modern handler constructed per request cannot hold state between calls. That's why the modern subscription showcase above deliberately omits an `update_resource` tool — the mutation would run against a throwaway server instance and be invisible to the next read.
