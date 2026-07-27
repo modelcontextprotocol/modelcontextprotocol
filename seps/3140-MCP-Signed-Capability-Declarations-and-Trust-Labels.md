@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **SEP** | `3140` |
+| **SEP** | `3140` *(placeholder — set to the PR number on submission)* |
 | **Title** | Signed Capability Declarations & Trustworthy Trust Labels |
 | **Author** | Omkar Parkhe (Microsoft) — omkarparth@gmail.com |
 | **Sponsor** | Paul Carleton (@pcarleton) and Den Delimarsky (@localden)  |
