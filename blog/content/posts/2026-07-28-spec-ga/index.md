@@ -126,10 +126,10 @@ Anthropic pairs frontier models with a developer experience that keeps raising t
 {{< quote name="Enrico Toniato" title="CTO" company="Manufact" logo="manufact.svg" >}}
 The new version of the MCP spec proves that the maintainers listen to feedback from the community. It solves real issues we faced at Manufact, both in mcp-use, our open-source framework, and on Manufact Cloud, where we host thousands of MCP servers. The new SDK v2, which powers mcp-use, helped us cut the package size by around 83% while making it 25% faster, thanks to the new client-server split. And with MCP going stateless, we are able to handle production traffic more reliably, securely, and at scale, without impractical infrastructure workarounds.
 {{< /quote >}}
-{{< quote name="Paul D'Ambra" title="Product Engineer" company="PostHog" >}}
+{{< quote name="Paul D'Ambra" title="Product Engineer" company="PostHog" logo="posthog.svg" >}}
 Moving MCP to a stateless protocol makes it easier to scale our own service and makes it easier for us to add analytics for our customers' MCP servers. Making it easier to show people how their MCP tools are being used and what tools are missing that their users would want to use. It's great to see this protocol growing in this direction.
 {{< /quote >}}
-{{< quote name="Inian Parameshwaran" title="Head of Product" company="Supabase" >}}
+{{< quote name="Inian Parameshwaran" title="Head of Product" company="Supabase" logo="supabase.svg" >}}
 Supporting elicitations has been on our roadmap for a while, but since Supabase MCP runs statelessly, it wasn't something we could do easily. MRTR changes that - it allows our tools to confirm with the user before it acts, like the cost of a new project before it's created, or a query that would delete data. We're excited to support elicitations.
 {{< /quote >}}
 {{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" logo="honeycomb.png" >}}
