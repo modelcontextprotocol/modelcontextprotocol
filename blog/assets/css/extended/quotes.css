@@ -121,7 +121,7 @@
 
 .mcp-quote-logo-text {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 400;
     line-height: 28px;
     letter-spacing: -0.01em;
     color: var(--primary);
@@ -144,10 +144,13 @@
     font-size: inherit;
 }
 
+/* PaperMod bolds figure > figcaption; the attribution is a quiet secondary
+   line ("Name, Title"), so reset it to regular weight. */
 .post-content .mcp-quote-attrib {
     margin-top: auto;
     padding-top: 16px;
     font-size: 14px;
+    font-weight: 400;
     color: var(--secondary);
 }
 
