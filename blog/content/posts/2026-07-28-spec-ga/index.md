@@ -102,6 +102,9 @@ The SDKs implement APIs that allow you to build both servers and clients with th
 As with any large release, the work that we're doing with MCP would not be possible without contributions from folks across the ecosystem. We're also especially grateful to a number of contributors and partners who helped us test and validate the spec before it became generally available.
 
 {{< quotes >}}
+{{< quote name="David Soria Parra" title="Member of Technical Staff, Co-Inventor of MCP" company="Anthropic" logo="anthropic.svg" >}}
+**[TBD - Quote from David]**
+{{< /quote >}}
 {{< quote name="Nick Cooper" title="MTS & MCP Core Maintainer" company="OpenAI" logo="openai.png" >}}
 MCP is now about a year and a half old. Thanks to feedback from developers and others who have worked with us, it's evolving into a more mature protocol that incorporates lessons from decades of web protocol design. As with prior revisions, the most interesting part will be seeing the unexpected things people build with it.
 {{< /quote >}}
