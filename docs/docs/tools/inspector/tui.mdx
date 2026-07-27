@@ -18,7 +18,7 @@ npx @modelcontextprotocol/inspector --tui node build/index.js
 Unlike the CLI, the TUI does **not** take `--server` — it loads _every_ server in the file and lets you pick from the list:
 
 ```bash
-mcp-inspector --tui --catalog mcp.json   # writable catalog, seeded empty if missing
+mcp-inspector --tui --catalog mcp.json   # writable catalog, seeded empty if missing (unlike the web client)
 mcp-inspector --tui --config mcp.json    # read-only session, errors if absent
 ```
 

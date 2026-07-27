@@ -68,14 +68,14 @@ The Servers screen is the entry point. A server row carries its transport, its c
 
 Where that list comes from — and whether it's editable — depends on how you launched:
 
-| Launch                                       | Server list                                     | Editable? |
-| -------------------------------------------- | ----------------------------------------------- | --------- |
-| `mcp-inspector --web`                        | The default catalog `~/.mcp-inspector/mcp.json` | Yes       |
-| `--catalog <path>`                           | That file, created and seeded if missing        | Yes       |
-| `--config <path>`                            | That file, read-only — never written or seeded  | No        |
-| `--server-url <url>` or a positional command | One ad-hoc server, held in memory               | No        |
+| Launch                                       | Server list                                                             | Editable? |
+| -------------------------------------------- | ----------------------------------------------------------------------- | --------- |
+| `mcp-inspector --web`                        | The default catalog `~/.mcp-inspector/mcp.json`, seeded on first launch | Yes       |
+| `--catalog <path>`                           | That file, seeded with the sample servers if missing                    | Yes       |
+| `--config <path>`                            | That file, read-only — never written or seeded                          | No        |
+| `--server-url <url>` or a positional command | One ad-hoc server, held in memory                                       | No        |
 
-See [Configuration and flags](/docs/tools/inspector/configuration) for the full rules.
+On a first launch the web client seeds the catalog with two sample servers — a filesystem server scoped to `/tmp` and the canonical "everything" reference server — so there is something to connect to straight away. See [Configuration and flags](/docs/tools/inspector/configuration) for the full rules, including why the CLI and TUI seed an empty catalog instead.
 
 ### Server Settings
 

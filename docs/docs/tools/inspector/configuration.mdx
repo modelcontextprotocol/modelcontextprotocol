@@ -23,12 +23,38 @@ These two flags look interchangeable and are not. All three clients resolve them
 |                             | `--catalog <path>`                                  | `--config <path>`                                       |
 | --------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
 | **Writable?**               | Yes — the Inspector's own server list.              | No. Served as-is, never written, seeded, or migrated.   |
-| **Missing file?**           | Created and seeded empty.                           | **Errors.**                                             |
+| **Missing file?**           | Created and seeded — see below.                     | **Errors.**                                             |
 | **Default**                 | `~/.mcp-inspector/mcp.json`, or `MCP_CATALOG_PATH`. | None — you must pass it.                                |
 | **Editable in the web UI?** | Yes.                                                | No.                                                     |
 | **Use it for**              | Your own working set of servers.                    | A read-only session against someone else's config file. |
 
 The two are **mutually exclusive**, and neither combines with an ad-hoc target. Passing both is rejected identically by all three clients.
+
+<Note>
+**What a freshly seeded catalog contains depends on the client.** The web backend seeds two sample servers, so a first launch has something to connect to immediately:
+
+```json
+{
+  "mcpServers": {
+    "filesystem-server-default": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    },
+    "everything-server-default": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"]
+    }
+  }
+}
+```
+
+The **CLI and TUI** seed an empty `{ "mcpServers": {} }` instead — they are non-interactive or list-driven, so sample entries would be noise rather than a starting point.
+
+Either way this happens **once**, only when the file is absent. An existing catalog is never re-seeded, and a read-only `--config` is never seeded at all.
+
+</Note>
 
 <Note>
   `--config` is what you want when pointing the Inspector at a config file you
