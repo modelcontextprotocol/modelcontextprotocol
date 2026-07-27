@@ -3,7 +3,7 @@
 
   Params:
     name    - person's name
-    title   - person's role, shown after the name
+    title   - person's role, shown on its own line under the name
     company - company name, used as the logo's accessible label
               (and shown as text when no logo is given)
     logo    - filename of an SVG in the post's page bundle, or a static path.
@@ -30,5 +30,10 @@
     <span class="mcp-quote-logo mcp-quote-logo-text">{{ $company }}</span>
   {{- end }}
   <blockquote class="mcp-quote-text">&ldquo;{{ trim .Inner " \n" | .Page.RenderString }}&rdquo;</blockquote>
-  <figcaption class="mcp-quote-attrib">{{ $name }}{{ with $title }}, {{ . }}{{ end }}</figcaption>
+  <figcaption class="mcp-quote-attrib">
+    <span class="mcp-quote-attrib-name">{{ $name }}</span>
+    {{- with $title }}
+    <span class="mcp-quote-attrib-title">{{ . }}</span>
+    {{- end }}
+  </figcaption>
 </figure>

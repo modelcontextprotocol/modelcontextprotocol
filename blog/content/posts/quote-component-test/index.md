@@ -95,3 +95,15 @@ Without a `logo` param the company name renders as a text wordmark.
 Our customers connect Copperfen to their agents themselves now.
 {{< /quote >}}
 {{< /quotes >}}
+
+## No title
+
+Without a `title` param the attribution is the name alone, no empty second
+line.
+
+{{< quotes >}}
+{{< quote name="Ines Kalvane" company="Tidegate Systems" logo="logo-tidegate.svg" >}}
+Tool annotations gave our reviewers the context they needed to approve agent
+access in days instead of months.
+{{< /quote >}}
+{{< /quotes >}}

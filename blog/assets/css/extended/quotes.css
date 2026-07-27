@@ -144,14 +144,28 @@
     font-size: inherit;
 }
 
-/* PaperMod bolds figure > figcaption; the attribution is a quiet secondary
-   line ("Name, Title"), so reset it to regular weight. */
+/* Attribution: the name bold on one line, the title regular and muted on the
+   next. PaperMod bolds figure > figcaption wholesale, so the figcaption is
+   reset to 400 and only the name span re-bolds (700, matching the blog's
+   strong text). Both lines share one tight line-height so the pair reads as
+   a unit, not two paragraphs. */
 .post-content .mcp-quote-attrib {
     margin-top: auto;
     padding-top: 16px;
     font-size: 14px;
     font-weight: 400;
+    line-height: 1.45;
     color: var(--secondary);
+}
+
+.mcp-quote-attrib-name {
+    display: block;
+    font-weight: 700;
+    color: var(--content);
+}
+
+.mcp-quote-attrib-title {
+    display: block;
 }
 
 /* Attributions start on the same line in every card. The track exposes three
