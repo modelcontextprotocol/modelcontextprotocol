@@ -51,10 +51,15 @@ notification type.
 
 ## Acknowledgment
 
-The server **MUST** send `notifications/subscriptions/acknowledged` as the first
-message on the stream. The `notifications` field in the acknowledgment reflects the
-subset the server agreed to honor — notification types the server does not support are
-omitted.
+The server **MUST** send `notifications/subscriptions/acknowledged` as the first message
+carrying the subscription's ID in `_meta` under `io.modelcontextprotocol/subscriptionId`,
+and **MUST NOT** send any notification on the
+subscription before it. On stdio, where every subscription shares one channel, this
+ordering is defined per subscription ID and not per channel: messages belonging to other
+subscriptions **MAY** be interleaved before it.
+
+The `notifications` field in the acknowledgment reflects the subset the server agreed to
+honor. Notification types the server does not support are omitted.
 
 ```json
 {
