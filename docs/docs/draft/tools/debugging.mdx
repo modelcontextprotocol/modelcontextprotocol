@@ -55,19 +55,26 @@ version `2026-07-28`. It remains available during the deprecation window.
 
 </Warning>
 
-For all [transports](/specification/latest/basic/transports), you can also
-provide logging to the client by sending a log message notification:
+For all [transports](/specification/latest/basic/transports), record what the
+server is doing as it runs:
 
 <CodeGroup>
 
 ```python Python
-@server.tool()
-async def my_tool(ctx: Context) -> str:
-    await ctx.session.send_log_message(
-        level="info",
-        data="Server started successfully",
-    )
-    return "done"
+import logging
+
+from mcp.server import MCPServer
+
+logger = logging.getLogger(__name__)
+
+mcp = MCPServer("reports")
+
+
+@mcp.tool()
+async def fetch_report(report_id: str) -> str:
+    """Fetch a report by id."""
+    logger.info("Fetching report %s", report_id)
+    return f"Report {report_id} is ready."
 ```
 
 ```typescript TypeScript

@@ -45,28 +45,27 @@ This quickstart assumes you have familiarity with:
 
 When implementing MCP servers, be careful about how you handle logging:
 
-**For STDIO-based servers:** Never write to stdout. Writing to stdout will corrupt the JSON-RPC messages and break your server. The `print()` function writes to stdout by default, but can be used safely with `file=sys.stderr`.
+**For STDIO-based servers:** Never write to stdout. Writing to stdout will corrupt the JSON-RPC messages and break your server. The `print()` function writes to stdout by default, so keep it out of a STDIO server entirely.
 
 **For HTTP-based servers:** Standard output logging is fine since it doesn't interfere with HTTP responses.
 
 ### Best Practices
 
-- Use a logging library that writes to stderr or files.
+- Use the standard library `logging` module, which writes to stderr.
+- Create one logger per module with `logging.getLogger(__name__)` and call it from your tools.
 
 ### Quick Examples
 
 ```python
-import sys
 import logging
+
+logger = logging.getLogger(__name__)
 
 # ❌ Bad (STDIO)
 print("Processing request")
 
 # ✅ Good (STDIO)
-print("Processing request", file=sys.stderr)
-
-# ✅ Good (STDIO)
-logging.info("Processing request")
+logger.info("Processing request")  # writes to stderr
 ```
 
 ### System requirements
@@ -106,7 +105,7 @@ uv venv
 source .venv/bin/activate
 
 # Install dependencies
-uv add "mcp[cli]" httpx
+uv add "mcp[cli]"
 
 # Create our server file
 touch weather.py
@@ -122,7 +121,7 @@ uv venv
 .venv\Scripts\activate
 
 # Install dependencies
-uv add mcp[cli] httpx
+uv add mcp[cli]
 
 # Create our server file
 new-item weather.py
@@ -141,8 +140,8 @@ Add these to the top of your `weather.py`:
 ```python
 from typing import Any
 
-import httpx
-from mcp.server.mcpserver import MCPServer
+import httpx2
+from mcp.server import MCPServer
 
 # Initialize MCPServer
 mcp = MCPServer("weather")
@@ -151,6 +150,8 @@ mcp = MCPServer("weather")
 NWS_API_BASE = "https://api.weather.gov"
 USER_AGENT = "weather-app/1.0"
 ```
+
+`httpx2` is the HTTP client the SDK itself depends on, so installing `mcp` already brought it in.
 
 The MCPServer class uses Python type hints and docstrings to automatically generate tool definitions, making it easy to create and maintain MCP tools.
 
@@ -162,7 +163,7 @@ Next, let's add our helper functions for querying and formatting the data from t
 async def make_nws_request(url: str) -> dict[str, Any] | None:
     """Make a request to the NWS API with proper error handling."""
     headers = {"User-Agent": USER_AGENT, "Accept": "application/geo+json"}
-    async with httpx.AsyncClient() as client:
+    async with httpx2.AsyncClient() as client:
         try:
             response = await client.get(url, headers=headers, timeout=30.0)
             response.raise_for_status()
@@ -250,13 +251,8 @@ Forecast: {period["detailedForecast"]}
 Finally, let's initialize and run the server:
 
 ```python
-def main():
-    # Initialize and run the server
-    mcp.run(transport="stdio")
-
-
 if __name__ == "__main__":
-    main()
+    mcp.run(transport="stdio")
 ```
 
 Your server is complete! Run `uv run weather.py` to start the MCP server, which will listen for messages from MCP hosts.
