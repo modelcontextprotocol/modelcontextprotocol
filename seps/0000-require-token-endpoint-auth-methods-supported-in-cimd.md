@@ -1,0 +1,275 @@
+# SEP-0000: Require `token_endpoint_auth_methods_supported` in Client ID Metadata Documents
+
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-07-27
+- **Author(s)**: @max-stytch
+- **Sponsor**: @pcarleton
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+
+## Abstract
+
+This SEP makes the `token_endpoint_auth_methods_supported` metadata parameter
+a required property of MCP Client ID Metadata Documents (CIMD), and creates a
+deprecation path for the singular `token_endpoint_auth_method` parameter,
+mirroring the guidance in [OpenID Connect RP Metadata Choices 1.0](https://openid.net/specs/openid-connect-rp-metadata-choices-1_0-final.html).
+This enables a CIMD document to be published once and consumed by many
+authorization servers with differing capabilities. It also deprecates the
+implicit public-client default that applies when a document declares no
+authentication method at all. Both deprecations point at the same end state:
+every CIMD document declares its authentication methods explicitly in
+`token_endpoint_auth_methods_supported`. This SEP is agnostic about which 
+authentication methods a given client advertises. It specifies the shape 
+and handling of the field, not its contents.
+
+## Motivation
+
+MCP's Client ID Metadata Document mechanism, introduced in
+[SEP-991](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/991-enable-url-based-client-registration-using-oauth-c.md),
+carried over the singular `token_endpoint_auth_method` from RFC 7591 client
+metadata. It appears in the specification today only in an example document,
+never in normative prose.
+
+A CIMD document is published at a single URL and consumed by every
+authorization server the client ever connects to, and those servers do not
+have uniform capabilities. Some support `private_key_jwt`; many accept only
+public clients. A single-valued `token_endpoint_auth_method` gives a client no
+way to express "either, depending on what you support." In practice that
+forces the lowest common denominator: the client is forced to publish `none`, and the
+servers that *could* have required a signed assertion never learn the client
+was capable of one.
+
+The broader OAuth/OIDC ecosystem has already solved this capability
+negotiation problem by moving from single-valued to multi-valued parameters.
+RP Metadata Choices 1.0 supplements `token_endpoint_auth_method` with
+`token_endpoint_auth_methods_supported`, and RFC 8414 uses that same name for
+the mirror-image capability on the authorization server. Adopting it in CIMD
+documents brings MCP in line with both.
+
+## Specification
+
+### CIMD Document Requirements
+
+MCP clients publishing a Client ID Metadata Document **MUST** include the
+`token_endpoint_auth_methods_supported` metadata parameter. Its value is a
+JSON array of strings drawn from the
+[OAuth Token Endpoint Authentication Methods registry](https://www.iana.org/assignments/oauth-parameters/oauth-parameters.xhtml#token-endpoint-auth-method)
+established by [RFC 7591 Section 4.2](https://datatracker.ietf.org/doc/html/rfc7591#section-4.2).
+
+This extends the metadata document's required-property list in
+[Client Registration](/specification/draft/basic/authorization/client-registration),
+which currently reads:
+
+> The metadata document **MUST** include at least the following properties:
+> `client_id`, `client_name`, `redirect_uris`
+
+The array **MUST** contain one or more authentication methods the client supports, in no particular order of preference.
+
+Authorization servers **MUST** support reading
+`token_endpoint_auth_methods_supported` from a CIMD document. Documents that
+omit it are handled as described in
+[Deprecated Declarations](#deprecated-declarations).
+
+A document that carries **neither** parameter **MUST** be treated as declaring
+`["none"]` — that is, as a public client. This default is itself **deprecated**
+and exists only for compatibility: neither parameter is required by the
+specification today, so documents omitting both are conformant under the
+current revision and remain in wide use. Once the deprecation period elapses,
+such a document is invalid and authorization servers reject it rather than
+inferring a method.
+
+For illustration, a client that can operate either as a public client or with
+an assertion-based credential might publish:
+
+```json
+"token_endpoint_auth_methods_supported": ["none", "private_key_jwt"]
+```
+
+Here `none` indicates the client can act as a public client with no client
+authentication at the token endpoint, and `private_key_jwt` indicates it can
+authenticate with a signed JWT assertion per
+[RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523), using the JWKS
+referenced by the CIMD document (see
+[Section 6.2 of the Client ID Metadata Document draft](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)).
+Any other registered method name is equally valid here.
+
+### Authorization Server Selection
+
+An authorization server registering a client computes the intersection 
+of the client's `token_endpoint_auth_methods_supported` array and
+the methods the authorization server itself supports.
+
+If that intersection is empty, the authorization server **MUST** reject the
+registration rather than falling back to a method the client did not
+advertise. In particular, it **MUST NOT** assume `none` when the field is
+present and non-empty but does not include it.
+
+This applies to the `["none"]` default for documents declaring no
+authentication method as it does to an explicitly published array: an
+authorization server that does not support public clients **MUST** reject
+such a document rather than registering the client under some other method.
+
+### Deprecated Declarations
+
+Changing an established metadata field in a widely deployed mechanism needs a
+managed transition rather than an immediate cutover, and MCP already has a
+pattern for exactly this. Dynamic Client Registration is deprecated in favor
+of Client ID Metadata Documents, but remains permitted and is "retained for
+backwards compatibility with authorization servers that do not support Client
+ID Metadata Documents," with a removal date governed by the
+[feature lifecycle policy](/community/feature-lifecycle).
+
+This SEP applies the same treatment to the two ways a CIMD document can
+currently avoid declaring its authentication methods explicitly. Both are
+**deprecated**, both remain permitted for now, and both migrate to
+`token_endpoint_auth_methods_supported`:
+
+1. **The singular `token_endpoint_auth_method` parameter**, retained for
+   backwards compatibility with authorization servers that do not support the
+   array.
+2. **Declaring no authentication method at all**, retained for backwards
+   compatibility with documents published before the array was required.
+
+- Clients **MUST** publish `token_endpoint_auth_methods_supported`.
+- Clients **SHOULD** additionally publish `token_endpoint_auth_method`, set
+  to their preferred single value from that array, for as long as the field
+  remains deprecated rather than removed. This follows
+  [OpenID Connect RP Metadata Choices 1.0, Section 2](https://openid.net/specs/openid-connect-rp-metadata-choices-1_0-final.html):
+
+  > To facilitate interoperability with implementations not supporting this
+  > specification, deployments SHOULD include the single-valued metadata
+  > parameter alongside the corresponding multi-valued metadata parameter with
+  > their preferred single value.
+
+- Authorization servers **MUST** prefer `token_endpoint_auth_methods_supported`
+  when it is present, and **MUST NOT** let a present-but-conflicting
+  `token_endpoint_auth_method` override it.
+- Authorization servers **MAY** fall back to `token_endpoint_auth_method`
+  when the multi-valued parameter is absent — for example, when reading a
+  document published before this requirement took effect.
+- Authorization servers **MUST** treat a document carrying neither parameter
+  as declaring `["none"]` until the deprecation period elapses, and **MUST**
+  reject such a document thereafter.
+
+### Lifecycle
+
+Per the [feature lifecycle policy](/community/feature-lifecycle), this SEP
+proposes the following deprecation entries:
+
+| Feature                                        | Deprecation SEP | Deprecated in         | Migration path                          | Earliest removal                                              |
+| ---------------------------------------------- | --------------- | --------------------- | --------------------------------------- | ------------------------------------------------------------- |
+| `token_endpoint_auth_method`                   | SEP-0000        | _(revision on merge)_ | `token_endpoint_auth_methods_supported` | First revision released on or after one year from deprecation |
+| Implicit `none` for documents declaring no method | SEP-0000     | _(revision on merge)_ | `token_endpoint_auth_methods_supported` | First revision released on or after one year from deprecation |
+
+
+## Rationale
+
+`token_endpoint_auth_methods_supported` was chosen over inventing an
+MCP-specific field name because it is already the standard name for this
+capability within OAuth/OpenID ecosystems.
+
+This SEP intentionally does not recommend a specific set of authentication
+methods. Which methods a client can support is determined by its deployment
+model, and a blanket recommendation would be wrong for some large class of
+clients.
+
+The field is required (MUST) rather than recommended (SHOULD) because explicit
+behavior is crucial for authentication mechanisms. A required field gives
+servers a single place to look and makes conformance checkable. The cost —
+that existing documents must add one property — is trivial.
+
+### Alternatives considered
+
+Making `token_endpoint_auth_methods_supported` optional (SHOULD)
+
+- Rejected. A SHOULD leaves authorization servers unable to depend on the
+  field, so they must keep consulting the singular field indefinitely and the
+  lowest-common-denominator problem persists for any client that skips it.
+  Requiring the field while deprecating (not removing) the old one achieves
+  the transition without an interoperability break.
+
+
+Publishing multiple metadata documents, one per `token_endpoint_auth_method`
+
+- Rejected because it defeats the purpose of CIMD. The metadata URL *is* the
+  `client_id`, so publishing one document per authentication method splits a
+  single logical client into several distinct client identities. User consent
+  records, revocation, audit logs, and rate limits would fragment across
+  those identities, and the same application would appear to users as
+  different clients depending on which authorization server they connected
+  through.
+- The maintenance burden compounds the problem: every additional method
+  multiplies the documents that must be hosted and kept in sync, and each new
+  method a client adopts changes the set of URLs it publishes. Declaring
+  capabilities in one document keeps the client's identity stable while its
+  capabilities evolve.
+
+  
+## Backward Compatibility
+
+In the revision this SEP lands in, the incompatibility is at the conformance
+level only. No existing CIMD document stops working.
+
+**What changes.** CIMD documents that omit
+`token_endpoint_auth_methods_supported` become non-conformant with that
+revision. Every client publishing a CIMD document must add the property, even
+if it only ever supported one authentication method.
+
+**What does not change, for now.** Every document that is valid today
+continues to register successfully:
+
+- Documents omitting the array but declaring `token_endpoint_auth_method`
+  work via the fallback above.
+- Documents declaring neither parameter are treated as `["none"]`, which is
+  the behavior authorization servers already implement in practice and the
+  posture those clients already had.
+- Authorization servers that have not yet implemented the multi-valued
+  parameter keep working, because clients SHOULD continue publishing the
+  singular field.
+
+The immediate incompatibility is therefore a conformance obligation on
+clients, not a runtime failure for either party, and non-conformant documents
+degrade to their current behavior rather than being rejected.
+
+**What changes at removal.** Both accommodations are deprecated, so this is a
+deferred break rather than an avoided one. When the deprecation period
+elapses, a document that declares no authentication method is rejected instead
+of read as `["none"]`, and clients that never added the array stop
+registering. The window exists so that the fix — publishing one additional
+property — can be made on the client's own schedule rather than under an
+upgrade deadline.
+
+**Ordering.** Because the requirement lands on clients while the fallback
+remains available to servers, deployments can migrate independently: a client
+can add the array before any given server reads it, and a server can start
+reading it before every client publishes it. Neither side needs to coordinate
+with the other.
+
+## Security Implications
+
+This proposal does not introduce a new client authentication mechanism; it
+only changes how a client advertises which existing, already-specified
+authentication methods it supports. Because this SEP does not prescribe the
+contents of the array, it does not itself raise or lower the authentication
+strength of any deployment: authorization servers remain responsible for
+rejecting clients whose advertised methods do not meet the server's
+requirements.
+
+In aggregate this change is expected to improve authentication strength across
+the ecosystem rather than weaken it. Today a client that supports strong
+client authentication must still publish a single value acceptable to the
+weakest authorization server it needs to work with; enumerating capabilities
+lets servers that support a stronger method actually use it.
+
+## Reference Implementation
+
+**TODO**
+
+## Open Questions
+
+- Should `implicit ["none"]` and `token_endpoint_auth_method` be deprecated, or 
+  should allowances be made to not break existing CIMD clients?
+
+## Acknowledgments
+
+TBD.
