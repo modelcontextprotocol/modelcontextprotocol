@@ -108,22 +108,22 @@ MCP is now about a year and a half old. Thanks to feedback from developers and o
 {{< quote name="Swami Sivasubramanian" title="VP of Agentic AI" company="AWS" logo="aws.svg" >}}
 AWS and Anthropic are committed to supporting the MCP community and helping developers ship enterprise-grade agents at scale. With the new MCP specification and its stateless protocol core available in Amazon Bedrock AgentCore, developers can deploy MCP servers on standard, scalable infrastructure without managing sessions or persistent connections. Tasks, one of the first official MCP extensions and contributed by AWS, brings support for reliable, long-running agents, so developers can spend less time on infrastructure and more time innovating.
 {{< /quote >}}
-{{< quote name="Anna Berenberg" title="Engineering Fellow" company="Google Cloud" >}}
+{{< quote name="Anna Berenberg" title="Engineering Fellow" company="Google Cloud" logo="google-cloud.png" >}}
 The 2026-07-28 Model Context Protocol release represents a massive leap forward in enterprise AI scalability. By evolving into a stateless architecture, this specification removes the friction of deploying agentic workflows at scale. At Google Cloud, we are excited to leverage these powerful new capabilities across our ecosystem of developer tools. This release provides the robust, secure, and extensible foundation that our customers (and our own teams) need to build the next generation of AI applications, and we are proud to continue shaping the future of this open standard together.
 {{< /quote >}}
 {{< quote name="Josh Clemm" title="VP of Engineering" company="Figma" logo="figma.svg" >}}
 More builders are using our MCP server to bring generated outputs into Figma's canvas, where they can explore, riff and refine them with their team into products that stand out. As that usage grows, our stateless architecture can scale with it, and with MCP Apps, Tasks, and Enterprise-Managed Authorization, we can do even more to keep design and code together in one, connected flow.
 {{< /quote >}}
-{{< quote name="Alex Salazar" title="CEO & Co-Founder" company="Arcade.dev" >}}
+{{< quote name="Alex Salazar" title="CEO & Co-Founder" company="Arcade.dev" logo="arcade.svg" >}}
 This release is the clearest signal yet that MCP is becoming real production-grade infrastructure. The biggest changes are breaking ones, and the community has chosen to do the hard work rather than paper over the gaps. That tracks with what we see across the enterprises we work with: MCP has already become the default these teams are building on, and this release is exactly the maturation they've been waiting for. This is a protocol growing up in real time around what production teams actually need, and it's a step forward for anyone building enterprise agents.
 {{< /quote >}}
-{{< quote name="Sean Roberts" title="VP of Applied AI" company="Netlify" >}}
+{{< quote name="Sean Roberts" title="VP of Applied AI" company="Netlify" logo="netlify.svg" >}}
 The stateless core in the 2026-07-28 spec makes MCP a first-class HTTP workload with no session management to work around. Our customers wanted MCPs on Netlify to be as simple as the rest of the platform and this new spec unlocks this at its core. Building MCP Apps into the new extensions framework is a huge step forward for scalability, accessibility, and capability across the whole ecosystem.
 {{< /quote >}}
-{{< quote name="Andrew Goodman" title="VP of AI" company="Xero" >}}
+{{< quote name="Andrew Goodman" title="VP of AI" company="Xero" logo="xero.webp" >}}
 Anthropic pairs frontier models with a developer experience that keeps raising the bar. The stateless core in the open MCP 2026-07-28 spec reduces the complexity we manage, so we can ship more features to our customers, faster and at scale.
 {{< /quote >}}
-{{< quote name="Enrico Toniato" title="CTO" company="Manufact" >}}
+{{< quote name="Enrico Toniato" title="CTO" company="Manufact" logo="manufact.svg" >}}
 The new version of the MCP spec proves that the maintainers listen to feedback from the community. It solves real issues we faced at Manufact, both in mcp-use, our open-source framework, and on Manufact Cloud, where we host thousands of MCP servers. The new SDK v2, which powers mcp-use, helped us cut the package size by around 83% while making it 25% faster, thanks to the new client-server split. And with MCP going stateless, we are able to handle production traffic more reliably, securely, and at scale, without impractical infrastructure workarounds.
 {{< /quote >}}
 {{< quote name="Paul D'Ambra" title="Product Engineer" company="PostHog" >}}
