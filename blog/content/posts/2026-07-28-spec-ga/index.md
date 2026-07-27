@@ -135,6 +135,9 @@ Supporting elicitations has been on our roadmap for a while, but since Supabase 
 {{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" logo="honeycomb.png" >}}
 At honeycomb.io, we've seen fantastic adoption of MCP - nearly 20% of all monthly interactive queries are now made by agents! The new specification release allows us to support more advanced features such as elicitations while running at enterprise scale.
 {{< /quote >}}
+{{< quote name="Tina Schuchman" title="Corporate Vice President for Engineering, Microsoft Foundry" company="Microsoft" logo="microsoft.svg" >}}
+Open protocols create bigger ecosystems than any one company can build alone. MCP is foundational to Microsoft Foundry, enabling us to scale from dozens of integrations to thousands. We leverage it with Foundry toolbox unified MCP endpoint that brings together tools while centralizing governance, identity, and observability. With stateless operations, Tasks for long-running work, and enterprise-managed identity, the next generation of MCP makes it easier than ever to build secure, scalable, production-ready agent systems.
+{{< /quote >}}
 {{< /quotes >}}
 
 ## Getting started
