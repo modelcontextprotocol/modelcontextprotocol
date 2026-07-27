@@ -221,7 +221,7 @@ In this example, the exchange demonstrates how MCP capabilities are declared:
 
 **Server Capabilities**:
 
-- `"tools": {"listChanged": true}` - The server supports the tools primitive AND can send `notifications/tools/list_changed` when its tool list changes
+- `"tools": {"listChanged": true}` - The server supports the tools primitive and can honor a `toolsListChanged` filter in [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions). Clients that request this filter receive `notifications/tools/list_changed` when the tool list changes.
 - `"resources": {}` - The server also supports the resources primitive (can handle `resources/list` and `resources/read` methods)
 
 Calling `server/discover` is optional. Because every request carries the same `_meta` fields, a client is free to send any request directly and handle a version error if one comes back. Discovery is a convenient way to fetch the server's identity, capabilities, and supported versions in a single request.
@@ -307,7 +307,7 @@ The client can discover available tools by sending a `tools/list` request. This 
           }
         }
       ],
-      "ttlMs": 3600000,
+      "ttlMs": 300000,
       "cacheScope": "public"
     }
   }
@@ -329,7 +329,7 @@ Each tool object in the response includes several key fields:
 - **`description`**: Detailed explanation of what the tool does and when to use it
 - **`inputSchema`**: A JSON Schema that defines the expected input parameters, enabling type validation and providing clear documentation about required and optional parameters
 
-The result also carries two caching hints: `ttlMs` tells the client how long it may reuse the listing before fetching it again, and `cacheScope` indicates whether the response may be cached publicly (shared across users and intermediaries) or only privately for the current user.
+The result is marked `"resultType": "complete"` and carries two caching fields. `ttlMs` is a freshness hint in milliseconds, so this tool list can be cached for five minutes. `cacheScope` indicates who may reuse the response. The specification's [caching utility](/specification/draft/server/utilities/caching) defines the full rules.
 
 #### How This Works in AI Applications
 
@@ -440,9 +440,9 @@ async def handle_tool_call(conversation, tool_name, arguments):
 <Step title="Real-time Updates (Notifications)">
 MCP supports real-time notifications that enable servers to inform clients about changes without being polled for them. This demonstrates the notification system, a key feature that keeps clients synchronized and responsive.
 
-#### Understanding Tool List Change Notifications
+#### Subscribing to Changes
 
-Change notifications are opt-in. The client opens a long-lived stream with a [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) request that names the notification types it wants to receive:
+Change notifications are opt-in. To receive them, the client opens a long-lived notification stream by sending a [`subscriptions/listen`](/specification/draft/basic/patterns/subscriptions) request with a `notifications` filter naming the event types it wants. Here the client asks for tool list changes:
 
 ```json Listen Request
 {
@@ -467,24 +467,13 @@ Change notifications are opt-in. The client opens a long-lived stream with a [`s
 }
 ```
 
-The server acknowledges the subscription with `notifications/subscriptions/acknowledged`, which is the first message carrying that subscription's ID in `_meta` (the server sends no other notification for that subscription before it). Its `notifications` field reflects the subset of the requested filter the server agreed to honor, with unsupported notification types omitted:
+Every client request carries the `io.modelcontextprotocol/protocolVersion` and `io.modelcontextprotocol/clientCapabilities` fields in `_meta`, and normally `io.modelcontextprotocol/clientInfo` as well, so the server can identify the client without relying on connection state.
 
-```json Acknowledgment
-{
-  "jsonrpc": "2.0",
-  "method": "notifications/subscriptions/acknowledged",
-  "params": {
-    "_meta": {
-      "io.modelcontextprotocol/subscriptionId": 4
-    },
-    "notifications": {
-      "toolsListChanged": true
-    }
-  }
-}
-```
+The server acknowledges the filter with `notifications/subscriptions/acknowledged`, which is the first message carrying that subscription's ID in `_meta`, then delivers matching notifications as changes occur. The server never sends notification types the client did not request.
 
-After the acknowledgment, when the server's available tools change (new functionality becomes available, existing tools are modified, or tools become temporarily unavailable), the server delivers a notification on that stream:
+#### Understanding Tool List Change Notifications
+
+When the server's available tools change (for example, when new functionality becomes available, existing tools are modified, or tools become temporarily unavailable), the server notifies clients that opted in:
 
 ```json Notification
 {
@@ -502,11 +491,13 @@ After the acknowledgment, when the server's available tools change (new function
 
 1. **No Response Required**: Notice there's no `id` field in the notification. This follows JSON-RPC 2.0 notification semantics where no response is expected or sent.
 
-2. **Opt-In**: The server only delivers the notification types the client requested in its `subscriptions/listen` filter, and this particular notification is only available from servers that declared `"listChanged": true` in their tools capability (as shown in Step 1).
+2. **Opt-In Based**: This notification is only sent to clients that requested `"toolsListChanged": true` in their `subscriptions/listen` filter.
 
-3. **Correlated**: Every notification on the stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`, identifying the `subscriptions/listen` request that opened the stream.
+3. **Subscription-ID Tagging**: Every notification on the stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`. The value is the JSON-RPC ID of the `subscriptions/listen` request that opened the stream (`4` in this example), so clients can correlate each notification with the subscription that produced it.
 
-4. **Event-Driven**: The server decides when to send notifications based on internal state changes, making MCP clients dynamic and responsive.
+4. **Event-Driven**: The server decides when to send notifications based on internal state changes, making MCP connections dynamic and responsive.
+
+5. **Best Effort**: There are no guarantees that every notification will be sent or received, particularly across transport reconnects. Clients should also rely on polling to preserve freshness of results.
 
 #### Client Response to Notifications
 
