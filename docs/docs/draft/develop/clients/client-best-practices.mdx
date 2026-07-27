@@ -115,14 +115,15 @@ sequenceDiagram
     Host-->>Model: Salesforce server available
 
     Model->>Host: enable_server("salesforce")
-    Host->>Server: Initialize connection
-    Server-->>Host: Server capabilities + tools
+    Host->>Server: server/discover
+    Server-->>Host: Supported versions + capabilities
+    Host->>Server: tools/list
+    Server-->>Host: Tool definitions
     Host-->>Model: Salesforce server connected
 
     Note over Model: Task complete
 
     Model->>Host: disable_server("salesforce")
-    Host->>Server: Close connection
     Host-->>Model: Server disconnected, context freed
 ```
 
@@ -138,6 +139,14 @@ When implementing progressive discovery:
 | **Cache tool definitions**       | Once fetched from a server, memoize the definition host-side so re-injecting it later doesn't need another `tools/list` round trip. This is separate from what's currently in the model's context. |
 | **Refresh on `list_changed`**    | Re-index the search catalog when a server sends `notifications/tools/list_changed`.                                                                                                                |
 | **Group tools by server**        | Present tools organized by their source server so the model can reason about related capabilities.                                                                                                 |
+
+### Caching
+
+Each list result (such as `tools/list`), as well as each `server/discover` and
+`resources/read` result, carries `ttlMs` and `cacheScope` hints. Follow them as defined in the
+specification's [caching utility](/specification/draft/server/utilities/caching). In particular,
+treat a cached list as stale once a `list_changed` notification arrives, even before its TTL
+expires.
 
 ### Interaction with Prompt Caching
 
