@@ -47,8 +47,7 @@ questions about:
 - **What it connects to** — a cloud API, a local process, the filesystem, hardware
 - **Who will use it** — just you, your team, or anyone who installs it
 - **Action surface size** — a handful of operations versus wrapping a large API
-- **User interaction needs** — plain text results, structured input via
-  [elicitation](/specification/draft/client/elicitation), or rich UI widgets
+- **User interaction needs** — plain text results or rich UI widgets
 - **Upstream auth** — API keys, OAuth 2.0, or none
 
 If your opening message already covers these, the agent skips ahead to the
@@ -59,7 +58,7 @@ recommendation.
 Based on discovery, the skill recommends one of four paths and scaffolds
 accordingly:
 
-**Remote [Streamable HTTP](/specification/draft/basic/transports/streamable-http)**
+**Remote [HTTP with SSE](/specification/2024-11-05/basic/transports#http-with-sse)**
 is the default for anything wrapping a cloud API. Zero install friction, one
 deployment serves all users, and OAuth flows work properly because the server
 can handle redirects and token storage. The reference skill includes scaffolds
@@ -67,9 +66,8 @@ for Cloudflare Workers and portable Express/FastMCP setups.
 
 **[MCP apps](/extensions/apps/overview)** extend a server with interactive
 widgets rendered in chat, such as searchable pickers, charts, and live
-dashboards. The skill hands off to `build-mcp-app` when
-[elicitation's](/specification/draft/client/elicitation) flat-form constraints
-don't fit.
+dashboards. The skill hands off to `build-mcp-app` when plain text output
+doesn't fit.
 
 **[MCP Bundles (MCPB)](https://github.com/modelcontextprotocol/mcpb)** package a
 local server together with its runtime as a single `.mcpb` archive, so users
@@ -77,7 +75,7 @@ can install it without setting up Node or Python. Use this path when the server
 must touch the user's machine: reading local files, driving desktop apps, or
 talking to localhost services. The skill hands off to `build-mcpb`.
 
-**Local [stdio](/specification/draft/basic/transports/stdio)** remains available
+**Local [stdio](/specification/2024-11-05/basic/transports#stdio)** remains available
 for prototyping, with a noted upgrade path to MCPB when you're ready to
 distribute.
 
