@@ -178,6 +178,16 @@
     display: block;
 }
 
+/* PaperMod's .post-content figure > figcaption (0,2,1) adds margin:8px 0 16px
+   to the attribution. The 16px bottom margin inflated the shared attribution
+   row, so the card dividers hung 16px longer below the content than the 8px
+   they extend above the logos, and the 8px top margin also beat the flex
+   fallback's margin-top:auto bottom-alignment. Re-own both margins at higher
+   specificity; the subgrid block below still wins its margin-top:0 by order. */
+.post-content .mcp-quote .mcp-quote-attrib {
+    margin: auto 0 0;
+}
+
 /* Attributions start on the same line in every card. The track exposes three
    explicit rows (logo / quote / attribution) and each card adopts them via
    subgrid, so the quote row is sized by the longest quote in the set and
