@@ -164,13 +164,19 @@ jobs:
           }
           // Draft-source redirects (pages that moved out of the draft tree)
           // get a dated sibling so the promoted version's URLs resolve too.
+          // Skip any dated source already present: main may carry pre-cut
+          // <version>/ redirects, and Mintlify rejects duplicate sources.
           const draftRedirects = (j.redirects ?? []).filter((r) =>
             r.source.startsWith('/specification/draft/'),
           );
+          const sources = new Set((j.redirects ?? []).map((r) => r.source));
           for (const r of draftRedirects) {
+            const source = r.source.replace('/specification/draft/', `/specification/${V}/`);
+            if (sources.has(source)) continue;
+            sources.add(source);
             j.redirects.push({
               ...r,
-              source: r.source.replace('/specification/draft/', `/specification/${V}/`),
+              source,
               destination: r.destination
                 .replaceAll('/specification/draft', `/specification/${V}`)
                 .replaceAll('/docs/draft', `/docs/${V}`),
