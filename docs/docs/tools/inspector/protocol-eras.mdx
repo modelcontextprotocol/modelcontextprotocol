@@ -1,11 +1,11 @@
 ---
 title: Protocol eras
-description: How the Inspector negotiates legacy vs. modern MCP, and how every feature changes across the fork
+description: How the Inspector negotiates legacy vs. modern MCP, and how every feature is handled between protocol eras
 ---
 
 The 2026-07-28 revision of MCP changed enough of the wire protocol that a debugging tool cannot pretend the difference away. The Inspector therefore treats **protocol era** as a first-class, per-server setting, orthogonal to the transport: the same HTTP URL can be inspected as a legacy server or as a modern one, and several tabs render meaningfully different UI and traffic depending on which.
 
-This page explains the setting, how negotiation works, and then walks the fork feature by feature.
+This page explains the setting, how negotiation works, and then walks the two eras feature by feature.
 
 ## The `Protocol Era` setting
 
@@ -34,9 +34,9 @@ Once connected, the negotiated era is reported in the connection header and in *
   <img src="/images/inspector/settings-protocol-era.png" />
 </Frame>
 
-## Reproducing every fork locally
+## Reproducing each era locally
 
-The Inspector repository ships **composable test servers** whose JSON configs are ready-made reproductions of each behavior below. Clone the repo, build the test servers, and point the Inspector at the relevant config — each section names the one to use.
+Every section below ends with a **Reproduce with …** pointer to a JSON config. Those configs come from the **composable test servers** shipped in the Inspector repository — ready-made reproductions of each behavior. Clone the repo, build the test servers, then point the Inspector at the config the section names.
 
 ```bash
 git clone https://github.com/modelcontextprotocol/inspector
@@ -112,7 +112,7 @@ Reproduce with `test-servers/configs/subscriptions-modern-http.json`.
 
 ## Tasks
 
-Tasks change the most across the fork — including _how the tab is gated_.
+Tasks change the most between protocol eras — including _how the Inspector UI tab is gated_.
 
 <Tabs>
   <Tab title="Legacy">
@@ -164,8 +164,8 @@ The Inspector drives MRTR **manually** — it does not auto-fulfill — so each 
 
 <Note>
   The legacy `collect_elicitation` pattern — a server calling
-  `server.elicitInput` — **errors** on the 2026-07-28 leg, because server→client
-  requests aren't allowed there. MRTR is its modern replacement.
+  `server.elicitInput` — **errors** on a 2026-07-28 connection, because
+  server→client requests aren't allowed there. MRTR is its modern replacement.
 </Note>
 
 <Frame caption="An MRTR round paused at the pending-request modal, tagged input_required. Answering it retries the original request.">
