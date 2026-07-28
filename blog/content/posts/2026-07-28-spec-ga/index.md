@@ -98,6 +98,8 @@ All four Tier 1 SDKs speak `2026-07-28` as of today:
 - [Go](https://github.com/modelcontextprotocol/go-sdk)
 - [C#](https://github.com/modelcontextprotocol/csharp-sdk)
 
+Beyond the Tier 1 set, the [Rust SDK](https://github.com/modelcontextprotocol/rust-sdk) supports the new spec in beta.
+
 The SDKs implement APIs that allow you to build both servers and clients with the new spec version. As we mentioned in the [SDK beta blog post](/posts/sdk-betas-2026-07-28/), there will be some migration cost, especially for developers that did depend on session identifiers; however, we incorporated early testing feedback that makes this process much easier.
 
 ## Ecosystem support
