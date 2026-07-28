@@ -106,7 +106,7 @@ As with any large release, the work that we're doing with MCP would not be possi
 
 {{< quotes >}}
 {{< quote name="David Soria Parra" title="Member of Technical Staff, Co-Inventor of MCP" company="Anthropic" logo="anthropic.svg" >}}
-**[TBD - Quote from David]**
+The new release is MCP's most important since remote MCP first launched over a year ago. It takes all the lessons learned over the last 18 months and makes MCP ready for the future.
 {{< /quote >}}
 {{< quote name="Alex Salazar" title="CEO & Co-Founder" company="Arcade.dev" logo="arcade.svg" >}}
 This release is the clearest signal yet that MCP is becoming real production-grade infrastructure. The biggest changes are breaking ones, and the community has chosen to do the hard work rather than paper over the gaps. That tracks with what we see across the enterprises we work with: MCP has already become the default these teams are building on, and this release is exactly the maturation they've been waiting for. This is a protocol growing up in real time around what production teams actually need, and it's a step forward for anyone building enterprise agents.
@@ -120,7 +120,7 @@ More builders are using our MCP server to bring generated outputs into Figma's c
 {{< quote name="Anna Berenberg" title="Engineering Fellow" company="Google Cloud" logo="google-cloud.png" >}}
 The 2026-07-28 Model Context Protocol release represents a massive leap forward in enterprise AI scalability. By evolving into a stateless architecture, this specification removes the friction of deploying agentic workflows at scale. At Google Cloud, we are excited to leverage these powerful new capabilities across our ecosystem of developer tools. This release provides the robust, secure, and extensible foundation that our customers (and our own teams) need to build the next generation of AI applications, and we are proud to continue shaping the future of this open standard together.
 {{< /quote >}}
-{{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" logo="honeycomb.png" >}}
+{{< quote name="Austin Parker" title="Director of AI Strategy" company="Honeycomb" logo="honeycomb.svg" >}}
 At honeycomb.io, we've seen fantastic adoption of MCP - nearly 20% of all monthly interactive queries are now made by agents! The new specification release allows us to support more advanced features such as elicitations while running at enterprise scale.
 {{< /quote >}}
 {{< quote name="Enrico Toniato" title="CTO" company="Manufact" logo="manufact.svg" >}}
