@@ -129,7 +129,7 @@ only the scopes necessary for their intended operations. During the initial auth
 2. **If `scope` is not available**, use all scopes defined in `scopes_supported` from the Protected Resource Metadata document, omitting the `scope` parameter if `scopes_supported` is undefined.
 
 The `scopes_supported` field is intended to represent the minimal set of scopes necessary
-for basic functionality (see [Scope Minimization](/docs/tutorials/security/security_best_practices#scope-minimization)),
+for basic functionality (see [Scope Minimization](/docs/draft/tutorials/security/security_best_practices#scope-minimization)),
 with additional scopes requested incrementally through the step-up authorization flow steps
 described in the [Scope Challenge Handling](#scope-challenge-handling) section.
 
@@ -401,7 +401,7 @@ The flow is as follows:
 Clients **SHOULD** implement retry limits and **SHOULD** track scope upgrade attempts to avoid
 repeated failures for the same resource and operation combination.
 
-Servers must account for scope hierarchies, where a broader scope implies narrower ones, when
+Servers **MUST** account for scope hierarchies, where a broader scope implies narrower ones, when
 deciding whether a token is sufficient for an operation.
 
 ## Security Considerations
