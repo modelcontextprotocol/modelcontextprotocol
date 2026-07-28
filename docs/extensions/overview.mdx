@@ -130,7 +130,7 @@ Clients advertise extension support in `_meta["io.modelcontextprotocol/clientCap
       "location": "New York"
     },
     "_meta": {
-      "io.modelcontextprotocol/protocolVersion": "2025-06-18",
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
       "io.modelcontextprotocol/clientCapabilities": {
         "extensions": {
           "io.modelcontextprotocol/ui": {
@@ -156,17 +156,22 @@ Servers advertise extension support in the `server/discover` response:
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "supportedVersions": ["2025-06-18"],
+    "resultType": "complete",
+    "supportedVersions": ["2026-07-28"],
     "capabilities": {
       "tools": {},
       "extensions": {
         "io.modelcontextprotocol/ui": {}
       }
     },
-    "serverInfo": {
-      "name": "ExampleServer",
-      "version": "1.0.0"
-    }
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "ExampleServer",
+        "version": "1.0.0"
+      }
+    },
+    "ttlMs": 3600000,
+    "cacheScope": "public"
   }
 }
 ```
