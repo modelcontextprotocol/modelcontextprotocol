@@ -3,7 +3,6 @@ title: "The 2026-07-28 Specification"
 date: "2026-07-28T09:00:00+00:00"
 publishDate: "2026-07-28T09:00:00+00:00"
 slug: 2026-07-28
-draft: true
 description: "The 2026-07-28 Model Context Protocol specification is out, bringing a stateless protocol core, Multi Round-Trip Requests, header-based routing, cacheable list results, authorization hardening, a formal extensions framework, and updated Tier 1 SDKs."
 author:
   - David Soria Parra (Lead Maintainer)
