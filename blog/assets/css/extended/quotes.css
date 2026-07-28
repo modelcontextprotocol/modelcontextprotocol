@@ -119,6 +119,16 @@
     max-width: 100%;
 }
 
+/* PaperMod gives .post-content img a 1rem vertical margin and rounded
+   corners, which pushed raster logos 16px below the svg and text logos.
+   Reset both (with the same .post-content specificity bump the other
+   resets use) so every logo kind starts on the same top line. */
+.post-content .mcp-quote-logo svg,
+.post-content .mcp-quote-logo img {
+    margin: 0;
+    border-radius: 0;
+}
+
 .mcp-quote-logo-text {
     font-size: 18px;
     font-weight: 400;
@@ -166,6 +176,16 @@
 
 .mcp-quote-attrib-title {
     display: block;
+}
+
+/* PaperMod's .post-content figure > figcaption (0,2,1) adds margin:8px 0 16px
+   to the attribution. The 16px bottom margin inflated the shared attribution
+   row, so the card dividers hung 16px longer below the content than the 8px
+   they extend above the logos, and the 8px top margin also beat the flex
+   fallback's margin-top:auto bottom-alignment. Re-own both margins at higher
+   specificity; the subgrid block below still wins its margin-top:0 by order. */
+.post-content .mcp-quote .mcp-quote-attrib {
+    margin: auto 0 0;
 }
 
 /* Attributions start on the same line in every card. The track exposes three

@@ -29,7 +29,7 @@
   {{- else -}}
     <span class="mcp-quote-logo mcp-quote-logo-text">{{ $company }}</span>
   {{- end }}
-  <blockquote class="mcp-quote-text">&ldquo;{{ trim .Inner " \n" | .Page.RenderString }}&rdquo;</blockquote>
+  <blockquote class="mcp-quote-text">{{ trim .Inner " \n" | .Page.RenderString }}</blockquote>
   <figcaption class="mcp-quote-attrib">
     <span class="mcp-quote-attrib-name">{{ $name }}</span>
     {{- with $title }}
