@@ -6,9 +6,7 @@
  * @category JSON-RPC
  */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "2025-11-25";
@@ -1740,11 +1738,7 @@ export interface Annotations {
  * @category Content
  */
 export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Text provided to or from an LLM.
@@ -2219,8 +2213,7 @@ export interface ElicitRequestURLParams extends TaskAugmentedRequestParams {
  * @category `elicitation/create`
  */
 export type ElicitRequestParams =
-  | ElicitRequestFormParams
-  | ElicitRequestURLParams;
+  ElicitRequestFormParams | ElicitRequestURLParams;
 
 /**
  * A request from the server to elicit additional information from the user via the client.
@@ -2239,10 +2232,7 @@ export interface ElicitRequest extends JSONRPCRequest {
  * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema;
+  StringSchema | NumberSchema | BooleanSchema | EnumSchema;
 
 /**
  * @category `elicitation/create`
@@ -2343,8 +2333,7 @@ export interface TitledSingleSelectEnumSchema {
  */
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
-  | UntitledSingleSelectEnumSchema
-  | TitledSingleSelectEnumSchema;
+  UntitledSingleSelectEnumSchema | TitledSingleSelectEnumSchema;
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
@@ -2437,8 +2426,7 @@ export interface TitledMultiSelectEnumSchema {
  */
 // Combined multiple selection enumeration
 export type MultiSelectEnumSchema =
-  | UntitledMultiSelectEnumSchema
-  | TitledMultiSelectEnumSchema;
+  UntitledMultiSelectEnumSchema | TitledMultiSelectEnumSchema;
 
 /**
  * Use TitledSingleSelectEnumSchema instead.
@@ -2464,9 +2452,7 @@ export interface LegacyTitledEnumSchema {
  */
 // Union type for all enum schemas
 export type EnumSchema =
-  | SingleSelectEnumSchema
-  | MultiSelectEnumSchema
-  | LegacyTitledEnumSchema;
+  SingleSelectEnumSchema | MultiSelectEnumSchema | LegacyTitledEnumSchema;
 
 /**
  * The client's response to an elicitation request.

@@ -1,0 +1,39 @@
+{{- /*
+  A single testimonial card. Use inside a `quotes` block.
+
+  Params:
+    name    - person's name
+    title   - person's role, shown on its own line under the name
+    company - company name, used as the logo's accessible label
+              (and shown as text when no logo is given)
+    logo    - filename of an SVG in the post's page bundle, or a static path.
+              Bundle SVGs are inlined so currentColor tracks the theme.
+
+  The quote text goes in the shortcode body. Markdown is supported.
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $title := .Get "title" -}}
+{{- $company := .Get "company" -}}
+{{- $logo := .Get "logo" -}}
+<figure class="mcp-quote">
+  {{- with $logo -}}
+    {{- with $.Page.Resources.GetMatch . -}}
+      {{- if eq .MediaType.SubType "svg" -}}
+        <span class="mcp-quote-logo" role="img" aria-label="{{ $company }}">{{ .Content | safeHTML }}</span>
+      {{- else -}}
+        <span class="mcp-quote-logo"><img src="{{ .RelPermalink }}" alt="{{ $company }}" loading="lazy"></span>
+      {{- end -}}
+    {{- else -}}
+      <span class="mcp-quote-logo"><img src="{{ . }}" alt="{{ $company }}" loading="lazy"></span>
+    {{- end -}}
+  {{- else -}}
+    <span class="mcp-quote-logo mcp-quote-logo-text">{{ $company }}</span>
+  {{- end }}
+  <blockquote class="mcp-quote-text">&ldquo;{{ trim .Inner " \n" | .Page.RenderString }}&rdquo;</blockquote>
+  <figcaption class="mcp-quote-attrib">
+    <span class="mcp-quote-attrib-name">{{ $name }}</span>
+    {{- with $title }}
+    <span class="mcp-quote-attrib-title">{{ . }}</span>
+    {{- end }}
+  </figcaption>
+</figure>

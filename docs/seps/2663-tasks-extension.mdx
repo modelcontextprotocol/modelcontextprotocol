@@ -268,11 +268,7 @@ export interface CancelledTask extends Task {
  * including terminal results or pending input requests.
  */
 export type DetailedTask =
-  | WorkingTask
-  | InputRequiredTask
-  | CompletedTask
-  | FailedTask
-  | CancelledTask;
+  WorkingTask | InputRequiredTask | CompletedTask | FailedTask | CancelledTask;
 ```
 
 ### Task Creation

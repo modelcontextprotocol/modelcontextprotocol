@@ -218,18 +218,14 @@ how that would look in the typescript MCP schema:
 
 ```typescript
 export type InputRequest =
-  | CreateMessageRequest
-  | ElicitRequest
-  | ListRootsRequest;
+  CreateMessageRequest | ElicitRequest | ListRootsRequest;
 
 export interface InputRequests {
   [key: string]: InputRequest;
 }
 
 export type InputResponse =
-  | CreateMessageResult
-  | ElicitResult
-  | ListRootsResult;
+  CreateMessageResult | ElicitResult | ListRootsResult;
 
 export interface InputResponses {
   [key: string]: InputResponse;

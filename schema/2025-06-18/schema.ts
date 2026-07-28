@@ -6,10 +6,7 @@
  * @category JSON-RPC
  */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse
-  | JSONRPCError;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse | JSONRPCError;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "2025-06-18";
@@ -1134,11 +1131,7 @@ export interface Annotations {
  * @category Content
  */
 export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Text provided to or from an LLM.
@@ -1490,10 +1483,7 @@ export interface ElicitRequest extends Request {
  * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema;
+  StringSchema | NumberSchema | BooleanSchema | EnumSchema;
 
 /**
  * @category `elicitation/create`
@@ -1586,18 +1576,12 @@ export type ClientNotification =
 
 /** @internal */
 export type ClientResult =
-  | EmptyResult
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult;
+  EmptyResult | CreateMessageResult | ListRootsResult | ElicitResult;
 
 /* Server messages */
 /** @internal */
 export type ServerRequest =
-  | PingRequest
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest;
+  PingRequest | CreateMessageRequest | ListRootsRequest | ElicitRequest;
 
 /** @internal */
 export type ServerNotification =
