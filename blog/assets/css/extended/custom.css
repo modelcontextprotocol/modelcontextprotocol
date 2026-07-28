@@ -370,6 +370,14 @@ body {
 }
 
 /* ─── Page chrome ────────────────────────────────────────────────────────── */
+/* GIF-style demo videos in post content size to the prose column the same
+   way images do. The width/height attributes on the element keep the
+   aspect ratio reserved before load, so no layout shift. */
+.post-content video {
+    max-width: 100%;
+    height: auto;
+}
+
 /* Override list page background to white in light mode */
 .list {
     background: var(--theme);

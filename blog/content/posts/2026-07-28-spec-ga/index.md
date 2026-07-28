@@ -22,7 +22,10 @@ Today, we're officially pushing the release button on the next version of the MC
 
 The highlight of this release is a stateless protocol core - MCP is transforming from a bidirectional stateful protocol into a request/response stateless protocol. It was one of the most highly-requested features from developers who were eager to get better reliability and scalability for their MCP servers.
 
-**[Insert GIF]**
+<video autoplay loop muted playsinline width="1280" height="454">
+  <source src="stateless-core-demo.mp4" type="video/mp4">
+  A short demo of the stateless protocol core in action.
+</video>
 
 There is, of course, more to what we're introducing with this version:
 
