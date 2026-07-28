@@ -80,7 +80,8 @@
                   "examples"
                 ]
               }
-            ]
+            ],
+            "default": true
           },
           {
             "version": "Version 2025-11-25",
@@ -441,7 +442,8 @@
                 ]
               },
               "specification/2026-07-28/schema"
-            ]
+            ],
+            "default": true
           },
           {
             "version": "Version 2025-11-25",
