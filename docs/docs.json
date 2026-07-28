@@ -1201,26 +1201,6 @@
       "permanent": false
     },
     {
-      "source": "/specification/2026-07-28/basic/lifecycle",
-      "destination": "/specification/2026-07-28/basic/versioning"
-    },
-    {
-      "source": "/specification/2026-07-28/basic/utilities/ping",
-      "destination": "/specification/2026-07-28/changelog"
-    },
-    {
-      "source": "/specification/2026-07-28/basic/utilities/cancellation",
-      "destination": "/specification/2026-07-28/basic/patterns/cancellation"
-    },
-    {
-      "source": "/specification/2026-07-28/basic/utilities/progress",
-      "destination": "/specification/2026-07-28/basic/patterns/progress"
-    },
-    {
-      "source": "/specification/2026-07-28/basic/utilities/tasks",
-      "destination": "/extensions/tasks/overview"
-    },
-    {
       "source": "/specification/2026-07-28/basic/security_best_practices",
       "destination": "/docs/2026-07-28/tutorials/security/security_best_practices"
     }
