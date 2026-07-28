@@ -132,7 +132,7 @@ Open protocols create bigger ecosystems than any one company can build alone. MC
 {{< quote name="Sean Roberts" title="VP of Applied AI" company="Netlify" logo="netlify.svg" >}}
 The stateless core in the 2026-07-28 spec makes MCP a first-class HTTP workload with no session management to work around. Our customers wanted MCPs on Netlify to be as simple as the rest of the platform and this new spec unlocks this at its core. Building MCP Apps into the new extensions framework is a huge step forward for scalability, accessibility, and capability across the whole ecosystem.
 {{< /quote >}}
-{{< quote name="Nick Cooper" title="MTS & MCP Core Maintainer" company="OpenAI" logo="openai.png" >}}
+{{< quote name="Nick Cooper" title="MTS & MCP Core Maintainer" company="OpenAI" logo="openai.svg" >}}
 MCP is now about a year and a half old. Thanks to feedback from developers and others who have worked with us, it's evolving into a more mature protocol that incorporates lessons from decades of web protocol design. As with prior revisions, the most interesting part will be seeing the unexpected things people build with it.
 {{< /quote >}}
 {{< quote name="Paul D'Ambra" title="Product Engineer" company="PostHog" logo="posthog.svg" >}}
