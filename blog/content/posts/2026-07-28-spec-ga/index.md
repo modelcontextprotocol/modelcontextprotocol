@@ -160,7 +160,7 @@ We're excited to have developers build on the new spec. To get started, refer to
 
 - [Specification](https://modelcontextprotocol.io/specification/2026-07-28)
 - [Full changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog)
-- **[TBD - Guides]**
+- [Documentation and guides](https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro)
 
 ## Thank you
 
