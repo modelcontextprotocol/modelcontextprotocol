@@ -114,6 +114,9 @@ This release is the clearest signal yet that MCP is becoming real production-gra
 {{< quote name="Swami Sivasubramanian" title="VP of Agentic AI" company="AWS" logo="aws.svg" >}}
 AWS and Anthropic are committed to supporting the MCP community and helping developers ship enterprise-grade agents at scale. With the new MCP specification and its stateless protocol core available in Amazon Bedrock AgentCore, developers can deploy MCP servers on standard, scalable infrastructure without managing sessions or persistent connections. Tasks, one of the first official MCP extensions and contributed by AWS, brings support for reliable, long-running agents, so developers can spend less time on infrastructure and more time innovating.
 {{< /quote >}}
+{{< quote name="Brendan Irvine-Broque" title="Senior Director Product Management" company="Cloudflare" logo="cloudflare.svg" >}}
+MCP 2026-07-28 is a major step toward making agent infrastructure work like the rest of the web: stateless, cacheable, routable, and globally scalable. Cloudflare's Agents SDK supports the spec from day zero, so developers can run MCP servers directly in Workers, call tools without transport-session overhead, and enable richer flows like elicitation for approvals. Because MCP is an open standard, Cloudflare customers like Sentry and Linear can adopt it on day zero and immediately deliver these improvements to their users.
+{{< /quote >}}
 {{< quote name="Josh Clemm" title="VP of Engineering" company="Figma" logo="figma.svg" >}}
 More builders are using our MCP server to bring generated outputs into Figma's canvas, where they can explore, riff and refine them with their team into products that stand out. As that usage grows, our stateless architecture can scale with it, and with MCP Apps, Tasks, and Enterprise-Managed Authorization, we can do even more to keep design and code together in one, connected flow.
 {{< /quote >}}
