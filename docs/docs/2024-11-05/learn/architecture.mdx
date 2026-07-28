@@ -30,7 +30,7 @@ The Model Context Protocol includes the following projects:
 
 MCP follows a client-server architecture where an MCP host — an AI application like [Claude Code](https://www.anthropic.com/claude-code) or [Claude Desktop](https://www.claude.ai/download) — establishes connections to one or more MCP servers. The MCP host accomplishes this by creating one MCP client for each MCP server. Each MCP client maintains a dedicated connection with its corresponding MCP server.
 
-Local MCP servers that use the STDIO transport typically serve a single MCP client, whereas remote MCP servers that use the Streamable HTTP transport will typically serve many MCP clients.
+Local MCP servers that use the STDIO transport typically serve a single MCP client, whereas remote MCP servers that use the HTTP with SSE transport will typically serve many MCP clients.
 
 The key participants in the MCP architecture are:
 
@@ -67,7 +67,7 @@ server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
 the server runs locally on the same machine because it uses the STDIO
 transport. This is commonly referred to as a "local" MCP server. The official
 [Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/) runs on the
-Sentry platform, and uses the Streamable HTTP transport. This is commonly
+Sentry platform, and uses the HTTP with SSE transport. This is commonly
 referred to as a "remote" MCP server.
 
 ### Layers
@@ -86,7 +86,7 @@ This layer includes:
 
 - **Lifecycle management**: Handles connection initialization, capability negotiation, and connection termination between clients and servers
 - **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
-- **Client features**: Enables servers to ask the client to sample from the host LLM, elicit input from the user, and log messages to the client
+- **Client features**: Enables servers to ask the client to sample from the host LLM and log messages to the client
 - **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
 
 #### Transport layer
@@ -96,7 +96,7 @@ The transport layer manages communication channels and authentication between cl
 MCP supports two transport mechanisms:
 
 - **Stdio transport**: Uses standard input/output streams for direct process communication between local processes on the same machine, providing optimal performance with no network overhead.
-- **Streamable HTTP transport**: Uses HTTP POST for client-to-server messages with optional Server-Sent Events for streaming capabilities. This transport enables remote server communication and supports standard HTTP authentication methods including bearer tokens, API keys, and custom headers. MCP recommends using OAuth to obtain authentication tokens.
+- **HTTP with SSE transport**: Uses Server-Sent Events for server-to-client messages and HTTP POST for client-to-server messages. This transport enables remote server communication and supports standard HTTP authentication methods including bearer tokens, API keys, and custom headers.
 
 The transport layer abstracts communication details from the protocol layer, enabling the same JSON-RPC 2.0 message format across all transport mechanisms.
 
@@ -108,7 +108,7 @@ MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol
 
 #### Lifecycle management
 
-MCP is a <Tooltip tip="A subset of MCP can be made stateless using the Streamable HTTP transport">stateful protocol</Tooltip> that requires lifecycle management. The purpose of lifecycle management is to negotiate the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> that both client and server support. Detailed information can be found in the [specification](/specification/latest/basic/lifecycle), and the [example](#example) showcases the initialization sequence.
+MCP is a stateful protocol that requires lifecycle management. The purpose of lifecycle management is to negotiate the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> that both client and server support. Detailed information can be found in the [specification](/specification/2024-11-05/basic/lifecycle), and the [example](#example) showcases the initialization sequence.
 
 #### Primitives
 
@@ -130,7 +130,6 @@ For more details about server primitives see [server concepts](./server-concepts
 MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
 
 - **Sampling**: Allows servers to request language model completions from the client's AI application. This is useful when server authors want access to a language model, but want to stay model-independent and not include a language model SDK in their MCP server. They can use the `sampling/createMessage` method to request a language model completion from the client's AI application.
-- **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. They can use the `elicitation/create` method to request additional information from the user.
 - **Logging**: Enables servers to send log messages to clients for debugging and monitoring purposes.
 
 For more details about client primitives see [client concepts](./client-concepts).
@@ -161,9 +160,9 @@ MCP begins with lifecycle management through a capability negotiation handshake.
     "id": 1,
     "method": "initialize",
     "params": {
-      "protocolVersion": "2025-06-18",
+      "protocolVersion": "2024-11-05",
       "capabilities": {
-        "elicitation": {}
+        "sampling": {}
       },
       "clientInfo": {
         "name": "example-client",
@@ -177,7 +176,7 @@ MCP begins with lifecycle management through a capability negotiation handshake.
     "jsonrpc": "2.0",
     "id": 1,
     "result": {
-      "protocolVersion": "2025-06-18",
+      "protocolVersion": "2024-11-05",
       "capabilities": {
         "tools": {
           "listChanged": true
@@ -197,7 +196,7 @@ MCP begins with lifecycle management through a capability negotiation handshake.
 
 The initialization process is a key part of MCP's lifecycle management and serves several critical purposes:
 
-1. **Protocol Version Negotiation**: The `protocolVersion` field (e.g., "2025-06-18") ensures both client and server are using compatible protocol versions. This prevents communication errors that could occur when different versions attempt to interact. If a mutually compatible version is not negotiated, the connection should be terminated.
+1. **Protocol Version Negotiation**: The `protocolVersion` field (e.g., "2024-11-05") ensures both client and server are using compatible protocol versions. This prevents communication errors that could occur when different versions attempt to interact. If a mutually compatible version is not negotiated, the connection should be terminated.
 
 2. **Capability Discovery**: The `capabilities` object allows each party to declare what features they support, including which [primitives](#primitives) they can handle (tools, resources, prompts) and whether they support features like [notifications](#notifications). This enables efficient communication by avoiding unsupported operations.
 
@@ -207,7 +206,7 @@ In this example, the capability negotiation demonstrates how MCP primitives are 
 
 **Client Capabilities**:
 
-- `"elicitation": {}` - The client declares it can work with user interaction requests (can receive `elicitation/create` method calls)
+- `"sampling": {}` - The client declares it can handle server sampling requests (can receive `sampling/createMessage` method calls)
 
 **Server Capabilities**:
 
