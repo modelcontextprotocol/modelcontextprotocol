@@ -1,11 +1,11 @@
-# SEP-0000: Require `token_endpoint_auth_methods_supported` in Client ID Metadata Documents
+# SEP-3149: Require `token_endpoint_auth_methods_supported` in Client ID Metadata Documents
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-07-27
 - **Author(s)**: @max-stytch
 - **Sponsor**: @pcarleton
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/{NUMBER}
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3149
 
 ## Abstract
 
@@ -156,10 +156,10 @@ currently avoid declaring its authentication methods explicitly. Both are
 Per the [feature lifecycle policy](/community/feature-lifecycle), this SEP
 proposes the following deprecation entries:
 
-| Feature                                        | Deprecation SEP | Deprecated in         | Migration path                          | Earliest removal                                              |
-| ---------------------------------------------- | --------------- | --------------------- | --------------------------------------- | ------------------------------------------------------------- |
-| `token_endpoint_auth_method`                   | SEP-0000        | _(revision on merge)_ | `token_endpoint_auth_methods_supported` | First revision released on or after one year from deprecation |
-| Implicit `none` for documents declaring no method | SEP-0000     | _(revision on merge)_ | `token_endpoint_auth_methods_supported` | First revision released on or after one year from deprecation |
+| Feature                                           | Deprecation SEP | Deprecated in         | Migration path                          | Earliest removal                                              |
+| ------------------------------------------------- | --------------- | --------------------- | --------------------------------------- | ------------------------------------------------------------- |
+| `token_endpoint_auth_method`                      | SEP-3149        | _(revision on merge)_ | `token_endpoint_auth_methods_supported` | First revision released on or after one year from deprecation |
+| Implicit `none` for documents declaring no method | SEP-3149        | _(revision on merge)_ | `token_endpoint_auth_methods_supported` | First revision released on or after one year from deprecation |
 
 
 ## Rationale
