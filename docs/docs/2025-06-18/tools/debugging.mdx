@@ -13,12 +13,12 @@ MCP provides several tools for debugging at different levels:
 
 1. **[MCP Inspector](/docs/2025-06-18/tools/inspector)**: interactive, transport-agnostic
    testing UI. Connect to stdio or Streamable HTTP servers, invoke
-   [tools](/specification/latest/server/tools),
-   [prompts](/specification/latest/server/prompts), and
-   [resources](/specification/latest/server/resources), and watch the
+   [tools](/specification/2025-06-18/server/tools),
+   [prompts](/specification/2025-06-18/server/prompts), and
+   [resources](/specification/2025-06-18/server/resources), and watch the
    notification stream. This should be your first stop.
 2. **Server logging**: structured logs to stderr (stdio transport) or via
-   [`notifications/message`](/specification/latest/server/utilities/logging#log-message-notifications)
+   [`notifications/message`](/specification/2025-06-18/server/utilities/logging#log-message-notifications)
    (all transports).
 3. **Client developer tools**: most MCP clients expose logs and connection
    state. See [Debugging in Claude Desktop](#debugging-in-claude-desktop)
@@ -29,7 +29,7 @@ MCP provides several tools for debugging at different levels:
 ### Server-side logging
 
 When building a server that uses the local
-[stdio transport](/specification/latest/basic/transports#stdio), all messages
+[stdio transport](/specification/2025-06-18/basic/transports#stdio), all messages
 logged to stderr (standard error) will be captured by the host application
 automatically.
 
@@ -41,14 +41,14 @@ will interfere with protocol operation.
 </Warning>
 
 For servers using the
-[Streamable HTTP transport](/specification/latest/basic/transports#streamable-http),
+[Streamable HTTP transport](/specification/2025-06-18/basic/transports#streamable-http),
 stderr is not captured by the client. Use the log message notifications below,
 your own server-side log aggregation, or standard HTTP tooling (curl, browser
 DevTools Network panel) to inspect requests,
-[`Mcp-Session-Id` headers](/specification/latest/basic/transports#session-management),
+[`Mcp-Session-Id` headers](/specification/2025-06-18/basic/transports#session-management),
 and SSE streams.
 
-For all [transports](/specification/latest/basic/transports), you can also
+For all [transports](/specification/2025-06-18/basic/transports), you can also
 provide logging to the client by sending a log message notification:
 
 <CodeGroup>
@@ -73,10 +73,10 @@ await server.sendLoggingMessage({
 </CodeGroup>
 
 MCP defines eight
-[RFC 5424 severity levels](/specification/latest/server/utilities/logging#log-levels)
+[RFC 5424 severity levels](/specification/2025-06-18/server/utilities/logging#log-levels)
 (`debug` through `emergency`). Clients can adjust the minimum level at runtime
 via the
-[`logging/setLevel`](/specification/latest/server/utilities/logging#setting-log-level)
+[`logging/setLevel`](/specification/2025-06-18/server/utilities/logging#setting-log-level)
 request.
 
 Important events to log:
@@ -173,16 +173,16 @@ When servers fail to connect:
 2. Verify server process is running
 3. Test standalone with [Inspector](/docs/2025-06-18/tools/inspector)
 4. Verify
-   [protocol compatibility](/specification/latest/basic/lifecycle#version-negotiation)
+   [protocol compatibility](/specification/2025-06-18/basic/lifecycle#version-negotiation)
 5. Check
-   [capability negotiation](/specification/latest/basic/lifecycle#capability-negotiation):
-   error [`-32602`](/specification/latest/basic/lifecycle#error-handling) is
+   [capability negotiation](/specification/2025-06-18/basic/lifecycle#capability-negotiation):
+   error [`-32602`](/specification/2025-06-18/basic/lifecycle#error-handling) is
    the standard JSON-RPC "Invalid params" code and is returned in many
    contexts. One common cause is a server sending
-   [sampling](/specification/latest/client/sampling) or
-   [elicitation](/specification/latest/client/elicitation) requests to a
+   [sampling](/specification/2025-06-18/client/sampling) or
+   [elicitation](/specification/2025-06-18/client/elicitation) requests to a
    client that hasn't declared that capability. Inspect the
-   [`initialize` exchange](/specification/latest/basic/lifecycle#initialization)
+   [`initialize` exchange](/specification/2025-06-18/basic/lifecycle#initialization)
    to verify both sides declared what you expect
 
 ## Debugging in Claude Desktop
