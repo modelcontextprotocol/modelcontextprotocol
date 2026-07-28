@@ -648,8 +648,8 @@ class Config:
     AUTH_REALM: str = os.getenv("AUTH_REALM", "master")
 
     # OAuth client settings
-    OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "mcp-server")
-    OAUTH_CLIENT_SECRET: str = os.getenv("OAUTH_CLIENT_SECRET", "UO3rmozkFFkXr0QxPTkzZ0LMXDidIikB")
+    OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "test-client")
+    OAUTH_CLIENT_SECRET: str = os.getenv("OAUTH_CLIENT_SECRET", "<YOUR_SERVER_CLIENT_SECRET>")
 
     # Server settings
     MCP_SCOPE: str = os.getenv("MCP_SCOPE", "mcp:tools")
@@ -869,8 +869,11 @@ class IntrospectionTokenVerifier(TokenVerifier):
                 form_data = {
                     "token": token,
                     "client_id": self.client_id,
-                    "client_secret": self.client_secret,
                 }
+                # Only send client_secret when one is configured
+                # Public clients authenticate with client_id alone.
+                if self.client_secret:
+                    form_data["client_secret"] = self.client_secret
                 headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
                 response = await client.post(
@@ -894,7 +897,13 @@ class IntrospectionTokenVerifier(TokenVerifier):
                     client_id=data.get("client_id", "unknown"),
                     scopes=data.get("scope", "").split() if data.get("scope") else [],
                     expires_at=data.get("exp"),
-                    resource=data.get("aud"),  # Include resource in token
+                    # AccessToken.resource is `str | None`. Keycloak returns `aud`
+                    # as a *list* here (e.g. ["test-client", "http://localhost:3000",
+                    # "account"]); passing that list straight in raises a pydantic
+                    # ValidationError that the broad `except` below turns into a
+                    # silent 401. We already confirmed this server's resource is a
+                    # valid audience in `_validate_resource`, so record that.
+                    resource=self.resource_url,
                 )
 
             except Exception as e:
@@ -923,7 +932,51 @@ class IntrospectionTokenVerifier(TokenVerifier):
         return check_resource_allowed(self.resource_url, resource)
 ```
 
-For more details, see the [Python SDK documentation](https://github.com/modelcontextprotocol/python-sdk).
+For more details, see below or the [Python SDK documentation](https://github.com/modelcontextprotocol/python-sdk).
+
+**Python MCP Server**
+
+In the server's root have a `pyproject.toml` file and a `mcp_server` folder. Put all the Python files in the `mcp_server` folder, and fill the `pyproject.toml` file like:
+
+```toml
+[project]
+name = "mcp-simple-auth"
+version = "0.1.0"
+description = "A simple MCP server demonstrating OAuth authentication"
+requires-python = ">=3.10"
+authors = [{ name = "Model Context Protocol a Series of LF Projects, LLC." }]
+license = { text = "MIT" }
+dependencies = [
+  "anyio>=4.5",
+  "click>=8.2.0",
+  "httpx>=0.27",
+  "mcp",
+  "pydantic>=2.0",
+  "pydantic-settings>=2.5.2",
+  "sse-starlette>=1.6.1",
+  "uvicorn>=0.23.1; sys_platform != 'emscripten'",
+]
+
+[project.scripts]
+mcp-simple-auth-rs = "mcp_server.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mcp_server"]
+
+[dependency-groups]
+dev = ["pyright>=1.1.391", "pytest>=8.3.4", "ruff>=0.8.5"]
+```
+
+Then run the commands below to start the server.
+
+```bash
+uv sync
+uv run mcp-simple-auth-rs --port=3000 --auth-server=http://localhost:8080 --transport=streamable-http
+```
 
 </Tab>
 
