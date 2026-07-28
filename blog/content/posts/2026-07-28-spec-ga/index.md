@@ -139,7 +139,7 @@ The stateless core in the 2026-07-28 spec makes MCP a first-class HTTP workload 
 {{< quote name="Nick Cooper" title="MTS & MCP Core Maintainer" company="OpenAI" logo="openai.svg" >}}
 MCP is now about a year and a half old. Thanks to feedback from developers and others who have worked with us, it's evolving into a more mature protocol that incorporates lessons from decades of web protocol design. As with prior revisions, the most interesting part will be seeing the unexpected things people build with it.
 {{< /quote >}}
-{{< quote name="Paul D'Ambra" title="Product Engineer" company="PostHog" logo="posthog.svg" >}}
+{{< quote name="Paul D'Ambra" title="Product Engineer" company="PostHog" logo="posthog.svg" logo-dark="posthog-white.svg" >}}
 Moving MCP to a stateless protocol makes it easier to scale our own service and makes it easier for us to add analytics for our customers' MCP servers. Making it easier to show people how their MCP tools are being used and what tools are missing that their users would want to use. It's great to see this protocol growing in this direction.
 {{< /quote >}}
 {{< quote name="Jeremiah Lowin" title="CEO" company="Prefect" logo="prefect.svg" >}}
