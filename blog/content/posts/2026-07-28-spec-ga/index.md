@@ -145,6 +145,12 @@ Moving MCP to a stateless protocol makes it easier to scale our own service and 
 {{< quote name="Jeremiah Lowin" title="CEO" company="Prefect" logo="prefect.svg" >}}
 This is a milestone release for anyone building MCP at scale. FastMCP has always existed to turn the spec's most powerful capabilities into an obvious developer experience, and we're excited to ship first-class support for background tasks, stateless interactivity, enterprise auth, and more in FastMCP 4.0. Horizon, our MCP governance platform, was built stateless from the start to handle enormous scale, so having that approach become native to the protocol is incredible to see.
 {{< /quote >}}
+{{< quote name="Tal Peretz" title="Co-founder & CPO" company="Runlayer" logo="runlayer.svg" >}}
+This release makes MCP more enterprise-ready than ever. Runlayer is bringing these advances to every enterprise on our platform, providing a simpler, safer foundation for deploying MCP and agents across their organizations.
+{{< /quote >}}
+{{< quote name="Craig McLuckie" title="CEO" company="Stacklok" logo="stacklok.svg" >}}
+The latest MCP revision is an important milestone. It reflects a level of rigor and user input that shows the protocol is maturing in a way that allows businesses to build on it with confidence. We have implemented the revision and the move to a stateless model removes operational complexity and unlocks MCP at enterprise scale. It's a strong signal that the community is being shaped by real deployment experience.
+{{< /quote >}}
 {{< quote name="Inian Parameshwaran" title="Head of Product" company="Supabase" logo="supabase.svg" >}}
 Supporting elicitations has been on our roadmap for a while, but since Supabase MCP runs statelessly, it wasn't something we could do easily. MRTR changes that - it allows our tools to confirm with the user before it acts, like the cost of a new project before it's created, or a query that would delete data. We're excited to support elicitations.
 {{< /quote >}}
