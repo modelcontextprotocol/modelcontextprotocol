@@ -108,7 +108,7 @@ As with any large release, the work that we're doing with MCP would not be possi
 
 {{< quotes >}}
 {{< quote name="David Soria Parra" title="Member of Technical Staff, Co-Inventor of MCP" company="Anthropic" logo="anthropic.svg" >}}
-The new release is MCP's most important since remote MCP first launched over a year ago. It is a leap in serving scalable MCP servers and takes all the lessons learned over the last 18 months to provide a robust foundation for MCP's future. The newly added extensions showcase the continuous innovation of the wider open source project, and I am excited to see the unique new possibilities people will come up with.
+The new release is MCP's most important since remote MCP first launched over a year ago. It is a leap in serving scalable MCP servers and takes all the lessons learned over the last 18 months to provide a robust foundation for MCP's future. The newly added extensions showcase the continuous innovation of the wider open source project. I am excited to see what people will do with the new capabilities of MCP.
 {{< /quote >}}
 {{< quote name="Alex Salazar" title="CEO & Co-Founder" company="Arcade.dev" logo="arcade.svg" >}}
 This release is the clearest signal yet that MCP is becoming real production-grade infrastructure. The biggest changes are breaking ones, and the community has chosen to do the hard work rather than paper over the gaps. That tracks with what we see across the enterprises we work with: MCP has already become the default these teams are building on, and this release is exactly the maturation they've been waiting for. This is a protocol growing up in real time around what production teams actually need, and it's a step forward for anyone building enterprise agents.
