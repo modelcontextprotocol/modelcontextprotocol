@@ -103,6 +103,16 @@ jobs:
           cp -r docs/docs/draft "docs/docs/$VERSION"
           grep -rl "/docs/draft/" "docs/docs/$VERSION" \
             | xargs -r sed -i "s|/docs/draft/|/docs/$VERSION/|g"
+          # Keep intra-tree spec links inside the new version too: the copied
+          # spec pages, docs pages, and schema.ts doc comments all link to
+          # /specification/draft/... — mirror what rewrite() in the docs.json
+          # step already does for nav paths (and what the hand-cut 2025-11-25
+          # snapshot did). schema.json/schema.mdx are regenerated from
+          # schema.ts by `npm run generate` below, so stamping schema.ts is
+          # sufficient for the schema artifacts.
+          grep -rl "/specification/draft/" \
+              "docs/specification/$VERSION" "docs/docs/$VERSION" "schema/$VERSION" \
+            | xargs -r sed -i "s|/specification/draft/|/specification/$VERSION/|g"
 
       - name: Regenerate schema artifacts
         run: |
