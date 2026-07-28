@@ -129,6 +129,14 @@
     border-radius: 0;
 }
 
+/* Paired logo variants (the quote shortcode's `logo-dark` param): the light
+   file renders in light mode, the dark file in dark mode. Theme switching
+   follows PaperMod's body.dark class toggle. */
+body.dark .mcp-quote-logo-light,
+body:not(.dark) .mcp-quote-logo-dark {
+    display: none;
+}
+
 .mcp-quote-logo-text {
     font-size: 18px;
     font-weight: 400;
