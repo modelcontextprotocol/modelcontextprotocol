@@ -268,7 +268,10 @@ Consider a personalized AI travel planner application, with three connected serv
 
    The AI first reads all selected resources to gather context - identifying available dates from the calendar, learning preferred airlines and hotel types from travel preferences, and discovering previously enjoyed locations from past trips.
 
-   Using this context, the AI then executes a series of Tools:
+   Using this context, the AI then executes the prompt provided by the AI application. In our example, the AI application exposes the weather tools from the connected MCP weather server to the model. Because weather can affect travel plans, the AI chooses to call `checkWeather()` when interpreting the prompt.
+
+   As a result the AI executes a series of tools:
+
    - `searchFlights()` - Queries airlines for NYC to Barcelona flights
    - `checkWeather()` - Retrieves climate forecasts for travel dates
 
