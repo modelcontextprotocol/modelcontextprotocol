@@ -128,8 +128,8 @@ server errors. MCP partitions this range as follows:
 
 MCP defines the following error codes:
 
-| Code     | Name                                                                                                  |
-| -------- | ----------------------------------------------------------------------------------------------------- |
+| Code     | Name                                                                                                       |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
 | `-32020` | [`HeaderMismatch`](/specification/2026-07-28/schema#headermismatcherror)                                   |
 | `-32021` | [`MissingRequiredClientCapability`](/specification/2026-07-28/schema#missingrequiredclientcapabilityerror) |
 | `-32022` | [`UnsupportedProtocolVersion`](/specification/2026-07-28/schema#unsupportedprotocolversionerror)           |
@@ -347,15 +347,15 @@ implementations **MUST NOT** make assumptions about values at these keys.
 
 The following `_meta` keys are reserved by this specification:
 
-| Key                                          | Description                                                 | Defined in                                                         |
-| -------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
+| Key                                          | Description                                                 | Defined in                                                              |
+| -------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
 | `progressToken`                              | Opts the request into progress notifications                | [Progress](/specification/2026-07-28/basic/patterns/progress)           |
-| `io.modelcontextprotocol/protocolVersion`    | Protocol version for a request                              | Per-request protocol fields (below)                                |
-| `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                |
-| `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                |
+| `io.modelcontextprotocol/protocolVersion`    | Protocol version for a request                              | Per-request protocol fields (below)                                     |
+| `io.modelcontextprotocol/clientInfo`         | Client name and version                                     | Per-request protocol fields (below)                                     |
+| `io.modelcontextprotocol/clientCapabilities` | Client capabilities relevant to a request                   | Per-request protocol fields (below)                                     |
 | `io.modelcontextprotocol/logLevel`           | Minimum log level the server should emit for a request      | [Logging](/specification/2026-07-28/server/utilities/logging)           |
 | `io.modelcontextprotocol/subscriptionId`     | Correlates a notification with its originating subscription | [Subscriptions](/specification/2026-07-28/basic/patterns/subscriptions) |
-| `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                |
+| `traceparent`, `tracestate`, `baggage`       | OpenTelemetry trace context propagation                     | OpenTelemetry trace context (below)                                     |
 
 Official [extensions](/specification/2026-07-28/basic/versioning#extension-negotiation)
 define additional `_meta` keys under the `io.modelcontextprotocol/` prefix, and

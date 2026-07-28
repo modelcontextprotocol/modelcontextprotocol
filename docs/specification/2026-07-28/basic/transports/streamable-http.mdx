@@ -598,8 +598,8 @@ When rejecting a request due to header validation failure, servers **MUST**
 return HTTP status `400 Bad Request` and **MUST** include a JSON-RPC error
 response using the following error code:
 
-| Code     | Name                                                                | Description                                                                                                            |
-| -------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Code     | Name                                                                     | Description                                                                                                            |
+| -------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | `-32020` | [`HeaderMismatch`](/specification/2026-07-28/schema#headermismatcherror) | The HTTP headers do not match the corresponding values in the request body, or required headers are missing/malformed. |
 
 This error code is allocated from the sub-range the MCP specification
@@ -702,8 +702,8 @@ in addition to the version-negotiation fallback described above.
   ([SEP-2596](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2596)).
   New implementations **SHOULD NOT** adopt it; existing implementations
   **SHOULD** migrate to [Streamable
-  HTTP](/specification/2026-07-28/basic/transports/streamable-http). It is eligible
-  for removal in a future revision; see the [deprecated features
+  HTTP](/specification/2026-07-28/basic/transports/streamable-http). It is
+  eligible for removal in a future revision; see the [deprecated features
   registry](/specification/2026-07-28/deprecated).
 </Warning>
 
