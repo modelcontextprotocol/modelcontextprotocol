@@ -98,21 +98,31 @@ jobs:
           cp -r schema/draft "schema/$VERSION"
           # Stamp the protocolVersion constant the generators read.
           sed -i "s|^export const LATEST_PROTOCOL_VERSION = .*|export const LATEST_PROTOCOL_VERSION = \"$VERSION\";|" "schema/$VERSION/schema.ts"
-          # Promote the draft docs the same way, keeping internal links
-          # within the new version.
+          # Promote the draft docs the same way.
           cp -r docs/docs/draft "docs/docs/$VERSION"
-          grep -rl "/docs/draft/" "docs/docs/$VERSION" \
-            | xargs -r sed -i "s|/docs/draft/|/docs/$VERSION/|g"
-          # Keep intra-tree spec links inside the new version too: the copied
-          # spec pages, docs pages, and schema.ts doc comments all link to
-          # /specification/draft/... — mirror what rewrite() in the docs.json
-          # step already does for nav paths (and what the hand-cut 2025-11-25
-          # snapshot did). schema.json/schema.mdx are regenerated from
-          # schema.ts by `npm run generate` below, so stamping schema.ts is
-          # sufficient for the schema artifacts.
+          # Keep intra-tree links inside the new version. The copied spec
+          # pages, docs pages, and schema.ts doc comments link to the draft
+          # tiers as /specification/draft/..., /docs/draft/..., and
+          # schema/draft/.... All three rewrites run over all three promoted
+          # trees, mirroring what rewrite() in the docs.json step already
+          # does for nav paths and what the hand-cut 2025-11-25 snapshot
+          # did. schema.json/schema.mdx are regenerated from schema.ts by
+          # `npm run generate` below, so stamping schema.ts covers the
+          # schema artifacts.
           grep -rl "/specification/draft/" \
               "docs/specification/$VERSION" "docs/docs/$VERSION" "schema/$VERSION" \
             | xargs -r sed -i "s|/specification/draft/|/specification/$VERSION/|g"
+          grep -rl "/docs/draft/" \
+              "docs/specification/$VERSION" "docs/docs/$VERSION" "schema/$VERSION" \
+            | xargs -r sed -i "s|/docs/draft/|/docs/$VERSION/|g"
+          grep -rl "schema/draft/" \
+              "docs/specification/$VERSION" "docs/docs/$VERSION" "schema/$VERSION" \
+            | xargs -r sed -i "s|schema/draft/|schema/$VERSION/|g"
+          # The draft changelog's full-changelog link compares the previous
+          # release tag against the draft branch. Pin the released copy to
+          # the new tag, matching the 2025-11-25 changelog.
+          sed -i -E "s|(/specification/compare/[0-9]{4}-[0-9]{2}-[0-9]{2})\.\.\.draft|\1...$VERSION|g" \
+            "docs/specification/$VERSION/changelog.mdx"
 
       - name: Regenerate schema artifacts
         run: |
@@ -164,13 +174,19 @@ jobs:
           }
           // Draft-source redirects (pages that moved out of the draft tree)
           // get a dated sibling so the promoted version's URLs resolve too.
+          // Skip any dated source already present: main may carry pre-cut
+          // <version>/ redirects, and Mintlify rejects duplicate sources.
           const draftRedirects = (j.redirects ?? []).filter((r) =>
             r.source.startsWith('/specification/draft/'),
           );
+          const sources = new Set((j.redirects ?? []).map((r) => r.source));
           for (const r of draftRedirects) {
+            const source = r.source.replace('/specification/draft/', `/specification/${V}/`);
+            if (sources.has(source)) continue;
+            sources.add(source);
             j.redirects.push({
               ...r,
-              source: r.source.replace('/specification/draft/', `/specification/${V}/`),
+              source,
               destination: r.destination
                 .replaceAll('/specification/draft', `/specification/${V}`)
                 .replaceAll('/docs/draft', `/docs/${V}`),
