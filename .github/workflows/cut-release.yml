@@ -123,6 +123,12 @@ jobs:
           # the new tag, matching the 2025-11-25 changelog.
           sed -i -E "s|(/specification/compare/[0-9]{4}-[0-9]{2}-[0-9]{2})\.\.\.draft|\1...$VERSION|g" \
             "docs/specification/$VERSION/changelog.mdx"
+          # The learn/versioning page hardcodes the previous release as the
+          # current protocol version, and the link rewrites above only cover
+          # draft-tier paths. Stamp the new version into the promoted copy
+          # and into the draft source for the next cycle.
+          sed -i -E "s|(\*\*current\*\* protocol version is \[\*\*)[0-9]{4}-[0-9]{2}-[0-9]{2}(\*\*\]\(/specification/)[0-9]{4}-[0-9]{2}-[0-9]{2}(/\))|\1$VERSION\2$VERSION\3|" \
+            "docs/docs/$VERSION/learn/versioning.mdx" docs/docs/draft/learn/versioning.mdx
 
       - name: Regenerate schema artifacts
         run: |
