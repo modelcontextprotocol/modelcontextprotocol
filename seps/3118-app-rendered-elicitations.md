@@ -20,7 +20,8 @@ Support is negotiated as an additive capability of the existing
 app-rendered elicitation receives the ordinary form request unchanged. A capable host loads the
 referenced app from the originating server, binds that app instance to the elicitation, and forwards
 the standard request over the MCP Apps bridge. The app returns a standard `ElicitResult`, which the
-host validates and returns to the server.
+host validates and uses as the corresponding MRTR `inputResponses` entry when retrying the
+originating request.
 
 The same convention applies to legacy stateful `elicitation/create` exchanges and to
 `InputRequiredResult` multi-round-trip requests (MRTR) in protocol revision `2026-07-28`. It does
@@ -81,18 +82,30 @@ A client that can render core form elicitations with MCP Apps **MUST** declare b
 1. the core `elicitation.form` capability; and
 2. an `elicitation` member in its MCP Apps extension settings.
 
-For protocol revision `2026-07-28`, these capabilities are supplied in the request-scoped client
-capabilities defined by the core protocol:
+For protocol revision `2026-07-28`, these capabilities are supplied in
+`_meta["io.modelcontextprotocol/clientCapabilities"]` on the originating request:
 
 ```json
 {
-  "elicitation": {
-    "form": {}
-  },
-  "extensions": {
-    "io.modelcontextprotocol/ui": {
-      "mimeTypes": ["text/html;profile=mcp-app"],
-      "elicitation": {}
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "assign_account_manager",
+    "arguments": {},
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {
+          "form": {}
+        },
+        "extensions": {
+          "io.modelcontextprotocol/ui": {
+            "mimeTypes": ["text/html;profile=mcp-app"],
+            "elicitation": {}
+          }
+        }
+      }
     }
   }
 }
@@ -108,6 +121,36 @@ A server **MUST NOT** add the app-rendering hint unless the request's effective 
 include core form elicitation, MCP Apps with a supported app MIME type, and the MCP Apps
 `elicitation` member. On stateful transports, the effective capabilities are those negotiated for
 the session. On `2026-07-28` stateless transports, the request-scoped capabilities take precedence.
+
+### Server-to-client capability negotiation
+
+A server that may attach an MCP App to an elicitation **MUST** advertise the same nested setting in
+its MCP Apps extension capabilities. In protocol revision `2026-07-28`, the server advertises these
+capabilities through `server/discover`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "discover-1",
+  "result": {
+    "resultType": "complete",
+    "supportedVersions": ["2026-07-28"],
+    "capabilities": {
+      "extensions": {
+        "io.modelcontextprotocol/ui": {
+          "elicitation": {}
+        }
+      }
+    }
+  }
+}
+```
+
+For protocol revisions that use the `initialize` handshake, the server places the same setting in
+`InitializeResult.capabilities`.
+
+App-rendered elicitation is negotiated only when the effective client capabilities and the
+discovered or initialized server capabilities both contain the nested setting.
 
 ### Elicitation metadata
 
@@ -182,7 +225,8 @@ instance. An app that declares this capability **MUST** handle standard form
 
 ### Host rendering and routing
 
-When a host receives a form elicitation containing `_meta.ui.resourceUri`, it:
+When a host processes an MRTR `InputRequiredResult` containing a form elicitation with
+`_meta.ui.resourceUri`, it:
 
 1. **MUST** verify that the client-to-server capability was negotiated;
 2. **MUST** resolve the resource from the server that originated the elicitation using the existing
@@ -192,7 +236,9 @@ When a host receives a form elicitation containing `_meta.ui.resourceUri`, it:
 5. **MAY** forward the unchanged `elicitation/create` request to the app if both bridge
    capabilities were negotiated;
 6. **MUST** validate an accepted response's `content` against `requestedSchema`; and
-7. **MUST** return the resulting standard `ElicitResult` through the core elicitation flow.
+7. **MUST** place the resulting standard `ElicitResult` under the corresponding key in
+   `inputResponses` and retry the originating request with the server-provided `requestState`, if
+   any.
 
 The host **MUST NOT** route an elicitation to an app merely because its bridge is currently active.
 The binding is scoped to the originating server, elicitation request, resource URI, and app
@@ -233,37 +279,78 @@ This proposal does not change the MRTR wire format. In protocol revision `2026-0
 
 ```json
 {
-  "resultType": "input_required",
-  "inputRequests": {
-    "manager-assignment": {
-      "method": "elicitation/create",
-      "params": {
-        "mode": "form",
-        "message": "Review the portfolio and confirm an account manager.",
-        "requestedSchema": {
-          "type": "object",
-          "properties": {
-            "confirmed": {
-              "type": "boolean"
-            }
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "manager-assignment": {
+        "method": "elicitation/create",
+        "params": {
+          "mode": "form",
+          "message": "Review the portfolio and confirm an account manager.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "confirmed": {
+                "type": "boolean"
+              }
+            },
+            "required": ["confirmed"]
           },
-          "required": ["confirmed"]
-        },
-        "_meta": {
-          "ui": {
-            "resourceUri": "ui://portfolio/assign-manager"
+          "_meta": {
+            "ui": {
+              "resourceUri": "ui://portfolio/assign-manager"
+            }
           }
         }
       }
-    }
-  },
-  "requestState": "assign-account-manager:v1"
+    },
+    "requestState": "assign-account-manager:v1"
+  }
 }
 ```
 
 After collecting the app or native form response, the client retries the original request with the
-standard `inputResponses` and `requestState`. The server **MUST** process the retry identically
-regardless of which renderer collected the response.
+standard `inputResponses` and `requestState`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "assign_account_manager",
+    "arguments": {},
+    "inputResponses": {
+      "manager-assignment": {
+        "action": "accept",
+        "content": {
+          "confirmed": true
+        }
+      }
+    },
+    "requestState": "assign-account-manager:v1",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {
+          "form": {}
+        },
+        "extensions": {
+          "io.modelcontextprotocol/ui": {
+            "mimeTypes": ["text/html;profile=mcp-app"],
+            "elicitation": {}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+The server **MUST** process the retry identically regardless of which renderer collected the
+response.
 
 On legacy stateful transports, the same semantic request may be delivered as a direct
 server-to-client `elicitation/create` request. No app-rendering state may be assumed to survive on
