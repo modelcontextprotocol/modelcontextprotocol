@@ -1031,12 +1031,6 @@ builder.Services.AddAuthentication(options =>
 {
     options.ResourceMetadata = new()
     {
-        Resource = new Uri(serverUrl),
-        ResourceDocumentation = new Uri("https://docs.example.com/api/math"),
-        AuthorizationServers = { new Uri(authorizationServerUrl) },
-        ScopesSupported = ["mcp:tools"]
-    options.ResourceMetadata = new()
-    {
         Resource = serverUrl,
         ResourceDocumentation = "https://docs.example.com/api/math",
         AuthorizationServers = { authorizationServerUrl },
