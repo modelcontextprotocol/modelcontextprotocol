@@ -215,8 +215,11 @@ A client that recognizes the `oauth_authorization_details` hint MAY use the prov
 Consider an MCP server that exposes a `payments.initiate` tool where initiating a payment requires authorization details bound to the payee and amount. The client's current access token does not carry such authorization details, and the call is denied:
 
 ```json
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_authorization_details",
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer error="insufficient_authorization",
+    resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource/payments",
+    error_description="Additional authorization is required",
+    authorization_remediation=eyJhdXRob3JpemF0aW9uX2RldGFpbHMiOlt7InR5cGUiOiJkaX...
     resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource/payments",
     scope="payments:initiate"
 Content-Type: application/json
