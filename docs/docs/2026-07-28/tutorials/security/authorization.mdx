@@ -1035,6 +1035,12 @@ builder.Services.AddAuthentication(options =>
         ResourceDocumentation = new Uri("https://docs.example.com/api/math"),
         AuthorizationServers = { new Uri(authorizationServerUrl) },
         ScopesSupported = ["mcp:tools"]
+    options.ResourceMetadata = new()
+    {
+        Resource = serverUrl,
+        ResourceDocumentation = "https://docs.example.com/api/math",
+        AuthorizationServers = { authorizationServerUrl },
+        ScopesSupported = ["mcp:tools"]
     };
 });
 
@@ -1076,8 +1082,8 @@ Fill `ProtectedMcpServer.csproj` with:
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
-    <PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
-    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.3.0-preview.3" />
+    <PackageReference Include="ModelContextProtocol" Version="2.0.0" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.0.0" />
   </ItemGroup>
 
 </Project>
@@ -1087,7 +1093,6 @@ In the `Tools` folder, create `MathTools.cs` and fill with:
 
 ```csharp
 using System.ComponentModel;
-using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
 namespace ProtectedMcpServer.Tools;
@@ -1113,10 +1118,10 @@ public sealed class MathTools
 }
 ```
 
-Then from the serve's root, run:
+Then from the server's root, run:
 
 ```bash
-dotnet run --framework net9.0
+dotnet run
 ```
 
 For more details, see the [C# SDK documentation](https://github.com/modelcontextprotocol/csharp-sdk).
