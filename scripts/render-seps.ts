@@ -120,6 +120,18 @@ function getStatusBadgeColor(status: string): string {
 }
 
 /**
+ * Notice injected into every Final SEP page. Final SEPs are point-in-time
+ * historical records and are not edited after finalization.
+ */
+const FINAL_SEP_NOTICE = `<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the
+  [current specification](/specification/latest) and its changelog for
+  authoritative requirements.
+</Note>`;
+
+/**
  * Generate MDX content for a single SEP page
  */
 function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
@@ -127,6 +139,10 @@ function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
   // Find where the Abstract section starts
   const abstractIndex = originalContent.indexOf("## Abstract");
   const body = abstractIndex !== -1 ? originalContent.slice(abstractIndex) : originalContent;
+
+  // Final SEPs get a notice marking them as historical records
+  const isFinal = sep.status.toLowerCase() === "final";
+  const notice = isFinal ? `${FINAL_SEP_NOTICE}\n\n` : "";
 
   return `---
 title: "SEP-${sep.number}: ${sep.title}"
@@ -139,7 +155,7 @@ description: "${sep.title}"
   <Badge color="gray" shape="pill">${sep.type}</Badge>
 </div>
 
-| Field | Value |
+${notice}| Field | Value |
 |-------|-------|
 | **SEP** | ${sep.number} |
 | **Title** | ${sep.title} |
