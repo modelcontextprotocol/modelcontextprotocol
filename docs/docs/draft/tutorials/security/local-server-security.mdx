@@ -5,8 +5,8 @@ description: Practical defaults for running MCP servers safely on your own machi
 
 Most MCP security documentation covers the protocol threat model: OAuth flows,
 token handling, session hijacking, and confused deputy attacks. For those, see
-[Authorization](/docs/tutorials/security/authorization) and
-[Security Best Practices](/docs/tutorials/security/security_best_practices).
+[Authorization](/docs/draft/tutorials/security/authorization) and
+[Security Best Practices](/docs/draft/tutorials/security/security_best_practices).
 
 This guide covers a different threat model: **your machine**. When you run an
 MCP server locally, you download code from the internet and run it as a child
@@ -243,7 +243,7 @@ Many useful servers legitimately need file access. The question is how much.
 
 - **Grant the narrowest root that works.** Configure filesystem-oriented
   servers with a specific project directory — never your home directory. The
-  protocol's [roots](/docs/learn/client-concepts#roots) feature exists
+  protocol's [roots](/docs/draft/learn/client-concepts#roots) feature exists
   precisely so clients can communicate these boundaries to servers.
 - **Prefer read-only.** If the server's job is to read code or documents,
   mount or grant the directory read-only.
@@ -386,7 +386,7 @@ For a fleet:
   <Card
     title="Security Best Practices"
     icon="shield"
-    href="/docs/tutorials/security/security_best_practices"
+    href="/docs/draft/tutorials/security/security_best_practices"
   >
     The protocol threat model: confused deputy, token passthrough, and session
     hijacking
@@ -394,7 +394,7 @@ For a fleet:
   <Card
     title="Authorization"
     icon="key"
-    href="/docs/tutorials/security/authorization"
+    href="/docs/draft/tutorials/security/authorization"
   >
     How OAuth-based authorization works for remote MCP servers
   </Card>
@@ -408,7 +408,7 @@ For a fleet:
   <Card
     title="Connect to local servers"
     icon="plug"
-    href="/docs/develop/connect-local-servers"
+    href="/docs/draft/develop/connect-local-servers"
   >
     Set up local servers in your client — the workflow this guide secures
   </Card>
