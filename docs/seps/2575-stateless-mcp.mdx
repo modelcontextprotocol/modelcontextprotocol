@@ -814,6 +814,12 @@ authoritative, up-to-date requirements.
   the top-level `DiscoverResult.serverInfo` field to avoid duplicate
   representations. Servers **SHOULD** include this metadata on every result
   unless specifically configured not to do so.
+- **Subscriptions gained a graceful completion result.**
+  [#2953](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2953)
+  defined a `subscriptions/listen` result for server-initiated graceful
+  closure, replacing the SEP's statement that a subscription has no natural
+  completion result. Servers **SHOULD** send this result before closing the
+  stream.
 
 [SEP-2127]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2127
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2243
