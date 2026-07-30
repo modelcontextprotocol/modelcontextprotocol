@@ -241,10 +241,7 @@ servers.
 
 Many useful servers legitimately need file access. The question is how much.
 
-- **Grant the narrowest root that works.** Configure filesystem-oriented
-  servers with a specific project directory — never your home directory. The
-  protocol's [roots](/docs/2026-07-28/learn/client-concepts#roots) feature exists
-  precisely so clients can communicate these boundaries to servers.
+- **Grant the narrowest root that works.** Configure filesystem-oriented servers with a specific project directory, passed explicitly through the server's configuration or tool parameters — never your home directory.
 - **Prefer read-only.** If the server's job is to read code or documents,
   mount or grant the directory read-only.
 - **Be suspicious of breadth.** A server that asks for a broad root
@@ -252,12 +249,12 @@ Many useful servers legitimately need file access. The question is how much.
   or pick a different server.
 
 <Warning>
-  Roots and configuration-level allowlists are **cooperative boundaries**: a
-  well-behaved server respects them, but nothing in the protocol stops a
-  malicious or compromised one from reading whatever the process can reach.
-  Treat them as guardrails for honest servers. Enforcement comes from the
-  isolation layer above — a sandbox or container where the allowed directory is
-  the only filesystem that exists.
+  Configuration-level allowlists are **cooperative boundaries**: a well-behaved
+  server respects them, but nothing in the protocol stops a malicious or
+  compromised one from reading whatever the process can reach. Treat them as
+  guardrails for honest servers. Enforcement comes from the isolation layer
+  above — a sandbox or container where the allowed directory is the only
+  filesystem that exists.
 </Warning>
 
 **Going further**: combine allowlists with isolation, so the only filesystem
