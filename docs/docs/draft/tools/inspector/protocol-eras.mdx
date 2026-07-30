@@ -3,7 +3,7 @@ title: Protocol eras
 description: How the Inspector negotiates legacy vs. modern MCP, and how every feature is handled between protocol eras
 ---
 
-The 2026-07-28 revision of MCP changed enough of the wire protocol that a debugging tool cannot pretend the difference away. The Inspector therefore treats **protocol era** as a first-class, per-server setting, orthogonal to the transport: the same HTTP URL can be inspected as a legacy server or as a modern one, and several tabs render meaningfully different UI and traffic depending on which.
+The 2026-07-28 revision of MCP made substantial changes to the protocol. The Inspector therefore treats **protocol era** as a first-class, per-server setting, orthogonal to the transport: the same HTTP URL can be inspected as a legacy server or as a modern one. Several tabs render meaningfully different UI and traffic depending on which.
 
 This page explains the setting, how negotiation works, and then walks the two eras feature by feature.
 
@@ -26,7 +26,7 @@ Each server carries a `protocolEra` of `legacy`, `auto`, or `modern`. In the web
   configured.
 </Note>
 
-Version negotiation happens entirely **client-side**. When the web client is used, the Node backend simply pumps JSON-RPC bytes; the `server/discover` probe and the per-request `_meta` envelope travel as ordinary message bodies. Nothing about era selection depends on which of the three clients you use.
+Era selection works the same way in all three clients — the same setting, the same negotiation, the same result.
 
 Once connected, the negotiated era is reported in the connection header and in **Connection Info**. On a modern connection, `server/discover` also supplies `serverInfo`, `capabilities` (including `extensions`), `instructions`, and the list of `supportedVersions`.
 
@@ -197,12 +197,14 @@ Reproduce with `test-servers/configs/xmcpheader-modern-http.json`.
   <img src="/images/inspector/tools-sep2243.png" />
 </Frame>
 
-### The new `-32602` error panels
+### `-32602` error panels
 
-Under the modern era a `tools/call` that rejects with `-32602` renders as a distinct **error panel** rather than an `isError` result:
+Under the modern era a `tools/call` that rejects with `-32602` renders as a distinct **error panel**:
 
 - **Unknown Tool** — when the message names a missing tool. Reproduce by calling a tool the server dropped from its list.
 - **Invalid Parameters** — any other `-32602`. Reproduce with the `trigger_invalid_params` tool in the config above.
+
+Both eras reject with `-32602`; what changes is how the Inspector presents it. On a legacy connection you get one generic JSON-RPC failure and have to read the message to tell which case you hit. On a modern connection the Inspector classifies it first, so "the server doesn't have that tool" is visually distinct from "your arguments were wrong."
 
 ---
 

@@ -19,7 +19,7 @@ All three are built on the same shared core, so a connection behaves identically
 
 ## Quickstart
 
-The Inspector requires **Node 22.19.0 or newer** and runs directly through `npx` without installing anything:
+The Inspector requires **Node 22.19.0 or newer** and runs directly through `npx`. No installation is required:
 
 <Tabs>
   <Tab title="Web">
@@ -86,7 +86,7 @@ npx @modelcontextprotocol/inspector --server-url https://api.example.com/mcp --t
   </Tab>
 </Tabs>
 
-Always read a server's own README first — the exact command and arguments it expects are the server's business, and the Inspector simply runs them.
+Always read a server's own README first — every server requires different commands and arguments.
 
 ## The launcher, and what belongs to a client
 
@@ -117,14 +117,6 @@ mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goe
 ## Where to go next
 
 <CardGroup cols={2}>
-  <Card
-    title="Protocol eras"
-    icon="code-branch"
-    href="/docs/2026-07-28/tools/inspector/protocol-eras"
-  >
-    Legacy vs. modern (2026-07-28) operation, and how every tab changes between
-    protocol eras.
-  </Card>
   <Card
     title="Web client"
     icon="browser"
@@ -161,6 +153,14 @@ mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goe
   >
     The OAuth flow end to end, mid-session re-authorization, and loopback
     callbacks.
+  </Card>
+  <Card
+    title="Protocol eras"
+    icon="code-branch"
+    href="/docs/2026-07-28/tools/inspector/protocol-eras"
+  >
+    Legacy vs. modern (2026-07-28) operation, and how every tab changes between
+    protocol eras.
   </Card>
   <Card
     title="Recipes"
