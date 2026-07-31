@@ -63,7 +63,9 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
   const typeMatch = content.match(/^\s*-\s*\*\*Type\*\*:\s*(.+)$/m);
   const createdMatch = content.match(/^\s*-\s*\*\*Created\*\*:\s*(.+)$/m);
   const acceptedMatch = content.match(/^\s*-\s*\*\*Accepted\*\*:\s*(.+)$/m);
-  const authorsMatch = content.match(/^\s*-\s*\*\*Author\(s\)\*\*:\s*(.+)$/m);
+  const authorsMatch = content.match(
+    /^[ \t]*-[ \t]*\*\*Author\(s\)\*\*:[ \t]*([^\n]*(?:\n[ \t]+(?![-*+][ \t])[^\n]*)*)/m
+  );
   const sponsorMatch = content.match(/^\s*-\s*\*\*Sponsor\*\*:\s*(.+)$/m);
   const prMatch = content.match(/^\s*-\s*\*\*PR\*\*:.*?(?:#|\/pull\/)(\d+)/m);
 
@@ -74,7 +76,7 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
     type: typeMatch ? typeMatch[1].trim() : "Unknown",
     created: createdMatch ? createdMatch[1].trim() : "Unknown",
     accepted: acceptedMatch ? acceptedMatch[1].trim() : undefined,
-    authors: authorsMatch ? authorsMatch[1].trim() : "Unknown",
+    authors: authorsMatch ? authorsMatch[1].replace(/\s+/g, " ").trim() : "Unknown",
     sponsor: sponsorMatch ? sponsorMatch[1].trim() : "None",
     prNumber: prMatch ? prMatch[1] : number,
     slug,
