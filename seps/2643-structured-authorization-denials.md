@@ -262,7 +262,7 @@ Cache-Control: no-store
 }
 ```
 
-The client uses the `authorization_details` from the remediation hint to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
+The client attempts to locate an existing valid credential matching a provided `authorization_reference`, if provided. If no matching credential is found, the client uses the `authorization_details` from WWW-Authenticate header's `authorization_remediation` parameter, to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
 
 ```http
 GET /authorize?
