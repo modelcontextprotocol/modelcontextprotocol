@@ -363,6 +363,6 @@ TBD
 This proposal was developed through discussion in the MCP Fine-Grained Authorization Working Group and refined across review cycles before being presented as a SEP, with input from:
 
 - Nate Barbettini (MCP FGA Working Group lead)
-- Yaron Zehavi (OAuth RAR/Payment Industry expertise; author of [OAuth 2.0 RAR Metadata and Error Signaling](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/))
+- Yaron Zehavi (OAuth RAR/Payment Industry expertise; author of [OAuth 2.0 RAR Metadata and Error Signaling](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/03/))
 - Justin Richer (OAuth/RAR/GNAP expertise)
 - Max Gerber (Design Reviews)
