@@ -36,7 +36,7 @@ This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for
 
 2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The MCP server may deny a request because it has insufficient information to contact an external system, needs confirmation from the user, or another piece of server-side state must be established before the request can succeed. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover this case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, but it is not itself an authorization denial signaling mechanism.
 
-3. **Support for structured remediation data at denial**: OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. Adopted OAuth standards do not yet provide a way to carry such structured requirements back to the client at denial time. An IETF individual draft, [`draft-zehavi-oauth-rar-metadata`](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization_details`, with the structured data placed in a JSON response body. The draft is HTTP-specific, and this SEP proposes to adopt the same pattern at the JSON-RPC layer so it applies across MCP transports.
+3. **Support for structured remediation data at denial**: OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. Adopted OAuth standards do not yet provide a way to carry such structured requirements back to the client at denial time. An IETF individual draft, [`draft-zehavi-oauth-rar-metadata`](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization`, with the structured data placed in the `authorization_remediation` header error parameter, which contains a base64url-encoded JSON object. The draft is HTTP-specific, and this SEP proposes to adopt the same error-remediation pattern at the JSON-RPC layer so it applies across MCP transports.
 
 ## Specification
 
@@ -112,7 +112,7 @@ The `authorizationContextId` is a correlation handle. Servers MAY use it for sta
 
 This use case covers denials where the client's credential is valid and does not need to change. Remediation requires an out-of-band user interaction at a URL, such as approving access or selecting resources, that changes server-side state. A representative example is a file picker in a cloud storage service, where the user's OAuth token is unchanged and the server records an approval tied to the user.
 
-This use case composes with the MCP URL elicitation error (`URLElicitationRequiredError`, JSON-RPC error code `-32042`). The envelope MUST include a `remediationHints` entry of type `url`, and the URL elicitation remains in `data.elicitations` for backwards compatibility.
+This use case composes with the MCP URL elicitation error (`URLElicitationRequiredError`, JSON-RPC error code `-32042`). The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation. The `data.elicitations` array remains the canonical location from which clients read it, as defined by the MCP URL elicitation specification.
 
 Example denial:
 
@@ -161,7 +161,7 @@ After the user completes the approval, the client retries the original request, 
 
 ### Use Case 2 — New credential issuance with broader authorization
 
-This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. This new credential issuance may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that yields a new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
+This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. This new credential issuance may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that adds the required authorization to the new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
 
 The envelope and the transport challenge are complementary signals:
 
@@ -169,7 +169,7 @@ The envelope and the transport challenge are complementary signals:
 - The envelope MAY additionally carry `remediationHints` describing structured remediation data.
 - When the transport declares its own remediation (for example, an HTTP `WWW-Authenticate` challenge), the transport-level signal is authoritative for driving reauthorization. The envelope is complementary metadata.
 
-In UC2 on HTTP, this means: when the `WWW-Authenticate` challenge fully describes the remediation (Example 1, `insufficient_scope`), no `remediationHints` are included. When the challenge cannot fully describe the required authorization (Example 2, RAR), the envelope carries an `oauth_authorization_details` hint.
+In UC2 on HTTP, this means: when the `WWW-Authenticate` challenge fully describes the remediation (Example 1, `insufficient_scope` and Example 2, `insufficient_authorization`), no `remediationHints` are included. When the challenge cannot fully describe the required authorization, the envelope carries a corresponding hint.
 
 For the stdio transport, where the MCP specification defines no transport-level authorization challenge, the envelope is the sole authorization denial signal. The client or its hosting environment is responsible for acquiring or refreshing credentials out of band before the request is retried.
 
@@ -224,19 +224,20 @@ Content-Type: application/json
 
 #### Example 2 — Rich Authorization Requests remediation
 
-When a denied request requires authorization beyond what OAuth scopes can express, the `WWW-Authenticate` challenge can signal that authorization is insufficient but cannot carry the structured requirements themselves. The server MAY supply those requirements inside the envelope so the client can construct its next authorization request directly, without additional metadata discovery. This approach mirrors the error-signaling pattern defined in [OAuth 2.0 RAR Metadata and Error Signaling](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/) at the JSON-RPC layer.
+When a denied request requires authorization beyond what OAuth scopes can express, the `WWW-Authenticate` challenge can signal that authorization is insufficient and also provide the structured remediation requirements, with which the client can construct its next authorization request directly, without additional metadata discovery. This approach uses the error-remediation pattern defined in [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/).
 
-An MCP server that denies a request because the access token lacks sufficient authorization details MAY return a `remediationHints` entry of type `oauth_authorization_details`. The entry's `authorization_details` member, when present, SHALL be an OAuth Rich Authorization Requests `authorization_details` array as defined in RFC 9396. On HTTP Transports, The server MUST still return an HTTP authorization challenge via `WWW-Authenticate`, which remains authoritative for remediation and discovery. The JSON-RPC remediation hint is supplemental and exists to carry an actionable `authorization_details` object inside the response body.
+An MCP server that denies a request because the access token lacks sufficient authorization details returns a transport layer WWW-Authenticate header with appropriate remediation requirements. The client performs OAuth reauthorization using the transport challenge, obtains a new access token which includes the provided `authorization_details`, and retries the original request with the new token in the `Authorization` header. The client echoes the `authorizationContextId` per "Retry Echo via `_meta`".
 
-A client that recognizes the `oauth_authorization_details` hint MAY use the provided `authorization_details` directly in a subsequent OAuth authorization request. A client that does not recognize the hint SHOULD fall back to resource-metadata and authorization-server-metadata discovery to determine how to construct a valid authorization request.
+A client that recognizes the `WWW-Authenticate` header with `insufficient_authorization` error code and `authorization_remediation` parameter MAY use an existing valid credential matching the `authorization_reference` value, if one is provided. If no matching credential is found, the client MAY use the provided `authorization_details` directly in a subsequent OAuth authorization request. A client that does not recognize the `authorization_remediation` parameter SHOULD fall back to resource-metadata and authorization-server-metadata discovery to determine how to construct a valid authorization request.
 
 Consider an MCP server that exposes a `payments.initiate` tool where initiating a payment requires authorization details bound to the payee and amount. The client's current access token does not carry such authorization details, and the call is denied:
 
 ```json
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_authorization_details",
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer error="insufficient_authorization",
     resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource/payments",
-    scope="payments:initiate"
+    error_description="Additional authorization is required",
+    authorization_remediation=eyJhdXRob3JpemF0aW9uX2RldGFpbHMiOlt7InR5cGUiOiJwYXltZW50X2luaXRpYXRpb24i...
 Content-Type: application/json
 Cache-Control: no-store
 
@@ -249,35 +250,14 @@ Cache-Control: no-store
     "data": {
       "authorization": {
         "reason": "insufficient_authorization",
-        "authorizationContextId": "authzctx_pay_9f2c",
-        "remediationHints": [
-          {
-            "type": "oauth_authorization_details",
-            "authorization_details": [
-              {
-                "type": "payment_initiation",
-                "actions": ["initiate", "status", "cancel"],
-                "locations": ["https://mcp.example.com/payments"],
-                "instructedAmount": {
-                  "currency": "EUR",
-                  "amount": "123.50"
-                },
-                "creditorName": "Merchant A",
-                "creditorAccount": {
-                  "iban": "DE02100100109307118603"
-                },
-                "remittanceInformationUnstructured": "Ref Number Merchant"
-              }
-            ]
-          }
-        ]
+        "authorizationContextId": "authzctx_pay_9f2c"
       }
     }
   }
 }
 ```
 
-The client uses the `authorization_details` from the remediation hint to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
+The client attempts to locate an existing valid credential matching a provided `authorization_reference`, if provided. If no matching credential is found, the client uses the `authorization_details` from WWW-Authenticate header's `authorization_remediation` parameter, to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
 
 ```http
 GET /authorize?
@@ -378,6 +358,6 @@ TBD
 This proposal was developed through discussion in the MCP Fine-Grained Authorization Working Group and refined across review cycles before being presented as a SEP, with input from:
 
 - Nate Barbettini (MCP FGA Working Group lead)
-- Yaron Zehavi (OAuth RAR/Payment Industry expertise; author of [OAuth 2.0 RAR Metadata and Error Signaling](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/02/))
+- Yaron Zehavi (OAuth RAR/Payment Industry expertise; author of [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/))
 - Justin Richer (OAuth/RAR/GNAP expertise)
 - Max Gerber (Design Reviews)
