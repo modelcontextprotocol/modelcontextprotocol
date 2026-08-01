@@ -1,4 +1,4 @@
-# SEP-0000: Request Idempotency
+# SEP-3182: Request Idempotency
 
 ## Preamble
 
@@ -7,7 +7,7 @@
 - **Status:** proposal
 - **Type:** Standards Track
 - **Created:** 2026-08-01
-- **PR:** _(full PR URL, filled in once the PR is opened)_
+- **PR:** https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3182
 
 ## Abstract
 
@@ -120,7 +120,7 @@ To state the limit explicitly: this SEP specifies the behavior expected of a con
 
 ### Relationship to SEP-2663 (Tasks Extension)
 
-The `tasks/get` / `tasks/update` split introduced by SEP-2663 and the mechanism in this SEP are complementary, not redundant, and a reviewer should not read one as making the other unnecessary. The Tasks split prevents an accidental *write* from occurring during what is meant to be a *read* — a retried `tasks/get` cannot itself trigger a side effect, because reading is now structurally separate from mutating. The mechanism in this SEP prevents a retried *write* — an ordinary `tools/call` invocation of a side-effecting tool — from executing its side effect twice. An implementation with the Tasks split but no idempotency key can still duplicate a retried write; an implementation with an idempotency key but no read/write separation still risks a write occurring somewhere a read was expected. Both are needed for the different failure modes they each address.
+The `tasks/get` / `tasks/update` split introduced by SEP-2663 and the mechanism in this SEP are complementary, not redundant, and a reviewer should not read one as making the other unnecessary. The Tasks split prevents an accidental _write_ from occurring during what is meant to be a _read_ — a retried `tasks/get` cannot itself trigger a side effect, because reading is now structurally separate from mutating. The mechanism in this SEP prevents a retried _write_ — an ordinary `tools/call` invocation of a side-effecting tool — from executing its side effect twice. An implementation with the Tasks split but no idempotency key can still duplicate a retried write; an implementation with an idempotency key but no read/write separation still risks a write occurring somewhere a read was expected. Both are needed for the different failure modes they each address.
 
 ## Rationale
 
@@ -128,7 +128,7 @@ Each subsection below answers one specific design question independently; none d
 
 ### Why replay the original response, including errors, rather than re-attempting execution?
 
-Idempotency is about preserving the outcome of an operation that already happened, not giving the caller another attempt at a better one. A client retrying after a lost response cannot know whether the original call succeeded, failed, or crashed partway through — only that it doesn't have a response. Re-executing on the assumption that a missing response means the original must have failed brings back the same duplicate-execution risk this proposal is meant to eliminate — the original call could just as easily have succeeded. This mirrors Stripe's own documented behavior: Stripe states it stores the original result "regardless of whether it succeeds or fails," and replays it on a matching retry "including 500 errors." A related question worth answering directly, since it recurs whenever idempotency is discussed: if the original execution returned a transient internal error, shouldn't a retry get a fresh attempt rather than the same cached error? No — that is an application-level recovery question, not an idempotency question. This SEP defines what happens to a retry of the *same* logical operation; a decision to attempt the operation *again*, under a new logical identity, is exactly what generating a new `idempotencyKey` is for. Recovering from a partial or failed execution remains the caller's responsibility once it observes the replayed outcome, not a behavior this SEP asks servers to attempt on the caller's behalf.
+Idempotency is about preserving the outcome of an operation that already happened, not giving the caller another attempt at a better one. A client retrying after a lost response cannot know whether the original call succeeded, failed, or crashed partway through — only that it doesn't have a response. Re-executing on the assumption that a missing response means the original must have failed brings back the same duplicate-execution risk this proposal is meant to eliminate — the original call could just as easily have succeeded. This mirrors Stripe's own documented behavior: Stripe states it stores the original result "regardless of whether it succeeds or fails," and replays it on a matching retry "including 500 errors." A related question worth answering directly, since it recurs whenever idempotency is discussed: if the original execution returned a transient internal error, shouldn't a retry get a fresh attempt rather than the same cached error? No — that is an application-level recovery question, not an idempotency question. This SEP defines what happens to a retry of the _same_ logical operation; a decision to attempt the operation _again_, under a new logical identity, is exactly what generating a new `idempotencyKey` is for. Recovering from a partial or failed execution remains the caller's responsibility once it observes the replayed outcome, not a behavior this SEP asks servers to attempt on the caller's behalf.
 
 ### Why not `_meta`?
 

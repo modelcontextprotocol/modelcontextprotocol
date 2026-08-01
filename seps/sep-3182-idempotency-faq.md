@@ -1,6 +1,6 @@
 # FAQ: Request Idempotency SEP
 
-Companion to `sep-0000-request-idempotency.md`. Answers to questions likely to come up in review.
+Companion to `sep-3182-request-idempotency.md`. Answers to questions likely to come up in review.
 
 ---
 
