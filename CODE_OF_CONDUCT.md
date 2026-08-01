@@ -104,6 +104,28 @@ toward or disparagement of classes of individuals.
 **Consequence**: A permanent ban from any sort of public interaction within the
 community.
 
+## Appeals
+
+If you believe an enforcement action taken against you was made in error, you may appeal
+it by emailing appeals@modelcontextprotocol.io. This channel exists specifically for
+appealing Code of Conduct enforcement actions, including organization-level bans.
+
+Because appeals are handled over email rather than on GitHub, you can reach the team even
+if your access to GitHub repositories, issues, or pull requests has been removed as part
+of an enforcement action.
+
+When submitting an appeal, please include:
+
+- The account or username affected by the action
+- The action you are appealing (for example, a temporary or permanent ban)
+- Why you believe the action should be reconsidered, with thorough evidence supporting
+  any surrounding context
+
+Appeals are reviewed by the moderation and lead maintainer team. While we will make an
+effort to respond to appeals filed in good faith, bandwidth constraints mean we may not
+be able to respond to every appeal. We will only review one appeal per enforcement action,
+so please be thorough when submitting your appeal.
+
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0,

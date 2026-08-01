@@ -13,16 +13,24 @@ description: "Make MCP Stateless"
   </Badge>
 </div>
 
-| Field         | Value                                                                                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2575                                                                                                                            |
-| **Title**     | Make MCP Stateless                                                                                                              |
-| **Status**    | Final                                                                                                                           |
-| **Type**      | Standards Track                                                                                                                 |
-| **Created**   | 2025-06-18                                                                                                                      |
-| **Author(s)** | Jonathan Hefner ([@jonathanhefner](https://github.com/jonathanhefner)), Mark Roth ([@markdroth](https://github.com/markdroth)), |
-| **Sponsor**   | Kurtis Van Gent ([@kurtisvg](https://github.com/kurtisvg))                                                                      |
-| **PR**        | [#2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575)                                                 |
+<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the [current
+  specification](/specification/latest) and its changelog for authoritative
+  requirements.
+</Note>
+
+| Field         | Value                                                                                                                                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **SEP**       | 2575                                                                                                                                                                                                                                                                                                   |
+| **Title**     | Make MCP Stateless                                                                                                                                                                                                                                                                                     |
+| **Status**    | Final                                                                                                                                                                                                                                                                                                  |
+| **Type**      | Standards Track                                                                                                                                                                                                                                                                                        |
+| **Created**   | 2025-06-18                                                                                                                                                                                                                                                                                             |
+| **Author(s)** | Jonathan Hefner ([@jonathanhefner](https://github.com/jonathanhefner)), Mark Roth ([@markdroth](https://github.com/markdroth)), Shaun Smith ([@evalstate](https://github.com/evalstate)), Harvey Tuch ([@htuch](https://github.com/htuch)), Kurtis Van Gent ([@kurtisvg](https://github.com/kurtisvg)) |
+| **Sponsor**   | Kurtis Van Gent ([@kurtisvg](https://github.com/kurtisvg))                                                                                                                                                                                                                                             |
+| **PR**        | [#2575](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2575)                                                                                                                                                                                                                        |
 
 ---
 
@@ -189,7 +197,7 @@ return a JSON-RPC error response. For HTTP, the response status code MUST be
 `400 Bad Request`. The error MUST conform to the following structure:
 
 ```ts
-export const UNSUPPORTED_PROTOCOL_VERSION = -32004;
+export const UNSUPPORTED_PROTOCOL_VERSION = -32022;
 
 export interface UnsupportedProtocolVersionError extends Omit<
   JSONRPCErrorResponse,
@@ -395,7 +403,7 @@ the missing capabilities. For HTTP, the response status code MUST be
 `400 Bad Request`.
 
 ```ts
-export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32003;
+export const MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
 
 export interface MissingRequiredClientCapabilityError extends Omit<
   JSONRPCErrorResponse,

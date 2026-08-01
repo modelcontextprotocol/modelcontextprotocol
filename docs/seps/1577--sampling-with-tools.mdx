@@ -13,6 +13,14 @@ description: "Sampling With Tools"
   </Badge>
 </div>
 
+<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the [current
+  specification](/specification/latest) and its changelog for authoritative
+  requirements.
+</Note>
+
 | Field         | Value                                                                           |
 | ------------- | ------------------------------------------------------------------------------- |
 | **SEP**       | 1577                                                                            |
@@ -136,15 +144,9 @@ In the "Possible Follow ups" Section below, we give examples of features that we
   type SamplingMessage = UserMessage | AssistantMessage; // NEW
 
   type AssistantMessageContent =
-    | TextContent
-    | ImageContent
-    | AudioContent
-    | ToolUseContent;
+    TextContent | ImageContent | AudioContent | ToolUseContent;
   type UserMessageContent =
-    | TextContent
-    | ImageContent
-    | AudioContent
-    | ToolResultContent;
+    TextContent | ImageContent | AudioContent | ToolResultContent;
   interface AssistantMessage {
     // NEW
     role: "assistant";

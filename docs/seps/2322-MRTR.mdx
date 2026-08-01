@@ -13,16 +13,24 @@ description: "Multi Round-Trip Requests"
   </Badge>
 </div>
 
-| Field         | Value                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2322                                                                                                                      |
-| **Title**     | Multi Round-Trip Requests                                                                                                 |
-| **Status**    | Final                                                                                                                     |
-| **Type**      | Standards Track                                                                                                           |
-| **Created**   | 2026-02-03                                                                                                                |
-| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), |
-| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                             |
-| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                           |
+<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the [current
+  specification](/specification/latest) and its changelog for authoritative
+  requirements.
+</Note>
+
+| Field         | Value                                                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SEP**       | 2322                                                                                                                                                                             |
+| **Title**     | Multi Round-Trip Requests                                                                                                                                                        |
+| **Status**    | Final                                                                                                                                                                            |
+| **Type**      | Standards Track                                                                                                                                                                  |
+| **Created**   | 2026-02-03                                                                                                                                                                       |
+| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), Gabriel Zimmerman ([@gjz22](https://github.com/gjz22)) |
+| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                                                                                    |
+| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                                                                                  |
 
 ---
 
@@ -218,18 +226,14 @@ how that would look in the typescript MCP schema:
 
 ```typescript
 export type InputRequest =
-  | CreateMessageRequest
-  | ElicitRequest
-  | ListRootsRequest;
+  CreateMessageRequest | ElicitRequest | ListRootsRequest;
 
 export interface InputRequests {
   [key: string]: InputRequest;
 }
 
 export type InputResponse =
-  | CreateMessageResult
-  | ElicitResult
-  | ListRootsResult;
+  CreateMessageResult | ElicitResult | ListRootsResult;
 
 export interface InputResponses {
   [key: string]: InputResponse;

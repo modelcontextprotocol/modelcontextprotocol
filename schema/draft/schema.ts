@@ -4,12 +4,7 @@
  * @category Common Types
  */
 export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JSONObject
-  | JSONArray;
+  string | number | boolean | null | JSONObject | JSONArray;
 
 /**
  * @category Common Types
@@ -29,9 +24,7 @@ export type JSONArray = JSONValue[];
  * @category JSON-RPC
  */
 export type JSONRPCMessage =
-  | JSONRPCRequest
-  | JSONRPCNotification
-  | JSONRPCResponse;
+  JSONRPCRequest | JSONRPCNotification | JSONRPCResponse;
 
 /** @internal */
 export const LATEST_PROTOCOL_VERSION = "2026-07-28";
@@ -82,12 +75,19 @@ export interface RequestMetaObject extends MetaObject {
    */
   "io.modelcontextprotocol/protocolVersion": string;
   /**
-   * Identifies the client software making the request. Required.
+   * Identifies the client software making the request. Clients SHOULD
+   * include this field on every request unless specifically configured not
+   * to do so.
    *
    * The {@link Implementation} schema requires `name` and `version`; other
    * fields are optional.
+   *
+   * The value is self-reported by the client and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Servers
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
    */
-  "io.modelcontextprotocol/clientInfo": Implementation;
+  "io.modelcontextprotocol/clientInfo"?: Implementation;
   /**
    * The client's capabilities for this specific request. Required.
    *
@@ -131,6 +131,30 @@ export interface NotificationMetaObject extends MetaObject {
    * opened the stream.
    */
   "io.modelcontextprotocol/subscriptionId"?: RequestId;
+}
+
+/**
+ * Extends {@link MetaObject} with additional result-specific fields. All key naming rules from `MetaObject` apply.
+ *
+ * @see {@link MetaObject} for key naming rules and reserved prefixes.
+ * @see [General fields: `_meta`](/specification/draft/basic/index#meta) for more details.
+ * @category Common Types
+ */
+export interface ResultMetaObject extends MetaObject {
+  /**
+   * Identifies the server software producing the response. Servers SHOULD
+   * include this field on every response unless specifically configured not
+   * to do so.
+   *
+   * The {@link Implementation} schema requires `name` and `version`; other
+   * fields are optional.
+   *
+   * The value is self-reported by the server and is not verified by the
+   * protocol. It is intended for display, logging, and debugging. Clients
+   * SHOULD NOT use it to change their behavior, and SHOULD NOT rely on it for
+   * security decisions.
+   */
+  "io.modelcontextprotocol/serverInfo"?: Implementation;
 }
 
 /**
@@ -197,7 +221,7 @@ export type ResultType = "complete" | "input_required" | string;
  * @category Common Types
  */
 export interface Result {
-  _meta?: MetaObject;
+  _meta?: ResultMetaObject;
   /**
    * Indicates the type of the result, which allows the client to determine
    * how to parse the result object.
@@ -511,15 +535,11 @@ export type EmptyResult = Result;
 
 /** @internal */
 export type InputRequest =
-  | CreateMessageRequest
-  | ListRootsRequest
-  | ElicitRequest;
+  CreateMessageRequest | ListRootsRequest | ElicitRequest;
 
 /** @internal */
 export type InputResponse =
-  | CreateMessageResult
-  | ListRootsResult
-  | ElicitResult;
+  CreateMessageResult | ListRootsResult | ElicitResult;
 
 /**
  * A map of server-initiated requests that the client must fulfill.
@@ -665,10 +685,6 @@ export interface DiscoverResult extends CacheableResult {
    * The capabilities of the server.
    */
   capabilities: ServerCapabilities;
-  /**
-   * Information about the server software implementation.
-   */
-  serverInfo: Implementation;
   /**
    * Natural-language guidance describing the server and its features.
    *
@@ -1301,13 +1317,13 @@ export interface SubscriptionsListenRequest extends JSONRPCRequest {
 }
 
 /**
- * Extends {@link MetaObject} with the subscription-stream identifier carried by a
+ * Extends {@link ResultMetaObject} with the subscription-stream identifier carried by a
  * {@link SubscriptionsListenResult}. All key naming rules from `MetaObject` apply.
  *
  * @see {@link MetaObject} for key naming rules and reserved prefixes.
  * @category `subscriptions/listen`
  */
-export interface SubscriptionsListenResultMeta extends MetaObject {
+export interface SubscriptionsListenResultMetaObject extends ResultMetaObject {
   /**
    * Identifies the subscription stream this response closes, so the client can
    * correlate it with the originating subscription — mirroring the same key on
@@ -1331,7 +1347,20 @@ export interface SubscriptionsListenResultMeta extends MetaObject {
  * @category `subscriptions/listen`
  */
 export interface SubscriptionsListenResult extends Result {
-  _meta: SubscriptionsListenResultMeta;
+  _meta: SubscriptionsListenResultMetaObject;
+}
+
+/**
+ * A successful response from the server for a {@link SubscriptionsListenRequest | subscriptions/listen}
+ * request, sent when the server tears the subscription down gracefully.
+ *
+ * @example Subscription closed gracefully response
+ * {@includeCode ./examples/SubscriptionsListenResultResponse/listen-closed-response.json}
+ *
+ * @category `subscriptions/listen`
+ */
+export interface SubscriptionsListenResultResponse extends JSONRPCResultResponse {
+  result: SubscriptionsListenResult;
 }
 
 /**
@@ -1350,10 +1379,16 @@ export interface SubscriptionsAcknowledgedNotificationParams extends Notificatio
 }
 
 /**
- * Sent by the server as the first message on a
- * {@link SubscriptionsListenRequest | subscriptions/listen} stream to acknowledge
- * that the subscription has been established and to report which notification
- * types it agreed to honor.
+ * Sent by the server to acknowledge that a
+ * {@link SubscriptionsListenRequest | subscriptions/listen} subscription has been
+ * established and to report which notification types it agreed to honor.
+ *
+ * This notification MUST be the first message the server sends carrying the
+ * subscription's ID in `io.modelcontextprotocol/subscriptionId`. The server MUST
+ * NOT send any notification on the subscription before acknowledging it. On
+ * stdio, where every subscription shares one channel, this ordering is defined
+ * per subscription ID and not per channel: messages belonging to other
+ * subscriptions MAY be interleaved before it.
  *
  * @example Listen acknowledged
  * {@includeCode ./examples/SubscriptionsAcknowledgedNotification/listen-acknowledged.json}
@@ -2268,11 +2303,7 @@ export interface Annotations {
  * @category Content
  */
 export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | ResourceLink
-  | EmbeddedResource;
+  TextContent | ImageContent | AudioContent | ResourceLink | EmbeddedResource;
 
 /**
  * Text provided to or from an LLM.
@@ -2812,8 +2843,7 @@ export interface ElicitRequestURLParams {
  * @category `elicitation/create`
  */
 export type ElicitRequestParams =
-  | ElicitRequestFormParams
-  | ElicitRequestURLParams;
+  ElicitRequestFormParams | ElicitRequestURLParams;
 
 /**
  * A request from the server to elicit additional information from the user via the client.
@@ -2835,10 +2865,7 @@ export interface ElicitRequest {
  * @category `elicitation/create`
  */
 export type PrimitiveSchemaDefinition =
-  | StringSchema
-  | NumberSchema
-  | BooleanSchema
-  | EnumSchema;
+  StringSchema | NumberSchema | BooleanSchema | EnumSchema;
 
 /**
  * @example Email input schema
@@ -2963,8 +2990,7 @@ export interface TitledSingleSelectEnumSchema {
  */
 // Combined single selection enumeration
 export type SingleSelectEnumSchema =
-  | UntitledSingleSelectEnumSchema
-  | TitledSingleSelectEnumSchema;
+  UntitledSingleSelectEnumSchema | TitledSingleSelectEnumSchema;
 
 /**
  * Schema for multiple-selection enumeration without display titles for options.
@@ -3063,8 +3089,7 @@ export interface TitledMultiSelectEnumSchema {
  */
 // Combined multiple selection enumeration
 export type MultiSelectEnumSchema =
-  | UntitledMultiSelectEnumSchema
-  | TitledMultiSelectEnumSchema;
+  UntitledMultiSelectEnumSchema | TitledMultiSelectEnumSchema;
 
 /**
  * Use {@link TitledSingleSelectEnumSchema} instead.
@@ -3090,9 +3115,7 @@ export interface LegacyTitledEnumSchema {
  */
 // Union type for all enum schemas
 export type EnumSchema =
-  | SingleSelectEnumSchema
-  | MultiSelectEnumSchema
-  | LegacyTitledEnumSchema;
+  SingleSelectEnumSchema | MultiSelectEnumSchema | LegacyTitledEnumSchema;
 
 /**
  * The result returned by the client for an {@link ElicitRequest| elicitation/create} request.

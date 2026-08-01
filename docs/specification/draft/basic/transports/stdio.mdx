@@ -65,8 +65,8 @@ Server-to-client interactions are carried in
 ## Request Metadata
 
 All request metadata for the stdio transport is carried inline in the
-JSON-RPC message body. The protocol version, client identity, and
-per-request capabilities live in
+JSON-RPC message body. The protocol version, per-request capabilities, and
+optional client identity live in
 [`_meta.io.modelcontextprotocol/*`][meta-fields];
 the method name and arguments live where JSON-RPC puts them. There is no
 header layer.
