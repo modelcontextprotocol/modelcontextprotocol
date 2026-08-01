@@ -42,6 +42,12 @@ The protocol already standardizes how a client asks a server to run a tool — t
 **Doesn't the fact that well-built servers already handle this on their own mean the protocol doesn't need to get involved?**
 It's actually the opposite — that's the argument for standardizing it. This is the same situation SEP-1036 was in: implementers weren't incapable of returning login URLs and having clients recognize them, they were already doing it, just each in their own incompatible way. The hard part was never building the mechanism. It's getting independent implementations to agree on the same interface, which only a shared standard can do.
 
+**MCP 2026-07-28 made the protocol stateless and removed sessions and the `initialize` handshake — does this proposal still make sense?**
+Yes, and the change actually strengthens the case for it. Capability discovery moves to `server/discover`, which this proposal already reflects. The bigger effect is on deployment: session affinity used to mean a retry had some chance of landing back on the same server instance that handled the original request, which gave an in-memory dedup store a kind of accidental partial protection. Under the stateless core, any instance can handle any request, so that accidental protection is gone — a production server now needs a dedup store that's actually shared across instances, not per-process. The mechanism this SEP defines doesn't change; what changes is that skipping it is riskier than it used to be.
+
+**How does this interact with Multi Round-Trip Requests (MRTR)?**
+They solve different problems and shouldn't be conflated. An MRTR continuation is the client knowingly resuming an operation the server explicitly said isn't finished yet — reissuing `tools/call` with `inputResponses` and the echoed `requestState`. A retry under this SEP is the client re-sending a request because it doesn't know whether an earlier, identical request already completed. Don't attach the same `idempotencyKey` to an MRTR continuation expecting it to trigger this SEP's deduplication — that's not the scenario it's built for.
+
 ---
 
 ## Tradeoffs — real costs, not hidden ones
