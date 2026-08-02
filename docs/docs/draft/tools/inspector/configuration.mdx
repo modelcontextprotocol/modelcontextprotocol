@@ -127,14 +127,14 @@ The whole scripting surface belongs to the CLI. See [CLI client](/docs/draft/too
 
 ## Environment variables
 
-Environment variables belong to layers too — **none of them are launcher flags**, and only two are read by the launcher at all.
+Environment variables split the same way as flags: two are read by the launcher itself, and the rest belong to the CLI and TUI or to the web backend.
 
 ### Read by the launcher
 
 | Variable    | Effect                                                                                                                                                     |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MCP_DEBUG` | Append the error stack to a top-level failure. Only when _meaningfully_ set — `0`, `false`, and empty read as off.                                         |
-| `DEBUG`     | Same, with the same meaningful-value rule, so a stray `DEBUG=0` doesn't turn stacks on and `DEBUG` stays usable as the `debug` package's namespace filter. |
+| `MCP_DEBUG` | Append the error stack to a top-level failure. Only when set to a meaningful value: `0`, `false`, and empty read as off.                                    |
+| `DEBUG`     | Same, with the same meaningful-value rule, so a stray `DEBUG=0` doesn't turn stack traces on and `DEBUG` still works as the npm `debug` package's namespace filter. |
 
 ### CLI and TUI
 
