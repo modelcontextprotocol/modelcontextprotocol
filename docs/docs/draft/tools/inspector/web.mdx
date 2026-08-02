@@ -162,7 +162,7 @@ http://127.0.0.1:6274/?serverUrl=<url>&transport=http|sse&autoConnect=<token>
 | `transport`   | `http` (default) or `sse`.                                                                                     |
 | `autoConnect` | **Required CSRF gate.** Must equal the per-launch session token, which only whatever started the server knows. |
 
-Three further parameters land you on a _rendered app_: `openApp=<toolName>`, `appArgs=<base64url(JSON)>` (merged over the tool's schema defaults), and `autoOpen=<token>` — which fires the tool call automatically and therefore carries the same mandatory token gate.
+Three further parameters land you on a _rendered app_: `openApp=<toolName>` names the tool, `appArgs=<base64url(JSON)>` supplies its arguments (merged over the tool's schema defaults), and `autoOpen=<token>` fires the tool call automatically. Because `autoOpen` fires a call, it carries the same mandatory token gate as `autoConnect`.
 
 ## Host binding and origins
 
