@@ -166,8 +166,8 @@ Three further parameters land you on a _rendered app_: `openApp=<toolName>`, `ap
 
 ## Host binding and origins
 
-By default the Inspector binds `localhost` and accepts requests only from the loopback origins for its port. Both are security boundaries, not conveniences — the backend spawns processes.
+By default the Inspector binds `localhost` and accepts requests only from the loopback origins for its port. Treat both defaults as security boundaries, since the backend spawns processes on your machine.
 
 Binding all interfaces (`HOST=0.0.0.0`) is **refused** unless you set `DANGEROUSLY_BIND_ALL_INTERFACES=true`. Binding a _specific_ non-loopback address is allowed with no opt-in, since that's a single deliberate exposure rather than every interface at once.
 
-See [Recipes → Hosting on a network](/docs/draft/tools/inspector/recipes#hosting-on-a-network) for the full matrix, and [Configuration](/docs/draft/tools/inspector/configuration#web-backend-environment-variables) for the variables.
+See the [Hosting on a network](/docs/draft/tools/inspector/recipes#hosting-on-a-network) recipe for the full matrix, and [Configuration](/docs/draft/tools/inspector/configuration#web-backend-environment-variables) for the variables.
