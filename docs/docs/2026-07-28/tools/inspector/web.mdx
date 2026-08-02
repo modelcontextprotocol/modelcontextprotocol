@@ -120,17 +120,15 @@ Lists prompt templates with their arguments, and renders the generated messages 
 
 ## Apps
 
-MCP Apps are tools that carry UI. The Apps tab renders one in a sandboxed iframe served from a **separate port**, exercises the `ui/*` bridge, and shows the view's `ui/message` submissions and its `notifications/message` logs in side panels.
-
-A few operational notes:
+[MCP Apps](/extensions/apps/overview) are tools that carry UI. The Apps tab renders one in a sandboxed iframe served from a **separate port**, exercises the `ui/*` bridge, and shows the view's `ui/message` submissions and its `notifications/message` logs in side panels.
 
 - The sandbox port is dynamic by default; pin it with `MCP_SANDBOX_PORT` if you need to expose or forward it.
-- The sandbox is gated by a `frame-ancestors` CSP, and a bracketed IPv6 literal is not a valid CSP host-source — so browse the Inspector at `localhost`, `127.0.0.1`, a hostname, or a LAN IPv4, **not** at a bare `http://[::1]:…`.
+- The sandbox is gated by a `frame-ancestors` CSP, and a bracketed IPv6 literal is not a valid CSP host-source, so browse the Inspector at `localhost`, `127.0.0.1`, a hostname, or a LAN IPv4, **not** at a bare `http://[::1]:...`.
 - The sandbox URL is always plain `http`, so an `https://` Inspector page blocks the frame as mixed content. MCP Apps need a plain-`http` origin today.
 
 See [Recipes](/docs/2026-07-28/tools/inspector/recipes#reviewing-an-mcp-app) for the CLI-first automated review flow.
 
-<Frame caption="An MCP App rendered in its sandboxed frame, with the app’s own logs below it.">
+<Frame caption="An MCP App rendered in its sandboxed frame, with the app's own logs below it.">
   <img src="/images/inspector/web-apps.png" />
 </Frame>
 
