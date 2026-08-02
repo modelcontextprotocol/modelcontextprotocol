@@ -152,9 +152,9 @@ docker run --rm --no-healthcheck ghcr.io/modelcontextprotocol/inspector --cli <t
 
 ## Hosting on a network
 
-The Inspector binds `localhost` by default, and its backend spawns processes — so exposing it is a real decision, not a convenience toggle.
+The Inspector binds `localhost` by default and its backend spawns processes, so treat exposing it to a network as a deliberate decision.
 
-The guard blocks only the **wildcard** all-interfaces addresses (`0.0.0.0`, `::`, and every equivalent spelling). Binding a **specific** address is allowed with no opt-in, because that's one deliberate exposure rather than every interface at once — which is the shape DNS-rebinding attacks target.
+The Inspector refuses to bind the **wildcard** all-interfaces addresses (`0.0.0.0`, `::`, and every equivalent spelling) unless you set `DANGEROUSLY_BIND_ALL_INTERFACES=true`. Binding a **specific** address is allowed with no opt-in, because that's one deliberate exposure rather than every interface at once, which is the shape DNS-rebinding attacks target.
 
 | Goal                                         | What to do                                                                                                                                             |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
