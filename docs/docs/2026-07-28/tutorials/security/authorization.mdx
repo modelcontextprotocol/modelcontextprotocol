@@ -968,7 +968,7 @@ You can see the complete C# project in the [sample repository](https://github.co
 
 To set up authorization in your MCP server using the MCP C# SDK, you can lean on the standard ASP.NET Core builder pattern. Instead of using the introspection endpoint provided by Keycloak, we will use built-in ASP.NET Core capabilities for token validation.
 
-In the root of the server folder create two files: `Program.cs`, `ProtectedMcpServer.csproj`, and one folder - `Tools`. Fill `Program.cs` with:
+In the root of your server folder, create two files, `Program.cs` and `ProtectedMcpServer.csproj`, and a `Tools` folder. Fill `Program.cs` with:
 
 ```csharp
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -1075,7 +1075,7 @@ Fill `ProtectedMcpServer.csproj` with:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.18" />
     <PackageReference Include="ModelContextProtocol" Version="2.0.0" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.0.0" />
   </ItemGroup>
@@ -1083,7 +1083,7 @@ Fill `ProtectedMcpServer.csproj` with:
 </Project>
 ```
 
-In the `Tools` folder, create `MathTools.cs` and fill with:
+In the `Tools` folder, create `MathTools.cs` and fill it with:
 
 ```csharp
 using System.ComponentModel;
