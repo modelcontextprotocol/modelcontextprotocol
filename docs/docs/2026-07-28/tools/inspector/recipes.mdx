@@ -1,6 +1,6 @@
 ---
 title: Recipes
-description: Practical guides — transports, importing configs, reviewing MCP Apps, Docker, and network hosting
+description: Practical guides for transports, importing configs, reviewing MCP Apps, Docker, and network hosting
 ---
 
 ## Connecting stdio vs. HTTP servers
@@ -10,17 +10,11 @@ description: Practical guides — transports, importing configs, reviewing MCP A
 A stdio server is a process the Inspector spawns. Everything positional is the command line:
 
 ```bash
-mcp-inspector node build/index.js --verbose        # --verbose goes to the Inspector? No — see below
-```
-
-<Warning>
-That example is a trap. `--verbose` would be parsed by the Inspector. Use the `--` separator to hand arguments to your server:
-
-```bash
 mcp-inspector node build/index.js -- --verbose --config /etc/myserver.conf
 ```
 
-</Warning>
+Put `--` before any arguments meant for your server. Without the separator, `--verbose` would be
+parsed by the Inspector and never reach the server.
 
 Give the process environment variables with `-e` and a working directory with `--cwd`:
 
@@ -38,18 +32,19 @@ mcp-inspector --server-url https://api.example.com/mcp --transport http \
   --header "X-Tenant: acme"
 ```
 
-`--transport` accepts `http` (Streamable HTTP) and `sse`. If the server is protected, see [Authorization](/docs/2026-07-28/tools/inspector/authorization) — you don't need to do anything special up front; the Inspector reacts to the `401`.
+`--transport` accepts `http` (Streamable HTTP) and `sse`. If the server is protected, see [Authorization](/docs/2026-07-28/tools/inspector/authorization): no setup is needed in advance, because when the server answers `401` the Inspector runs the OAuth flow described there and retries the connection.
 
 For an HTTP server, also decide its [protocol era](/docs/2026-07-28/tools/inspector/protocol-eras). The default is `legacy`; set `modern` or `auto` in Server Settings (or `protocolEra` in the catalog file) to exercise the 2026-07-28 behavior.
 
 ## Importing an existing client config
 
-You almost certainly already have MCP servers configured somewhere. The web client can import them rather than making you retype:
+On the Servers screen, **Add Servers** can import MCP servers you have already configured
+elsewhere instead of retyping them. It parses Claude Desktop, Cursor, Cline, and VS Code client
+configs directly, and it also reads a server's own [MCP Registry](/registry/about) `server.json`.
 
-- **Client configs** — Claude Desktop, Cursor, Cline, and VS Code formats are parsed directly.
-- **Registry `server.json`** — a server's own published descriptor.
-
-Import merges into the active catalog, so existing entries aren't clobbered. If you'd rather not touch your catalog at all, launch against the foreign file read-only instead:
+Import merges into the active [catalog](/docs/2026-07-28/tools/inspector/configuration#choosing-servers)
+(the Inspector's writable server list), so existing entries aren't clobbered. If you'd rather
+not touch your catalog at all, launch against the foreign file read-only instead:
 
 ```bash
 mcp-inspector --config ~/Library/Application\ Support/Claude/claude_desktop_config.json
@@ -63,7 +58,7 @@ mcp-inspector --config ~/Library/Application\ Support/Claude/claude_desktop_conf
 
 ## Reviewing an MCP App
 
-MCP Apps are tools that carry a UI widget. For an automated reviewer — CI, or an agent — the efficient shape is **CLI for everything with a JSON answer, browser only for the pixels**.
+[MCP Apps](/extensions/apps/overview) are tools that carry a UI widget. For an automated reviewer (CI or an agent), use the CLI for every check that returns JSON, and open a browser only to inspect the rendered widget.
 
 <Steps>
   <Step title="Probe the security posture without calling the tool">
@@ -87,7 +82,7 @@ One JSON line on stdout; exit `0` if the tool has an app, `2` if not, so an `&&`
 }
 ```
 
-`csp`, `permissions`, and `domain` come from the UI **resource**, not the tool — per the spec, that's where they live — and `--app-info` reads the resource for you. Nothing here invokes the tool.
+`csp` and `permissions` (and `domain`, when the resource declares one) live on the UI **resource** rather than the tool, so `--app-info` reads that resource. The tool is never called.
 
   </Step>
   <Step title="Get the full result payload, still with no browser">
@@ -107,7 +102,7 @@ MCP_AUTO_OPEN_ENABLED=false MCP_INSPECTOR_API_TOKEN="$TOKEN" \
 mcp-inspector --web &
 ```
 
-Pinning `MCP_SANDBOX_PORT` matters here — the app sandbox runs on its own port, and a driver needs it to be predictable.
+Pinning `MCP_SANDBOX_PORT` matters here: the app's UI is served from a separate sandbox port that is dynamic by default, and your automation needs a fixed address to reach it.
 
   </Step>
   <Step title="Navigate one deep link to a rendered widget">
@@ -116,12 +111,18 @@ Pinning `MCP_SANDBOX_PORT` matters here — the app sandbox runs on its own port
 http://127.0.0.1:6274/?serverUrl=<encoded url>&transport=http&autoConnect=<TOKEN>&openApp=<tool>&appArgs=<base64url(JSON)>&autoOpen=<TOKEN>
 ```
 
-`autoConnect` and `autoOpen` must both equal the session token — `autoOpen` fires a tool call from a URL, so its gate is mandatory.
+`appArgs` is the tool's arguments as base64url-encoded JSON, and every deep-link parameter is described under [Deep links](/docs/2026-07-28/tools/inspector/web#deep-links). `autoConnect` and `autoOpen` must both equal the session token, since `autoOpen` fires a tool call straight from the URL and needs the same gate as `autoConnect`.
 
   </Step>
-  <Step title="Wait on a deterministic signal, not a sleep">
+  <Step title="Wait on a deterministic signal instead of sleeping">
 
-The Apps screen exposes a stable automation contract. Poll `[data-testid="apps-form"]` for `data-app-status="ready"`; on failure, `data-app-error` carries the reason. Connection-level outcomes are on `[data-testid="connection-status"]` — `data-status` (`connecting` → `connected` / `error`), `data-error-message`, and `data-deeplink` (`parsed` / `rejected` / `none`, so you can tell "no deep link" from "deep link rejected").
+The Apps screen exposes a stable automation contract. Poll these attributes instead of sleeping:
+
+| Selector                            | Attribute         | Values                                                                                                  |
+| ----------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `[data-testid="apps-form"]`         | `data-app-status` | `ready` (on failure, `data-app-error` carries the reason)                                               |
+| `[data-testid="connection-status"]` | `data-status`     | `connecting`, then `connected` or `error` (`data-error-message` has the detail)                         |
+| `[data-testid="connection-status"]` | `data-deeplink`   | `parsed`, `rejected`, or `none` (`none` means no deep link was given, `rejected` means one was refused) |
 
   </Step>
 </Steps>
@@ -154,9 +155,9 @@ docker run --rm --no-healthcheck ghcr.io/modelcontextprotocol/inspector --cli <t
 
 ## Hosting on a network
 
-The Inspector binds `localhost` by default, and its backend spawns processes — so exposing it is a real decision, not a convenience toggle.
+The Inspector binds `localhost` by default and its backend spawns processes, so treat exposing it to a network as a deliberate decision.
 
-The guard blocks only the **wildcard** all-interfaces addresses (`0.0.0.0`, `::`, and every equivalent spelling). Binding a **specific** address is allowed with no opt-in, because that's one deliberate exposure rather than every interface at once — which is the shape DNS-rebinding attacks target.
+The Inspector refuses to bind the **wildcard** all-interfaces addresses (`0.0.0.0`, `::`, and every equivalent spelling) unless you set `DANGEROUSLY_BIND_ALL_INTERFACES=true`. Binding a **specific** address is allowed with no opt-in, because that's one deliberate exposure rather than every interface at once, which is the shape DNS-rebinding attacks target.
 
 | Goal                                         | What to do                                                                                                                                             |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -202,7 +203,10 @@ A loop that works well in practice:
     intentional as the successes.
   </Step>
   <Step title="Lock it in with the CLI">
-    Turn what you found into a `--stored-auth-only --format json | jq -e`
-    assertion in CI, so the next regression fails a build instead of a demo.
+    Turn what you found into a CI assertion: pipe the CLI's `--format json`
+    output to `jq -e` with `--stored-auth-only`, so a missing token fails fast
+    instead of starting interactive OAuth. See [Verify a server in
+    CI](/docs/2026-07-28/tools/inspector/cli#verify-a-server-in-ci) for the full
+    command.
   </Step>
 </Steps>

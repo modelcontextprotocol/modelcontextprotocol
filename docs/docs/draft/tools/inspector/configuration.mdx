@@ -3,14 +3,14 @@ title: Configuration and flags
 description: Catalog vs. config files, which client owns which flag, and every environment variable
 ---
 
-The `mcp-inspector` binary looks like one program with a big flag list. It isn't. It's a **launcher with two flags** that hands everything else to one of three clients, and those clients do not define the same set. Reading the surface that way is the difference between "why is `--method` not working?" and knowing immediately that `--method` is CLI-only.
+The `mcp-inspector` binary is a launcher: it reads two flags of its own and forwards every other argument to one of three clients (web, CLI, or TUI). Each client defines its own flags, so a flag that works in one can be unknown to another (`--method`, for example, is CLI-only). This page groups flags and environment variables by the client that owns them.
 
 ## The launcher owns exactly two things
 
-| Flag                        | Behavior                                                                                                                                                                                                                                                 |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--web` / `--cli` / `--tui` | Selects the client. `--web` is the default. At most one — two errors with `Specify at most one of --web, --cli, or --tui.` Read **only from a contiguous prefix**: the first non-mode token ends parsing and everything after it is forwarded unchanged. |
-| `-h` / `--help`             | **Bare** (no mode flag) prints the launcher's own help and exits. **With** a mode flag it is forwarded, so `mcp-inspector --cli --help` prints the CLI's help.                                                                                           |
+| Flag                        | Behavior                                                                                                                                                                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--web` / `--cli` / `--tui` | Selects the client, `--web` by default. Passing more than one fails with `Specify at most one of --web, --cli, or --tui.` Launcher flags must come first: parsing stops at the first argument the launcher does not own, and everything from that point on is forwarded to the client unchanged. |
+| `-h` / `--help`             | With no mode flag, prints the launcher's own help and exits. With a mode flag it is forwarded, so `mcp-inspector --cli --help` prints the CLI's help.                                                                                                                                            |
 
 Everything below belongs to a client.
 
@@ -18,15 +18,15 @@ Everything below belongs to a client.
 
 ### `--catalog` vs. `--config`
 
-These two flags look interchangeable and are not. All three clients resolve them through the same shared code, so they behave identically everywhere.
+All three clients resolve `--catalog` and `--config` through the same shared code, so each flag behaves the same in the web app, the CLI, and the TUI. Where the two differ from each other is the table below.
 
-|                             | `--catalog <path>`                                  | `--config <path>`                                       |
-| --------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
-| **Writable?**               | Yes, the Inspector's own server list.               | No. Served as-is, never written, seeded, or migrated.   |
-| **Missing file?**           | Created and seeded (see below).                     | **Errors.**                                             |
-| **Default**                 | `~/.mcp-inspector/mcp.json`, or the `MCP_CATALOG_PATH` environment variable. | None; you must pass it.    |
-| **Editable in the web UI?** | Yes.                                                | No.                                                     |
-| **Use it for**              | Your own working set of servers.                    | A read-only session against someone else's config file. |
+|                             | `--catalog <path>`                                                           | `--config <path>`                                       |
+| --------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Writable?**               | Yes, the Inspector's own server list.                                        | No. Served as-is, never written, seeded, or migrated.   |
+| **Missing file?**           | Created and seeded (see below).                                              | **Errors.**                                             |
+| **Default**                 | `~/.mcp-inspector/mcp.json`, or the `MCP_CATALOG_PATH` environment variable. | None; you must pass it.                                 |
+| **Editable in the web UI?** | Yes.                                                                         | No.                                                     |
+| **Use it for**              | Your own working set of servers.                                             | A read-only session against someone else's config file. |
 
 The two are **mutually exclusive**, and neither combines with an ad-hoc target. Passing both is rejected identically by all three clients.
 
@@ -107,12 +107,12 @@ Without the separator, `--config` would be read as the Inspector's own read-only
 
 These five are defined by the **CLI and TUI** only. The web client obtains the same settings through its Client Settings dialog.
 
-| Flag                          | Environment variable     | Meaning                                                                                                                                                                                                                                                   |
-| ----------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--client-config <path>`      | `MCP_CLIENT_CONFIG_PATH` | Install-level client config. Default `~/.mcp-inspector/storage/client.json`.                                                                                                                                                                              |
-| `--client-id <id>`            | —                        | OAuth client ID for a static client. Overrides `client.json`.                                                                                                                                                                                             |
-| `--client-secret <secret>`    | —                        | OAuth client secret for confidential clients. Overrides `client.json`.                                                                                                                                                                                    |
-| `--client-metadata-url <url>` | —                        | CIMD metadata URL. Overrides `client.json`.                                                                                                                                                                                                               |
+| Flag                          | Environment variable     | Meaning                                                                                                                                                                                                                                                                                                          |
+| ----------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--client-config <path>`      | `MCP_CLIENT_CONFIG_PATH` | Install-level client config. Default `~/.mcp-inspector/storage/client.json`.                                                                                                                                                                                                                                     |
+| `--client-id <id>`            | —                        | OAuth client ID for a static client. Overrides `client.json`.                                                                                                                                                                                                                                                    |
+| `--client-secret <secret>`    | —                        | OAuth client secret for confidential clients. Overrides `client.json`.                                                                                                                                                                                                                                           |
+| `--client-metadata-url <url>` | —                        | CIMD metadata URL. Overrides `client.json`.                                                                                                                                                                                                                                                                      |
 | `--callback-url <url>`        | `MCP_OAUTH_CALLBACK_URL` | The redirect URI sent to the authorization server. Default `http://127.0.0.1:6276/oauth/callback`. Must be a loopback host (`127.0.0.1` or `localhost`): the local callback listener receives the authorization code over plaintext `http`, so any other host is rejected and there is no flag to override this. |
 
 ## CLI-only flags
@@ -131,39 +131,39 @@ Environment variables split the same way as flags: two are read by the launcher 
 
 ### Read by the launcher
 
-| Variable    | Effect                                                                                                                                                     |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MCP_DEBUG` | Append the error stack to a top-level failure. Only when set to a meaningful value: `0`, `false`, and empty read as off.                                    |
+| Variable    | Effect                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MCP_DEBUG` | Append the error stack to a top-level failure. Only when set to a meaningful value: `0`, `false`, and empty read as off.                                            |
 | `DEBUG`     | Same, with the same meaningful-value rule, so a stray `DEBUG=0` doesn't turn stack traces on and `DEBUG` still works as the npm `debug` package's namespace filter. |
 
 ### CLI and TUI
 
-| Variable                         | Effect                                                                                                                                                           |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MCP_CATALOG_PATH`               | Fallback for `--catalog`. Honored only when no ad-hoc target is given, so a shell that exports it can still run one-off ad-hoc invocations.                      |
-| `MCP_CLIENT_CONFIG_PATH`         | Fallback for `--client-config`.                                                                                                                                  |
-| `MCP_OAUTH_CALLBACK_URL`         | Fallback for `--callback-url`.                                                                                                                                   |
-| `MCP_STORAGE_DIR`                | Storage directory for the OAuth persist backend (`<dir>/oauth.json`).                                                                                            |
-| `MCP_INSPECTOR_OAUTH_STATE_PATH` | Per-file override of the OAuth state path. Takes precedence over `MCP_STORAGE_DIR`.                                                                              |
-| `MCP_AUTO_OPEN_ENABLED`          | Browser auto-open and non-TTY interactive-OAuth admit. `true` forces open and allows interactive OAuth without a TTY; `false` never opens; unset opens on a TTY. |
+| Variable                         | Effect                                                                                                                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MCP_CATALOG_PATH`               | Fallback for `--catalog`. Honored only when no ad-hoc target is given, so a shell that exports it can still run one-off ad-hoc invocations.                                                         |
+| `MCP_CLIENT_CONFIG_PATH`         | Fallback for `--client-config`.                                                                                                                                                                     |
+| `MCP_OAUTH_CALLBACK_URL`         | Fallback for `--callback-url`.                                                                                                                                                                      |
+| `MCP_STORAGE_DIR`                | Directory for the OAuth state file (`<dir>/oauth.json`).                                                                                                                                            |
+| `MCP_INSPECTOR_OAUTH_STATE_PATH` | Per-file override of the OAuth state path. Takes precedence over `MCP_STORAGE_DIR`.                                                                                                                 |
+| `MCP_AUTO_OPEN_ENABLED`          | Controls browser auto-open and whether interactive OAuth may run without a TTY. `true` forces auto-open and allows OAuth prompts without a TTY, `false` never opens, and unset opens only on a TTY. |
 
 ### Web backend environment variables
 
-| Variable                                  | Effect                                                                                 |
-| ----------------------------------------- | -------------------------------------------------------------------------------------- |
-| `MCP_INSPECTOR_API_TOKEN`                 | Pin the session token instead of generating a random one per launch.                   |
-| `DANGEROUSLY_OMIT_AUTH`                   | Disable the `/api/*` token check entirely.                                             |
-| `HOST`                                    | Bind host. Defaults to `localhost`.                                                    |
-| `CLIENT_PORT`                             | Web UI port. Defaults to `6274`.                                                       |
-| `DANGEROUSLY_BIND_ALL_INTERFACES`         | Required opt-in to bind a wildcard host (`0.0.0.0`, `::`, or any equivalent spelling). |
-| `ALLOWED_ORIGINS`                         | Comma-separated origin allow-list. **Replaces** the default list rather than merging.  |
-| `MCP_SANDBOX_PORT`                        | Pin the MCP Apps sandbox port, which is dynamic by default.                            |
-| `HTTPS_PROXY` / `HTTP_PROXY` / `NO_PROXY` | Standard proxy routing for outbound MCP connections.                                   |
+| Variable                                  | Effect                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `MCP_INSPECTOR_API_TOKEN`                 | Pin the [session token](/docs/draft/tools/inspector/web#the-session-token) instead of generating a random one per launch. |
+| `DANGEROUSLY_OMIT_AUTH`                   | Disable the `/api/*` token check entirely.                                                                                |
+| `HOST`                                    | Bind host. Defaults to `localhost`.                                                                                       |
+| `CLIENT_PORT`                             | Web UI port. Defaults to `6274`.                                                                                          |
+| `DANGEROUSLY_BIND_ALL_INTERFACES`         | Required opt-in to bind a wildcard host (`0.0.0.0`, `::`, or any equivalent spelling).                                    |
+| `ALLOWED_ORIGINS`                         | Comma-separated origin allow-list. **Replaces** the default list rather than merging.                                     |
+| `MCP_SANDBOX_PORT`                        | Pin the MCP Apps sandbox port, which is dynamic by default.                                                               |
+| `HTTPS_PROXY` / `HTTP_PROXY` / `NO_PROXY` | Standard proxy routing for outbound MCP connections.                                                                      |
 
 <Warning>
-  `DANGEROUSLY_OMIT_AUTH` and `DANGEROUSLY_BIND_ALL_INTERFACES` are named that
-  way on purpose. The web backend spawns processes and holds OAuth tokens;
-  anyone who can reach it can drive it. Never combine the two.
+  Never combine `DANGEROUSLY_OMIT_AUTH` and `DANGEROUSLY_BIND_ALL_INTERFACES`.
+  The web backend spawns processes and holds OAuth tokens, so anyone who can
+  reach it can drive it.
 </Warning>
 
 ## Catalog file format
@@ -190,6 +190,6 @@ A catalog or config file is the familiar MCP client config shape — a `mcpServe
 }
 ```
 
-Fields that equal their default are omitted when the Inspector writes the file back, keeping diffs minimal. `protocolEra` defaults to `legacy` and `modernLogLevel` to `debug`.
+Fields that equal their default are omitted when the Inspector writes the file back, keeping diffs minimal. `protocolEra` (see [Protocol eras](/docs/draft/tools/inspector/protocol-eras)) defaults to `legacy` and `modernLogLevel` to `debug`.
 
 You do not have to hand-write these — the web client can [import an existing client config](/docs/draft/tools/inspector/recipes#importing-an-existing-client-config) from Claude Desktop, Cursor, Cline, or VS Code, or a registry `server.json`.

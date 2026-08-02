@@ -13,15 +13,15 @@ npx @modelcontextprotocol/inspector --catalog ./mcp.json  # with a catalog file
 
 ## The session token
 
-The backend guards every `/api/*` route with a per-launch token, because that backend can spawn processes on your machine. The launcher prints a URL containing the token — **open that URL**, don't type `localhost:6274` from memory.
+The Node server behind the web client guards every `/api/*` route with a per-launch token, because it can spawn processes on your machine. The launcher prints a URL containing that token: **open that URL**, and don't type `localhost:6274` from memory.
 
 The browser recovers the token from three places, in priority order:
 
 1. `window.__INSPECTOR_API_TOKEN__`, injected into `index.html` on every page load. This is what makes a bare-URL reload or a bookmark keep working.
-2. A `?MCP_INSPECTOR_API_TOKEN=…` query string — the form the banner prints.
+2. A `?MCP_INSPECTOR_API_TOKEN=...` query string, the form used in that printed URL.
 3. `sessionStorage`, as a backstop.
 
-Set `MCP_INSPECTOR_API_TOKEN` yourself to pin a known token (useful for scripted launches). Set `DANGEROUSLY_OMIT_AUTH=true` to disable the check entirely — only ever on a machine where nothing else can reach the port.
+Set the `MCP_INSPECTOR_API_TOKEN` environment variable to pin a known token (useful for scripted launches), or set `DANGEROUSLY_OMIT_AUTH=true` to disable the check entirely, but only on a machine where nothing else can reach the port. Both are described under [Web backend environment variables](/docs/2026-07-28/tools/inspector/configuration#web-backend-environment-variables).
 
 ## Dev mode
 
@@ -42,13 +42,13 @@ Production `--web` serves a built bundle. In the published package that bundle a
 | **Tools**     | `tools` capability                                                    | Browse schemas, fill arguments, call, inspect results.                         |
 | **Prompts**   | `prompts` capability                                                  | List prompts, supply arguments, preview generated messages.                    |
 | **Resources** | `resources` capability                                                | Browse, read, and subscribe to resources.                                      |
-| **Tasks**     | Legacy: `capabilities.tasks`. Modern: the negotiated tasks extension. | Track long-running tool calls.                                                 |
+| **Tasks**     | `capabilities.tasks` (legacy era) or the tasks extension (modern era) | Track long-running tool calls.                                                 |
 | **Logs**      | `logging` capability                                                  | Server `notifications/message` output, plus the era-appropriate level control. |
-| **Protocol**  | Always                                                                | The JSON-RPC transcript — requests, responses, notifications.                  |
+| **Protocol**  | Always                                                                | The JSON-RPC transcript: requests, responses, notifications.                   |
 | **Network**   | HTTP / SSE servers                                                    | The raw HTTP view: status, headers, bodies.                                    |
 | **Console**   | stdio servers                                                         | The server process's `stderr`.                                                 |
 
-**Network** and **Console** are mutually exclusive in practice — one is for HTTP transports, the other for stdio.
+**Network** and **Console** never appear together. Legacy and modern eras are described in [Protocol eras](/docs/2026-07-28/tools/inspector/protocol-eras).
 
 <Frame caption="The tab bar on a connected server. Which tabs appear depends on the capabilities the server reported.">
   <img src="/images/inspector/web-tab-bar.png" />
@@ -64,9 +64,9 @@ Production `--web` serves a built bundle. In the published package that bundle a
 
 ## Servers
 
-The Servers screen is the entry point. A server row carries its transport, its connection state, and a settings affordance.
+The Servers screen is the entry point. A server row carries its transport, its connection state, and a control that opens its per-server settings.
 
-Where that list comes from — and whether it's editable — depends on how you launched:
+Where that list comes from, and whether it's editable, depends on how you launched:
 
 | Launch                                       | Server list                                                             | Editable? |
 | -------------------------------------------- | ----------------------------------------------------------------------- | --------- |
@@ -75,18 +75,16 @@ Where that list comes from — and whether it's editable — depends on how you 
 | `--config <path>`                            | That file, read-only — never written or seeded                          | No        |
 | `--server-url <url>` or a positional command | One ad-hoc server, held in memory                                       | No        |
 
-On a first launch the web client seeds the catalog with two sample servers — a filesystem server scoped to `/tmp` and the canonical "everything" reference server — so there is something to connect to straight away. See [Configuration and flags](/docs/2026-07-28/tools/inspector/configuration) for the full rules, including why the CLI and TUI seed an empty catalog instead.
+On a first launch the web client seeds the catalog with two sample servers: a filesystem server scoped to `/tmp` and the canonical "everything" reference server. See [Configuration and flags](/docs/2026-07-28/tools/inspector/configuration) for the full rules, including why the CLI and TUI seed an empty catalog instead.
 
 ### Server Settings
 
-Per-server settings are where the interesting knobs live:
-
-- **Protocol Era** — `legacy` / `auto` / `modern`. See [Protocol eras](/docs/2026-07-28/tools/inspector/protocol-eras).
-- **Log level per request** — the modern-era default log-level stamp (or `off`).
-- **Advertised Extensions** — which extensions the Inspector declares in `capabilities.extensions`. A debugging knob: a server may legitimately change what it registers based on what you advertise. Uncheck the Tasks extension and reconnect against `test-servers/configs/advertised-extensions-http.json` to watch a tool disappear.
-- **Roots** — the roots advertised via the `roots` client capability. `@modelcontextprotocol/server-filesystem`, for instance, calls `roots/list` to learn its allowed directories.
+- **Protocol Era**: `legacy` / `auto` / `modern`. See [Protocol eras](/docs/2026-07-28/tools/inspector/protocol-eras).
+- **Log level per request**: the level a modern-era connection stamps on each outgoing request by default, or `off` to opt out (see [Logging](/docs/2026-07-28/tools/inspector/protocol-eras#logging)).
+- **Advertised Extensions**: which extensions the Inspector declares in `capabilities.extensions`. A debugging knob: a server may legitimately change what it registers based on what you advertise. Uncheck the Tasks extension and reconnect against the `test-servers/configs/advertised-extensions-http.json` fixture (setup in [Reproducing each era locally](/docs/2026-07-28/tools/inspector/protocol-eras#reproducing-each-era-locally)) to watch a tool disappear.
+- **Roots**: the roots advertised via the `roots` client capability. `@modelcontextprotocol/server-filesystem`, for instance, calls `roots/list` to learn its allowed directories.
 - **Headers**, **timeouts**, and **OAuth** fields.
-- **Fetch lists one page at a time** — when off, list results are auto-aggregated across pages on connect; when on, each list loads page 1 only with a **Load next page** control and an _N pages loaded_ status. Reproduce with `test-servers/configs/pagination-http.json`, which paginates 12 tools, resources, and prompts into three pages each.
+- **Fetch lists one page at a time**: when off, list results are auto-aggregated across pages on connect; when on, each list loads page 1 only with a **Load next page** control and an _N pages loaded_ status. Reproduce with `test-servers/configs/pagination-http.json`, which paginates 12 tools, resources, and prompts into three pages each.
 
 <Frame caption="Server Settings with Advertised Extensions expanded. Unchecking one changes what the Inspector declares at connect.">
   <img src="/images/inspector/web-server-settings.png" />
@@ -96,7 +94,7 @@ Per-server settings are where the interesting knobs live:
 
 Select a tool to see its description, its input schema rendered as a form, and its annotations. Fill the form and call it; the result renders below with structured content, embedded resources, and images handled natively.
 
-Modern-era servers add two things here — mirrored `Mcp-Param-*` headers and excluded tools, plus the distinct `-32602` error panels. Both are covered in [Protocol eras](/docs/2026-07-28/tools/inspector/protocol-eras#tools-mirrored-headers-and-excluded-tools).
+On modern-era servers this screen also shows mirrored `Mcp-Param-*` headers, excluded tools, and distinct `-32602` error panels, all covered in [Protocol eras](/docs/2026-07-28/tools/inspector/protocol-eras#tools-mirrored-headers-and-excluded-tools).
 
 <Frame caption="A tool call and its rendered result. The argument form collapses into the result panel once the call returns.">
   <img src="/images/inspector/web-tools.png" />
@@ -112,9 +110,9 @@ Lists resources and resource templates with their MIME types and descriptions, r
 
 ## Prompts
 
-Lists prompt templates with their arguments, and renders the generated messages for the arguments you supply — the fastest way to confirm a prompt actually produces what you intended.
+Lists prompt templates with their arguments, and renders the generated messages for the arguments you supply, which is the fastest way to confirm a prompt produces what you intended.
 
-<Frame caption="A prompt rendered with the arguments supplied — the fastest way to confirm it produces what you intended.">
+<Frame caption="A prompt rendered with the arguments supplied.">
   <img src="/images/inspector/web-prompts.png" />
 </Frame>
 

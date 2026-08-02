@@ -90,17 +90,17 @@ npx @modelcontextprotocol/inspector --server-url https://api.example.com/mcp --t
 
 Always read a server's own README first — every server requires different commands and arguments.
 
-## The launcher, and what belongs to a client
+## Launcher flags vs. client flags
 
-`mcp-inspector` is a thin launcher. It owns a deliberately tiny surface — **two things and nothing else**:
+`mcp-inspector`, the binary that `npx @modelcontextprotocol/inspector` runs, is a thin launcher. It owns only two things:
 
 1. **The mode flag:** `--web` (default), `--cli`, or `--tui`. At most one; passing two errors with `Specify at most one of --web, --cli, or --tui.`
 2. **`-h` / `--help`.**
 
-Everything else — `--catalog`, `--config`, `--server-url`, `--transport`, `--method`, the OAuth flags — is defined by the _client_, not the launcher, and the clients do not all define the same set. The [Configuration and flags](/docs/2026-07-28/tools/inspector/configuration) page is organized that way, by owner.
+Everything else (`--catalog`, `--config`, `--server-url`, `--transport`, `--method`, the OAuth flags) is defined by the _client_, not the launcher, and the clients do not all define the same set. The [Configuration and flags](/docs/2026-07-28/tools/inspector/configuration) page is organized that way, by owner.
 
 <Note>
-**Mode flags are read only from a contiguous prefix of the arguments.** The first token that isn't `--web` / `--cli` / `--tui` ends launcher parsing, and *everything after it is forwarded to the client unchanged*. That's what lets a literal `--cli` appear later as one of your server's own arguments:
+Mode flags are recognized only at the front of the command line: the first token that isn't `--web` / `--cli` / `--tui` ends launcher parsing, and everything after it is forwarded to the client unchanged. That's what lets a literal `--cli` appear later as one of your server's own arguments:
 
 ```bash
 mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goes to server.js
@@ -109,11 +109,10 @@ mcp-inspector --cli node server.js --cli   # mode is CLI; the trailing --cli goe
 </Note>
 
 <Note>
-  **`--help` behaves differently with and without a mode flag.** Bare
-  `mcp-inspector --help` prints the *launcher's* help and exits. With a mode
-  flag it is forwarded, so `mcp-inspector --cli --help` prints the *CLI's* help
-  — a much longer document. Use the mode-flag form when you want the flag
-  reference for a surface.
+  `--help` behaves differently with and without a mode flag. Bare `mcp-inspector
+  --help` prints the launcher's help and exits. With a mode flag it is
+  forwarded, so `mcp-inspector --cli --help` prints the CLI's full flag
+  reference instead.
 </Note>
 
 ## Where to go next
