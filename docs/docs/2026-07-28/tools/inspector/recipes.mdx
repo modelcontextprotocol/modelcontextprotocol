@@ -134,9 +134,11 @@ A container image is published to GitHub Container Registry for `linux/amd64` an
 docker run --rm -p 6274:6274 ghcr.io/modelcontextprotocol/inspector
 ```
 
-Read the session token from the container logs, or pin it with `-e MCP_INSPECTOR_API_TOKEN=…`.
+Read the [session token](/docs/2026-07-28/tools/inspector/web#the-session-token) from the container logs, or pin it with `-e MCP_INSPECTOR_API_TOKEN=<value>`.
 
-The image defaults to `--web` bound to `0.0.0.0:6274` with browser auto-open off, and sets `DANGEROUSLY_BIND_ALL_INTERFACES=true` — a container must bind the wildcard to be reachable through `-p`. It runs as a non-root user, and its `HEALTHCHECK` probes the web UI, so add `--no-healthcheck` when running `--cli` or `--tui` (neither has a web server):
+The image defaults to `--web`, bound to `0.0.0.0:6274` with browser auto-open off, and runs as a non-root user. It sets `DANGEROUSLY_BIND_ALL_INTERFACES=true` because a container must bind the wildcard address to be reachable through `-p`.
+
+Its `HEALTHCHECK` probes the web UI, so add `--no-healthcheck` when running `--cli` or `--tui` (neither has a web server). `<target>` below is an [ad-hoc target](/docs/2026-07-28/tools/inspector/configuration#ad-hoc-targets): a positional stdio command, or `--server-url <url> --transport http`.
 
 ```bash
 docker run --rm --no-healthcheck ghcr.io/modelcontextprotocol/inspector --cli <target> --method tools/list
