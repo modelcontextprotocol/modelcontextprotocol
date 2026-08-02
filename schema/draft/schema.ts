@@ -1993,6 +1993,11 @@ export interface Tool extends BaseMetadata, Icons {
    * (`if`/`then`/`else`), reference keywords (`$ref`, `$defs`, `$anchor`), and any other
    * standard validation or annotation keywords.
    *
+   * When using composition keywords, declare `properties` at the schema root and keep the
+   * branches to presence assertions such as `required`. A subschema that fails on a type
+   * error is indistinguishable from one that does not apply, so type constraints placed
+   * inside `oneOf` branches are not enforced for whichever branch does not match.
+   *
    * Property schemas may carry an `x-mcp-header` annotation to mirror the
    * argument value into an HTTP header on the Streamable HTTP transport. See
    * the Streamable HTTP transport specification for the validity and
