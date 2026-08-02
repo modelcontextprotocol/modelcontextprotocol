@@ -136,11 +136,11 @@ See [Recipes](/docs/draft/tools/inspector/recipes#reviewing-an-mcp-app) for the 
 
 ## Protocol, Network, and Console
 
-Three views of the same traffic at three altitudes:
+The three tabs show the same traffic at different levels of detail:
 
-- **Protocol** — the JSON-RPC transcript. Requests paired with responses, notifications inline, MRTR rounds grouped as one conversation, and spec errors rendered by class.
-- **Network** — the HTTP layer, for SSE and Streamable HTTP servers. Status codes, request and response headers, and bodies. On modern connections the standardized `Mcp-*` headers are highlighted and sentinel values decoded.
-- **Console** — the connected stdio server process's `stderr`, which is where most stdio servers put their own diagnostics.
+- **Protocol**: the JSON-RPC transcript. Requests paired with responses, notifications inline, [MRTR](/docs/draft/tools/inspector/protocol-eras#multi-round-tool-results-mrtr) rounds grouped as one conversation, and spec errors rendered by class.
+- **Network**: the HTTP layer, for SSE and Streamable HTTP servers. Status codes, request and response headers, and bodies. On modern connections the standardized `Mcp-*` headers are highlighted and sentinel values decoded.
+- **Console**: the connected stdio server process's `stderr`, which is where most stdio servers put their own diagnostics.
 
 Secrets are masked in these views, and entries can be cleared or exported.
 
