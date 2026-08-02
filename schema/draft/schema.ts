@@ -1965,8 +1965,14 @@ export interface ToolAnnotations {
  * @example With no parameters
  * {@includeCode ./examples/Tool/with-no-parameters.json}
  *
+ * @example With a composition input schema
+ * {@includeCode ./examples/Tool/tool-with-composition-input-schema.json}
+ *
  * @example With output schema for structured content
  * {@includeCode ./examples/Tool/with-output-schema-for-structured-content.json}
+ *
+ * @example With an array output schema
+ * {@includeCode ./examples/Tool/tool-with-array-output-schema.json}
  *
  * @category `tools/list`
  */
