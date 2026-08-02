@@ -23,7 +23,7 @@ mcp-inspector -e API_KEY=abc123 -e REGION=us-east-1 --cwd ~/projects/my-server \
   node build/index.js
 ```
 
-The server's `stderr` lands in the **Console** tab (web) or the Console tab (`o`, TUI) — which is where most stdio servers put their diagnostics, so check there first when a connection fails for no visible reason.
+The server's `stderr` lands in the **Console** tab (web) or the Console tab (`o`, TUI), which is where most stdio servers put their diagnostics, so check there first when a connection fails for no visible reason.
 
 ### HTTP and SSE
 
@@ -166,19 +166,19 @@ The Inspector refuses to bind the **wildcard** all-interfaces addresses (`0.0.0.
 | **Wildcard bind (containers)**               | Set `DANGEROUSLY_BIND_ALL_INTERFACES=true`. Loopback access still works out of the box; reaching it at a non-loopback address needs `ALLOWED_ORIGINS`. |
 
 <Warning>
-`ALLOWED_ORIGINS` **replaces** the default list — it does not merge. List every origin you'll browse from, including the loopback forms you want to keep:
+`ALLOWED_ORIGINS` **replaces** the default list rather than merging with it. List every origin you'll browse from, including the loopback forms you want to keep:
 
 ```
 ALLOWED_ORIGINS=http://localhost:6274,http://127.0.0.1:6274,http://192.168.1.50:6274
 ```
 
-Each entry must include the scheme; a scheme-less value is dropped with a warning. A blank value does **not** disable the check — it falls back to the default. There is no knob to turn origin validation off.
+Each entry must include the scheme; a scheme-less value is dropped with a warning. A blank value does **not** disable the check; it falls back to the default. There is no knob to turn origin validation off.
 
 </Warning>
 
 Two further caveats when going off loopback:
 
-- **MCP Apps need their sandbox port reachable too.** It's a separate, dynamic-by-default port — pin it with `MCP_SANDBOX_PORT` and expose or forward it. The Docker image publishes only `6274`.
+- **MCP Apps need their sandbox port reachable too.** It's a separate, dynamic-by-default port; pin it with `MCP_SANDBOX_PORT` and expose or forward it. The Docker image publishes only `6274`.
 - **MCP Apps can't render over TLS or at a bare IPv6 literal.** The sandbox URL is always plain `http`, so an `https://` page blocks the iframe as mixed content; and a bracketed IPv6 literal isn't a valid CSP host-source, so browse at a name or an IPv4 address.
 
 Whatever the shape: keep authentication on. Do not set `DANGEROUSLY_OMIT_AUTH` on anything reachable by anyone but you.
@@ -190,7 +190,7 @@ A loop that works well in practice:
 <Steps>
   <Step title="Start with the CLI">
     `--method initialize` confirms the server starts, handshakes, and reports
-    the capabilities you expect — in one second, with a machine-readable answer.
+    the capabilities you expect, in one second, with a machine-readable answer.
     Most "it doesn't work" turns out to be here.
   </Step>
   <Step title="Move to the web client for exploration">
@@ -198,9 +198,9 @@ A loop that works well in practice:
     it fast to find the case where a tool misbehaves.
   </Step>
   <Step title="Test the edges">
-    Invalid inputs, missing required prompt arguments, concurrent calls, and —
-    for HTTP servers — both protocol eras. Verify the *errors* are as
-    intentional as the successes.
+    Invalid inputs, missing required prompt arguments, concurrent calls, and,
+    for HTTP servers, both protocol eras. Verify the *errors* are as intentional
+    as the successes.
   </Step>
   <Step title="Lock it in with the CLI">
     Turn what you found into a CI assertion: pipe the CLI's `--format json`

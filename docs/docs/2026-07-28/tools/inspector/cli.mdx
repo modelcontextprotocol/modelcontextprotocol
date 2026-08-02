@@ -67,7 +67,7 @@ mcp-inspector --cli <server> --method tools/call --tool-name mytool \
   --tool-arg key=value --tool-arg count=1 --tool-arg 'options={"format":"json"}'
 ```
 
-`--tool-args-json` takes the whole argument object at once and passes it **verbatim** — no coercion, so `"012"` stays the string `012`. The two are mutually exclusive:
+`--tool-args-json` takes the whole argument object at once and passes it **verbatim**, with no coercion, so `"012"` stays the string `012`. The two are mutually exclusive:
 
 ```bash
 mcp-inspector --cli <server> --method tools/call --tool-name mytool \
@@ -131,7 +131,7 @@ On any non-zero exit the CLI also writes a **single JSON line to stderr**:
 
 Because it's one line, a caller can parse it with `2>&1 | tail -1 | jq .error`.
 
-A `tools/call` that returns `isError: true` still prints its payload, but exits `5` — so an `&&` chain doesn't proceed on a failed call.
+A `tools/call` that returns `isError: true` still prints its payload, but exits `5`, so an `&&` chain doesn't proceed on a failed call.
 
 ## Authorization in scripts
 

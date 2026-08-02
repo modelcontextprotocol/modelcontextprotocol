@@ -58,8 +58,8 @@ Either way, seeding happens only when the file does not exist yet, and a read-on
 
 <Note>
   `--config` is what you want when pointing the Inspector at a config file you
-  didn't write — a coworker's, a client application's, one checked into a repo.
-  It guarantees the Inspector will not touch the file.
+  didn't write: a coworker's, a client application's, or one checked into a
+  repo. It guarantees the Inspector will not touch the file.
 </Note>
 
 ### Ad-hoc targets
@@ -73,19 +73,19 @@ mcp-inspector --server-url https://api.example.com/mcp --transport http
 
 ### Shared server-selection flags
 
-Defined **separately by each of web, CLI, and TUI** — so they're available in all three, with the divergences noted:
+Defined **separately by each of web, CLI, and TUI**, so they're available in all three, with the divergences noted:
 
 | Flag                     | Meaning                                               | Divergence                                                                                      |
 | ------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `--catalog <path>`       | Writable catalog file.                                | —                                                                                               |
-| `--config <path>`        | Read-only session file.                               | —                                                                                               |
+| `--catalog <path>`       | Writable catalog file.                                | None                                                                                            |
+| `--config <path>`        | Read-only session file.                               | None                                                                                            |
 | `--server <name>`        | Pick one named server out of the file.                | **Web and CLI only.** The TUI loads every server in the file and lets you choose interactively. |
 | `--transport <type>`     | `stdio`, `sse`, or `http`.                            | Ad-hoc targets only.                                                                            |
 | `--server-url <url>`     | Server URL for SSE/HTTP.                              | Ad-hoc targets only.                                                                            |
-| `--cwd <path>`           | Working directory for a stdio server process.         | —                                                                                               |
-| `-e <KEY=VALUE>`         | Environment variables for a stdio server. Repeatable. | —                                                                                               |
+| `--cwd <path>`           | Working directory for a stdio server process.         | None                                                                                            |
+| `-e <KEY=VALUE>`         | Environment variables for a stdio server. Repeatable. | None                                                                                            |
 | `--header "Name: Value"` | HTTP headers for an HTTP/SSE server. Repeatable.      | Requires an ad-hoc HTTP/SSE server on the web client.                                           |
-| `[target...]`            | Positional command/URL for one ad-hoc server.         | —                                                                                               |
+| `[target...]`            | Positional command/URL for one ad-hoc server.         | None                                                                                            |
 
 ### The `--` separator
 
@@ -110,9 +110,9 @@ These five are defined by the **CLI and TUI** only. The web client obtains the s
 | Flag                          | Environment variable     | Meaning                                                                                                                                                                                                                                                                                                          |
 | ----------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--client-config <path>`      | `MCP_CLIENT_CONFIG_PATH` | Install-level client config. Default `~/.mcp-inspector/storage/client.json`.                                                                                                                                                                                                                                     |
-| `--client-id <id>`            | —                        | OAuth client ID for a static client. Overrides `client.json`.                                                                                                                                                                                                                                                    |
-| `--client-secret <secret>`    | —                        | OAuth client secret for confidential clients. Overrides `client.json`.                                                                                                                                                                                                                                           |
-| `--client-metadata-url <url>` | —                        | CIMD metadata URL. Overrides `client.json`.                                                                                                                                                                                                                                                                      |
+| `--client-id <id>`            | None                     | OAuth client ID for a static client. Overrides `client.json`.                                                                                                                                                                                                                                                    |
+| `--client-secret <secret>`    | None                     | OAuth client secret for confidential clients. Overrides `client.json`.                                                                                                                                                                                                                                           |
+| `--client-metadata-url <url>` | None                     | CIMD metadata URL. Overrides `client.json`.                                                                                                                                                                                                                                                                      |
 | `--callback-url <url>`        | `MCP_OAUTH_CALLBACK_URL` | The redirect URI sent to the authorization server. Default `http://127.0.0.1:6276/oauth/callback`. Must be a loopback host (`127.0.0.1` or `localhost`): the local callback listener receives the authorization code over plaintext `http`, so any other host is rejected and there is no flag to override this. |
 
 ## CLI-only flags
@@ -168,7 +168,7 @@ Environment variables split the same way as flags: two are read by the launcher 
 
 ## Catalog file format
 
-A catalog or config file is the familiar MCP client config shape — a `mcpServers` object — with per-server Inspector settings alongside:
+A catalog or config file is the familiar MCP client config shape (a `mcpServers` object) with per-server Inspector settings alongside:
 
 ```json
 {
@@ -176,7 +176,7 @@ A catalog or config file is the familiar MCP client config shape — a `mcpServe
     "my-stdio-server": {
       "command": "node",
       "args": ["build/index.js"],
-      "env": { "API_KEY": "…" }
+      "env": { "API_KEY": "..." }
     },
     "my-modern-server": {
       "type": "http",
@@ -192,4 +192,4 @@ A catalog or config file is the familiar MCP client config shape — a `mcpServe
 
 Fields that equal their default are omitted when the Inspector writes the file back, keeping diffs minimal. `protocolEra` (see [Protocol eras](/docs/2026-07-28/tools/inspector/protocol-eras)) defaults to `legacy` and `modernLogLevel` to `debug`.
 
-You do not have to hand-write these — the web client can [import an existing client config](/docs/2026-07-28/tools/inspector/recipes#importing-an-existing-client-config) from Claude Desktop, Cursor, Cline, or VS Code, or a registry `server.json`.
+You do not have to hand-write these; the web client can [import an existing client config](/docs/2026-07-28/tools/inspector/recipes#importing-an-existing-client-config) from Claude Desktop, Cursor, Cline, or VS Code, or a registry `server.json`.

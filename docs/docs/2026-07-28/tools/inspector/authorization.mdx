@@ -72,7 +72,7 @@ Override with `--callback-url` or `MCP_OAUTH_CALLBACK_URL`.
 </Warning>
 
 <Note>
-Redirect URIs must match your registration **exactly**. `http://localhost:6276/…` and `http://127.0.0.1:6276/…` are different URIs to an authorization server, even though they reach the same listener.
+Redirect URIs must match your registration **exactly**. `http://localhost:6276/...` and `http://127.0.0.1:6276/...` are different URIs to an authorization server, even though they reach the same listener.
 
 Only one process can hold the default port at a time; a second concurrent flow fails with `EADDRINUSE`. Use a different fixed port per instance, or `http://127.0.0.1:0/oauth/callback` for an OS-assigned ephemeral port when your authorization server supports dynamic redirect-URI registration.
 

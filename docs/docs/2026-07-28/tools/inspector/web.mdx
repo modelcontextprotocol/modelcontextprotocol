@@ -58,7 +58,7 @@ Production `--web` serves a built bundle. In the published package that bundle a
 
 **Tasks**, **Logs**, **Protocol**, **Network**, and **Console** form a _monitor group_. Pin the group and they leave the tab bar and move into a resizable right-hand column, so you can watch traffic while working in Tools or Resources. The column width and the selected monitor tab persist across reloads.
 
-<Frame caption="The monitoring sidebar pinned beside the Tools screen — the Protocol stream stays visible while you work.">
+<Frame caption="The monitoring sidebar pinned beside the Tools screen. The Protocol stream stays visible while you work.">
   <img src="/images/inspector/web-monitor-sidebar.png" />
 </Frame>
 
@@ -72,7 +72,7 @@ Where that list comes from, and whether it's editable, depends on how you launch
 | -------------------------------------------- | ----------------------------------------------------------------------- | --------- |
 | `mcp-inspector --web`                        | The default catalog `~/.mcp-inspector/mcp.json`, seeded on first launch | Yes       |
 | `--catalog <path>`                           | That file, seeded with the sample servers if missing                    | Yes       |
-| `--config <path>`                            | That file, read-only — never written or seeded                          | No        |
+| `--config <path>`                            | That file, read-only (never written or seeded)                          | No        |
 | `--server-url <url>` or a positional command | One ad-hoc server, held in memory                                       | No        |
 
 On a first launch the web client seeds the catalog with two sample servers: a filesystem server scoped to `/tmp` and the canonical "everything" reference server. See [Configuration and flags](/docs/2026-07-28/tools/inspector/configuration) for the full rules, including why the CLI and TUI seed an empty catalog instead.
@@ -102,7 +102,7 @@ On modern-era servers this screen also shows mirrored `Mcp-Param-*` headers, exc
 
 ## Resources
 
-Lists resources and resource templates with their MIME types and descriptions, reads content on selection, and offers **Subscribe** on servers that support subscriptions. The subscription mechanics differ by era — see [Resource subscriptions](/docs/2026-07-28/tools/inspector/protocol-eras#resource-subscriptions).
+Lists resources and resource templates with their MIME types and descriptions, reads content on selection, and offers **Subscribe** on servers that support subscriptions. The subscription mechanics differ by era; see [Resource subscriptions](/docs/2026-07-28/tools/inspector/protocol-eras#resource-subscriptions).
 
 <Frame caption="A resource read, with an active subscription listed below the resource list.">
   <img src="/images/inspector/web-resources.png" />
@@ -154,7 +154,7 @@ http://127.0.0.1:6274/?serverUrl=<url>&transport=http|sse&autoConnect=<token>
 
 | Parameter     | Meaning                                                                                                        |
 | ------------- | -------------------------------------------------------------------------------------------------------------- |
-| `serverUrl`   | The MCP server URL. Restricted to `http:` / `https:` — a crafted `javascript:` or `file:` value is rejected.   |
+| `serverUrl`   | The MCP server URL. Restricted to `http:` / `https:`; a crafted `javascript:` or `file:` value is rejected.    |
 | `transport`   | `http` (default) or `sse`.                                                                                     |
 | `autoConnect` | **Required CSRF gate.** Must equal the per-launch session token, which only whatever started the server knows. |
 

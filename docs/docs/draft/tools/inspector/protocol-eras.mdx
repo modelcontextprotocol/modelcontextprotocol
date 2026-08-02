@@ -28,7 +28,7 @@ Era selection works the same way in all three clients.
 
 Once connected, the negotiated era is reported in the connection header and in **Connection Info**. On a modern connection, `server/discover` also supplies `capabilities` (including `extensions`), `instructions`, and the list of `supportedVersions`. The server's name and version arrive in the result `_meta` under `io.modelcontextprotocol/serverInfo`.
 
-<Frame caption="Server Settings — the Protocol Era selector, with all three choices.">
+<Frame caption="Server Settings: the Protocol Era selector, with all three choices.">
   <img src="/images/inspector/settings-protocol-era.png" />
 </Frame>
 
@@ -60,7 +60,7 @@ Reproduce with `test-servers/configs/logging-legacy-http.json`.
 
 `logging/setLevel` is **gone**. Instead the client opts in **per request**, by stamping `_meta["io.modelcontextprotocol/logLevel"]` on each outgoing request. A server MUST NOT emit `notifications/message` for a request that did not opt in.
 
-The **Logs** tab therefore shows a **Log Level per Request** control instead. Pick a level and every subsequent request carries the stamp — visible in the Network tab's request body. Logs emitted while handling a request ride that request's SSE response stream.
+The **Logs** tab therefore shows a **Log Level per Request** control instead. Pick a level and every subsequent request carries the stamp, visible in the Network tab's request body. Logs emitted while handling a request ride that request's SSE response stream.
 
 Set the control to **Off** and the `logLevel` key is omitted entirely, so the same tool call produces no logs at all. That silence is correct behavior, not a bug.
 
@@ -110,7 +110,7 @@ Reproduce with `test-servers/configs/subscriptions-modern-http.json`.
 
 ## Tasks
 
-Tasks change the most between protocol eras — including _how the Inspector UI tab is gated_.
+Tasks change the most between protocol eras, including _how the Inspector UI tab is gated_.
 
 <Tabs>
   <Tab title="Legacy">
@@ -137,7 +137,7 @@ Reproduce with `test-servers/configs/tasks-modern-http.json` (tools `modern_task
   <img src="/images/inspector/tasks-legacy.png" />
 </Frame>
 
-<Frame caption="Modern: the client polls tasks/get on handles it already holds, and the completed task inlines its result — note resultType: complete in the full task object.">
+<Frame caption="Modern: the client polls tasks/get on handles it already holds, and the completed task inlines its result; note resultType: complete in the full task object.">
   <img src="/images/inspector/tasks-modern.png" />
 </Frame>
 
@@ -194,7 +194,7 @@ Reproduce with `test-servers/configs/xmcpheader-modern-http.json`.
   outside the Inspector's control.
 </Warning>
 
-<Frame caption="get_weather shows its mirrored city → Mcp-Param-City header, while invalid_header_tool is struck through under the Excluded (SEP-2243) divider.">
+<Frame caption="get_weather shows its mirrored city -> Mcp-Param-City header, while invalid_header_tool is struck through under the Excluded (SEP-2243) divider.">
   <img src="/images/inspector/tools-sep2243.png" />
 </Frame>
 
@@ -213,8 +213,8 @@ Both eras reject with `-32602`; only the Inspector's presentation changes. On a 
 
 The modern era standardizes a set of `Mcp-*` HTTP headers and introduces a richer JSON-RPC error taxonomy ([SEP-2243](/seps/2243-http-standardization) / [SEP-2575](/seps/2575-stateless-mcp)). The two monitoring tabs divide the work:
 
-- The **Network** tab is the HTTP view — mirrored `Mcp-*` headers are highlighted and sentinel values decoded.
-- The **Protocol** tab is the JSON-RPC view — each spec error renders distinctly rather than as a generic failure.
+- The **Network** tab is the HTTP view: mirrored `Mcp-*` headers are highlighted and sentinel values decoded.
+- The **Protocol** tab is the JSON-RPC view: each spec error renders distinctly rather than as a generic failure.
 
 `test-servers/configs/modern-network-http.json` serves four tools that produce a real HTTP status plus a JSON-RPC error body, one per class:
 
@@ -225,7 +225,7 @@ The modern era standardizes a set of `Mcp-*` HTTP headers and introduces a riche
 | `trigger_unsupported_version` | `400` | `-32022`      | Unsupported version; supported versions in `data.supported`. |
 | `trigger_method_not_found`    | `404` | `-32601`      | Method not found.                                            |
 
-<Frame caption="The Network tab shows the HTTP layer — here the 400 Bad Request the strict server answered with.">
+<Frame caption="The Network tab shows the HTTP layer; here, the 400 Bad Request the strict server answered with.">
   <img src="/images/inspector/network-modern-headers.png" />
 </Frame>
 

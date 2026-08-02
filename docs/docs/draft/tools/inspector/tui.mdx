@@ -66,7 +66,7 @@ The trade-off is that only one TUI OAuth flow can hold the port at a time; a sec
   `127.0.0.1` are different URIs as far as an authorization server is concerned.
 </Warning>
 
-Per-server OAuth fields in the catalog (static client id/secret, scopes, the enterprise-managed flag) are applied automatically. Install-wide settings — CIMD, enterprise IdP — come from `~/.mcp-inspector/storage/client.json`, the same file the web client's **Client Settings** dialog writes. Point at a different one with `--client-config` or `MCP_CLIENT_CONFIG_PATH`.
+Per-server OAuth fields in the catalog (static client id/secret, scopes, the enterprise-managed flag) are applied automatically. Install-wide settings (CIMD, enterprise IdP) come from `~/.mcp-inspector/storage/client.json`, the same file the web client's **Client Settings** dialog writes. Point at a different one with `--client-config` or `MCP_CLIENT_CONFIG_PATH`.
 
 See [Authorization](/docs/draft/tools/inspector/authorization) for the full picture.
 
