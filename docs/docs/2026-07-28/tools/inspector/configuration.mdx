@@ -50,9 +50,9 @@ The two are **mutually exclusive**, and neither combines with an ad-hoc target. 
 }
 ```
 
-The **CLI and TUI** seed an empty `{ "mcpServers": {} }` instead — they are non-interactive or list-driven, so sample entries would be noise rather than a starting point.
+The CLI and TUI seed an empty `{ "mcpServers": {} }` instead: they are non-interactive or list-driven, so sample entries would be noise rather than a starting point.
 
-Either way this happens **once**, only when the file is absent. An existing catalog is never re-seeded, and a read-only `--config` is never seeded at all.
+Either way, seeding happens only when the file does not exist yet, and a read-only `--config` is never seeded at all.
 
 </Note>
 
