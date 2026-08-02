@@ -18,7 +18,7 @@ Everything below belongs to a client.
 
 ### `--catalog` vs. `--config`
 
-These two flags look interchangeable and are not. All three clients resolve them through the same shared code, so they behave identically everywhere.
+All three clients resolve `--catalog` and `--config` through the same shared code, so each flag behaves the same in the web app, the CLI, and the TUI. Where the two differ from each other is the table below.
 
 |                             | `--catalog <path>`                                  | `--config <path>`                                       |
 | --------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
