@@ -150,7 +150,7 @@ Secrets are masked in these views, and entries can be cleared or exported.
 
 ## Deep links
 
-A driver — a script, a CI harness, or the CLI's `--print-handoff` — can reach a _connected_ Inspector with a single navigation:
+A driver (a script, a CI harness, or the CLI's [`--print-handoff`](/docs/draft/tools/inspector/authorization#handing-off-from-the-web-client-to-the-cli)) can reach a _connected_ Inspector with a single navigation:
 
 ```
 http://127.0.0.1:6274/?serverUrl=<url>&transport=http|sse&autoConnect=<token>
