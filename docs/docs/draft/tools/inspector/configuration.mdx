@@ -113,7 +113,7 @@ These five are defined by the **CLI and TUI** only. The web client obtains the s
 | `--client-id <id>`            | —                        | OAuth client ID for a static client. Overrides `client.json`.                                                                                                                                                                                             |
 | `--client-secret <secret>`    | —                        | OAuth client secret for confidential clients. Overrides `client.json`.                                                                                                                                                                                    |
 | `--client-metadata-url <url>` | —                        | CIMD metadata URL. Overrides `client.json`.                                                                                                                                                                                                               |
-| `--callback-url <url>`        | `MCP_OAUTH_CALLBACK_URL` | The redirect URI sent to the authorization server. Default `http://127.0.0.1:6276/oauth/callback`. **Must bind a loopback host** — the listener receives the authorization code over plaintext `http`, so a non-loopback host hard-errors with no opt-in. |
+| `--callback-url <url>`        | `MCP_OAUTH_CALLBACK_URL` | The redirect URI sent to the authorization server. Default `http://127.0.0.1:6276/oauth/callback`. Must be a loopback host (`127.0.0.1` or `localhost`): the local callback listener receives the authorization code over plaintext `http`, so any other host is rejected and there is no flag to override this. |
 
 ## CLI-only flags
 
