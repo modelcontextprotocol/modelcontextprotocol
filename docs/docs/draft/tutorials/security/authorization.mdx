@@ -312,6 +312,111 @@ The verifier above assumes the authorization server issues JWT access tokens. If
 For more details, see the [TypeScript SDK documentation](https://github.com/modelcontextprotocol/typescript-sdk).
 
 </Tab>
+<Tab title="Python">
+
+In Python, the SDK serves the Protected Resource Metadata and answers unauthenticated requests with a `401` and a `WWW-Authenticate` challenge for you, so the server only needs a token verifier and its `AuthSettings`. The verifier below fetches the authorization server metadata once at startup and validates incoming JWTs against the JWKS endpoint listed there.
+
+Install the SDK and a JWT library (the `crypto` extra is required to verify RS256 signatures):
+
+```bash
+pip install "mcp>=2.0" "pyjwt[crypto]"
+```
+
+Then write the server:
+
+```python
+"""OAuth-protected MCP server (Python)."""
+
+import httpx2
+import jwt
+from jwt import PyJWKClient
+from pydantic import AnyHttpUrl
+
+from mcp.server.auth.provider import AccessToken, TokenVerifier
+from mcp.server.auth.settings import AuthSettings
+from mcp.server.mcpserver import MCPServer
+from mcp.shared.auth_utils import check_resource_allowed, resource_url_from_server_url
+
+AUTH_SERVER_URL = "https://auth.example.com"
+SERVER_URL = "http://localhost:3001"
+
+
+class JWTTokenVerifier(TokenVerifier):
+    """Validate JWT access tokens against the authorization server's signing keys."""
+
+    def __init__(self, auth_server_url: str, server_url: str) -> None:
+        # Fetch the authorization server metadata once, which includes
+        # client_id_metadata_document_supported: true and the jwks_uri where the
+        # authorization server publishes its signing keys.
+        metadata = httpx2.get(f"{auth_server_url}/.well-known/oauth-authorization-server").json()
+        self.issuer = metadata["issuer"]
+        self.jwks_client = PyJWKClient(metadata["jwks_uri"])
+        self.resource_url = resource_url_from_server_url(server_url)
+
+    async def verify_token(self, token: str) -> AccessToken | None:
+        try:
+            signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+            payload = jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256"],
+                issuer=self.issuer,
+                # Audience is checked below with RFC 8707 resource matching
+                options={"verify_aud": False},
+            )
+        except jwt.PyJWTError:
+            return None
+
+        # Reject tokens that were not issued for this server (RFC 8707)
+        audiences = payload.get("aud", [])
+        if isinstance(audiences, str):
+            audiences = [audiences]
+        if not any(check_resource_allowed(aud, self.resource_url) for aud in audiences):
+            return None
+
+        return AccessToken(
+            token=token,
+            client_id=payload.get("client_id") or payload.get("sub", ""),
+            scopes=payload.get("scope", "").split(),
+            expires_at=payload.get("exp"),
+            subject=payload.get("sub"),
+        )
+
+
+mcp = MCPServer(
+    "Example MCP Server",
+    token_verifier=JWTTokenVerifier(AUTH_SERVER_URL, SERVER_URL),
+    auth=AuthSettings(
+        issuer_url=AnyHttpUrl(AUTH_SERVER_URL),
+        resource_server_url=AnyHttpUrl(SERVER_URL),
+        required_scopes=["mcp:tools"],
+    ),
+)
+
+
+@mcp.tool()
+def add(a: float, b: float) -> float:
+    """Add two numbers together."""
+    return a + b
+
+
+if __name__ == "__main__":
+    mcp.run(transport="streamable-http")
+```
+
+The `AuthSettings` you pass to `MCPServer` drive the Protected Resource Metadata document, which lists your authorization server, and `required_scopes` are enforced on every request. Inside `verify_token`, `check_resource_allowed` rejects tokens whose `aud` claim does not match this server, as the spec requires, and any signature, issuer, or expiry failure returns `None`, which the SDK turns into a `401`.
+
+The verifier above assumes the authorization server issues JWT access tokens. If yours issues opaque tokens, implement `verify_token` against its [token introspection](https://oauth.net/2/token-introspection/) endpoint and apply the same audience check to the introspection response.
+
+Run the server with:
+
+```bash
+python server.py
+```
+
+For more details, see the [Python SDK documentation](https://github.com/modelcontextprotocol/python-sdk).
+
+</Tab>
 <Tab title="C#">
 
 In C#, the MCP server points clients directly at the external authorization server. The `AddMcp()` extension configures Protected Resource Metadata, and the `McpAuthenticationHandler` automatically serves it and adds `WWW-Authenticate` headers on `401` responses. Token validation uses the built-in ASP.NET Core JWT bearer middleware.
