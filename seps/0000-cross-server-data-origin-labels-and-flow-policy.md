@@ -1,11 +1,11 @@
-# SEP-0000: Cross-Server Data-Origin Labels and Flow Policy
+# SEP-3193: Cross-Server Data-Origin Labels and Flow Policy
 
 - **Status**: Proposal
 - **Type**: Standards Track
 - **Created**: 2026-08-03
 - **Author(s)**: Omkar Parkhe <omkarparth@gmail.com> (@omkarparth)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/0000
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3193
 
 ## Abstract
 
