@@ -27,7 +27,7 @@
 - _Nov 5_:
   - kept `stopReason` as open string but w/ redundant explicit enums for visibility
   - removed requirement to throw when `includeContext` not matching advertised `ClientCapabilities.sampling.context`
-  - mitigates backwards compatibility issue of `CreateMessageResult.content` being an array of contents OR a single content by saying sampling _MUST NOT_ return an array in earlier spec versions (+ ackowledging SDK updates of code w/ sampling will need small code changes)
+  - mitigates backwards compatibility issue of `CreateMessageResult.content` being an array of contents OR a single content by saying sampling _MUST NOT_ return an array in earlier spec versions (+ acknowledging SDK updates of code w/ sampling will need small code changes)
 - _Nov 7_: renamed type `ToolCallContent` to `ToolUseContent` (to match its `tool_use` type & the `toolUse` `stopReason`). SEP was approved!
 - _Nov 10_: removing `disable_parallel_tool_use` / keeping for a later update as the Gemini API has no way to implement this for now.
 - _Nov 11_: added extra notes about Gemini API's function calling modes & roles; requiring SamplingMessage w/ tool result contents not be mixed w/ other content types
@@ -286,7 +286,7 @@ In the "Possible Follow ups" Section below, we give examples of features that we
 
 ## Possible Follow ups
 
-Theses are out of scope for this SEP, but care was taken not to preclude them, so where appropriate we give examples of how they could be implemented on top of / after this SEP.
+These are out of scope for this SEP, but care was taken not to preclude them, so where appropriate we give examples of how they could be implemented on top of / after this SEP.
 
 ### Streaming support
 
