@@ -24,85 +24,372 @@
     "tabs": [
       {
         "tab": "Documentation",
-        "pages": [
+        "versions": [
           {
-            "group": "Get started",
+            "version": "Version 2026-07-28 (latest)",
             "pages": [
-              "docs/getting-started/intro"
-            ]
-          },
-          {
-            "group": "About MCP",
-            "pages": [
-              "docs/learn/architecture",
-              "docs/learn/server-concepts",
-              "docs/learn/client-concepts",
-              "docs/learn/versioning"
-            ]
-          },
-          {
-            "group": "Develop with MCP",
-            "pages": [
-              "docs/develop/connect-local-servers",
-              "docs/develop/connect-remote-servers",
-              "docs/develop/build-with-agent-skills",
-              "docs/develop/build-server",
               {
-                "group": "Clients",
+                "group": "Get started",
                 "pages": [
-                  "docs/develop/build-client",
-                  "docs/develop/clients/client-best-practices"
+                  "docs/2026-07-28/getting-started/intro"
                 ]
               },
-              "docs/sdk",
               {
-                "group": "Security",
+                "group": "About MCP",
                 "pages": [
-                  "docs/tutorials/security/authorization",
-                  "docs/tutorials/security/security_best_practices"
+                  "docs/2026-07-28/learn/architecture",
+                  "docs/2026-07-28/learn/server-concepts",
+                  "docs/2026-07-28/learn/client-concepts",
+                  "docs/2026-07-28/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/2026-07-28/develop/connect-local-servers",
+                  "docs/2026-07-28/develop/connect-remote-servers",
+                  "docs/2026-07-28/develop/build-with-agent-skills",
+                  "docs/2026-07-28/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/2026-07-28/develop/build-client",
+                      "docs/2026-07-28/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/2026-07-28/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/2026-07-28/tutorials/security/authorization",
+                      "docs/2026-07-28/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  {
+                    "group": "Inspector",
+                    "pages": [
+                      "docs/2026-07-28/tools/inspector",
+                      "docs/2026-07-28/tools/inspector/web",
+                      "docs/2026-07-28/tools/inspector/cli",
+                      "docs/2026-07-28/tools/inspector/tui",
+                      "docs/2026-07-28/tools/inspector/configuration",
+                      "docs/2026-07-28/tools/inspector/authorization",
+                      "docs/2026-07-28/tools/inspector/protocol-eras",
+                      "docs/2026-07-28/tools/inspector/recipes"
+                    ]
+                  },
+                  "docs/2026-07-28/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
+                ]
+              }
+            ],
+            "default": true
+          },
+          {
+            "version": "Version 2025-11-25",
+            "pages": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "docs/2025-11-25/getting-started/intro"
+                ]
+              },
+              {
+                "group": "About MCP",
+                "pages": [
+                  "docs/2025-11-25/learn/architecture",
+                  "docs/2025-11-25/learn/server-concepts",
+                  "docs/2025-11-25/learn/client-concepts",
+                  "docs/2025-11-25/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/2025-11-25/develop/connect-local-servers",
+                  "docs/2025-11-25/develop/connect-remote-servers",
+                  "docs/2025-11-25/develop/build-with-agent-skills",
+                  "docs/2025-11-25/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/2025-11-25/develop/build-client",
+                      "docs/2025-11-25/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/2025-11-25/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/2025-11-25/tutorials/security/authorization",
+                      "docs/2025-11-25/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  "docs/2025-11-25/tools/inspector",
+                  "docs/2025-11-25/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
                 ]
               }
             ]
           },
           {
-            "group": "Developer tools",
+            "version": "Version 2025-06-18",
             "pages": [
-              "docs/tools/inspector",
-              "docs/tools/debugging"
+              {
+                "group": "Get started",
+                "pages": [
+                  "docs/2025-06-18/getting-started/intro"
+                ]
+              },
+              {
+                "group": "About MCP",
+                "pages": [
+                  "docs/2025-06-18/learn/architecture",
+                  "docs/2025-06-18/learn/server-concepts",
+                  "docs/2025-06-18/learn/client-concepts",
+                  "docs/2025-06-18/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/2025-06-18/develop/connect-local-servers",
+                  "docs/2025-06-18/develop/connect-remote-servers",
+                  "docs/2025-06-18/develop/build-with-agent-skills",
+                  "docs/2025-06-18/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/2025-06-18/develop/build-client",
+                      "docs/2025-06-18/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/2025-06-18/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/2025-06-18/tutorials/security/authorization",
+                      "docs/2025-06-18/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  "docs/2025-06-18/tools/inspector",
+                  "docs/2025-06-18/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
+                ]
+              }
             ]
           },
           {
-            "group": "Examples",
+            "version": "Version 2025-03-26",
             "pages": [
-              "examples"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Extensions",
-        "pages": [
-          "extensions/overview",
-          "extensions/client-matrix",
-          {
-            "group": "MCP Apps",
-            "pages": [
-              "extensions/apps/overview",
-              "extensions/apps/build"
+              {
+                "group": "Get started",
+                "pages": [
+                  "docs/2025-03-26/getting-started/intro"
+                ]
+              },
+              {
+                "group": "About MCP",
+                "pages": [
+                  "docs/2025-03-26/learn/architecture",
+                  "docs/2025-03-26/learn/server-concepts",
+                  "docs/2025-03-26/learn/client-concepts",
+                  "docs/2025-03-26/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/2025-03-26/develop/connect-local-servers",
+                  "docs/2025-03-26/develop/connect-remote-servers",
+                  "docs/2025-03-26/develop/build-with-agent-skills",
+                  "docs/2025-03-26/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/2025-03-26/develop/build-client",
+                      "docs/2025-03-26/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/2025-03-26/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/2025-03-26/tutorials/security/authorization",
+                      "docs/2025-03-26/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  "docs/2025-03-26/tools/inspector",
+                  "docs/2025-03-26/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
+                ]
+              }
             ]
           },
           {
-            "group": "Authorization Extensions",
+            "version": "Version 2024-11-05",
             "pages": [
-              "extensions/auth/overview",
-              "extensions/auth/oauth-client-credentials",
-              "extensions/auth/enterprise-managed-authorization"
+              {
+                "group": "Get started",
+                "pages": [
+                  "docs/2024-11-05/getting-started/intro"
+                ]
+              },
+              {
+                "group": "About MCP",
+                "pages": [
+                  "docs/2024-11-05/learn/architecture",
+                  "docs/2024-11-05/learn/server-concepts",
+                  "docs/2024-11-05/learn/client-concepts",
+                  "docs/2024-11-05/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/2024-11-05/develop/connect-local-servers",
+                  "docs/2024-11-05/develop/connect-remote-servers",
+                  "docs/2024-11-05/develop/build-with-agent-skills",
+                  "docs/2024-11-05/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/2024-11-05/develop/build-client",
+                      "docs/2024-11-05/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/2024-11-05/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/2024-11-05/tutorials/security/authorization",
+                      "docs/2024-11-05/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  "docs/2024-11-05/tools/inspector",
+                  "docs/2024-11-05/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
+                ]
+              }
             ]
           },
           {
-            "group": "Tasks",
+            "version": "Draft",
             "pages": [
-              "extensions/tasks/overview"
+              {
+                "group": "Get started",
+                "pages": [
+                  "docs/draft/getting-started/intro"
+                ]
+              },
+              {
+                "group": "About MCP",
+                "pages": [
+                  "docs/draft/learn/architecture",
+                  "docs/draft/learn/server-concepts",
+                  "docs/draft/learn/client-concepts",
+                  "docs/draft/learn/versioning"
+                ]
+              },
+              {
+                "group": "Develop with MCP",
+                "pages": [
+                  "docs/draft/develop/connect-local-servers",
+                  "docs/draft/develop/connect-remote-servers",
+                  "docs/draft/develop/build-with-agent-skills",
+                  "docs/draft/develop/build-server",
+                  {
+                    "group": "Clients",
+                    "pages": [
+                      "docs/draft/develop/build-client",
+                      "docs/draft/develop/clients/client-best-practices"
+                    ]
+                  },
+                  "docs/draft/sdk",
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/draft/tutorials/security/authorization",
+                      "docs/draft/tutorials/security/security_best_practices"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Developer tools",
+                "pages": [
+                  {
+                    "group": "Inspector",
+                    "pages": [
+                      "docs/draft/tools/inspector",
+                      "docs/draft/tools/inspector/web",
+                      "docs/draft/tools/inspector/cli",
+                      "docs/draft/tools/inspector/tui",
+                      "docs/draft/tools/inspector/configuration",
+                      "docs/draft/tools/inspector/authorization",
+                      "docs/draft/tools/inspector/protocol-eras",
+                      "docs/draft/tools/inspector/recipes"
+                    ]
+                  },
+                  "docs/draft/tools/debugging"
+                ]
+              },
+              {
+                "group": "Examples",
+                "pages": [
+                  "examples"
+                ]
+              }
             ]
           }
         ]
@@ -111,7 +398,79 @@
         "tab": "Specification",
         "versions": [
           {
-            "version": "Version 2025-11-25 (latest)",
+            "version": "Version 2026-07-28 (latest)",
+            "pages": [
+              "specification/2026-07-28/index",
+              "specification/2026-07-28/changelog",
+              "specification/2026-07-28/deprecated",
+              "specification/2026-07-28/architecture/index",
+              {
+                "group": "Base Protocol",
+                "pages": [
+                  "specification/2026-07-28/basic/index",
+                  "specification/2026-07-28/basic/versioning",
+                  {
+                    "group": "Message Patterns",
+                    "pages": [
+                      "specification/2026-07-28/basic/patterns/index",
+                      "specification/2026-07-28/basic/patterns/mrtr",
+                      "specification/2026-07-28/basic/patterns/subscriptions",
+                      "specification/2026-07-28/basic/patterns/cancellation",
+                      "specification/2026-07-28/basic/patterns/progress"
+                    ]
+                  },
+                  {
+                    "group": "Transports",
+                    "pages": [
+                      "specification/2026-07-28/basic/transports/index",
+                      "specification/2026-07-28/basic/transports/stdio",
+                      "specification/2026-07-28/basic/transports/streamable-http"
+                    ]
+                  },
+                  {
+                    "group": "Authorization",
+                    "pages": [
+                      "specification/2026-07-28/basic/authorization/index",
+                      "specification/2026-07-28/basic/authorization/authorization-server-discovery",
+                      "specification/2026-07-28/basic/authorization/client-registration",
+                      "specification/2026-07-28/basic/authorization/security-considerations"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Client Features",
+                "pages": [
+                  "specification/2026-07-28/client/roots",
+                  "specification/2026-07-28/client/sampling",
+                  "specification/2026-07-28/client/elicitation"
+                ]
+              },
+              {
+                "group": "Server Features",
+                "pages": [
+                  "specification/2026-07-28/server/index",
+                  "specification/2026-07-28/server/discover",
+                  "specification/2026-07-28/server/prompts",
+                  "specification/2026-07-28/server/resources",
+                  "specification/2026-07-28/server/tools",
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "specification/2026-07-28/server/utilities/caching",
+                      "specification/2026-07-28/server/utilities/completion",
+                      "specification/2026-07-28/server/utilities/logging",
+                      "specification/2026-07-28/server/utilities/pagination"
+                    ]
+                  }
+                ]
+              },
+              "specification/2026-07-28/schema"
+            ],
+            "default": true
+          },
+          {
+            "version": "Version 2025-11-25",
             "pages": [
               "specification/2025-11-25/index",
               "specification/2025-11-25/changelog",
@@ -384,6 +743,34 @@
         ]
       },
       {
+        "tab": "Extensions",
+        "pages": [
+          "extensions/overview",
+          "extensions/client-matrix",
+          {
+            "group": "MCP Apps",
+            "pages": [
+              "extensions/apps/overview",
+              "extensions/apps/build"
+            ]
+          },
+          {
+            "group": "Authorization Extensions",
+            "pages": [
+              "extensions/auth/overview",
+              "extensions/auth/oauth-client-credentials",
+              "extensions/auth/enterprise-managed-authorization"
+            ]
+          },
+          {
+            "group": "Tasks",
+            "pages": [
+              "extensions/tasks/overview"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Registry",
         "pages": [
           "registry/about",
@@ -543,7 +930,7 @@
   "redirects": [
     {
       "source": "/clients",
-      "destination": "/docs/getting-started/intro"
+      "destination": "/docs/2026-07-28/getting-started/intro"
     },
     {
       "source": "/community/auth/charter",
@@ -590,78 +977,114 @@
       "destination": "/specification/draft/basic/versioning"
     },
     {
+      "source": "/specification/draft/basic/utilities/ping",
+      "destination": "/specification/draft/changelog"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/cancellation",
+      "destination": "/specification/draft/basic/patterns/cancellation"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/progress",
+      "destination": "/specification/draft/basic/patterns/progress"
+    },
+    {
+      "source": "/specification/draft/basic/utilities/tasks",
+      "destination": "/extensions/tasks/overview"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/lifecycle",
+      "destination": "/specification/2026-07-28/basic/versioning"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/ping",
+      "destination": "/specification/2026-07-28/changelog"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/cancellation",
+      "destination": "/specification/2026-07-28/basic/patterns/cancellation"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/progress",
+      "destination": "/specification/2026-07-28/basic/patterns/progress"
+    },
+    {
+      "source": "/specification/2026-07-28/basic/utilities/tasks",
+      "destination": "/extensions/tasks/overview"
+    },
+    {
       "source": "/specification/versioning",
-      "destination": "/docs/learn/versioning"
+      "destination": "/docs/2026-07-28/learn/versioning"
     },
     {
       "source": "/specification/latest",
-      "destination": "/specification/2025-11-25",
+      "destination": "/specification/2026-07-28",
       "permanent": false
     },
     {
       "source": "/specification/latest/:slug*",
-      "destination": "/specification/2025-11-25/:slug*",
+      "destination": "/specification/2026-07-28/:slug*",
       "permanent": false
     },
     {
       "source": "/tutorials/building-a-client",
-      "destination": "/docs/develop/build-client"
+      "destination": "/docs/2026-07-28/develop/build-client"
     },
     {
       "source": "/tutorials/building-a-client-node",
-      "destination": "/docs/develop/build-client"
+      "destination": "/docs/2026-07-28/develop/build-client"
     },
     {
       "source": "/tutorials/building-mcp-with-llms",
-      "destination": "/docs/develop/build-with-agent-skills"
+      "destination": "/docs/2026-07-28/develop/build-with-agent-skills"
     },
     {
       "source": "/faqs",
-      "destination": "/docs/getting-started/intro"
+      "destination": "/docs/2026-07-28/getting-started/intro"
     },
     {
       "source": "/docs/tutorials/use-local-mcp-server",
-      "destination": "/docs/develop/connect-local-servers"
+      "destination": "/docs/2026-07-28/develop/connect-local-servers"
     },
     {
       "source": "/quickstart",
-      "destination": "/docs/develop/build-server"
+      "destination": "/docs/2026-07-28/develop/build-server"
     },
     {
       "source": "/docs/concepts/architecture",
-      "destination": "/docs/learn/architecture"
+      "destination": "/docs/2026-07-28/learn/architecture"
     },
     {
       "source": "/docs/concepts/elicitation",
-      "destination": "/specification/2025-06-18/client/elicitation"
+      "destination": "/specification/2026-07-28/client/elicitation"
     },
     {
       "source": "/docs/concepts/prompts",
-      "destination": "/specification/2025-06-18/server/prompts"
+      "destination": "/specification/2026-07-28/server/prompts"
     },
     {
       "source": "/docs/concepts/resources",
-      "destination": "/specification/2025-06-18/server/resources"
+      "destination": "/specification/2026-07-28/server/resources"
     },
     {
       "source": "/docs/concepts/roots",
-      "destination": "/specification/2025-06-18/client/roots"
+      "destination": "/specification/2026-07-28/client/roots"
     },
     {
       "source": "/docs/concepts/sampling",
-      "destination": "/specification/2025-06-18/client/sampling"
+      "destination": "/specification/latest/client/sampling"
     },
     {
       "source": "/docs/concepts/tools",
-      "destination": "/specification/2025-06-18/server/tools"
+      "destination": "/specification/2026-07-28/server/tools"
     },
     {
       "source": "/docs/concepts/transports",
-      "destination": "/specification/2025-06-18/basic/transports"
+      "destination": "/specification/2026-07-28/basic/transports"
     },
     {
       "source": "/legacy/tools/debugging",
-      "destination": "/docs/tools/debugging"
+      "destination": "/docs/2026-07-28/tools/debugging"
     },
     {
       "source": "/legacy/concepts/architecture",
@@ -697,31 +1120,31 @@
     },
     {
       "source": "/legacy/tools/inspector",
-      "destination": "/docs/tools/inspector"
+      "destination": "/docs/2026-07-28/tools/inspector"
     },
     {
       "source": "/introduction",
-      "destination": "/docs/getting-started/intro"
+      "destination": "/docs/2026-07-28/getting-started/intro"
     },
     {
       "source": "/docs/concepts",
-      "destination": "/docs/learn/architecture"
+      "destination": "/docs/2026-07-28/learn/architecture"
     },
     {
       "source": "/docs/tutorials/use-remote-mcp-server",
-      "destination": "/docs/develop/connect-remote-servers"
+      "destination": "/docs/2026-07-28/develop/connect-remote-servers"
     },
     {
       "source": "/quickstart/user",
-      "destination": "/docs/develop/connect-local-servers"
+      "destination": "/docs/2026-07-28/develop/connect-local-servers"
     },
     {
       "source": "/quickstart/server",
-      "destination": "/docs/develop/build-server"
+      "destination": "/docs/2026-07-28/develop/build-server"
     },
     {
       "source": "/quickstart/client",
-      "destination": "/docs/develop/build-client"
+      "destination": "/docs/2026-07-28/develop/build-client"
     },
     {
       "source": "/development/contributing",
@@ -729,15 +1152,15 @@
     },
     {
       "source": "/specification/draft/basic/security_best_practices",
-      "destination": "/docs/tutorials/security/security_best_practices"
+      "destination": "/docs/draft/tutorials/security/security_best_practices"
     },
     {
       "source": "/specification/2025-11-25/basic/security_best_practices",
-      "destination": "/docs/tutorials/security/security_best_practices"
+      "destination": "/docs/2025-11-25/tutorials/security/security_best_practices"
     },
     {
       "source": "/specification/2025-06-18/basic/security_best_practices",
-      "destination": "/docs/tutorials/security/security_best_practices"
+      "destination": "/docs/2025-11-25/tutorials/security/security_best_practices"
     },
     {
       "source": "/extensions",
@@ -762,6 +1185,50 @@
     {
       "source": "/community/seps/:slug*",
       "destination": "/seps/:slug*"
+    },
+    {
+      "source": "/docs/latest",
+      "destination": "/docs/2026-07-28/getting-started/intro",
+      "permanent": false
+    },
+    {
+      "source": "/docs/latest/:slug*",
+      "destination": "/docs/2026-07-28/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/docs/sdk",
+      "destination": "/docs/2026-07-28/sdk",
+      "permanent": false
+    },
+    {
+      "source": "/docs/getting-started/:slug*",
+      "destination": "/docs/2026-07-28/getting-started/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/docs/learn/:slug*",
+      "destination": "/docs/2026-07-28/learn/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/docs/develop/:slug*",
+      "destination": "/docs/2026-07-28/develop/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/docs/tools/:slug*",
+      "destination": "/docs/2026-07-28/tools/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/docs/tutorials/:slug*",
+      "destination": "/docs/2026-07-28/tutorials/:slug*",
+      "permanent": false
+    },
+    {
+      "source": "/specification/2026-07-28/basic/security_best_practices",
+      "destination": "/docs/2026-07-28/tutorials/security/security_best_practices"
     }
   ],
   "contextual": {

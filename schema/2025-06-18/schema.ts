@@ -1504,7 +1504,13 @@ export interface NumberSchema {
   type: "number" | "integer";
   title?: string;
   description?: string;
+  /**
+   * @TJS-type number
+   */
   minimum?: number;
+  /**
+   * @TJS-type number
+   */
   maximum?: number;
 }
 

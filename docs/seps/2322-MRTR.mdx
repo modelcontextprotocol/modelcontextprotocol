@@ -13,16 +13,24 @@ description: "Multi Round-Trip Requests"
   </Badge>
 </div>
 
-| Field         | Value                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **SEP**       | 2322                                                                                                                      |
-| **Title**     | Multi Round-Trip Requests                                                                                                 |
-| **Status**    | Final                                                                                                                     |
-| **Type**      | Standards Track                                                                                                           |
-| **Created**   | 2026-02-03                                                                                                                |
-| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), |
-| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                             |
-| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                           |
+<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the [current
+  specification](/specification/latest) and its changelog for authoritative
+  requirements.
+</Note>
+
+| Field         | Value                                                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SEP**       | 2322                                                                                                                                                                             |
+| **Title**     | Multi Round-Trip Requests                                                                                                                                                        |
+| **Status**    | Final                                                                                                                                                                            |
+| **Type**      | Standards Track                                                                                                                                                                  |
+| **Created**   | 2026-02-03                                                                                                                                                                       |
+| **Author(s)** | Mark D. Roth ([@markdroth](https://github.com/markdroth)), Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20)), Gabriel Zimmerman ([@gjz22](https://github.com/gjz22)) |
+| **Sponsor**   | Caitie McCaffrey ([@CaitieM20](https://github.com/CaitieM20))                                                                                                                    |
+| **PR**        | [#2322](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2322)                                                                                                  |
 
 ---
 
@@ -1267,7 +1275,7 @@ In the ephemeral workflow, this would look like the following:
 }
 ```
 
-2. The Server responds wit an incomplete response, indicating that the client needs to provide missing information for the request to succeed.
+2. The Server responds with an incomplete response, indicating that the client needs to provide missing information for the request to succeed.
 
 In the persistent workflow, this would look like the following:
 Step 7 from above: <b>Client Request</b> The client mistakenly or maliciously sends unexpected, but well-formed data to the server in response to the input request.
@@ -1295,7 +1303,7 @@ Step 7 from above: <b>Client Request</b> The client mistakenly or maliciously se
 }
 ```
 
-Step 8 from above. <b>Server Response</b> Server acknowledges the receipt of the response by sending a `JSONRPCResultResponse`. However, since the response is missing required information, the server does not proceed with processing the taks and leaves the Task status as `input_required`. The next time the client calls `tasks/result`, the server responds with a new `inputRequest` requesting the necessary information again.
+Step 8 from above. <b>Server Response</b> Server acknowledges the receipt of the response by sending a `JSONRPCResultResponse`. However, since the response is missing required information, the server does not proceed with processing the task and leaves the Task status as `input_required`. The next time the client calls `tasks/result`, the server responds with a new `inputRequest` requesting the necessary information again.
 
 ```json
 {
