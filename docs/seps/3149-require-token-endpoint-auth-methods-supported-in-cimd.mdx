@@ -295,9 +295,28 @@ fallback for authorization servers that do not support an authenticated method.
 ## Reference Implementation
 
 [ChatGPT's public Client ID Metadata Document](https://chatgpt.com/oauth/client.json)
-advertises `["none", "private_key_jwt"]` and includes a `jwks_uri` for
-`private_key_jwt`. It demonstrates that one stable client identifier can
-advertise both authentication methods across authorization servers.
+advertises both methods, prefers `private_key_jwt` for backwards compatibility,
+and includes the key material required to authenticate:
+
+```json
+{
+  "token_endpoint_auth_methods_supported": ["none", "private_key_jwt"],
+  "token_endpoint_auth_method": "private_key_jwt",
+  "jwks_uri": "https://chatgpt.com/oauth/jwks.json"
+}
+```
+
+Codex advertises and prefers only its supported public-client method:
+
+```json
+{
+  "token_endpoint_auth_methods_supported": ["none"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+Both examples maintain a stable client identifier while exposing a singular
+preference for authorization servers that do not support the array.
 
 A publicly runnable client/server implementation and conformance tests remain
 to be linked.
