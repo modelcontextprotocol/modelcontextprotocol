@@ -113,6 +113,7 @@ For example:
 | ----------------------------- | ----------------------------- | --------------------- |
 | `["private_key_jwt", "none"]` | `["private_key_jwt", "none"]` | Use `private_key_jwt` |
 | `["private_key_jwt", "none"]` | `["none"]`                    | Use `none`            |
+| `["none"]`                    | `["private_key_jwt", "none"]` | Use `none`            |
 | `["private_key_jwt", "none"]` | `["client_secret_basic"]`     | No compatible method  |
 
 ### Deprecated Declarations
@@ -150,6 +151,18 @@ transition to `token_endpoint_auth_methods_supported`:
 - Authorization servers **MUST** treat a document carrying neither parameter
   as declaring `["none"]` until the deprecation period elapses, and **MUST**
   reject such a document thereafter.
+
+The following examples show how the singular field behaves during the
+deprecation period:
+
+| Client methods                | Singular preference | Authorization server methods  | Result                     |
+| ----------------------------- | ------------------- | ----------------------------- | -------------------------- |
+| `["private_key_jwt", "none"]` | `private_key_jwt`   | `["none"]`                    | Use `none`                 |
+| `["private_key_jwt", "none"]` | `none`              | `["private_key_jwt", "none"]` | Use `private_key_jwt`      |
+| `["none"]`                    | `private_key_jwt`   | `["none"]`                    | Reject invalid metadata    |
+| Omitted                       | `none`              | `["none"]`                    | Use legacy `none`          |
+| Omitted                       | Omitted             | `["none"]`                    | Use deprecated `none`      |
+| Omitted                       | Omitted             | `["private_key_jwt"]`         | Reject incompatible client |
 
 ### Lifecycle
 
