@@ -63,7 +63,12 @@ which currently reads:
 > The metadata document **MUST** include at least the following properties:
 > `client_id`, `client_name`, `redirect_uris`
 
-The array **MUST** contain one or more authentication methods the client supports, in no particular order of preference.
+The array **MUST** contain one or more authentication methods the client
+supports, in no particular order of preference. The restrictions on token
+endpoint authentication methods in the Client ID Metadata Document
+specification continue to apply: the array **MUST NOT** include
+`client_secret_post`, `client_secret_basic`, `client_secret_jwt`, or any other
+method based around a shared symmetric secret.
 
 Authorization servers **MUST** support reading
 `token_endpoint_auth_methods_supported` from a CIMD document. Documents that
@@ -91,23 +96,45 @@ authenticate with a signed JWT assertion per
 [RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523), using the JWKS
 referenced by the CIMD document (see
 [Section 6.2 of the Client ID Metadata Document draft](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)).
-Any other registered method name is equally valid here.
+Other registered method names are valid only when they satisfy the
+restrictions of the Client ID Metadata Document specification.
 
-### Authorization Server Selection
+### Method Resolution
 
-An authorization server registering a client computes the intersection
-of the client's `token_endpoint_auth_methods_supported` array and
-the methods the authorization server itself supports.
+The client and authorization server determine the set of mutually supported
+token endpoint client authentication methods by intersecting the client's
+`token_endpoint_auth_methods_supported` array with the authorization server's
+`token_endpoint_auth_methods_supported` metadata value.
 
-If that intersection is empty, the authorization server **MUST** reject the
-registration rather than falling back to a method the client did not
-advertise. In particular, it **MUST NOT** assume `none` when the field is
-present and non-empty but does not include it.
+For purposes of this resolution rule, `none` is unauthenticated and every
+other permitted method is an authenticated client authentication method.
+
+If the intersection contains one or more authenticated client authentication
+methods, the client **MUST** use one of those methods and **MUST NOT** use
+`none`. The authorization server **MUST** reject a request using `none` for
+that client when an authenticated method is mutually supported. When multiple
+authenticated methods are mutually supported, the client **MAY** choose among
+them.
+
+If the intersection contains no authenticated method but contains `none`, the
+client **MAY** proceed using `none`. If the intersection is empty, the client
+**MUST NOT** proceed and the authorization server **MUST** reject the client
+rather than falling back to a method the client did not advertise. In
+particular, an authorization server **MUST NOT** assume `none` when the field
+is present and non-empty but does not include it.
 
 This applies to the `["none"]` default for documents declaring no
 authentication method as it does to an explicitly published array: an
 authorization server that does not support public clients **MUST** reject
 such a document rather than registering the client under some other method.
+
+For example:
+
+| Client methods                | Authorization server methods  | Result                |
+| ----------------------------- | ----------------------------- | --------------------- |
+| `["private_key_jwt", "none"]` | `["private_key_jwt", "none"]` | Use `private_key_jwt` |
+| `["private_key_jwt", "none"]` | `["none"]`                    | Use `none`            |
+| `["private_key_jwt", "none"]` | `["client_secret_basic"]`     | No compatible method  |
 
 ### Deprecated Declarations
 
@@ -142,8 +169,17 @@ currently avoid declaring its authentication methods explicitly. Both are
   > their preferred single value.
 
 - Authorization servers **MUST** prefer `token_endpoint_auth_methods_supported`
-  when it is present, and **MUST NOT** let a present-but-conflicting
-  `token_endpoint_auth_method` override it.
+  when it is present. When both parameters are present,
+  `token_endpoint_auth_method` **MUST** be a member of
+  `token_endpoint_auth_methods_supported`; otherwise the document is invalid.
+  Authorization servers **MUST NOT** let the singular parameter override the
+  array.
+- Authorization servers that support the array **MAY** treat
+  `token_endpoint_auth_method` as the client's preferred method only when it
+  is mutually supported and does not conflict with the method resolution
+  requirements above. They **MUST NOT** reject a client solely because the
+  singular preferred method is unsupported when another method in the array
+  is mutually supported.
 - Authorization servers **MAY** fall back to `token_endpoint_auth_method`
   when the multi-valued parameter is absent — for example, when reading a
   document published before this requirement took effect.
@@ -171,6 +207,14 @@ This SEP intentionally does not recommend a specific set of authentication
 methods. Which methods a client can support is determined by its deployment
 model, and a blanket recommendation would be wrong for some large class of
 clients.
+
+The method resolution rule distinguishes only between `none` and authenticated
+client authentication methods. Treating `none` as a peer choice when an
+authenticated method is mutually supported would make the client's security
+posture equivalent to the weaker, unauthenticated option. The SEP does not
+define a global ordering among authenticated methods; when more than one is
+mutually supported, the client can choose without requiring an authorization
+server to select a method and communicate that choice back to the client.
 
 The field is required (MUST) rather than recommended (SHOULD) because explicit
 behavior is crucial for authentication mechanisms. A required field gives
@@ -224,6 +268,13 @@ continues to register successfully:
   parameter keep working, because clients SHOULD continue publishing the
   singular field.
 
+The singular field cannot communicate fallback choices to an authorization
+server that does not understand the array. A client whose singular value is
+`private_key_jwt` can therefore be rejected by a legacy authorization server
+that only supports `none`, even when the array also contains `none`. This is
+an inherent limitation of the legacy single-valued field; authorization
+servers that understand the array use the method resolution rules above.
+
 The immediate incompatibility is therefore a conformance obligation on
 clients, not a runtime failure for either party, and non-conformant documents
 degrade to their current behavior rather than being rejected.
@@ -257,6 +308,12 @@ the ecosystem rather than weaken it. Today a client that supports strong
 client authentication must still publish a single value acceptable to the
 weakest authorization server it needs to work with; enumerating capabilities
 lets servers that support a stronger method actually use it.
+
+An authorization server **MUST NOT** accept `none` for a client when an
+authenticated client authentication method is mutually supported. Otherwise,
+an attacker could choose `none` for the same client identifier and bypass the
+stronger authentication method, making the effective security posture no
+stronger than that of a public client.
 
 ## Reference Implementation
 
