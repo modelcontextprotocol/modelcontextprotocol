@@ -75,14 +75,6 @@ Authorization servers **MUST** support reading
 omit it are handled as described in
 [Deprecated Declarations](#deprecated-declarations).
 
-A document that carries **neither** parameter **MUST** be treated as declaring
-`["none"]` — that is, as a public client. This default is itself **deprecated**
-and exists only for compatibility: neither parameter is required by the
-specification today, so documents omitting both are conformant under the
-current revision and remain in wide use. Once the deprecation period elapses,
-such a document is invalid and authorization servers reject it rather than
-inferring a method.
-
 For illustration, a client that can operate either as a public client or with
 an assertion-based credential might publish:
 
@@ -96,8 +88,6 @@ authenticate with a signed JWT assertion per
 [RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523), using the JWKS
 referenced by the CIMD document (see
 [Section 6.2 of the Client ID Metadata Document draft](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)).
-Other registered method names are valid only when they satisfy the
-restrictions of the Client ID Metadata Document specification.
 
 ### Method Resolution
 
@@ -106,27 +96,16 @@ token endpoint client authentication methods by intersecting the client's
 `token_endpoint_auth_methods_supported` array with the authorization server's
 `token_endpoint_auth_methods_supported` metadata value.
 
-For purposes of this resolution rule, `none` is unauthenticated and every
-other permitted method is an authenticated client authentication method.
+For this rule, `none` is unauthenticated; all other permitted methods are
+authenticated.
 
-If the intersection contains one or more authenticated client authentication
-methods, the client **MUST** use one of those methods and **MUST NOT** use
-`none`. The authorization server **MUST** reject a request using `none` for
-that client when an authenticated method is mutually supported. When multiple
-authenticated methods are mutually supported, the client **MAY** choose among
-them.
-
-If the intersection contains no authenticated method but contains `none`, the
-client **MAY** proceed using `none`. If the intersection is empty, the client
-**MUST NOT** proceed and the authorization server **MUST** reject the client
-rather than falling back to a method the client did not advertise. In
-particular, an authorization server **MUST NOT** assume `none` when the field
-is present and non-empty but does not include it.
-
-This applies to the `["none"]` default for documents declaring no
-authentication method as it does to an explicitly published array: an
-authorization server that does not support public clients **MUST** reject
-such a document rather than registering the client under some other method.
+- If the intersection contains an authenticated method, the client **MUST**
+  use one such method, and the authorization server **MUST** reject `none`.
+  When multiple authenticated methods are available, the client **MAY** choose
+  among them.
+- If `none` is the only mutually supported method, the client **MAY** use it.
+- If the intersection is empty, the client **MUST NOT** proceed, and the
+  authorization server **MUST** reject the client.
 
 For example:
 
@@ -138,18 +117,8 @@ For example:
 
 ### Deprecated Declarations
 
-Changing an established metadata field in a widely deployed mechanism needs a
-managed transition rather than an immediate cutover, and MCP already has a
-pattern for exactly this. Dynamic Client Registration is deprecated in favor
-of Client ID Metadata Documents, but remains permitted and is "retained for
-backwards compatibility with authorization servers that do not support Client
-ID Metadata Documents," with a removal date governed by the
-[feature lifecycle policy](/community/feature-lifecycle).
-
-This SEP applies the same treatment to the two ways a CIMD document can
-currently avoid declaring its authentication methods explicitly. Both are
-**deprecated**, both remain permitted for now, and both migrate to
-`token_endpoint_auth_methods_supported`:
+Two existing declarations are **deprecated** but remain supported during the
+transition to `token_endpoint_auth_methods_supported`:
 
 1. **The singular `token_endpoint_auth_method` parameter**, retained for
    backwards compatibility with authorization servers that do not support the
@@ -168,18 +137,13 @@ currently avoid declaring its authentication methods explicitly. Both are
   > parameter alongside the corresponding multi-valued metadata parameter with
   > their preferred single value.
 
-- Authorization servers **MUST** prefer `token_endpoint_auth_methods_supported`
-  when it is present. When both parameters are present,
-  `token_endpoint_auth_method` **MUST** be a member of
-  `token_endpoint_auth_methods_supported`; otherwise the document is invalid.
-  Authorization servers **MUST NOT** let the singular parameter override the
-  array.
-- Authorization servers that support the array **MAY** treat
-  `token_endpoint_auth_method` as the client's preferred method only when it
-  is mutually supported and does not conflict with the method resolution
-  requirements above. They **MUST NOT** reject a client solely because the
-  singular preferred method is unsupported when another method in the array
-  is mutually supported.
+- When both parameters are present, `token_endpoint_auth_method` **MUST** be a
+  member of `token_endpoint_auth_methods_supported`. The array is authoritative;
+  the singular value is a preference only when it is mutually supported and
+  consistent with the method resolution rules.
+- Authorization servers **MUST NOT** reject a client solely because the
+  singular preferred method is unsupported when another method in the array is
+  mutually supported.
 - Authorization servers **MAY** fall back to `token_endpoint_auth_method`
   when the multi-valued parameter is absent — for example, when reading a
   document published before this requirement took effect.
@@ -208,13 +172,9 @@ methods. Which methods a client can support is determined by its deployment
 model, and a blanket recommendation would be wrong for some large class of
 clients.
 
-The method resolution rule distinguishes only between `none` and authenticated
-client authentication methods. Treating `none` as a peer choice when an
-authenticated method is mutually supported would make the client's security
-posture equivalent to the weaker, unauthenticated option. The SEP does not
-define a global ordering among authenticated methods; when more than one is
-mutually supported, the client can choose without requiring an authorization
-server to select a method and communicate that choice back to the client.
+The method resolution rule distinguishes authenticated methods from `none`
+without ranking authenticated methods or requiring the authorization server to
+communicate a selected method back to the client.
 
 The field is required (MUST) rather than recommended (SHOULD) because explicit
 behavior is crucial for authentication mechanisms. A required field gives
@@ -248,8 +208,8 @@ Publishing multiple metadata documents, one per `token_endpoint_auth_method`
 
 ## Backward Compatibility
 
-In the revision this SEP lands in, the incompatibility is at the conformance
-level only. No existing CIMD document stops working.
+Existing CIMD documents remain accepted by conformant authorization servers
+during the deprecation period.
 
 **What changes.** CIMD documents that omit
 `token_endpoint_auth_methods_supported` become non-conformant with that
@@ -275,10 +235,6 @@ that only supports `none`, even when the array also contains `none`. This is
 an inherent limitation of the legacy single-valued field; authorization
 servers that understand the array use the method resolution rules above.
 
-The immediate incompatibility is therefore a conformance obligation on
-clients, not a runtime failure for either party, and non-conformant documents
-degrade to their current behavior rather than being rejected.
-
 **What changes at removal.** Both accommodations are deprecated, so this is a
 deferred break rather than an avoided one. When the deprecation period
 elapses, a document that declares no authentication method is rejected instead
@@ -295,29 +251,24 @@ with the other.
 
 ## Security Implications
 
-This proposal does not introduce a new client authentication mechanism; it
-only changes how a client advertises which existing, already-specified
-authentication methods it supports. Because this SEP does not prescribe the
-contents of the array, it does not itself raise or lower the authentication
-strength of any deployment: authorization servers remain responsible for
-rejecting clients whose advertised methods do not meet the server's
-requirements.
+This proposal does not introduce a new authentication mechanism. It allows a
+client to advertise multiple existing methods so authorization servers can use
+authenticated methods when they are mutually supported.
 
-In aggregate this change is expected to improve authentication strength across
-the ecosystem rather than weaken it. Today a client that supports strong
-client authentication must still publish a single value acceptable to the
-weakest authorization server it needs to work with; enumerating capabilities
-lets servers that support a stronger method actually use it.
-
-An authorization server **MUST NOT** accept `none` for a client when an
-authenticated client authentication method is mutually supported. Otherwise,
-an attacker could choose `none` for the same client identifier and bypass the
-stronger authentication method, making the effective security posture no
-stronger than that of a public client.
+Accepting `none` when an authenticated method is mutually supported would let
+an attacker bypass client authentication for the same client identifier. The
+method resolution rules prevent this downgrade while retaining `none` as a
+fallback for authorization servers that do not support an authenticated method.
 
 ## Reference Implementation
 
-**TODO**
+[ChatGPT's public Client ID Metadata Document](https://chatgpt.com/oauth/client.json)
+advertises `["none", "private_key_jwt"]` and includes a `jwks_uri` for
+`private_key_jwt`. It demonstrates that one stable client identifier can
+advertise both authentication methods across authorization servers.
+
+A publicly runnable client/server implementation and conformance tests remain
+to be linked.
 
 ## Open Questions
 
