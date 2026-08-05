@@ -37,7 +37,7 @@ The extension defines three protocol methods. Every server declaring the extensi
 Native skills support in host applications demonstrates strong demand for rich, progressively disclosed workflow instructions. MCP does not currently offer a conventional way to ship this content alongside the tools it describes, which leads to:
 
 - **Fragmented distribution.** A server and the skill that teaches an agent to use it are versioned, discovered, and installed separately. Users installing a server from a registry have no signal that a companion skill exists. ([problem statement](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/problem-statement.md))
-- **Instruction size limits.** Server instructions load once at initialization and are practically bounded in size. Complex workflows — such as the 875-line [mcpGraph skill](https://github.com/TeamSparkAI/mcpGraph/blob/main/skills/mcpgraphtoolkit/SKILL.md) — do not fit this model. ([experimental findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md#mcpgraph-skills-in-mcp-server-repo))
+- **Instruction size limits.** Server instructions are delivered as the `instructions` field of the `server/discover` result and are practically bounded in size. Complex workflows — such as the 875-line [mcpGraph skill](https://github.com/TeamSparkAI/mcpGraph/blob/main/skills/mcpgraphtoolkit/SKILL.md) — do not fit this model. ([experimental findings](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/experimental-findings.md#mcpgraph-skills-in-mcp-server-repo))
 - **Inconsistent ad-hoc solutions.** Absent a convention, several independent implementations have each invented their own `skill://` URI structure, with diverging semantics for authority, path, and sub-resource addressing.
 
 ## Specification
@@ -70,14 +70,14 @@ where:
 - `<skill-path>` is a `/`-separated path of one or more segments locating the skill directory within the server's skill namespace. It MAY be a single segment (`git-workflow`) or nested to arbitrary depth (`acme/billing/refunds`).
 - `<file-path>` is the file's path relative to the skill directory root, using `/` as the separator.
 
-The resource for the skill's required `SKILL.md` is therefore always addressable as `skill://<skill-path>/SKILL.md`, and the skill's root directory is the URI obtained by stripping the trailing `SKILL.md`.
+The resource for the skill's required `SKILL.md` is therefore always addressable as `skill://<skill-path>/SKILL.md`, and the skill's root directory is `skill://<skill-path>` (the `/SKILL.md` suffix removed, no trailing slash), matching [Directory Listing](#directory-listing).
 
 The final segment of `<skill-path>` MUST equal the skill's `name` as declared in its `SKILL.md` frontmatter. This mirrors the Agent Skills specification's requirement that `name` [match the parent directory name](https://agentskills.io/specification#name-field). Preceding segments, if any, are a server-chosen organizational prefix — servers MAY organize skills hierarchically by domain, team, version, or any other axis. In `skill://acme/billing/refunds/SKILL.md`, the prefix is `acme/billing` and the skill's `name` is `refunds`; in `skill://git-workflow/SKILL.md` there is no prefix and the `name` is `git-workflow`. This means the skill name is always recoverable from the URI alone, without reading frontmatter.
 
 Further constraints:
 
 - A `SKILL.md` MAY appear in a descendant directory of a skill — skills can nest. See [Nested skills](#nested-skills).
-- The final `<skill-path>` segment, being the skill `name`, MUST satisfy the Agent Skills specification's naming rules. Prefix segments SHOULD be valid URI path segments per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986); no further constraints are imposed on them.
+- The final `<skill-path>` segment, being the skill `name`, MUST satisfy the Agent Skills specification's naming rules. The first `<skill-path>` segment occupies the authority component and SHOULD be a valid `reg-name` per [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986); any other prefix segments SHOULD be valid URI path segments; no further constraints are imposed on them.
 
 Per RFC 3986, the first segment of `<skill-path>` occupies the authority component. This carries no special semantics under this convention and clients MUST NOT attempt DNS or network resolution of it.
 
@@ -301,6 +301,22 @@ A server declaring the `io.modelcontextprotocol/skills` extension MUST also impl
         {
           "uri": "skill://pdf-processing/references/FORMS.md",
           "digest": "sha256:e6f7a8b9..."
+        },
+        {
+          "uri": "skill://pdf-processing/scripts/extract.py",
+          "digest": "sha256:f7a8b9c0..."
+        },
+        {
+          "uri": "skill://pdf-processing/templates/invoice.md",
+          "digest": "sha256:a8b9c0d1..."
+        },
+        {
+          "uri": "skill://pdf-processing/templates/purchase-order.md",
+          "digest": "sha256:b9c0d1e2..."
+        },
+        {
+          "uri": "skill://pdf-processing/templates/regional/eu-invoice.md",
+          "digest": "sha256:c0d1e2f3..."
         }
       ]
     }
@@ -316,7 +332,7 @@ Semantics:
 - A server MUST answer for every skill it serves, whether or not that skill appears in its `skills/list` result. A skill absent from a partial listing is still retrievable by URI.
 - The result is a point-in-time snapshot, exactly as a listing entry is. Re-calling the method is how a host refreshes one skill's digests without re-enumerating the catalog.
 - A skill whose content is generated dynamically omits `resources`, per [Resources](#resources), whether it is reached through `skills/list` or `skills/get`.
-- The result carries no pagination cursor and no list-caching attributes: a single entry is not a list, and the entry is a snapshot of the skill as the server holds it at that moment.
+- The result carries no pagination cursor: a single entry is not a list. The entry is a snapshot of the skill as the server holds it at that moment; whether the result should also carry the base protocol's caching attributes (`ttlMs` and `cacheScope`, per [SEP-2549]), as `resources/read` results do, is left open.
 
 The method complements the baseline: a URI alone is enough to read a skill, and `skills/get` turns that same URI into the skill's metadata and digests, so a skill that never appeared in a listing can still be verified and content-bound ([Security Implications](#security-implications)).
 
@@ -508,7 +524,7 @@ These wrappers are thin — each is a single underlying protocol call with a fix
 
 ### Why Resources Instead of a New Primitive?
 
-The Working Group's [decision log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-02-26-prioritize-skills-as-resources-with-client-helper-tools) records this as settled. Skills are files; Resources exist to expose files. Reusing Resources inherits URI addressability, `resources/read`, `resources/subscribe`, and the existing client tooling for free. A new primitive would duplicate most of this and add ecosystem complexity. Using resources to describe files is also aligned with [Composability over specificity](https://modelcontextprotocol.io/community/design-principles#composability-over-specificity) and other MCP [design principles](https://modelcontextprotocol.io/community/design-principles).
+The Working Group's [decision log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-02-26-prioritize-skills-as-resources-with-client-helper-tools) records this as settled. Skills are files; Resources exist to expose files. Reusing Resources inherits URI addressability, `resources/read`, resource subscriptions (the `resourceSubscriptions` filter on `subscriptions/listen`), and the existing client tooling for free. A new primitive would duplicate most of this and add ecosystem complexity. Using resources to describe files is also aligned with [Composability over specificity](https://modelcontextprotocol.io/community/design-principles#composability-over-specificity) and other MCP [design principles](https://modelcontextprotocol.io/community/design-principles).
 
 [SEP-2076] originally proposed the new-primitive alternative. That approach offers cleaner capability negotiation and dedicated list-changed notifications, but at the cost of flattening skills to name-addressed blobs — losing the directory model that the Agent Skills specification defines and that supporting files depend on.
 
@@ -582,7 +598,7 @@ Existing implementations using other `skill://` URI structures will need to adju
 
 ## Security Implications
 
-Skill content is instructional text delivered to a model, which makes it a prompt-injection surface. The Working Group's position, recorded in [open-questions.md §10](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/open-questions.md#10-how-should-skills-handle-security-and-trust-boundaries), is:
+Skill content is instructional text delivered to a model, which makes it a prompt-injection surface (background in [open-questions.md §10](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/open-questions.md#10-how-should-skills-handle-security-and-trust-boundaries)). This extension imposes the following requirements:
 
 - **Skill content is untrusted input.** Hosts MUST treat MCP-served skill content as untrusted model input, subject to the same prompt-injection defenses applied to any server-provided text. A server being connected does not make its skill content authoritative.
 - **Origin MUST be visible to the model.** Hosts MUST tag MCP-served skill content with its originating server identity at the point it enters model context and MUST NOT present an MCP-served skill to the model as indistinguishable from a local filesystem skill. The model, not the host, decides whether to follow a skill's instructions. Withholding origin from it makes the untrusted-input requirement above unenforceable at the layer that acts on it.
