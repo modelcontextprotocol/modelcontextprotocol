@@ -1,0 +1,672 @@
+# SEP-3004: Tamper-Evident Audit Record Contract
+
+- **Status**: Draft
+- **Type**: Standards Track
+- **Created**: 2026-06-02
+- **Author(s)**: Scott Rhodes (@scottrhodes), Notboatanchor Labs LLC; Syed Maaz Ahmed (@MaazAhmed47), Interlock; Alfredo Metere (@metereconsulting), Enclawed LLC
+- **Sponsor**: None (seeking)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3004
+
+## Abstract
+
+This SEP specifies an **interoperability primitive**: a canonical byte form and an
+append-only hash-chain construction that independent implementations produce
+identically and any third party can verify, with governance-specific context
+carried in registered extensions rather than in the core. What must agree across
+implementations is the _bytes_, not the _semantics_ — so the construction is
+specified once and referenced by many, each layer's context riding as a registered
+extension on top.
+
+The need is concrete: multiple MCP governance proposals require decisions to be
+recorded in a _tamper-evident_ audit trail, but none defines what such a record is.
+PR #2809 makes a tamper-evident admission record a `SHOULD` without defining the
+record's shape or a shared, verifiable form for it; PR #2624 states as a compliance
+consideration that audit trails "MUST" be tamper-proof, with no checkable
+guarantee; caller-governance layers emit incompatible shapes. The guarantee is
+named at every seam and given a shared definition at none.
+
+This SEP defines one vendor-neutral **audit record contract**: a minimal protected
+core; a type-keyed `extensions` mechanism so each layer attaches context under one
+integrity construction; deterministic sorted-JSON canonicalization aligned with PR
+#2809; an append-only hash chain; a verification procedure; and a structured
+attestation manifest for the part that is not protocol-observable.
+
+## Motivation
+
+Audit is the one governance guarantee every layer asserts and none defines.
+Across three independent proposals:
+
+1. **Admission (PR #2809).** A conforming host `SHOULD` append a tamper-evident
+   record for every admission decision. The proposal specifies the admission
+   decision and its trust model; it does not define the record's shape or a shared,
+   cross-layer verifiable form for the tamper-evident guarantee — the gap this
+   contract fills.
+2. **Interception / runtime security (PR #2624).** Compliance Considerations
+   require that "audit trails are tamper-proof" — a deployer obligation, not a
+   checked property; the proposal's own audit mechanism is non-blocking
+   observability.
+3. **Caller governance.** Session- and persona-scoped governance layers emit
+   per-action decision records, but in shapes that vary by implementation (field
+   names, what is integrity-protected, whether the record is append-only at all).
+
+These three emit _differently shaped_ records — caller-governance carries a
+declared purpose and delegating principal; runtime-security carries detections,
+drift status, and data classes; admission carries the clearance decision. No
+single layer's record shape is the universal one. What they share is not
+a field set but a **construction**: an append-only, canonically-hashed, chained,
+independently-verifiable record. Specifying that construction once — with a
+minimal common core and a typed extension point for each layer's context — lets
+all three _conformance-anchor to one definition_ without flattening their
+differences. SEP-2484 makes a conformance check — or a documented exclusion — the
+bar for Final; today the tamper-evident guarantee has no shared definition to write
+a check against at any layer. Specifying the record and its verification once gives
+every layer one definition to reference and one vector set to anchor to, instead of
+each re-deriving and re-testing "tamper-evident" alone.
+
+This SEP specifies that construction once. It does not move the guarantee into any
+one layer; it defines an orthogonal record contract the other proposals reference
+by forward-reference today and upgrade from `SHOULD` to `MUST` when this SEP lands.
+
+## Specification
+
+The key words MUST, MUST NOT, REQUIRED, SHALL, SHOULD, SHOULD NOT, MAY, and
+OPTIONAL in this document are to be interpreted as described in RFC 2119.
+
+This contract constrains an **audit record** and the **record chain** it belongs
+to. It does not constrain the storage technology, the wire protocol used to read
+records, or which governance layer authors them. Any implementation that produces
+records satisfying §2.1–§2.7 and §2.9 conforms (§2.8 is reserved and out of scope
+for v1), regardless of mechanism.
+
+### 2.1 The Audit Record — Protected Core
+
+An audit record is a structured object describing one governed event. Every
+conforming record, whatever extensions it carries, MUST contain the following
+**core** fields, all of which are integrity-protected (§2.4):
+
+| Field           | Type                                                        | Requirement                                                                                |
+| --------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `event_id`      | opaque unique id                                            | MUST — unique within the chain                                                             |
+| `occurred_at`   | RFC 3339 timestamp (UTC, `Z`, millisecond precision — §2.3) | MUST — assigned by the recorder's clock, MUST NOT be settable by the governed caller       |
+| `principal_id`  | opaque id                                                   | MUST — the governed identity the event is attributed to                                    |
+| `event_type`    | string from a registered vocabulary                         | MUST                                                                                       |
+| `tool_name`     | string \| null                                              | MUST be present; null where no target applies                                              |
+| `outcome`       | `allowed` \| `denied` \| `deferred` \| `error`              | MUST — the abstract disposition of the event (§2.1.1)                                      |
+| `extensions`    | object keyed by registered type id                          | MUST — at least one registered extension (§2.2); at most one entry per type id             |
+| `previous_hash` | hash digest \| null                                         | MUST — links to the prior record (§2.4); null only for the first record in a chain segment |
+| `event_hash`    | hash digest                                                 | MUST — the integrity digest of this record (§2.4)                                          |
+
+The core is deliberately emitter-neutral: identity, time, principal, the acted-on
+target, the disposition, and the chain linkage. Layer-specific accountability
+context does not belong in the core; it belongs in the `extensions` object under
+a registered type id (§2.2). Implementations MUST ignore unknown **top-level**
+fields rather than rejecting a record, to permit forward extension.
+
+#### 2.1.1 The `outcome` disposition enum
+
+`outcome` is a **closed, abstract disposition vocabulary**, not a per-layer status
+code. The cross-profile anchor is the terminal/non-terminal axis:
+
+- `allowed` — the governed event proceeded (terminal).
+- `denied` — the governed event was refused (terminal).
+- `deferred` — the governed event is held pending a further decision
+  (non-terminal; e.g. a quarantine hold pending re-approval).
+- `error` — the governance evaluation itself failed (terminal; the record SHOULD
+  carry diagnostic context in an extension).
+
+Domain-specific dispositions, reason codes, and severities MUST NOT extend this
+enum; they live inside the emitting layer's extension data, bound to the base
+outcome (an extension supplies decision _evidence_ that informs the core
+`outcome`, never a competing outcome — e.g. a quarantine decision that holds the
+event maps to `deferred`, a terminal quarantine maps to `denied`). The
+classification of an `event_type` or extension field as security-relevant is
+registration **prose**, not a record field — keeping it out of the digest.
+
+### 2.2 Registered Extensions
+
+The record contract is extended **only** through registered extensions, never
+through new chain constructions. A record carries an `extensions` object — a JSON
+object **keyed by registered type id**, each key's value being that extension's
+typed data: `extensions: {"<type>": <data>, ...}`. Extension data is canonicalized
+into the same preimage as the core (§2.3) and is therefore integrity-protected by
+the same chain — there is exactly one chain construction, shared across all
+extensions, and the type id is itself a preimage _key_, so an extension's type
+cannot be swapped without breaking verification.
+
+Structural rules:
+
+- A conforming record MUST carry **at least one** registered extension (the
+  emitting layer's own context) and MAY carry several — e.g. a caller-governance
+  record that also carries runtime-security evidence chains both under one digest.
+- The keyed-object form makes a duplicate type structurally unrepresentable: at
+  most one entry per type id, keys sorted by the same every-level key-sort as the
+  rest of the record (§2.3).
+- Type ids are **flat names from a curated registry** (the IANA-media-type
+  pattern), not a permissionless namespace; reverse-DNS-style ids are not used.
+  Type ids and registered field names form a controlled ASCII registry vocabulary
+  (§2.3).
+
+An extension registration defines: the type id; its REQUIRED and OPTIONAL data
+fields and their types (and any closed value vocabularies); the `event_type`
+vocabulary it recognizes (§2.9); and how its decision evidence binds to the core
+`outcome` (§2.1.1). A record's data for each declared extension MUST satisfy that
+registration's required fields.
+
+This SEP registers and fully specifies one extension, records the converged shape
+of a second whose normative registration text is contributed by its implementer,
+and **names** a third contributed by reference:
+
+- **`caller-governance`** (specified here). REQUIRED: `purpose_declared` (the
+  declared purpose/intent captured at event time). OPTIONAL: `session_id`,
+  `invoked_by_principal_id` (the delegating principal), `flagged`,
+  `sources_touched`, `sensitivity_encountered`, `output_disposition`,
+  `human_actor_id`.
+- **`runtime-security`** — converged shape; **normative registration text
+  contributed by Maaz (Interlock), the runtime-security implementer** (final text
+  2026-06-14; cross-ref PR #2624), who independently reproduced the two-extension
+  known-answer digest from the published rule. The `runtime-security` object summarizes a
+  runtime policy disposition for the event and composes with other extension
+  bodies without interaction. **All values defined by this profile MUST be JSON
+  strings** (no numeric, boolean, `null`, array, or nested-object values), keeping
+  the body within the base record's string-only canonicalization and outside any
+  number-canonicalization concern (a profile convention, not a core rule — §2.3).
+  Fields:
+  - `drift_status` (REQUIRED, string enum) — the runtime's evidentiary state
+    regarding tool-surface drift: `none` (no drift relative to the approved
+    surface evidenced), `observed` (a change evidenced, without a determination
+    that it is policy-relevant), `confirmed` (a policy-relevant change evidenced).
+    A consumer that does not recognize a value MUST treat the field as absent (no
+    claim made), not infer a default.
+  - `severity` (REQUIRED, string enum) — `info` | `low` | `medium` | `high`, in
+    non-decreasing order of severity. Numeric scores are out of scope for this
+    extension and MUST NOT be carried in the canonical body.
+  - `quarantine_decision` (REQUIRED, string enum) — the disposition the runtime
+    applied: `release` (permitted to proceed), `hold` (held pending review),
+    `quarantine`.
+  - `policy_id` (REQUIRED, string) — identifies the policy that produced the
+    disposition, of the form `<scope>/<name>@<revision>`, where `<scope>` is an
+    emitter-qualified namespace (e.g. a reverse-DNS name, a URN, or a registered
+    prefix) sufficient to disambiguate the policy across emitters. It is
+    vendor-neutral: it names a policy, not a product, an engine, or a detection
+    method (e.g. `example.org/runtime-drift@3`).
+  - `evidence_hash` (OPTIONAL, string) — when present, a cryptographic digest
+    expressed as `<algorithm>:<hex>` (e.g. `sha256:<hex>`) committing to an
+    out-of-band evidence record. It is an opaque commitment only: this contract
+    does not inline the evidence, prescribe its schema, or require any particular
+    detection method, and the base record commits to it as opaque bytes without
+    verifying it; a consumer wishing to rely on the evidence resolves and verifies
+    it out of band. OPTIONAL because a `drift_status: none` event may have nothing
+    to commit to.
+
+  **Outcome binding (§2.1.1):** the disposition is decision _evidence_ informing
+  the base `outcome`, never a competing or independent outcome field; the base
+  `outcome` MUST reflect the actual enforcement result. A confirmed drift with
+  `quarantine_decision: quarantine` held pending review maps to `outcome:
+deferred` (as in the `/2` conformance fixture); a terminally-blocked disposition
+  maps to `outcome: denied`. Other combinations follow the base record's outcome
+  semantics. (This prevents a record whose base outcome is `allowed` from
+  simultaneously carrying a `quarantine` disposition: the extension explains
+  _why_; the base outcome states _what happened_.)
+
+- **`admission-control`** (named; field set contributed — the clearance decision
+  and its inputs). Cross-ref PR #2809.
+
+New extensions are added by registration without altering §2.1, §2.3, or §2.4. An
+extension MUST NOT redefine a core field or introduce a second canonicalization.
+
+### 2.3 Canonicalization
+
+Integrity (§2.4) is computed over a **deterministic canonical form** of the
+record's protected fields (the core minus `event_hash`, plus the full
+`extensions` object). The canonical form is **sorted-key canonical JSON**, aligned
+with the canonicalization used by PR #2809's clearance assertion so that adopters
+process clearance assertions and audit records on one code path and one vector
+matrix. A canonicalization MUST:
+
+- **Sort object keys** lexicographically at every level, including the
+  `extensions` object and each extension's nested data, and serialize with no
+  insignificant whitespace.
+- **Canonicalize extensions in the type-keyed object form**
+  `extensions:{"<type>":<data>, ...}` — this exact representation is the
+  preimage. Implementations MUST NOT substitute an alternative representation
+  (e.g. an array of `{type, data}` pairs): different representations of the same
+  content produce different digests, and the keyed object is what makes
+  one-entry-per-type structurally unrepresentable and rides the same key-sort
+  with no special-case rule.
+- **Restrict protected values to strings, booleans, and `null`** — each of which
+  has exactly one canonical JSON form. **Bare numbers are excluded** from
+  protected bodies in this version (`1` vs `1.0` vs `1e0` have no agreed single
+  form; a number-canonicalization rule is deferred to a later version — encode
+  numeric content as a string in the meantime). `null` is part of the core form
+  (every segment head carries `previous_hash: null`); booleans serialize as
+  `true`/`false`. An extension MAY adopt a stricter all-strings convention for
+  its own data (runtime-security does), but that is the extension's convention,
+  not a core rule.
+- **Encode null distinguishably from empty string** (`null` vs `""`).
+- **Serialize `occurred_at` as RFC 3339 in UTC with millisecond precision and a
+  literal `Z`** (the `Date.toISOString()` form, e.g. `2026-06-02T12:00:00.000Z`),
+  so timestamp digests are reproducible across implementations regardless of the
+  recorder's native timestamp storage.
+- **Normalize protected string values** to bound the coupling of integrity to
+  free-text fields: Unicode **NFC**, **trim leading/trailing U+0020 (ASCII space)
+  only**, reject **control characters**, and enforce a **length cap** (baseline
+  8192 code units). A protected string failing normalization makes the record
+  non-conforming. The trim charset is deliberately **U+0020 only**, not the full
+  Unicode whitespace class: ASCII space is the only commonly-accidental edge
+  whitespace, while non-control Unicode whitespace (NBSP U+00A0, the U+2000–U+200A
+  range, ideographic space U+3000, etc.) is preserved as significant content.
+  Naming the charset is load-bearing for cross-implementation reproducibility — an
+  unqualified "trim" diverges across implementations (SQL `btrim(x, ' ')` strips
+  U+0020 only; a typical host `.trim()` strips the full whitespace class). Control
+  characters — including the C0 set (tab U+0009, LF U+000A, CR U+000D) — are
+  **rejected**, not trimmed; a leading or trailing control character renders the
+  record non-conforming rather than being stripped.
+  **Registry vocabulary is exempt:** extension type ids and registered field
+  names are a controlled ASCII registry vocabulary (§2.2) and pass through the
+  canonical form verbatim — they are object _keys_, not values, and the registry
+  (not normalization) is what constrains them. The exemption is safe precisely
+  because the vocabulary is registry-controlled ASCII; an unregistered type id is
+  non-conforming under C-REC-1 regardless of its bytes.
+- **Exclude `event_hash`** (the output) and the reserved `anchor_witness` (§2.8,
+  unused in v1) from the canonical body.
+
+The canonical form is identical across extensions; only the data each type id
+keys differs. A fixed two-extension known-answer test — one record carrying both
+`caller-governance` and `runtime-security`, reproducible from a shell with
+`sha256sum` — pins how two extensions hash side by side. (The fixed value, with
+its canonical preimage, is given under Conformance; the companion vectors reproduce
+it and the full matrix programmatically.)
+
+### 2.4 Integrity Construction (Record Chain)
+
+Records form an append-only **hash chain**. For each record:
+
+- `event_hash` MUST equal `H( canonical_form( protected_body ) )`, where `H` is a
+  collision-resistant hash function, `canonical_form` is §2.3, and `protected_body`
+  is the core (less `event_hash`) plus the full `extensions` object, and includes
+  the record's own `previous_hash`.
+- `previous_hash` MUST equal the `event_hash` of the immediately preceding record
+  in the chain segment, or null for the first record in a segment.
+
+`H` MUST be SHA-256 at baseline. An implementation MAY use a stronger function;
+the function in use MUST be recorded in the attestation manifest (§2.7) so a
+verifier is unambiguous (algorithm agility). Implementations MUST NOT use a hash
+function with a known practical collision.
+
+A chain "segment" is a contiguous run of records over which `previous_hash`
+threading is continuous. Implementations MAY segment chains (e.g. per time window
+or partition); each segment MUST be independently verifiable and the segmentation
+boundary MUST be discoverable to a verifier.
+
+### 2.5 Append-Only Requirement
+
+Once committed to the chain, a record MUST NOT be modified or deleted by any
+caller — including a privileged operator — without that alteration being
+detectable by the verification procedure (§2.6). Concretely:
+
+- The record store MUST reject in-place UPDATE and DELETE of committed records
+  through its normal access paths.
+- Any out-of-band alteration (e.g. by a database superuser) MUST change the
+  altered record's canonical form and therefore break chain verification at or
+  after the altered record.
+
+The _enforcement mechanism_ is implementation-defined and is explicitly NOT
+constrained by this SEP; it is declared in the attestation manifest (§2.7).
+Conforming mechanisms include, and are not limited to: storage-engine permission
+revocation plus row-level policy denying mutation; write-once media; an
+append-only log service; or a ledger.
+
+### 2.6 Verification Procedure
+
+A conforming chain MUST be verifiable by an independent party in possession of the
+records, by the following procedure:
+
+1. For each record, recompute `H( canonical_form( protected_body ) )` and compare
+   it to the stored `event_hash`. A mismatch indicates the record was altered
+   after commitment (in any protected field, core **or** extension).
+2. For each record after the first in a segment, confirm `previous_hash` equals
+   the prior record's `event_hash`. A mismatch indicates insertion, deletion, or
+   reordering.
+
+The procedure runs identically whether executed by an adopter attesting to its own
+trail or by a third party with read access to an exported record set. It MUST be
+deterministic: the same record set MUST always produce the same verdict.
+
+### 2.7 Attestation Manifest (Structured Attestation)
+
+The append-only _enforcement_ of §2.5 is a storage property, not a wire-observable
+one — so gating it at the protocol surface would be theater. It is therefore
+**attested**, but attestation MUST be _structured_: a bare "trust us" claim is not
+conformant. A conforming implementation MUST publish a machine-readable
+**attestation manifest** declaring:
+
+- `storage_mechanism` — the append-only enforcement mechanism (§2.5).
+- `chain_algorithm` — the hash function in use (§2.4).
+- `canonical_form_version` — the canonicalization version (§2.3).
+- `verification_procedure_ref` — a resolvable pointer to a reproducible
+  implementation of §2.6 that runs over an exported record set and emits a
+  deterministic pass/fail verdict.
+
+The machine-checkable vectors (the companion vector set) verify the observable record (schema, extension
+validity, canonical form, chain threading, emission). The manifest plus the
+referenced verifier make the integrity construction **attested-but-auditable**
+rather than attested-in-the-abstract: a reviewer can re-run the declared
+verification over the records and reproduce the verdict.
+
+### 2.8 External Anchoring (Reserved; Out of Scope for v1)
+
+Anchoring a chain to an external witness (e.g. RFC 3161 timestamp, version-control
+commit, object-store checksum, public ledger) addresses a distinct, weaker-priority
+threat — an _auditing organization_ rewriting its own history — that is orthogonal
+to the within-system chain construction. Selecting a witness scheme is deferred to
+avoid binding v1 to an ecosystem pick.
+
+A field name `anchor_witness` is **reserved** for this purpose. In v1 it MUST be
+absent or null and is NOT included in the integrity preimage (§2.3); a follow-on
+anchoring extension defines its semantics and whether it enters the preimage.
+Anchoring's absence MUST NOT affect conformance to §2.1–§2.7.
+
+### 2.9 Emission Completeness
+
+This SEP defines the _record_ and its _construction_, not the policy of which
+events a given governance layer must record — that belongs to each referencing
+proposal / extension registration. A referencing proposal that adopts this
+contract:
+
+- MUST define the set of `event_type` values it requires to be recorded and the
+  conditions under which each is emitted;
+- MUST record each such event as a conforming record (§2.1–§2.4);
+- and the recording of an event MUST NOT fail the governed operation's response
+  path solely because record emission failed (audit emission is non-blocking; a
+  failed emission MUST itself be detectable, e.g. recorded as an error record or
+  surfaced out-of-band).
+
+## Rationale
+
+**Why a separate record contract, rather than audit inside each layer.** Audit is
+asserted at several seams (admission, interception/runtime-security,
+caller-governance) and given a shared, verifiable definition at none; each names
+the guarantee without defining a record shape the others can verify against. What
+those layers share is not a field set but a
+_construction_ — an append-only, canonically-hashed, chained, independently
+verifiable record. Specifying that construction once, with a minimal common core
+and a typed extension point per layer, lets all of them conformance-anchor to one
+definition without flattening their differences. This follows the project's
+convergence principle (one well-defined way to solve a problem) rather than
+fragmenting audit across N incompatible shapes.
+
+**Key design decisions and alternatives considered.**
+
+- **Type-keyed `extensions` object, not a `{type, data}` array.** The keyed-object
+  form makes a duplicate extension type structurally unrepresentable, makes the
+  type id a preimage _key_ (so an extension's type cannot be swapped without
+  breaking verification), and rides the same every-level key-sort with no
+  special-case rule. An array form was rejected: different representations of the
+  same content produce different digests, and the array invites duplicate-type and
+  ordering ambiguity.
+- **Protected values restricted to string / boolean / null; no bare numbers.**
+  Each of these has exactly one canonical JSON form. Bare numbers (`1` vs `1.0` vs
+  `1e0`) have no agreed single form; rather than bind v1 to a number-canonicalization
+  scheme, numeric content is encoded as a string and a number rule is deferred to a
+  later canonical-form version. The stricter all-strings convention adopted by the
+  runtime-security extension is its own profile choice, not a core rule.
+- **Abstract `outcome` enum, not per-layer status codes.** A closed disposition
+  vocabulary (`allowed`/`denied`/`deferred`/`error`) keyed on the
+  terminal/non-terminal axis stays stable across profiles; domain-specific reason
+  codes and severities live in extension data and bind to the base outcome as
+  _evidence_, never as a competing outcome. This keeps the cross-profile anchor
+  fixed while letting each layer carry its own semantics.
+- **Attested-but-structured append-only enforcement, not wire-gating and not
+  "trust us".** Append-only _enforcement_ (§2.5) is a storage property, not a
+  protocol-observable one; gating it at the wire would be theater. A bare "trust
+  us" attestation is non-conformant. The chosen middle path is a machine-readable
+  attestation manifest plus a referenced, reproducible verifier that re-runs over
+  an exported record set — so a reviewer can reproduce the verdict without the
+  guarantee depending on an unobservable claim.
+- **Sorted-JSON canonicalization aligned with PR #2809, not a new canonicalizer.**
+  Adopters process clearance assertions and audit records on one code path and one
+  vector matrix; alignment, not a blocking dependency.
+- **Trim charset is U+0020 only, not the full Unicode whitespace class.** Naming
+  the charset is load-bearing for cross-implementation reproducibility: an
+  unqualified "trim" diverges (`btrim(x, ' ')` strips ASCII space only; a typical
+  host `.trim()` strips the full class). Non-control Unicode whitespace is
+  preserved as significant content; control characters are rejected, not trimmed.
+- **External anchoring reserved, out of scope for v1.** Anchoring to an external
+  witness addresses a distinct, weaker-priority threat and would bind v1 to an
+  ecosystem pick; a reserved `anchor_witness` hook leaves the door open without
+  committing the core.
+
+**Evidence of community process.** The contract was developed in the MCP Security
+Interest Group (`#security-ig`) with the author of the admission proposal (PR
+#2809) and the runtime-security implementer, Syed Maaz Ahmed (Interlock; cross-ref
+PR #2624). The `runtime-security` extension's normative registration text was
+contributed by Maaz rather than authored top-down. The two-extension known-answer digest
+reproduces byte-for-byte from the published rule plus stock `sha256sum` across
+independent implementations — the cross-implementation agreement the construction
+is meant to produce.
+
+**On the "make it an extension" question.** A reasonable reading of the project's
+composability and standardization principles is "build audit on top, as an
+extension, rather than in the specification." This contract is positioned as an
+_interoperability primitive_ — a canonical byte form that independent
+implementations must agree on for cross-vendor verification — not as a protocol
+feature or as governance-in-core. The governance semantics ride in registered
+extensions, off the core; the only thing standardized is the construction multiple
+layers already converge on. Positioned this way, the record contract is the
+cross-cutting _evidence_ layer beneath the other proposals: admission (#2809)
+decides whether a server may be used, interception/runtime-security (#2624) decides
+whether an admitted surface drifted, and caller-governance decides whether a caller
+may invoke — three different decisions, all three needing the _same_ tamper-evident
+record to be accountable. Standardizing that record once is what lets the three
+compose without each re-inventing "tamper-evident"; it is the interop seam between
+them, not a governance feature competing with any of them.
+
+## Backward Compatibility
+
+This SEP is purely additive and introduces no backward incompatibilities.
+
+- **No existing MCP message changes shape.** The contract defines an orthogonal
+  record and its verification; it adds no new wire messages and no changes to
+  existing schemas, and it does not dictate a database engine, transport, or runtime
+  architecture. The record and its verification are off-wire (evaluated over an
+  exported record set), so there is no protocol-surface incompatibility. An
+  implementation that does not adopt the contract is unaffected, and an unextended
+  host or server behaves exactly as today.
+- **Effect on referencing proposals is opt-in and non-breaking.**
+  - _Admission (PR #2809)._ A proposal whose tamper-evident admission record is a
+    `SHOULD` MAY, if this SEP lands, forward-reference it and upgrade that obligation
+    to a `MUST` at its own discretion; the canonicalization here is the sorted-JSON
+    form already used by #2809's clearance assertion, not a new one.
+  - _Runtime security (PR #2624)._ This contract supplies the checkable record shape
+    that #2624 states as a compliance consideration; adopting it requires no change
+    to an engine's existing runtime enforcement.
+    Until a referencing proposal chooses to upgrade, nothing changes for it.
+- **Forward-compatible versioning.** Layer-specific context is isolated in the
+  type-keyed `extensions` object, so new profiles register without altering the
+  core. The canonical-form version is carried in the attestation manifest (§2.7),
+  not in the hashed bytes, so a later canonicalization revision (for example, adding
+  number canonicalization, or activating the reserved `anchor_witness` hook, §2.8)
+  can be introduced as a new canonical-form version without invalidating chains
+  produced under an earlier one.
+- **No deprecations.** This SEP removes or deprecates nothing.
+
+## Conformance
+
+Conformance is split along what is protocol-observable, consistent with SEP-2484's
+documented-exclusion model.
+
+**Machine-checkable (vectors provided).** Given a set of records and a manifest:
+
+- C-REC-1 — every record carries the §2.1 core with conforming types and a
+  legal `outcome` disposition (§2.1.1); its `extensions` object carries at least
+  one registered type id, no unregistered type ids, and each extension's data
+  satisfies its registration's required fields and closed vocabularies.
+- C-REC-2 — the canonical form (§2.3) is deterministic, injective over the
+  protected body (core **and** extension data), uses the mandated type-keyed
+  `extensions` representation, restricts protected values to string/bool/null
+  (no bare numbers), normalizes equivalent strings, and rejects control
+  characters; null encodes distinguishably from empty string; registry
+  vocabulary (type ids, registered field names) passes through verbatim.
+- C-REC-3 — `event_hash` equals the hash of the canonical form of the protected
+  body (§2.4), including a fixed known-answer test for cross-implementation
+  interop — among them a **two-extension** record pinning how multiple
+  extensions hash side by side.
+- C-REC-4 — `previous_hash` threading is continuous within a segment; a mutated or
+  removed record is detected (§2.6) — including mutation of an extension field such
+  as `purpose_declared`.
+- C-REC-5 — declared-required `event_type` values are present for a scripted
+  sequence of governed events (§2.9).
+- C-REC-6 — the extension mechanism is emitter-neutral: records carrying
+  different (and multiple) extensions chain under one construction, and extension
+  data is integrity-protected by the same chain.
+- C-REC-7 — the attestation manifest (§2.7) is structured (declares mechanism,
+  algorithm, canonical-form version, and a verification-procedure pointer); a bare
+  attestation is non-conformant.
+
+A normative, runnable vector set for C-REC-1…7 is published with the reference
+implementation, in the GIF repository under
+`mcp-server/conformance/audit-record-contract/`
+(https://github.com/notboatanchor/gif/tree/e1f02a95506e81e7766c3ba3a684ecad7cfff12f/mcp-server/conformance/audit-record-contract).
+From `mcp-server/`, `npm run vectors` yields `23 vectors — 23 passed, 0 failed`
+(zero-dependency alternative:
+`node --experimental-strip-types conformance/audit-record-contract/run.ts`). Because the
+integrity guarantee is off-wire (§2.7), these are record/verifier vectors evaluated
+over an exported record set — not wire-protocol scenarios — providing the
+machine-checkable evidence SEP-2484 requires for Final, paired with the structured
+attestation (§2.7) for the part that is not protocol-observable.
+
+**Two-extension known-answer test (self-contained).** The cross-implementation
+interop anchor referenced in C-REC-3 is fixed here so it can be reproduced with no
+repository and no dependence on any implementation — a single segment-head record
+(`previous_hash: null`) carrying both registered extensions, pinning how two
+extensions hash side by side under one digest. The identifiers are vendor-neutral
+constants; `event_hash` is the computed output and is excluded from the preimage.
+
+| field                            | value                                                                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event_id`                       | `99999999-9999-9999-9999-999999999999`                                                                                                                         |
+| `event_type`                     | `tool_call`                                                                                                                                                    |
+| `occurred_at`                    | `2026-06-06T12:00:00.000Z`                                                                                                                                     |
+| `outcome`                        | `deferred`                                                                                                                                                     |
+| `previous_hash`                  | `null`                                                                                                                                                         |
+| `principal_id`                   | `aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa`                                                                                                                         |
+| `tool_name`                      | `export`                                                                                                                                                       |
+| `extensions › caller-governance` | `flagged=false, invoked_by_principal_id=null, purpose_declared="reconcile June invoices", session_id="55555555-5555-5555-5555-555555555555"`                   |
+| `extensions › runtime-security`  | `drift_status="confirmed", evidence_hash="sha256:b2c547e2…e2d9be", policy_id="example.org/runtime-drift@3", quarantine_decision="quarantine", severity="high"` |
+
+The canonical form (§2.3) of the protected body is the exact byte string:
+
+```
+{"event_id":"99999999-9999-9999-9999-999999999999","event_type":"tool_call","extensions":{"caller-governance":{"flagged":false,"invoked_by_principal_id":null,"purpose_declared":"reconcile June invoices","session_id":"55555555-5555-5555-5555-555555555555"},"runtime-security":{"drift_status":"confirmed","evidence_hash":"sha256:b2c547e2c8f17eafc72ef5c2d4d7b6b4d0f7437ab52bae573a9af14ff5e2d9be","policy_id":"example.org/runtime-drift@3","quarantine_decision":"quarantine","severity":"high"}},"occurred_at":"2026-06-06T12:00:00.000Z","outcome":"deferred","previous_hash":null,"principal_id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","tool_name":"export"}
+```
+
+whose SHA-256 is:
+
+```
+f733fed9cc757165f810b778e4baba1f51a45504988e937707aaab4361b2f064
+```
+
+Reproduce from any shell — paste the preimage block above between the quotes:
+
+```
+printf '%s' '<canonical preimage above>' | sha256sum
+# -> f733fed9cc757165f810b778e4baba1f51a45504988e937707aaab4361b2f064
+```
+
+Because the digest is a property of the canonical bytes alone, any implementation
+adopting §2.3 lands on the same value. The published vector set additionally pins
+the single-extension `caller-governance` digest (`d494769c…`) and the full
+C-REC-1…7 matrix.
+
+**Attested-but-structured (not protocol-observable).** The append-only
+_enforcement_ of §2.5 is attested via §2.7. A conformance harness verifies the
+_consequence_ (chain verification fails after an out-of-band mutation, C-REC-4)
+and the _structure_ of the attestation (C-REC-7), rather than the storage
+mechanism itself.
+
+## Open Questions
+
+(The design decisions resolved during #security-ig review — extension
+representation, canonical form, the outcome vocabulary, value types, and the
+attested-but-structured verification surface — are recorded in the Rationale's
+"Key design decisions and alternatives considered.")
+
+- **Q-A — Normative registration text for `admission-control`.** The
+  `runtime-security` registration was contributed by its implementer and is folded
+  into §2.2; `admission-control` remains contributed by reference (PR #2809). This
+  SEP fixes the mechanism and the `caller-governance` extension.
+- **Q-B — Anchoring extension.** Semantics of the reserved `anchor_witness`
+  (§2.8), deferred to a follow-on.
+- **Q-C — Number, sponsor, and venue.** Homed under #security-ig; a formal PR
+  cross-references PR #2809 and PR #2624. Sponsor being secured.
+
+## Security Implications
+
+A hash chain provides tamper-_evidence_, not tamper-_prevention_: it guarantees
+that alteration of committed records is _detectable_, not impossible. Detection
+depends on at least one trustworthy copy of a prior `event_hash` — the motivation
+for the reserved external-anchor hook (§2.8) against adversaries who can reach the
+record store. Because `purpose_declared` and other extension fields are inside the
+chain (§2.2), the privileged-actor-rewrites-intent vector is closed: altering a
+recorded reason breaks verification. The integrity guarantee is only as strong as
+the protected field set; fields an extension registration chooses to leave out of
+its data object are unprotected. Timestamps are recorder-assigned (§2.1) to
+prevent a governed
+caller from backdating records. String normalization (§2.3) bounds — but does not
+eliminate — the risk of homoglyph/encoding ambiguity in free-text fields; it does
+not address confidentiality of record contents, which may carry sensitive
+governance context and SHOULD be access-controlled independently of integrity
+protection. A verifier processing records from an untrusted source SHOULD bound
+canonicalization (§2.3) recursion depth: deeply-nested input is otherwise a
+stack-exhaustion vector, and conforming records are shallow, so a generous cap
+rejects only hostile input (the reference verifier caps depth accordingly).
+
+## Reference Implementation
+
+An open-source reference implementation of this construction exists: the Governed
+Intelligence Framework (Apache 2.0, `https://github.com/notboatanchor/gif`). It
+implements the **core + chain construction + the `caller-governance` context**.
+Its canonical form matches this contract's rule (sorted-JSON, millisecond RFC 3339
+timestamps, `purpose_declared` in the preimage). It implements this draft's
+`extensions` keyed-object shape (`canon_version = gif-audit/2`, migration 015; the
+predecessor single-profile shape `gif-audit/1` merged in gif PR #28). Its audit
+trigger emits and reproduces the **single-extension** `caller-governance`
+known-answer digest (`d494769c…`) as its own self-test; the **two-extension**
+digest (`f733fed9…`, given under Conformance) is reproduced by the same canonical
+rule over the published preimage — and exercised synthetically in the conformance
+vectors — rather than minted by the live trigger. This is consistent with the
+digest being a property of the canonical bytes, not of any one implementation: a
+second implementer (the runtime-security implementation, cross-ref PR #2624)
+independently reproduced it from the rule alone. It produces caller-bound,
+append-only, SHA-256 hash-chained audit records; enforces append-only at the
+storage layer via privilege revocation plus row-level policy and a trusted hashing
+trigger; and ships runnable conformance scenarios for record emission, append-only
+behavior, and scope-gated read. Per the spec-vs-source discipline, the reference
+implementation does strictly more than this contract requires (it binds records to
+a persona/session governance model and a scope system not specified here), and the
+contract is written to admit implementation paths other than the reference one
+(storage engine, enforcement mechanism, and every extension beyond
+caller-governance are open).
+
+Independent implementations of the **same construction** under other extensions
+exist — a runtime-security receipt (cross-ref PR #2624) and an admission record
+(cross-ref PR #2809) — which is the intended outcome: the construction is the
+invariant, the extension is the variation, and multiple implementation paths
+anchor to one definition.
+
+## Acknowledgments
+
+This contract was developed in the open in the MCP Security Interest Group
+(`#security-ig`). The `admission-control` extension is named by reference to the
+Attested Tool-Server Admission proposal (ATSA, PR #2809).
+
+## References
+
+- PR #2809 — admission / clearance assertion proposal (tamper-evident admission
+  record as a `SHOULD`; source of the shared sorted-JSON canonicalization).
+- PR #2624 — interception / runtime-security proposal (tamper-proof audit trail as
+  a compliance consideration).
+- SEP-2484 — conformance suite (machine-checkable vectors as the Final gate).
+- RFC 2119 — normative keywords.
+- RFC 3339 — date/time format.
+- RFC 3161 — trusted timestamping (one external-anchor option, §2.8).
