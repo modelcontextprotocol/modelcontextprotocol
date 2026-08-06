@@ -333,6 +333,20 @@ Resources can contain either text or binary data:
 }
 ```
 
+#### Structured Content
+
+Structured content can be embedded inside a `structuredContent` field. An optional `contentSchema` field **MAY** be included, pointing to a resource containing the schema of this content:
+
+```json
+{
+  "uri": "file:///config.json",
+  "contentSchema": "file:///config_schema.json",
+  "structuredContent": { "foo": 42 }
+}
+```
+
+When `contentSchema` is provided, clients **SHOULD** validate the structured content based on the schema included in the resource pointed by `contentSchema`. If the resource pointed by `contentSchema` is itself a structured content, this content is directly used as the schema. If it is a text content, the `text` should be parsed as a JSON string used as the schema. If it is a binary content, the `blob` **MUST** first be decoded as an UTF-8 string and parsed as a JSON string.
+
 ### Annotations
 
 Resources, resource templates and content blocks support optional annotations that provide hints to clients about how to use or display the resource:
