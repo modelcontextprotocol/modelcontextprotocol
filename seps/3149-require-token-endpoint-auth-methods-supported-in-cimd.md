@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-07-27
-- **Author(s)**: @max-stytch
+- **Author(s)**: @max-stytch @stevenlee-oai
 - **Sponsor**: @pcarleton
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3149
 
@@ -32,12 +32,8 @@ never in normative prose.
 
 A CIMD document is published at a single URL and consumed by every
 authorization server the client ever connects to, and those servers do not
-have uniform capabilities. Some support `private_key_jwt`; many accept only
-public clients. A single-valued `token_endpoint_auth_method` gives a client no
-way to express "either, depending on what you support." In practice that
-forces the lowest common denominator: the client is forced to publish `none`, and the
-servers that _could_ have required a signed assertion never learn the client
-was capable of one.
+have uniform capabilities. A single-valued `token_endpoint_auth_method` gives
+a client no way to express "any of these, depending on what you support."
 
 The broader OAuth/OIDC ecosystem has already solved this capability
 negotiation problem by moving from single-valued to multi-valued parameters.
@@ -63,66 +59,59 @@ which currently reads:
 > The metadata document **MUST** include at least the following properties:
 > `client_id`, `client_name`, `redirect_uris`
 
-The array **MUST** contain one or more authentication methods the client supports, in no particular order of preference.
+The array **MUST** contain one or more authentication methods the client
+supports, in no particular order of preference. The restrictions on token
+endpoint authentication methods in the Client ID Metadata Document
+specification continue to apply: the array **MUST NOT** include
+`client_secret_post`, `client_secret_basic`, `client_secret_jwt`, or any other
+method based around a shared symmetric secret.
 
 Authorization servers **MUST** support reading
 `token_endpoint_auth_methods_supported` from a CIMD document. Documents that
 omit it are handled as described in
 [Deprecated Declarations](#deprecated-declarations).
 
-A document that carries **neither** parameter **MUST** be treated as declaring
-`["none"]` — that is, as a public client. This default is itself **deprecated**
-and exists only for compatibility: neither parameter is required by the
-specification today, so documents omitting both are conformant under the
-current revision and remain in wide use. Once the deprecation period elapses,
-such a document is invalid and authorization servers reject it rather than
-inferring a method.
-
-For illustration, a client that can operate either as a public client or with
-an assertion-based credential might publish:
+For illustration, a client that supports two registered methods might publish:
 
 ```json
 "token_endpoint_auth_methods_supported": ["none", "private_key_jwt"]
 ```
 
-Here `none` indicates the client can act as a public client with no client
-authentication at the token endpoint, and `private_key_jwt` indicates it can
-authenticate with a signed JWT assertion per
-[RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523), using the JWKS
-referenced by the CIMD document (see
-[Section 6.2 of the Client ID Metadata Document draft](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)).
-Any other registered method name is equally valid here.
+### Method Resolution
 
-### Authorization Server Selection
+The client and authorization server determine the set of mutually supported
+token endpoint client authentication methods by intersecting the client's
+`token_endpoint_auth_methods_supported` array with the authorization server's
+`token_endpoint_auth_methods_supported` metadata value.
 
-An authorization server registering a client computes the intersection
-of the client's `token_endpoint_auth_methods_supported` array and
-the methods the authorization server itself supports.
+- The client **MUST** select and use a method from the intersection.
+- When the client's singular `token_endpoint_auth_method` is present and
+  mutually supported, the client **SHOULD** use that method to preserve
+  compatibility with authorization servers that treat the singular field as
+  binding.
+- When the singular method is absent or unsupported, the client **MAY** select
+  another method from the intersection.
+- After reading `token_endpoint_auth_methods_supported` from the CIMD
+  document, an authorization server **SHOULD** accept any method in the
+  intersection, unless its local security policy disallows that method for
+  the client.
+- If the intersection is empty, the client **MUST NOT** proceed, and the
+  authorization server **MUST** reject the client.
+- Authorization servers **MUST** reject any method outside the intersection.
 
-If that intersection is empty, the authorization server **MUST** reject the
-registration rather than falling back to a method the client did not
-advertise. In particular, it **MUST NOT** assume `none` when the field is
-present and non-empty but does not include it.
+For example:
 
-This applies to the `["none"]` default for documents declaring no
-authentication method as it does to an explicitly published array: an
-authorization server that does not support public clients **MUST** reject
-such a document rather than registering the client under some other method.
+| Client methods                | Authorization server methods  | Result                         |
+| ----------------------------- | ----------------------------- | ------------------------------ |
+| `["private_key_jwt", "none"]` | `["private_key_jwt", "none"]` | Client chooses a shared method |
+| `["private_key_jwt", "none"]` | `["none"]`                    | Use `none`                     |
+| `["none"]`                    | `["private_key_jwt", "none"]` | Use `none`                     |
+| `["private_key_jwt", "none"]` | `["client_secret_basic"]`     | No compatible method           |
 
 ### Deprecated Declarations
 
-Changing an established metadata field in a widely deployed mechanism needs a
-managed transition rather than an immediate cutover, and MCP already has a
-pattern for exactly this. Dynamic Client Registration is deprecated in favor
-of Client ID Metadata Documents, but remains permitted and is "retained for
-backwards compatibility with authorization servers that do not support Client
-ID Metadata Documents," with a removal date governed by the
-[feature lifecycle policy](/community/feature-lifecycle).
-
-This SEP applies the same treatment to the two ways a CIMD document can
-currently avoid declaring its authentication methods explicitly. Both are
-**deprecated**, both remain permitted for now, and both migrate to
-`token_endpoint_auth_methods_supported`:
+Two existing declarations are **deprecated** but remain supported during the
+transition to `token_endpoint_auth_methods_supported`:
 
 1. **The singular `token_endpoint_auth_method` parameter**, retained for
    backwards compatibility with authorization servers that do not support the
@@ -141,15 +130,32 @@ currently avoid declaring its authentication methods explicitly. Both are
   > parameter alongside the corresponding multi-valued metadata parameter with
   > their preferred single value.
 
-- Authorization servers **MUST** prefer `token_endpoint_auth_methods_supported`
-  when it is present, and **MUST NOT** let a present-but-conflicting
-  `token_endpoint_auth_method` override it.
+- When both parameters are present, `token_endpoint_auth_method` **MUST** be a
+  member of `token_endpoint_auth_methods_supported`. The array is authoritative;
+  the singular value is the client's backwards-compatible preference when it is
+  mutually supported.
+- Authorization servers **MUST NOT** reject a client solely because the
+  singular preferred method is unsupported when another method in the array is
+  mutually supported.
 - Authorization servers **MAY** fall back to `token_endpoint_auth_method`
   when the multi-valued parameter is absent — for example, when reading a
   document published before this requirement took effect.
 - Authorization servers **MUST** treat a document carrying neither parameter
   as declaring `["none"]` until the deprecation period elapses, and **MUST**
   reject such a document thereafter.
+
+The following examples show how the singular field behaves during the
+deprecation period:
+
+| Client methods                | Singular preference | Authorization server methods  | Result                          |
+| ----------------------------- | ------------------- | ----------------------------- | ------------------------------- |
+| `["private_key_jwt", "none"]` | `private_key_jwt`   | `["private_key_jwt", "none"]` | Use preferred `private_key_jwt` |
+| `["private_key_jwt", "none"]` | `private_key_jwt`   | `["none"]`                    | Try `none`                      |
+| `["private_key_jwt", "none"]` | `none`              | `["private_key_jwt", "none"]` | Use preferred `none`            |
+| `["none"]`                    | `private_key_jwt`   | `["none"]`                    | Reject invalid metadata         |
+| Omitted                       | `none`              | `["none"]`                    | Use legacy `none`               |
+| Omitted                       | Omitted             | `["none"]`                    | Use deprecated `none`           |
+| Omitted                       | Omitted             | `["private_key_jwt"]`         | Reject incompatible client      |
 
 ### Lifecycle
 
@@ -171,6 +177,11 @@ This SEP intentionally does not recommend a specific set of authentication
 methods. Which methods a client can support is determined by its deployment
 model, and a blanket recommendation would be wrong for some large class of
 clients.
+
+The client selects a mutually supported method without requiring the
+authorization server to communicate a selected method back to the client.
+Preserving the singular preference when possible keeps existing
+authorization-server behavior intact.
 
 The field is required (MUST) rather than recommended (SHOULD) because explicit
 behavior is crucial for authentication mechanisms. A required field gives
@@ -197,15 +208,20 @@ Publishing multiple metadata documents, one per `token_endpoint_auth_method`
   different clients depending on which authorization server they connected
   through.
 - The maintenance burden compounds the problem: every additional method
-  multiplies the documents that must be hosted and kept in sync, and each new
-  method a client adopts changes the set of URLs it publishes. Declaring
-  capabilities in one document keeps the client's identity stable while its
-  capabilities evolve.
+  multiplies the documents that must be hosted and kept in sync. Other
+  independently varying properties, such as callback identifiers, multiply
+  that cardinality further. New URLs also complicate authorization-server
+  allowlists and existing registrations, while query-string variants can be
+  rejected because
+  [Client ID Metadata Document identifiers](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-01#section-3)
+  **SHOULD NOT** include query strings. Multiple documents can serve as a
+  migration fallback, but one document keeps the client's identity stable as
+  its capabilities evolve.
 
 ## Backward Compatibility
 
-In the revision this SEP lands in, the incompatibility is at the conformance
-level only. No existing CIMD document stops working.
+Existing CIMD documents remain accepted by conformant authorization servers
+during the deprecation period.
 
 **What changes.** CIMD documents that omit
 `token_endpoint_auth_methods_supported` become non-conformant with that
@@ -224,9 +240,14 @@ continues to register successfully:
   parameter keep working, because clients SHOULD continue publishing the
   singular field.
 
-The immediate incompatibility is therefore a conformance obligation on
-clients, not a runtime failure for either party, and non-conformant documents
-degrade to their current behavior rather than being rejected.
+Clients do not need a separate signal indicating whether an authorization
+server understands the array. When the singular preferred method is supported,
+using it preserves compatibility with legacy authorization servers. When it is
+unsupported, a client can try another mutually supported method from the
+array: an updated authorization server can accept it, while a legacy server
+may still reject the client. That legacy server would already have rejected the
+unsupported singular method, so this fallback improves compatibility without
+creating a new failure case.
 
 **What changes at removal.** Both accommodations are deprecated, so this is a
 deferred break rather than an avoided one. When the deprecation period
@@ -244,23 +265,37 @@ with the other.
 
 ## Security Implications
 
-This proposal does not introduce a new client authentication mechanism; it
-only changes how a client advertises which existing, already-specified
-authentication methods it supports. Because this SEP does not prescribe the
-contents of the array, it does not itself raise or lower the authentication
-strength of any deployment: authorization servers remain responsible for
-rejecting clients whose advertised methods do not meet the server's
-requirements.
-
-In aggregate this change is expected to improve authentication strength across
-the ecosystem rather than weaken it. Today a client that supports strong
-client authentication must still publish a single value acceptable to the
-weakest authorization server it needs to work with; enumerating capabilities
-lets servers that support a stronger method actually use it.
+This proposal does not introduce or rank authentication mechanisms. It allows
+a client to advertise multiple existing methods while preserving the
+authorization server's ability to enforce its local security policy.
 
 ## Reference Implementation
 
-**TODO**
+[ChatGPT's public Client ID Metadata Document](https://chatgpt.com/oauth/client.json)
+advertises two methods and publishes one as its backwards-compatible singular
+preference:
+
+```json
+{
+  "token_endpoint_auth_methods_supported": ["none", "private_key_jwt"],
+  "token_endpoint_auth_method": "private_key_jwt"
+}
+```
+
+Codex advertises and prefers only its supported public-client method:
+
+```json
+{
+  "token_endpoint_auth_methods_supported": ["none"],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+Both examples maintain a stable client identifier while exposing a singular
+preference for authorization servers that do not support the array.
+
+A publicly runnable client/server implementation and conformance tests remain
+to be linked.
 
 ## Open Questions
 
