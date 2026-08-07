@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-07-27
-- **Author(s)**: @max-stytch
+- **Author(s)**: @max-stytch @stevenlee-oai 
 - **Sponsor**: @pcarleton
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3149
 
