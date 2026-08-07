@@ -51,12 +51,8 @@ never in normative prose.
 
 A CIMD document is published at a single URL and consumed by every
 authorization server the client ever connects to, and those servers do not
-have uniform capabilities. Some support `private_key_jwt`; many accept only
-public clients. A single-valued `token_endpoint_auth_method` gives a client no
-way to express "either, depending on what you support." In practice that
-forces the lowest common denominator: the client is forced to publish `none`, and the
-servers that _could_ have required a signed assertion never learn the client
-was capable of one.
+have uniform capabilities. A single-valued `token_endpoint_auth_method` gives
+a client no way to express "any of these, depending on what you support."
 
 The broader OAuth/OIDC ecosystem has already solved this capability
 negotiation problem by moving from single-valued to multi-valued parameters.
@@ -94,19 +90,11 @@ Authorization servers **MUST** support reading
 omit it are handled as described in
 [Deprecated Declarations](#deprecated-declarations).
 
-For illustration, a client that can operate either as a public client or with
-an assertion-based credential might publish:
+For illustration, a client that supports two registered methods might publish:
 
 ```json
 "token_endpoint_auth_methods_supported": ["none", "private_key_jwt"]
 ```
-
-Here `none` indicates the client can act as a public client with no client
-authentication at the token endpoint, and `private_key_jwt` indicates it can
-authenticate with a signed JWT assertion per
-[RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523), using the JWKS
-referenced by the CIMD document (see
-[Section 6.2 of the Client ID Metadata Document draft](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-00.html#section-6.2)).
 
 ### Method Resolution
 
@@ -115,15 +103,17 @@ token endpoint client authentication methods by intersecting the client's
 `token_endpoint_auth_methods_supported` array with the authorization server's
 `token_endpoint_auth_methods_supported` metadata value.
 
-- The client **MUST** use a method from the intersection.
+- The client **MUST** select and use a method from the intersection.
 - When the client's singular `token_endpoint_auth_method` is present and
   mutually supported, the client **SHOULD** use that method to preserve
   compatibility with authorization servers that treat the singular field as
   binding.
-- When the singular method is absent or unsupported, the client **MAY** use
-  another mutually supported method. Authorization servers that understand the
-  array **SHOULD** accept mutually supported methods that satisfy their local
-  security policies.
+- When the singular method is absent or unsupported, the client **MAY** select
+  another method from the intersection.
+- After reading `token_endpoint_auth_methods_supported` from the CIMD
+  document, an authorization server **SHOULD** accept any method in the
+  intersection, unless its local security policy disallows that method for
+  the client.
 - If the intersection is empty, the client **MUST NOT** proceed, and the
   authorization server **MUST** reject the client.
 - Authorization servers **MUST** reject any method outside the intersection.
@@ -210,10 +200,7 @@ clients.
 The client selects a mutually supported method without requiring the
 authorization server to communicate a selected method back to the client.
 Preserving the singular preference when possible keeps existing
-authorization-server behavior intact. This follows
-[OpenID Federation 1.0, Section 12.1.4](https://openid.net/specs/openid-federation-1_0.html#section-12.1.4),
-which requires clients to use mutually supported methods and recommends that
-authorization servers accept them.
+authorization-server behavior intact.
 
 The field is required (MUST) rather than recommended (SHOULD) because explicit
 behavior is crucial for authentication mechanisms. A required field gives
@@ -297,26 +284,20 @@ with the other.
 
 ## Security Implications
 
-This proposal does not introduce a new authentication mechanism. It allows a
-client to advertise multiple existing methods while preserving the
+This proposal does not introduce or rank authentication mechanisms. It allows
+a client to advertise multiple existing methods while preserving the
 authorization server's ability to enforce its local security policy.
-
-An authorization server that accepts `none` treats the client as a public
-client for that interaction. Servers requiring client authentication can
-reject `none`, and clients can prefer authenticated methods when compatible
-with their deployment and backwards-compatibility requirements.
 
 ## Reference Implementation
 
 [ChatGPT's public Client ID Metadata Document](https://chatgpt.com/oauth/client.json)
-advertises both methods, prefers `private_key_jwt` for backwards compatibility,
-and includes the key material required to authenticate:
+advertises two methods and publishes one as its backwards-compatible singular
+preference:
 
 ```json
 {
   "token_endpoint_auth_methods_supported": ["none", "private_key_jwt"],
-  "token_endpoint_auth_method": "private_key_jwt",
-  "jwks_uri": "https://chatgpt.com/oauth/jwks.json"
+  "token_endpoint_auth_method": "private_key_jwt"
 }
 ```
 
@@ -339,11 +320,6 @@ to be linked.
 
 - Should `implicit ["none"]` and `token_endpoint_auth_method` be deprecated, or
   should allowances be made to not break existing CIMD clients?
-- Should MCP recommend preferring authenticated methods over `none`, and how
-  would that interact with authorization servers that treat the singular
-  method as binding?
-- How should an authorization server report an incompatible CIMD client when
-  it has not established a trusted redirect URI?
 
 ## Acknowledgments
 
