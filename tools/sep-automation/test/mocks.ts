@@ -79,6 +79,7 @@ export function createMockLogger(): MockLogger {
  */
 export interface MockMaintainerResolver {
   getSponsor: Mock;
+  canSponsor: Mock;
   isCoreMaintainer: Mock;
   clearCache: Mock;
 }
@@ -89,6 +90,7 @@ export interface MockMaintainerResolver {
 export function createMockMaintainerResolver(): MockMaintainerResolver {
   return {
     getSponsor: vi.fn().mockResolvedValue('sponsor1'),
+    canSponsor: vi.fn().mockResolvedValue(true),
     isCoreMaintainer: vi.fn().mockResolvedValue(true),
     clearCache: vi.fn(),
   };

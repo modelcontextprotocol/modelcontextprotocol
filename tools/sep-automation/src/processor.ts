@@ -13,6 +13,7 @@ import {
   type SEPItem,
   type ActionResult,
   type SEPState,
+  type StaleAnalysis,
 } from "./types.js";
 
 /** Summary data collected during processing */
@@ -95,10 +96,14 @@ export class SEPProcessor {
     }
 
     // Check staleness
-    const stalenessResult = await this.checkStaleness(sep);
-    if (stalenessResult) {
-      results.push(stalenessResult);
-      this.updateSummaryFromStaleness(stalenessResult, sep, summaryData);
+    const staleness = await this.checkStaleness(sep);
+    if (staleness) {
+      results.push(staleness.result);
+      this.updateSummaryFromStaleness(
+        staleness.result,
+        staleness.analysis,
+        summaryData,
+      );
     }
 
     // Check maintainer accountability
@@ -155,14 +160,20 @@ export class SEPProcessor {
   /**
    * Check for staleness and take appropriate action
    */
-  private async checkStaleness(sep: SEPItem): Promise<ActionResult | null> {
+  private async checkStaleness(
+    sep: SEPItem,
+  ): Promise<{ result: ActionResult; analysis: StaleAnalysis } | null> {
     const analysis = await this.analyzer.analyze(sep);
 
     if (!analysis.shouldPing && !analysis.shouldMarkDormant) {
       return null;
     }
 
-    return this.pingHandler.executePing(analysis, this.config.dryRun);
+    const result = await this.pingHandler.executePing(
+      analysis,
+      this.config.dryRun,
+    );
+    return { result, analysis };
   }
 
   /**
@@ -216,62 +227,40 @@ export class SEPProcessor {
   /**
    * Update summary data from a staleness result
    */
-  private async updateSummaryFromStaleness(
+  private updateSummaryFromStaleness(
     result: ActionResult,
-    sep: SEPItem,
+    analysis: StaleAnalysis,
     summary: SummaryData,
-  ): Promise<void> {
+  ): void {
     if (!result.success) {
       return;
     }
 
-    const analysis = await this.analyzer.analyze(sep);
+    const { item, pingTarget, daysSinceActivity, shouldClose } = analysis;
 
     switch (result.action.type) {
       case ActionType.NeedsSponsor:
-        summary.needsSponsor.push({
-          item: sep,
-          daysSinceActivity: analysis.daysSinceActivity,
-        });
+        summary.needsSponsor.push({ item, daysSinceActivity });
         break;
       case ActionType.MarkDormant:
         summary.dormant.push({
-          item: sep,
-          daysSinceActivity: analysis.daysSinceActivity,
-          wasClosed: analysis.shouldClose,
+          item,
+          daysSinceActivity,
+          wasClosed: shouldClose,
         });
         break;
       case ActionType.PingAuthor:
       case ActionType.PingSponsor:
       case ActionType.PingMaintainer:
-        if (analysis.pingTarget) {
-          const targetUser = await this.getTargetUser(sep, analysis.pingTarget);
+        if (pingTarget) {
           summary.pings.push({
-            item: sep,
-            pingTarget: analysis.pingTarget,
-            targetUser: targetUser ?? sep.author,
-            daysSinceActivity: analysis.daysSinceActivity,
+            item,
+            pingTarget,
+            targetUser: result.action.targetUser ?? item.author,
+            daysSinceActivity,
           });
         }
         break;
-    }
-  }
-
-  /**
-   * Get the target user for a ping
-   */
-  private async getTargetUser(
-    sep: SEPItem,
-    pingTarget: "author" | "sponsor" | "maintainer",
-  ): Promise<string | null> {
-    switch (pingTarget) {
-      case "author":
-        return sep.author;
-      case "sponsor":
-      case "maintainer":
-        return this.maintainers.getSponsor([...sep.assignees]);
-      default:
-        return null;
     }
   }
 }
