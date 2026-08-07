@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-07-27
-- **Author(s)**: @max-stytch @stevenlee-oai 
+- **Author(s)**: @max-stytch @stevenlee-oai
 - **Sponsor**: @pcarleton
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3149
 
@@ -96,25 +96,27 @@ token endpoint client authentication methods by intersecting the client's
 `token_endpoint_auth_methods_supported` array with the authorization server's
 `token_endpoint_auth_methods_supported` metadata value.
 
-For this rule, `none` is unauthenticated; all other permitted methods are
-authenticated.
-
-- If the intersection contains an authenticated method, the client **MUST**
-  use one such method, and the authorization server **MUST** reject `none`.
-  When multiple authenticated methods are available, the client **MAY** choose
-  among them.
-- If `none` is the only mutually supported method, the client **MAY** use it.
+- The client **MUST** use a method from the intersection.
+- When the client's singular `token_endpoint_auth_method` is present and
+  mutually supported, the client **SHOULD** use that method to preserve
+  compatibility with authorization servers that treat the singular field as
+  binding.
+- When the singular method is absent or unsupported, the client **MAY** use
+  another mutually supported method. Authorization servers that understand the
+  array **SHOULD** accept mutually supported methods that satisfy their local
+  security policies.
 - If the intersection is empty, the client **MUST NOT** proceed, and the
   authorization server **MUST** reject the client.
+- Authorization servers **MUST** reject any method outside the intersection.
 
 For example:
 
-| Client methods                | Authorization server methods  | Result                |
-| ----------------------------- | ----------------------------- | --------------------- |
-| `["private_key_jwt", "none"]` | `["private_key_jwt", "none"]` | Use `private_key_jwt` |
-| `["private_key_jwt", "none"]` | `["none"]`                    | Use `none`            |
-| `["none"]`                    | `["private_key_jwt", "none"]` | Use `none`            |
-| `["private_key_jwt", "none"]` | `["client_secret_basic"]`     | No compatible method  |
+| Client methods                | Authorization server methods  | Result                         |
+| ----------------------------- | ----------------------------- | ------------------------------ |
+| `["private_key_jwt", "none"]` | `["private_key_jwt", "none"]` | Client chooses a shared method |
+| `["private_key_jwt", "none"]` | `["none"]`                    | Use `none`                     |
+| `["none"]`                    | `["private_key_jwt", "none"]` | Use `none`                     |
+| `["private_key_jwt", "none"]` | `["client_secret_basic"]`     | No compatible method           |
 
 ### Deprecated Declarations
 
@@ -140,8 +142,8 @@ transition to `token_endpoint_auth_methods_supported`:
 
 - When both parameters are present, `token_endpoint_auth_method` **MUST** be a
   member of `token_endpoint_auth_methods_supported`. The array is authoritative;
-  the singular value is a preference only when it is mutually supported and
-  consistent with the method resolution rules.
+  the singular value is the client's backwards-compatible preference when it is
+  mutually supported.
 - Authorization servers **MUST NOT** reject a client solely because the
   singular preferred method is unsupported when another method in the array is
   mutually supported.
@@ -155,14 +157,15 @@ transition to `token_endpoint_auth_methods_supported`:
 The following examples show how the singular field behaves during the
 deprecation period:
 
-| Client methods                | Singular preference | Authorization server methods  | Result                     |
-| ----------------------------- | ------------------- | ----------------------------- | -------------------------- |
-| `["private_key_jwt", "none"]` | `private_key_jwt`   | `["none"]`                    | Use `none`                 |
-| `["private_key_jwt", "none"]` | `none`              | `["private_key_jwt", "none"]` | Use `private_key_jwt`      |
-| `["none"]`                    | `private_key_jwt`   | `["none"]`                    | Reject invalid metadata    |
-| Omitted                       | `none`              | `["none"]`                    | Use legacy `none`          |
-| Omitted                       | Omitted             | `["none"]`                    | Use deprecated `none`      |
-| Omitted                       | Omitted             | `["private_key_jwt"]`         | Reject incompatible client |
+| Client methods                | Singular preference | Authorization server methods  | Result                          |
+| ----------------------------- | ------------------- | ----------------------------- | ------------------------------- |
+| `["private_key_jwt", "none"]` | `private_key_jwt`   | `["private_key_jwt", "none"]` | Use preferred `private_key_jwt` |
+| `["private_key_jwt", "none"]` | `private_key_jwt`   | `["none"]`                    | Try `none`                      |
+| `["private_key_jwt", "none"]` | `none`              | `["private_key_jwt", "none"]` | Use preferred `none`            |
+| `["none"]`                    | `private_key_jwt`   | `["none"]`                    | Reject invalid metadata         |
+| Omitted                       | `none`              | `["none"]`                    | Use legacy `none`               |
+| Omitted                       | Omitted             | `["none"]`                    | Use deprecated `none`           |
+| Omitted                       | Omitted             | `["private_key_jwt"]`         | Reject incompatible client      |
 
 ### Lifecycle
 
@@ -185,9 +188,13 @@ methods. Which methods a client can support is determined by its deployment
 model, and a blanket recommendation would be wrong for some large class of
 clients.
 
-The method resolution rule distinguishes authenticated methods from `none`
-without ranking authenticated methods or requiring the authorization server to
-communicate a selected method back to the client.
+The client selects a mutually supported method without requiring the
+authorization server to communicate a selected method back to the client.
+Preserving the singular preference when possible keeps existing
+authorization-server behavior intact. This follows
+[OpenID Federation 1.0, Section 12.1.4](https://openid.net/specs/openid-federation-1_0.html#section-12.1.4),
+which requires clients to use mutually supported methods and recommends that
+authorization servers accept them.
 
 The field is required (MUST) rather than recommended (SHOULD) because explicit
 behavior is crucial for authentication mechanisms. A required field gives
@@ -214,10 +221,15 @@ Publishing multiple metadata documents, one per `token_endpoint_auth_method`
   different clients depending on which authorization server they connected
   through.
 - The maintenance burden compounds the problem: every additional method
-  multiplies the documents that must be hosted and kept in sync, and each new
-  method a client adopts changes the set of URLs it publishes. Declaring
-  capabilities in one document keeps the client's identity stable while its
-  capabilities evolve.
+  multiplies the documents that must be hosted and kept in sync. Other
+  independently varying properties, such as callback identifiers, multiply
+  that cardinality further. New URLs also complicate authorization-server
+  allowlists and existing registrations, while query-string variants can be
+  rejected because
+  [Client ID Metadata Document identifiers](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-client-id-metadata-document-01#section-3)
+  **SHOULD NOT** include query strings. Multiple documents can serve as a
+  migration fallback, but one document keeps the client's identity stable as
+  its capabilities evolve.
 
 ## Backward Compatibility
 
@@ -241,12 +253,14 @@ continues to register successfully:
   parameter keep working, because clients SHOULD continue publishing the
   singular field.
 
-The singular field cannot communicate fallback choices to an authorization
-server that does not understand the array. A client whose singular value is
-`private_key_jwt` can therefore be rejected by a legacy authorization server
-that only supports `none`, even when the array also contains `none`. This is
-an inherent limitation of the legacy single-valued field; authorization
-servers that understand the array use the method resolution rules above.
+Clients do not need a separate signal indicating whether an authorization
+server understands the array. When the singular preferred method is supported,
+using it preserves compatibility with legacy authorization servers. When it is
+unsupported, a client can try another mutually supported method from the
+array: an updated authorization server can accept it, while a legacy server
+may still reject the client. That legacy server would already have rejected the
+unsupported singular method, so this fallback improves compatibility without
+creating a new failure case.
 
 **What changes at removal.** Both accommodations are deprecated, so this is a
 deferred break rather than an avoided one. When the deprecation period
@@ -265,13 +279,13 @@ with the other.
 ## Security Implications
 
 This proposal does not introduce a new authentication mechanism. It allows a
-client to advertise multiple existing methods so authorization servers can use
-authenticated methods when they are mutually supported.
+client to advertise multiple existing methods while preserving the
+authorization server's ability to enforce its local security policy.
 
-Accepting `none` when an authenticated method is mutually supported would let
-an attacker bypass client authentication for the same client identifier. The
-method resolution rules prevent this downgrade while retaining `none` as a
-fallback for authorization servers that do not support an authenticated method.
+An authorization server that accepts `none` treats the client as a public
+client for that interaction. Servers requiring client authentication can
+reject `none`, and clients can prefer authenticated methods when compatible
+with their deployment and backwards-compatibility requirements.
 
 ## Reference Implementation
 
@@ -306,6 +320,11 @@ to be linked.
 
 - Should `implicit ["none"]` and `token_endpoint_auth_method` be deprecated, or
   should allowances be made to not break existing CIMD clients?
+- Should MCP recommend preferring authenticated methods over `none`, and how
+  would that interact with authorization servers that treat the singular
+  method as binding?
+- How should an authorization server report an incompatible CIMD client when
+  it has not established a trusted redirect URI?
 
 ## Acknowledgments
 
