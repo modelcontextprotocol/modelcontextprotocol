@@ -1,11 +1,7 @@
 ---
 name: draft-sep
-description: Research and draft a Specification Enhancement Proposal following the MCP SEP governance process
-user_invocable: true
-arguments:
-  - name: idea
-    description: One-line summary of the proposed change
-    required: true
+description: Research and draft a Specification Enhancement Proposal following the MCP SEP governance process. Takes a one-line summary of the proposed change as its argument.
+license: Apache-2.0
 ---
 
 # Drafting a Specification Enhancement Proposal

@@ -1,8 +1,14 @@
-# MCP Spec Plugin for Claude
+# MCP Spec Plugin
 
 Skills for researching and contributing to the Model Context Protocol specification.
 
+This is a conformant [Agent Plugins v1.0.0](https://agent-plugins.org) package. Its portable manifest is [`plugin.json`](plugin.json), its MCP servers are declared in [`mcp.json`](mcp.json), and its skills live in [`skills/`](skills). [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) is a Claude Code adapter over the same content — see [../README.md](../README.md).
+
 ## Installation
+
+### Any Agent Plugins client
+
+Point the client at this directory, or at `plugins/mcp-spec` in a clone of `modelcontextprotocol/modelcontextprotocol`. Clients that support only skills load the two skills below and skip the MCP server; clients that support MCP additionally connect to the `mcp-docs` Streamable HTTP server at `https://modelcontextprotocol.io/mcp`.
 
 ### Claude Code
 

@@ -1,12 +1,7 @@
 ---
 name: search-mcp-github
-description: Search MCP PRs, issues, and discussions across the modelcontextprotocol GitHub org
+description: Search MCP PRs, issues, and discussions across the modelcontextprotocol GitHub org. Takes the topic or keyword to search for as its argument.
 license: Apache-2.0
-user_invocable: true
-arguments:
-  - name: topic
-    description: The topic or keyword to search for
-    required: true
 ---
 
 # Searching MCP PRs, issues, and discussions

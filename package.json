@@ -29,7 +29,7 @@
     "format": "npm run format:docs && npm run format:schema",
     "format:docs": "prettier --write \"**/*.{md,mdx}\" --ignore-path .prettierignore",
     "format:schema": "prettier --write \"schema/**/*.ts\"",
-    "check": "npm run check:schema && npm run check:docs && npm run check:seps",
+    "check": "npm run check:schema && npm run check:docs && npm run check:seps && npm run check:plugins",
     "check:schema": "npm run check:schema:ts && npm run check:schema:json && npm run check:schema:examples && npm run check:schema:md",
     "check:schema:ts": "tsc --noEmit && eslint schema/ && prettier --check \"schema/**/*.ts\"",
     "check:schema:json": "tsx scripts/generate-schemas.ts --check",
@@ -40,9 +40,10 @@
     "check:docs:js-comments": "tsx scripts/check-mdx-comments.ts",
     "check:docs:links": "cd docs && npx mint broken-links",
     "check:seps": "tsx scripts/render-seps.ts --check",
+    "check:plugins": "tsx scripts/validate-plugins.ts",
     "serve:docs": "cd docs && npx mint dev",
     "serve:blog": "cd blog && hugo serve",
-    "prep": "npm run check:schema:ts && npm run generate && npm run check:docs && npm run check:seps && npm run format"
+    "prep": "npm run check:schema:ts && npm run generate && npm run check:docs && npm run check:seps && npm run check:plugins && npm run format"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

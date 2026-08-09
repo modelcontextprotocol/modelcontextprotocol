@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mcp-spec",
   "version": "0.1.0",
   "description": "Skills for researching and contributing to the MCP specification",
@@ -8,11 +9,5 @@
   "homepage": "https://modelcontextprotocol.io",
   "repository": "https://github.com/modelcontextprotocol/modelcontextprotocol",
   "license": "Apache-2.0",
-  "keywords": ["mcp", "model-context-protocol", "specification", "github", "research"],
-  "mcpServers": {
-    "mcp-docs": {
-      "type": "http",
-      "url": "https://modelcontextprotocol.io/mcp"
-    }
-  }
+  "keywords": ["mcp", "model-context-protocol", "specification", "github", "research"]
 }

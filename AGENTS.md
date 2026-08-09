@@ -63,7 +63,9 @@ JSON examples live in `schema/[version]/examples/[TypeName]/`:
 - Files validate against their directory's type: `Tool/example-name.json` → Tool schema
 - Referenced in `schema.ts` via `@includeCode` JSDoc tags
 
-## Agent Skills
+## Plugins and Agent Skills
+
+Plugins live in `plugins/` and are [Agent Plugins v1.0.0](https://agent-plugins.org) packages: a portable `plugin.json` manifest, MCP servers in `mcp.json`, and skills under `skills/<name>/SKILL.md`. Each plugin also ships a Claude Code adapter at `.claude-plugin/plugin.json`, which must not drift from the portable manifest. See [plugins/README.md](plugins/README.md) before changing a plugin, and run `npm run check:plugins` afterwards.
 
 When adding a new skill, also add a directory symlink at `docs/.mintlify/skills/<name>` pointing to `../../../plugins/<plugin-name>/skills/<name>` so Mintlify's `.well-known/agent-skills/` and MCP server auto-scan exposes it.
 
@@ -89,6 +91,7 @@ npm run check            # Run all checks
 npm run check:schema     # Check schema (TS, JSON, examples, MDX)
 npm run check:docs       # Check docs (format, comments, links)
 npm run check:seps       # Check SEP documents
+npm run check:plugins    # Check plugins against the Agent Plugins format
 
 # Workflow
 npm run prep             # Full prep before committing (check, generate, format)

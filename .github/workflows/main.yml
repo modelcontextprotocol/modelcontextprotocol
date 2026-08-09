@@ -29,3 +29,6 @@ jobs:
 
       - name: Check schema.mdx files are up to date
         run: npm run check:schema:md
+
+      - name: Check plugins conform to the Agent Plugins format
+        run: npm run check:plugins
