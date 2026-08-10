@@ -11,6 +11,8 @@ import { buildManifest, signManifest, stamp } from './src/declarations.mjs';
 import { generateSigningKey, makeJwks } from './src/jws.mjs';
 
 export class ReferenceServer {
+    #signedManifest = null;
+
     constructor({ uri, publisher, specVersion = '2025-11-25', signed = true, labels = true, key = generateSigningKey() }) {
         this.uri = uri;
         this.publisher = publisher;
@@ -20,6 +22,7 @@ export class ReferenceServer {
         this.key = key;
         this.tools = new Map();
         this.notifications = [];
+        this.attestations = [];
     }
 
     /** The JWKS a client would fetch from `mcp_signing_jwks_uri`. */
@@ -32,7 +35,9 @@ export class ReferenceServer {
         return {
             resource: this.uri,
             mcp_publisher: this.publisher,
-            mcp_signing_jwks_uri: `${this.publisher.replace(/\/[^/]*$/, '')}/.well-known/jwks.json`
+            mcp_signing_jwks_uri: `${this.publisher.replace(/\/[^/]*$/, '')}/.well-known/jwks.json`,
+            // Where a client fetches third-party capability-conformance attestations.
+            mcp_conformance_attestations: `${this.uri.replace(/\/[^/]*$/, '')}/.well-known/mcp-conformance-attestations.json`
         };
     }
 
@@ -43,6 +48,7 @@ export class ReferenceServer {
 
     addTool(tool) {
         this.tools.set(tool.name, stamp(tool, '1'));
+        this.#signedManifest = null;
         return this;
     }
 
@@ -52,13 +58,19 @@ export class ReferenceServer {
 
     manifest() {
         if (!this.signed) return null;
+        // A real server signs its capability manifest once and serves the same bytes
+        // (nonce and validity window included) until its toolset changes. Caching that
+        // here means a verifier and a client who fetch the manifest see identical bytes,
+        // so a conformance attestation can bind to a stable manifest hash.
+        if (this.#signedManifest) return this.#signedManifest;
         const manifest = buildManifest({
             server: this.uri,
             publisher: this.publisher,
             specVersion: this.specVersion,
             tools: this.listTools()
         });
-        return signManifest(manifest, this.key);
+        this.#signedManifest = signManifest(manifest, this.key);
+        return this.#signedManifest;
     }
 
     /**
@@ -72,6 +84,7 @@ export class ReferenceServer {
         const nextVersion = bumpVersion ? String(Number(current.version) + 1) : current.version;
         const updated = stamp({ ...current, ...patch }, nextVersion);
         this.tools.set(name, updated);
+        this.#signedManifest = null;
 
         if (notify) {
             this.notifications.push({
@@ -99,12 +112,14 @@ export class ReferenceServer {
         if (!current) throw new Error(`no such tool: ${from}`);
         this.tools.delete(from);
         this.tools.set(to, stamp({ ...current, name: to }, '1'));
+        this.#signedManifest = null;
         if (notify) this.notifications.push({ method: 'notifications/tools/list_changed', params: {} });
     }
 
     /** Strip the `declarations` capability, simulating a downgrade attack or an unsigned server. */
     setSigned(signed) {
         this.signed = signed;
+        this.#signedManifest = null;
         return this;
     }
 
@@ -112,6 +127,17 @@ export class ReferenceServer {
         const pending = this.notifications;
         this.notifications = [];
         return pending;
+    }
+
+    /** Publish a verifier-signed conformance attestation, as a real server would host at its discovery URL. */
+    publishAttestation(signedAttestation) {
+        this.attestations.push(signedAttestation);
+        return this;
+    }
+
+    /** What a client fetches from `mcp_conformance_attestations`. */
+    conformanceAttestations() {
+        return this.attestations;
     }
 }
 
@@ -130,20 +156,43 @@ export function seedCatalogue(server) {
             title: 'Search incidents',
             description: 'Search the incident database and return matching records.',
             inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] },
-            trust: { effect: 'read-only', egress: 'none', dataSensitivity: 'internal', reversible: true, idempotent: true }
+            trust: {
+                effect: 'read-only',
+                egress: 'none',
+                dataSensitivity: 'internal',
+                reversible: true,
+                idempotent: true,
+                // The capability contract a host loads as a sandbox policy: read the
+                // incident store, nothing else. No egress, no writes, no subprocess.
+                capabilities: { network: [], filesystem: { read: ['/var/lib/incidents'], write: [] }, subprocess: false, env: [] }
+            }
         })
         .addTool({
             name: 'annotate_incident',
             title: 'Annotate an incident',
             description: 'Append a note to an existing incident record.',
             inputSchema: { type: 'object', properties: { id: { type: 'string' }, note: { type: 'string' } }, required: ['id', 'note'] },
-            trust: { effect: 'writes-data', egress: 'internal', dataSensitivity: 'internal', reversible: true, idempotent: false }
+            trust: {
+                effect: 'writes-data',
+                egress: 'internal',
+                dataSensitivity: 'internal',
+                reversible: true,
+                idempotent: false,
+                capabilities: { network: ['incidents.internal.example'], filesystem: { read: ['/var/lib/incidents'], write: ['/var/lib/incidents'] }, subprocess: false, env: [] }
+            }
         })
         .addTool({
             name: 'delete_resource',
             title: 'Delete a resource',
             description: 'Permanently deletes the named resource.',
             inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
-            trust: { effect: 'destructive', egress: 'external', dataSensitivity: 'confidential', reversible: false, idempotent: false }
+            trust: {
+                effect: 'destructive',
+                egress: 'external',
+                dataSensitivity: 'confidential',
+                reversible: false,
+                idempotent: false,
+                capabilities: { network: ['*.storage.example'], filesystem: { read: [], write: ['/var/lib/incidents'] }, subprocess: false, env: [] }
+            }
         });
 }

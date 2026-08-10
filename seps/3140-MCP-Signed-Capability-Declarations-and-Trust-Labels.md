@@ -1,10 +1,12 @@
 # SEP: Signed Capability Declarations & Trustworthy Trust Labels
 
+*On submission to the [`seps/` directory](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/seps), name the file `0000-signed-capability-declarations-and-trust-labels.md`, then rename it to the PR number once the pull request is opened.*
+
 | Field | Value |
 |---|---|
-| **SEP** | `3140` *(placeholder — set to the PR number on submission)* |
+| **SEP** | `0000` *(placeholder — set to the PR number on submission)* |
 | **Title** | Signed Capability Declarations & Trustworthy Trust Labels |
-| **Author** | Omkar Parkhe (Microsoft) — omkarparth@gmail.com |
+| **Author** | Omkar Parkhe (Microsoft) — omkarparkhe@microsoft.com |
 | **Sponsor** | Paul Carleton (@pcarleton) and Den Delimarsky (@localden)  |
 | **Status** | `draft` |
 | **Type** | Standards Track |
@@ -18,7 +20,7 @@
 
 This SEP proposes an **additive** mechanism for MCP servers to make their declared capabilities — the `tools/list`, `prompts/list`, and `resources/list` outputs a client feeds to a model — **authenticatable, integrity-protected, versioned, and labeled with a trustworthy, standardized risk vocabulary.**
 
-It introduces (1) a **content hash + version** on each declaration, (2) a **signed capability manifest** (JWS) bound to a discoverable **publisher identity**, (3) a standardized, signature-covered **`trust` label block** (effect / egress / data-sensitivity / reversibility), and (4) **change semantics** for `notifications/*/list_changed` that let a client detect and re-gate material changes ("rug pulls").
+It introduces (1) a **content hash + version** on each declaration, (2) a **signed capability manifest** (JWS) bound to a discoverable **publisher identity**, (3) a standardized, signature-covered **`trust` label block** — including an enforceable **capability surface** (network / filesystem / subprocess / env), (4) **change semantics** for `notifications/*/list_changed` that let a client detect and re-gate material changes ("rug pulls"), and (5) a **capability-conformance** mechanism that binds those labels to *observed runtime behavior* through host sandbox enforcement (local servers) and third-party behavioral attestation (remote servers).
 
 A **secondary, optional** section proposes a *secure-by-default* posture for authentication.
 
@@ -41,6 +43,7 @@ Two concrete attack classes follow directly:
 
 - **Tool poisoning** — a malicious or compromised server embeds directives in a `description`; the model treats them as instructions (indirect prompt injection).
 - **Rug pull** — a server declares benign tools, is approved, then emits `notifications/tools/list_changed` and silently swaps in malicious definitions. There is no version, hash, or re-consent contract to catch this.
+- **Capability drift (declaration–behavior mismatch)** — the declared surface stays plausible while the implementation reaches **undeclared network, filesystem, subprocess, or env**. In static audits of MCP servers this is the *dominant* finding class, and — unlike poisoning or rug pulls — it leaves signatures perfectly intact. Signing alone cannot catch it: a signed label is a *claim about behavior*, and binding that claim to reality requires the declared surface to be **enforced or independently attested** (see *Specification → Capability conformance*).
 
 ### Why this belongs in the protocol, not the implementer
 
@@ -69,10 +72,12 @@ Authenticated declarations + machine-enforceable labels help **any** host: they 
 - Provide a **standardized, signature-covered risk/sensitivity vocabulary** a host can enforce policy against.
 - Be **fully additive and backwards-compatible** (capability-negotiated; unsigned servers keep working).
 - Reuse existing MCP/OAuth infrastructure (canonical server URI, Protected Resource Metadata, JOSE).
+- Make the declared capability surface **enforceable and attestable** — not merely a claim — so declared labels can be bound to observed runtime behavior (host sandbox enforcement locally; third-party attestation remotely).
 
 **Non-Goals**
 - Guaranteeing a signed server is *honest*. Signing establishes **provenance, integrity, and accountability** (like code/package signing), **not** good behavior. A signed-but-malicious publisher becomes **identifiable, revocable, and attributable** — which is the point.
 - Enforcing cross-server information flow at runtime — that is unavoidably the **host's** job. This SEP supplies the *labels* the host enforces against; it does not attempt enforcement in the protocol.
+- **Guaranteeing runtime behavior from the signature alone.** A signature attests the *declaration*, not that the code stays within the declared `capabilities`; that binding is provided by the *Capability conformance* section (host enforcement + third-party attestation). The protocol standardizes the enforceable **vocabulary** and the attestation **discovery hook** — it does not itself sandbox servers.
 - Replacing the Security Best Practices guidance; this complements it.
 
 ---
@@ -177,11 +182,17 @@ When `declarations.labels` is negotiated, each tool declaration carries a `trust
 
 ```json
 "trust": {
-  "effect": "destructive",          // read-only | writes-data | destructive
-  "egress": "external",             // none | internal | external
-  "dataSensitivity": "confidential",// public | internal | confidential | secret
+  "effect": "destructive",           // read-only | writes-data | destructive
+  "egress": "external",              // none | internal | external
+  "dataSensitivity": "confidential", // public | internal | confidential | secret
   "reversible": false,
-  "idempotent": false
+  "idempotent": false,
+  "capabilities": {                  // enforceable/attestable surface — see Capability conformance
+    "network": ["api.example.com:443"], // declared egress destinations; [] = none
+    "filesystem": { "read": ["/data"], "write": [] },
+    "subprocess": false,             // may this tool spawn child processes?
+    "env": ["API_TOKEN"]             // environment variables it reads
+  }
 }
 ```
 
@@ -189,7 +200,8 @@ Semantics are **enumerated and closed** (unknown values → treated as most-rest
 
 - drive **risk-graduated approval** (auto-allow `read-only` → approve `writes-data` → block/escalate `destructive`);
 - enforce **egress policy** (`egress: external` tools gated separately);
-- perform **information-flow labeling** across servers (the host enforces cross-server flow; the label is what it enforces against).
+- perform **information-flow labeling** across servers (the host enforces cross-server flow; the label is what it enforces against);
+- constrain the tool's **capability surface** — the `capabilities` block enumerates declared `network` / `filesystem` / `subprocess` / `env` reach, chosen to map 1:1 onto host sandbox primitives and onto what a behavioral-attestation harness can observe, so *declared vs. observed* is a concrete diff (see *Capability conformance*).
 
 > Prompts and resources MAY carry a reduced label set (`dataSensitivity`, `egress`).
 
@@ -225,6 +237,27 @@ A compliant client, when `declarations.signed` is offered:
    - **TOFU** (trust-on-first-use) with an alert on publisher/key change.
 5. Apply **host policy** to unverified servers. RECOMMENDED default: a tool with `trust.effect` of `writes-data`/`destructive` or `egress: external` **from an unsigned or untrusted-publisher server** should require **explicit elevation** — an interactive host SHOULD prompt with a clear missing-provenance warning, and an autonomous host SHOULD **default-deny** — while `read-only` tools MAY be allowed.
 
+### Capability conformance (binding labels to behavior)
+
+Signatures attest to *what was declared*; they do not, by themselves, constrain what the implementation *does* afterward. The dominant failure mode in MCP server audits is **capability drift** — undeclared network, filesystem, subprocess, or env reach behind a plausible declared surface — and it leaves the signature perfectly valid. The `capabilities` block (see *Standardized trust labels*) is therefore designed to be **enforced or attested**, not merely claimed. A deployment binds labels to behavior with whichever mechanism below it can support; a host **MUST NOT** treat an unenforced, unattested capability claim as a behavioral guarantee, and **SHOULD** gate such a tool by the risk it asserts.
+
+**1. Host sandbox enforcement — local / stdio servers (RECOMMENDED where the host controls execution).** The host runs the process, so it **SHOULD** load the signed `capabilities` block as a **sandbox policy**: deny network egress outside `network`, expose only the declared `filesystem` paths, deny child processes when `subprocess` is `false`, and restrict `env`. Drift then becomes a **blocked, logged violation** and declared→behavior is airtight *by construction* (containers / seccomp / network namespaces / WASI capabilities). Because the `capabilities` block is signed, the host enforces a contract with integrity.
+
+**2. Third-party behavioral attestation — remote servers.** Where the host cannot sandbox someone else's server, a **verifier** (e.g., the Registry or a CI conformance harness) runs the server, observes its actual capability surface, and issues a **behavioral attestation**: a JWS **signed by the verifier — distinct from the publisher's manifest signature** — asserting `observed ⊆ declared` for a specific manifest by `contentHash`. Attestations are discoverable beside the manifest via Protected Resource Metadata:
+
+```json
+{
+  "resource": "https://mcp.example.com/mcp",
+  "mcp_conformance_attestations": [ "https://registry.example/attest/<manifestHash>.json" ]
+}
+```
+
+A host **MAY** require an attestation from a trusted verifier before granting `writes-data` / `destructive` / `external`-egress tools. Dynamic analysis has coverage gaps — a server can behave under test and drift later — so attestation **reduces, not eliminates**, and pairs with mechanism 3.
+
+**3. Continuous host-side cross-check — both, defense-in-depth.** A host with visibility into the running server's behavior (sandbox telemetry) **SHOULD** reconcile the *observed* capability surface against the declared `capabilities` each session; on a mismatch it **MUST** treat the tool as untrusted (revoke / quarantine / re-gate) and **SHOULD** emit a conformance-violation signal.
+
+> Scope note: the protocol standardizes the enforceable **vocabulary** (the `capabilities` block) and the attestation **discovery hook** (`mcp_conformance_attestations`); it does not itself sandbox servers or mandate the verifier's tracing method. This keeps servers easy to build while giving hosts a portable contract to enforce or attest against.
+
 ### Secondary (optional): secure-by-default authentication
 
 *This section is separable and may be split into its own SEP.* It addresses the related but distinct gap that **authorization is OPTIONAL** and a fully-compliant server may require no authentication, so a client connecting to servers inherits "whatever the server chose."
@@ -248,6 +281,7 @@ This composes with the primary proposal: `mcp_auth_required` and `mcp_signing_jw
 - **Binding to the RFC 8707 canonical server URI.** Prevents replay of an otherwise-valid manifest against a different server (audience confusion).
 - **Closed, enumerated `trust` labels (unknown ⇒ most-restrictive).** A host can make a *deterministic* policy decision instead of parsing free text; this is what makes the labels usable for gating — whether surfacing risk to a human reviewer or enforcing policy without one.
 - **Hashes in the manifest rather than full declaration bodies.** Compactness; full-body signing is offered as a stricter option (see *Open questions*).
+- **Labels are an *enforceable contract*, not just a claim.** The `capabilities` dimensions (network / filesystem / subprocess / env) map 1:1 onto host sandbox primitives and onto what a behavioral-attestation harness can observe, so *declared vs. observed* is a concrete diff. Signing is the *Authenticode* of the declaration (who wrote it, unmodified); OS-style enforcement of the declared permission surface is *Capability conformance*. High assurance needs **both** — a signed app *and* OS-enforced permissions.
 
 ### Alternatives considered
 
@@ -264,7 +298,7 @@ This SEP is deliberately **additive and complementary** to work already underway
 - **Server Card Working Group** — a "server card" is server-published identity and metadata, and is the natural carrier for this SEP's **publisher identity and signing-key discovery**. Where a server card exists, the signed capability manifest SHOULD reference/align with it rather than introduce a competing identity document; this SEP adds the *integrity / signature* layer over that identity.
 - **Tool Annotations Interest Group** — the `trust` block is a **signed, standardized subset of tool annotations**. This SEP builds on the annotations model by adding cryptographic integrity and a closed, host-enforceable vocabulary; it does **not** replace free-form `annotations` (which remain untrusted-by-default).
 - **Tool Scopes Working Group** — scopes describe *what a tool is authorized to do*; `trust` labels describe *the risk / sensitivity a host gates on*. The two are orthogonal and composable; this SEP aligns its label vocabulary with tool-scopes work rather than duplicating it.
-- **Registry** — the MCP registry is the natural **root of trust** for publisher identity and key history; this SEP recommends registry alignment (publish / verify publisher keys) instead of a parallel trust store.
+- **Registry** — the MCP registry is the natural **root of trust** for publisher identity and key history; this SEP recommends registry alignment (publish / verify publisher keys) instead of a parallel trust store, and it **MAY** act as a **behavioral-attestation verifier** (see *Capability conformance*).
 - **`ext-auth`** — identity / authorization extensions align with the secondary secure-by-default posture and the publisher-identity model.
 
 ### Alignment with MCP design principles
@@ -279,6 +313,7 @@ This SEP is deliberately **additive and complementary** to work already underway
 2. Should `trust` labels be **extensible** (registered vocabulary) vs. strictly closed? (Proposed: closed core + a registry for additions.)
 3. Should publisher identity reuse **OIDC issuer identity** or a dedicated **publisher document / DID**? (Proposed: JWKS + publisher doc; align with `ext-auth`.)
 4. Minimum baseline: should **material-change re-gating** be `MUST` for all clients or `MUST` only for autonomous hosts?
+5. **Behavioral attestation format & verifier trust.** Should attestations reuse the manifest's JWS/JWKS machinery, and how do hosts establish trust in verifiers (registry-rooted, allow-listed)? What is the minimum observable surface (network / filesystem / subprocess / env) an attestation **MUST** cover, and how are attestations revoked/expired when a server redeploys?
 
 ---
 
@@ -290,6 +325,7 @@ Fully additive and negotiated:
 - New fields (`contentHash`, `version`, `trust`, manifest, metadata keys) are optional and ignored by older peers.
 - No existing method signature changes; `declarations/manifest` is a new method, and the `list_changed` extension adds optional `params`.
 - Hosts adopt incrementally via policy (e.g., require signing only for third-party or write-capable tools first).
+- The `capabilities` block, behavioral attestation, and the `mcp_conformance_attestations` metadata key are all **optional** and additive: servers may omit them, and hosts fall back to policy on the coarse `effect` / `egress` labels (or to unverified handling).
 
 ---
 
@@ -302,6 +338,7 @@ Per the SEP process, a runnable prototype must demonstrate the mechanics before 
 - add `SignedDeclarations` (sign) and `verifyManifest()` (verify) helpers to one official SDK (TypeScript or Python), using an existing JOSE library plus a JCS ([RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785)) implementation;
 - ship a reference **server** that emits a signed manifest and `trust` labels, and a reference **client** that verifies the manifest, diffs on `list_changed`, and applies a sample trust policy;
 - include integration tests for signature verification, `contentHash` mismatch rejection, material-change re-gating, and downgrade-to-unsigned handling;
+- demonstrate **capability conformance**: load a signed `capabilities` block as a sandbox policy for a local server and show an undeclared network/filesystem attempt being **blocked and flagged**, plus verification of a sample verifier-signed attestation;
 - be runnable by reviewers (include setup instructions).
 
 ### Adoption path
@@ -313,7 +350,7 @@ Per the SEP process, a runnable prototype must demonstrate the mechanics before 
 
 ### Conformance
 
-This is a **Standards Track** SEP with **observable protocol behavior**, so before it can reach `final` a conformance scenario must be merged into the [conformance repository](https://github.com/modelcontextprotocol/conformance), tagged with the SEP number, accompanied by a `sep-NNNN.yaml` traceability file mapping **every** MUST / MUST NOT and SHOULD / SHOULD NOT in the Specification — capability negotiation, canonicalization, the manifest-verification steps, material-change re-gating, and SSRF-guarded discovery — to a check ID or a documented exclusion.
+This is a **Standards Track** SEP with **observable protocol behavior**, so before it can reach `final` a conformance scenario must be merged into the [conformance repository](https://github.com/modelcontextprotocol/conformance), tagged with the SEP number, accompanied by a `sep-NNNN.yaml` traceability file mapping **every** MUST / MUST NOT and SHOULD / SHOULD NOT in the Specification — capability negotiation, canonicalization, the manifest-verification steps, material-change re-gating, SSRF-guarded discovery, and the **capability-conformance rules** (sandbox-policy enforcement, attestation verification, and the MUST-NOT-treat-an-unattested-claim-as-a-guarantee gate) — to a check ID or a documented exclusion.
 
 ---
 
@@ -323,7 +360,7 @@ This is a **Standards Track** SEP with **observable protocol behavior**, so befo
 - **Downgrade attacks.** An attacker MITM/registry could strip the `declarations` capability to force "unsigned" handling. Mitigation: host policy treats unsigned third-party servers as **low-trust by default** (see *Client verification and trust policy*), so downgrade yields *less* privilege, not more. Pinned publishers make downgrade detectable.
 - **Key management & rotation.** JWKS with `kid` supports rotation; `mcp_publisher` SHOULD publish key history. Compromised keys are handled by revocation + short manifest `expiresAt`.
 - **Replay / staleness.** `server` (audience), `issuedAt`, `expiresAt`, and `nonce` bind a manifest to one server and window.
-- **Label lying.** A server can declare `effect: read-only` for a tool that writes. Because the label is **signed**, this is now **attributable misrepresentation** (revocable), and hosts SHOULD still apply independent server-side / behavioral checks — the label reduces, not eliminates, the need for host defense in depth.
+- **Label lying / capability drift.** Signing binds a label to a *publisher* (accountability), **not** to *behavior*: a server can declare `effect: read-only` / `egress: none` while the code writes or reaches the network, and the signature stays valid. This — not a bad-signature event — is the dominant real-world failure. Signing makes it **attributable and revocable**; *binding* the label to behavior is the job of **Capability conformance** (host sandbox enforcement for local servers; verifier-signed behavioral attestation for remote; continuous host cross-check). A host **MUST NOT** treat an unenforced, unattested capability claim as a behavioral guarantee.
 - **SSRF.** All new discovery fetches (`mcp_signing_jwks_uri`, `mcp_publisher`) inherit the existing OAuth-discovery SSRF requirements.
 
 ---
