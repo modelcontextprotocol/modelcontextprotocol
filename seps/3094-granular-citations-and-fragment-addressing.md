@@ -170,9 +170,44 @@ apply to the returned content block(s) as a whole.
 }
 ```
 
+### Capability negotiation
+
+Citations increase payload size and server-side work. Clients SHOULD advertise whether they render citations so servers
+can omit them when they would not be used.
+
+#### Client capabilities
+
+Clients declare citation support in per-request
+[`io.modelcontextprotocol/clientCapabilities`](/specification/draft/basic/index#meta). The field is present on every
+client request (including [`tools/call`](/specification/draft/server/tools#calling-tools) and
+[`server/discover`](/specification/draft/server/discover)).
+
+```json
+{
+  "citations": {
+    "render": {}
+  }
+}
+```
+
+| Field              | Meaning                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `citations`        | Client understands MCP citations on tool results.                                         |
+| `citations.render` | Client surfaces citations to the user (e.g. citation chips, hovercards, clickable links). |
+
+An empty `render` object indicates support with no additional settings. Additional sub-fields MAY be defined in future
+revisions.
+
+Servers **SHOULD** omit the top-level `citations` array on tool results when the client did not declare any support for
+`citations`. Servers MAY still return citations directly in a response as before this SEP, such as in markdown links
+or in JSON.
+
+Clients that declared support for `citations` without `citations.render` **MAY** still pass them to an LLM as opaque, metadata.
+
 ### Client rendering
 
-When tool results contain citations, clients SHOULD attempt to surface citations to the user. This SEP does not mandate
+When tool results contain citations, clients that declared `citations.render` SHOULD attempt to surface citations to the
+user. This SEP does not mandate
 a format for rendering citations, but a common method for graphical clients is to show citation chips with rich
 hovercards (title, thumbnail from `target.schema:citation`), with clickable links to the cited work. Clients SHOULD
 prefer `target.schema:citation.schema:url` when present (the cited work as a whole); otherwise they MAY fall back to
@@ -181,9 +216,6 @@ selector) the citation supports.
 
 Clients MAY synthesize content returned in tool calls, but SHOULD still preserve citations in their synthesis as
 relevant.
-
-Note: clients may organically create citations that better reflect their synthesis. This SEP does not discuss a format
-by which servers and clients can exchange capabilities on selectors. That will be a separate SEP.
 
 #### Citation open behavior (embedded vs external)
 
@@ -711,15 +743,13 @@ automatic dereferencing and MAY defer it until a user gesture (e.g. hovering a s
 
 ### Should server and clients advertise whether they support citations? And which formats?
 
-For MCP tool results including citations, this proposal increases the number of bytes on the wire and computational
-complexity on the server. That may be unnecessary if the client cannot or will not render some or all citation formats.
+This SEP defines baseline `citations` / `citations.render` capability flags (see [Capability negotiation](#capability-negotiation)).
+It does not yet specify how clients and servers exchange support for individual WADM selectors
+(`TextPositionSelector`, `TextQuoteSelector`, fragment selectors, and so on). That finer-grained negotiation remains an
+open question for a follow-on SEP.
 
-Clients could advertise their citation support in the `initialize` handshake.
-
-Similarly, servers could advertise supported `citation` formats in the `initialize` response. That would provide a
+Similarly, servers could advertise supported `citation` formats in the `_meta` response. That would provide a
 helpful hint for clients who actively generate citations.
-
-This proposal defers this to a separate SEP for now, as this SEP is already complex.
 
 ### Should we explicitly constrain to a subset of Web Annotation Data Model features?
 
