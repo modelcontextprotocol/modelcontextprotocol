@@ -372,7 +372,7 @@ Internal references within a skill (e.g., `SKILL.md` linking to `references/GUID
 
 ### Directory Listing
 
-A skill's instructions frequently reference a directory rather than a file: "pick the appropriate template from `templates/`", "run the matching script in `scripts/`". To act on this, the agent must learn what the directory contains. `resources/list` cannot answer that scoped question: it enumerates the server's entire resource space, not a subtree, and the servers this SEP most wants to accommodate — large, generated, or unenumerable catalogs (see [Why May the Listing Be Empty or Partial?](#why-may-the-listing-be-empty-or-partial)) — may not implement meaningful global listing at all.
+A skill's instructions frequently reference a directory rather than a file: "pick the appropriate template from `templates/`", "run the matching script in `scripts/`". To act on this, the agent must learn what the directory contains. `resources/list` cannot answer that scoped question: it enumerates the server's entire resource space, not a subtree, and the servers this SEP most wants to accommodate — large, generated, or unenumerable catalogs (see [Why May the Listing Be Empty or Partial?](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/rationale.md#why-may-the-listing-be-empty-or-partial)) — may not implement meaningful global listing at all.
 
 This extension therefore defines one new method, `resources/directory/read`, gated behind the `directoryRead` setting of the [capability declaration](#capability-declaration).
 
@@ -522,73 +522,7 @@ These wrappers are thin — each is a single underlying protocol call with a fix
 
 ## Rationale
 
-### Why Resources Instead of a New Primitive?
-
-The Working Group's [decision log](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/decisions.md#2026-02-26-prioritize-skills-as-resources-with-client-helper-tools) records this as settled. Skills are files; Resources exist to expose files. Reusing Resources inherits URI addressability, `resources/read`, resource subscriptions (the `resourceSubscriptions` filter on `subscriptions/listen`), and the existing client tooling for free. A new primitive would duplicate most of this and add ecosystem complexity. Using resources to describe files is also aligned with [Composability over specificity](https://modelcontextprotocol.io/community/design-principles#composability-over-specificity) and other MCP [design principles](https://modelcontextprotocol.io/community/design-principles).
-
-[SEP-2076] originally proposed the new-primitive alternative. That approach offers cleaner capability negotiation and dedicated list-changed notifications, but at the cost of flattening skills to name-addressed blobs — losing the directory model that the Agent Skills specification defines and that supporting files depend on.
-
-### Why `skill://<path>/<file>` With an Explicit `SKILL.md`?
-
-Several independent implementations converged on `skill://` as the scheme without coordination — a strong signal. They diverged on structure. This SEP adopts the explicit-file form because:
-
-- It directly mirrors the Agent Skills specification's directory model. A skill _is_ a directory; its URI space should look like one.
-- `SKILL.md` being explicit means supporting files are siblings at the same level, with no special casing for "the skill URI" versus "a file in the skill."
-- Hosts implementing both filesystem and MCP skills can use one path-resolution codepath.
-
-The cost — `SKILL.md` is always typed out rather than implied — is small, and where discovery is supported the response already points clients at the right URI.
-
-### Why Allow a Path Prefix But Constrain the Final Segment?
-
-Earlier drafts required `<skill-path>` to be a single segment equal to the frontmatter `name`. That breaks down when a server needs hierarchy: an organization serving both `acme/billing/refunds` and `acme/support/refunds` cannot satisfy "single segment" without renaming one skill to dodge the collision. Allowing a prefix (`acme/billing/`, `acme/support/`) solves this — both skills can be named `refunds` and the prefix disambiguates.
-
-A subsequent draft went further and fully decoupled the path from the name. That was too loose: a URI like `skill://a/b/c/SKILL.md` tells you nothing about what the skill is called until you fetch and parse frontmatter. Clients listing skills, hosts displaying them in a picker, and models reasoning over URIs all want the name visible without a round trip.
-
-Constraining the final segment to match the frontmatter `name` gets both properties. The prefix carries the server's organizational structure; the final segment carries the skill's name; and the two together form a locator from which the name can be read directly.
-
-### Why May the Listing Be Empty or Partial?
-
-Requiring every server to implement a complete `skills/list` fails for at least three server shapes: a documentation server that synthesizes a skill per API endpoint (thousands), a skill gateway fronting an external index (unbounded), and a server that generates skills dynamically at read time (unenumerable by construction). For these, the list is either too large to be useful in the model's context or does not meaningfully exist.
-
-The baseline is therefore direct readability — a skill URI is always a valid argument to `resources/read`. The method is universal but exhaustiveness is not: a server that cannot enumerate returns what it can, or nothing. A host that assumes enumeration is exhaustive will miss skills on servers where it is not, hence the requirement that hosts MUST NOT treat empty enumeration as proof of absence.
-
-### Why `skills/get` Alongside `skills/list`?
-
-Enumeration alone leaves two gaps, and both are integrity gaps rather than conveniences.
-
-The first is the unlisted skill. Listings may be empty or partial by design, and the baseline hands hosts skill URIs that never appeared in one — from server instructions, another skill, or the user. Before `skills/get`, such a skill could be read but not verified: its digests existed nowhere, so it could not be content-bound — and a catalog too large to enumerate, or fronted by a gateway, serves static content whose digests were perfectly publishable, just unreachable. `skills/get` makes an entry reachable from a URI alone, so verification no longer depends on how the host happened to find the skill. Skills generated at read time remain unverifiable by construction, listed or not: they omit `resources` either way.
-
-The second is the cost of picking up a change. A host does not need to poll for one: the approved `resources` set is what its reads are verified against, so a skill whose content has moved announces itself as a verification failure. What the host then needs is the skill's current entry — and before `skills/get`, the only way to get it was to re-enumerate the whole catalog, thousands of entries to learn the new digests of one skill. The same applies to a skill the user asks to update. Fetching one entry keeps the cost proportional to what changed.
-
-Both are single-entry reads of a shape the listing already defines, so `skills/get` adds a method but no new schema: the `skill` object is a listing entry.
-
-### Why a Method Instead of a Well-Known Index Resource?
-
-An earlier revision served enumeration as a reserved resource at `skill://index.json`, read like any other resource. Replacing it with `skills/list` — same entry schema, different carrier — buys four things. Pagination: a resource is one monolithic document, while a method pages large catalogs with the same `cursor`/`nextCursor` contract as every base list method. Caching: list methods inherit the base protocol's caching attributes ([SEP-2549]) uniformly, instead of this extension inventing a parallel freshness signal for one resource. Discoverability: support is implied by the extension declaration itself, rather than probed by reading a URI and interpreting the error. And uniformity: clients reuse the machinery they already have for `tools/list` and `resources/list`, and the `skill://` namespace no longer needs a reserved-URI carve-out for a document that was never a skill.
-
-### Why Delegate the Format to agentskills.io?
-
-The Agent Skills specification already defines YAML frontmatter fields, naming rules, directory conventions, and the progressive-disclosure model. It has its own governance, contributing process, and multi-vendor participation. Redefining any of this in an MCP SEP would create a second source of truth and a drift risk. This SEP is a transport binding; the payload format is someone else's concern.
-
-### Why a Directory Read Method?
-
-The virtual-filesystem model this SEP builds on had a read operation (`resources/read`) but no readdir. That gap is harmless while skill instructions name files explicitly, but skills routinely defer the choice to the agent — "use the template in `templates/` that matches the document type." On a filesystem the agent lists the directory; over MCP the only enumeration was `resources/list`, which is global: it returns the server's entire resource space, cannot be scoped to a subtree, and is precisely what large or generative servers — the ones whose partial listings this SEP accommodates — decline to implement. A server that cannot enumerate its catalog can still trivially enumerate one directory it is already serving.
-
-`resources/directory/read` is the readdir analog: scoped, paginated, and composable — listings mark subdirectories with `inode/directory`, so an agent descends a skill's tree exactly as it would walk a directory locally.
-
-Two alternatives were considered. Extending `resources/list` with a scope parameter would change a core method's semantics from inside an extension, and a URI-prefix filter misstates the model anyway — prefixes are string matching, not structure. Embedding a file manifest in `SKILL.md` or the listing was rejected as the navigation mechanism: it would freeze the listing at authoring or publication time and bloat context for skills with many files, while a method keeps listings live and on demand. The `resources` enumeration ([Resources](#resources)) is not that manifest — it is an integrity commitment consumed by the host at verification and approval time, with no need to occupy model context, and the dynamically generated skills that need live listings most are exactly the ones that omit it.
-
-Although introduced by this extension, the method is deliberately general — any directory resource qualifies, under any scheme — making it a candidate for promotion into the core Resources primitive if usage warrants.
-
-### Why Verbatim Frontmatter in the Listing?
-
-The listing could instead carry a curated subset of skill metadata — `name` and `description` as dedicated top-level fields. That forces a choice every time the Agent Skills frontmatter grows a field: amend this SEP to mirror it, or leave listing consumers to fetch and parse every `SKILL.md` for it. Copying the frontmatter verbatim removes the choice. The listing carries exactly what the skill author wrote; the fields hosts need for a registry (`name`, `description`) are guaranteed present because the Agent Skills specification requires them; and new frontmatter fields flow through with no change to this extension. A host builds its complete skill registry from the listing alone.
-
-### Why Per-File Digests Instead of a Single Skill Digest?
-
-An earlier revision carried one digest per entry, covering only `SKILL.md`. That left every supporting file unbound: a server could obtain approval for a benign skill, then rotate `references/GUIDE.md` — instructional content the model follows as readily as the skill body — while the approved digest stayed valid. Persisted approval covered the one file a user is least likely to be attacked through.
-
-Enumerating every file closes rotation and addition in one move: the set is complete, so a new file is as detectable as a changed one. It also gives hosts a pinning primitive — fetch, verify, and cache the whole set at approval time — recovering the atomic-snapshot property that archive distribution ([Appendix: Deferred Features](#appendix-deferred-features)) offered, without the unpacking surface. The cost falls on dynamically generated skills, which cannot publish stable digests; they omit `resources` and accept that hosts may decline them.
+The design rationale for this SEP — why skills map to Resources rather than a new primitive, the URI structure, listing semantics, `skills/get`, the choice of a method over an index resource, format delegation to agentskills.io, directory reads, verbatim frontmatter, and per-file digests — is maintained as a standalone document in the Working Group repository: [rationale.md](https://github.com/modelcontextprotocol/experimental-ext-skills/blob/main/docs/rationale.md).
 
 ## Backward Compatibility
 
