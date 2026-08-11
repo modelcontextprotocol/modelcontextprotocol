@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Type**: Extensions Track
 - **Created**: 2026-04-23
-- **Author(s)**: Peter Alexander (@pja-ant), Ola Hungerford (@olaservo), Sambhav Kothari (@sambhav), on behalf of the Skills Over MCP Working Group
+- **Author(s)**: Peter Alexander (@pja-ant), Ola Hungerford (@olaservo), Sambhav Kothari (@sambhav), Aditya Kumar (@aditya-scio), on behalf of the Skills Over MCP Working Group
 - **Sponsor**: @pja-ant
 - **Extension Identifier**: `io.modelcontextprotocol/skills`
 - **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2640
