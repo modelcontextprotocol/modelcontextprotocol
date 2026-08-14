@@ -231,25 +231,71 @@ Streamable HTTP mirrors the canonical `_meta` values into standard HTTP fields:
 | `Content-Language` | response `_meta["io.modelcontextprotocol/contentLanguage"]` |
 
 A Streamable HTTP client that sends `acceptLanguage` **MUST** send an
-`Accept-Language` field with the same value.
+`Accept-Language` field whose value agrees exactly with it.
 
-The strict payload/header agreement rule from [SEP-2243] and the current
+#### Exact field value agreement
+
+Language _matching_ is semantic: [RFC 4647] over the parsed value, with
+case-insensitive tags, weights, and the wildcard as [RFC 9110 §12.5.4] defines
+them. Mirror _agreement_ is a different question and is decided by exact
+equality of the two exposed field values. It is **not** semantic
+`Accept-Language` or `Content-Language` equivalence, and it is **not** equality
+of the bytes on the wire, which differ between HTTP versions.
+
+A receiver determines agreement as follows:
+
+1. Take the decoded `_meta` string from the parsed JSON body. The
+   implementation **MUST NOT** trim, case-fold, reorder, or otherwise
+   normalize it.
+2. Take the HTTP field value after normal field parsing. Optional whitespace
+   surrounding a field line is not part of the field value
+   ([RFC 9110 §5.5]). If the HTTP API exposes repeated field lines
+   separately, join every value in received order with a comma and a space
+   (`", "`), per the consistency recommendation in [RFC 9110 §5.3]; if it
+   exposes the complete combined field value, use that directly.
+3. Compare the two strings character for character. Implementations
+   **MUST NOT** parse, normalize, or re-serialize either value beyond the join
+   in step 2. Both grammars are ASCII, so this is equivalent to comparing
+   their ASCII encodings octet for octet.
+
+Implementations **MUST** use an HTTP API that exposes either every field line
+value or the complete combined field value. An accessor that returns only the
+first value of a repeated field is not sufficient, because it can hide a
+conflicting field line.
+
+Senders **MUST** emit exactly one field line for each mirrored language field,
+so that no legal recombination of repeated field lines can change the value a
+receiver computes.
+
+Internal whitespace, tag casing, range order, and `q`-value spelling are
+therefore significant, even where HTTP treats the values as equivalent:
+`en-US` and `en-us`, `en;q=0.9` and `en;q=0.900`, and `en-US,en` and
+`en-US, en` are each pairs that do not agree.
+
+#### Presence and mismatch
+
+The payload/header agreement rule from [SEP-2243] and the current
 [Streamable HTTP server validation] applies when the header is present. The
 server **MAY** tolerate a missing or stripped `Accept-Language` header and use
-the canonical `_meta` value. If both are present and do not satisfy the
-transport's equality rule, the server **MUST** reject the request with HTTP
-`400 Bad Request` and `HeaderMismatch` (`-32020`). A bare header without the
-canonical `_meta` field does not create an MCP preference.
+the canonical `_meta` value. If both are present and do not agree, the server
+**MUST** reject the request with HTTP `400 Bad Request` and `HeaderMismatch`
+(`-32020`). A bare header without the canonical `_meta` field does not create
+an MCP preference.
 
-For a JSON response carrying `contentLanguage`, the server **MUST** mirror it
-into `Content-Language`. If a client receives both values and they conflict
-under the transport equality rule, the response is malformed.
+Agreement is evaluated before grammar validation, so the outcome never depends
+on whether either value happens to be well formed.
+
+For a JSON response carrying `contentLanguage`, including an error response
+carrying it in `error.data._meta`, the server **MUST** mirror it into
+`Content-Language`. If a client receives both values and they do not agree,
+the response is malformed.
 
 An SSE response header describes the stream as a whole and is fixed before
 individual messages are produced. A server **MAY** omit `Content-Language` on
 `text/event-stream`, unless one value accurately describes every applicable
-message on that stream. Each localized response or notification still carries
-its own canonical `_meta` value.
+message on that stream. If it does send one, every `contentLanguage` carried
+by a message on that stream **MUST** agree with it. Each localized response or
+notification still carries its own canonical `_meta` value.
 
 Non-HTTP transports use only `_meta`; all request scope, matching, fallback,
 reporting, and translation rules remain the same.
@@ -431,9 +477,13 @@ incrementally, provided that a server claiming to honor the preference follows
 all requirements in this SEP.
 
 Existing HTTP deployments that rewrite `Accept-Language` while leaving the
-JSON body unchanged must preserve, remove, or consistently mirror the field to
-avoid `HeaderMismatch`. This is similar to the routing-integrity requirement
-already used by Streamable HTTP mirroring.
+JSON body unchanged will cause `HeaderMismatch`. Normalizing whitespace,
+case-folding tags, reordering ranges, canonicalizing `q` values, and splitting
+or recombining field lines each change the value a receiver computes, even
+though HTTP permits them. An intermediary on an MCP path must preserve each
+mirrored language field exactly or remove it; removal is always safe, because
+a missing `Accept-Language` is tolerated. This is similar to the
+routing-integrity requirement already used by Streamable HTTP mirroring.
 
 ## Security and Privacy
 
@@ -442,8 +492,10 @@ follow the privacy guidance in [RFC 9110 §12.5.4], including sending only the
 detail needed for the interaction or omitting the preference when appropriate.
 
 Receivers **MUST** validate the field-value grammar before using a parser or
-matcher. A malformed canonical value can be ignored as an absent preference;
-a present HTTP mirror still has to satisfy Streamable HTTP agreement rules.
+matcher. A malformed canonical value is ignored as an absent preference and
+**MUST NOT** on its own produce an error. Because agreement is checked first
+and compares the values as strings, a present HTTP mirror still has to agree
+exactly, whether or not either value is well formed.
 
 Incorrect cache variation can disclose one user's localized representation to
 another user. Implementations **MUST** follow the cache-key, `cacheScope`, and
@@ -479,11 +531,17 @@ Final. Tests should cover at least:
 6. HTTP request and JSON response mirroring, tolerated missing
    `Accept-Language`, `HeaderMismatch` (`-32020`) on a present mismatch, and a
    malformed response on conflicting duplicated values.
-7. SSE and notification reporting through per-message `_meta`.
-8. MCP and HTTP cache separation across language preferences, including
+7. Exact agreement edge cases, each of which **MUST NOT** agree: `en-US` and
+   `en-us`; `en-US,en;q=0.9` and `en-US, en;q=0.9`; `en;q=0.9` and
+   `en;q=0.900`. A field line `Accept-Language:  en ` and a `_meta` value of
+   `en` **MUST** agree, because the surrounding whitespace is not part of the
+   field value. Two field lines valued `en-US` and `en;q=0.9` combine to
+   `en-US, en;q=0.9` and **MUST** agree with exactly that `_meta` value.
+8. SSE and notification reporting through per-message `_meta`.
+9. MCP and HTTP cache separation across language preferences, including
    `ttlMs`, `cacheScope`, `Vary: Accept-Language`, and the stripped-header
    shared-cache case.
-9. HTTP language-preference privacy guidance.
+10. HTTP language-preference privacy guidance.
 
 ## Acknowledgments
 
@@ -493,6 +551,8 @@ authors of [SEP-2243], [SEP-2575], and [SEP-2484].
 
 [BCP 47]: https://www.rfc-editor.org/info/bcp47
 [RFC 4647]: https://www.rfc-editor.org/rfc/rfc4647
+[RFC 9110 §5.3]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.3
+[RFC 9110 §5.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
 [RFC 9110 §8.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-8.5
 [RFC 9110 §12.5.4]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.5.4
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2243-http-standardization.md
