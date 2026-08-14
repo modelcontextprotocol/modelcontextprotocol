@@ -1,4 +1,4 @@
-# SEP-2792: Internationalization via Per-Request Language Negotiation
+# SEP-2792: Per-Request User Language Preference
 
 - **Status**: Draft
 - **Type**: Standards Track
@@ -9,507 +9,263 @@
 
 ## Abstract
 
-This SEP defines a transport-agnostic mechanism for clients to express a
-language preference on individual MCP requests, and for servers to indicate
-the selected language in negotiated responses. Preferences are carried in
-`_meta` using a single field whose value is an [RFC 4647] language-range list
-with the exact syntax of the HTTP
-[`Accept-Language`][rfc9110-accept-language] field (including quality values).
-For the Streamable HTTP transport, the request and response values are
-additionally mirrored into the standard `Accept-Language` and
-`Content-Language` HTTP headers, following the precedent set by [SEP-2243] for
-`Mcp-Method` and `Mcp-Name`. The proposal is deliberately narrow: it
-standardizes only language negotiation, reuses an existing IETF mechanism
-unchanged, and avoids any session state. Because the preference is sent per
-request, a user may change it at any point during a conversation without
-renegotiation, aligning with the stateless-by-default direction established by
-[SEP-2575].
+This SEP defines a transport-neutral way for an MCP client to propagate a user's
+natural-language preference on each request and for a server to report the
+language it used. The canonical fields are
+`io.modelcontextprotocol/acceptLanguage` in request `_meta` and
+`io.modelcontextprotocol/contentLanguage` in response `_meta`.
+
+The fields reuse HTTP semantics rather than defining MCP-specific language
+syntax: `acceptLanguage` uses the `Accept-Language` field-value grammar and
+meaning, including weighted language ranges and the wildcard;
+`contentLanguage` uses `Content-Language` syntax and meaning; matching follows
+[RFC 4647]. Streamable HTTP mirrors the canonical `_meta` values into the
+standard HTTP fields and uses `Vary: Accept-Language` for language-dependent
+cache variants.
+
+This is language-preference propagation, not a general locale system or
+translation framework. It does not communicate timezone, currency, calendar,
+measurement, formatting, or other non-language preferences. The preference is
+request-scoped and does not create session state.
 
 ## Motivation
 
-MCP exposes natural-language strings on tools, resources, prompts, and
-server metadata (`title`, `description`, `text` content blocks, error
-messages, etc.). Some are intended for display in user interfaces, while
-others are model-facing or returned content. The specification today
-provides no mechanism for a client to request these strings in a
-particular language, or for a server that supports multiple languages to
-indicate which language it selected. This forces ad-hoc solutions and
-discourages MCP servers from investing in i18n at all.
+MCP exposes user-facing text before a model or tool is chosen. Discovery
+responses contain display titles, elicitation requests contain UI messages and
+form labels, and progress notifications can contain user-visible status text.
+MCP currently has no common way to carry the language preference already known
+to an operating system, desktop application, terminal, or HTTP user agent.
 
-Some use cases require more than translating UI chrome. A government
-documentation server for Northern Ireland might expose a stable machine name
-such as `get_document`, give the tool a localized human-readable title, and
-return an official document in English, Irish, or Ulster Scots on demand. An
-EU public-sector server may similarly need to return the requested official
-language edition rather than rely on the model to translate an English source.
-Where exact legal or administrative wording matters, model-generated
-translation is not an equivalent substitute.
+Relying on a model is not sufficient. A model is not guaranteed to know the
+user's operating-system or application preference, and putting that preference
+into chat context is indirect and unreliable. Tool arguments are also too late
+for discovery and would require every tool and method to define duplicate
+semantics.
 
-Other servers need mixed-language output. A web-search tool might preserve
-quoted result text verbatim while localizing framing text such as "here are
-the results" and its own summary. Likewise, keeping model-facing tool
-descriptions in a canonical language may avoid changing agent behavior.
-Meanings and cultural context do not map one-to-one between languages, model
-training data is not distributed evenly, and the impact varies by model. MCP
-servers may already return content in any language or mixture of languages,
-so this SEP does not prescribe one content policy. It establishes a
-recommended floor for clearly user-facing UI fields while leaving server
-authors and their upstream content providers flexibility over model-facing
-descriptions and returned content.
+MCP is intended to work globally and across transports. HTTP already defines a
+widely implemented language-preference signal, but stdio and other transports
+need equivalent semantics. Defining the signal in core `_meta` and mirroring it
+to HTTP preserves transport parity without inventing syntax, matching rules, or
+translation infrastructure.
 
-### Primary goal: leverage existing ecosystem; do not reinvent the wheel
+### Why this is core protocol behavior
 
-The single most important design constraint for this SEP is that MCP **must
-not** invent new i18n machinery. Language negotiation is one of the
-oldest, most thoroughly-solved problems on the web, and the solutions are
-already in the hands of every server author:
+This proposal is optional to use, but its meaning belongs in the core
+specification rather than an extension:
 
-- **Standards already exist**, [BCP 47] language tags, [RFC 4647]
-  language-range matching (lookup and filtering), and the HTTP
-  [`Accept-Language`][rfc9110-accept-language] /
-  [`Content-Language`](https://httpwg.org/specs/rfc9110.html#field.content-language)
-  fields are stable, widely-understood IETF specifications. No bespoke
-  syntax, matching rules, or fallback semantics need to be defined here.
-- **Libraries already exist**, mature parsing and matching tools are
-  available across major ecosystems: `@formatjs/intl-localematcher` and
-  `Negotiator` in JavaScript, `golang.org/x/text/language`, Python
-  `Babel` and `langcodes`, Java/ICU `ULocale.acceptLanguage`, Ruby's
-  `Rack::Utils.q_values`, and .NET's Request Localization middleware.
-  Server authors can reuse these building blocks instead of re-inventing
-  language matching logic.
-- **Infrastructure already exists**, CDNs, caches, reverse proxies, WAFs
-  and observability tools already understand `Accept-Language`,
-  `Content-Language`, and `Vary: Accept-Language`. Mirroring the field
-  into the HTTP layer lets an MCP server fronted by Cloudflare, Fastly,
-  nginx, Envoy or an API gateway use existing configuration primitives
-  for per-language caching, routing, and segmentation without parsing
-  MCP-specific metadata at the edge.
-- **Translation tooling already exists**, gettext catalogs, ICU
-  MessageFormat, Fluent, Crowdin/Lokalise/Transifex pipelines, and every
-  framework-level i18n module (Rails I18n, ASP.NET resx, Django
-  `gettext`, `i18next`, etc.) already map locale identifiers and
-  language tags to translation catalogues. A server can plug its
-  existing translation pipeline into MCP without inventing another
-  localization system.
+- Discovery and list methods need the preference before any model or tool
+  selection.
+- Stateless MCP requires the current preference to travel with every request,
+  not be established as connection or session state.
+- The signal propagates existing user context that MCP currently drops; it is
+  not a new domain feature.
+- Existing core fields need one consistent interpretation. Defining competing
+  extension semantics for the same `title`, elicitation, and progress fields
+  would fragment client and server behavior.
+- HTTP clients already carry this signal, while transport-neutral core
+  semantics give stdio and future transports parity.
 
-A previous attempt to address this ([PR #2355]) proposed adding guidance to
-the Streamable HTTP transport recommending the use of standard HTTP
-`Accept-Language` / `Content-Language` headers. That approach was correct in
-spirit but received reasonable pushback from maintainers ([@pja-ant],
-[@kurtisvg]) on two grounds:
-
-1. **Transport parity.** A header-only solution leaves stdio (and any future
-   non-HTTP transport) without an i18n mechanism, fragmenting the developer
-   experience. [SEP-2575] explicitly requires that "stateless principles are
-   applied consistently across all transports … allowing the core protocol
-   semantics to be learned once and applied everywhere."
-2. **Established mirroring pattern.** [SEP-2243] has since established the
-   pattern of mirroring routing-relevant fields between the JSON-RPC payload
-   and HTTP headers (with strict consistency requirements). Language
-   preference belongs to the same category: it is metadata that
-   intermediaries (CDNs, caches, gateways), the transport, and the
-   application all benefit from seeing.
-
-This SEP resolves both concerns by defining the language preference as a
-first-class, transport-agnostic field in `_meta` and, on HTTP, requiring it
-to mirror the existing standard headers, gaining stdio support, header
-visibility, and stateless per-turn re-negotiation in one move, while
-preserving the "lean into HTTP for what it already does well" approach that
-has guided MCP's authorization story.
-
-### Scope: which fields are eligible for translation
-
-The mechanism itself is entirely optional (see the note at the start of
-[Specification](#specification)). When a server **does** choose to honor
-`acceptLanguage`, the rules below define which fields it should, may, or
-must not translate. The classification follows the schema's own framing of
-each field: where a doc-comment says "intended for UI" or "human-readable
-title", the field is display-only; where it says "hint to the model" or
-"improve the LLM's understanding", the field is model-facing.
-
-#### SHOULD translate
-
-These fields are classified by the schema as display-only. A server
-honoring `acceptLanguage` **SHOULD** localize them when a localized form
-is available.
-
-- `BaseMetadata.title` on every type that extends it: `Tool`, `Resource`,
-  `ResourceTemplate`, `Prompt`, `PromptArgument`, `Implementation`,
-  `PromptReference`.
-- `ToolAnnotations.title`.
-- `ElicitRequestFormParams.message` and `ElicitRequestURLParams.message`.
-- In `ElicitRequestFormParams.requestedSchema`, the `title` and
-  `description` of each property. Elicitation schemas are rendered as
-  forms in the client; the model does not consume them.
-- `ProgressNotification.message`.
-- `error.message` in `JSONRPCError` when intended for user display (see
-  [Error responses](#error-responses) for how to opt in).
-
-#### MAY translate, with explicit caveat
-
-These fields are either explicitly model-facing in the schema or
-dual-purpose (model and human). Servers **MAY** translate them, but doing
-so changes what the language model sees and can affect tool-selection,
-planning, and other agent behavior. Real agent implementations wire
-these fields directly into the model prompt:
-for example, the open-source Codex agent passes `Tool.description`
-unmodified into the OpenAI Responses API tool definition, and includes
-both `title` and `description` in its tool-search index. Servers
-**SHOULD** ensure translations preserve the technical meaning faithfully,
-and **SHOULD** test agent behavior against translated catalogues.
-
-- `Tool.description`, `Resource.description`,
-  `ResourceTemplate.description`. The schema explicitly describes these
-  as a "hint to the model".
-- `Prompt.description`, `PromptArgument.description`,
-  `Implementation.description`. The schema describes these as
-  human-readable context; in practice hosts surface them to both users
-  and models.
-- Property-level `title` and `description` inside `Tool.inputSchema` and
-  `Tool.outputSchema`. These appear inside the function definition the
-  model receives via standard function-calling APIs, and some hosts also
-  render them in parameter-confirmation UIs.
-- Body content of `tools/call`, `resources/read`, and `prompts/get`.
-  This includes the body of [MCP Apps] UI resources
-  (`text/html;profile=mcp-app` and related content types), where the
-  body literally is the rendered user interface and should respect the
-  user's language.
-- `LoggingMessageNotification.data` when the server's logger contract
-  defines `data` (or a string field within it) as user-facing.
-
-#### MUST NOT translate
-
-These values are machine-interpreted; their semantics depend on the
-literal string and translation would break interoperability.
-
-- `BaseMetadata.name` on every type that extends it.
-- URIs and URI templates (including `Resource.uri`, `ResourceTemplate.uriTemplate`,
-  `ResourceLink.uri`, and any URI appearing in elicitation, sampling,
-  or notification payloads).
-- MIME types.
-- JSON Schema property _keys_. Only the `title` and `description`
-  _values_ inside a schema are eligible for translation.
-- Enum token values (the string the schema lists in `enum` or `const`),
-  capability identifiers, error `code` values, method names, and
-  `_meta` keys.
-
-[MCP Apps]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp.md
+No capability negotiation is required. A client can send the preference to an
+older server, which ignores the unknown `_meta` key, and a server can ignore a
+preference it does not support.
 
 ## Specification
 
-This entire mechanism is **opt-in on both sides**. Clients **MAY** send
-`acceptLanguage`; servers **MAY** ignore it entirely. The rules below
-apply only when each side chooses to participate. Nothing in this SEP
-requires any existing client or server to change behavior.
+### Scope
+
+This SEP standardizes only propagation, selection, and reporting of a user's
+natural-language preference. Language tags can contain script or region
+subtags, but those subtags do not imply any non-language locale behavior.
+
+This SEP does not define translation catalogs, message formatting, machine
+translation, or preferences for timezone, currency, calendars, collation,
+number or date formats, units of measurement, location, or other locale
+concerns.
 
 ### `_meta` fields
 
-Two extension-prefixed `_meta` keys are defined, using the
-`io.modelcontextprotocol/` vendor prefix per [SEP-2133]:
+| Field                                     | Direction | Type     | Meaning                                                                                             |
+| ----------------------------------------- | --------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `io.modelcontextprotocol/acceptLanguage`  | Request   | `string` | The user's language preference, with the syntax and semantics of HTTP `Accept-Language`.            |
+| `io.modelcontextprotocol/contentLanguage` | Response  | `string` | The language or languages used for the intended audience, with the semantics of `Content-Language`. |
 
-| Field                                     | Direction | Type     | Required | Description                                                                                                                      |
-| ----------------------------------------- | --------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `io.modelcontextprotocol/acceptLanguage`  | Request   | `string` | No       | A language-range list with the syntax of the HTTP `Accept-Language` field as defined in [RFC 9110 §12.5.4].                      |
-| `io.modelcontextprotocol/contentLanguage` | Response  | `string` | No       | One or more [BCP 47] language tags, per [RFC 9110 §8.5], indicating the natural language(s) of the response's intended audience. |
+`_meta` is the canonical carrier on every transport.
 
-#### `acceptLanguage` (request)
+#### Request behavior
 
-- The client **MAY** include `io.modelcontextprotocol/acceptLanguage` in
-  `params._meta` on **any** request or notification it sends.
-- The value **MUST** conform to the `Accept-Language` ABNF in
-  [RFC 9110 §12.5.4], i.e. a comma-separated list of language ranges per
-  [RFC 4647], each with an optional weight (`q`-value).
-- Examples:
+A client that knows an applicable user language preference **SHOULD** include
+`io.modelcontextprotocol/acceptLanguage` in `params._meta` on **every request**.
+The value **MUST** conform to the HTTP `Accept-Language` field-value grammar in
+[RFC 9110 §12.5.4]. This includes weighted [RFC 4647] language ranges and the
+wildcard, for example:
 
-  ```text
-  en
-  en-US
-  en-US,en;q=0.9,fr;q=0.5
-  *
-  ```
-
-- A server **MAY** ignore the field entirely. No capability negotiation or
-  advertisement is required to opt out.
-- A server that chooses to participate **MAY** select a language using
-  [RFC 4647] language-range matching (lookup or filtering, server's
-  choice) and produce user-facing strings in that language. The set of
-  fields a server may translate, and the consequences of translating
-  model-facing fields, are defined in
-  [Scope](#scope-which-fields-are-eligible-for-translation).
-- If no available language matches the client's preferences, the server
-  **SHOULD** fall back to a server-defined default and **MUST NOT** return an
-  error solely because of an unmatched preference.
-
-#### `contentLanguage` (response)
-
-- A server that selected a language in response to `acceptLanguage` **MUST**
-  include `io.modelcontextprotocol/contentLanguage` in `result._meta` on a
-  successful response, or in `error.data._meta` on an error response (see
-  [Error responses](#error-responses) below).
-- The value **MUST** follow the `Content-Language` field-value syntax in
-  [RFC 9110 §8.5]: one or more [BCP 47] language tags identifying the
-  natural language(s) of the intended audience. This need not enumerate
-  every language appearing in quoted or otherwise embedded content.
-- A server that did not select a language in response to `acceptLanguage`
-  **MAY** omit the field. Omission carries no semantics; clients **SHOULD
-  NOT** assume any particular language.
-- Clients **MAY** use this value for UI affordances (e.g. a "translated by
-  server" badge, a fallback notice, or to drive a per-turn locale switch in
-  surrounding chrome).
-
-#### Per-request, by design
-
-`acceptLanguage` is **not** negotiated once at the start of a session and is
-**not** part of any handshake. Every request stands alone, matching the
-stateless-by-default model of [SEP-2575]. This means:
-
-- A user may change their preferred language mid-conversation; the very next
-  request will reflect the change.
-- Servers **MUST NOT** require that all requests within a logical session use
-  the same language preference.
-- Servers **MUST NOT** cache or persist a client's language preference across
-  requests in a way that overrides a later, differing `acceptLanguage`
-  value. Caching the resolved translations themselves is, of course, fine.
-
-### Streamable HTTP transport binding
-
-On Streamable HTTP, language preference and selection are also exchanged
-via the standard `Accept-Language` and `Content-Language` headers, under
-the same payload/header agreement rule [SEP-2243] established for
-`Mcp-Method` and `Mcp-Name`. The server-side rule is relaxed in one
-direction only: a missing header is tolerated (CDNs strip it), but a
-present-and-disagreeing header is rejected.
-
-For this agreement rule, equality is defined as follows:
-
-1. Parse the JSON body and obtain the decoded `_meta` string. The
-   implementation **MUST NOT** trim or otherwise normalize this value.
-2. Obtain the combined HTTP field value. Per [RFC 9110 §5.5], optional
-   whitespace surrounding each HTTP field line is not part of its field
-   line value. If the HTTP implementation exposes multiple field line
-   values separately, concatenate them in received order with comma and
-   space (`", "`) between values, following the consistency
-   recommendation in [RFC 9110 §5.3]. If it exposes only the already
-   combined field value, use that value directly.
-3. Compare the two values character-for-character. Because both field
-   grammars are restricted to ASCII, this is equivalent to comparing
-   their ASCII encodings octet-for-octet.
-
-Implementations **MUST** use an HTTP API that exposes either every field
-line value or the complete combined field value. An accessor that
-silently returns only the first value for a repeated field is not
-sufficient for this comparison.
-
-Except for constructing the combined HTTP field value as specified
-above, implementations **MUST NOT** parse and re-serialize either value
-before comparison. Internal whitespace, language-tag casing, list
-order, and `q`-value serialization are therefore significant. Senders
-**MUST** emit exactly one field line for each mirrored header.
-
-#### Request
-
-| HTTP header       | Source field                                      |
-| ----------------- | ------------------------------------------------- |
-| `Accept-Language` | `_meta['io.modelcontextprotocol/acceptLanguage']` |
-
-- **Client.** When `_meta['io.modelcontextprotocol/acceptLanguage']` is
-  present on a request, the client **MUST** also set the HTTP
-  `Accept-Language` header on the corresponding POST to the same value.
-- **Server, `_meta` present, header absent.** The server **MUST NOT**
-  reject solely because `Accept-Language` is missing; it reads the
-  preference from `_meta`.
-- **Server, header present, `_meta` absent.** The server **MUST NOT**
-  treat a bare `Accept-Language` header as an MCP language preference.
-  `_meta` is the only canonical carrier across transports; without it,
-  the server proceeds as though no preference was supplied.
-- **Server, both present, exact mismatch.** The server **MUST** reject
-  the request with HTTP `400 Bad Request` and JSON-RPC error code
-  `HeaderMismatch` (`-32020`).
-  The comparison uses the exact-match rule above.
-- **Error code allocation.** `-32020` is the settled `HeaderMismatch`
-  code in [SEP-2243] and the current MCP schema, as assigned by the
-  merged error-code allocation policy in [PR #2907].
-
-#### Response
-
-| HTTP header        | Source field                                       |
-| ------------------ | -------------------------------------------------- |
-| `Content-Language` | `_meta['io.modelcontextprotocol/contentLanguage']` |
-
-- **Server (JSON responses).** When the response (success or error)
-  carries `_meta['io.modelcontextprotocol/contentLanguage']`, the
-  server **MUST** set the HTTP `Content-Language` response header to
-  the same value, and **MUST** set `Vary: Accept-Language` on any
-  cacheable response whose body depends on the negotiated language
-  ([RFC 9110 §12.5.5], [RFC 9111 §4.1]).
-- If the response depends on a preference obtained from `_meta` but the
-  HTTP request did not carry `Accept-Language`, `Vary: Accept-Language`
-  cannot distinguish representations at a shared cache. The server
-  **MUST** either prevent shared caching (for example, with
-  `Cache-Control: private`) or ensure that every shared cache keys on an
-  equivalent language-selection signal visible to that cache.
-- **Server (SSE responses).** Because HTTP response headers are
-  flushed before the response body is known, `Content-Language`
-  **MAY** be omitted on `text/event-stream` responses; per-event
-  `_meta['io.modelcontextprotocol/contentLanguage']` is the sole
-  carrier in that case. Per-event variation within a single response
-  is **NOT** permitted; use a fresh request to switch language
-  mid-stream.
-- **Client.** If a JSON response carries both `Content-Language` and
-  `_meta['io.modelcontextprotocol/contentLanguage']` and they do not
-  satisfy the exact-match rule above, the client **MUST** treat the
-  response as malformed.
-
-#### Error responses
-
-The standard JSON-RPC `Error` object is `{ code, message, data? }` and
-carries no `_meta` of its own. The standard JSON-RPC `error.code`
-remains the machine-interpreted identifier; `error.message` is the
-human-readable display string. When a server localizes an error after
-selecting a language in response to `acceptLanguage`, it **MUST**
-translate `error.message` directly and **MUST** carry the language tag
-in `error.data._meta`:
-
-```jsonc
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "error": {
-    "code": -32602,
-    "message": "Arguments invalides : « location » est requis.",
-    "data": {
-      "_meta": {
-        "io.modelcontextprotocol/contentLanguage": "fr-CA",
-      },
-    },
-  },
-}
+```text
+fr-CA,fr;q=0.9,en;q=0.5
 ```
 
-- When a server selects a language in response to `acceptLanguage` and
-  localizes `error.message` (or any human-readable field it places
-  inside `error.data`), it **MUST** set
-  `error.data._meta['io.modelcontextprotocol/contentLanguage']` to
-  the language of that text.
-- The HTTP `Content-Language` response header **MUST** mirror this value
-  under the exact-match rule on JSON error responses, exactly as for
-  successful responses.
-- Clients **MUST NOT** branch on the text of `error.message`; per
-  JSON-RPC 2.0, programmatic dispatch is on `error.code`. This SEP
-  treats `code` as the identifier and `message` as a display string,
-  consistent with the [Scope](#scope-which-fields-are-eligible-for-translation)
-  rule that identifiers are not translated but display strings are.
-- This SEP introduces no new error field beyond `_meta`; servers
-  remain free to use any other `error.data` shape they already use
-  for structured error context.
+The preference is request-scoped:
 
-#### Notifications
+- A client **MAY** change or omit it on any request.
+- A server **MUST NOT** bind it to a connection or logical session.
+- A server **MUST NOT** reuse a preference from an earlier request when
+  processing a later request that omits or changes the field.
+- Messages produced while processing one request, such as an input-required
+  elicitation or a progress notification, use that request's selected language.
 
-The same rule applies to server-to-client notifications that carry
-user-facing text (for example `logging/message` or `notifications/progress`
-where the `message` is rendered to the user). When such a notification
-carries localized text, the server **MUST** include
-`io.modelcontextprotocol/contentLanguage` in `params._meta`. No HTTP
-header counterpart applies, since notifications travel in-band on the
-existing transport (including SSE event streams).
+A server **MAY** ignore the preference.
 
-#### Normalization footgun and intermediary configuration
+A server that participates **MUST** use matching behavior compatible with HTTP
+language negotiation and [RFC 4647], including weights and wildcard semantics.
+The server can use lookup or filtering as appropriate to its representation.
+It **MUST NOT** define a different interpretation of the field value.
 
-The exact-match requirement above means operators **MUST** ensure
-that no intermediary on the request or response path rewrites
-`Accept-Language` or `Content-Language` while leaving the body
-untouched. Concretely:
+If no supported language matches, the server **MUST** use its server-defined
+default and **MUST NOT** return an error solely because the preference was
+unmatched.
 
-- [Fastly's `accept.language_lookup()` VCL][fastly-accept-language-lookup]
-  and [Varnish Enterprise's `vmod_accept`][varnish-vmod-accept] rewrite
-  `Accept-Language` to a single negotiated tag before it reaches the
-  origin. Under this SEP, that rewrite causes every request carrying
-  `_meta[acceptLanguage]` to be rejected with `HeaderMismatch`.
-  Operators using these features for per-language caching **MUST**
-  carry the negotiated tag in a separate, MCP-unrelated header (e.g.
-  `X-Lang`) and leave `Accept-Language` either verbatim or removed.
-- [CloudFront strips `Accept-Language`][cloudfront-accept-language]
-  from forwarded requests by default. This is **acceptable**: the
-  server-side rule above tolerates header absence and reads `_meta`.
-  Operators who want the header to reach the origin must add it to
-  their origin-request policy.
-- Reverse proxies that re-serialize `Accept-Language` (sorting ranges,
-  normalizing whitespace, canonicalizing `q` values) will also trip
-  the rule. They **MUST** preserve the header verbatim or remove it.
-- `Accept-Language` and `Content-Language` are list-based fields, so
-  [RFC 9110 §5.3] permits intermediaries to merge repeated field lines
-  without changing HTTP semantics. Such recombination can still change
-  the combined field value used by this SEP and cause a mismatch.
-  Operators **MUST** verify that intermediaries preserve each mirrored
-  header as a single field line and do not recombine it.
-- Some HTTP APIs expose only the first value of a repeated field.
-  Implementations **MUST NOT** use such an accessor for the exact-match
-  check; doing so could hide an additional, conflicting field line.
+#### Response behavior
 
-### stdio (and other non-HTTP) transports
+If a server honors `acceptLanguage`, including by falling back to its default,
+it **MUST** report the actual language used in
+`io.modelcontextprotocol/contentLanguage`. The value **MUST** follow
+`Content-Language` syntax and meaning in [RFC 9110 §8.5]: one or more [BCP 47]
+language tags describing the natural language of the intended audience. It
+does not need to enumerate languages that appear only in quotations, names, or
+embedded source material.
 
-Non-HTTP transports use the `_meta` fields only; there is no header layer.
-All other semantics, per-request scope, fallback behavior, response
-echoing, apply identically. This is the point: the same client and server
-code can implement i18n once and have it work everywhere.
+The field is carried:
 
-### Schema (illustrative)
+- in `result._meta` for a successful or input-required response;
+- in `error.data._meta` for an error response whose user-facing text is
+  localized; and
+- in `params._meta` for a localized notification associated with the request.
 
-```ts
-// Request (any RequestParams)
-interface RequestParams {
-  _meta?: {
-    /**
-     * Language preference for user-facing content in the response.
-     * Syntax matches the HTTP Accept-Language field (RFC 9110 §12.5.4),
-     * a comma-separated list of BCP 47 language ranges with optional
-     * quality values.
-     *
-     * @example "en-US,en;q=0.9,fr;q=0.5"
-     */
-    "io.modelcontextprotocol/acceptLanguage"?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
+If `error.data` carries `contentLanguage`, it **MUST** be an object. The
+machine-readable `error.code` remains unchanged.
 
-// Response (any Result)
-interface Result {
-  _meta?: {
-    /**
-     * Natural language(s) of this response's intended audience.
-     * One or more BCP 47 language tags identifying the natural
-     * language(s) of the intended audience, per RFC 9110 §8.5.
-     *
-     * @example "en-US"
-     */
-    "io.modelcontextprotocol/contentLanguage"?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-```
+A server that ignores `acceptLanguage` **MAY** omit `contentLanguage`.
+Omission does not identify any language.
+
+### Translation boundary
+
+Language selection does not imply that every natural-language string should be
+translated. When a server honors the preference and has a supported selected
+language, it **SHOULD** translate these display-oriented fields:
+
+- `BaseMetadata.title` on `Implementation`, `Tool`, `Resource`,
+  `ResourceTemplate`, `Prompt`, `PromptArgument`, and `PromptReference`;
+- `ToolAnnotations.title`;
+- `ElicitRequestFormParams.message` and `ElicitRequestURLParams.message`;
+- property-level `title` and `description` values in
+  `ElicitRequestFormParams.requestedSchema` (property keys remain stable); and
+- `ProgressNotificationParams.message`.
+
+A server **MAY** translate `Error.message` when it is intended for user
+display. `Error.code` remains stable.
+
+A server **MAY** translate other natural-language, model-facing, or returned
+content, but this is not expected in ordinary circumstances. Translation can
+change meaning and model behavior, including tool selection and argument
+generation. This category includes general `description` fields such as
+`Tool.description`, `Resource.description`, `ResourceTemplate.description`,
+`Prompt.description`, `PromptArgument.description`, and
+`Implementation.description`, as well as tool, prompt, and resource content.
+Servers that translate such content are responsible for preserving its
+domain-specific semantics.
+
+A server **MUST NOT** translate a machine-interpreted identifier or token. This
+categorical rule includes:
+
+- MCP method names;
+- every `BaseMetadata.name` and every `params.name`, including tool, prompt,
+  and resource names;
+- URIs and URI templates;
+- MIME types;
+- JSON and JSON Schema property keys;
+- enum and `const` values;
+- type, result, role, and other discriminators;
+- capability and extension identifiers;
+- protocol versions;
+- error codes;
+- `_meta` keys; and
+- opaque IDs, cursors, state values, and tokens.
+
+### Explicit language selection takes precedence
+
+`acceptLanguage` is fallback user context, not a replacement for
+method-specific or domain-specific content selection. If a method or tool has
+an explicit language argument, that argument **MUST** take precedence over the
+negotiated preference for the content it controls.
+
+For example, a tool that retrieves an official legal document can expose a
+`language` argument because the chosen edition is part of the operation's
+meaning. The preference still localizes discovery before the tool is selected
+and provides a fallback when the explicit argument is absent.
+
+### Streamable HTTP binding
+
+Streamable HTTP mirrors the canonical `_meta` values into standard HTTP fields:
+
+| HTTP field         | Canonical MCP field                                         |
+| ------------------ | ----------------------------------------------------------- |
+| `Accept-Language`  | `params._meta["io.modelcontextprotocol/acceptLanguage"]`    |
+| `Content-Language` | response `_meta["io.modelcontextprotocol/contentLanguage"]` |
+
+A Streamable HTTP client that sends `acceptLanguage` **MUST** send an
+`Accept-Language` field with the same value.
+
+The strict payload/header agreement rule from [SEP-2243] and the current
+[Streamable HTTP server validation] applies when the header is present. The
+server **MAY** tolerate a missing or stripped `Accept-Language` header and use
+the canonical `_meta` value. If both are present and do not satisfy the
+transport's equality rule, the server **MUST** reject the request with HTTP
+`400 Bad Request` and `HeaderMismatch` (`-32020`). A bare header without the
+canonical `_meta` field does not create an MCP preference.
+
+For a JSON response carrying `contentLanguage`, the server **MUST** mirror it
+into `Content-Language`. If a client receives both values and they conflict
+under the transport equality rule, the response is malformed.
+
+An SSE response header describes the stream as a whole and is fixed before
+individual messages are produced. A server **MAY** omit `Content-Language` on
+`text/event-stream`, unless one value accurately describes every applicable
+message on that stream. Each localized response or notification still carries
+its own canonical `_meta` value.
+
+Non-HTTP transports use only `_meta`; all request scope, matching, fallback,
+reporting, and translation rules remain the same.
+
+### Caching
+
+Language-dependent responses remain cacheable. Existing `ttlMs` and
+`cacheScope` freshness and sharing semantics are unchanged.
+
+Any MCP or client cache that reuses a response **MUST** include the request's
+`acceptLanguage` value in its cache key when the representation varies by
+language. A cached response for one preference **MUST NOT** be served for a
+different preference. This applies even when both preferences happen to select
+the same language.
+
+An HTTP response that varies by language **MUST** include
+`Vary: Accept-Language`. If a shared cache cannot observe the language signal,
+for example because an intermediary stripped the header while preserving
+`_meta`, the response **MUST** either be private or use an equivalent
+language-aware key visible to that cache. `cacheScope: "public"` permits
+sharing across authorization contexts; it does not permit sharing across
+language variants without the required language key.
 
 ### Examples
 
-#### Example 1, Streamable HTTP, `tools/call`
+#### Localized discovery with stable identifiers
 
-Request:
+The client sends its preference before any model or tool argument is involved:
 
-```http
-POST /mcp HTTP/1.1
-Content-Type: application/json
-Accept-Language: fr-CA,fr;q=0.9,en;q=0.5
-Mcp-Method: tools/call
-Mcp-Name: get_weather
-
+```json
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "method": "tools/call",
+  "method": "tools/list",
   "params": {
-    "name": "get_weather",
-    "arguments": { "location": "Montréal, QC" },
     "_meta": {
       "io.modelcontextprotocol/acceptLanguage": "fr-CA,fr;q=0.9,en;q=0.5"
     }
@@ -517,20 +273,25 @@ Mcp-Name: get_weather
 }
 ```
 
-Response:
+The server localizes the display `title` while preserving the machine `name`:
 
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Language: fr-CA
-
+```json
 {
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "content": [
-      { "type": "text", "text": "À Montréal : 4 °C, partiellement nuageux." }
+    "resultType": "complete",
+    "tools": [
+      {
+        "name": "weather_current",
+        "title": "Météo actuelle",
+        "inputSchema": {
+          "type": "object"
+        }
+      }
     ],
+    "ttlMs": 300000,
+    "cacheScope": "public",
     "_meta": {
       "io.modelcontextprotocol/contentLanguage": "fr-CA"
     }
@@ -538,286 +299,188 @@ Content-Language: fr-CA
 }
 ```
 
-#### Example 2, stdio, mid-conversation language switch
+The cache entry is keyed by the request's `acceptLanguage` value in addition to
+the existing request and authorization dimensions.
 
-```jsonc
-// Turn 1: user is browsing in English
-{ "jsonrpc": "2.0", "id": 7, "method": "tools/list",
-  "params": { "_meta": { "io.modelcontextprotocol/acceptLanguage": "en" } } }
+#### Localized elicitation UI with a stable field key
 
-// Turn 2 (same process, same client/server pair): user switched UI to German
-{ "jsonrpc": "2.0", "id": 8, "method": "tools/list",
-  "params": { "_meta": { "io.modelcontextprotocol/acceptLanguage": "de-DE,de;q=0.9,en;q=0.5" } } }
+While processing a request with `acceptLanguage: "de"`, a server can return an
+input-required result containing localized elicitation text:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "contact": {
+        "method": "elicitation/create",
+        "params": {
+          "message": "Bitte geben Sie Ihre E-Mail-Adresse ein.",
+          "requestedSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "title": "E-Mail-Adresse",
+                "description": "Adresse für die Bestätigung"
+              }
+            },
+            "required": ["email"]
+          }
+        }
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/contentLanguage": "de"
+    }
+  }
+}
 ```
 
-In this example, the server returns German `title` and `description`
-strings on turn 8 even though turn 7 was in English. No re-`initialize`,
-no session invalidation.
+The property key `email`, schema `type`, and `format` remain unchanged.
 
-## Rationale
+#### Explicit content language override
 
-### Why `_meta` and not top-level `params`
+Suppose the same user preference is `"en"`, but a
+`get_official_document` tool call includes `"language": "ga"`. The explicit
+argument selects the Irish edition of the returned resource content. The
+preference can still localize discovery and other display fields, but it does
+not override the operation's explicit content selection.
 
-The base protocol's [`_meta` field][MCP _meta] is the conventional
-location for metadata that is orthogonal to a request's primary purpose.
-Language preference is exactly that kind of cross-cutting concern: it
-applies uniformly to every method that may return user-facing content,
-without changing any method's contract. Using `_meta` also avoids
-touching the schema of every individual request type.
+## Rationale and Alternatives
 
-### Why mirror the HTTP `Accept-Language` syntax verbatim
+### Why `_meta`
 
-A simple single-tag `locale` field (e.g. `"en-US"`) is more compact, but
-loses the fallback chain and quality values that real
-internationalization requires (e.g. "I prefer Catalan, but Spanish is fine,
-and English is a last resort"). Adopting the HTTP syntax verbatim means:
+Language preference is orthogonal to any individual method and applies before
+method-specific behavior. `_meta` carries it without changing every request
+shape and works on HTTP, stdio, and future transports.
 
-- Server authors can use a standard `Accept-Language` parser and
-  RFC 4647 matcher without defining another wire syntax.
-- HTTP-fronted servers do not need to translate between two formats.
-- The ecosystem's deep tooling for language tags applies immediately.
+### Why reuse HTTP semantics
 
-The cost is a slightly less obvious format for callers who only want one
-language, but `"en-US"` is itself a valid `Accept-Language` value, so the
-simple case stays simple.
+A single language tag would lose preference ordering, weighted fallback, and
+wildcard behavior. Reusing `Accept-Language`, `Content-Language`, [RFC 4647],
+`Vary`, and HTTP privacy guidance gives implementations established parsers,
+matchers, and cache behavior without an MCP-specific grammar.
 
-### Why mirror to HTTP headers (with a strict exact-match rule)
+### Why not an extension
 
-Mirroring `_meta[acceptLanguage]` and `_meta[contentLanguage]` into the
-standard HTTP `Accept-Language` and `Content-Language` headers lets
-caches and CDNs (`Vary: Accept-Language`), edge i18n services, and
-observability tools work without parsing the JSON-RPC body.
+An extension would make core discovery and UI fields depend on an optional,
+separately interpreted contract. Multiple extensions could assign different
+language semantics to the same fields, and clients would need the preference
+before discovering which extension or tool applies. Core `_meta` defines one
+transport-neutral meaning while remaining backward compatible and optional to
+honor.
 
-For those benefits to be sound, intermediaries must be able to rely on
-the header agreeing with the payload that the origin executes on; the
-security/correctness argument [SEP-2243] makes for `Mcp-Method` /
-`Mcp-Name` is the same one that applies here. This SEP reuses
-SEP-2243's agreement invariant, when both header and payload are
-present they must match exactly, while relaxing its mandatory-presence
-requirement because standard language headers can legitimately be
-stripped by intermediaries.
+### Why not tool arguments or model context
 
-Two design choices follow from extending that rule to a first-class
-HTTP header rather than an MCP-specific one:
+Tool arguments cannot localize `tools/list`, prompt and resource discovery,
+elicitation UI, or progress messages before a tool call. Adding the preference
+to every tool would duplicate syntax and matching rules. Model context is also
+not a reliable source for a host-level user preference and unnecessarily
+consumes model-visible context. Explicit domain language arguments remain
+appropriate when language changes the operation itself and take precedence as
+specified above.
 
-1. **Servers tolerate header absence.** [CloudFront's default
-   behaviour][cloudfront-accept-language] strips `Accept-Language`
-   from forwarded requests. Rejecting on absence would force every
-   operator behind such a CDN to reconfigure it before deploying MCP;
-   tolerating absence preserves the routing guarantee for callers who
-   do supply the header, and falls back to `_meta` cleanly otherwise.
-   `_meta` is the canonical transport-agnostic carrier in any case,
-   since it is the only one stdio has.
-2. **The comparison is exact, not semantic or raw-wire equality.**
-   HTTP/1.1, HTTP/2, and HTTP/3 encode field lines differently, so the
-   comparison begins with the field value produced by normal HTTP
-   parsing, not with transport bytes. In particular, surrounding OWS is
-   excluded from the field value by [RFC 9110 §5.5]. The resulting
-   field value is compared character-for-character with the decoded
-   JSON string. [RFC 9110][rfc9110] does not define a single canonical
-   serialization for `Accept-Language`: optional whitespace around
-   commas ([§5.6.1.1][rfc9110-5.6.1.1]), case-insensitive language tags
-   ([RFC 5646 §2.1.1][rfc5646-2.1.1]), and `q` parameter normalization
-   and trailing-zero weights ([§12.4.2][rfc9110-12.4.2]) all admit
-   multiple serializations for the same semantics. A semantic equality
-   rule would therefore require every conformant SDK to ship the same
-   language parsing and normalization step, which is itself a
-   conformance hazard. Exact string equality is unambiguous and trivial
-   to verify. Requiring senders to emit a single field line removes
-   sender-side ambiguity; RFC-valid intermediary recombination can
-   still change the combined field value and trigger a mismatch.
+### Why per request
 
-The cost of the exact-match rule is the
-[normalization footgun](#normalization-footgun-and-intermediary-configuration):
-operators using header-rewriting CDN features for per-language caching
-must reconfigure them to leave `Accept-Language` either verbatim or
-absent.
+Users can change preferences at any time, and one client or server connection
+can serve multiple users or contexts. Per-request propagation follows
+stateless MCP and prevents stale connection state from selecting the wrong
+language.
 
-### Why `-32020`
+### Rejected alternatives
 
-The merged allocation policy in [PR #2907] leaves `-32000` through
-`-32019` implementation-defined and reserves `-32020` through
-`-32099` for specification-defined MCP errors. It assigns the first
-code in that range, `-32020`, to `HeaderMismatch`. [SEP-2243] and the
-current MCP schema now use that settled value, so this SEP does too.
-
-### Why per-request, not per-session
-
-[SEP-2575] removes the `initialize` handshake and makes MCP
-stateless-by-default. Putting language preference in a handshake would
-re-introduce exactly the kind of session coupling that SEP-2575 removes.
-Per-request scope is also genuinely useful: a user switching their UI
-language, or an agent operating across users (e.g. an org-wide
-assistant), should be able to change the request language without
-tearing anything down.
-
-### Relationship to SEP-1809 (proposed subsumption)
-
-[SEP-1809] proposed a `clientContext` object on `tools/call` carrying
-`timezone`, `currentTimestamp`, `locale`, and `userLocation`. Its
-`locale` field overlaps with this SEP. The issue was closed when the SEP
-workflow moved to pull requests, without the proposal being accepted or
-rejected. If it is resubmitted, this SEP proposes to **subsume the
-language aspect of SEP-1809**, because language is a strictly
-cross-cutting concern rather than one limited to `tools/call`.
-
-### Alternatives considered
-
-1. **HTTP-only guidance (the original PR #2355).** Simpler, but leaves
-   stdio without an answer and creates two i18n stories. Rejected per
-   maintainer feedback and SEP-2575's transport-consistency requirement.
-2. **A single `locale` string in `_meta`.** Simpler, but loses fallback
-   semantics. Rejected, the marginal complexity of accepting the full
-   `Accept-Language` syntax is paid once by spec readers and saved
-   thereafter.
-3. **A top-level `params.acceptLanguage` field on each affected request
-   type.** Would require touching every request schema and offers no
-   benefit over `_meta`. Rejected.
-4. **Putting language in `initialize` capabilities.** Directly contradicts
-   SEP-2575. Rejected.
-5. **A new `i18n` capability that gates the feature.** Unnecessary: the
-   `_meta` field is optional in both directions and degrades cleanly. No
-   capability negotiation needed.
+- **HTTP headers only:** excludes stdio and makes semantics transport-specific.
+- **A bespoke `locale` field:** conflates language with unrelated locale
+  concerns and discards standard weighted fallback semantics.
+- **Handshake or capability state:** conflicts with stateless operation and
+  cannot represent a changed preference on the next request.
+- **Automatic translation of all natural-language fields:** changes
+  model-facing semantics and exceeds the display-oriented need this SEP
+  addresses.
 
 ## Backward Compatibility
 
-This proposal is fully backward compatible.
+The new `_meta` keys are optional and unknown `_meta` keys are ignored.
+Existing clients and servers continue to use their current language behavior.
+Servers can adopt matching, reporting, translation, and HTTP mirroring
+incrementally, provided that a server claiming to honor the preference follows
+all requirements in this SEP.
 
-- The new `_meta` fields are optional in both directions. Servers and
-  clients that do not implement them are unaffected; the field is
-  ignored and the server returns content in its default language.
-- On HTTP, the mirrored headers (`Accept-Language`, `Content-Language`)
-  are already standard HTTP and already permitted by every existing
-  framework; their presence does not break any current MCP server.
-- The exact-match rule applies only when `_meta` and the corresponding
-  HTTP header are both present on the same message, so a client that
-  does not include `_meta[acceptLanguage]` is not required to send
-  `Accept-Language`. Existing deployments that intentionally rewrite
-  `Accept-Language` need a one-time configuration change before they
-  can serve requests carrying `_meta[acceptLanguage]`; see
-  [Normalization footgun and intermediary configuration](#normalization-footgun-and-intermediary-configuration).
+Existing HTTP deployments that rewrite `Accept-Language` while leaving the
+JSON body unchanged must preserve, remove, or consistently mirror the field to
+avoid `HeaderMismatch`. This is the same routing-integrity requirement already
+used by Streamable HTTP mirroring.
 
-## Security Implications
+## Security and Privacy
 
-- **Information leakage.** `Accept-Language` is a known fingerprinting
-  vector. Clients that care about user privacy **SHOULD** consider
-  truncating to a coarse language (e.g. `en` rather than `en-US`) or
-  omitting the field entirely, consistent with the privacy guidance in
-  [RFC 9110 §12.5.4].
-- **Injection.** Servers **MUST** validate the field against the
-  `Accept-Language` ABNF before passing it to any matcher. A malformed
-  value **SHOULD** be treated as absent rather than causing an error.
-- **Cache poisoning.** Forgetting `Vary: Accept-Language` on a
-  localized response is a known cache-poisoning vector; the
-  normative requirement lives in
-  [Streamable HTTP transport binding > Response](#response). Where a
-  server selects a language from `_meta` after the HTTP header was
-  stripped, `Vary` alone is insufficient because the cache sees the
-  same absent header for every language. Such responses cannot be
-  shared-cacheable unless the cache keys on another visible,
-  equivalent language signal.
-- **Header tampering by intermediaries** that rewrite `Accept-Language`
-  or `Content-Language` causes exact-match rejections under the rule
-  in [Streamable HTTP transport binding](#streamable-http-transport-binding).
-  This is by design (the routing guarantee from [SEP-2243] depends on
-  payload/header agreement), not an attack. Operator configuration to
-  avoid lockout is covered in
-  [Normalization footgun and intermediary configuration](#normalization-footgun-and-intermediary-configuration).
+`Accept-Language` can increase fingerprinting entropy. Clients **SHOULD**
+follow the privacy guidance in [RFC 9110 §12.5.4], including sending only the
+detail needed for the interaction or omitting the preference when appropriate.
+
+Receivers **MUST** validate the field-value grammar before using a parser or
+matcher. A malformed canonical value can be ignored as an absent preference;
+a present HTTP mirror still has to satisfy Streamable HTTP agreement rules.
+
+Incorrect cache variation can disclose one user's localized representation to
+another user. Implementations **MUST** follow the cache-key, `cacheScope`, and
+`Vary` requirements above.
+
+Translations of model-facing text can alter model behavior. Servers that use
+the **MAY** category should review translations for semantic equivalence and
+test relevant model interactions. Machine-interpreted identifiers remain
+stable to prevent routing, validation, authorization, and parsing failures.
 
 ## Reference Implementation
 
-A reference implementation against the TypeScript SDK,
-[modelcontextprotocol/typescript-sdk#2158] (draft), is intended to
-exercise the normative rules in this SEP across both Streamable HTTP
-and stdio, with an example server, an example client, and a full test
-matrix.
-[github-mcp-server PR #25] provides earlier prior art for the
-server-side translations machinery that plugs into the per-request
-selection defined here.
+[modelcontextprotocol/typescript-sdk#2158] is a draft reference implementation
+covering Streamable HTTP and stdio. [github-mcp-server PR #25] is prior art for
+server-side translation catalogs that can consume the request-scoped
+preference.
 
 ## Conformance
 
-Per [SEP-2484], a conformance scenario is required before this SEP can
-reach Final. The scenario will cover, at minimum:
+Per [SEP-2484], a conformance scenario is required before this SEP can reach
+Final. Tests should cover at least:
 
-1. A client sending `io.modelcontextprotocol/acceptLanguage` in
-   `params._meta` and (on HTTP) an `Accept-Language` header that
-   satisfies the exact-match rule.
-2. A server selecting a language in response to `acceptLanguage`,
-   returning localized user-facing strings, and emitting
-   `io.modelcontextprotocol/contentLanguage` in `result._meta` and (on
-   HTTP, JSON responses) a `Content-Language` response header that
-   satisfies the exact-match rule.
-3. A server falling back to its default language when no preference
-   matches, without returning an error.
-4. A localized error response carrying
-   `error.data._meta['io.modelcontextprotocol/contentLanguage']`,
-   with a `Content-Language` header satisfying the exact-match rule on
-   HTTP JSON responses.
-5. Per-request language switching on the same connection (notably
-   stdio), to demonstrate that no session state is involved.
-6. A request where the HTTP `Accept-Language` header has been stripped
-   by an intermediary (e.g. CloudFront default behaviour) while `_meta`
-   is preserved: a participating server **MUST** honor `_meta` and
-   **MUST NOT** reject on this basis. Symmetrically, on the response
-   path, a server
-   **MAY** emit `_meta[contentLanguage]` without a `Content-Language`
-   header on SSE streams (where headers are flushed before the body is
-   known).
-7. A request where the HTTP `Accept-Language` header is present and is
-   not an exact match for `_meta['io.modelcontextprotocol/acceptLanguage']`:
-   the server **MUST** reject with HTTP `400 Bad Request` and the
-   `HeaderMismatch` JSON-RPC error code (`-32020`). Symmetrically, on
-   the response path, a JSON response
-   carrying both `Content-Language` and `_meta[contentLanguage]` whose
-   values are not an exact match: the client **MUST** treat the
-   response as malformed.
-8. Exact-match edge cases:
-   - An HTTP/1.1 field line `Accept-Language:  en ` and a decoded
-     `_meta` value of `"en"` **MUST** match because the surrounding OWS
-     is not part of the HTTP field value.
-   - `en-US,en;q=0.9` and `en-US, en;q=0.9` **MUST NOT** match.
-   - `en-US` and `en-us` **MUST NOT** match.
-   - `en;q=0.9` and `en;q=0.900` **MUST NOT** match.
-   - Two field lines with values `en-US` and `en;q=0.9` have a combined
-     field value of `en-US, en;q=0.9`; they **MUST** match that exact
-     `_meta` value and **MUST NOT** match `en-US,en;q=0.9`.
+1. Weighted ranges, wildcard matching, supported selection, and default
+   fallback without an unmatched-preference error.
+2. Preference changes and omission on consecutive requests over one
+   connection, proving no earlier value is reused.
+3. Localized `tools/list` titles with stable names and a reported
+   `contentLanguage`.
+4. Localized elicitation and progress display text with stable property keys
+   and tokens.
+5. Preservation of all machine-interpreted identifiers and explicit language
+   arguments taking precedence.
+6. HTTP request and JSON response mirroring, tolerated missing
+   `Accept-Language`, `HeaderMismatch` (`-32020`) on a present mismatch, and a
+   malformed response on conflicting duplicated values.
+7. SSE and notification reporting through per-message `_meta`.
+8. MCP and HTTP cache separation across language preferences, including
+   `ttlMs`, `cacheScope`, `Vary: Accept-Language`, and the stripped-header
+   shared-cache case.
+9. HTTP language-preference privacy guidance.
 
 ## Acknowledgments
 
-- [@pja-ant] and [@kurtisvg] for the framing pushback on [PR #2355] that
-  led directly to this proposal.
-- Authors of [SEP-2243] for the header-mirroring pattern this SEP reuses.
-- Authors of [SEP-2575] for the stateless-by-default direction that makes
-  per-request negotiation the right default.
-- Markus Cozowicz for [SEP-1809], which provided prior art for how i18n
-  might be added to the protocol.
+Thanks to [@pja-ant] and [@kurtisvg] for the transport-parity and scope
+feedback on [PR #2355], to the Transport Working Group for review, and to the
+authors of [SEP-2243], [SEP-2575], and [SEP-2484].
 
-[modelcontextprotocol/typescript-sdk#2158]: https://github.com/modelcontextprotocol/typescript-sdk/pull/2158
 [BCP 47]: https://www.rfc-editor.org/info/bcp47
 [RFC 4647]: https://www.rfc-editor.org/rfc/rfc4647
-[RFC 9110 §8.5]: https://httpwg.org/specs/rfc9110.html#field.content-language
-[RFC 9110 §12.5.4]: https://httpwg.org/specs/rfc9110.html#field.accept-language
-[rfc9110-accept-language]: https://httpwg.org/specs/rfc9110.html#field.accept-language
-[RFC 9110 §5.3]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.3
-[RFC 9110 §5.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.5
-[RFC 9110 §12.5.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.5.5
-[RFC 9111 §4.1]: https://www.rfc-editor.org/rfc/rfc9111.html#section-4.1
-[MCP _meta]: https://modelcontextprotocol.io/specification/draft/basic/index#meta
-[SEP-2133]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2133-extensions.md
+[RFC 9110 §8.5]: https://www.rfc-editor.org/rfc/rfc9110.html#section-8.5
+[RFC 9110 §12.5.4]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.5.4
 [SEP-2243]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2243-http-standardization.md
-[SEP-2575]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2575-stateless-mcp.md
-[SEP-1809]: https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1809
 [SEP-2484]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2484-conformance-tests-required-for-final-seps.md
+[SEP-2575]: https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2575-stateless-mcp.md
+[Streamable HTTP server validation]: https://modelcontextprotocol.io/specification/draft/basic/transports/streamable-http#server-validation
 [PR #2355]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2355
+[modelcontextprotocol/typescript-sdk#2158]: https://github.com/modelcontextprotocol/typescript-sdk/pull/2158
+[github-mcp-server PR #25]: https://github.com/github/github-mcp-server/pull/25
 [@pja-ant]: https://github.com/pja-ant
 [@kurtisvg]: https://github.com/kurtisvg
-[github-mcp-server PR #25]: https://github.com/github/github-mcp-server/pull/25
-[cloudfront-accept-language]: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html
-[fastly-accept-language-lookup]: https://www.fastly.com/documentation/reference/vcl/functions/content-negotiation/accept-language-lookup/
-[varnish-vmod-accept]: https://docs.varnish-software.com/varnish-enterprise/vmods/accept/
-[rfc9110]: https://www.rfc-editor.org/rfc/rfc9110
-[rfc9110-5.6.1.1]: https://www.rfc-editor.org/rfc/rfc9110.html#section-5.6.1.1
-[rfc9110-12.4.2]: https://www.rfc-editor.org/rfc/rfc9110.html#section-12.4.2
-[rfc5646-2.1.1]: https://www.rfc-editor.org/rfc/rfc5646.html#section-2.1.1
-[PR #2907]: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2907
