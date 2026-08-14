@@ -11,7 +11,7 @@
 
 This SEP defines a transport-neutral way for an MCP client to propagate a user's
 natural-language preference on each request and for a server to report the
-language it used. The canonical fields are
+resulting language of its response. The canonical fields are
 `io.modelcontextprotocol/acceptLanguage` in request `_meta` and
 `io.modelcontextprotocol/contentLanguage` in response `_meta`.
 
@@ -62,7 +62,7 @@ specification rather than an extension:
 - Existing core fields need one consistent interpretation. Defining competing
   extension semantics for the same `title`, elicitation, and progress fields
   would fragment client and server behavior.
-- HTTP clients already carry this signal, while transport-neutral core
+- HTTP clients can already carry this signal, while transport-neutral core
   semantics give stdio and future transports parity.
 
 No capability negotiation is required. A client can send the preference to an
@@ -194,13 +194,13 @@ categorical rule includes:
 
 `acceptLanguage` is fallback user context, not a replacement for
 method-specific or domain-specific content selection. If a method or tool has
-an explicit language argument, that argument **MUST** take precedence over the
+an explicit language argument, that argument **SHOULD** take precedence over the
 negotiated preference for the content it controls.
 
 For example, a tool that retrieves an official legal document can expose a
 `language` argument because the chosen edition is part of the operation's
 meaning. The preference still localizes discovery before the tool is selected
-and provides a fallback when the explicit argument is absent.
+and MAY provide a fallback when the explicit argument is absent.
 
 ### Streamable HTTP binding
 
@@ -368,7 +368,7 @@ matchers, and cache behavior without an MCP-specific grammar.
 ### Why not an extension
 
 An extension would make core discovery and UI fields depend on an optional,
-separately interpreted contract. Multiple extensions could assign different
+separately interpreted contract. Competing extensions could assign different
 language semantics to the same fields, and clients would need the preference
 before discovering which extension or tool applies. Core `_meta` defines one
 transport-neutral meaning while remaining backward compatible and optional to
@@ -377,12 +377,13 @@ honor.
 ### Why not tool arguments or model context
 
 Tool arguments cannot localize `tools/list`, prompt and resource discovery,
-elicitation UI, or progress messages before a tool call. Adding the preference
-to every tool would duplicate syntax and matching rules. Model context is also
-not a reliable source for a host-level user preference and unnecessarily
-consumes model-visible context. Explicit domain language arguments remain
-appropriate when language changes the operation itself and take precedence as
-specified above.
+elicitation UI on methods with no arguments (such as `resources/read`), or
+progress messages before a tool call. Adding the preference to every tool
+would duplicate syntax and matching rules. Model context is also not a
+reliable source for a host-level user preference and unnecessarily consumes
+model-visible context. Explicit domain language arguments remain appropriate
+when language changes the operation itself and take precedence as specified
+above.
 
 ### Why per request
 
@@ -412,8 +413,8 @@ all requirements in this SEP.
 
 Existing HTTP deployments that rewrite `Accept-Language` while leaving the
 JSON body unchanged must preserve, remove, or consistently mirror the field to
-avoid `HeaderMismatch`. This is the same routing-integrity requirement already
-used by Streamable HTTP mirroring.
+avoid `HeaderMismatch`. This is similar to the routing-integrity requirement
+already used by Streamable HTTP mirroring.
 
 ## Security and Privacy
 
@@ -430,13 +431,13 @@ another user. Implementations **MUST** follow the cache-key, `cacheScope`, and
 `Vary` requirements above.
 
 Translations of model-facing text can alter model behavior. Servers that use
-the **MAY** category should review translations for semantic equivalence and
-test relevant model interactions. Machine-interpreted identifiers remain
-stable to prevent routing, validation, authorization, and parsing failures.
+the **MAY** category should consider the implications of this.
+Machine-interpreted identifiers remain stable to prevent routing, validation,
+authorization and parsing failures.
 
 ## Reference Implementation
 
-[modelcontextprotocol/typescript-sdk#2158] is a draft reference implementation
+[modelcontextprotocol/typescript-sdk#2158] is a reference implementation
 covering Streamable HTTP and stdio. [github-mcp-server PR #25] is prior art for
 server-side translation catalogs that can consume the request-scoped
 preference.
