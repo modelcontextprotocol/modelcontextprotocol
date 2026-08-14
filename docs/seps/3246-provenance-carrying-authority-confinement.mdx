@@ -1,16 +1,34 @@
-# SEP-3246: Provenance-Carrying Authority Confinement for Delegated Tool Calls
+---
+title: "SEP-3246: Provenance-Carrying Authority Confinement for Delegated Tool Calls"
+sidebarTitle: "SEP-3246: Provenance-Carrying Authority Confineme…"
+description: "Provenance-Carrying Authority Confinement for Delegated Tool Calls"
+---
 
-- **Status**: draft
-- **Type**: Extensions Track
-- **Created**: 2026-08-12
-- **Author(s)**: Alina Shah (@alinashah_67727)
-- **Sponsor**: TBD
-- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3246
-- **Extension namespace**: `io.noescalation`
+<div className="flex items-center gap-2 mb-4">
+  <Badge color="gray" shape="pill">
+    draft
+  </Badge>
+  <Badge color="gray" shape="pill">
+    Extensions Track
+  </Badge>
+</div>
+
+| Field         | Value                                                                           |
+| ------------- | ------------------------------------------------------------------------------- |
+| **SEP**       | 3246                                                                            |
+| **Title**     | Provenance-Carrying Authority Confinement for Delegated Tool Calls              |
+| **Status**    | draft                                                                           |
+| **Type**      | Extensions Track                                                                |
+| **Created**   | 2026-08-12                                                                      |
+| **Author(s)** | Alina Shah ([@alinashah_67727](https://github.com/alinashah_67727))             |
+| **Sponsor**   | TBD                                                                             |
+| **PR**        | [#3246](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3246) |
+
+---
 
 ## Abstract
 
-This extension adds a provenance record to tools/call, carried in _meta under io.noescalation/provenance. The record is the delegation chain: one entry per hop, each naming the delegating component and the bound it conferred. A guard on the call path admits the call only if it falls within the intersection of every bound along the chain — so a narrowing at any hop binds every hop after it, and no component can confer authority it does not hold.
+This extension adds a provenance record to tools/call, carried in \_meta under io.noescalation/provenance. The record is the delegation chain: one entry per hop, each naming the delegating component and the bound it conferred. A guard on the call path admits the call only if it falls within the intersection of every bound along the chain — so a narrowing at any hop binds every hop after it, and no component can confer authority it does not hold.
 
 The extension specifies the provenance object, a constraint language for bounds closed under intersection, the meet operation, and the processing rules a conforming guard follows.
 
