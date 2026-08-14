@@ -34,13 +34,13 @@ As an Extensions Track SEP (per [SEP-2133](./2133-extensions.md)), this document
 
 ## Motivation
 
-MCP clients currently lack efficient mechanisms to discover information about MCP servers before establishing a full connection. To obtain even basic metadata like server name and version, clients must complete an entire initialization handshake. This creates friction for discovery, integration, and optimization scenarios.
+MCP clients need an out-of-band way to discover remote servers before choosing or opening a transport. Runtime mechanisms such as `server/discover` become available only after a client already knows where to connect. This creates friction for discovery, integration, and optimization scenarios.
 
 ### Current Pain Points
 
 - **Manual Endpoint Configuration**: Users must manually configure transport URLs for each server, with no standardized discovery mechanism.
 - **No Domain-Level Discovery**: Clients cannot automatically discover available MCP servers on a domain. This prevents automated integration scenarios, such as registry crawling or service auto-detection.
-- **Expensive Initialization**: Every capability query requires a full initialization sequence. This round-trip is costly, difficult to cache efficiently, and creates unnecessary latency for simple metadata retrieval.
+- **No Out-of-Band Metadata**: Runtime discovery still requires a configured transport and a live connection, so it cannot support domain crawling, indexing, or pre-connection configuration.
 
 ### Proposed Solution
 
@@ -50,11 +50,11 @@ This SEP introduces **MCP Server Cards** – structured metadata documents that 
 
 - **Autoconfiguration**: IDE extensions can automatically configure themselves when pointed at a domain, eliminating manual setup.
 - **Automated Discovery**: Clients and registries can crawl domains to discover available MCP servers, enabling ecosystem-wide server indexes.
-- **Reduced Latency:** Display server information and metadata without waiting for full initialization sequences.
+- **Reduced Latency:** Display server information and metadata without opening each advertised endpoint.
 
-### Design Philosophy
+### Relationship to `server/discover`
 
-The discovery mechanism complements rather than replaces initialization. Discovery answers where to connect and what transports and protocol versions are available, while initialization handles the communication handshake.
+Server Cards provide out-of-band, HTTP-oriented discovery: public, cacheable, and indexable metadata that can tell a client where to connect. The [`server/discover`](https://modelcontextprotocol.io/specification/draft/server/discover) RPC provides live, in-protocol discovery consistently across transports once an endpoint is known and reachable. The mechanisms overlap in identity, endpoint, and protocol-version metadata and SHOULD remain aligned. If they disagree, clients SHOULD prefer the live `server/discover` values.
 
 ### Discovery
 
@@ -91,12 +91,14 @@ is the single source of truth; the generated [`schema.json`](https://github.com/
 and the discovery mechanics in [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md)
 are derived from it.
 
+For purposes of SEP review, [extension repository snapshot `526201bb`](https://github.com/modelcontextprotocol/experimental-ext-server-card/tree/526201bbc80231daa40ffcdecfc9da4e54e5dc93) captures the contract considered by this proposal. After acceptance, implementers should follow the current, versioned extension specification rather than this historical snapshot. As defined by [SEP-2133](./2133-extensions.md#iteration), extension maintainers may evolve the specification independently while preserving backward compatibility; breaking changes require a new extension identifier.
+
 At a high level, the Server Card extension introduces:
 
-- **Server Card document**: A static metadata document describing a _remote_ MCP server — its identity (`name`, `version`, `description`, optional `title` / `icons` / `repository` / `websiteUrl`), its remote transport endpoints (URLs, headers, variable templates, supported protocol versions), and optional `_meta` extension metadata. The precise field set is defined in the extension repository's [`schema.ts`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/schema.ts).
+- **Server Card document**: A static metadata document describing a _remote_ MCP server — its identity (`name`, `version`, `description`, optional `title` / `icons` / `repository` / `websiteUrl`), its remote transport endpoints (URLs, headers, variable templates, supported protocol versions), and optional namespaced `_meta` data. `_meta` is not used to advertise MCP capabilities or negotiated extension support. The precise field set is defined in the extension repository's [`schema.ts`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/schema.ts).
 - **Discovery**: An AI Catalog can link to or embed multiple cards. Cards can be hosted at any unreserved URI, with `<streamable-http-url>/server-card` reserved as the recommended location. The media types, catalog format, and browser-oriented CORS and caching guidance are specified in [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md).
 
-As an extension, MCP Server Cards are **optional** and additive: servers that do not publish a card continue to work normally through standard initialization (see [Backward Compatibility](#backward-compatibility)).
+As an extension, MCP Server Cards are **optional** and additive: servers that do not publish a card continue to work normally through standard MCP connections and runtime discovery (see [Backward Compatibility](#backward-compatibility)).
 
 ## Rationale
 
@@ -111,13 +113,15 @@ For automated domain-level discovery, an AI Catalog can be published at `/.well-
 
 ### Why Align with Registry Metadata?
 
-MCP Server Cards aim to provide a static representation of server metadata and capabilities so that clients can discover and connect to them without prior knowledge of their existence.
+MCP Server Cards aim to provide a static representation of server identity and connection details so that clients can discover and connect to them without prior knowledge of their existence.
 
 The MCP Registry and Server Cards serve different consumers but share concepts such as server identity and remote endpoints. Reusing compatible field names where those concepts overlap reduces needless translation while allowing each owner to evolve its schema independently.
 
 ### Why Exclude Primitives?
 
 This specification intentionally omits primitive definitions (tools, resources, and prompts) from server cards. MCP servers are inherently dynamic: the primitives a server exposes can vary by authenticated user, session, configuration, feature flags, deployment state, and more. A static document cannot reliably represent this surface, and there is currently no viable substitute for runtime listing via the protocol's standard operations (`tools/list`, `resources/list`, `prompts/list`) with the logged-in user's identity. Including primitives prematurely risks disadvantaging dynamic servers and encouraging clients to rely on information that may be incorrect. A follow-on SEP should address the prerequisites, such as variant enumeration and clear consumer contracts, before primitive advertisement is added.
+
+For the same reason, the initial Server Card format does not advertise MCP capabilities or extension support. `supportedProtocolVersions` lets a client determine whether it can attempt a connection; capabilities and extensions describe negotiated runtime behavior and can depend on the client, identity, configuration, and deployment state. They remain available through live protocol negotiation. Namespaced `_meta` is for non-standard metadata and is not a substitute for standardized capability or extension fields. A future revision can add those fields once it defines how static claims relate to runtime variants.
 
 ### Why Not Wait for Primitives?
 
@@ -135,10 +139,9 @@ Server cards without primitives already enable the core use cases that motivate 
 
 This SEP is fully backward compatible with existing MCP implementations:
 
-- Server cards are **optional**. Servers that don't implement them continue to work normally through standard initialization.
-- Clients that don't support server cards can ignore them and use the initialization handshake as before.
-- The server card schema is designed to mirror the initialization response structure, minimizing implementation complexity for servers that want to support both.
-- No changes to the core MCP protocol messages or initialization flow are required.
+- Server cards are **optional**. Servers that don't implement them continue to work normally through standard MCP connections and runtime discovery.
+- Clients that don't support server cards can ignore them and connect using configured endpoints.
+- No changes to core MCP protocol messages or connection flows are required.
 
 ### Migration Path
 
@@ -153,7 +156,7 @@ Server Cards are publicly accessible, read-only metadata documents served over H
 - **Information disclosure**: Cards are public by design; servers MUST NOT include credentials, internal network topology, proprietary logic, or user/session-specific data.
 - **Primitive exclusion as a safety property**: Cards deliberately exclude primitive definitions (tools, resources, prompts) so clients cannot trust a static manifest for access-control or safety decisions; primitives are always validated at runtime via standard list operations.
 - **CORS**: Wide-open CORS (`Access-Control-Allow-Origin: *`) is acceptable because cards carry only public, read-only metadata.
-- **Transport security and MITM**: Cards SHOULD be served over HTTPS with certificate validation; because cards are advisory (the real connection still requires initialization and authentication), a compromised card primarily affects discoverability rather than security.
+- **Transport security and MITM**: Cards SHOULD be served over HTTPS with certificate validation; because cards are advisory and clients verify their claims against live runtime metadata, a compromised card primarily affects discoverability rather than security.
 - **Denial of service**: Servers SHOULD rate-limit discovery endpoints and clients SHOULD respect cache headers.
 
 The full threat model and the normative CORS/caching/transport requirements are maintained in the extension repository's [`docs/discovery.md`](https://github.com/modelcontextprotocol/experimental-ext-server-card/blob/main/docs/discovery.md).
