@@ -94,18 +94,282 @@ this is unnecessarily heavyweight for MCP servers to implement for documents tha
 
 Server-returned citations also vary widely, even within the same server provider.
 
-| Provider       | Tool                                        | Example response                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| -------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Anthropic      | `web_search`                                | `json { "text": "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan", "type": "text", "citations": [ { "type": "web_search_result_location", "url": "https://en.wikipedia.org/wiki/Claude_Shannon", "title": "Claude Shannon - Wikipedia", "encrypted_index": "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..", "cited_text": "Claude Elwood Shannon (April 30, 1916 – February 24, 2001)..." } ] }`                                                                                                                                                               |
-| Anthropic      | `web_fetch`                                 | `json { "text": "the main argument presented is that artificial intelligence will transform healthcare", "type": "text", "citations": [ { "type": "char_location", "document_index": 0, "document_title": "Article Title", "start_char_index": 1234, "end_char_index": 1456, "cited_text": "Artificial intelligence is poised to revolutionize healthcare delivery..." } ] }`                                                                                                                                                                                      |
-| OpenAI         | `web_search` (`url_citation`)               | `json { "type": "output_text", "text": "On March 6, 2025, several news outlets reported...", "annotations": [ { "type": "url_citation", "start_index": 2606, "end_index": 2758, "url": "https://example.com/article", "title": "Example Article" } ] }`                                                                                                                                                                                                                                                                                                            |
-| OpenAI         | `file_citation` / `container_file_citation` | `json { "type": "output_text", "text": "Per the uploaded report, revenue increased 12% year-over-year.", "annotations": [ { "type": "file_citation", "file_id": "file-abc123", "filename": "q3-earnings.pdf", "index": 0 } ] }`                                                                                                                                                                                                                                                                                                                                    |
-| Perplexity     | Sonar                                       | `json { "choices": [ { "message": { "role": "assistant", "content": "Apple reported Q2 revenue of $95.4 billion [1], driven by Services growth [2]." } } ], "citations": [ "https://www.apple.com/newsroom/pdfs/fy2025-q2/FY25_Q2_Consolidated_Financial_Statements.pdf" ], "search_results": [ { "title": "[PDF] Consolidated Financial Statements - Apple", "url": "https://www.apple.com/newsroom/pdfs/fy2025-q2/FY25_Q2_Consolidated_Financial_Statements.pdf", "date": "2025-05-01", "snippet": "Net sales by reportable segment: Americas $40,315..." } ] }` |
-| Perplexity     | Agent API                                   | `json { "type": "output_text", "text": "Spain won Euro 2024, defeating England 2-1 in the final [1].", "annotations": [ { "type": "url_citation", "start_index": 0, "end_index": 52, "url": "https://en.wikipedia.org/wiki/UEFA_Euro_2024_final", "title": "UEFA Euro 2024 final" } ] }`                                                                                                                                                                                                                                                                           |
-| Amazon Bedrock | `InvokeAgent`                               | `json { "completion": "The refund policy allows returns within 30 days of purchase.", "citations": [ { "generatedResponsePart": { "textResponsePart": { "text": "returns within 30 days of purchase", "span": { "start": 32, "end": 66 } } }, "retrievedReferences": [ { "content": { "type": "TEXT", "text": "Customers may return items within 30 days..." }, "location": { "s3Location": { "uri": "s3://my-bucket/policies/refund.pdf" } } } ] } ] }`                                                                                                           |
-| Amazon Bedrock | `RetrieveAndGenerate` / Knowledge Bases     | `json { "output": { "text": "The refund policy allows returns within 30 days of purchase." }, "citations": [ { "generatedResponsePart": { "textResponsePart": { "text": "returns within 30 days of purchase", "span": { "start": 32, "end": 66 } } }, "retrievedReferences": [ { "content": { "type": "TEXT", "text": "Customers may return items within 30 days..." }, "location": { "s3Location": { "uri": "s3://my-bucket/policies/refund.pdf" } }, "metadata": { "x-amz-bedrock-kb-chunk-id": "abc123" } } ] } ] }`                                            |
-| Azure          | Responses API + Bing (`url_citation`)       | `json { "type": "output_text", "text": "If you're searching for uplifting news from November 2025...", "annotations": [ { "type": "url_citation", "start_index": 333, "end_index": 564, "url": "https://example.com/article", "title": "Example Article" } ] }`                                                                                                                                                                                                                                                                                                    |
-| Azure          | On Your Data (Azure AI Search)              | `json { "role": "assistant", "content": "Contoso's Q3 revenue grew 12% year-over-year [doc1].", "context": { "citations": [ { "content": "Q3 revenue was $4.2B, up 12% YoY...", "title": "Q3 Earnings Summary", "filepath": "reports/q3-2025.pdf", "url": "https://contoso.sharepoint.com/...", "chunk_id": "chunk-42" } ] } }`                                                                                                                                                                                                                                    |
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Tool</th>
+<th>Example response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic</td>
+<td><code>web_search</code></td>
+<td>
+
+```json
+{
+  "text": "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan",
+  "type": "text",
+  "citations": [
+    {
+      "type": "web_search_result_location",
+      "url": "https://en.wikipedia.org/wiki/Claude_Shannon",
+      "title": "Claude Shannon - Wikipedia",
+      "encrypted_index": "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..",
+      "cited_text": "Claude Elwood Shannon (April 30, 1916 – February 24, 2001)..."
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Anthropic</td>
+<td><code>web_fetch</code></td>
+<td>
+
+```json
+{
+  "text": "the main argument presented is that artificial intelligence will transform healthcare",
+  "type": "text",
+  "citations": [
+    {
+      "type": "char_location",
+      "document_index": 0,
+      "document_title": "Article Title",
+      "start_char_index": 1234,
+      "end_char_index": 1456,
+      "cited_text": "Artificial intelligence is poised to revolutionize healthcare delivery..."
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td><code>web_search</code> (<code>url_citation</code>)</td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "On March 6, 2025, several news outlets reported...",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "start_index": 2606,
+      "end_index": 2758,
+      "url": "https://example.com/article",
+      "title": "Example Article"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td><code>file_citation</code> / <code>container_file_citation</code></td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "Per the uploaded report, revenue increased 12% year-over-year.",
+  "annotations": [
+    {
+      "type": "file_citation",
+      "file_id": "file-abc123",
+      "filename": "q3-earnings.pdf",
+      "index": 0
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Perplexity</td>
+<td>Sonar</td>
+<td>
+
+```json
+{
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Apple reported Q2 revenue of $95.4 billion [1], driven by Services growth [2]."
+      }
+    }
+  ],
+  "citations": [
+    "https://www.apple.com/newsroom/pdfs/fy2025-q2/FY25_Q2_Consolidated_Financial_Statements.pdf"
+  ],
+  "search_results": [
+    {
+      "title": "[PDF] Consolidated Financial Statements - Apple",
+      "url": "https://www.apple.com/newsroom/pdfs/fy2025-q2/FY25_Q2_Consolidated_Financial_Statements.pdf",
+      "date": "2025-05-01",
+      "snippet": "Net sales by reportable segment: Americas $40,315..."
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Perplexity</td>
+<td>Agent API</td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "Spain won Euro 2024, defeating England 2-1 in the final [1].",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "start_index": 0,
+      "end_index": 52,
+      "url": "https://en.wikipedia.org/wiki/UEFA_Euro_2024_final",
+      "title": "UEFA Euro 2024 final"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Amazon Bedrock</td>
+<td><code>InvokeAgent</code></td>
+<td>
+
+```json
+{
+  "completion": "The refund policy allows returns within 30 days of purchase.",
+  "citations": [
+    {
+      "generatedResponsePart": {
+        "textResponsePart": {
+          "text": "returns within 30 days of purchase",
+          "span": { "start": 32, "end": 66 }
+        }
+      },
+      "retrievedReferences": [
+        {
+          "content": {
+            "type": "TEXT",
+            "text": "Customers may return items within 30 days..."
+          },
+          "location": {
+            "s3Location": { "uri": "s3://my-bucket/policies/refund.pdf" }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Amazon Bedrock</td>
+<td><code>RetrieveAndGenerate</code> / Knowledge Bases</td>
+<td>
+
+```json
+{
+  "output": {
+    "text": "The refund policy allows returns within 30 days of purchase."
+  },
+  "citations": [
+    {
+      "generatedResponsePart": {
+        "textResponsePart": {
+          "text": "returns within 30 days of purchase",
+          "span": { "start": 32, "end": 66 }
+        }
+      },
+      "retrievedReferences": [
+        {
+          "content": {
+            "type": "TEXT",
+            "text": "Customers may return items within 30 days..."
+          },
+          "location": {
+            "s3Location": { "uri": "s3://my-bucket/policies/refund.pdf" }
+          },
+          "metadata": { "x-amz-bedrock-kb-chunk-id": "abc123" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>Responses API + Bing (<code>url_citation</code>)</td>
+<td>
+
+```json
+{
+  "type": "output_text",
+  "text": "If you're searching for uplifting news from November 2025...",
+  "annotations": [
+    {
+      "type": "url_citation",
+      "start_index": 333,
+      "end_index": 564,
+      "url": "https://example.com/article",
+      "title": "Example Article"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Azure</td>
+<td>On Your Data (Azure AI Search)</td>
+<td>
+
+```json
+{
+  "role": "assistant",
+  "content": "Contoso's Q3 revenue grew 12% year-over-year [doc1].",
+  "context": {
+    "citations": [
+      {
+        "content": "Q3 revenue was $4.2B, up 12% YoY...",
+        "title": "Q3 Earnings Summary",
+        "filepath": "reports/q3-2025.pdf",
+        "url": "https://contoso.sharepoint.com/...",
+        "chunk_id": "chunk-42"
+      }
+    ]
+  }
+}
+```
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ### Other examples of proposals to formalize citations
 
