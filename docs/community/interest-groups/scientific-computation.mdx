@@ -1,0 +1,99 @@
+---
+title: Scientific Computation Charter
+description: Charter for the MCP Scientific Computation Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Scientific Computation Interest Group explores how MCP can connect models to the tools of
+computational science, including simulation codes, HPC clusters, scientific instruments, and
+research data repositories. It gathers use cases and requirements from researchers and research
+software engineers, documents problem statements where MCP falls short for scientific workloads,
+and scopes validated problems into [SEPs](/community/sep-guidelines) or Working Groups.
+
+## Scope
+
+### In Scope
+
+- **Simulation codes and solvers**: patterns for exposing scientific simulation software through
+  MCP servers, including parameter handling, input generation, and result retrieval
+- **HPC schedulers and clusters**: requirements for driving batch schedulers and large-scale
+  compute resources through MCP, including long-running jobs, queuing, and asynchronous status
+  reporting
+- **Scientific instruments**: use cases for connecting models to laboratory instruments and
+  experimental facilities, and the safety and access-control questions this raises
+- **Research data repositories**: discovery and retrieval of datasets from scientific archives and
+  repositories, including metadata standards, persistent identifiers, and citation
+- **Domain workflows**: requirements from computational chemistry, physics, biology, and adjacent
+  fields, gathered from practitioners running these workflows today
+- **Reproducibility**: how MCP interactions in a computational experiment can be recorded and
+  replayed so that results remain reproducible and auditable
+- **Problem statements and recommendations**: producing non-binding input for Working Groups and
+  SEP authors on where the protocol needs to evolve for scientific use
+
+### Out of Scope
+
+- **Binding specification changes**: the IG produces recommendations rather than binding decisions,
+  and specification changes go through the SEP process
+- **Implementation work**: building SDK features, reference servers, or other deliverables belongs
+  in a Working Group
+- **Scientific methodology and results**: evaluating the science itself, rather than the protocol
+  plumbing around it, is outside the group's purview
+- **Site-specific operational guides**: step-by-step configuration for an individual HPC center,
+  cloud platform, or instrument vendor is documentation for that facility rather than protocol work
+- **Competitively sensitive or non-public business information**, per the
+  [MCP Antitrust Policy](/community/antitrust)
+
+### Related Groups
+
+- **[Triggers & Events WG](/community/working-groups/triggers-events)**: long-running simulations and
+  batch jobs need asynchronous notification patterns that intersect with this WG's work
+- **[File Uploads WG](/community/working-groups/file-uploads)**: moving large scientific datasets and
+  simulation inputs through MCP intersects with file transfer work
+- **[Security IG](/community/interest-groups/security)**: access control for shared clusters and
+  instruments raises security questions that this group provides requirements for
+
+## Leadership
+
+| Role        | Name        | Organization | GitHub                                       | Term    |
+| ----------- | ----------- | ------------ | -------------------------------------------- | ------- |
+| Facilitator | Cory Kinney | —            | [@corykinney](https://github.com/corykinney) | Initial |
+
+## Membership
+
+Open to anyone. Join the `#scientific-computation-ig` channel on the
+[MCP Contributors Discord](/community/communication#discord) once it is created as part of group
+formation. Calls are open and no approval is required to attend or contribute. The group especially
+welcomes researchers, research software engineers, and facility operators who run scientific
+workloads today and can ground discussions in real deployment constraints.
+
+## Operations
+
+| Meeting    | Frequency | Duration | Purpose                                     |
+| ---------- | --------- | -------- | ------------------------------------------- |
+| Discussion | TBD       | TBD      | Use-case sharing, problem scoping, open Q&A |
+
+Discord: `#scientific-computation-ig` (channel pending creation)
+
+## Discussion Topics
+
+The following themes form the IG's initial discussion agenda. This list is not exhaustive and will
+evolve as the group identifies new areas of interest.
+
+| Item | Name                                                                       | Status | Champion |
+| ---- | -------------------------------------------------------------------------- | ------ | -------- |
+| —    | Long-running jobs: driving HPC schedulers and tracking asynchronous work   | Open   | —        |
+| —    | Simulation interfaces: exposing solvers and codes as MCP servers           | Open   | —        |
+| —    | Instrument access: safety and access control for lab and facility hardware | Open   | —        |
+| —    | Data repositories: dataset discovery, persistent identifiers, and citation | Open   | —        |
+| —    | Reproducibility: recording and replaying computational experiments         | Open   | —        |
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-08-17 | Initial charter |

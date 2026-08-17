@@ -899,6 +899,7 @@
               "community/interest-groups/enterprise-managed-authorization",
               "community/interest-groups/financial-services",
               "community/interest-groups/primitive-grouping",
+              "community/interest-groups/scientific-computation",
               "community/interest-groups/security",
               "community/interest-groups/tool-annotations"
             ]
