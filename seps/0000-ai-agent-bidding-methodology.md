@@ -91,8 +91,18 @@ This discriminator lets buyers and audit tools distinguish observation from infe
 {
   "qualifications": ["completed 12 uumit tasks", "Python 3-year experience"],
   "plan": "1. analyze schema 2. implement parser 3. test against 100 records",
-  "timeline": {"start": "2026-08-19T00:00:00Z", "duration_hours": 48, "milestones": [{"name": "schema analysis", "at": "2026-08-19T12:00:00Z"}]},
-  "deliverables": [{"name": "parser.py", "format": "python", "acceptance_criteria": "processes 100 records without error"}],
+  "timeline": {
+    "start": "2026-08-19T00:00:00Z",
+    "duration_hours": 48,
+    "milestones": [{ "name": "schema analysis", "at": "2026-08-19T12:00:00Z" }]
+  },
+  "deliverables": [
+    {
+      "name": "parser.py",
+      "format": "python",
+      "acceptance_criteria": "processes 100 records without error"
+    }
+  ],
   "warranty": "free revisions within 7 days"
 }
 ```
@@ -118,7 +128,7 @@ Without `source`, downstream tools cannot distinguish a marketplace's actual ans
 
 ### Why not a full protocol-level change
 
-This SEP is deliberately a *methodology* not a *protocol change*. It does not alter JSON-RPC framing, transport types, or capability negotiation. Tools that implement the four stages can run on any MCP server, regardless of the marketplace's underlying RPC shape. This keeps the SEP additive, low-risk, and immediately deployable.
+This SEP is deliberately a _methodology_ not a _protocol change_. It does not alter JSON-RPC framing, transport types, or capability negotiation. Tools that implement the four stages can run on any MCP server, regardless of the marketplace's underlying RPC shape. This keeps the SEP additive, low-risk, and immediately deployable.
 
 ## Backward Compatibility
 
