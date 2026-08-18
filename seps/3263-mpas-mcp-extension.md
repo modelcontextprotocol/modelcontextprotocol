@@ -1,4 +1,4 @@
-# SEP-0000: Multi-Party Action Security (MPAS) for MCP
+# SEP-3263: Multi-Party Action Security (MPAS) for MCP
 
 - **Status**: Draft
 - **Type**: Extensions Track
@@ -6,7 +6,7 @@
 - **Author(s)**: OMA3 DAO (@oma3dao)
 - **Sponsor**: None (seeking sponsor)
 - **Extension Identifier**: `org.oma3/mpas`
-- **PR**: (placeholder)
+- **PR**: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3263
 
 ### Governance
 
