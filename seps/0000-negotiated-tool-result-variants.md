@@ -1,11 +1,11 @@
-# SEP-0000: Negotiated tool result variants
+# SEP-3279: Negotiated tool result variants
 
 - **Status**: Draft
 - **Type**: Standards Track
 - **Created**: 2026-08-18
 - **Author(s)**: Kyle Rubenok (@krubenok)
 - **Sponsor**: None (seeking sponsor)
-- **PR**: TBD
+- **PR**: [SEP-3279](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/3279)
 - **Target revision**: 2026-12-01
 - **Related**: [SEP-2200](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200)
 
