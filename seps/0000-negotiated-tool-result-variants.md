@@ -9,8 +9,6 @@
 - **Target revision**: 2026-12-01
 - **Related**: [SEP-2200](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2200)
 
-> This file uses SEP-0000 while the proposal is developed locally. The file and heading should be renamed to the pull request number when submitted.
-
 ## Abstract
 
 This SEP adds negotiated, audience-directed variants to tool results. A tool declares the result representations it can produce. A client selects the representations needed for a particular `tools/call` request. The server returns exactly those representations, and the host routes each one according to its declared audience.
