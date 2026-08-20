@@ -1,0 +1,70 @@
+---
+title: Filesystems Working Group Proposal
+description: Proposal for the MCP Filesystems Working Group.
+---
+
+## Working group channel name
+
+`filesystems-wg`
+
+## Description/scope
+
+LLMs are pre-trained on public code repositories which are dense with file paths and directory trees. Addressing content
+by path is therefore a convention a model has encountered many times over, however a proprietary service's identifier
+scheme is one it has likely not seen. This holds whether an agent writes ordinary file operations in a sandbox or calls
+filesystem-shaped tools directly, and it's why agent platforms are converging on presenting services to models as
+filesystems.
+
+MCP Resources sits under that surface, as the wire format between client and server, and it is already path-shaped:
+content addressed by URI, with a file:// scheme the spec defines as identifying "resources that behave like a
+filesystem". A platform can therefore present a filesystem to the model and carry it over Resources. Today it can only
+do so in the "read" direction.
+
+But this really only works if we're all using the same interface. At the moment, every service is integrated into
+frameworks individually, forcing each one to roll its own write path, whether that's a custom tool, an artifact store,
+or a memory API. SEP-2571 highlights this problem within MCP, noting that "multi-agent and job orchestration systems
+repeatedly build the same pattern with custom tools".
+
+The working group would plan to broaden the existing Resources primitive instead of building a parallel one. It would
+produce a single Extensions Track SEP that defines the following areas.
+
+1. **Operations.** Create, update, delete, and a metadata read (`stat`) that answers existence, size and last-modified
+   for one URI without fetching the body.
+2. **Concurrency control.** How two writers avoid a lost update.
+3. **Change notification and caching.** How a write interacts with `notifications/resources/updated`, the `ttlMs` and
+   `cacheScope` fields, and the `lastModified` annotation.
+
+## Facilitator(s)
+
+Sambhav Kothari, Bloomberg.
+Lead of the Interceptors WG and Facilitator of the Financial Services IG.
+
+Ola Hungerford, Nordstrom.
+Lead of the Inspector V2, Interceptors, and Skills over MCP WGs.
+
+## Maintainer(s) (optional)
+
+## Explanation of interest/use cases
+
+- "I want an agent to write a result back to the server it reads the inputs from, rather than returning it as text I
+  then have to re-upload."
+- "I want two agents writing to the same resource to fail loudly in a conflict, rather than silently overwriting each
+  other."
+- "I want to create a resource only if it does not already exist, and be told when one does."
+- "I want a write to invalidate the cached copy clients already hold, without my having to poll."
+
+Three proposals extend this primitive but none are yet sponsored. SEP-2571: Resource Submission, proposes
+`resources/create` and `resources/delete` to make "the MCP resources interface bidirectional". SEP-2532 proposes
+`resources/stream`, and SEP-1708 proposed a nine-method `files/*` family standing beside Resources.
+
+It is live inside an existing group too. File system dependency was an agenda item at the Skills Over MCP WG office
+hours of 24 March 2026, including "questions about write access". However, no decision was reached and the item remains
+open.
+
+## First Issue/PR/SEP that the WG will work on
+
+A SEP provisionally titled Filesystem Operations for Resources, covering create, update, delete and stat, concurrency
+control, and the interaction with notification and caching.
+
+SEP-2571, Resource Submission, already covers the first two of those verbs and is the closest existing work, so the
+group's first act could be to take it up with its author rather than open a competing proposal.
