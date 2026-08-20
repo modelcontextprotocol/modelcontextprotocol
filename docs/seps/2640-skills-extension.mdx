@@ -434,6 +434,16 @@ Semantics:
 
 A server that declares `directoryRead` MUST support the method for every directory within the skill namespaces it serves as individual files. The method itself is not skill-specific: a server MAY support it on any directory resource it serves, under any scheme.
 
+#### Directory reads and the held entry
+
+For a skill whose entry carries `resources`, the host already holds a complete manifest of the skill's files ([Resources](#resources)); a directory read tells it nothing about that skill's contents that the entry did not. Directory reading earns its place elsewhere: for dynamically generated skills, which publish no `resources`; for resource trees that are not skills at all; and for obtaining the server's current view of a directory without first refreshing the entry. When a host acting on a skill with a manifest wants to know what `templates/` contains, it MAY answer from the entry alone.
+
+The two views can disagree. If the server adds a file to a skill after the host obtained its entry, a directory read may list that file while the held manifest does not. This is not a contradiction but the stale-snapshot case that [Integrity and verification](#integrity-and-verification) already governs, and the recovery path is the one specified there: while acting on the skill under the held entry, the host MUST NOT read the newly listed child — an unlisted file is a verification failure, exactly as a digest mismatch is — and MUST NOT surface it to the model as a file of the skill. To reach it, the host refreshes the entry with [`skills/get`](#retrieval-via-skillsget), at which point the `resources` set has changed and any persisted content-bound approval is revoked and must be obtained again ([Security Implications](#security-implications)). Only under the refreshed entry is the new file readable. Hosts SHOULD expect this sequence and present it as such — a skill that has changed and needs re-approval — rather than as a read error. Conversely, a child present in the manifest but absent from a directory read is a file the server no longer serves; a read of it will fail, and the same refresh applies.
+
+This extension defines no shared version or cache token that would let a host determine whether a directory result and an entry describe the same snapshot of the server. The manifest is authoritative for what the host may read under its current approval; a directory read is a live observation that may run ahead of or behind it. Hosts MUST NOT treat the directory result as extending the manifest.
+
+For a dynamically generated skill, which carries no `resources`, none of this changes the skill's standing: it offers no content integrity and cannot be content-bound, and a host MAY decline to load it ([Resources](#resources)). A directory read is how such a skill's files are discovered at all, but it does not supply the integrity the entry lacks.
+
 ## Implementation Guidelines
 
 The following are recommendations for interoperable implementations. They are not part of the normative specification.
