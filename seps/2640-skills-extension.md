@@ -139,7 +139,8 @@ The result carries the skill entries:
         "resources": [
           {
             "uri": "skill://git-workflow/SKILL.md",
-            "digest": "sha256:a1b2c3d4..."
+            "digest": "sha256:a1b2c3d4...",
+            "size": 2314
           }
         ]
       },
@@ -153,11 +154,13 @@ The result carries the skill entries:
         "resources": [
           {
             "uri": "skill://acme/billing/refunds/SKILL.md",
-            "digest": "sha256:b2c3d4e5..."
+            "digest": "sha256:b2c3d4e5...",
+            "size": 3871
           },
           {
             "uri": "skill://acme/billing/refunds/examples/email.md",
-            "digest": "sha256:c3d4e5f6..."
+            "digest": "sha256:c3d4e5f6...",
+            "size": 962
           }
         ]
       },
@@ -171,27 +174,33 @@ The result carries the skill entries:
         "resources": [
           {
             "uri": "skill://pdf-processing/SKILL.md",
-            "digest": "sha256:d5e6f7a8..."
+            "digest": "sha256:d5e6f7a8...",
+            "size": 5120
           },
           {
             "uri": "skill://pdf-processing/references/FORMS.md",
-            "digest": "sha256:e6f7a8b9..."
+            "digest": "sha256:e6f7a8b9...",
+            "size": 18433
           },
           {
             "uri": "skill://pdf-processing/scripts/extract.py",
-            "digest": "sha256:f7a8b9c0..."
+            "digest": "sha256:f7a8b9c0...",
+            "size": 4096
           },
           {
             "uri": "skill://pdf-processing/templates/invoice.md",
-            "digest": "sha256:a8b9c0d1..."
+            "digest": "sha256:a8b9c0d1...",
+            "size": 1210
           },
           {
             "uri": "skill://pdf-processing/templates/purchase-order.md",
-            "digest": "sha256:b9c0d1e2..."
+            "digest": "sha256:b9c0d1e2...",
+            "size": 1388
           },
           {
             "uri": "skill://pdf-processing/templates/regional/eu-invoice.md",
-            "digest": "sha256:c0d1e2f3..."
+            "digest": "sha256:c0d1e2f3...",
+            "size": 1472
           }
         ]
       }
@@ -239,10 +248,11 @@ A skill URI is scoped to the server that serves it. Nothing prevents two connect
 
 ##### Resources
 
-`resources` enumerates the skill's files — `SKILL.md` and every supporting file — as `{uri, digest}` pairs. It is the unit of content that a host verifies and that a user's approval binds to:
+`resources` enumerates the skill's files — `SKILL.md` and every supporting file — as `{uri, digest, size}` triples. It is the unit of content that a host verifies and that a user's approval binds to:
 
-- When present, `resources` MUST be complete: it lists every file of the skill, each exactly once, including an entry matching the skill's top-level `uri` — that entry carries the digest of `SKILL.md` itself.
+- When present, `resources` MUST be complete: it lists every file of the skill, each exactly once, including an entry matching the skill's top-level `uri` — that entry carries the digest and size of `SKILL.md` itself.
 - Each `uri` MUST be the skill's `SKILL.md` or a file within the skill's directory.
+- Each entry MUST carry `size`: the length in bytes of the file's raw content — the same bytes the `digest` covers. `size` lets a host budget a skill before fetching anything: it can enforce the [Limits](#limits) from the entry alone, decide whether a file is worth retrieving, and detect a truncated or padded read before hashing it. A read whose byte length differs from the entry's `size` is a verification failure equivalent to a digest mismatch ([Integrity and verification](#integrity-and-verification)), whether or not the host goes on to compute the digest.
 - Completeness extends to nested skills: from the enclosing skill's perspective their files are supporting files ([Nested skills](#nested-skills)), so the enclosing skill's `resources` lists them too, and the same file may appear in both the enclosing and the nested skill's entries. A change to a nested skill is therefore a change to the enclosing skill's set.
 - `resources` MAY be omitted only when a skill's content is generated dynamically, such that stable digests cannot be published. A skill without `resources` offers no content integrity and cannot be content-bound ([Security Implications](#security-implications)). Hosts MAY decline to load such skills, and server authors SHOULD expect that some hosts will.
 
@@ -255,6 +265,21 @@ When a host retrieves a file listed in a skill's `resources`, it MUST verify the
 Digests are unsigned and supplied by the same server that supplies the content. A match proves the two are consistent, not that either is trustworthy. Any intermediary on the path, such as a gateway, can rewrite both the listing and the content together. Hosts MUST NOT treat a digest match as a security boundary.
 
 After fetching a `SKILL.md` for which the host holds an entry, from either `skills/list` or `skills/get` — digest-verified when the entry carries `resources`, and unverifiable when it does not — hosts MUST parse its YAML frontmatter and compare it field-by-field against the entry's `frontmatter`. Any discrepancy MUST be treated as a verification failure equivalent to a digest mismatch, and the skill MUST NOT be loaded. This enforces the [Frontmatter](#frontmatter) identity requirement on the host side, so that what a user approves from the listing is what the model actually receives.
+
+##### Limits
+
+This extension fixes two per-skill limits so that servers know what every conforming host will accept and hosts know what they must be prepared to handle:
+
+| Limit                     | Value                     | Counted over                                                |
+| ------------------------- | ------------------------- | ----------------------------------------------------------- |
+| Resources per skill       | 512 entries               | The entries of the skill's `resources`, `SKILL.md` included |
+| Total file size per skill | 16 MiB (16,777,216 bytes) | The sum of `size` over the skill's `resources`              |
+
+Hosts MUST support skills up to and including these limits, and MAY support larger ones. Servers SHOULD NOT serve a skill that exceeds either limit; a skill that does is not guaranteed to be loadable by any conforming host. Because `resources` is complete, both limits are checkable from the entry alone — counting entries and summing `size` — before the host retrieves a single file, and a host that declines a skill on this basis SHOULD tell the user why rather than fail silently on a later read.
+
+For a skill published without `resources`, the entry offers nothing to count. A host that chooses to load such a skill applies the total-size limit to what it actually retrieves and MAY stop loading the skill once that limit is reached.
+
+These limits bound a host's exposure to a single skill. They say nothing about how many skills a server may serve or a host must accept; a listing may be arbitrarily large, which is one reason hosts retrieve files only on demand ([Integrity and verification](#integrity-and-verification)).
 
 #### Retrieval via `skills/get`
 
@@ -286,27 +311,33 @@ A server declaring the `io.modelcontextprotocol/skills` extension MUST also impl
       "resources": [
         {
           "uri": "skill://pdf-processing/SKILL.md",
-          "digest": "sha256:d5e6f7a8..."
+          "digest": "sha256:d5e6f7a8...",
+          "size": 5120
         },
         {
           "uri": "skill://pdf-processing/references/FORMS.md",
-          "digest": "sha256:e6f7a8b9..."
+          "digest": "sha256:e6f7a8b9...",
+          "size": 18433
         },
         {
           "uri": "skill://pdf-processing/scripts/extract.py",
-          "digest": "sha256:f7a8b9c0..."
+          "digest": "sha256:f7a8b9c0...",
+          "size": 4096
         },
         {
           "uri": "skill://pdf-processing/templates/invoice.md",
-          "digest": "sha256:a8b9c0d1..."
+          "digest": "sha256:a8b9c0d1...",
+          "size": 1210
         },
         {
           "uri": "skill://pdf-processing/templates/purchase-order.md",
-          "digest": "sha256:b9c0d1e2..."
+          "digest": "sha256:b9c0d1e2...",
+          "size": 1388
         },
         {
           "uri": "skill://pdf-processing/templates/regional/eu-invoice.md",
-          "digest": "sha256:c0d1e2f3..."
+          "digest": "sha256:c0d1e2f3...",
+          "size": 1472
         }
       ]
     }
@@ -506,7 +537,7 @@ def refunds():
     return Path("./skills/refunds")
 ```
 
-The SDK handles: reading `SKILL.md` frontmatter to populate resource metadata, serving file content on `resources/read`, and answering `skills/get` — and, where the server's skill set is bounded, `skills/list` — computing entry digests from the registered files.
+The SDK handles: reading `SKILL.md` frontmatter to populate resource metadata, serving file content on `resources/read`, and answering `skills/get` — and, where the server's skill set is bounded, `skills/list` — computing entry digests and sizes from the registered files, and warning when a registered skill exceeds the [Limits](#limits).
 
 **Client-side** — enumerate and fetch skills:
 
