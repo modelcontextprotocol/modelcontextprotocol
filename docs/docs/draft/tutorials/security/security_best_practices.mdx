@@ -513,6 +513,118 @@ in MCP clients.
   SSRF in the context of the most critical web application security
   risks
 
+### Credential Destination Injection
+
+A separate risk, related to but distinct from the SSRF risks described
+above: an MCP server's tool implementation frequently holds its own
+credential for a backing service it wraps, for example a database
+password, a cloud API access token, or a bearer token for a
+third-party API. If a tool attaches that credential to an outbound
+request whose destination is determined, even in part, by
+caller-influenced input, without validating the destination against a
+trusted allowlist first, the server's own credential can be delivered
+to a destination the caller chose rather than the service the
+credential was issued for.
+
+This differs from the SSRF risks described above in what is exposed
+and to whom. The SSRF attacks above concern an MCP _client_ being
+tricked by a malicious _server_ into fetching URLs during OAuth
+discovery, exposing the client's own network position. Credential
+Destination Injection concerns an MCP _server's own tool_ attaching a
+credential _it holds_ to a request whose destination was influenced by
+a tool argument — a value that, in practice, is frequently chosen by
+the model based on untrusted content it has processed, not typed
+directly by the end user. Blocking private IP ranges, the primary
+SSRF mitigation, does not address this: the caller-chosen destination
+in this pattern is frequently an ordinary public host under the
+attacker's control, not an internal address.
+
+#### Attack Description
+
+1. An MCP tool holds a credential for a specific backing service, for
+   example a database connection string, a cloud API token, or a
+   bearer token issued for a specific third-party API.
+2. The tool accepts an argument that influences the destination of the
+   request the tool makes, directly or indirectly (for example, a
+   hostname embedded in a resource identifier).
+3. The tool attaches the credential to the outbound request without
+   first validating the destination against a trusted allowlist, or
+   validates only the initial request and does not re-validate the
+   destination if a redirect changes it.
+4. A caller — potentially the model itself, acting on content it has
+   read such as a document or a prior tool result — supplies a
+   destination the attacker controls.
+5. The server sends its own credential to the attacker's destination.
+6. The attacker replays the credential against the legitimate service,
+   or exfiltrates it directly if the response is returned to the
+   model.
+
+```mermaid
+sequenceDiagram
+    participant Content as Untrusted Content
+    participant Client as MCP Client / Model
+    participant MCP as MCP Server (holds credential)
+    participant Attacker as Attacker-Controlled Host
+
+    Content->>Client: Content containing an injected destination
+    Client->>MCP: Tool call with attacker-chosen destination
+    Note over MCP: Credential attached without allowlist check
+    MCP->>Attacker: Request to attacker's host, credential attached
+    Attacker-->>MCP: Attacker's server logs the credential
+    Note over MCP: Credential is now known to the attacker
+```
+
+#### Risks
+
+- **Credential exfiltration**. The server's own credential, valid
+  against the backing service it wraps, is delivered intact to an
+  attacker-controlled destination.
+- **Replay**. Because the credential is transmitted correctly (over
+  TLS, not logged, not exposed in a response), standard
+  credential-hygiene controls do not detect or prevent this; the
+  attacker can replay it against the legitimate service until it is
+  rotated or expires.
+- **Redirect bypass**. Validating only the initial destination is
+  insufficient. A destination that passes an initial check can still
+  be redirected to an attacker-controlled host on a later hop, and any
+  custom transport or interceptor that re-applies the credential on
+  every hop defeats the redirect protections an HTTP client library
+  may already provide by default.
+
+#### Mitigation
+
+MCP servers that attach a held credential to an outbound request
+**MUST** validate the request's destination against a trusted
+allowlist, using exact host or exact domain-suffix comparison, before
+attaching the credential. Substring or "contains" checks are
+insufficient.
+
+MCP servers **MUST** re-validate the destination on every redirect
+hop, not only the initial request, and **MUST NOT** re-attach the
+credential to a destination that fails the allowlist check on any hop.
+
+Where a tool must be able to reach a caller-chosen destination that
+cannot be enumerated in advance, such as a general-purpose fetch tool,
+the server **SHOULD** withhold its own credential from the request
+entirely rather than attach it to an unvalidated destination. A
+general-purpose fetch tool has no legitimate reason to carry the
+server's own backing-service credential to a caller-chosen
+destination.
+
+MCP server developers **SHOULD** verify that no custom HTTP transport,
+interceptor, or retry wrapper in their implementation re-applies a
+credential on every hop in a way that bypasses the redirect
+protections their language runtime or HTTP client library provides by
+default.
+
+#### Resources and Tools
+
+This pattern is the mechanism behind a publicly disclosed
+vulnerability in an official cloud vendor's MCP server for database
+access, in which a redirect carried a credentialed request to a cloud
+instance metadata endpoint
+([CVE-2026-14540](https://nvd.nist.gov/vuln/detail/CVE-2026-14540)).
+
 ### State Handle Hijacking
 
 MCP is [stateless](/specification/draft/basic/index#statelessness) and
