@@ -10,15 +10,23 @@
 
 ## Abstract
 
-This SEP defines a transport-agnostic JSON-RPC authorization denial envelope for the Model Context Protocol. The envelope complements transport-level authorization challenges (HTTP `WWW-Authenticate` with Protected Resource Metadata), carrying failure classification, a retry correlation handle, and an extensible set of structured remediation hints for cases the transport cannot easily express. This SEP defines two initial remediation hint types and illustrates their use through two scenarios: URL-based approval composed with [MCP URL-mode elicitation](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation), and new credential issuance using scopes and [OAuth Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Further remediation hint types can be defined in follow-on SEPs without changes to the envelope. This SEP is fully backward compatible. Existing OAuth clients and libraries do not need to change as the envelope is additive.
+This SEP defines an authorization denial envelope for the Model Context Protocol. When an MCP server refuses a request on authorization grounds today, the client has no reliable way to tell what kind of failure it is or what to do next. The only mechanism that carries that information is the HTTP `WWW-Authenticate` challenge, and the stdio transport does not have it.
+
+The envelope is a single object with the same shape on every transport, carried in the `_meta` field of the result that expresses the denial. It tells the client whether there is a way forward, and when there is, it carries remediation hints describing what the client should do. New hint types can be defined by later SEPs without changing the envelope. Where an HTTP `WWW-Authenticate` challenge already describes the remediation in full, that challenge is the entire denial and no envelope is sent.
+
+Sometimes the client's credential does not allow the operation, and the fix is to obtain a new one using OAuth scopes or [Rich Authorization Requests (RFC 9396)](https://datatracker.ietf.org/doc/html/rfc9396). Sometimes the credential is valid but a person has to approve the action first, and the fix is for the server to record that approval. This SEP covers both, including approvals that do not finish before the server has to reply.
+
+This SEP is fully backward compatible. A client that does not recognize the `_meta` key ignores it, so existing OAuth clients and libraries do not need to change.
 
 ## Motivation
 
 1. **Stdio has no defined authorization challenge mechanism**: The MCP specification defines authorization procedures for the HTTP transport, including OAuth 2.1 flows, `WWW-Authenticate` challenges, and Protected Resource Metadata discovery. These mechanisms explicitly exclude stdio, which the specification directs to rely on credentials retrieved from the environment instead. As a result, a stdio MCP server that needs to reject a request on authorization grounds has no standard mechanism to communicate that the failure is an authorization problem, to indicate the nature of the required remediation, or to carry structured data the client can act on. Additionally, current guidance is that stdio servers that require OAuth remediation steps must handle the OAuth flow themselves and act as the OAuth client. This obscures the identity of the MCP client from other participants in the system.
 
-2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The MCP server may deny a request because it has insufficient information to contact an external system, needs confirmation from the user, or another piece of server-side state must be established before the request can succeed. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover this case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, but it is not itself an authorization denial signaling mechanism.
+2. **Support for signaling server-side state remediation**: Some authorization denials are not about the client's credential. The MCP server may deny a request because it has insufficient information to contact an external system, needs confirmation from the user, or another piece of server-side state must be established before the request can succeed. The decision may come from something other than the user at the client, such as a reviewer, a policy engine or an external ticketing system, and it may not arrive until long after the server has replied. OAuth authorization challenges such as `insufficient_scope` or `invalid_token` are shaped around credential changes and do not cover either case. MCP has URL-mode elicitation as a primitive for out-of-band user interaction, and the Tasks extension as a primitive for work that outlives the response, but neither is an authorization denial signaling mechanism.
 
 3. **Support for structured remediation data at denial**: OAuth 2.0 defines Rich Authorization Requests (RFC 9396) for conveying structured authorization requirements, but only as part of the authorization request flow. Adopted OAuth standards do not yet provide a way to carry such structured requirements back to the client at denial time. An IETF OAuth Working Group draft, [`draft-zehavi-oauth-rar-metadata`](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/), proposes a mechanism for HTTP by defining a new `WWW-Authenticate` error code, `insufficient_authorization`, with the structured data placed in the `authorization_remediation` header error parameter, which contains a base64url-encoded JSON object. The draft is HTTP-specific, and this SEP proposes to adopt the same error-remediation pattern at the JSON-RPC layer so it applies across MCP transports.
+
+4. **A denial does not indicate whether it can be remediated**: A client that receives an authorization denial cannot determine whether remediation is possible. It therefore either reattempts authorization for a denial that no credential or approval can satisfy, or treats a remediable denial as final. A remediation may also exist that the server cannot safely disclose or express. OAuth authorization challenges cannot resolve this, because every error value they define names something the client is expected to obtain, and none of them indicates that nothing can be obtained.
 
 ## Specification
 
@@ -28,44 +36,57 @@ This extension is identified as: `io.modelcontextprotocol/structured-authorizati
 
 ### Authorization Denial Envelope
 
-An MCP server that denies a JSON-RPC request on authorization grounds MAY return a JSON-RPC error whose `code` is `<AUTHORIZATION_DENIAL_TBD>` (integer value to be assigned, see Open Questions) and whose `data` contains an `authorization` object populated as defined in this section. The envelope is transport-agnostic.
+An MCP server that denies a request on authorization grounds MAY include an authorization denial envelope in the `_meta` field of the result, under the key `io.modelcontextprotocol/authorization`. The envelope is a single object. Its shape does not vary with the transport, nor with the result that carries it.
 
-The shape of the payload is:
+The shape of the envelope is:
 
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 21,
-  "error": {
-    "code": "<AUTHORIZATION_DENIAL_TBD>",
-    "message": "Authorization is required to continue.",
-    "data": {
-      "authorization": {
-        "reason": "insufficient_authorization",
-        "authorizationContextId": "authzctx_6f2b0d3e",
-        "remediationHints": [
-          {
-            "type": "<remediation-type>"
-            /* additional members determined by the remediation type */
-          }
-        ]
-      }
+  "reason": "insufficient_authorization",
+  "remediation": "<available|unavailable|undisclosed>",
+  "authorizationContextId": "<correlation-handle>",
+  "remediationHints": [
+    {
+      "type": "<remediation-type>"
+      /* additional members determined by the remediation type */
     }
-  }
+  ]
 }
 ```
 
-The fields of the `authorization` object are defined as follows:
+The fields of the envelope are defined as follows:
 
 - `reason` (string, REQUIRED). Indicates that the failure is an authorization denial and classifies its general nature. This SEP defines a single value, `insufficient_authorization`. Additional values MAY be defined by future SEPs.
+- `remediation` (string, REQUIRED). Whether the denial can be acted on. Exactly one of:
+  - `available`. A remediation exists and the client MAY pursue it.
+  - `unavailable`. No remediation exists. The client MUST NOT retry the request unchanged and MUST NOT begin a reauthorization flow.
+  - `undisclosed`. A remediation may exist and the server does not describe it. The client MUST NOT retry the request unchanged and MUST NOT infer that no remediation exists.
 - `authorizationContextId` (string, OPTIONAL). A server-issued correlation handle. When the server includes this field, the client MUST echo it on retry as described in "Retry Echo via `_meta`". The handle is not authorization material, and the server MUST NOT rely on it for authorization decisions when the credential presented on retry is sufficient on its own.
-- `remediationHints` (array of objects, OPTIONAL). Structured remediation hints carried at the JSON-RPC layer that complement any transport-level authorization challenge. Each hint is an object with:
-  - a `type` field (string, REQUIRED), naming the remediation mechanism, and
-  - zero or more additional members whose names and shapes are determined by the value of `type`.
+- `remediationHints` (array of objects, OPTIONAL). Structured remediation hints. Each hint is an object with a `type` field (string, REQUIRED) naming the remediation mechanism, and zero or more additional members whose names and shapes are determined by the value of `type`. Clients MUST ignore remediation hints whose `type` they do not recognize. This member MUST NOT be present when `remediation` is `unavailable` or `undisclosed`. A `remediation` of `available` does not require it, because a transport-level challenge or the response shape itself may carry the remediation.
 
-  Clients MUST ignore remediation hints whose `type` they do not recognize.
+The presence of the envelope means the requested operation has not been performed. A server MUST NOT attach the envelope to a result in which the operation partially executed. A failure occurring after the operation has begun is reported as an ordinary failure of the operation, without the envelope.
 
-The envelope is additive. When a transport-level authorization challenge is present, for example an HTTP `WWW-Authenticate` header, that challenge remains authoritative for driving the client's authorization flow. The envelope provides a transport-agnostic failure classification and, where applicable, structured data that the transport challenge cannot easily express. For stdio, where the MCP specification defines no transport-level authorization challenge mechanism, the envelope is the sole authorization denial signal.
+### Where the envelope attaches
+
+The envelope attaches to whichever result the server uses to express the denial, so its location depends on the case.
+
+| #   | Case                                                               | Response                                                                       | `remediation`                  | Envelope                                             |
+| :-- | :----------------------------------------------------------------- | :----------------------------------------------------------------------------- | :----------------------------- | :--------------------------------------------------- |
+| 1   | The user must complete an interaction at a URL                     | `InputRequiredResult`                                                          | `available`                    | In `_meta`, with a `url` hint                        |
+| 2   | Remediation is proceeding in the background                        | `CreateTaskResult`, and each `tasks/get` result while the task is non-terminal | `available`                    | In `_meta`, with a `task` hint                       |
+| 3   | A new credential is needed and no transport challenge is available | `CallToolResult` with `isError: true`                                          | `available`                    | In `_meta`, with an `authorization_remediation` hint |
+| 4   | The denial is final, or the server will not describe a remediation | `CallToolResult` with `isError: true`                                          | `unavailable` or `undisclosed` | In `_meta`, with no hints                            |
+| 5   | A transport challenge fully describes the remediation              | HTTP status line and `WWW-Authenticate`                                        | Not carried in an envelope     | Absent, see the table below                          |
+
+Case 5 carries no envelope, so the client derives the classification from the challenge. Every challenge below means `reason: insufficient_authorization` and `remediation: available`, and differs only in which parameter carries the remedy.
+
+| Challenge                                                                                                                                         | Remedy carried in                          | What the client does                                                                                             |
+| :------------------------------------------------------------------------------------------------------------------------------------------------ | :----------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| `error="insufficient_scope"` ([RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750))                                                          | `scope`                                    | Obtains a token for the named scopes and retries                                                                 |
+| `error="insufficient_authorization"` ([draft-zehavi-oauth-rar-metadata-05](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/)) | `authorization_remediation`, base64url RAR | Decodes it and sends the `authorization_details` to the authorization server, then retries                       |
+| `error="transaction_authorization_required"` (`draft-rosomakho-oauth-txn-challenge-00`)                                                           | `transaction_challenge`, a JWS             | Posts the JWS to the authorization server's transaction authorization endpoint and retries with the issued token |
+
+No `WWW-Authenticate` parameter expresses `remediation: unavailable` or `undisclosed`. A bare `403` carrying none of these parameters therefore cannot be classified from the challenge alone. A challenge can express only a token remedy, so a remediation requiring a page visit has no case 5 form even on HTTP.
 
 ### Retry Echo via `_meta`
 
@@ -88,13 +109,21 @@ Example retry after a denial carrying `authzctx_7c5d1d79`:
 }
 ```
 
-The `authorizationContextId` is a correlation handle. Servers MAY use it for state lookup (for example, a URL-elicitation outcome in Use Case 1) and for audit and telemetry. To preserve backward compatibility with clients that do not implement this SEP, servers MUST NOT reject a retry whose handle is absent or unresolvable. Authorization is always determined by the credential presented with the request.
+The `authorizationContextId` ties a denial to the retry that follows it, and gives the server a stable value for audit and telemetry. It does not locate server-side state. Where a remediation requires the server to resume work it began at denial time, that state travels with the response that expressed the denial, such as `requestState` on an `InputRequiredResult`.
 
-### Use Case 1 — Server-side state remediation via URL approval
+To preserve backward compatibility with clients that do not implement this SEP, servers MUST NOT reject a retry whose handle is absent or unresolvable. A retry that omits the handle is processed normally, and the server loses the correlation between the denial and the retry. The `authorizationContextId` MUST NOT be treated as sufficient authorization. On retry the server performs a fresh authoritative evaluation using the presented credential, current server-side state, the requested operation and any other relevant context.
 
-This use case covers denials where the client's credential is valid and does not need to change. Remediation requires an out-of-band user interaction at a URL, such as approving access or selecting resources, that changes server-side state. A representative example is a file picker in a cloud storage service, where the user's OAuth token is unchanged and the server records an approval tied to the user.
+### Use Case 1 — Server-side state remediation
 
-This use case composes with the MCP URL elicitation error (`URLElicitationRequiredError`, JSON-RPC error code `-32042`). The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation. The `data.elicitations` array remains the canonical location from which clients read it, as defined by the MCP URL elicitation specification.
+This use case covers denials where the client's credential is valid and does not need to change. Remediation establishes server-side state, such as an approval or a selection of resources, through an interaction that takes place outside the request.
+
+This SEP defines two such interactions. The server indicates which one applies with a `remediationHints` entry of type `url` or `task`. In the first, the interaction is with the user at the client, who opens a URL and completes it while the request is in flight. In the second, the interaction is with someone else, such as a reviewer, a policy engine or a ticketing system, and it may not finish before the server has to reply.
+
+#### Interaction 1 — Completed by the user at a URL
+
+A representative example is a file picker in a cloud storage service, where the user's OAuth token is unchanged and the server records an approval tied to the user.
+
+The server expresses the denial as an `InputRequiredResult` whose `inputRequests` map carries an `elicitation/create` request in `url` mode. The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation, because the `inputRequests` map is where the client reads the URL.
 
 Example denial:
 
@@ -102,29 +131,32 @@ Example denial:
 {
   "jsonrpc": "2.0",
   "id": 17,
-  "error": {
-    "code": -32042,
-    "message": "You need to approve access to the requested folder.",
-    "data": {
-      "authorization": {
-        "reason": "insufficient_authorization",
-        "authorizationContextId": "authzctx_7c5d1d79",
-        "remediationHints": [{ "type": "url" }]
-      },
-      "elicitations": [
-        {
+  "result": {
+    "resultType": "input_required",
+    "inputRequests": {
+      "folder_approval": {
+        "method": "elicitation/create",
+        "params": {
           "mode": "url",
-          "elicitationId": "el_550e8400-e29b-41d4-a716-446655440000",
-          "url": "https://mcp.example.com/approve-folder-access?ctx=authzctx_7c5d1d79",
+          "url": "https://mcp.example.com/approve-folder-access",
           "message": "Open this page to approve access to the requested folder."
         }
-      ]
+      }
+    },
+    "requestState": "eyJhcHByb3ZhbCI6ImZsZF8xMjM0NSJ9",
+    "_meta": {
+      "io.modelcontextprotocol/authorization": {
+        "reason": "insufficient_authorization",
+        "remediation": "available",
+        "authorizationContextId": "authzctx_7c5d1d79",
+        "remediationHints": [{ "type": "url" }]
+      }
     }
   }
 }
 ```
 
-After the user completes the approval, the client retries the original request, echoing the `authorizationContextId` per "Retry Echo via `_meta`":
+After the user completes the approval, the client retries the original request. It returns the elicitation outcome in `inputResponses`, passes `requestState` back unchanged, and echoes the `authorizationContextId` as described in "Retry Echo via `_meta`":
 
 ```json
 {
@@ -134,6 +166,10 @@ After the user completes the approval, the client retries the original request, 
   "params": {
     "name": "files.list_folder",
     "arguments": { "folderId": "fld_12345" },
+    "inputResponses": {
+      "folder_approval": { "action": "accept" }
+    },
+    "requestState": "eyJhcHByb3ZhbCI6ImZsZF8xMjM0NSJ9",
     "_meta": {
       "io.modelcontextprotocol/authorization-context-id": "authzctx_7c5d1d79"
     }
@@ -141,53 +177,107 @@ After the user completes the approval, the client retries the original request, 
 }
 ```
 
-### Use Case 2 — New credential issuance with broader authorization
+#### Interaction 2 — Decided out of band
 
-This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. This new credential issuance may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that adds the required authorization to the new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
-
-An MCP server that denies a request because the client's credential carries insufficient authorization details MAY include a `remediationHints` entry of type `authorization_remediation`, with the following members:
-
-- `authorization_details` (array, REQUIRED). An array of actionable authorization details objects, in the format RFC 9396 specifies for the `authorization_details` request parameter, built from the failed request. A new credential granted for these authorization details satisfies what the denied request required.
-- `authorization_reference` (string, RECOMMENDED). An opaque value generated by the server that allows the client to select an existing credential associated with equivalent authorization details, without interpreting those details. Matching only works if the value is stable across semantically equivalent authorization details. [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/) describes one approach to generating such values. Clients MUST treat the value as opaque. The server MUST NOT include this member when credentials issued for the provided `authorization_details` are intended for single use.
-
-The envelope and the transport challenge are complementary signals:
-
-- The envelope always carries the `reason` classification, and additionally carries the `authorizationContextId` when the server issues one.
-- The envelope MAY additionally carry `remediationHints` describing structured remediation data.
-- When the transport declares its own remediation (for example, an HTTP `WWW-Authenticate` challenge), the transport-level signal is authoritative for driving reauthorization. The envelope is complementary metadata.
-
-In UC2 on HTTP, this means: when the `WWW-Authenticate` challenge fully describes the remediation (Example 1, `insufficient_scope` and Example 2, `insufficient_authorization`), no `remediationHints` are included. When the challenge cannot fully describe the required authorization, the envelope carries a corresponding hint.
-
-For the stdio transport, where the MCP specification defines no transport-level authorization challenge, the envelope is the sole authorization denial signal. A server denying on authorization grounds therefore carries the remediation in the envelope, including an `authorization_remediation` hint where the required authorization can be described as an `authorization_details` object. The client or its hosting environment is responsible for acquiring or refreshing credentials out of band before the request is retried.
-
-#### Example 1 — Scope challenge
-
-Consider an MCP server where the `read` scope covers read-only tools (`files.list`, `files.get`) and the `write` scope is required for modifying tools (`files.update`). The client's access token holds only the `read` scope, and its call to `files.update` is denied:
+The decision is reached outside the request and may not be reached before the server has to reply. A server that denies a request on authorization grounds and can remedy it only through such a decision MUST NOT carry out the request while the decision is pending. It returns a task that holds the request instead. The result is a `CreateTaskResult`, and its envelope MUST include a `remediationHints` entry of type `task`. The Tasks extension requires that a server never return a task to a client that has not declared it, so this interaction is available only when the denied request declared `io.modelcontextprotocol/tasks` in its client capabilities.
 
 ```json
-HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer error="insufficient_scope",
-    scope="read write",
-    resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource"
-Content-Type: application/json
-
 {
   "jsonrpc": "2.0",
-  "id": 17,
-  "error": {
-    "code": "<AUTHORIZATION_DENIAL_TBD>",
-    "message": "You must grant write access to proceed.",
-    "data": {
-      "authorization": {
+  "id": 55,
+  "result": {
+    "resultType": "task",
+    "taskId": "task_3f91b2",
+    "status": "working",
+    "ttlMs": 604800000,
+    "pollIntervalMs": 5000,
+    "_meta": {
+      "io.modelcontextprotocol/authorization": {
         "reason": "insufficient_authorization",
-        "authorizationContextId": "authzctx_8a3e1f4b"
+        "remediation": "available",
+        "authorizationContextId": "authzctx_ap_51d0",
+        "remediationHints": [{ "type": "task" }]
       }
     }
   }
 }
 ```
 
-The client performs OAuth reauthorization using the transport challenge, obtains a new access token whose scope includes both `read` and `write`, and retries the original request with the new token in the `Authorization` header. The client echoes the `authorizationContextId` per "Retry Echo via `_meta`":
+While the task is not in a terminal state, the server MUST repeat the envelope on every `tasks/get` result. A client that resumes polling after a restart holds only the `taskId` it read from its own storage, and the response that created the task is gone, so without the repetition it cannot tell that the task is waiting on an authorization decision.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 61,
+  "result": {
+    "taskId": "task_3f91b2",
+    "status": "working",
+    "_meta": {
+      "io.modelcontextprotocol/authorization": {
+        "reason": "insufficient_authorization",
+        "remediation": "available",
+        "authorizationContextId": "authzctx_ap_51d0",
+        "remediationHints": [{ "type": "task" }]
+      }
+    }
+  }
+}
+```
+
+The task holds the original request, so the client does not retry it and there is nothing to echo. When the decision allows the request, the server evaluates authorization afresh and then carries it out, and the task reaches `completed` with the outcome in its `result` field. When the decision refuses it, the task also reaches `completed`, because a refusal is an outcome of the call rather than a failure of the task, and the `result` field carries the denial.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 74,
+  "result": {
+    "taskId": "task_3f91b2",
+    "status": "completed",
+    "result": {
+      "resultType": "complete",
+      "isError": true,
+      "content": [
+        { "type": "text", "text": "The access request was not approved." }
+      ],
+      "_meta": {
+        "io.modelcontextprotocol/authorization": {
+          "reason": "insufficient_authorization",
+          "remediation": "unavailable",
+          "authorizationContextId": "authzctx_ap_51d0"
+        }
+      }
+    }
+  }
+}
+```
+
+This SEP defines how an authorization denial is expressed while a decision is pending and once it has been made. How the server manages the pending decision, including how it records what was requested and how it guarantees the request runs no more than once, is outside its scope.
+
+### Use Case 2 — New credential issuance with broader authorization
+
+This use case covers denials where the client's existing credential carries insufficient authorization for the requested operation and remediation requires obtaining a new credential. This new credential issuance may involve additional OAuth scopes, a Rich Authorization Requests `authorization_details` object (RFC 9396), or any other mechanism that adds the required authorization to the new credential. In contrast with Use Case 1, the failure cannot be resolved by server-side state changes alone.
+
+A denial in this use case takes one of two shapes, depending on whether a transport challenge can carry the remediation. On HTTP, where the `WWW-Authenticate` challenge describes it in full, the denial is expressed at the transport layer. There is no MCP result, so there is no envelope, and the client derives `reason` and `remediation` from the challenge as described in "Where the envelope attaches".
+
+Where the challenge cannot describe the required authorization, and on the stdio transport where the MCP specification defines no authorization challenge at all, the server expresses the denial as a result. The envelope is then the only authorization denial signal, and it MAY carry a `remediationHints` entry of type `authorization_remediation` with the following members:
+
+- `authorization_details` (array, REQUIRED). An array of actionable authorization details objects, in the format RFC 9396 specifies for the `authorization_details` request parameter, built from the failed request. A new credential granted for these authorization details satisfies what the denied request required.
+- `authorization_reference` (string, RECOMMENDED). An opaque value generated by the server that allows the client to select an existing credential associated with equivalent authorization details, without interpreting those details. Matching only works if the value is stable across semantically equivalent authorization details. [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/) describes one approach to generating such values. Clients MUST treat the value as opaque. The server MUST NOT include this member when credentials issued for the provided `authorization_details` are intended for single use.
+
+A client that has obtained a remediation, whether from the transport challenge or from an `authorization_remediation` hint, MAY retry with a credential it already holds that matches the `authorization_reference`, and otherwise uses the `authorization_details` in a new OAuth authorization request. On HTTP transports, a client that does not recognize the remediation SHOULD fall back to resource-metadata and authorization-server-metadata discovery.
+
+#### Example 1 — Scope challenge
+
+Consider an MCP server where the `read` scope covers read-only tools (`files.list`, `files.get`) and the `write` scope is required for modifying tools (`files.update`). The client's access token holds only the `read` scope, and its call to `files.update` is denied:
+
+```http
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer error="insufficient_scope",
+    scope="read write",
+    resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource"
+```
+
+The client performs OAuth reauthorization using the transport challenge, obtains a new access token whose scope includes both `read` and `write`, and retries the original request with the new token in the `Authorization` header:
 
 ```http
 POST /mcp HTTP/1.1
@@ -201,47 +291,24 @@ Content-Type: application/json
   "method": "tools/call",
   "params": {
     "name": "files.update",
-    "arguments": { "fileId": "fl_98765", "content": "..." },
-    "_meta": {
-      "io.modelcontextprotocol/authorization-context-id": "authzctx_8a3e1f4b"
-    }
+    "arguments": { "fileId": "fl_98765", "content": "..." }
   }
 }
 ```
 
 #### Example 2 — Rich Authorization Requests remediation
 
-When a denied request requires authorization beyond what OAuth scopes can express, the `WWW-Authenticate` challenge can signal that authorization is insufficient and also provide the structured remediation requirements, with which the client can construct its next authorization request directly, without additional metadata discovery. This approach uses the error-remediation pattern defined in [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/).
-
-An MCP server that denies a request because the access token lacks sufficient authorization details returns a transport layer WWW-Authenticate header with appropriate remediation requirements. The client performs OAuth reauthorization using the transport challenge, obtains a new access token which includes the provided `authorization_details`, and retries the original request with the new token in the `Authorization` header. The client echoes the `authorizationContextId` per "Retry Echo via `_meta`".
-
-A client that has obtained a remediation, whether from the transport challenge or from an `authorization_remediation` hint, MAY first check whether it already holds a valid credential matching the `authorization_reference`, when one is provided, and retry using that credential. Otherwise the client MAY use the provided `authorization_details` directly in a subsequent OAuth authorization request. On HTTP transports, a client that does not recognize the remediation SHOULD fall back to resource-metadata and authorization-server-metadata discovery to determine how to construct a valid authorization request.
+When a denied request requires authorization beyond what OAuth scopes can express, the `WWW-Authenticate` challenge can carry the structured remediation requirements directly, so the client can construct its next authorization request without further metadata discovery. This uses the error-remediation pattern defined in [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/).
 
 Consider an MCP server that exposes a `payments.initiate` tool where initiating a payment requires authorization details bound to the payee and amount. The client's current access token does not carry such authorization details, and the call is denied:
 
-```json
+```http
 HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Bearer error="insufficient_authorization",
     resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource/payments",
     error_description="Additional authorization is required",
     authorization_remediation=eyJhdXRob3JpemF0aW9uX2RldGFpbHMiOlt7InR5cGUiOiJwYXltZW50X2luaXRpYXRpb24i...
-Content-Type: application/json
 Cache-Control: no-store
-
-{
-  "jsonrpc": "2.0",
-  "id": 31,
-  "error": {
-    "code": "<AUTHORIZATION_DENIAL_TBD>",
-    "message": "Current authorization is insufficient for this payment.",
-    "data": {
-      "authorization": {
-        "reason": "insufficient_authorization",
-        "authorizationContextId": "authzctx_pay_9f2c"
-      }
-    }
-  }
-}
 ```
 
 The client attempts to locate an existing valid credential matching a provided `authorization_reference`, if provided. If no matching credential is found, the client uses the `authorization_details` from WWW-Authenticate header's `authorization_remediation` parameter, to construct an OAuth authorization request, per [RFC 9396#section-2](https://datatracker.ietf.org/doc/html/rfc9396#section-2):
@@ -256,9 +323,9 @@ GET /authorize?
 Host: as.example.com
 ```
 
-After obtaining a new access token, the client retries the original request, echoing the `authorizationContextId`:
+After obtaining a new access token, the client retries the original request:
 
-```json
+```http
 POST /mcp HTTP/1.1
 Host: mcp.example.com
 Authorization: Bearer at_new
@@ -276,9 +343,6 @@ Content-Type: application/json
       "creditorName": "Merchant A",
       "creditorAccount": "DE02100100109307118603",
       "remittanceInformationUnstructured": "Ref Number Merchant"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_9f2c"
     }
   }
 }
@@ -286,18 +350,25 @@ Content-Type: application/json
 
 #### Example 3 — Remediation over stdio
 
-On stdio there is no status line and no headers, so the JSON-RPC error is the entire denial. An MCP server that exposes `payments.initiate` denies the call because the authorization it holds does not cover the payment, and carries the requirement in the envelope:
+On stdio there is no status line and no headers, so the result is the entire denial. An MCP server that exposes `payments.initiate` denies the call because the authorization it holds does not cover the payment, and carries the requirement in the envelope:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": 41,
-  "error": {
-    "code": "<AUTHORIZATION_DENIAL_TBD>",
-    "message": "Current authorization is insufficient for this payment.",
-    "data": {
-      "authorization": {
+  "result": {
+    "resultType": "complete",
+    "isError": true,
+    "content": [
+      {
+        "type": "text",
+        "text": "Current authorization is insufficient for this payment."
+      }
+    ],
+    "_meta": {
+      "io.modelcontextprotocol/authorization": {
         "reason": "insufficient_authorization",
+        "remediation": "available",
         "authorizationContextId": "authzctx_pay_4d81",
         "remediationHints": [
           {
@@ -350,25 +421,46 @@ The client constructs an OAuth authorization request from the `authorization_det
 }
 ```
 
+### Denials with no remediation to describe
+
+A denial that carries no hints is the shape `remediation` exists to disambiguate, because nothing else in the result distinguishes a final denial from one whose remedy the server will not describe:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 71,
+  "result": {
+    "resultType": "complete",
+    "isError": true,
+    "content": [
+      { "type": "text", "text": "You do not have access to this workspace." }
+    ],
+    "_meta": {
+      "io.modelcontextprotocol/authorization": {
+        "reason": "insufficient_authorization",
+        "remediation": "unavailable",
+        "authorizationContextId": "authzctx_2b7e9c"
+      }
+    }
+  }
+}
+```
+
+A server that holds a remedy it will not describe sends the same result with `remediation` set to `undisclosed`. The handle is still useful on both, because a caller who asks why the request failed needs something to quote.
+
 ## Rationale
 
 This SEP standardizes the smallest set of facts that an MCP client and server need to communicate after an authorization denial: what classification the failure has, how the retry is correlated, and what remediation posture the server can describe. Any further extensions, whether a new remediation type or a new transport binding, can be added additively for future needs without changing the envelope itself. For example, a future `remediationHints` type could describe a Client Initiated Backchannel Authentication (CIBA) flow, in which per-operation approvals occur on a separate channel such as a push notification rather than interrupting the foreground session.
 
-The SEP composes with existing MCP primitives rather than inventing parallel shapes. Use Case 1 reuses MCP URL elicitation (`URLElicitationRequiredError`) and adds the envelope as sibling metadata inside the same error response. Clients that already understand URL elicitation continue to work unchanged, and clients that additionally understand the envelope receive transport-agnostic classification and a correlation handle.
+The SEP composes with existing MCP primitives rather than inventing parallel shapes. Use Case 1 reuses url-mode elicitation where the user completes the interaction while the request is in flight, and the Tasks extension where the decision outlives the response, and in both the envelope rides in the result's `_meta`. Clients that already understand those primitives continue to work unchanged, and clients that additionally understand the envelope receive transport-agnostic classification and a correlation handle.
 
 A denial's structured requirement can reach the client through a transport mechanism that carries it alongside the failure signal, or through the envelope. MCP's stdio transport has no challenge layer, so there the envelope is the only carrier available. Defining the requirement's shape at the JSON-RPC layer means one denial shape works identically on every MCP transport, and no transport-level mechanism becomes load-bearing for the extension itself.
 
-### Alternatives Considered
-
-**URL elicitation as the universal remediation primitive**
-
-An alternative was considered in which all denial remediation would be modeled through MCP URL elicitation, so that every authorization denial surfaces as a URL the user opens in a browser. This was rejected as a universal primitive because URL elicitation's standardized follow-up is `notifications/elicitation/complete`, not the return of a credential to the client. URL elicitation therefore cannot safely model flows in which the remediation produces a new access token. The SEP adopts URL elicitation partially, for Use Case 1, where the remediation is server-side state set through user interaction and the client's credential does not change. Use Case 2, which produces a new credential, relies on OAuth rather than URL elicitation.
-
 ## Backward Compatibility
 
-All changes introduced by this SEP are additive. The new JSON-RPC error code `<AUTHORIZATION_DENIAL_TBD>` is unknown to clients that do not implement this SEP, and such clients treat it as any other unrecognized error code and surface a generic failure to the caller. Members of `error.data` that a client does not recognize are ignored per common JSON-RPC practice.
+All changes introduced by this SEP are additive. The envelope is carried in the result's `_meta` under a key that a client which does not implement this SEP will not recognize, and unrecognized `_meta` members are ignored, so such a client processes the result exactly as it does today.
 
-Use Case 1 preserves the existing `-32042` URL elicitation error code and keeps `data.elicitations` at its existing location, so existing URL-elicitation clients process the error as they do today.
+Use Case 1 uses url-mode elicitation and the Tasks extension exactly as they are defined, and adds only the `_meta` key, so a client that implements those primitives needs no change to handle the denial.
 
 Transport-level authorization mechanisms are not modified, and existing OAuth libraries and resource-server configurations require no changes.
 
@@ -378,11 +470,11 @@ A client that does not implement this SEP does not echo `authorizationContextId`
 
 ### URL safe handling and phishing mitigation
 
-The MCP URL elicitation specification's [safe URL handling](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation#safe-url-handling) and [phishing](https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation#phishing) mitigation requirements apply to any URL carried in the denials with remediationHint of type `url`.
+The MCP elicitation specification's [safe URL handling](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation#safe-url-handling) and [phishing](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation#phishing) requirements apply to any URL carried in a denial whose envelope has a `remediationHints` entry of type `url`.
 
 ### Correlation handle is not authorization material
 
-The `authorizationContextId` field is a correlation handle, not authorization material. The credential on the retry, not just the handle, is what determines whether the request is authorized.
+The `authorizationContextId` field is a correlation handle, not authorization material. Possession of it grants nothing, because on retry the server evaluates authorization afresh using the presented credential, current server-side state and the requested operation.
 
 ### Information disclosure through remediation hints
 
@@ -400,10 +492,6 @@ Both the authorization server and the resource server are responsible for valida
 
 TBD
 
-## Open Questions
-
-1. **JSON-RPC error code value**: The JSON-RPC error code introduced by this SEP is currently written as `<AUTHORIZATION_DENIAL_TBD>`. An integer value within the MCP error code range needs to be assigned before acceptance.
-
 ## Acknowledgments
 
 This proposal was developed through discussion in the MCP Fine-Grained Authorization Working Group and refined across review cycles before being presented as a SEP, with input from:
@@ -412,3 +500,5 @@ This proposal was developed through discussion in the MCP Fine-Grained Authoriza
 - Yaron Zehavi (OAuth RAR/Payment Industry expertise; author of [OAuth 2.0 RAR Metadata and Error Remediation](https://datatracker.ietf.org/doc/draft-zehavi-oauth-rar-metadata/05/), adopted by the IETF OAuth Working Group)
 - Justin Richer (OAuth/RAR/GNAP expertise)
 - Max Gerber (Design Reviews)
+- Karl McGuinness (author of [SEP-2848](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2848))
+- Mats Sundvall (Review feedback)
