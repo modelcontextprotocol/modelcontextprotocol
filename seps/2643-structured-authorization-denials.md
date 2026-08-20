@@ -61,7 +61,7 @@ The fields of the envelope are defined as follows:
   - `available`. A remediation exists and the client MAY pursue it.
   - `unavailable`. No remediation exists. The client MUST NOT retry the request unchanged and MUST NOT begin a reauthorization flow.
   - `undisclosed`. A remediation may exist and the server does not describe it. The client MUST NOT retry the request unchanged and MUST NOT infer that no remediation exists.
-- `authorizationContextId` (string, OPTIONAL). A server-issued correlation handle. When the server includes this field, the client MUST echo it on retry as described in "Retry Echo via `_meta`". The handle is not authorization material, and the server MUST NOT rely on it for authorization decisions when the credential presented on retry is sufficient on its own.
+- `authorizationContextId` (string, OPTIONAL). A server-issued correlation handle. When the server includes this field, the client MUST echo it on retry as described in "Retry Echo via `_meta`". The handle is not authorization material, and the server MUST NOT rely on it for authorization decisions.
 - `remediationHints` (array of objects, OPTIONAL). Structured remediation hints. Each hint is an object with a `type` field (string, REQUIRED) naming the remediation mechanism, and zero or more additional members whose names and shapes are determined by the value of `type`. Clients MUST ignore remediation hints whose `type` they do not recognize. This member MUST NOT be present when `remediation` is `unavailable` or `undisclosed`. A `remediation` of `available` does not require it, because a transport-level challenge or the response shape itself may carry the remediation.
 
 The presence of the envelope means the requested operation has not been performed. A server MUST NOT attach the envelope to a result in which the operation partially executed. A failure occurring after the operation has begun is reported as an ordinary failure of the operation, without the envelope.
@@ -70,13 +70,13 @@ The presence of the envelope means the requested operation has not been performe
 
 The envelope attaches to whichever result the server uses to express the denial, so its location depends on the case.
 
-| #   | Case                                                               | Response                                                                       | `remediation`                  | Envelope                                             |
-| :-- | :----------------------------------------------------------------- | :----------------------------------------------------------------------------- | :----------------------------- | :--------------------------------------------------- |
-| 1   | The user must complete an interaction at a URL                     | `InputRequiredResult`                                                          | `available`                    | In `_meta`, with a `url` hint                        |
-| 2   | Remediation is proceeding in the background                        | `CreateTaskResult`, and each `tasks/get` result while the task is non-terminal | `available`                    | In `_meta`, with a `task` hint                       |
-| 3   | A new credential is needed and no transport challenge is available | `CallToolResult` with `isError: true`                                          | `available`                    | In `_meta`, with an `authorization_remediation` hint |
-| 4   | The denial is final, or the server will not describe a remediation | `CallToolResult` with `isError: true`                                          | `unavailable` or `undisclosed` | In `_meta`, with no hints                            |
-| 5   | A transport challenge fully describes the remediation              | HTTP status line and `WWW-Authenticate`                                        | Not carried in an envelope     | Absent, see the table below                          |
+| #   | Case                                                                                   | Response                                                                       | `remediation`                  | Envelope                                             |
+| :-- | :------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------- | :----------------------------- | :--------------------------------------------------- |
+| 1   | The user must complete an interaction at a URL                                         | `InputRequiredResult`                                                          | `available`                    | In `_meta`, with a `url` hint                        |
+| 2   | Remediation is proceeding in the background, and the client has declared Tasks support | `CreateTaskResult`, and each `tasks/get` result while the task is non-terminal | `available`                    | In `_meta`, with a `task` hint                       |
+| 3   | A new credential is needed and no transport challenge is available                     | `CallToolResult` with `isError: true`                                          | `available`                    | In `_meta`, with an `authorization_remediation` hint |
+| 4   | The denial is final, or the server will not describe a remediation                     | `CallToolResult` with `isError: true`                                          | `unavailable` or `undisclosed` | In `_meta`, with no hints                            |
+| 5   | A transport challenge fully describes the remediation                                  | HTTP status line and `WWW-Authenticate`                                        | Not carried in an envelope     | Absent, see the table below                          |
 
 Case 5 carries no envelope, so the client derives the classification from the challenge. Every challenge below means `reason: insufficient_authorization` and `remediation: available`, and differs only in which parameter carries the remedy.
 
@@ -454,7 +454,7 @@ This SEP standardizes the smallest set of facts that an MCP client and server ne
 
 The SEP composes with existing MCP primitives rather than inventing parallel shapes. Use Case 1 reuses url-mode elicitation where the user completes the interaction while the request is in flight, and the Tasks extension where the decision outlives the response, and in both the envelope rides in the result's `_meta`. Clients that already understand those primitives continue to work unchanged, and clients that additionally understand the envelope receive transport-agnostic classification and a correlation handle.
 
-A denial's structured requirement can reach the client through a transport mechanism that carries it alongside the failure signal, or through the envelope. MCP's stdio transport has no challenge layer, so there the envelope is the only carrier available. Defining the requirement's shape at the JSON-RPC layer means one denial shape works identically on every MCP transport, and no transport-level mechanism becomes load-bearing for the extension itself.
+A denial's structured requirement can reach the client through a transport mechanism that carries it alongside the failure signal, or through the envelope. MCP's stdio transport has no challenge layer, so there the envelope is the only carrier available. Defining the requirement's shape at the JSON-RPC layer means one denial shape works identically on every MCP transport, and the extension itself depends on no transport-level mechanism.
 
 ## Backward Compatibility
 
