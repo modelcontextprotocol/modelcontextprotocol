@@ -1,3 +1,173 @@
+import {
+  JSONRPCMessage,
+  JSONRPCRequest,
+  JSONRPCNotification,
+  JSONRPCResponse,
+  JSONRPCResultResponse,
+  JSONRPCErrorResponse,
+  PARSE_ERROR,
+  INVALID_REQUEST,
+} from "./mcp-types"; // path to your types file
+
+/**
+ * Narrows a message to a JSON-RPC Request (has method & id).
+ */
+export function isJSONRPCRequest(msg: JSONRPCMessage): msg is JSONRPCRequest {
+  return (
+    typeof msg === "object" &&
+    msg !== null &&
+    msg.jsonrpc === "2.0" &&
+    typeof (msg as JSONRPCRequest).method === "string" &&
+    (msg as JSONRPCRequest).id !== undefined
+  );
+}
+
+/**
+ * Narrows a message to a JSON-RPC Notification (has method, no id).
+ */
+export function isJSONRPCNotification(
+  msg: JSONRPCMessage
+): msg is JSONRPCNotification {
+  return (
+    typeof msg === "object" &&
+    msg !== null &&
+    msg.jsonrpc === "2.0" &&
+    typeof (msg as JSONRPCNotification).method === "string" &&
+    (msg as JSONRPCNotification).id === undefined
+  );
+}
+
+/**
+ * Narrows a message to a successful JSON-RPC Response (has result & id).
+ */
+export function isJSONRPCResultResponse(
+  msg: JSONRPCMessage
+): msg is JSONRPCResultResponse {
+  return (
+    typeof msg === "object" &&
+    msg !== null &&
+    msg.jsonrpc === "2.0" &&
+    (msg as JSONRPCResultResponse).id !== undefined &&
+    "result" in msg
+  );
+}
+
+/**
+ * Narrows a message to a JSON-RPC Error Response (has error).
+ */
+export function isJSONRPCErrorResponse(
+  msg: JSONRPCMessage
+): msg is JSONRPCErrorResponse {
+  return (
+    typeof msg === "object" &&
+    msg !== null &&
+    msg.jsonrpc === "2.0" &&
+    "error" in msg &&
+    typeof (msg as JSONRPCErrorResponse).error === "object" &&
+    typeof (msg as JSONRPCErrorResponse).error.code === "number"
+  );
+}
+
+/**
+ * Main dispatcher function to handle incoming MCP JSON-RPC messages.
+ */
+export async function handleJSONRPCMessage(
+  message: unknown
+): Promise<JSONRPCResponse | void> {
+  // 1. Basic structural validation
+  if (typeof message !== "object" || message === null) {
+    return {
+      jsonrpc: "2.0",
+      id: null,
+      error: { code: PARSE_ERROR, message: "Invalid JSON-RPC message envelope" },
+    };
+  }
+
+  const msg = message as JSONRPCMessage;
+
+  // 2. Handle Requests
+  if (isJSONRPCRequest(msg)) {
+    return handleRequest(msg);
+  }
+
+  // 3. Handle Notifications
+  if (isJSONRPCNotification(msg)) {
+    handleNotification(msg);
+    return; // Notifications do not expect a response
+  }
+
+  // 4. Handle Successful Responses
+  if (isJSONRPCResultResponse(msg)) {
+    handleResultResponse(msg);
+    return;
+  }
+
+  // 5. Handle Error Responses
+  if (isJSONRPCErrorResponse(msg)) {
+    handleErrorResponse(msg);
+    return;
+  }
+
+  // Fallback for invalid protocol structure
+  return {
+    jsonrpc: "2.0",
+    id: (msg as any)?.id ?? null,
+    error: {
+      code: INVALID_REQUEST,
+      message: "Message does not match JSON-RPC 2.0 request, notification, or response schemas.",
+    },
+  };
+}
+
+/* Individual Handler Implementations */
+
+async function handleRequest(request: JSONRPCRequest): Promise<JSONRPCResponse> {
+  const protocolVersion = request.params?._meta?.["io.modelcontextprotocol/protocolVersion"];
+  
+  switch (request.method) {
+    case "server/discover":
+      return {
+        jsonrpc: "2.0",
+        id: request.id,
+        result: {
+          resultType: "complete",
+          supportedVersions: [protocolVersion || "2026-07-28"],
+          capabilities: { tools: {}, prompts: {} },
+        },
+      };
+
+    default:
+      return {
+        jsonrpc: "2.0",
+        id: request.id,
+        error: {
+          code: -32601, // METHOD_NOT_FOUND
+          message: `Method '${request.method}' not implemented.`,
+        },
+      };
+  }
+}
+
+function handleNotification(notification: JSONRPCNotification): void {
+  switch (notification.method) {
+    case "notifications/cancelled":
+      console.log(`Request cancelled: ${notification.params?.requestId}`);
+      break;
+
+    default:
+      console.log(`Received unknown notification: ${notification.method}`);
+  }
+}
+
+function handleResultResponse(response: JSONRPCResultResponse): void {
+  console.log(`Received response for request ${response.id}:`, response.result);
+}
+
+function handleErrorResponse(response: JSONRPCErrorResponse): void {
+  console.error(
+    `Request ${response.id ?? "unknown"} failed [Code ${response.error.code}]: ${response.error.message}`
+  );
+}
 /* JSON types */
 
 /**
