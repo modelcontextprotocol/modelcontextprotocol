@@ -54,7 +54,7 @@ This extension is identified as: `io.modelcontextprotocol/structured-authorizati
 
 ### Authorization Denial Envelope
 
-An MCP server that denies a request on authorization grounds MAY include an authorization denial envelope in the `_meta` field of the result, under the key `io.modelcontextprotocol/authorization`. The envelope is a single object. Its shape does not vary with the transport, nor with the result that carries it.
+An MCP server that denies a request on authorization grounds SHOULD include an authorization denial envelope in the `_meta` field of the result, under the key `io.modelcontextprotocol/authorization`. The envelope is a single object. Its shape does not vary with the transport, nor with the result that carries it.
 
 The shape of the envelope is:
 
@@ -93,7 +93,7 @@ The envelope attaches to whichever result the server uses to express the denial,
 | 1   | The user must complete an interaction at a URL                                         | `InputRequiredResult`                                                          | `available`                    | In `_meta`, with a `url` hint                        |
 | 2   | Remediation is proceeding in the background, and the client has declared Tasks support | `CreateTaskResult`, and each `tasks/get` result while the task is non-terminal | `available`                    | In `_meta`, with a `task` hint                       |
 | 3   | A new credential is needed and no transport challenge is available                     | `CallToolResult` with `isError: true`                                          | `available`                    | In `_meta`, with an `authorization_remediation` hint |
-| 4   | The denial is final, or the server will not describe a remediation                     | `CallToolResult` with `isError: true`                                          | `unavailable` or `undisclosed` | In `_meta`, with no hints                            |
+| 4   | The denial is final, or the server does not describe a remediation                     | `CallToolResult` with `isError: true`                                          | `unavailable` or `undisclosed` | In `_meta`, with no hints                            |
 | 5   | A transport challenge fully describes the remediation                                  | HTTP status line and `WWW-Authenticate`                                        | Not carried in an envelope     | Absent, see the table below                          |
 
 Case 5 carries no envelope, so the client derives the classification from the challenge. Every challenge below means `reason: insufficient_authorization` and `remediation: available`, and differs only in which parameter carries the remedy.
@@ -141,7 +141,7 @@ This SEP defines two such interactions. The server indicates which one applies w
 
 A representative example is a file picker in a cloud storage service, where the user's OAuth token is unchanged and the server records an approval tied to the user.
 
-The server expresses the denial as an `InputRequiredResult` whose `inputRequests` map carries an `elicitation/create` request in `url` mode. The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation, because the `inputRequests` map is where the client reads the URL.
+The server expresses the denial as an `InputRequiredResult` whose `inputRequests` map carries an `elicitation/create` request in `url` mode. The envelope MUST include a `remediationHints` entry of type `url`. That hint carries no pointer to the elicitation, because the `inputRequests` map is where the client reads the URL. Elicitation modes are negotiated, so a server must not request a mode the client did not declare, and this interaction is available only when the denied request declared `elicitation.url` in its client capabilities.
 
 Example denial:
 
@@ -213,7 +213,7 @@ The decision is reached outside the request and may not be reached before the se
       "io.modelcontextprotocol/authorization": {
         "reason": "insufficient_authorization",
         "remediation": "available",
-        "authorizationContextId": "authzctx_ap_51d0",
+        "authorizationContextId": "authzctx_9e4c02b1",
         "remediationHints": [{ "type": "task" }]
       }
     }
@@ -234,7 +234,7 @@ While the task is not in a terminal state, the server MUST repeat the envelope o
       "io.modelcontextprotocol/authorization": {
         "reason": "insufficient_authorization",
         "remediation": "available",
-        "authorizationContextId": "authzctx_ap_51d0",
+        "authorizationContextId": "authzctx_9e4c02b1",
         "remediationHints": [{ "type": "task" }]
       }
     }
@@ -261,7 +261,7 @@ The task holds the original request, so the client does not retry it and there i
         "io.modelcontextprotocol/authorization": {
           "reason": "insufficient_authorization",
           "remediation": "unavailable",
-          "authorizationContextId": "authzctx_ap_51d0"
+          "authorizationContextId": "authzctx_9e4c02b1"
         }
       }
     }
@@ -270,6 +270,8 @@ The task holds the original request, so the client does not retry it and there i
 ```
 
 This SEP defines how an authorization denial is expressed while a decision is pending and once it has been made. How the server manages the pending decision, including how it records what was requested and how it guarantees the request runs no more than once, is outside its scope.
+
+A server knows which interactions are open to it, because a request carries the client's capabilities. When the denied request declared neither `elicitation.url` nor `io.modelcontextprotocol/tasks`, the server has no interaction to offer. It returns a `CallToolResult` with `isError: true` carrying an envelope whose `remediation` is `undisclosed`, and describes the remedy in `content`. The server MUST NOT use `unavailable` in this case, because the remedy exists and a client that declared either capability would be offered it.
 
 ### Use Case 2 — New credential issuance with broader authorization
 
@@ -387,7 +389,7 @@ On stdio there is no status line and no headers, so the result is the entire den
       "io.modelcontextprotocol/authorization": {
         "reason": "insufficient_authorization",
         "remediation": "available",
-        "authorizationContextId": "authzctx_pay_4d81",
+        "authorizationContextId": "authzctx_c17a3f5e",
         "remediationHints": [
           {
             "type": "authorization_remediation",
@@ -433,7 +435,7 @@ The client constructs an OAuth authorization request from the `authorization_det
       "remittanceInformationUnstructured": "Ref Number Merchant"
     },
     "_meta": {
-      "io.modelcontextprotocol/authorization-context-id": "authzctx_pay_4d81"
+      "io.modelcontextprotocol/authorization-context-id": "authzctx_c17a3f5e"
     }
   }
 }
@@ -494,17 +496,21 @@ The MCP elicitation specification's [safe URL handling](https://modelcontextprot
 
 The `authorizationContextId` field is a correlation handle, not authorization material. Possession of it grants nothing, because on retry the server evaluates authorization afresh using the presented credential, current server-side state and the requested operation.
 
+### Information disclosure through the correlation handle
+
+The handle gives the server a stable value for audit and telemetry, so it reaches logs and traces that outlive the exchange and that are read by parties other than the client. Servers SHOULD generate the `authorizationContextId` as an opaque value, and SHOULD NOT encode in it the operation, the resource, the policy that denied the request, or any information about the user.
+
 ### Information disclosure through remediation hints
 
 Remediation hints describe what a client should do in response to a denial. They MUST NOT carry information that would itself require authorization to read, such as the identity of another user whose approval would be required or the contents of a resource the client cannot access.
 
+### Integrity of remediation hints
+
+A remediation hint tells the client what to do next, so an intermediary that can modify the response can substitute a remediation URL or alter the `authorization_details` a client will send to its authorization server. A client MUST NOT act on a remediation hint, or on the URL of a url-mode elicitation accompanying a denial, unless it has assurance that the response originated from the MCP server it addressed, and an authenticated connection to an intermediary is not that assurance. This SEP mandates no mechanism for establishing it. Deployments on HTTP MAY use [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) with [Digest Fields (RFC 9530)](https://datatracker.ietf.org/doc/html/rfc9530).
+
 ### Client-side modification of `authorization_details`
 
-A client MAY use the denial's `authorization_details` verbatim in a subsequent OAuth authorization request. The verbatim pattern is provided as a convenience.
-
-Servers SHOULD structure `authorization_details` so that their contents are safe for the client to see.
-
-Both the authorization server and the resource server are responsible for validating `authorization_details`. The authorization server validates against user consent and policy before issuing a token, and the resource server validates against the operation being requested on retry.
+The `authorization_details` a server places in a denial reach the authorization server by way of the client, which can change them along the way. An MCP server MUST NOT treat a token as authorizing an operation because it carries authorization details resembling the ones the denial asked for, and MUST validate the token against the operation actually requested on retry. Servers SHOULD NOT place anything in `authorization_details` that they would be unwilling for the client to see or alter.
 
 ## Reference Implementation
 
