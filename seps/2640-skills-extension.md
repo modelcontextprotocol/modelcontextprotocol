@@ -129,6 +129,7 @@ The result carries the skill entries:
   "jsonrpc": "2.0",
   "id": 4,
   "result": {
+    "resultType": "complete",
     "skills": [
       {
         "uri": "skill://git-workflow/SKILL.md",
@@ -216,11 +217,12 @@ Result fields:
 | `skills`                      | Yes      | Array of skill entries.                                                                                      |
 | `skills[].frontmatter`        | Yes      | Verbatim copy of the skill's `SKILL.md` YAML frontmatter, rendered as JSON. See [Frontmatter](#frontmatter). |
 | `skills[].uri`                | Yes      | Resource URI of the skill's `SKILL.md`. See [Skill URIs](#skill-uris).                                       |
-| `skills[].resources`          | Yes¹     | Complete enumeration of the skill's files with their digests. See [Resources](#resources).                   |
+| `skills[].resources`          | Yes      | The skill's files: an array enumerating them with digests and sizes, or the string `"dynamic"`. See [Resources](#resources). |
 | `skills[].resources[].uri`    | Yes      | Resource URI of the file.                                                                                    |
 | `skills[].resources[].digest` | Yes      | SHA-256 digest of the file. See [Integrity](#integrity-and-verification).                                    |
+| `skills[].resources[].size`   | Yes      | Length in bytes of the file's raw content. See [Limits](#limits).                                            |
 
-¹ MAY be omitted only for dynamically generated skills whose content cannot be pre-digested. Hosts MAY decline to load skills without `resources`.
+A skill whose content is generated dynamically carries `"resources": "dynamic"` in place of the array. An entry with no `resources` at all is invalid.
 
 Pagination mirrors the base protocol's list methods: the request accepts an optional `cursor`, and when the result includes `nextCursor` the client passes it back to retrieve the next page. An entry is atomic — a skill's `resources` set is never split across pages.
 
@@ -301,6 +303,7 @@ A server declaring the `io.modelcontextprotocol/skills` extension MUST also impl
   "jsonrpc": "2.0",
   "id": 5,
   "result": {
+    "resultType": "complete",
     "skill": {
       "uri": "skill://pdf-processing/SKILL.md",
       "frontmatter": {
@@ -423,6 +426,7 @@ The request carries the directory's URI and an optional pagination cursor. The r
   "jsonrpc": "2.0",
   "id": 7,
   "result": {
+    "resultType": "complete",
     "resources": [
       {
         "uri": "skill://pdf-processing/templates/invoice.md",
