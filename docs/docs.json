@@ -861,8 +861,9 @@
             ]
           },
           {
-            "group": "Propose Changes",
+            "group": "Shaping the Protocol",
             "pages": [
+              "development/roadmap",
               "community/design-principles",
               "community/sep-guidelines"
             ]
@@ -901,12 +902,6 @@
               "community/interest-groups/primitive-grouping",
               "community/interest-groups/security",
               "community/interest-groups/tool-annotations"
-            ]
-          },
-          {
-            "group": "Roadmap",
-            "pages": [
-              "development/roadmap"
             ]
           }
         ]
