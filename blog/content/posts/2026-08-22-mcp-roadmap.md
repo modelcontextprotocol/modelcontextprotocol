@@ -18,13 +18,13 @@ ShowToc: true
 
 Today we're excited to publish an updated [roadmap](https://modelcontextprotocol.io/development/roadmap) for the Model Context Protocol (MCP), covering the next specification release and beyond.
 
-The roadmap sets the direction for protocol work over the coming months. It was developed by the Core Maintainers together with our community of maintainers and Working Groups.
+It sets the direction for protocol work over the coming months and was developed by the Core Maintainers together with our community of maintainers and Working Groups.
 
 {{< button text="Explore the roadmap" url="https://modelcontextprotocol.io/development/roadmap" target="_self" >}}
 
 ## Priority areas
 
-The roadmap is organized into five priority areas. Several of them pick up work that the [previous roadmap](/posts/2026-mcp-roadmap/) listed as on the horizon, including server-initiated events, result type improvements, and agent identity, which have since matured enough to become priorities in their own right. Each area is owned by a set of Core Maintainers and one or more Working Groups.
+The roadmap is organized into five priority areas. Several of them pick up work that the [previous roadmap](/posts/2026-mcp-roadmap/) listed as on the horizon, including server-initiated events, result type improvements, and agent identity, which have since matured enough to become priorities in their own right. Each area has a set of Core Maintainers responsible for it and one or more Working Groups.
 
 ![MCP Roadmap: five priority areas, agentic messaging primitives, HTTP-native transport unification and hardening, agent identity and enterprise-ready security, improved primitives, and improved SDK developer experience.](/posts/images/roadmap/priority-areas.svg)
 
@@ -34,7 +34,7 @@ Modern agentic workloads no longer fit the standard [request-and-response patter
 
 ### HTTP-native transport unification and hardening
 
-With the [2026-07-28 release](https://modelcontextprotocol.io/specification/2026-07-28/changelog), a remote MCP server is now no different from any other HTTP workload, making it easy to host and operate one on any infrastructure that developers and organizations already use for their APIs and services. The model has proven to scale, and we want to stretch it to cover other deployment modes as well, including local servers speaking [Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http) over [stdio](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio). Unifying on one transport lets us simplify MCP server and client development even further.
+With the [2026-07-28 release](https://modelcontextprotocol.io/specification/2026-07-28/changelog), a remote MCP server is now no different from any other HTTP workload, making it easy to host and operate one on any infrastructure that developers and organizations already use for their APIs and services. This approach has proven to scale, and we want to stretch it to cover other deployment modes as well, including local servers speaking [Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http) over [stdio](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio). Unifying on one transport lets us simplify MCP server and client development even further.
 
 ### Agent identity and enterprise-ready security
 
@@ -46,7 +46,7 @@ The work here covers finalizing [Demonstrating Proof of Possession](https://www.
 
 Tool calling is the part of MCP most developers touch first, and it has held up well over the lifetime of the protocol. Where it falls a bit short, however, is in the result handling. A [`tools/call`](https://modelcontextprotocol.io/specification/2026-07-28/server/tools#tool-result) response can carry the same output in more than one form, and a server developer today has no way to know which form a given client will put in front of the model. We aim to make this easier by standardizing on one clear contract.
 
-The other challenge we need to address for primitive use is their ever-growing scale. Connecting to a server with a hundred tools means the model pays for that entire surface before the user has asked a single question, and tool selection tends to get worse as the list grows. We're starting a progressive discovery effort so a server can offer a small entry point and reveal more of its catalog as the conversation narrows.
+The other challenge we need to address for primitives is their ever-growing scale. Connecting to a server with a hundred tools means the model pays for that entire surface before the user has asked a single question, and tool selection tends to get worse as the list grows. We're starting a progressive discovery effort so a server can offer a small entry point and reveal more of its catalog as the conversation narrows.
 
 ### Improved SDK developer experience
 
@@ -54,7 +54,7 @@ Our SDKs are how developers experience MCP. We are investing in their ergonomics
 
 ## Proposal prioritization
 
-[Specification Enhancement Proposals](https://modelcontextprotocol.io/community/sep-guidelines) (SEPs) that fall within these priority areas get expedited review and have the best chance of acceptance. Proposals outside them aren't rejected automatically, but maintainer review time is scarce and goes to the roadmap first.
+[Specification Enhancement Proposals](https://modelcontextprotocol.io/community/sep-guidelines) (SEPs) that fall within these priority areas get expedited review and have the best chance of acceptance. Proposals outside them aren't rejected automatically, but maintainer review time is scarce and goes to these areas first.
 
 If you're considering a SEP, identify the priority area it belongs to, raise it with the relevant [Working Group](https://modelcontextprotocol.io/community/working-interest-groups), and work with its members to shape your proposal. Each area on the [roadmap](https://modelcontextprotocol.io/development/roadmap) names the Core Maintainers responsible for it, and anyone interested in contributing can reach them on [Discord](https://modelcontextprotocol.io/community/communication#discord). We're excited to work with the community to review and build on the proposals that support this roadmap.
 
