@@ -212,15 +212,15 @@ The result carries the skill entries:
 
 Result fields:
 
-| Field                         | Required | Description                                                                                                  |
-| ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `skills`                      | Yes      | Array of skill entries.                                                                                      |
-| `skills[].frontmatter`        | Yes      | Verbatim copy of the skill's `SKILL.md` YAML frontmatter, rendered as JSON. See [Frontmatter](#frontmatter). |
-| `skills[].uri`                | Yes      | Resource URI of the skill's `SKILL.md`. See [Skill URIs](#skill-uris).                                       |
+| Field                         | Required | Description                                                                                                                  |
+| ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `skills`                      | Yes      | Array of skill entries.                                                                                                      |
+| `skills[].frontmatter`        | Yes      | Verbatim copy of the skill's `SKILL.md` YAML frontmatter, rendered as JSON. See [Frontmatter](#frontmatter).                 |
+| `skills[].uri`                | Yes      | Resource URI of the skill's `SKILL.md`. See [Skill URIs](#skill-uris).                                                       |
 | `skills[].resources`          | Yes      | The skill's files: an array enumerating them with digests and sizes, or the string `"dynamic"`. See [Resources](#resources). |
-| `skills[].resources[].uri`    | Yes      | Resource URI of the file.                                                                                    |
-| `skills[].resources[].digest` | Yes      | SHA-256 digest of the file. See [Integrity](#integrity-and-verification).                                    |
-| `skills[].resources[].size`   | Yes      | Length in bytes of the file's raw content. See [Limits](#limits).                                            |
+| `skills[].resources[].uri`    | Yes      | Resource URI of the file.                                                                                                    |
+| `skills[].resources[].digest` | Yes      | SHA-256 digest of the file. See [Integrity](#integrity-and-verification).                                                    |
+| `skills[].resources[].size`   | Yes      | Length in bytes of the file's raw content. See [Limits](#limits).                                                            |
 
 A skill whose content is generated dynamically carries `"resources": "dynamic"` in place of the array. An entry with no `resources` at all is invalid.
 
