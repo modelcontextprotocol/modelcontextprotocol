@@ -24,21 +24,21 @@ It sets the direction for protocol work over the coming months and was developed
 
 ## Looking back
 
-The [previous published roadmap](/posts/2026-mcp-roadmap/) came out earlier in March with four priority areas: **transport evolution and scalability**, **agent communication**, **governance maturation**, and **enterprise readiness**. We've made significant progress in all of these over the past five months.
+The [previously published roadmap](/posts/2026-mcp-roadmap/) came out in March with four priority areas: **transport evolution and scalability**, **agent communication**, **governance maturation**, and **enterprise readiness**. We've made significant progress in all of these over the past five months.
 
-The bulk of the changes landed in the [2026-07-28 specification release](/posts/2026-07-28/) - you might've already seen them in our SDKs and documentation. The spec improvements ranged from minor modifications to major protocol overhaul efforts.
+The bulk of the changes landed in the [2026-07-28 specification release](/posts/2026-07-28/) - you might've already seen them in our SDKs and documentation. The improvements ranged from minor modifications to major protocol overhauls.
 
-One of the most significant changes we shipped is that protocol-level sessions and the initialization handshake are gone, so a server can scale horizontally without holding state ([SEP-2575](https://modelcontextprotocol.io/seps/2575-stateless-mcp), [SEP-2567](https://modelcontextprotocol.io/seps/2567-sessionless-mcp)). Additionally, clients can now call `server/discover` to learn a server's supported versions and capabilities before doing anything else. List results are now also cacheable ([SEP-2549](https://modelcontextprotocol.io/seps/2549-TTL-for-list-results)).
+One of the biggest changes we shipped is that protocol-level sessions and the initialization handshake are gone, so a server can scale horizontally without holding state ([SEP-2575](https://modelcontextprotocol.io/seps/2575-stateless-mcp), [SEP-2567](https://modelcontextprotocol.io/seps/2567-sessionless-mcp)). Additionally, clients can now call `server/discover` to learn a server's supported versions and capabilities before doing anything else. List results are also cacheable ([SEP-2549](https://modelcontextprotocol.io/seps/2549-TTL-for-list-results)).
 
-On the agent communication side, Tasks were reworked based on early adopter feedback - we moved them into an official extension ([SEP-2663](https://modelcontextprotocol.io/seps/2663-tasks-extension)), while the brand-new Multi Round-Trip Requests pattern ([SEP-2322](https://modelcontextprotocol.io/seps/2322-MRTR)) replaced server-initiated requests so that elicitation and similar flows work on stateless servers.
+On the agent communication side, Tasks were reworked based on early adopter feedback - we moved them into an official extension ([SEP-2663](https://modelcontextprotocol.io/seps/2663-tasks-extension)). The brand-new Multi Round-Trip Requests pattern ([SEP-2322](https://modelcontextprotocol.io/seps/2322-MRTR)) replaced server-initiated requests so that elicitation and similar flows work on stateless servers.
 
 The [Server Card Working Group](https://modelcontextprotocol.io/community/working-groups/server-card) continues to work through the `.well-known` metadata conventions for MCP servers, so a server can be discovered and reasoned over without connecting to it.
 
 Governance has evolved as well. We formally adopted a [Contributor Ladder](https://modelcontextprotocol.io/community/contributor-ladder), Working Groups now triage SEPs in their own area, and the specification has a proper [feature lifecycle and deprecation policy](https://modelcontextprotocol.io/community/feature-lifecycle) that the `2026-07-28` deprecations were the first to follow.
 
-Enterprise readiness was heavily focused on security in the past release cycle, and as expected most of this work arrived as authorization improvements: issuer validation, issuer-bound client credentials, and Client ID Metadata Documents (CIMD) as the preferred registration path for clients, with [Enterprise-Managed Authorization](https://modelcontextprotocol.io/extensions/auth/enterprise-managed-authorization) available as an extension (that also is [now stable](/posts/enterprise-managed-auth/)).
+Enterprise readiness was heavily focused on security in the past release cycle, and as expected most of this work arrived as authorization improvements: issuer validation, issuer-bound client credentials, and Client ID Metadata Documents (CIMD) as the preferred registration path for clients, with [Enterprise-Managed Authorization](https://modelcontextprotocol.io/extensions/auth/enterprise-managed-authorization) available as an extension (which is also [now stable](/posts/enterprise-managed-auth/)).
 
-This is significant progress in a very short span. We're looking at adding even more improvements with the latest update to our roadmap.
+This is significant progress in a very short span. The updated roadmap picks up from here.
 
 ## Priority areas
 
