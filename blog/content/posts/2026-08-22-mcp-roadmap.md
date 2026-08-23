@@ -22,6 +22,14 @@ It sets the direction for protocol work over the coming months and was developed
 
 {{< button text="Explore the roadmap" url="https://modelcontextprotocol.io/development/roadmap" target="_self" >}}
 
+## Looking back
+
+The [previous roadmap](/posts/2026-mcp-roadmap/) came out in March with four priority areas: transport evolution and scalability, agent communication, governance maturation, and enterprise readiness. Most of what it described has since shipped.
+
+The bulk of it landed in the [2026-07-28 specification release](/posts/2026-07-28/). Protocol-level sessions and the initialization handshake are gone, so a server can scale horizontally without holding state ([SEP-2575](https://modelcontextprotocol.io/seps/2575-stateless-mcp), [SEP-2567](https://modelcontextprotocol.io/seps/2567-sessionless-mcp)). Clients can call `server/discover` to learn a server's supported versions and capabilities before doing anything else, and list results are now cacheable ([SEP-2549](https://modelcontextprotocol.io/seps/2549-TTL-for-list-results)). On the agent communication side, Tasks were reworked based on what early adopters ran into and moved into an official extension ([SEP-2663](https://modelcontextprotocol.io/seps/2663-tasks-extension)), while the Multi Round-Trip Requests pattern ([SEP-2322](https://modelcontextprotocol.io/seps/2322-MRTR)) replaced server-initiated requests so that elicitation and similar flows work on stateless servers. The [Server Card Working Group](https://modelcontextprotocol.io/community/working-groups/server-card) is still working through `.well-known` metadata so a server can be discovered without connecting to it.
+
+Governance moved as well. The [Contributor Ladder](https://modelcontextprotocol.io/community/contributor-ladder) was adopted in March, Working Groups now triage SEPs in their own area, and the specification has a [feature lifecycle and deprecation policy](https://modelcontextprotocol.io/community/feature-lifecycle) that the 2026-07-28 deprecations were the first to follow. Enterprise readiness was the least defined of the four, and as expected most of it arrived as authorization work: issuer validation, issuer-bound client credentials, and Client ID Metadata Documents as the preferred registration path in the release, with [Enterprise-Managed Authorization](https://modelcontextprotocol.io/extensions/auth/enterprise-managed-authorization) available as an extension. What remains there, agent identity in particular, continues under the third priority area below.
+
 ## Priority areas
 
 The roadmap is organized into five priority areas. Several of them pick up work that the [previous roadmap](/posts/2026-mcp-roadmap/) listed as on the horizon, including server-initiated events, result type improvements, and agent identity, which have since matured enough to become priorities in their own right. Each area has a set of Core Maintainers responsible for it and one or more Working Groups.
