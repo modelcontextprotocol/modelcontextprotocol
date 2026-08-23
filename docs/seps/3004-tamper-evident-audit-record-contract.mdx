@@ -179,7 +179,29 @@ and **names** a third contributed by reference:
   declared purpose/intent captured at event time). OPTIONAL: `session_id`,
   `invoked_by_principal_id` (the delegating principal), `flagged`,
   `sources_touched`, `sensitivity_encountered`, `output_disposition`,
-  `human_actor_id`.
+  `human_actor_id`. **All values defined by this profile MUST be JSON strings,
+  except `flagged`, which MUST be a JSON boolean; an OPTIONAL field MAY instead
+  carry `null` under the presence rule below.** This keeps the body within the
+  base record's string/boolean/`null` restriction (§2.3).
+  - **Presence of OPTIONAL fields.** An OPTIONAL field that is absent means the
+    emitter does not record it; an OPTIONAL field carried as `null` means the
+    emitter records it and it had no value for this event. These are distinct
+    facts, and an emitter MUST NOT use the two forms interchangeably for the
+    same field. (The known-answer records under Conformance carry
+    `invoked_by_principal_id: null` — recorded, no delegating principal — and
+    omit `sources_touched`.)
+  - **`sources_touched` encoding.** When non-null, the value MUST be the
+    canonical serialization of a JSON array of strings, at every cardinality
+    including a single source — never a bare delimiter-joined list, which
+    cannot unambiguously represent a source name containing the delimiter.
+    Each element MUST be a well-formed Unicode string (no unpaired surrogate
+    code units) that satisfies the §2.3 protected-string rules (NFC, U+0020
+    trim, control-character rejection, length cap) and MUST be non-empty;
+    elements are then deduplicated and sorted in ascending order of their
+    UTF-8 byte sequences (equivalently, Unicode code-point order). The array is
+    serialized with no insignificant whitespace, escaping only `"` as `\"` and
+    `\` as `\\`, and that serialization is the field's string value. A
+    recorded-but-empty set is carried as `null`, never as `"[]"`.
 - **`runtime-security`** — converged shape; **normative registration text
   contributed by Maaz (Interlock), the runtime-security implementer** (final text
   2026-06-14; cross-ref PR #2624), who independently reproduced the two-extension
