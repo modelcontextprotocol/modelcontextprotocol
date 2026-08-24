@@ -1,0 +1,130 @@
+---
+title: Primitive Grouping Charter
+description: Charter for the MCP Primitive Grouping Interest Group.
+---
+
+## Group Type
+
+**Interest Group**
+
+## Mission Statement
+
+The Primitive Grouping Interest Group explores how MCP Primitives (Tools, Resources, Prompts, Tasks) might be organized, beyond the flat lists maintained by the protocol, and how such organization might benefit both MCP servers and clients. The group documents diverse requirements from clients, servers, and gateways, supports reference extensions of varied organization strategies, and feeds recommendations into the [SEP process](/community/sep-guidelines) rather than picking a single canonical pattern early.
+
+## Scope
+
+### In Scope
+
+- **Requirements gathering**: documenting use cases and constraints
+- **Pattern exploration**: testing and evaluating various approaches
+- **Proof of concepts**: maintaining a shared repository of reference implementations and experimental findings
+
+### Out of Scope
+
+- **Approving spec changes**: this IG does not have authority to approve protocol changes; recommendations flow through the SEP process
+- **Implementation mandates**: the group can document patterns but cannot require specific client or server behavior
+
+### Related Groups
+
+- **[Tool Annotations IG](/community/interest-groups/tool-annotations)** - annotation-based filtering and selection of primitives intersects with how primitives are organized and surfaced
+- **[Skills Over MCP WG](/community/working-groups/skills-over-mcp)** - the MCP-and-Skills effort is evaluating how capabilities are discovered and organized, which overlaps with grouping
+- **[Registry WG](/community/working-groups/registry)** - organizing MCP servers (beyond this group's mandate) is evaluated here
+- **[Security IG](/community/interest-groups/security)** - organizing and disclosing primitives by privilege level is a security concern outside this group's scope
+
+## Problem Statement
+
+Flat lists of MCP primitives can be long and cumbersome to work with for several reasons. Many such problems are within the scope of this group, but some are not.
+
+**Within Scope**
+
+- **Context overload** - when loaded into the context of an LLM, a primitive list can overwhelm the model and lead to confusion and poor selection
+- **Inefficient operations** - long lists in the context consume many tokens, which increases processing cost and response latency
+- **Poor developer experience** - the lack of organizational tools for primitives makes them harder to manage and maintain
+
+**Beyond Scope**
+
+- **Organization for security** - organizing and disclosing primitives to clients based on their privilege level is an important problem but beyond this group's mandate
+- **Organizing MCP servers** - the MCP Registry and MCP-and-Skills groups are evaluating how different servers should be organized to improve the client experience
+
+## Goals
+
+1. **Documenting requirements and experiences** - document diverse requirements for the different clients, servers, and gateways that implement these extensions. We will **not** try to find consensus early on, but aim to document the trade-offs based on feedback from real-world experience.
+2. **Reference extensions** - many possible organization mechanisms are emerging, and it may be too early to select one canonical pattern. Different servers are implementing similar features, but the lack of standardization limits clients' ability to leverage them effectively. This group will support reference extensions of varied organization strategies, e.g., grouping, tool-search, code-mode.
+3. **Evangelizing standards** - invite feedback from developers and maintainers of large MCP servers and clients to migrate away from bespoke implementations toward standardized extensions.
+
+## Organization Strategies
+
+See [Approaches](https://github.com/modelcontextprotocol/experimental-ext-grouping/blob/main/docs/approaches.md) for detailed descriptions of each strategy, including prior art, examples, and discussion links.
+
+## IG Principles
+
+1. **Document discussions** - the IG aims to document the trade-offs and discussions rather than dictate one specific implementation. Prefer GitHub Discussions on the IG repository over prolonged Discord threads. Meeting notes from synchronous IG calls are also uploaded to GitHub Discussions for future reference.
+2. **Experimental extensions** - the repository houses experimental extensions for different approaches. Extensions SHOULD support at least Python and TypeScript implementations and include (1) end-to-end working demonstrations and (2) detailed instructions for how others can integrate with them.
+3. **Feedback from deployments** - the IG solicits deployment experiences and feedback from users of extensions to prioritize feature development and changes.
+
+## Leadership
+
+| Role        | Name        | Organization             | GitHub                                               | Term    |
+| ----------- | ----------- | ------------------------ | ---------------------------------------------------- | ------- |
+| Facilitator | Tapan Chugh | University of Washington | [@chughtapan](https://github.com/chughtapan)         | Initial |
+| Facilitator | Sam Morrow  | GitHub                   | [@SamMorrowDrums](https://github.com/SamMorrowDrums) | Initial |
+
+## Membership
+
+| Name        | Organization             | GitHub                                               | Discord | Level       |
+| ----------- | ------------------------ | ---------------------------------------------------- | ------- | ----------- |
+| Tapan Chugh | University of Washington | [@chughtapan](https://github.com/chughtapan)         |         | Facilitator |
+| Sam Morrow  | GitHub                   | [@SamMorrowDrums](https://github.com/SamMorrowDrums) |         | Facilitator |
+| Cliff Hall  | Futurescale              | [@cliffhall](https://github.com/cliffhall)           |         | Maintainer  |
+
+## Operations
+
+| Meeting    | Frequency | Duration | Purpose                                                        |
+| ---------- | --------- | -------- | -------------------------------------------------------------- |
+| Discussion | TBD       | TBD      | Requirements alignment, approach review, experimental findings |
+
+Open to anyone. Join the [#primitive-grouping-ig](https://discord.com/channels/1358869848138059966/1425903819186770064) channel on the [MCP Contributors Discord](/community/communication#discord).
+
+## Discussion Topics
+
+The following items form the IG's current work agenda. This list is not exhaustive and will evolve as the group identifies new areas of interest.
+
+| Item                               | Status      | Champion         | Notes                                                             |
+| ---------------------------------- | ----------- | ---------------- | ----------------------------------------------------------------- |
+| Requirements alignment             | In Progress | All facilitators | Review approaches, identify common requirements and gaps          |
+| Experimental findings repo section | Proposed    | TBD              | Dedicated repo section for implementations and evaluation results |
+| MCP Grouping Convention v0.1       | Proposed    | TBD              | Documented pattern (not spec) for grouping of primitives          |
+
+## Lifecycle
+
+**Current Status: Active Exploration**
+
+### Graduation Criteria (IG → WG)
+
+This IG may propose becoming a Working Group if:
+
+- Clear consensus emerges on an approach requiring sustained spec work
+- Cross-cutting coordination requires formal authority delegation
+- At least two Core Maintainers sponsor WG formation
+
+### Retirement Criteria
+
+- Problem space resolved (conventions established, absorbed into other WGs)
+- Insufficient participation to maintain momentum
+- Community consensus that grouping doesn't belong in MCP protocol scope
+
+## Success Criteria
+
+- **Short-term**: documented consensus on requirements and evaluation of existing approaches
+- **Medium-term**: clear recommendation (convention vs. protocol extension vs. both)
+- **Long-term**: interoperable grouping convention across MCP servers and clients
+
+## Resources
+
+- [Experimental repo](https://github.com/modelcontextprotocol/experimental-ext-grouping) - incubation space for the Primitive Grouping Interest Group
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-06-18 | Initial charter |

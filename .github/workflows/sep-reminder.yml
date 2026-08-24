@@ -1,9 +1,6 @@
 name: SEP Review Reminder
 
 on:
-  schedule:
-    # Every Wednesday at 10am PST (18:00 UTC)
-    - cron: "0 18 * * 3"
   workflow_dispatch: # Allow manual triggering
 
 permissions: {}

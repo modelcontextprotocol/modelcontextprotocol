@@ -1,4 +1,5 @@
 {{- if not (.Param "hideFooter") }}
+<div class="footer-wrap">
 <footer class="footer">
     <nav class="footer-nav">
         {{- range $i, $m := site.Menus.main }}
@@ -25,6 +26,7 @@
         {{ . | markdownify }}
     {{- end }}
 </footer>
+</div>
 {{- end }}
 
 {{- if (not site.Params.disableScrollToTop) }}

@@ -1,0 +1,55 @@
+{{- /*
+  A single testimonial card. Use inside a `quotes` block.
+
+  Params:
+    name    - person's name
+    title   - person's role, shown on its own line under the name
+    company - company name, used as the logo's accessible label
+              (and shown as text when no logo is given)
+    logo    - filename of an SVG in the post's page bundle, or a static path.
+              Bundle SVGs are inlined so currentColor tracks the theme.
+    logo-dark - optional dark-theme counterpart to `logo`, for brand marks
+              with fixed colors that can't rely on currentColor. When set,
+              `logo` shows in light mode and `logo-dark` in dark mode
+              (toggled in CSS via body.dark).
+
+  The quote text goes in the shortcode body. Markdown is supported.
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $title := .Get "title" -}}
+{{- $company := .Get "company" -}}
+{{- $logo := .Get "logo" -}}
+{{- $logoDark := .Get "logo-dark" -}}
+{{- $variants := slice -}}
+{{- with $logo -}}
+  {{- if $logoDark -}}
+    {{- $variants = slice (dict "file" . "class" " mcp-quote-logo-light") (dict "file" $logoDark "class" " mcp-quote-logo-dark") -}}
+  {{- else -}}
+    {{- $variants = slice (dict "file" . "class" "") -}}
+  {{- end -}}
+{{- end -}}
+<figure class="mcp-quote">
+  {{- if $variants -}}
+    {{- range $variants -}}
+      {{- $class := .class -}}
+      {{- with $.Page.Resources.GetMatch .file -}}
+        {{- if eq .MediaType.SubType "svg" -}}
+        <span class="mcp-quote-logo{{ $class }}" role="img" aria-label="{{ $company }}">{{ .Content | safeHTML }}</span>
+        {{- else -}}
+        <span class="mcp-quote-logo{{ $class }}"><img src="{{ .RelPermalink }}" alt="{{ $company }}" loading="lazy"></span>
+        {{- end -}}
+      {{- else -}}
+        <span class="mcp-quote-logo{{ $class }}"><img src="{{ .file }}" alt="{{ $company }}" loading="lazy"></span>
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    <span class="mcp-quote-logo mcp-quote-logo-text">{{ $company }}</span>
+  {{- end }}
+  <blockquote class="mcp-quote-text">{{ trim .Inner " \n" | .Page.RenderString }}</blockquote>
+  <figcaption class="mcp-quote-attrib">
+    <span class="mcp-quote-attrib-name">{{ $name }}</span>
+    {{- with $title }}
+    <span class="mcp-quote-attrib-title">{{ . }}</span>
+    {{- end }}
+  </figcaption>
+</figure>

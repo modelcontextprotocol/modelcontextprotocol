@@ -1,6 +1,6 @@
 # SEP-2260: Require Server requests to be associated with a Client request.
 
-- **Status**: Accepted
+- **Status**: Final
 - **Type**: Standards Track
 - **Created**: 2026-02-16
 - **Author(s)**: MCP Transports Working Group
@@ -238,7 +238,7 @@ Implementers **MUST** ensure that:
 
 **No changes required** - Clients should already handle sampling/elicitation requests in the context of their own outbound requests. Potential to simplify implementations if out-of-band is currently supported.
 
-Clients recieving server-to-client requests with no associated outbound request **SHOULD** respond with a `-32602` (Invalid Params) error.
+Clients receiving server-to-client requests with no associated outbound request **SHOULD** respond with a `-32602` (Invalid Params) error.
 
 ### For Transport Implementers
 

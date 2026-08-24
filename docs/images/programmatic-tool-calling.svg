@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" fill="none">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { font-size: 16px; font-weight: 600; fill: #09090b; }
+    .heading { font-size: 14px; font-weight: 600; }
+    .col-label { font-size: 13px; font-weight: 600; fill: #09090b; }
+    .msg { font-size: 11px; fill: #09090b; font-family: ui-monospace, monospace; }
+    .note { font-size: 11px; fill: #71717a; }
+    .red { fill: #991b1b; }
+    .grn { fill: #065f46; }
+    .stat { font-size: 13px; font-weight: 600; }
+  </style>
+
+  <rect width="900" height="900" rx="10" fill="#fafafa" stroke="#e4e4e7"/>
+  <text x="450" y="34" text-anchor="middle" class="title">Programmatic Tool Calling: Code as the Interface to MCP</text>
+
+  <!-- ════════════════════════════════════════ -->
+  <!--  TOP: Direct tool calling                -->
+  <!-- ════════════════════════════════════════ -->
+  <rect x="24" y="56" width="852" height="370" rx="8" fill="#fff" stroke="#e4e4e7"/>
+  <rect x="24" y="56" width="852" height="34" rx="8" fill="#18181b"/>
+  <rect x="24" y="82" width="852" height="8" fill="#18181b"/>
+  <text x="450" y="79" text-anchor="middle" class="heading" fill="#fff">✗  Direct tool calling — each result flows back through the model</text>
+
+  <!-- Columns -->
+  <rect x="110" y="104" width="120" height="36" rx="6" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="170" y="127" text-anchor="middle" class="col-label">LLM</text>
+
+  <rect x="380" y="104" width="160" height="36" rx="6" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="460" y="127" text-anchor="middle" class="col-label">Logging Server</text>
+
+  <rect x="640" y="104" width="170" height="36" rx="6" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="725" y="127" text-anchor="middle" class="col-label">Ticketing Server</text>
+
+  <!-- Lifelines -->
+  <line x1="170" y1="140" x2="170" y2="410" stroke="#e4e4e7" stroke-width="1"/>
+  <line x1="460" y1="140" x2="460" y2="410" stroke="#e4e4e7" stroke-width="1"/>
+  <line x1="725" y1="140" x2="725" y2="410" stroke="#e4e4e7" stroke-width="1"/>
+
+  <!-- 1: LLM → Logging -->
+  <line x1="170" y1="170" x2="460" y2="170" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <text x="315" y="163" text-anchor="middle" class="msg">getLogs({ level: "error" })</text>
+
+  <!-- 2: Logging → LLM (big payload) -->
+  <line x1="460" y1="204" x2="170" y2="204" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <rect x="195" y="192" width="240" height="22" rx="4" fill="#fef2f2" stroke="#fecaca"/>
+  <text x="315" y="207" text-anchor="middle" class="msg red">← 2,000 log entries (~50K tokens)</text>
+
+  <!-- 3: LLM filters -->
+  <rect x="140" y="224" width="60" height="26" rx="4" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="170" y="242" text-anchor="middle" class="note">filter…</text>
+
+  <!-- 4: LLM → Ticketing -->
+  <line x1="170" y1="270" x2="725" y2="270" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <text x="448" y="263" text-anchor="middle" class="msg">createIssue({ title: "Error: timeout" })</text>
+
+  <!-- 5: Ticketing → LLM -->
+  <line x1="725" y1="300" x2="170" y2="300" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <text x="448" y="293" text-anchor="middle" class="msg">{ issueId: "T-101" }</text>
+
+  <!-- 6: LLM → Ticketing -->
+  <line x1="170" y1="330" x2="725" y2="330" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <text x="448" y="323" text-anchor="middle" class="msg">createIssue({ title: "Error: null ref" })</text>
+
+  <!-- 7: Ticketing → LLM -->
+  <line x1="725" y1="360" x2="170" y2="360" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <text x="448" y="353" text-anchor="middle" class="msg">{ issueId: "T-102" }</text>
+
+  <!-- Repeat -->
+  <text x="448" y="390" text-anchor="middle" class="note">… repeated for each unique error …</text>
+
+  <!-- Cost -->
+  <rect x="660" y="398" width="196" height="32" rx="6" fill="#18181b"/>
+  <text x="758" y="419" text-anchor="middle" class="stat" fill="#fff">~100K+ tokens</text>
+
+  <!-- ════════════════════════════════════════ -->
+  <!--  BOTTOM: Programmatic tool calling       -->
+  <!-- ════════════════════════════════════════ -->
+  <rect x="24" y="450" width="852" height="430" rx="8" fill="#fff" stroke="#e4e4e7"/>
+  <rect x="24" y="450" width="852" height="34" rx="8" fill="#18181b"/>
+  <rect x="24" y="476" width="852" height="8" fill="#18181b"/>
+  <text x="450" y="473" text-anchor="middle" class="heading" fill="#18E299">✓  Programmatic tool calling — model writes code, sandbox executes</text>
+
+  <!-- Columns -->
+  <rect x="72" y="498" width="100" height="36" rx="6" fill="#f4f4f5" stroke="#e4e4e7"/>
+  <text x="122" y="521" text-anchor="middle" class="col-label">LLM</text>
+
+  <rect x="280" y="498" width="120" height="36" rx="6" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="340" y="521" text-anchor="middle" class="col-label grn">Sandbox</text>
+
+  <rect x="500" y="498" width="150" height="36" rx="6" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="575" y="521" text-anchor="middle" class="col-label grn">Logging Server</text>
+
+  <rect x="740" y="498" width="120" height="36" rx="6" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="800" y="521" text-anchor="middle" class="col-label grn">Ticketing Server</text>
+
+  <!-- Lifelines -->
+  <line x1="122" y1="534" x2="122" y2="860" stroke="#e4e4e7" stroke-width="1"/>
+  <line x1="340" y1="534" x2="340" y2="860" stroke="#a7f3d0" stroke-width="1"/>
+  <line x1="575" y1="534" x2="575" y2="860" stroke="#a7f3d0" stroke-width="1"/>
+  <line x1="800" y1="534" x2="800" y2="860" stroke="#a7f3d0" stroke-width="1"/>
+
+  <!-- 1: LLM → Sandbox -->
+  <line x1="122" y1="564" x2="340" y2="564" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <text x="231" y="557" text-anchor="middle" class="msg">execute(code) ~200 tokens</text>
+
+  <!-- 2: Sandbox → Logging -->
+  <line x1="340" y1="602" x2="575" y2="602" stroke="#18E299" stroke-width="1.2" marker-end="url(#a2)"/>
+  <text x="458" y="595" text-anchor="middle" class="msg grn">getLogs({ level: "error" })</text>
+
+  <!-- 3: Logging → Sandbox -->
+  <line x1="575" y1="638" x2="340" y2="638" stroke="#18E299" stroke-width="1.2" marker-end="url(#a2)"/>
+  <text x="458" y="631" text-anchor="middle" class="msg grn">2,000 entries → stays in sandbox</text>
+
+  <!-- 4: Sandbox filters -->
+  <rect x="310" y="658" width="60" height="26" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="340" y="676" text-anchor="middle" class="note">filter…</text>
+
+  <!-- 5: Sandbox → Ticketing -->
+  <line x1="340" y1="706" x2="800" y2="706" stroke="#18E299" stroke-width="1.2" marker-end="url(#a2)"/>
+  <text x="570" y="699" text-anchor="middle" class="msg grn">createIssue({ title: "Error: timeout" })</text>
+
+  <!-- 6: Ticketing → Sandbox -->
+  <line x1="800" y1="738" x2="340" y2="738" stroke="#18E299" stroke-width="1.2" marker-end="url(#a2)"/>
+  <text x="570" y="731" text-anchor="middle" class="msg grn">{ issueId: "T-101" }</text>
+
+  <!-- 7: Sandbox → Ticketing -->
+  <line x1="340" y1="770" x2="800" y2="770" stroke="#18E299" stroke-width="1.2" marker-end="url(#a2)"/>
+  <text x="570" y="763" text-anchor="middle" class="msg grn">createIssue({ title: "Error: null ref" })</text>
+
+  <!-- 8: Ticketing → Sandbox -->
+  <line x1="800" y1="802" x2="340" y2="802" stroke="#18E299" stroke-width="1.2" marker-end="url(#a2)"/>
+  <text x="570" y="795" text-anchor="middle" class="msg grn">{ issueId: "T-102" }</text>
+
+  <!-- Repeat -->
+  <text x="570" y="830" text-anchor="middle" class="note">… all iterations happen inside the sandbox …</text>
+
+  <!-- 9: Sandbox → LLM (summary) -->
+  <line x1="340" y1="858" x2="122" y2="858" stroke="#09090b" stroke-width="1.2" marker-end="url(#a1)"/>
+  <rect x="140" y="844" width="208" height="26" rx="5" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="244" y="861" text-anchor="middle" class="msg grn">"Filed 12 tickets from 2,000 logs"</text>
+
+  <!-- Cost -->
+  <rect x="640" y="844" width="216" height="32" rx="6" fill="#18181b"/>
+  <text x="748" y="865" text-anchor="middle" class="stat" fill="#18E299">~15 tokens returned</text>
+
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#09090b"/>
+    </marker>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#18E299"/>
+    </marker>
+  </defs>
+</svg>

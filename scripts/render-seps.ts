@@ -14,7 +14,9 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
+
+const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const SEPS_DIR = path.join(__dirname, "..", "seps");
 const DOCS_SEPS_DIR = path.join(__dirname, "..", "docs", "seps");
@@ -38,18 +40,14 @@ interface SEPMetadata {
  * Parse SEP metadata from markdown content
  */
 function parseSEPMetadata(content: string, filename: string): SEPMetadata | null {
-  // Skip template and README files
-  if (filename === "TEMPLATE.md" || filename === "README.md") {
+  // Skip template, README, and 0000- placeholder drafts
+  if (filename === "TEMPLATE.md" || filename === "README.md" || filename.startsWith("0000-")) {
     return null;
   }
 
   // Extract SEP number and slug from filename (e.g., "1850-pr-based-sep-workflow.md")
   const filenameMatch = filename.match(/^(\d+)-(.+)\.md$/);
   if (!filenameMatch) {
-    // Skip files that don't match SEP naming convention (like 0000-*.md drafts)
-    if (filename.match(/^0000-/)) {
-      return null;
-    }
     console.warn(`Warning: Skipping ${filename} - doesn't match SEP naming convention`);
     return null;
   }
@@ -65,7 +63,9 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
   const typeMatch = content.match(/^\s*-\s*\*\*Type\*\*:\s*(.+)$/m);
   const createdMatch = content.match(/^\s*-\s*\*\*Created\*\*:\s*(.+)$/m);
   const acceptedMatch = content.match(/^\s*-\s*\*\*Accepted\*\*:\s*(.+)$/m);
-  const authorsMatch = content.match(/^\s*-\s*\*\*Author\(s\)\*\*:\s*(.+)$/m);
+  const authorsMatch = content.match(
+    /^[ \t]*-[ \t]*\*\*Author\(s\)\*\*:[ \t]*([^\n]*(?:\n[ \t]+(?![-*+][ \t])[^\n]*)*)/m
+  );
   const sponsorMatch = content.match(/^\s*-\s*\*\*Sponsor\*\*:\s*(.+)$/m);
   const prMatch = content.match(/^\s*-\s*\*\*PR\*\*:.*?(?:#|\/pull\/)(\d+)/m);
 
@@ -76,7 +76,7 @@ function parseSEPMetadata(content: string, filename: string): SEPMetadata | null
     type: typeMatch ? typeMatch[1].trim() : "Unknown",
     created: createdMatch ? createdMatch[1].trim() : "Unknown",
     accepted: acceptedMatch ? acceptedMatch[1].trim() : undefined,
-    authors: authorsMatch ? authorsMatch[1].trim() : "Unknown",
+    authors: authorsMatch ? authorsMatch[1].replace(/\s+/g, " ").trim() : "Unknown",
     sponsor: sponsorMatch ? sponsorMatch[1].trim() : "None",
     prNumber: prMatch ? prMatch[1] : number,
     slug,
@@ -122,6 +122,18 @@ function getStatusBadgeColor(status: string): string {
 }
 
 /**
+ * Notice injected into every Final SEP page. Final SEPs are point-in-time
+ * historical records and are not edited after finalization.
+ */
+const FINAL_SEP_NOTICE = `<Note>
+  This SEP has reached Final status and is preserved as a historical record of
+  the design as accepted. Changes made to the protocol after finalization are
+  not reflected here. Refer to the
+  [current specification](/specification/latest) and its changelog for
+  authoritative requirements.
+</Note>`;
+
+/**
  * Generate MDX content for a single SEP page
  */
 function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
@@ -129,6 +141,10 @@ function generateSEPPage(sep: SEPMetadata, originalContent: string): string {
   // Find where the Abstract section starts
   const abstractIndex = originalContent.indexOf("## Abstract");
   const body = abstractIndex !== -1 ? originalContent.slice(abstractIndex) : originalContent;
+
+  // Final SEPs get a notice marking them as historical records
+  const isFinal = sep.status.toLowerCase() === "final";
+  const notice = isFinal ? `${FINAL_SEP_NOTICE}\n\n` : "";
 
   return `---
 title: "SEP-${sep.number}: ${sep.title}"
@@ -141,7 +157,7 @@ description: "${sep.title}"
   <Badge color="gray" shape="pill">${sep.type}</Badge>
 </div>
 
-| Field | Value |
+${notice}| Field | Value |
 |-------|-------|
 | **SEP** | ${sep.number} |
 | **Title** | ${sep.title} |
@@ -396,7 +412,7 @@ async function main() {
       // Format MDX files with Prettier
       const mdxTempFiles = tempFiles.filter(({ temp }) => temp.endsWith(".mdx")).map(({ temp }) => temp);
       if (mdxTempFiles.length > 0) {
-        execSync(`npx prettier --write ${mdxTempFiles.join(" ")}`, { stdio: "pipe" });
+        execFileSync(npx, ["prettier", "--write", ...mdxTempFiles], { stdio: "pipe" });
       }
 
       // Compare formatted temp files with existing files
@@ -436,7 +452,7 @@ async function main() {
       .map(({ path: p }) => path.relative(process.cwd(), p));
     if (filesToFormat.length > 0) {
       console.log("\nFormatting generated files with Prettier...");
-      execSync(`npx prettier --write ${filesToFormat.join(" ")}`, { stdio: "inherit" });
+      execFileSync(npx, ["prettier", "--write", ...filesToFormat], { stdio: "inherit" });
     }
 
     console.log("\nSEP documentation generated successfully!");

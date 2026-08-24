@@ -1234,9 +1234,7 @@ export type ClientResult = EmptyResult | CreateMessageResult | ListRootsResult;
 
 /* Server messages */
 export type ServerRequest =
-  | PingRequest
-  | CreateMessageRequest
-  | ListRootsRequest;
+  PingRequest | CreateMessageRequest | ListRootsRequest;
 
 export type ServerNotification =
   | CancelledNotification

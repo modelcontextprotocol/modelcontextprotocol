@@ -1,0 +1,144 @@
+---
+title: Agents Charter
+description: Charter for the MCP Agents Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The Agents Working Group exists to make interactions with agent-backed systems
+interoperable over MCP. Today, these systems are typically exposed as ordinary
+tools or through framework-specific integrations, leaving durable execution,
+capability discovery, delegation, and multi-turn interaction to ad hoc conventions.
+The WG stewards Tasks as MCP's foundation for durable asynchronous execution and
+evaluates which remaining gaps require protocol support. Based on production use
+cases and prototypes, the group will either evolve Tasks, introduce an Agents
+Extension that complements it, or document how existing MCP primitives should be
+used consistently.
+
+## Scope
+
+### In Scope
+
+- **Tasks**: Stabilization of the
+  [`io.modelcontextprotocol/tasks`](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663)
+  extension and its promotion into the core MCP protocol, including collecting
+  implementation feedback, resolving ambiguities, and evaluating proposed changes
+  to its lifecycle.
+- **Agents Extension Evaluation**: Evaluate agent-backed MCP use cases, including
+  agent-as-tool, remote-agent, and supervisor/sub-agent patterns, to determine
+  whether an Agents Extension is needed to complement Tasks.
+- **Prototypes and Proposals**: Develop narrowly scoped proofs of concept where they
+  help determine whether to introduce an Agents Extension, evolve Tasks, or rely on
+  existing MCP primitives.
+- **Implementation Coordination**: Coordinate with SDK and conformance maintainers
+  on implementation feedback, examples, and coverage for specifications owned by
+  the group.
+- **Cross-Cutting Concerns**: Coordinate with relevant groups when Tasks or
+  evaluated agent use cases raise transport, events, skills, authorization,
+  metadata, or external-interoperability questions.
+- **Documentation**: Maintain the Tasks specification and document agent-backed MCP
+  use cases, findings, and any proposals adopted by the group.
+
+### Out of Scope
+
+- Building or standardizing general-purpose agent frameworks and runtimes, including
+  internal choices about planning, memory, model selection, and orchestration. The
+  group standardizes behavior at MCP interoperability boundaries rather than host or
+  server implementation internals.
+- Transport wire formats and session mechanics, which are owned by the Transports WG.
+- General event delivery and callback mechanisms, which are owned by the Triggers and
+  Events WG.
+
+The charter does not predetermine where inference or agent loops run, or whether a
+particular capability belongs in Tasks, an Agents Extension, or existing MCP
+primitives. The WG evaluates those questions through its design work.
+
+### Related Groups
+
+- **[Transports WG](https://github.com/modelcontextprotocol/transports-wg)** -
+  Task polling, multi-round-trip requests, stateless operation, and request
+  association depend on transport and message-flow semantics.
+- **[Triggers and Events WG](/community/working-groups/triggers-events)** -
+  Proactive task-status and completion notifications are event-delivery concerns
+  owned by that group.
+
+## Leadership
+
+| Role | Name             | Organization        | GitHub                                             | Term    |
+| ---- | ---------------- | ------------------- | -------------------------------------------------- | ------- |
+| Lead | Luca Chang       | Amazon Web Services | [@LucaButBoring](https://github.com/LucaButBoring) | Initial |
+| Lead | Caitie McCaffrey | Microsoft           | [@CaitieM20](https://github.com/CaitieM20)         | Initial |
+
+## Authority & Decision Rights
+
+| Decision Type                       | Authority Level                                        |
+| ----------------------------------- | ------------------------------------------------------ |
+| Meeting logistics & scheduling      | WG Leads (autonomous)                                  |
+| Proposal prioritization within WG   | WG Leads (autonomous)                                  |
+| SEP triage & closure (in scope)     | WG Leads (autonomous, with documented rationale)       |
+| Technical design within scope       | WG consensus                                           |
+| Spec changes (additive)             | WG consensus → Core Maintainer approval                |
+| Spec changes (breaking/fundamental) | WG consensus → Core Maintainer approval + wider review |
+| Scope expansion                     | Core Maintainer approval required                      |
+| WG Member approval                  | WG Member sponsors                                     |
+
+## Membership
+
+| Name             | Organization        | GitHub                                             | Discord | Level |
+| ---------------- | ------------------- | -------------------------------------------------- | ------- | ----- |
+| Luca Chang       | Amazon Web Services | [@LucaButBoring](https://github.com/LucaButBoring) |         | Lead  |
+| Caitie McCaffrey | Microsoft           | [@CaitieM20](https://github.com/CaitieM20)         |         | Lead  |
+
+## Operations
+
+| Meeting         | Frequency | Duration   | Purpose                                             |
+| --------------- | --------- | ---------- | --------------------------------------------------- |
+| Working Session | Weekly    | 30 minutes | Technical discussion, research, and proposal review |
+
+Meetings are published at
+[meet.modelcontextprotocol.io](https://meet.modelcontextprotocol.io).
+
+Discord: `#agents-wg`
+
+## Resources
+
+- Working group repository:
+  [modelcontextprotocol/agents-wg](https://github.com/modelcontextprotocol/agents-wg)
+- Tasks extension repository:
+  [modelcontextprotocol/ext-tasks](https://github.com/modelcontextprotocol/ext-tasks)
+- Tasks specification:
+  [SEP-2663: Tasks Extension](/seps/2663-tasks-extension)
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                            | Status      | Target Date | Champion                                                                                       |
+| ----------------------------------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| Tasks stabilization and core protocol promotion | In Progress |             | [@LucaButBoring](https://github.com/LucaButBoring)                                             |
+| Agents Extension evaluation and recommendation  | In Progress |             | TBD                                                                                            |
+| Two-level agent definition proof of concept     | In Progress |             | [@LucaButBoring](https://github.com/LucaButBoring), [@madhaviai](https://github.com/madhaviai) |
+
+### Success Criteria
+
+- Tasks is fully stabilized based on implementation feedback and promoted from an
+  extension into the core MCP protocol.
+- Lifecycle ambiguities and conformance gaps that block Tasks stabilization are
+  resolved or explicitly dispositioned.
+- The group publishes an evaluation of whether an Agents Extension is needed to
+  complement Tasks, supported by documented use cases and relevant prototype
+  evidence.
+- Based on that evaluation, the group either evolves Tasks, proposes an Agents
+  Extension, or documents how existing MCP primitives are sufficient.
+- Proposed agent protocol surface is evaluated through prototypes and
+  implementation feedback before being advanced.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-08-04 | Initial charter |

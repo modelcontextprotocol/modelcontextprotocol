@@ -1,0 +1,90 @@
+---
+title: SDK Working Group Charter
+description: Charter for the MCP SDK Working Group.
+---
+
+## Group Type
+
+**Working Group**
+
+## Mission Statement
+
+The SDK Working Group exists to keep the official MCP SDKs consistent, conformant, and current with the specification. It coordinates implementation of new protocol versions across languages, governs the [SDK Tiering System](/community/sdk-tiers), and establishes shared design patterns where sensible, so that developers get a coherent experience across SDKs while each remains idiomatic to its language.
+
+## Scope
+
+### In Scope
+
+- **SDK Tiering**: Operating the [SDK Tiering System](/community/sdk-tiers), including reviewing tier advancement requests, applying relegation criteria, and maintaining the published tier assignments.
+- **Official SDK Roster**: Evaluating proposals to add new official SDKs or retire existing ones.
+- **Release Coordination**: Aligning Tier-1 SDK release plans with specification version dates so that protocol features land in SDKs on the timelines their tier requires.
+- **Cross-SDK Design Guidance**: Recommending common patterns for SDK API surface, versioning, deprecation, error handling, and extension packaging, so that SDKs remain recognisably similar across languages while staying idiomatic.
+- **Conformance Integration**: Working with the Conformance Testing project to ensure each official SDK runs the conformance suite and publishes results.
+- **Maintainer Coordination**: Providing a forum for per-language SDK maintainers to share implementation experience and surface specification ambiguities back to Core Maintainers.
+
+### Out of Scope
+
+- **Per-SDK day-to-day maintenance**: Issue triage, PR review, and releases for an individual SDK remain the responsibility of that SDK's maintainers as listed in [MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md).
+- **Specification authorship**: Protocol changes are proposed through the [SEP process](/community/sep-guidelines) and owned by the relevant working group or Core Maintainers. The SDK WG implements accepted SEPs; it does not own spec sections.
+- **Conformance test authoring**: The conformance test suite itself is owned by the [Conformance Testing](https://github.com/modelcontextprotocol/conformance) project.
+- **Third-party and community SDKs**: SDKs outside the [modelcontextprotocol](https://github.com/modelcontextprotocol) organization are not governed by this group.
+
+### Related Groups
+
+- **Transports WG**: Transport implementations are a substantial part of every SDK. The SDK WG coordinates with the Transports WG on rollout sequencing when transport SEPs land.
+- **Conformance Testing**: Tier assignments depend on conformance scores. The SDK WG consumes conformance results and feeds back gaps in test coverage.
+- **All specification-producing WGs**: The SDK WG is a downstream consumer of accepted SEPs and coordinates reference-implementation timing with the originating group.
+
+## Leadership
+
+| Role | Name             | Organization | GitHub                                                 | Term    |
+| ---- | ---------------- | ------------ | ------------------------------------------------------ | ------- |
+| Lead | Felix Weinberger | Anthropic    | [@felixweinberger](https://github.com/felixweinberger) | Ongoing |
+
+## Authority & Decision Rights
+
+| Decision Type                            | Authority Level                                |
+| ---------------------------------------- | ---------------------------------------------- |
+| Meeting logistics & scheduling           | WG Leads (autonomous)                          |
+| Proposal prioritization within WG        | WG Leads (autonomous)                          |
+| SDK tier advancement or relegation       | WG consensus                                   |
+| Cross-SDK design guidance                | WG consensus (advisory to per-SDK maintainers) |
+| Per-SDK releases, versioning, API design | That SDK's maintainers (autonomous)            |
+| Adding or retiring an official SDK       | WG consensus → Core Maintainer approval        |
+| Changes to the tiering criteria          | WG consensus → Core Maintainer approval        |
+| Scope expansion                          | Core Maintainer approval required              |
+| WG Member approval                       | WG Member sponsors                             |
+
+## Membership
+
+WG Members are the maintainers of each official SDK as recorded in [MAINTAINERS.md](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/MAINTAINERS.md) and the corresponding roles in [modelcontextprotocol/access](https://github.com/modelcontextprotocol/access). Maintainers of any official SDK are WG Members by default.
+
+## Operations
+
+| Meeting         | Frequency | Duration | Purpose                                              |
+| --------------- | --------- | -------- | ---------------------------------------------------- |
+| Working Session | Biweekly  | 45 min   | Release coordination, tier reviews, cross-SDK design |
+
+Communication happens in the `#general-sdk-dev` Discord channel and the SDK Working Group category in [GitHub Discussions](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions).
+
+## Deliverables & Success Metrics
+
+### Active Work Items
+
+| Item                                                | Status      | Target Date | Champion            |
+| --------------------------------------------------- | ----------- | ----------- | ------------------- |
+| 2026-06-30 spec support across Tier-1 SDKs          | Planning    | 2026 Q3     | Per-SDK maintainers |
+| Cross-SDK guidance for stateless transport adoption | In progress | 2026 Q2     | WG Leads            |
+| Quarterly tier review                               | Recurring   | Quarterly   | WG Leads            |
+
+### Success Criteria
+
+- All official SDKs have a published tier and a passing conformance run on their default branch.
+- Tier-1 SDKs ship support for each released specification version within the timeline their tier requires.
+- Tier advancement and relegation decisions are recorded with rationale in GitHub Discussions.
+
+## Changelog
+
+| Date       | Change          |
+| ---------- | --------------- |
+| 2026-04-28 | Initial charter |
