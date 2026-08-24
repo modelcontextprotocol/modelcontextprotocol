@@ -1,6 +1,6 @@
 # SEP-2127: MCP Server Cards - HTTP Server Discovery
 
-- **Status**: Draft
+- **Status**: Final
 - **Type**: Extensions Track
 - **Created**: 2026-01-21
 - **Author(s)**: David Soria Parra (@dsp-ant), Sam Morrow (@SamMorrowDrums), Tadas Antanavicius (@tadasant); on behalf of the Server Card Working Group
