@@ -104,6 +104,8 @@ Example:
 }
 ```
 
+Intermediaries that forward MCP requests SHOULD preserve `_meta["io.modelcontextprotocol/aiInvocation"]` unmodified unless they have a specific policy reason to remove or redact it.
+
 ### Key naming and namespace
 
 This SEP places all fields under a single `_meta` key in the MCP-reserved namespace:
@@ -321,6 +323,8 @@ Security considerations:
 - Free-text fields may be persisted into audit stores and displayed in administrative tools.
 
 Servers MUST NOT use `invocationReason`, `userIntent`, or `model` as authorization evidence. Authorization should rely on deterministic server-side context such as authenticated principal, scopes, tool metadata, policy, environment, approval state, and server-side checks.
+
+Audit consumers that summarize or export this metadata should preserve the distinction between client-asserted context and server- or intermediary-witnessed facts. Derived reports or counters must not promote `aiInvocation` fields into authorization, execution, or outcome evidence.
 
 Servers SHOULD apply local policy for logging, redaction, retention, and access control before persisting these fields.
 
