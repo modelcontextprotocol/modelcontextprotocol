@@ -475,11 +475,11 @@ The following are recommendations for interoperable implementations. They are no
 
 This section sketches one way a host might wire MCP-served skills into an existing skills implementation. It is illustrative, not prescriptive — hosts are free to structure tools, naming, and routing however suits their architecture. The goal is that an MCP-served skill flows through the same loading and reading mechanics as a filesystem skill — while remaining origin-tagged, per [Security Implications](#security-implications).
 
-**Registry.** At startup and on connection change, the host assembles a single internal skill registry from every origin it supports: filesystem skill directories, and `skills/list` results from each connected MCP server that declares the `io.modelcontextprotocol/skills` extension. Each registry entry records the skill's `name` and `description` (from the entry's `frontmatter`) and its origin — for a filesystem skill, the local directory; for an MCP skill, the server identity and the `SKILL.md` resource URI. Assembling the registry reads only the listing: the host MUST NOT fetch `SKILL.md` or any supporting file at this stage ([Integrity and verification](#integrity-and-verification)) — the entry's `frontmatter` carries everything the registry needs. Because names collide within and across origins ([Names](#names)), the registry keys entries by origin and name together, qualifying colliding names for display and invocation rather than dropping either entry.
+**Registry.** At startup and on connection change, the host assembles a single internal skill registry from every origin it supports: filesystem skill directories, and `skills/list` results from each connected MCP server that declares the `io.modelcontextprotocol/skills` extension. Each registry entry records the skill's `name` and `description` (from the entry's `frontmatter`) and its origin — for a filesystem skill, the local directory; for an MCP skill, the server identity and the `SKILL.md` resource URI. Assembling the registry reads only the listing: the host MUST NOT fetch `SKILL.md` or any supporting file at this stage ([Integrity and verification](#integrity-and-verification)) — the entry's `frontmatter` carries everything the registry needs. The registry is keyed by skill identity — origin and `SKILL.md` URI together ([Skill URIs](#skill-uris)) — never by name. Because names collide within and across origins ([Names](#names)), the registry qualifies colliding names for display rather than dropping either entry; since the name is not the key, a collision never changes how a skill is loaded.
 
-**Context.** The host surfaces the `name` and `description` of each enabled registry entry in the model's context — the same list the model already sees for filesystem skills, now with MCP-served entries mixed in. The host's UI presents the same merged list for user inspection and per-skill enable/disable, with provenance shown so users can see which server a skill came from.
+**Context.** The host surfaces the `name` and `description` of each enabled registry entry in the model's context — the same list the model already sees for filesystem skills, now with MCP-served entries mixed in — together with the entry's identity: the host's label for the originating server and the `SKILL.md` URI. The name and description tell the model what a skill is for; the identity is what the model passes to load it. The host's UI presents the same merged list for user inspection and per-skill enable/disable, with provenance shown so users can see which server a skill came from.
 
-**Loading.** The host exposes a single skill-loading tool to the model, keyed by skill name:
+**Loading.** The host exposes a single skill-loading tool to the model, keyed by skill identity — the originating server and the `SKILL.md` URI:
 
 ```json
 {
@@ -488,14 +488,18 @@ This section sketches one way a host might wire MCP-served skills into an existi
   "inputSchema": {
     "type": "object",
     "properties": {
-      "name": { "type": "string", "description": "The skill name" }
+      "server": {
+        "type": "string",
+        "description": "Name of the connected MCP server"
+      },
+      "uri": { "type": "string", "description": "The skill's SKILL.md URI" }
     },
-    "required": ["name"]
+    "required": ["server", "uri"]
   }
 }
 ```
 
-`read_skill` is the host's skill-loading path in this sketch — the only route by which a skill is activated ([Reading](#reading)); a `read_resource` call against the same `SKILL.md` URI returns its content but does not load the skill. When the model calls `read_skill`, the host looks up the name in its registry and routes on origin: a filesystem skill is read from disk; an MCP skill is fetched via `resources/read` against the originating server — at that moment, not before, unless a verified copy is already in the host's cache. The mechanics are the same either way. When a name is collision-qualified ([Names](#names)), the qualified form is what appears in the model's context and what the model passes as `name`. Hosts that already expose a name-keyed skill-loading tool for filesystem skills extend it rather than introducing a parallel one.
+`read_skill` is the host's skill-loading path in this sketch — the only route by which a skill is activated ([Reading](#reading)); a `read_resource` call against the same `SKILL.md` URI returns its content but does not load the skill. When the model calls `read_skill`, the host looks up the pair in its registry and routes on origin: a filesystem skill is read from disk; an MCP skill is fetched via `resources/read` against the originating server — at that moment, not before, unless a verified copy is already in the host's cache. The mechanics are the same either way. Keying the tool by identity rather than by name is what lets a URI travel: a skill URI handed to the model by the user, by server instructions, or by another skill's `SKILL.md` is exactly what `read_skill` takes, with no need to map it back to a display name that the host may have qualified to resolve a collision ([Names](#names)). A host that already exposes a name-keyed loading tool for filesystem skills extends it to accept `server` and `uri` rather than introducing a parallel one; for a filesystem skill it may reserve a `server` value for the local origin and pass the `SKILL.md` path as `uri`.
 
 **Supporting files.** Once a `SKILL.md` is in context, the model may encounter relative references to supporting files (`references/GUIDE.md`, `scripts/extract.py`). For filesystem skills the model reads these with the host's ordinary file-read tool; for MCP skills there is no local file. The host therefore also exposes a general-purpose resource-reading tool:
 
@@ -521,9 +525,9 @@ The host arranges for the model to know, when it loads an MCP-served `SKILL.md`,
 
 **Directory navigation.** Skill instructions may point the model at a directory rather than a file ("choose the right template from `templates/`"). When the originating server declares `directoryRead`, the host SHOULD surface this capability to the model: a `read_resource` call whose target is a directory resource can be routed to `resources/directory/read` and return the child listing, and the virtual-mount approach maps it onto the host's existing directory-listing tool — an `ls` of a mounted path becomes a `resources/directory/read` call.
 
-**Unenumerated skills.** Because a listing may be empty or partial, a host should also accept skill URIs it has never seen listed — handed to the model by the user, by server instructions, or by another skill. Calling `skills/get` on such a URI yields the same entry a listing would have carried, so an unlisted skill enters the registry, gets verified, and is approved on the same terms as a listed one; a server that does not serve the URI as a skill answers with an error. A host may additionally let `read_skill` accept a full URI for this case.
+**Unenumerated skills.** Because a listing may be empty or partial, a host should also accept skill URIs it has never seen listed — handed to the model by the user, by server instructions, or by another skill. Calling `skills/get` on such a URI yields the same entry a listing would have carried, so an unlisted skill enters the registry, gets verified, and is approved on the same terms as a listed one; a server that does not serve the URI as a skill answers with an error. No special tool surface is needed: `read_skill` already takes a server and a URI, so a `read_skill` call naming a pair the registry has not seen is the trigger for `skills/get`.
 
-The `read_resource` signature above includes `server` because two connected servers may both serve `skill://refunds/SKILL.md`. That is one disambiguation strategy; a host may instead rewrite URIs with a per-server prefix, scope by session, or anything else appropriate to its architecture. The tool is general-purpose — it reads any MCP resource — and is useful beyond skills.
+Both tool signatures above include `server` because two connected servers may both serve `skill://refunds/SKILL.md` ([Skill URIs](#skill-uris)). That is one disambiguation strategy; a host may instead rewrite URIs with a per-server prefix, scope by session, or anything else appropriate to its architecture. The tool is general-purpose — it reads any MCP resource — and is useful beyond skills.
 
 ### SDKs: Convenience Wrappers
 
