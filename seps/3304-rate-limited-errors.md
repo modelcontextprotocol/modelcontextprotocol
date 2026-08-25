@@ -1,4 +1,4 @@
-# SEP-0000: Standardize Rate-Limiting Errors
+# SEP-3304: Standardize Rate-Limiting Errors
 
 - **Status**: Draft
 - **Type**: Standards Track
